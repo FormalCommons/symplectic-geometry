@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Riemannian.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelConnection
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledDist
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
@@ -104,21 +105,22 @@ the segment from `0` to `z` has `g_J`-speed at most `√(3 / 2) * ‖z‖ / √(
 every direction, not only `z`
 (`SymplecticGeometry.RescaledUnitaryCharts.mul_norm_mfderiv_symm_le`).
 
-For the lower half, let `d_k = √(2π k) · d_{g_J}`. On the same ball, the differential of each chart
-stretches `g_J`-norms by at most `√2 * √(2π k)`
+For the lower half, let `d_k = √(2π k) · d_{g_J}` (`SymplecticGeometry.rescaledEDist`, and
+`SymplecticGeometry.rescaledDist` as a real number). On the same ball, the differential of each
+chart stretches `g_J`-norms by at most `√2 * √(2π k)`
 (`SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_le_mul`), so
 `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z)`
-(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_norm_le_mul_riemannianEDist`,
+(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_norm_le_rescaledEDist_symm`,
 from `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`). Each of these bounds is stated
 for one `k`, one point `x` and a radius `ρ₁` on which the comparison above holds in
 `D.chart k x` (`SymplecticGeometry.RescaledUnitaryCharts.IsComparisonRadius`), with `ρ₁ ≤ ρ₀`
 where the ball must lie in the target of the chart. Together the two halves give the two-sided
 bound `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖`
-(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`).
+(`SymplecticGeometry.RescaledUnitaryCharts.rescaledEDist_symm_mem_Icc`).
 Conversely, a point `y` that is not `(D.chart k x).symm z` for any `z` in that ball has
 `ρ₁ * √k / √2 ≤ d_k(x, y)`, since a path from `x` to `y` must leave the ball, and the same
 stretching bound makes the part of it inside the ball long
-(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_mul_riemannianEDist_of_notMem`,
+(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_rescaledEDist_of_notMem`,
 from `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`). So every `y` with
 `d_k(x, y) < R ≤ ρ₁ * √k / √2` is `(D.chart k x).symm z` for some `z` with `‖z‖ < √2 * R`.
 
@@ -169,18 +171,19 @@ from `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`). So every `y`
   ball of radius `ρ₁ * √k` the derivative of the inverse of each
   chart has operator norm at most `√(3 / 2) / √(2π k)`, and that of the chart at most
   `√2 * √(2π k)`.
-* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_le`:
+* `SymplecticGeometry.RescaledUnitaryCharts.rescaledEDist_symm_le`:
   for the metric `g_J`, `√(2π k)` times the distance from the centre `x` to the point with image
   `z` is at most `√(3 / 2) * ‖z‖` on a ball of radius `ρ₁ * √k`.
-* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_norm_le_mul_riemannianEDist`:
+* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_norm_le_rescaledEDist_symm`:
   on a ball of radius `ρ₁ * √k`, `‖z‖ / √2` is at most the rescaled distance `d_k` from `x` to
   the point with image `z`.
-* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`:
+* `SymplecticGeometry.RescaledUnitaryCharts.rescaledEDist_symm_mem_Icc`:
   the two bounds together, on the same ball of radius `ρ₁ * √k`: `d_k` from `x` to the point with
-  image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`; its lower half as a real inequality,
-  `RescaledUnitaryCharts.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm`.
-* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_mul_riemannianEDist_of_notMem` and
-  `SymplecticGeometry.RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_riemannianEDist_lt`:
+  image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`; its two halves as real inequalities,
+  `RescaledUnitaryCharts.norm_le_sqrt_two_mul_rescaledDist_symm` and
+  `RescaledUnitaryCharts.rescaledDist_symm_le`.
+* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_rescaledEDist_of_notMem` and
+  `SymplecticGeometry.RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_rescaledEDist_lt`:
   the points outside the image of the ball of radius `ρ₁ * √k` are at rescaled distance at least
   `ρ₁ * √k / √2` from `x`, so the points at rescaled distance less than `R ≤ ρ₁ * √k / √2` are
   images of points of norm less than `√2 * R`.
@@ -992,13 +995,13 @@ point, and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsCo
 `exists_forall_isComparisonRadius` provides. For every `z` in the ball of
 radius `ρ₁ * √k`, the Riemannian distance from `x` to the point
 `(D.chart k x).symm z`, multiplied by `√(2π k)`, is at most `√(3 / 2) * ‖z‖`. -/
-theorem ofReal_mul_riemannianEDist_symm_le
+theorem rescaledEDist_symm_le
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
     {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
-    ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ≤
-      ENNReal.ofReal (√(3 / 2) * ‖z‖) := by
+    rescaledEDist I k x ((D.chart k x).symm z) ≤ ENNReal.ofReal (√(3 / 2) * ‖z‖) := by
+  rw [rescaledEDist_def]
   set φ := D.chart k x
   have hR : 0 < ρ₁ * √k := (norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)
   have hk0 : 0 < √k := pos_of_mul_pos_right hR (pos_of_mul_pos_left hR (Real.sqrt_nonneg _)).le
@@ -1027,21 +1030,24 @@ theorem ofReal_mul_riemannianEDist_symm_le
         rw [← ENNReal.ofReal_mul hs.le, mul_div_cancel₀ _ hs.ne']
 
 open scoped ENNReal NNReal in
-/-- A step shared by the lower bounds for `d_k` below: a bound `a ≤ C · d` that holds for every
-nonzero `C` with which the chart `D.chart k x` satisfies the hypotheses of
+/-- A step shared by the lower bounds for `d_k` below: a bound `a ≤ C · d(x, w)`, for `d` the
+Riemannian distance, that holds for every nonzero `C` with which the chart `D.chart k x` satisfies
+the hypotheses of
 `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist` on the ball of radius `ρ₁ * √k`
-gives `a / √2 ≤ √(2π k) · d`, the chart stretching `g_J`-norms by at most `√2 * √(2π k)` there
+gives `a / √2 ≤ d_k(x, w)`, the chart stretching `g_J`-norms by at most `√2 * √(2π k)` there
 (`norm_mvfderiv_le_mul`). -/
 private theorem ofReal_inv_sqrt_two_mul_le_of_forall
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (hk0 : 0 < (k : ℝ)) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
-    {a : ℝ} {d : ℝ≥0∞}
+    {a : ℝ} {w : M}
     (h : ∀ C : ℝ≥0, C ≠ 0 → ball (D.chart k x x) (ρ₁ * √k) ⊆ (D.chart k x).target →
       (∀ y ∈ (D.chart k x).source, D.chart k x y ∈ ball (D.chart k x x) (ρ₁ * √k) →
         ∀ v : TangentSpace I y, ‖mvfderiv I (D.chart k x) y v‖ ≤ C * ‖v‖) →
-      ENNReal.ofReal a ≤ C * d) :
-    ENNReal.ofReal ((√2)⁻¹ * a) ≤ ENNReal.ofReal √(2 * Real.pi * k) * d := by
+      ENNReal.ofReal a ≤ C * Manifold.riemannianEDist I x w) :
+    ENNReal.ofReal ((√2)⁻¹ * a) ≤ rescaledEDist I k x w := by
+  rw [rescaledEDist_def]
+  set d := Manifold.riemannianEDist I x w
   set s := √(2 * Real.pi * k)
   have hC := h (√2 * s).toNNReal (by rw [Ne, Real.toNNReal_eq_zero, not_le]; positivity)
     (by
@@ -1068,13 +1074,12 @@ metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J
 `exists_forall_isComparisonRadius` provides. For every `z` in the ball of
 radius `ρ₁ * √k`, the rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to the
 point `(D.chart k x).symm z` is at least `‖z‖ / √2`. -/
-theorem ofReal_mul_norm_le_mul_riemannianEDist [T2Space M]
+theorem ofReal_mul_norm_le_rescaledEDist_symm [T2Space M]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
     {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
-    ENNReal.ofReal ((√2)⁻¹ * ‖z‖) ≤
-      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) := by
+    ENNReal.ofReal ((√2)⁻¹ * ‖z‖) ≤ rescaledEDist I k x ((D.chart k x).symm z) := by
   have hR : 0 < ρ₁ * √k := (norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)
   have hk0 : 0 < (k : ℝ) := Real.sqrt_pos.1
     (pos_of_mul_pos_right hR (pos_of_mul_pos_left hR (Real.sqrt_nonneg _)).le)
@@ -1090,44 +1095,56 @@ metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J
 `exists_forall_isComparisonRadius` provides. For every `z` in the ball of
 radius `ρ₁ * √k`, the rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to the
 point `(D.chart k x).symm z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`. -/
-theorem ofReal_mul_riemannianEDist_symm_mem_Icc [T2Space M]
+theorem rescaledEDist_symm_mem_Icc [T2Space M]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
     {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
-    ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ∈
+    rescaledEDist I k x ((D.chart k x).symm z) ∈
       Set.Icc (ENNReal.ofReal ((√2)⁻¹ * ‖z‖)) (ENNReal.ofReal (√(3 / 2) * ‖z‖)) :=
-  ⟨D.ofReal_mul_norm_le_mul_riemannianEDist hg hρ₁₀ hk x hcmp hz,
-    D.ofReal_mul_riemannianEDist_symm_le hg hρ₁₀ hk x hcmp hz⟩
+  ⟨D.ofReal_mul_norm_le_rescaledEDist_symm hg hρ₁₀ hk x hcmp hz,
+    D.rescaledEDist_symm_le hg hρ₁₀ hk x hcmp hz⟩
 
-/-- The lower bound of `ofReal_mul_riemannianEDist_symm_mem_Icc` as a real inequality: under the
+/-- The lower bound of `rescaledEDist_symm_mem_Icc` as a real inequality: under the
 same hypotheses, `‖z‖ ≤ √2 * d_k(x, (D.chart k x).symm z)`, where the rescaled distance
 `d_k = √(2π k) · d_{g_J}` is taken as a real number. -/
-theorem norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm [T2Space M]
+theorem norm_le_sqrt_two_mul_rescaledDist_symm [T2Space M]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
     {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
-    ‖z‖ ≤ √2 * (ENNReal.ofReal √(2 * Real.pi * k) *
-      Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal := by
-  obtain ⟨hlo, hhi⟩ := D.ofReal_mul_riemannianEDist_symm_mem_Icc hg hρ₁₀ hk x hcmp hz
+    ‖z‖ ≤ √2 * rescaledDist I k x ((D.chart k x).symm z) := by
+  rw [rescaledDist_def]
+  obtain ⟨hlo, hhi⟩ := D.rescaledEDist_symm_mem_Icc hg hρ₁₀ hk x hcmp hz
   have h := (ENNReal.ofReal_le_iff_le_toReal (ne_top_of_le_ne_top ENNReal.ofReal_ne_top hhi)).1 hlo
   have h2 : (0 : ℝ) < √2 := by positivity
   calc ‖z‖ = √2 * ((√2)⁻¹ * ‖z‖) := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
     _ ≤ _ := mul_le_mul_of_nonneg_left h h2.le
+
+/-- The upper bound of `rescaledEDist_symm_mem_Icc` as a real inequality: under the hypotheses of
+`rescaledEDist_symm_le`, `d_k(x, (D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖`, where the rescaled
+distance `d_k = √(2π k) · d_{g_J}` is taken as a real number. -/
+theorem rescaledDist_symm_le
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
+    rescaledDist I k x ((D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖ := by
+  rw [rescaledDist_def]
+  exact ENNReal.toReal_le_of_le_ofReal (by positivity)
+    (D.rescaledEDist_symm_le hg hρ₁₀ hk x hcmp hz)
 
 /-- **Points far from the centre in the chart are far for `d_k`.** Let `M` be Hausdorff, with a
 Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `x` be a point,
 and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`). Every point
 `y` that is not `(D.chart k x).symm z` for any `z` in the ball of radius `ρ₁ * √k` is at
 rescaled distance `d_k = √(2π k) · d_{g_J}` at least `ρ₁ * √k / √2` from `x`. -/
-theorem ofReal_le_mul_riemannianEDist_of_notMem [T2Space M]
+theorem ofReal_le_rescaledEDist_of_notMem [T2Space M]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
     {y : M} (hy : y ∉ (D.chart k x).symm '' ball 0 (ρ₁ * √k)) :
-    ENNReal.ofReal ((√2)⁻¹ * (ρ₁ * √k)) ≤
-      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y := by
+    ENNReal.ofReal ((√2)⁻¹ * (ρ₁ * √k)) ≤ rescaledEDist I k x y := by
   rcases le_or_gt (ρ₁ * √k) 0 with hR | hR
   · rw [ENNReal.ofReal_of_nonpos (mul_nonpos_of_nonneg_of_nonpos (by positivity) hR)]
     exact zero_le
@@ -1146,24 +1163,23 @@ with a Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `
 point, and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`). If the
 rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to `y` is less than `R`, with
 `R ≤ ρ₁ * √k / √2`, then `y = (D.chart k x).symm z` for some `z` with `‖z‖ < √2 * R`. -/
-theorem exists_norm_lt_symm_eq_of_riemannianEDist_lt [T2Space M]
+theorem exists_norm_lt_symm_eq_of_rescaledEDist_lt [T2Space M]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
     {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
     {R : ℝ} (hRρ : R ≤ (√2)⁻¹ * (ρ₁ * √k)) {y : M}
-    (hy : ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y <
-      ENNReal.ofReal R) :
+    (hy : rescaledEDist I k x y < ENNReal.ofReal R) :
     ∃ z, ‖z‖ < √2 * R ∧ (D.chart k x).symm z = y := by
   by_cases hmem : y ∈ (D.chart k x).symm '' ball 0 (ρ₁ * √k)
   · obtain ⟨z, hz, rfl⟩ := hmem
-    have h := (D.ofReal_mul_norm_le_mul_riemannianEDist hg hρ₁₀ hk x hcmp hz).trans_lt hy
+    have h := (D.ofReal_mul_norm_le_rescaledEDist_symm hg hρ₁₀ hk x hcmp hz).trans_lt hy
     have hR : 0 < R := ENNReal.ofReal_pos.1 (zero_le.trans_lt h)
     rw [ENNReal.ofReal_lt_ofReal_iff hR] at h
     refine ⟨z, ?_, rfl⟩
     have h2 : (0 : ℝ) < √2 := by positivity
     calc ‖z‖ = √2 * ((√2)⁻¹ * ‖z‖) := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
       _ < √2 * R := by gcongr
-  · exact absurd ((D.ofReal_le_mul_riemannianEDist_of_notMem hg hρ₁₀ hk x hcmp
+  · exact absurd ((D.ofReal_le_rescaledEDist_of_notMem hg hρ₁₀ hk x hcmp
       hmem).trans_lt hy) (not_lt.2 (ENNReal.ofReal_le_ofReal hRρ))
 
 end RiemannianEDist

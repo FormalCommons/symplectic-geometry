@@ -124,7 +124,7 @@ theorem exists_le_norm_peakSection [T2Space M]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     (hρ₀ : 0 < ρ₀) :
     ∃ R > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
-      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y < ENNReal.ofReal R →
+      rescaledEDist I k x y < ENNReal.ofReal R →
         Real.exp (-1 / 4) ≤ ‖D.peakSection k x y‖ :=
   D.exists_le_norm_sectionOfReading hg hρ₀ <| by
     filter_upwards [Filter.eventually_ge_atTop 1] with k hk z hz
@@ -141,10 +141,8 @@ theorem exists_jetNorm_peakSection_le [T2Space M] [I.Boundaryless]
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) :
     ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
       D.jetNorm k r (D.peakSection k x) y ≤
-        C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-          Manifold.riemannianEDist I x y).toReal) ^ N *
-          Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal ^ 2) :=
+        C * (1 + rescaledDist I k x y) ^ N *
+          Real.exp (-c * rescaledDist I k x y ^ 2) :=
   let ⟨A, N, c, hc, h⟩ := exists_jetNormAt_peakFunction_le (E := StdSpace ι) r
   D.exists_jetNorm_sectionOfReading_le hg hJ hα hρ₀ r
     (.of_forall fun k ↦ contDiff_peakFunction k)
@@ -162,10 +160,8 @@ theorem exists_dbarJetNorm_peakSection_le [T2Space M] [I.Boundaryless]
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) :
     ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
       D.dbarJetNorm k r (D.peakSection k x) y ≤
-        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-          Manifold.riemannianEDist I x y).toReal) ^ N *
-          Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal ^ 2) :=
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k x y) ^ N *
+          Real.exp (-c * rescaledDist I k x y ^ 2) :=
   let ⟨A, N, c, hc, h⟩ := exists_jetNormAt_peakFunction_le (E := StdSpace ι) (r + 1)
   let ⟨A', N', c', hc', h'⟩ := exists_jetNormAt_modelDbar_peakFunction_le (ι := ι) r
   D.exists_dbarJetNorm_sectionOfReading_le hg hJ hα hρ₀ r
@@ -184,10 +180,8 @@ theorem exists_jetNorm_peakSection_mul_le [T2Space M] [I.Boundaryless]
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) (j : ι) :
     ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
       D.jetNorm k r (D.peakSection_mul k x j) y ≤
-        C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-          Manifold.riemannianEDist I x y).toReal) ^ N *
-          Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal ^ 2) :=
+        C * (1 + rescaledDist I k x y) ^ N *
+          Real.exp (-c * rescaledDist I k x y ^ 2) :=
   let ⟨A, N, c, hc, h⟩ := exists_jetNormAt_peakFunction_mul_le (ι := ι) r
   D.exists_jetNorm_sectionOfReading_le hg hJ hα hρ₀ r
     (.of_forall fun k ↦ contDiff_peakFunction_mul k j)
@@ -205,10 +199,8 @@ theorem exists_dbarJetNorm_peakSection_mul_le [T2Space M] [I.Boundaryless]
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) (j : ι) :
     ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
       D.dbarJetNorm k r (D.peakSection_mul k x j) y ≤
-        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-          Manifold.riemannianEDist I x y).toReal) ^ N *
-          Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal ^ 2) :=
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k x y) ^ N *
+          Real.exp (-c * rescaledDist I k x y ^ 2) :=
   let ⟨A, N, c, hc, h⟩ := exists_jetNormAt_peakFunction_mul_le (ι := ι) (r + 1)
   let ⟨A', N', c', hc', h'⟩ := exists_jetNormAt_modelDbar_peakFunction_mul_le (ι := ι) r
   D.exists_dbarJetNorm_sectionOfReading_le hg hJ hα hρ₀ r
@@ -269,30 +261,22 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) :
     (∃ R > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
-      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y < ENNReal.ofReal R →
+      rescaledEDist I k x y < ENNReal.ofReal R →
         Real.exp (-1 / 4) ≤ ‖D.peakSection k x y‖) ∧
     (∀ r : ℕ, ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
       D.jetNorm k r (D.peakSection k x) y ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal) ^ N *
-            Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-              Manifold.riemannianEDist I x y).toReal ^ 2) ∧
+          C * (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2) ∧
         D.dbarJetNorm k r (D.peakSection k x) y ≤
-          C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal) ^ N *
-            Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-              Manifold.riemannianEDist I x y).toReal ^ 2)) ∧
+          C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2)) ∧
     (∀ (r : ℕ) (j : ι), ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
       D.jetNorm k r (D.peakSection_mul k x j) y ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal) ^ N *
-            Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-              Manifold.riemannianEDist I x y).toReal ^ 2) ∧
+          C * (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2) ∧
         D.dbarJetNorm k r (D.peakSection_mul k x j) y ≤
-          C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x y).toReal) ^ N *
-            Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
-              Manifold.riemannianEDist I x y).toReal ^ 2)) ∧
+          C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2)) ∧
     ∀ x : ℕ → M, D.IsAsymptoticallyHolomorphic (fun k ↦ D.peakSection k (x k)) ∧
       ∀ j : ι, D.IsAsymptoticallyHolomorphic fun k ↦ D.peakSection_mul k (x k) j := by
   refine ⟨D.exists_le_norm_peakSection hg hρ₀, fun r ↦ ?_, fun r j ↦ ?_, fun x ↦
@@ -304,9 +288,8 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
       (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
       (F := fun k (p : M × M) ↦ D.jetNorm k r (D.peakSection k p.1) p.2)
       (G := fun k p ↦ D.dbarJetNorm k r (D.peakSection k p.1) p.2)
-      (d := fun k p ↦
-        (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I p.1 p.2).toReal)
-      (fun _ _ ↦ ENNReal.toReal_nonneg) (fun _ ↦ by positivity)
+      (d := fun k p ↦ rescaledDist I k p.1 p.2) (fun k p ↦ rescaledDist_nonneg I k p.1 p.2)
+      (fun _ ↦ by positivity)
       ⟨C₁, N₁, c₁, hc₁, h₁.mono fun _ h p ↦ h p.1 p.2⟩
       ⟨C₂, N₂, c₂, hc₂, h₂.mono fun _ h p ↦ h p.1 p.2⟩
     exact ⟨C, N, c, hc, h.mono fun _ h x y ↦ h (x, y)⟩
@@ -316,9 +299,8 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
       (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
       (F := fun k (p : M × M) ↦ D.jetNorm k r (D.peakSection_mul k p.1 j) p.2)
       (G := fun k p ↦ D.dbarJetNorm k r (D.peakSection_mul k p.1 j) p.2)
-      (d := fun k p ↦
-        (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I p.1 p.2).toReal)
-      (fun _ _ ↦ ENNReal.toReal_nonneg) (fun _ ↦ by positivity)
+      (d := fun k p ↦ rescaledDist I k p.1 p.2) (fun k p ↦ rescaledDist_nonneg I k p.1 p.2)
+      (fun _ ↦ by positivity)
       ⟨C₁, N₁, c₁, hc₁, h₁.mono fun _ h p ↦ h p.1 p.2⟩
       ⟨C₂, N₂, c₂, hc₂, h₂.mono fun _ h p ↦ h p.1 p.2⟩
     exact ⟨C, N, c, hc, h.mono fun _ h x y ↦ h (x, y)⟩
