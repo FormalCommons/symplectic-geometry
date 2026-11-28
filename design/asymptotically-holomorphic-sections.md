@@ -163,7 +163,7 @@ milestone states it.
 
 Three facts that neither Tau Ceti nor Mathlib had are prerequisites of the
 part. Issues 1–4 below planned them, and all are merged:
-`TauCeti.injective_deRhamHom`,
+the de Rham theorem (now Tau Ceti's `TauCeti.bijective_deRhamHom`),
 `SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq` and
 `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files
 listed under *Prerequisites*.
@@ -466,10 +466,8 @@ and the prerequisites, placed by topic.
 
 ### Prerequisites
 
-- `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
-  `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom` (for manifolds
-  that have a finite good cover), `TauCeti.bijective_deRhamHom_of_compactSpace`
-  (for a compact one), `TauCeti.injective_deRhamHom`. Tau Ceti's
+- The de Rham theorem is Tau Ceti's `TauCeti.bijective_deRhamHom`
+  (`Geometry/Manifold/SmoothSingular/DeRham/Equiv.lean`). Tau Ceti's
   `deRhamHom` already takes values in singular cohomology, through its
   smoothing isomorphism `TauCeti.smoothSingularCohomologyIso`
   (`SmoothSingular/Smoothing.lean`), so the file needs no comparison.
@@ -655,7 +653,7 @@ issue that adds an existing name of Tau Ceti or Mathlib uses it instead;
 each prerequisite issue first searches both for its statement.
 
 1. **The de Rham theorem**
-   (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`). Waits for
+   (now Tau Ceti's `SmoothSingular/DeRham/Equiv.lean`). Waits for
    nothing. Its agent may split it in two: the Mayer–Vietoris square of
    `deRhamHom` with its connecting maps, then the induction.
 2. **Classifying maps for $H^2$** (`ProjectiveSpaceClassifying.lean`).
