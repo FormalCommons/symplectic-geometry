@@ -17,11 +17,14 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 Tau Ceti defines the left Maurer–Cartan form `θ_g v = d(L_{g⁻¹})_g v` of a real Lie group `G`
 (`TauCeti.leftMaurerCartanForm`), a smooth one-form with values in the model space `E`, which is
 the Lie algebra `GroupLieAlgebra I G`, and proves its pointwise laws under left and right
-translations. This file adds the law under right translations as an identity of smooth forms, the
-Maurer–Cartan equation, and the structure equation along a map from a normed space.
+translations. This file identifies `θ` with a left-invariant form, and adds the law under right
+translations as an identity of smooth forms, the Maurer–Cartan equation, and the structure
+equation along a map from a normed space.
 
 ## Main results
 
+* `TauCeti.leftMaurerCartanForm_eq_leftInvariantSmoothForm`: `θ` is the left-invariant extension
+  of the identity of the Lie algebra.
 * `SymplecticGeometry.mpullback_mul_right_leftMaurerCartanForm`: right translation by `h` pulls
   `θ` back to its image under `Ad(h⁻¹)`, as smooth forms.
 * `SymplecticGeometry.differentiable_mfderiv_inv_mul_mfderiv`: the left-trivialized derivative
@@ -57,6 +60,26 @@ noncomputable section
 open TauCeti TauCeti.Lie
 open scoped Manifold ContDiff
 
+namespace TauCeti
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+
+/-- The left Maurer–Cartan form is the left-invariant extension of the identity of the Lie algebra
+`GroupLieAlgebra I G`, read as a one-form on it with values in the model space `E`. -/
+theorem leftMaurerCartanForm_eq_leftInvariantSmoothForm :
+    leftMaurerCartanForm I G = leftInvariantSmoothForm I G E 1
+      (ContinuousAlternatingMap.ofSubsingleton ℝ (GroupLieAlgebra I G) E 0
+        (ContinuousLinearMap.id ℝ E)) := by
+  refine SmoothBundleForm.ext fun g u ↦ ?_
+  have hu : u = ![u 0] := by ext i; fin_cases i; rfl
+  rw [leftInvariantSmoothForm_val, leftInvariantForm_apply, hu, leftMaurerCartanForm_apply]
+  -- The identity of `E` applied to the translated vector is that vector, by definition.
+  rfl
+
+end TauCeti
+
 namespace SymplecticGeometry
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -68,14 +91,17 @@ adjoint action of `h⁻¹`: `R_h^* θ = Ad(h⁻¹) θ`. -/
 @[simp]
 theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     SmoothForm.mpullback (· * h) contMDiff_mul_right (leftMaurerCartanForm I G) =
-      SmoothForm.mapCoeff (show E →L[ℝ] E from adjointContinuousLinearMap (I := I) h⁻¹)
+      SmoothForm.mapCoeff (F := E) (G := E) (adjointContinuousLinearMap (I := I) h⁻¹)
         (leftMaurerCartanForm I G) := by
   refine SmoothBundleForm.ext fun g v ↦ ?_
   have hv : v = ![v 0] := by ext i; fin_cases i; rfl
-  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, SmoothForm.coe_mapCoeff,
-    RoughForm.mapCoeff_apply, hv]
-  exact (congrArg ((leftMaurerCartanForm I G).val (g * h)) (by ext i; fin_cases i; rfl)).trans
-    (leftMaurerCartanForm_apply_mfderiv_mul_right g h (v 0))
+  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, hv]
+  refine ((congrArg ((leftMaurerCartanForm I G).val (g * h)) (by ext i; fin_cases i; rfl)).trans
+    (leftMaurerCartanForm_apply_mfderiv_mul_right g h (v 0))).trans ?_
+  -- `Ad(h⁻¹)` is typed on `GroupLieAlgebra I G`, so `rw` cannot match `mapCoeff (F := E)`.
+  exact ((DFunLike.congr_fun (congrFun (SmoothForm.coe_mapCoeff (F := E) (G := E)
+    (adjointContinuousLinearMap (I := I) h⁻¹) (leftMaurerCartanForm I G)) g) _).trans
+    (RoughForm.mapCoeff_apply (F := E) (G := E) _ _ _ _)).symm
 
 section LeftTrivialization
 
@@ -104,44 +130,26 @@ variable [FiniteDimensional ℝ E]
 /-- **The Maurer–Cartan equation**: the exterior derivative of the left Maurer–Cartan form `θ`
 is `dθ(v, w) = -⁅θ v, θ w⁆`, the bracket being that of `GroupLieAlgebra I G`. -/
 theorem mextDeriv_leftMaurerCartanForm_apply (g : G) (v w : TangentSpace I g) :
-    (show GroupLieAlgebra I G from mextDeriv (leftMaurerCartanForm I G).val g ![v, w]) =
-      -⁅show GroupLieAlgebra I G from (leftMaurerCartanForm I G).val g ![v],
-        show GroupLieAlgebra I G from (leftMaurerCartanForm I G).val g ![w]⁆ := by
-  -- `θ` is the left-invariant extension of the identity of the Lie algebra.
-  have hθ : (leftMaurerCartanForm I G).val = leftInvariantForm I G E 1
-      (ContinuousAlternatingMap.ofSubsingleton ℝ (GroupLieAlgebra I G) E 0
-        (ContinuousLinearMap.id ℝ E)) := by
-    funext g'
-    ext u
-    have hu : u = ![u 0] := by ext i; fin_cases i; rfl
-    rw [leftInvariantForm_apply, hu, leftMaurerCartanForm_apply]
-    -- The identity of `E` applied to the translated vector is that vector, by definition.
-    rfl
+    @Eq (GroupLieAlgebra I G) (mextDeriv (leftMaurerCartanForm I G).val g ![v, w])
+      (-@Bracket.bracket (GroupLieAlgebra I G) (GroupLieAlgebra I G) _
+        ((leftMaurerCartanForm I G).val g ![v]) ((leftMaurerCartanForm I G).val g ![w])) := by
   obtain ⟨ξ, rfl⟩ := exists_mulInvariantVectorField_eq v
   obtain ⟨η, rfl⟩ := exists_mulInvariantVectorField_eq w
   have hvw : ![mulInvariantVectorField ξ g, mulInvariantVectorField η g] =
       fun i ↦ mulInvariantVectorField (![ξ, η] i) g := by
     ext i
     fin_cases i <;> rfl
-  have hξ : (show GroupLieAlgebra I G from
-      (leftMaurerCartanForm I G).val g ![mulInvariantVectorField ξ g]) = ξ :=
-    leftMaurerCartanForm_apply_mulInvariantVectorField ξ g
-  have hη : (show GroupLieAlgebra I G from
-      (leftMaurerCartanForm I G).val g ![mulInvariantVectorField η g]) = η :=
-    leftMaurerCartanForm_apply_mulInvariantVectorField η g
-  rw [hξ, hη]
-  refine (congrArg (fun α ↦ α g ![mulInvariantVectorField ξ g, mulInvariantVectorField η g])
-    (congrArg mextDeriv hθ)).trans ?_
-  rw [mextDeriv_leftInvariantForm, hvw, leftInvariantForm_apply_mulInvariantVectorField,
-    LieModule.Cohomology.trivialD_succ_apply]
-  simp only [Nat.reduceAdd, Finset.univ_unique, Fin.default_eq_zero, Fin.isValue, Int.reduceNeg,
-    Fin.val_eq_zero, add_zero, zero_add, pow_one, Nat.succ_eq_add_one, Matrix.cons_val_succ,
-    Matrix.cons_val_fin_one, neg_smul, one_smul, Finset.sum_neg_distrib, Finset.sum_singleton,
-    Finset.Ici_zero_eq_univ, Fin.castSucc_zero, Matrix.cons_val_zero, Fin.removeNth_zero,
-    Fin.tail_vecCons, lie_skew]
-  -- The identity of `E` read on `⁅ξ, η⁆`, by definition.
-  change -⁅ξ, η⁆ = ⁅η, ξ⁆
-  exact lie_skew η ξ
+  rw [leftMaurerCartanForm_apply_mulInvariantVectorField,
+    leftMaurerCartanForm_apply_mulInvariantVectorField,
+    leftMaurerCartanForm_eq_leftInvariantSmoothForm,
+    leftInvariantSmoothForm_val, mextDeriv_leftInvariantForm, hvw,
+    leftInvariantForm_apply_mulInvariantVectorField, LieModule.Cohomology.trivialD_succ_apply]
+  -- The identity of `E` read on `⁅ξ, η⁆`, by definition, and skew-symmetry of the bracket.
+  have hid : -ContinuousAlternatingMap.ofSubsingleton ℝ (GroupLieAlgebra I G) E 0
+      (ContinuousLinearMap.id ℝ E) ![⁅ξ, η⁆] = ⁅η, ξ⁆ :=
+    (congrArg Neg.neg (ContinuousAlternatingMap.ofSubsingleton_apply_apply ..)).trans
+      (lie_skew η ξ)
+  simp [hid]
 
 variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
 
@@ -152,10 +160,9 @@ theorem fderiv_leftMaurerCartanForm_mfderiv_sub {γ : E' → G} (hγ : ContMDiff
     (x v w : E') :
     fderiv ℝ (fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y w]) x v -
         fderiv ℝ (fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y v]) x w =
-      -⁅show GroupLieAlgebra I G from
-          (leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x v],
-        show GroupLieAlgebra I G from
-          (leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x w]⁆ := by
+      -@Bracket.bracket (GroupLieAlgebra I G) (GroupLieAlgebra I G) _
+        ((leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x v])
+        ((leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x w]) := by
   have hpull := SmoothForm.mextDeriv_mpullback_apply_two γ hγ (leftMaurerCartanForm I G) x v w
   have hd := ((isSmoothForm_modelSpace_iff.1 (SmoothForm.isSmoothForm
     (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)))).differentiable (by simp)) x

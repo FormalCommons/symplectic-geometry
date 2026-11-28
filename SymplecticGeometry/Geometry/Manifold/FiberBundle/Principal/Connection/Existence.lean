@@ -94,13 +94,15 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
     TauCeti.mpullback (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y)
       (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
         (leftMaurerCartanForm IG G).val) x =
-      RoughForm.mapCoeff (show EG →L[ℝ] EG from adjointContinuousLinearMap (I := IG) g⁻¹)
+      RoughForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹)
         (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
           (leftMaurerCartanForm IG G).val) x := by
-  have hR :=
-    (SmoothForm.mpullback_eq_iff _).1 (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
-  rw [SmoothForm.coe_mapCoeff] at hR
-  rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
+  -- `Ad(g⁻¹)` is typed on `GroupLieAlgebra IG G`, so `rw` cannot match `mapCoeff (F := EG)`.
+  have hR := ((SmoothForm.mpullback_eq_iff _).1
+    (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)).trans
+    (SmoothForm.coe_mapCoeff (F := EG) (G := EG) _ _)
+  rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR]
+  exact congrFun (mpullback_mapCoeff (F := EG) (G := EG) _ _ _) x
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -156,9 +158,11 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
       RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]
     refine Finset.sum_congr rfl fun b hb ↦ ?_
-    have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
-      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v
-    rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
+    -- As above, `mapCoeff_apply` is applied as a term rather than by `rw`.
+    have h := (DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
+      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v).trans
+      (RoughForm.mapCoeff_apply (F := EG) (G := EG) _ _ _ _)
+    rw [mpullback_apply] at h
     rw [map_smul]
     -- `h` is stated in the model space `EG`, the goal in the Lie algebra; they agree by definition.
     exact congrArg (ρ b (p x) • ·) h
