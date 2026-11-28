@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.ManifoldFamily
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Prod
@@ -178,12 +179,14 @@ private theorem eventually_toContMDiffMap_mem (hcover : ∀ x, ∃ i, x ∈ U i)
       (by rw [extChartAt_source]; exact h₀.2)).continuousWithinAt_iteratedFDerivWithin
         (uniqueDiffOn_extChartAt_target x) hm hw).tendsto.comp tendsto_snd
   -- The fibre part is controlled by the frame coordinates in `t`.
-  let Ut : Opens M := ⟨t.baseSet, t.open_baseSet⟩
+  let Ut : Opens M := t.baseSetOpens
+  have hUt : (Ut : Set M) ⊆ t.baseSet := t.coe_baseSetOpens.subset
   have hB := ContMDiffMap.tendsto_iteratedFDerivWithin_of_eqOn_opens Ut
-    ((continuous_frameCoordinates_of_cover e U hU hcover t Ut subset_rfl).tendsto s₀)
+    ((continuous_frameCoordinates_of_cover e U hU hcover t Ut hUt).tendsto s₀)
     (f := fun s p ↦ (t ⟨p, s p⟩).2) (f₀ := fun p ↦ (t ⟨p, s₀ p⟩).2)
-    (fun s p ↦ (t.frameCoordinates_apply subset_rfl s p).symm)
-    (fun p ↦ (t.frameCoordinates_apply subset_rfl s₀ p).symm) x hw h₀.1 m hm
+    (fun s p ↦ (t.frameCoordinates_apply hUt s p).symm)
+    (fun p ↦ (t.frameCoordinates_apply hUt s₀ p).symm) x hw
+    (Bundle.Trivialization.mem_baseSetOpens_iff.2 h₀.1) m hm
   have hlim := ((ContinuousMultilinearMap.prodL 𝕜 (fun _ : Fin m ↦ E) E F).continuous.tendsto
     _).comp (hA.prodMk_nhds hB)
   rw [iteratedFDerivWithin_extChartAt_toContMDiffMap s₀ x y hw h₀ m hm] at hW
@@ -457,17 +460,17 @@ private theorem continuous_pullbackMapCoord (hcover : ∀ y, ∃ i, y ∈ U i)
   refine ContMDiffMap.continuous_of_forall_continuous_restrict A
     (fun a ↦ ⟨g a, mem_baseSet_trivializationAt F' V' (g a)⟩) fun y ↦ ?_
   set t := trivializationAt F' V' y
-  let Ut : Opens M' := ⟨t.baseSet, t.open_baseSet⟩
+  let Ut : Opens M' := t.baseSetOpens
   -- On `A y`, the family `f`, with values in the base set of `t`.
   let gy : C^n⟮IP.prod I, A y; I', Ut⟯ := (g.restrict (A y)).codRestrict Ut fun a ↦ by
-    rw [ContMDiffMap.restrict_apply]; exact a.property
+    rw [ContMDiffMap.restrict_apply]; exact Bundle.Trivialization.mem_baseSetOpens_iff.2 a.property
   have hA (a : A y) : f ((a : P × U').1, (a : P × U').2) ∈ t.baseSet := a.property
   convert (ContMDiffMap.continuous_postcomp_manifoldWeakWhitney
     (pullbackMapTrivCoord f Φ hΦ e' U' hU' t (A y) hA)).comp
     (ContMDiffMap.continuous_prodMk_manifoldWeakWhitney.comp
       ((continuous_const (y := ContMDiffMap.id)).prodMk
       (ContMDiffMap.continuous_comp_manifoldWeakWhitney.comp
-        ((continuous_frameCoordinates_of_cover e U hU hcover t Ut subset_rfl).prodMk
+        ((continuous_frameCoordinates_of_cover e U hU hcover t Ut t.coe_baseSetOpens.subset).prodMk
           (continuous_const (y := gy)))))) using 1
   funext s
   ext a

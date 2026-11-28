@@ -523,14 +523,17 @@ theorem exists_continuousAt_mem_twistOneKernel_eq_zero (hcover : ∀ x, ∃ i, x
   -- Evaluation at `p` is continuous for the frame at `p` alone, so `J ↦ T J s p` is continuous
   -- at `J₀`.
   let e₁ (_ : PUnit.{u + 1}) := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber p
-  let U₁ (_ : PUnit.{u + 1}) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e₁ ⟨⟩).open_baseSet⟩
-  have hU₁ : ∀ x, (U₁ x : Set (OnePoint ℂ)) ⊆ (e₁ x).baseSet := fun _ ↦ subset_rfl
+  let U₁ (_ : PUnit.{u + 1}) : TopologicalSpace.Opens (OnePoint ℂ) := (e₁ ⟨⟩).baseSetOpens
+  have hU₁ : ∀ x, (U₁ x : Set (OnePoint ℂ)) ⊆ (e₁ x).baseSet :=
+    fun x ↦ (e₁ x).coe_baseSetOpens.subset
+  have hp : p ∈ U₁ ⟨⟩ :=
+    Bundle.Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt _ _ p)
   have hev (s : twistOneKernel J₀) : ContinuousAt (fun J ↦ T J s p) ⟨J₀, hJ₀⟩ := by
     obtain ⟨S', hS', hS'c⟩ := hS s
     let := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
       e₁ U₁ hU₁
     refine (((ContMDiffSection.continuous_eval_const_of_mem e₁ U₁ hU₁ ⟨⟩
-      (mem_baseSet_trivializationAt _ _ p)).continuousAt).comp (hS'c e₁ U₁ hU₁)).congr ?_
+      hp).continuousAt).comp (hS'c e₁ U₁ hU₁)).congr ?_
     filter_upwards [hS'] with J hJ using congrFun hJ p
   -- At `J₀`, `a` and `b` do not both vanish at `p`, since they are independent.
   have hl₀ : (T ⟨J₀, hJ₀⟩ (v 0) p, T ⟨J₀, hJ₀⟩ (v 1) p) ≠ 0 := by

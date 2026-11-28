@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.FiniteAtlas
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Evaluation
 import TauCeti.Geometry.Manifold.ExtChartAt
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FiniteAtlas
@@ -138,11 +139,13 @@ theorem tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto (hcover : ∀ x, ∃ 
       (iteratedFDeriv 𝕜 j (A.coord i s₀)) l (A.image i) := by
   let := ContMDiffSection.frameTopology (I := 𝓘(𝕜, E)) (n := n) e U hU
   -- The frame of the bundle chart `A.triv i` over its whole base set.
-  let U' : Opens M := ⟨(A.triv i).baseSet, (A.triv i).open_baseSet⟩
-  let x : U' := ⟨A.center i, mem_baseSet_trivializationAt F V (A.center i)⟩
+  let U' : Opens M := (A.triv i).baseSetOpens
+  have hU' : (U' : Set M) ⊆ (A.triv i).baseSet := (A.triv i).coe_baseSetOpens.subset
+  let x : U' := ⟨A.center i,
+    Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F V (A.center i))⟩
   let φ := extChartAt 𝓘(𝕜, E) x
   have hT := ((ContMDiffSection.continuous_frameCoordinates_of_cover e U hU hcover (A.triv i) U'
-    subset_rfl).tendsto s₀).comp hs
+    hU').tendsto s₀).comp hs
   -- The chart image of the closure of the chart domain is a compact subset of `φ.target`.
   have hCc := A.isCompact_chart_image_closure_dom i
   have hCt : A.chart i '' closure (A.dom i) ⊆ φ.target := by
@@ -150,9 +153,8 @@ theorem tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto (hcover : ∀ x, ∃ 
     simpa [x, U'] using A.chart_image_closure_dom_subset i
   -- On `φ.target`, the frame coordinates read through `φ` are the chart readings of `A`.
   have hread (t : Cₛ^n⟮𝓘(𝕜, E); F, V⟯) {w : E} (hw : w ∈ φ.target) :=
-    A.iteratedFDerivWithin_frameCoordinates_eq i (subset_rfl : (U' : Set M) ⊆ _) x.property t j hw
-  let f₀ := (A.triv i).frameCoordinates (I := 𝓘(𝕜, E)) (n := n)
-    (subset_rfl : (U' : Set M) ⊆ _) s₀
+    A.iteratedFDerivWithin_frameCoordinates_eq i hU' x.property t j hw
+  let f₀ := (A.triv i).frameCoordinates (I := 𝓘(𝕜, E)) (n := n) hU' s₀
   have hu := ContMDiffMap.tendstoUniformlyOn_iteratedFDerivWithin_extChartAt (J := 𝓘(𝕜, F))
     (y := (0 : F)) (f₀ := f₀) hCc hCt (fun _ _ ↦ by simp) hj
   have hsub := A.image_subset_chart_image_closure_dom i
@@ -188,9 +190,10 @@ theorem tendsto_frameTopology_of_tendstoLocallyUniformlyOn (A : FiniteBundleAtla
   -- The finite chart-frame atlas: the bundle charts of `A` over their base sets, read in the
   -- charts at the centres of `A`, with the compact pieces `b y` for `y ∈ T`.
   let e' : T → Trivialization F (π F V) := fun y ↦ A.triv (σ y)
-  let U' : T → Opens M := fun y ↦ ⟨(e' y).baseSet, (e' y).open_baseSet⟩
-  have hU' (y : T) : (U' y : Set M) ⊆ (e' y).baseSet := subset_rfl
-  let c : ∀ y, U' y := fun y ↦ ⟨A.center (σ y), mem_baseSet_trivializationAt F V _⟩
+  let U' : T → Opens M := fun y ↦ (e' y).baseSetOpens
+  have hU' (y : T) : (U' y : Set M) ⊆ (e' y).baseSet := (e' y).coe_baseSetOpens.subset
+  let c : ∀ y, U' y := fun y ↦
+    ⟨A.center (σ y), Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F V _)⟩
   have hbt (y : T) : b y ⊆ (extChartAt 𝓘(𝕜, E) (c y)).target := by
     rw [Opens.extChartAt_target_eq]
     simpa [c, U', e'] using (hbσ y).trans (A.image_subset_target_inter_preimage_baseSet _)
@@ -204,7 +207,8 @@ theorem tendsto_frameTopology_of_tendstoLocallyUniformlyOn (A : FiniteBundleAtla
           (extChartAt 𝓘(𝕜, E) (c y)).target) ∈
           interior (K y : Set (extChartAt 𝓘(𝕜, E) (c y)).target) := by
     obtain ⟨y, hyT, hxy⟩ := mem_iUnion₂.mp (hT (mem_univ x))
-    have hxU : x ∈ U' ⟨y, hyT⟩ := A.dom_subset_baseSet _ hxy.1
+    have hxU : x ∈ U' ⟨y, hyT⟩ :=
+      Trivialization.mem_baseSetOpens_iff.2 (A.dom_subset_baseSet _ hxy.1)
     have hxs : (⟨x, hxU⟩ : U' ⟨y, hyT⟩) ∈ (extChartAt 𝓘(𝕜, E) (c ⟨y, hyT⟩)).source := by
       rw [Opens.extChartAt_source_eq]
       simpa [c] using A.dom_subset_chart_source _ hxy.1

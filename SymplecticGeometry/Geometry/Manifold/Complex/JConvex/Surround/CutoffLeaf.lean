@@ -62,7 +62,7 @@ below, for `δ = 1`. These estimates, and those of `Surround/BridgeLeaf.lean` an
   (`SymplecticGeometry.cutoffLeaf_radicand_pos`), the cutoff leaf is smooth in `b`, `c` and `r`
   (`ContDiffAt.cutoffLeaf`); at each `r` with `δ² ≤ r²` it increases strictly with `b` and
   `c ≥ 0` (`SymplecticGeometry.cutoffLeaf_lt_cutoffLeaf`).
-* `SymplecticGeometry.exists_isConvexShapeAt_cutoffLeaf`: for `L` large enough, every cutoff leaf
+* `SymplecticGeometry.isConvexShapeAt_cutoffLeaf`: when `L` is a cutoff scale, every cutoff leaf
   with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²` is an `i`-convex shape at every `r > δ`. For `δ = 1` and
   `r < 2` the leaf is, near `r`, the shape `√(64 r² - 64)` of
   `SymplecticGeometry.isConvexShapeAt_sqrt_sub` plus the constant `b ≥ 0`; for `r ≥ 2` the shared
@@ -81,8 +81,8 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   `SymplecticGeometry.sqrtAddLeaf_one_of_le`), and the standard shape `√(64 r² + ℓ²)` from
   `(2 + L) δ` on (`SymplecticGeometry.sqrtAddLeaf_of_ge`); the leaves for `δ` are those for
   `δ = 1` rescaled (`SymplecticGeometry.sqrtAddLeaf_eq_mul_sqrtAddLeaf_one`).
-* `SymplecticGeometry.exists_isConvexShapeAt_sqrtAddLeaf`: for `L` large enough, every leaf with
-  `ℓ ∈ [0, 15 δ / 2]` is an `i`-convex shape at every `r > δ`, as then `b ≤ 61 δ / 8` and
+* `SymplecticGeometry.eventually_isConvexShapeAt_sqrtAddLeaf`: for `L` large enough, every leaf
+  with `ℓ ∈ [0, 15 δ / 2]` is an `i`-convex shape at every `r > δ`, as then `b ≤ 61 δ / 8` and
   `c ≤ 121 δ²`.
 * The family is smooth in `(ℓ, r)` on `r > δ` (`SymplecticGeometry.contDiffOn_uncurry_sqrtAddLeaf`,
   and each leaf by itself, `SymplecticGeometry.contDiffOn_sqrtAddLeaf`),
@@ -121,7 +121,7 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   `SymplecticGeometry.continuous_cutoffLeaf`), and its slope tends to `+∞` at `δ`
   (`SymplecticGeometry.tendsto_deriv_struweSwitchLeaf`).
 * `SymplecticGeometry.isConvexShapeAt_struweSwitchLeaf` and
-  `SymplecticGeometry.exists_forall_isConvexShapeAt_struweSwitchLeaf`: for `L` large enough,
+  `SymplecticGeometry.eventually_isConvexShapeAt_struweSwitchLeaf`: for `L` large enough,
   every leaf with `ℓ ∈ [0, 7 δ]` is an `i`-convex shape at every `r > δ`. For `ℓ ≤ 6 δ` the leaf
   is `sqrtAddLeaf L δ ℓ`. Otherwise, for `δ = 1`, the leaf near `r` is `sqrtAddLeaf L 1 ℓ` where
   it exceeds Struwe's shape by more than the width, and Struwe's shape where the reverse holds,
@@ -445,7 +445,7 @@ structure IsCutoffScale (L : ℝ) : Prop where
 /-- Every large enough `L` is a cutoff scale. -/
 theorem eventually_isCutoffScale : ∀ᶠ L in atTop, IsCutoffScale L := by
   filter_upwards [eventually_ge_atTop 1,
-    smoothTransition.eventually_abs_deriv_sub_div_le zero_le_two (ε := 1 / 1024) (by norm_num)]
+    smoothTransition.eventually_abs_deriv_sub_div_le (a := 2) (ε := 1 / 1024) (by norm_num)]
     with L hL₁ h
   exact ⟨hL₁, fun x ↦ (h x).1, fun x ↦ (h x).2⟩
 
@@ -476,16 +476,6 @@ theorem isConvexShapeAt_cutoffLeaf {L b c r : ℝ}
         (iteratedDeriv_two_cutoffLeaf_one hc₀' hr')
   have h := h₁.rescale hδ
   rwa [mul_div_cancel₀ r hδ.ne', ← cutoffLeaf_eq_mul_cutoffLeaf_one hδ] at h
-
-/-- **The cutoff leaves are `i`-convex shapes.** There is `L₀ ≥ 1` such that for every `L ≥ L₀`,
-`δ > 0`, `b ∈ [0, 8 δ]` and `c ∈ [0, 128 δ²]`, the cutoff leaf `cutoffLeaf L δ b c` is an
-`i`-convex shape at every `r > δ`. -/
-theorem exists_isConvexShapeAt_cutoffLeaf :
-    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ b ∈ Icc 0 (8 * δ), ∀ c ∈ Icc 0 (128 * δ ^ 2),
-      ∀ r, δ < r → IsConvexShapeAt (cutoffLeaf L δ b c) r := by
-  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
-  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ b hb c hc r hr ↦
-    isConvexShapeAt_cutoffLeaf (h L (le_of_max_le_right hL)) hδ hb.1 hb.2 hc.1 hc.2 hr⟩
 
 /-- The slope of the cutoff leaf with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²`, for `δ > 0`, is at
 most `11` from `2 δ` on when `L` is a cutoff scale. -/
@@ -562,15 +552,13 @@ theorem isConvexShapeAt_sqrtAddLeaf {L ℓ r : ℝ}
   exact isConvexShapeAt_cutoffLeaf hL hδ (by positivity) (by linarith)
     (by positivity) (by nlinarith) hr
 
-/-- **The leaves `sqrtAddLeaf` are `i`-convex shapes.** There is `L₀ ≥ 1` such that for every
-`L ≥ L₀`, `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, the leaf `sqrtAddLeaf L δ ℓ` is an `i`-convex shape at
-every `r > δ`. -/
-theorem exists_isConvexShapeAt_sqrtAddLeaf :
-    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (15 * δ / 2), ∀ r, δ < r →
-      IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r := by
-  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
-  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ ℓ hℓ r hr ↦
-    isConvexShapeAt_sqrtAddLeaf (h L (le_of_max_le_right hL)) hδ hℓ hr⟩
+/-- **The leaves `sqrtAddLeaf` are `i`-convex shapes.** For every large enough `L`, every `δ > 0`
+and every `ℓ ∈ [0, 15 δ / 2]`, the leaf `sqrtAddLeaf L δ ℓ` is an `i`-convex shape at every
+`r > δ`. -/
+theorem eventually_isConvexShapeAt_sqrtAddLeaf :
+    ∀ᶠ L in atTop, ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (15 * δ / 2), ∀ r, δ < r →
+      IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r :=
+  eventually_isCutoffScale.mono fun _ hL _ hδ _ hℓ _ hr ↦ isConvexShapeAt_sqrtAddLeaf hL hδ hℓ hr
 
 /-- The slope of the leaf `sqrtAddLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, is at most
 `11` from `2 δ` on when `L` is a cutoff scale. -/
@@ -951,15 +939,14 @@ theorem isConvexShapeAt_struweSwitchLeaf {L ℓ r : ℝ}
       ⟨by linarith [hℓ'.1], by linarith [hℓ'.2]⟩ hr')).rescale hδ
   rwa [mul_div_cancel₀ r hδ.ne', ← struweSwitchLeaf_eq_mul_struweSwitchLeaf_one hδ] at hc
 
-/-- **The leaves `struweSwitchLeaf` are `i`-convex shapes.** There is `L₀ ≥ 1` such that for every
-`L ≥ L₀`, `δ > 0` and `ℓ ∈ [0, 7 δ]`, the leaf `struweSwitchLeaf L δ ℓ` is an `i`-convex shape at
+/-- **The leaves `struweSwitchLeaf` are `i`-convex shapes.** For every large enough `L`, every
+`δ > 0` and every `ℓ ∈ [0, 7 δ]`, the leaf `struweSwitchLeaf L δ ℓ` is an `i`-convex shape at
 every `r > δ`. -/
-theorem exists_forall_isConvexShapeAt_struweSwitchLeaf :
-    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (7 * δ), ∀ r, δ < r →
-      IsConvexShapeAt (struweSwitchLeaf L δ ℓ) r := by
-  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
-  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ ℓ hℓ r hr ↦
-    isConvexShapeAt_struweSwitchLeaf (h L (le_of_max_le_right hL)) hδ hℓ hr⟩
+theorem eventually_isConvexShapeAt_struweSwitchLeaf :
+    ∀ᶠ L in atTop, ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (7 * δ), ∀ r, δ < r →
+      IsConvexShapeAt (struweSwitchLeaf L δ ℓ) r :=
+  eventually_isCutoffScale.mono fun _ hL _ hδ _ hℓ _ hr ↦
+    isConvexShapeAt_struweSwitchLeaf hL hδ hℓ hr
 
 /-- At `ℓ = 6 δ`, Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ` lies strictly below
 `sqrtAddLeaf L δ ℓ` at every `r > δ`, for `0 ≤ L` and `0 < δ`. -/
@@ -1088,10 +1075,11 @@ theorem exists_isConvexShapeAt_struweSwitchLeaf :
       (∀ r, δ < r → StrictMonoOn (fun ℓ ↦ struweSwitchLeaf L δ ℓ r) (Icc 0 (7 * δ))) ∧
       ∀ r ∈ Ioc δ (257 * δ / 256),
         struweSwitchLeaf L δ (7 * δ) r = struweShape δ 1 (65 * δ / 8) r := by
-  obtain ⟨L₀, hL₀, hconv⟩ := exists_forall_isConvexShapeAt_struweSwitchLeaf
+  obtain ⟨L₀, hL₀, hconv⟩ :=
+    (atTop_basis' 1).eventually_iff.1 eventually_isConvexShapeAt_struweSwitchLeaf
   refine ⟨L₀, hL₀, fun L hL δ hδ ↦ ?_⟩
   have hL' : 0 ≤ L := by linarith
-  exact ⟨fun q hq ↦ contDiffAt_uncurry_struweSwitchLeaf hL' hδ hq.2, hconv L hL δ hδ,
+  exact ⟨fun q hq ↦ contDiffAt_uncurry_struweSwitchLeaf hL' hδ hq.2, hconv (mem_Ici.2 hL) δ hδ,
     fun ℓ _ ↦ ⟨continuousOn_struweSwitchLeaf L hδ ℓ, tendsto_deriv_struweSwitchLeaf hL' hδ ℓ⟩,
     struweSwitchLeaf_of_le (by linarith),
     fun ℓ hℓ r hr ↦ struweSwitchLeaf_of_two_mul_le L hδ hℓ hr,

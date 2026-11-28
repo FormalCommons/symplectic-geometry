@@ -831,29 +831,29 @@ containing `ι '' closedBall 0 1`:
       `_of_le`, `_of_ge`, `tendsto_deriv_`, convexity, smoothness in
       `(ℓ, r)` and strict monotonicity in `ℓ`, and the slope bound of
       `sqrtAddLeaf`, follow from those of `cutoffLeaf`.
-    - `exists_isConvexShapeAt_sqrtAddLeaf`: there is `L₀ ≥ 1` such that
-      for `L ≥ L₀`, `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
+    - `eventually_isConvexShapeAt_sqrtAddLeaf`: for all large enough `L`
+      (`∀ᶠ L in atTop`), `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
       `IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r` (the range above `7 * δ`
       serves the bridge leaves below). For `δ = 1` both
       families are `b * (1 - H) + S` with `S ^ 2 = 64 * r ^ 2 - 64 + c * H`:
       `b = (ℓ + 8) / 64 ≤ 1 / 8` and `c = 64 - ℓ ^ 2 ≤ 64` for
       `sqrtSubLeaf`, `b = 1 / 8 + ℓ ≤ 61 / 8` and `c = 64 + ℓ ^ 2 ≤ 121`
-      here. So the private steps of `exists_isConvexShapeAt_sqrtSubLeaf`
+      here. So the private steps of `eventually_isConvexShapeAt_sqrtSubLeaf`
       move to `CutoffLeaf.lean` and become public, for both:
       `isConvexShapeAt_of_bounds`, as `isConvexShapeAt_of_cutoff_bounds`,
       with `0 ≤ b ≤ 8`, `0 ≤ c ≤ 128`, `|p| ≤ 1 / 1024` and
       `|r * q| ≤ 1 / 1024` in place of `1 / 8`, `64` and `1 / 64`;
       `abs_deriv_cutoff_le`, as `Real.smoothTransition.abs_deriv_sub_div_le`
       in `SmoothTransition/Deriv.lean`, for the cutoff
-      `x ↦ smoothTransition ((x - a) / L)` with `0 ≤ a` and
-      `A + a * B + M ≤ ε * L`, bounding both quantities by `ε` (here
+      `x ↦ smoothTransition ((x - a) / L)` with any real `a` and
+      `A + |a| * B + M ≤ ε * L`, bounding both quantities by `ε` (here
       `a = 2`, `ε = 1 / 1024`); and the
       first two derivatives of
       `x ↦ b * (1 - H x) + √(64 * x ^ 2 - 64 + c * H x)`, `0 ≤ c`, in
       place of `deriv_sqrtSubLeaf_one` and
       `iteratedDeriv_two_sqrtSubLeaf_one`.
-      `exists_isConvexShapeAt_sqrtSubLeaf` keeps its statement, with
-      the larger `L₀`. For `2 ≤ r` the bounds become `6 * r ≤ S ≤ 9 * r`,
+      `eventually_isConvexShapeAt_sqrtSubLeaf` holds for all large enough
+      `L`. For `2 ≤ r` the bounds become `6 * r ≤ S ≤ 9 * r`,
       `|c * p| ≤ 1 / 8` and `|b * p| ≤ 1 / 128`, so the slope is still at
       least `7`, and the second derivative is at least
       `-(20 + 1 / 128) / r`, against `343 / r` and `1 / χ ≤ 1 / (6 * r)`.
@@ -899,7 +899,7 @@ containing `ι '' closedBall 0 1`:
       `T 2 ≤ T 1 + √6 ≤ 11`, and the slope of `T` is at most
       `1 / √(log 2) < 5 / 4` on `Ici 2`.
       - Convexity, for `ℓ > 6` (for `ℓ ≤ 6` it is
-        `exists_isConvexShapeAt_sqrtAddLeaf`), with `η = g / 200`. Where
+        `eventually_isConvexShapeAt_sqrtAddLeaf`), with `η = g / 200`. Where
         `A - T > η` the leaf is `A` near `r` (`smoothedMax_eq_left`);
         where `A - T < -η` it is `T` (`smoothedMax_eq_right`), and by the
         bounds this happens only in `Ioc 1 2`, where `T` is a convex
@@ -955,8 +955,8 @@ containing `ι '' closedBall 0 1`:
       for `δ ≠ 0`, by the substitution `u = δ * v`).
 
     `exists_convexShapeFamily_surround` takes these leaves as its part
-    `ℓ ∈ Icc 0 (7 * δ)`, with one `L` at least the `L₀` of
-    `exists_isConvexShapeAt_sqrtSubLeaf` and of
+    `ℓ ∈ Icc 0 (7 * δ)`, with one `L` for which
+    `eventually_isConvexShapeAt_sqrtSubLeaf` holds and at least the `L₀` of
     `exists_isConvexShapeAt_struweSwitchLeaf`. They are standard from
     `r₀ = (2 + L) * δ` on, and they meet `sqrtSubLeaf L δ` at `ℓ = 0`,
     so the joint continuity of `χ`, `∂χ/∂r` and `∂²χ/∂r²` on
@@ -966,8 +966,8 @@ containing `ι '' closedBall 0 1`:
 
     Building issues, in this order: (1) in `Surround/CutoffLeaf.lean`,
     the shared estimate, `sqrtAddLeaf` with its API and
-    `exists_isConvexShapeAt_sqrtAddLeaf`, with the proof of
-    `exists_isConvexShapeAt_sqrtSubLeaf` rewritten through the estimate
+    `eventually_isConvexShapeAt_sqrtAddLeaf`, with the proof of
+    `eventually_isConvexShapeAt_sqrtSubLeaf` rewritten through the estimate
     (about 300 lines); (2) the rescalings and the monotonicity in the
     width above, in `SmoothedMax.lean` and `SpecialShape.lean` (about
     150 lines), independent of (1); (3) in `Surround/CutoffLeaf.lean`,
@@ -1138,7 +1138,7 @@ containing `ι '' closedBall 0 1`:
       `w = √(r ^ 2 - δ ^ 2)`: `A ≥ 8 * w`, `A ≤ δ / 8 + ℓ + 8 * r + ℓ`,
       `A = δ / 8 + ℓ + 8 * w` on `Ioc δ (2 * δ)` and
       `deriv A ≤ 11` on `Ici (2 * δ)` (the bounds in the proof of
-      `exists_isConvexShapeAt_sqrtAddLeaf`, made public). Where
+      `eventually_isConvexShapeAt_sqrtAddLeaf`, made public). Where
       `P t ≥ A - δ / 200`, the height conditions of
       `isConvexShapeAt_struweLineShape_add` hold (`A ≥ 7 * δ` on
       `Ioc δ (2 * δ)`, `8 * w - 2 * r * √(log (r / δ)) ^ 3 > 3 * δ` on
