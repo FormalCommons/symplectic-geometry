@@ -24,7 +24,7 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
-import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Bracket
+import SymplecticGeometry.Analysis.RCLike.Basic
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute

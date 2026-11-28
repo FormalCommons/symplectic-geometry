@@ -67,6 +67,7 @@ theorem bracketL_apply (v w : E) :
 /-- The bracket on the model space is antisymmetric. -/
 theorem bracketL_swap (v w : E) : bracketL I G w v = -bracketL I G v w := by
   rw [bracketL_apply, bracketL_apply]
+  -- `v` and `w` have type `E`, so `L` would be taken to be `E` unless given.
   exact (lie_skew (L := GroupLieAlgebra I G) w v).symm
 
 /-- The bracket on the model space vanishes on equal arguments. -/
