@@ -6,14 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import SymplecticGeometry.Geometry.Manifold.Riemannian.NormedSpace
-import TauCeti.Topology.VectorBundle.Riemannian.Comparison
-import SymplecticGeometry.Geometry.Manifold.Riemannian.PullbackPartialDiffeomorph
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 
 /-!
 # The gradient-like inequality in local coordinates
@@ -24,26 +23,27 @@ Let `X` be gradient-like for `f : M → ℝ` near a point `p` (`TauCeti.IsGradie
 space `E` in place of the Riemannian metric:
 `c * (‖X̃ z‖ ^ 2 + ‖df̃_z‖ ^ 2) ≤ df̃_z (X̃ z)` for some `c > 0` and every `z` in a ball around
 `e p`. This is the form in which the local estimates of Cieliebak–Eliashberg's Proposition 9.23,
-in a Morse or a birth–death chart, use the gradient-like condition.
+in a Morse or a birth–death chart, use the gradient-like condition. Conversely, on a σ-compact
+Hausdorff manifold, such an inequality on a ball around `e p` makes `X` gradient-like for `f`
+near `p`.
 
 ## Main results
 
 * `TauCeti.IsGradientLikeAt.exists_mul_le_fderiv_comp_symm`: the inequality in a chart.
+* `TauCeti.isGradientLikeAt_of_mul_le_fderiv_comp_symm`: its converse.
 * `TauCeti.IsGradientLikeAt.exists_pos_eventually_mul_le`: on a normed space, the case of the
   identity chart, with the norm of the space near the point.
 
 ## Implementation notes
 
-On a compact neighbourhood `K` of `p` in the source of `e`, the metric `g` of the hypothesis is
-compared with the forms `(v, w) ↦ ⟪T (de_y v), T (de_y w)⟫`, where `T = toEuclidean`. These are
-the pull-back along `e` of the metric `SymplecticGeometry.riemannianMetricToEuclidean E` that
-`toEuclidean` carries to `E`; they are continuous and positive definite on the source of
-`e` (`PartialDiffeomorph.contMDiffOn_pullback`, `PartialDiffeomorph.pullback_apply_self_pos`), so
-Tau Ceti's `IsCompact.exists_pos_forall_mul_norm_sq_le_bundle` and
-`IsCompact.exists_bound_of_continuousOn_bilinear_bundle` bound them above and below by the norm of
-`g` on `K`. The differential of `f̃` is that of `f` composed with `d(e.symm)`, by the chain rule
-for local diffeomorphisms, Tau Ceti's `IsLocalDiffeomorphAt.mfderiv_comp`, which needs no
-differentiability of `f`.
+On a compact subset `K` of the source of `e`, the differential `de_y` is bounded above and below,
+from the Riemannian norm of a metric `g` to the norm of `E`
+(`PartialDiffeomorph.exists_mul_norm_le_norm_mvfderiv_le`, for `e` as a partial
+diffeomorphism). Both directions use this comparison, the first with the metric of the
+hypothesis and the converse with any smooth metric (`TauCeti.nonempty_contMDiffRiemannianMetric`).
+The differential of `f̃` is that of `f` composed with `d(e.symm)`
+(`OpenPartialHomeomorph.fderiv_comp_symm_apply_of_mem_maximalAtlas`), with no differentiability
+of `f` needed, and `d(e.symm)` undoes `de`.
 
 ## References
 
@@ -64,56 +64,85 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 omit [FiniteDimensional ℝ E] in
 /-- The pointwise step of `TauCeti.IsGradientLikeAt.exists_mul_le_fderiv_comp_symm`. Let `A : V → E`
-and `B : E → V` be mutually inverse, with `a ‖v‖ ^ 2 ≤ ‖T (A v)‖ ^ 2 ≤ C ‖v‖ ^ 2` and `T` bounded
-above and below, and let `D = ⟪G, B ·⟫`. If `c (‖x‖ ^ 2 + ‖G‖ ^ 2) ≤ ⟪G, x⟫`, then the same
-inequality holds for `A x` and `D`, with an explicit smaller constant. -/
-private theorem mul_le_apply_of_forall_mul_norm_sq_le {V F : Type*} [NormedAddCommGroup V]
-    [InnerProductSpace ℝ V] [NormedAddCommGroup F] [NormedSpace ℝ F] {A : V →L[ℝ] E}
-    {B : E →L[ℝ] V} {T : E →L[ℝ] F} {D : E →L[ℝ] ℝ} {G x : V} {a C L K' c : ℝ} (ha : 0 < a)
-    (hC : 0 ≤ C) (hc : 0 < c) (hAB : ∀ u, A (B u) = u) (hBA : ∀ v, B (A v) = v)
-    (hL : ∀ u, ‖T u‖ ≤ L * ‖u‖) (hK' : ∀ u, ‖u‖ ≤ K' * ‖T u‖)
-    (hlow : ∀ v, a * ‖v‖ ^ 2 ≤ ‖T (A v)‖ ^ 2) (hup : ∀ v, ‖T (A v)‖ ^ 2 ≤ C * ‖v‖ ^ 2)
+and `B : E → V` be mutually inverse, with `a ‖v‖ ≤ ‖A v‖ ≤ C ‖v‖`, and let `D = ⟪G, B ·⟫`. If
+`c (‖x‖ ^ 2 + ‖G‖ ^ 2) ≤ ⟪G, x⟫`, then the same inequality holds for `A x` and `D`, with the
+smaller constant `c / (C ^ 2 + 1 / a ^ 2 + 1)`. -/
+private theorem mul_le_apply_of_forall_mul_norm_le {V : Type*} [NormedAddCommGroup V]
+    [InnerProductSpace ℝ V] {A : V →L[ℝ] E} {B : E →L[ℝ] V} {D : E →L[ℝ] ℝ} {G x : V}
+    {a C c : ℝ} (ha : 0 < a) (hc : 0 < c) (hAB : ∀ u, A (B u) = u) (hBA : ∀ v, B (A v) = v)
+    (hlow : ∀ v, a * ‖v‖ ≤ ‖A v‖) (hup : ∀ v, ‖A v‖ ≤ C * ‖v‖)
     (hD : ∀ u, D u = inner ℝ G (B u)) (h : c * (‖x‖ ^ 2 + ‖G‖ ^ 2) ≤ inner ℝ G x) :
-    c / (K' ^ 2 * C + L ^ 2 / a + 1) * (‖A x‖ ^ 2 + ‖D‖ ^ 2) ≤ D (A x) := by
-  have h₁ : ‖A x‖ ^ 2 ≤ K' ^ 2 * C * ‖x‖ ^ 2 := by
-    calc ‖A x‖ ^ 2 ≤ (K' * ‖T (A x)‖) ^ 2 := pow_le_pow_left₀ (norm_nonneg _) (hK' _) 2
-      _ = K' ^ 2 * ‖T (A x)‖ ^ 2 := by ring
-      _ ≤ K' ^ 2 * (C * ‖x‖ ^ 2) := by gcongr; exact hup _
-      _ = _ := by ring
-  -- `‖B u‖ ^ 2 ≤ (L ^ 2 / a) ‖u‖ ^ 2`, so `‖D‖ ^ 2 ≤ (L ^ 2 / a) ‖G‖ ^ 2`.
-  have hB (u : E) : ‖B u‖ ^ 2 ≤ L ^ 2 / a * ‖u‖ ^ 2 := by
-    rw [div_mul_eq_mul_div, le_div_iff₀ ha, mul_comm]
-    calc a * ‖B u‖ ^ 2 ≤ ‖T (A (B u))‖ ^ 2 := hlow _
-      _ ≤ (L * ‖u‖) ^ 2 := by rw [hAB]; exact pow_le_pow_left₀ (norm_nonneg _) (hL u) 2
-      _ = _ := by ring
-  have h₂ : ‖D‖ ^ 2 ≤ L ^ 2 / a * ‖G‖ ^ 2 := by
-    have hbd : ‖D‖ ≤ Real.sqrt (L ^ 2 / a) * ‖G‖ := by
+    c / (C ^ 2 + 1 / a ^ 2 + 1) * (‖A x‖ ^ 2 + ‖D‖ ^ 2) ≤ D (A x) := by
+  -- `a ‖B u‖ ≤ ‖A (B u)‖ = ‖u‖`, so `‖D‖ ≤ ‖G‖ / a`.
+  have hB (u : E) : ‖B u‖ ≤ a⁻¹ * ‖u‖ := by
+    rw [inv_mul_eq_div, le_div_iff₀ ha, mul_comm]
+    exact (hlow (B u)).trans_eq (by rw [hAB])
+  have h₂ : ‖D‖ ^ 2 ≤ 1 / a ^ 2 * ‖G‖ ^ 2 := by
+    have hbd : ‖D‖ ≤ a⁻¹ * ‖G‖ := by
       refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
       rw [hD u, Real.norm_eq_abs]
       refine (abs_real_inner_le_norm _ _).trans ?_
-      have := Real.sqrt_le_sqrt (hB u)
-      rw [Real.sqrt_sq (norm_nonneg _), Real.sqrt_mul (by positivity),
-        Real.sqrt_sq (norm_nonneg _)] at this
-      calc ‖G‖ * ‖B u‖ ≤ ‖G‖ * (Real.sqrt (L ^ 2 / a) * ‖u‖) := by gcongr
+      calc ‖G‖ * ‖B u‖ ≤ ‖G‖ * (a⁻¹ * ‖u‖) := by gcongr; exact hB u
         _ = _ := by ring
-    calc _ ≤ (Real.sqrt (L ^ 2 / a) * ‖G‖) ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hbd 2
-      _ = _ := by rw [mul_pow, Real.sq_sqrt (by positivity)]
+    calc _ ≤ (a⁻¹ * ‖G‖) ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hbd 2
+      _ = _ := by rw [mul_pow, inv_pow, one_div]
+  have h₁ : ‖A x‖ ^ 2 ≤ C ^ 2 * ‖x‖ ^ 2 := by
+    rw [← mul_pow]
+    exact pow_le_pow_left₀ (norm_nonneg _) (hup x) 2
   rw [hD, hBA]
-  calc c / (K' ^ 2 * C + L ^ 2 / a + 1) * (‖A x‖ ^ 2 + ‖D‖ ^ 2)
-      ≤ c / (K' ^ 2 * C + L ^ 2 / a + 1) *
-          ((K' ^ 2 * C + L ^ 2 / a + 1) * (‖x‖ ^ 2 + ‖G‖ ^ 2)) := by
+  calc c / (C ^ 2 + 1 / a ^ 2 + 1) * (‖A x‖ ^ 2 + ‖D‖ ^ 2)
+      ≤ c / (C ^ 2 + 1 / a ^ 2 + 1) * ((C ^ 2 + 1 / a ^ 2 + 1) * (‖x‖ ^ 2 + ‖G‖ ^ 2)) := by
         gcongr
-        have h₄ : 0 ≤ K' ^ 2 * C := by positivity
-        have h₅ : 0 ≤ L ^ 2 / a := by positivity
-        nlinarith [mul_nonneg h₄ (sq_nonneg ‖G‖), mul_nonneg h₅ (sq_nonneg ‖x‖)]
+        have h₅ : 0 ≤ 1 / a ^ 2 := by positivity
+        nlinarith [mul_nonneg (sq_nonneg C) (sq_nonneg ‖G‖), mul_nonneg h₅ (sq_nonneg ‖x‖),
+          sq_nonneg ‖x‖, sq_nonneg ‖G‖]
     _ = c * (‖x‖ ^ 2 + ‖G‖ ^ 2) := by field_simp
+    _ ≤ _ := h
+
+omit [FiniteDimensional ℝ E] in
+/-- The pointwise step of `TauCeti.isGradientLikeAt_of_mul_le_fderiv_comp_symm`, the converse of
+`mul_le_apply_of_forall_mul_norm_le`. Let `A : V → E` be a linear map with
+`a ‖v‖ ≤ ‖A v‖ ≤ C ‖v‖`, and let `D : E → ℝ` satisfy `D (A v) = ⟪G, v⟫`. If
+`c (‖A x‖ ^ 2 + ‖D‖ ^ 2) ≤ D (A x)`, then
+`c / (C ^ 2 + 1 / a ^ 2 + 1) (‖x‖ ^ 2 + ‖G‖ ^ 2) ≤ ⟪G, x⟫`. -/
+private theorem mul_le_inner_of_forall_mul_norm_le {V : Type*} [NormedAddCommGroup V]
+    [InnerProductSpace ℝ V] {A : V →L[ℝ] E} {D : E →L[ℝ] ℝ} {G x : V} {a C c : ℝ} (ha : 0 < a)
+    (hc : 0 < c) (hlow : ∀ v, a * ‖v‖ ≤ ‖A v‖) (hup : ∀ v, ‖A v‖ ≤ C * ‖v‖)
+    (hD : ∀ v, D (A v) = inner ℝ G v) (h : c * (‖A x‖ ^ 2 + ‖D‖ ^ 2) ≤ D (A x)) :
+    c / (C ^ 2 + 1 / a ^ 2 + 1) * (‖x‖ ^ 2 + ‖G‖ ^ 2) ≤ inner ℝ G x := by
+  have h₁ : ‖x‖ ^ 2 ≤ 1 / a ^ 2 * ‖A x‖ ^ 2 := by
+    have := pow_le_pow_left₀ (by positivity) (hlow x) 2
+    rw [mul_pow] at this
+    rw [div_mul_eq_mul_div, one_mul, le_div_iff₀ (by positivity), mul_comm]
+    exact this
+  -- `‖G‖ ^ 2 = D (A G) ≤ ‖D‖ ‖A G‖ ≤ C ‖D‖ ‖G‖`, so `‖G‖ ^ 2 ≤ C ^ 2 ‖D‖ ^ 2`.
+  have h₂ : ‖G‖ ^ 2 ≤ C ^ 2 * ‖D‖ ^ 2 := by
+    have hG : ‖G‖ ^ 2 ≤ ‖D‖ * (C * ‖G‖) := by
+      calc ‖G‖ ^ 2 = D (A G) := by rw [hD, real_inner_self_eq_norm_sq]
+        _ ≤ ‖D‖ * ‖A G‖ := (le_abs_self _).trans (D.le_opNorm _)
+        _ ≤ _ := by gcongr; exact hup G
+    rcases (norm_nonneg G).eq_or_lt with h0 | h0
+    · rw [← h0, zero_pow two_ne_zero]
+      positivity
+    · have hG' : ‖G‖ ≤ C * ‖D‖ := by nlinarith
+      calc _ ≤ (C * ‖D‖) ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hG' 2
+        _ = _ := mul_pow _ _ _
+  rw [← hD]
+  calc c / (C ^ 2 + 1 / a ^ 2 + 1) * (‖x‖ ^ 2 + ‖G‖ ^ 2)
+      ≤ c / (C ^ 2 + 1 / a ^ 2 + 1) * ((C ^ 2 + 1 / a ^ 2 + 1) * (‖A x‖ ^ 2 + ‖D‖ ^ 2)) := by
+        gcongr
+        have h₅ : 0 ≤ 1 / a ^ 2 := by positivity
+        nlinarith [mul_nonneg (sq_nonneg C) (sq_nonneg ‖A x‖), mul_nonneg h₅ (sq_nonneg ‖D‖),
+          sq_nonneg ‖A x‖, sq_nonneg ‖D‖]
+    _ = c * (‖A x‖ ^ 2 + ‖D‖ ^ 2) := by field_simp
     _ ≤ _ := h
 
 /-- **The gradient-like inequality in a chart.** Let `X` be gradient-like for `f` near `p`, and
 let `e` be a chart of the maximal atlas whose source contains `p`. Write `f̃ = f ∘ e.symm` and
 `X̃ z = de_{e.symm z} (X (e.symm z))`. Then there are `r₀ > 0` and `c > 0` such that the ball of
 radius `r₀` around `e p` lies in the target of `e`, and
-`c * (‖X̃ z‖ ^ 2 + ‖df̃_z‖ ^ 2) ≤ df̃_z (X̃ z)` on it, for the norm of `E` and the operator norm. -/
+`c * (‖X̃ z‖ ^ 2 + ‖df̃_z‖ ^ 2) ≤ df̃_z (X̃ z)` on it, for the norm of `E` and the operator norm.
+The converse is `TauCeti.isGradientLikeAt_of_mul_le_fderiv_comp_symm`. -/
 theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
     {X : (x : M) → TangentSpace 𝓘(ℝ, E) x} {p : M} (hX : IsGradientLikeAt f X p)
     {e : OpenPartialHomeomorph M E} (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M)
@@ -124,80 +153,85 @@ theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
         fderiv ℝ (f ∘ e.symm) z (mvfderiv 𝓘(ℝ, E) e (e.symm z) (X (e.symm z))) := by
   obtain ⟨U, hU, g, c, hc, H⟩ := (isGradientLikeAt_def f X p).1 hX
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-  let : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) :=
+  have : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) :=
     instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) 𝓘(ℝ, E)
+  have he₁ := IsManifold.maximalAtlas_subset_of_le (m := 1) (by simp) he
   -- A compact neighbourhood `K` of `p` in the source of `e` on which the hypothesis holds.
   obtain ⟨K, hK, hKU, hKc⟩ := local_compact_nhds
     (Filter.inter_mem hU (e.open_source.mem_nhds hp))
-  -- The metric that `T = toEuclidean` carries to `E`.
-  set T := toEuclidean (E := E)
-  set g₀ : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (TangentSpace 𝓘(ℝ, E)) :=
-    (SymplecticGeometry.riemannianMetricToEuclidean E).ofLE le_top
-  have hg₀ (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g₀.inner x v w = inner ℝ (T v) (T w) := by
-    rw [ContMDiffRiemannianMetric.ofLE_inner]
-    exact SymplecticGeometry.riemannianMetricToEuclidean_inner x v w
-  obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖T v‖ ≤ L * ‖v‖ := ⟨_, T.toContinuousLinearMap.le_opNorm⟩
-  obtain ⟨K', hK'⟩ : ∃ K', ∀ v, ‖v‖ ≤ K' * ‖T v‖ :=
-    ⟨_, fun v ↦ by simpa using T.symm.toContinuousLinearMap.le_opNorm (T v)⟩
-  -- The pull-back of `g₀` along `e`, compared with `g` on `K`.
-  set Ψ := e.toPartialDiffeomorph he
-  have hΨs : Ψ.source = e.source :=
-    congrArg PartialEquiv.source (e.toPartialDiffeomorph_toPartialEquiv he)
-  have hΨ : (Ψ : M → E) = e := e.coe_toPartialDiffeomorph he
-  have hφ := Ψ.contMDiffOn_pullback g₀ (by simp)
-  obtain ⟨a, ha, hlow⟩ := hKc.exists_pos_forall_mul_norm_sq_le_bundle (b := id)
-    (hφ.continuousOn.mono fun y hy ↦ hΨs ▸ (hKU hy).2)
-    fun y hy v hv ↦ Ψ.pullback_apply_self_pos g₀ (by simp) (hΨs ▸ (hKU hy).2) hv
-  obtain ⟨C, hup⟩ := hKc.exists_bound_of_continuousOn_bilinear_bundle (b := id)
-    (hφ.continuousOn.mono fun y hy ↦ hΨs ▸ (hKU hy).2)
+  obtain ⟨a, C, ha, hAg⟩ := (e.toPartialDiffeomorph he).exists_mul_norm_le_norm_mvfderiv_le
+    (by simp) hKc fun y hy ↦ by simpa using (hKU hy).2
+  rw [e.coe_toPartialDiffeomorph he] at hAg
   -- A ball around `e p` that `e.symm` maps into `K`.
   have hKn : e.symm ⁻¹' K ∈ 𝓝 (e p) :=
     (e.continuousAt_symm (e.map_source hp)).preimage_mem_nhds (by rwa [e.left_inv hp])
   obtain ⟨r₀, hr₀, hball⟩ := Metric.mem_nhds_iff.1
     (Filter.inter_mem hKn (e.open_target.mem_nhds (e.map_source hp)))
-  refine ⟨r₀, hr₀, c / (K' ^ 2 * max C 0 + L ^ 2 / a + 1), by positivity,
-    fun z hz ↦ (hball hz).2, fun z hz ↦ ?_⟩
+  refine ⟨r₀, hr₀, c / (C ^ 2 + 1 / a ^ 2 + 1), by positivity, fun z hz ↦ (hball hz).2,
+    fun z hz ↦ ?_⟩
   obtain ⟨hzK, hzt⟩ := hball hz
-  set y := e.symm z
-  have hyU := (hKU (show y ∈ K from hzK)).1
-  set A := mvfderiv 𝓘(ℝ, E) e y
-  set B := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z
-  have he₁ : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M :=
-    IsManifold.maximalAtlas_subset_of_le (by simp) he
-  have hAB (u : E) : A (B u) = u := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact e.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he₁ hzt u
-  have hBA (v : TangentSpace 𝓘(ℝ, E) y) : B (A v) = v := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he₁ hzt v
-  -- The pulled-back form at `y` is `v ↦ ‖T (A v)‖ ^ 2`.
-  have hφy (v : TangentSpace 𝓘(ℝ, E) y) :
-      (ContinuousLinearMap.precomp ℝ (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Ψ y)).comp
-        ((g₀.inner (Ψ y)).comp (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Ψ y)) v v = ‖T (A v)‖ ^ 2 := by
-    rw [hΨ]
-    simp [hg₀, A]
-  have hlow' (v : TangentSpace 𝓘(ℝ, E) y) : a * ‖v‖ ^ 2 ≤ ‖T (A v)‖ ^ 2 :=
-    (hlow y hzK v).trans_eq (hφy v)
-  have hup' (v : TangentSpace 𝓘(ℝ, E) y) : ‖T (A v)‖ ^ 2 ≤ max C 0 * ‖v‖ ^ 2 := by
-    rw [← hφy]
-    calc _ ≤ ‖_‖ := Real.le_norm_self _
-      _ ≤ _ := ContinuousLinearMap.le_opNorm₂ _ v v
-      _ ≤ max C 0 * ‖v‖ ^ 2 := by
-        rw [mul_assoc, ← sq]
-        exact mul_le_mul_of_nonneg_right ((hup y hzK).trans (le_max_left _ _)) (sq_nonneg _)
-  -- The differential of `f̃` is that of `f` composed with `B`.
-  have hD (u : E) : fderiv ℝ (f ∘ e.symm) z u = mvfderiv 𝓘(ℝ, E) f y (B u) := by
-    have h := (e.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas he hzt).mfderiv_comp
-      (I' := 𝓘(ℝ)) (by simp) f
-    rw [← mvfderiv_eq_fderiv_apply (f ∘ e.symm) z u,
-      mvfderiv_apply_eq_mfderiv_apply (f ∘ e.symm) z u, h]
-    -- The composite of continuous linear maps, applied to `u`.
-    exact (mvfderiv_apply_eq_mfderiv_apply f y (B u)).symm
-  have hH := H y hyU
+  have hH := H (e.symm z) (hKU (show e.symm z ∈ K from hzK)).1
   rw [← g.norm_sq, ← inner_mgradient] at hH
-  exact mul_le_apply_of_forall_mul_norm_sq_le (T := T.toContinuousLinearMap) ha (le_max_right C 0)
-    hc hAB hBA hL hK' hlow' hup' (fun u ↦ (hD u).trans (inner_mgradient _).symm) hH
+  refine mul_le_apply_of_forall_mul_norm_le (V := TangentSpace 𝓘(ℝ, E) (e.symm z))
+    (A := mvfderiv 𝓘(ℝ, E) e (e.symm z)) (B := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z) ha hc
+    (fun u ↦ ?_) (fun v ↦ ?_) (fun v ↦ (hAg _ hzK v).1) (fun v ↦ (hAg _ hzK v).2)
+    (fun u ↦ (e.fderiv_comp_symm_apply_of_mem_maximalAtlas (by simp) he hzt f u).trans
+      (inner_mgradient _).symm) hH
+  · rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact e.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he₁ hzt u
+  · rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he₁ hzt v
+
+/-- **The gradient-like inequality in a chart gives the local condition.** On a σ-compact
+Hausdorff manifold, let `e` be a chart of the maximal atlas whose source contains `x`, and write
+`f̃ = f ∘ e.symm` and `X̃ z = de_{e.symm z} (X (e.symm z))`. If, for some `r > 0` and `c > 0`,
+`c * (‖X̃ z‖ ^ 2 + ‖df̃_z‖ ^ 2) ≤ df̃_z (X̃ z)` for every `z` in the ball of radius `r` around
+`e x`, for the norm of `E` and the operator norm, then `X` is gradient-like for `f` near `x`.
+This is the converse of `TauCeti.IsGradientLikeAt.exists_mul_le_fderiv_comp_symm`. -/
+theorem isGradientLikeAt_of_mul_le_fderiv_comp_symm [T2Space M] [SigmaCompactSpace M] {f : M → ℝ}
+    {X : (x : M) → TangentSpace 𝓘(ℝ, E) x} {x : M} {e : OpenPartialHomeomorph M E}
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M) (hx : x ∈ e.source) {r c : ℝ} (hr : 0 < r)
+    (hc : 0 < c)
+    (h : ∀ z ∈ ball (e x) r,
+      c * (‖mvfderiv 𝓘(ℝ, E) e (e.symm z) (X (e.symm z))‖ ^ 2 +
+          ‖fderiv ℝ (f ∘ e.symm) z‖ ^ 2) ≤
+        fderiv ℝ (f ∘ e.symm) z (mvfderiv 𝓘(ℝ, E) e (e.symm z) (X (e.symm z)))) :
+    IsGradientLikeAt f X x := by
+  obtain ⟨g⟩ : Nonempty
+      (ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) :=
+    nonempty_contMDiffRiemannianMetric
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  have : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) 𝓘(ℝ, E)
+  have he₁ := IsManifold.maximalAtlas_subset_of_le (m := 1) (by simp) he
+  -- A compact neighbourhood `K` of `x` in the source of `e` that `e` maps into the ball.
+  have hU : e.source ∩ e ⁻¹' ball (e x) r ∈ 𝓝 x :=
+    (e.continuousOn.isOpen_inter_preimage e.open_source isOpen_ball).mem_nhds
+      ⟨hx, mem_ball_self hr⟩
+  obtain ⟨K, hK, hKU, hKc⟩ := local_compact_nhds hU
+  obtain ⟨a, C, ha, hAg⟩ := (e.toPartialDiffeomorph he).exists_mul_norm_le_norm_mvfderiv_le
+    (by simp) hKc fun y hy ↦ by simpa using (hKU hy).1
+  rw [e.coe_toPartialDiffeomorph he] at hAg
+  refine (isGradientLikeAt_def f X x).2
+    ⟨K, hK, g, c / (C ^ 2 + 1 / a ^ 2 + 1), by positivity, fun y hy ↦ ?_⟩
+  obtain ⟨hys, hyb⟩ := hKU hy
+  have hzt : e y ∈ e.target := e.map_source hys
+  -- The differential of `f̃` at `e y`, composed with that of `e`, is that of `f` at `y`.
+  have hD (v : TangentSpace 𝓘(ℝ, E) y) :
+      fderiv ℝ (f ∘ e.symm) (e y) (mvfderiv 𝓘(ℝ, E) e y v) =
+        inner ℝ (mgradient 𝓘(ℝ, E) f y) v := by
+    rw [e.fderiv_comp_symm_apply_of_mem_maximalAtlas (by simp) he hzt, inner_mgradient,
+      mvfderiv_apply_eq_mfderiv_apply e y v,
+      e.mfderiv_symm_apply_mfderiv_apply hys (mdifferentiableAt_of_mem_maximalAtlas he₁ hys)
+        (mdifferentiableAt_symm_of_mem_maximalAtlas he₁ hzt) v,
+      e.left_inv hys]
+  have hy' := h (e y) hyb
+  rw [e.left_inv hys] at hy'
+  rw [← g.norm_sq, ← inner_mgradient]
+  exact mul_le_inner_of_forall_mul_norm_le ha hc (fun v ↦ (hAg y hy v).1)
+    (fun v ↦ (hAg y hy v).2) hD hy'
 
 /-- **The gradient-like inequality on a normed space.** If `X` is gradient-like for `f` near `x`
 on a finite-dimensional real normed space `E`, then `c * (‖X y‖ ^ 2 + ‖df_y‖ ^ 2) ≤ df_y (X y)`
