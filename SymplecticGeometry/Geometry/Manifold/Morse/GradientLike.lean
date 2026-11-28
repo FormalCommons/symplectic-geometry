@@ -33,6 +33,11 @@ import SymplecticGeometry.Analysis.Convex.Mul
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PullbackPartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+import Mathlib.Geometry.Manifold.Riemannian.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.Riemannian.Basic
+import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
 
 /-!
 # Gradient-like vector fields
@@ -68,6 +73,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   gradient-like for `f ∘ Φ`.
 * `TauCeti.isGradientLike_mgradient`: the gradient of `f` for any smooth metric is gradient-like
   for `f`, with `δ = 1 / 2`.
+* `TauCeti.isGradientLike_of_mul_le`: on a finite-dimensional normed space, a constant `c > 0`
+  with `c (‖X‖² + ‖df‖²) ≤ df(X)` everywhere suffices, for the metric carried over by
+  `toEuclidean`.
 * `TauCeti.isGradientLike_of_forall_exists_nhds`: on a σ-compact Hausdorff manifold the condition
   is local: a metric and a constant for which the inequality holds near each point suffice.
 * `TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`: near a point where `df(X) > 0`, the
@@ -349,6 +357,66 @@ theorem isGradientLike_mgradient
   refine ⟨g, fun _ ↦ 1 / 2, continuous_const, fun _ ↦ by norm_num, fun x ↦ ?_⟩
   rw [← g.norm_sq, mvfderiv_apply_mgradient, real_inner_self_eq_norm_sq]
   exact le_of_eq (by ring)
+
+/-- **A global criterion on a normed space.** On a finite-dimensional real normed space `E`, a
+field `X` is gradient-like for `f` if `c * (‖X x‖ ^ 2 + ‖df_x‖ ^ 2) ≤ df_x (X x)` for a constant
+`c > 0` and every `x`, the norms being those of `E` and the operator norm. -/
+theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0 < c)
+    (h : ∀ x, c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) ≤ fderiv ℝ f x (X x)) :
+    IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
+  -- The metric is the Euclidean one carried over by `toEuclidean`.
+  set e := toEuclidean (E := E)
+  have he : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) (∞ + 1) e :=
+    e.contDiff.contMDiff
+  have hinj (x : E) : Function.Injective
+      (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) e x) := by
+    rw [e.mfderiv_eq]
+    exact e.injective
+  set g := ((riemannianMetricVectorSpace _).ofLE le_top).pullback e he hinj
+  have hg (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g.inner x v w = inner ℝ (e v) (e w) := by
+    simp only [g]
+    rw [ContMDiffRiemannianMetric.pullback_inner, ContMDiffRiemannianMetric.ofLE_inner,
+      riemannianMetricVectorSpace_inner, e.mfderiv_eq]
+    rfl
+  obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖e v‖ ≤ L * ‖v‖ :=
+    ⟨_, e.toContinuousLinearMap.le_opNorm⟩
+  obtain ⟨K, hK0, hK⟩ : ∃ K, 0 ≤ K ∧ ∀ v, ‖v‖ ≤ K * ‖e v‖ :=
+    ⟨_, norm_nonneg _, fun v ↦ by simpa using e.symm.toContinuousLinearMap.le_opNorm (e v)⟩
+  refine ⟨g, fun _ ↦ c / (L ^ 2 + K ^ 2 + 1), continuous_const, fun _ ↦ by positivity,
+    fun x ↦ ?_⟩
+  let : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  set G := mgradient 𝓘(ℝ, E) f x
+  set D := fderiv ℝ f x
+  have hD (v : E) : mvfderiv 𝓘(ℝ, E) f x v = D v := mvfderiv_eq_fderiv_apply f x v
+  have hGG : ‖G‖ ^ 2 = ‖e G‖ ^ 2 := by
+    rw [g.norm_sq, hg, real_inner_self_eq_norm_sq]
+  have hGD : ‖G‖ ^ 2 = D G :=
+    ((mvfderiv_apply_mgradient (I := 𝓘(ℝ, E))).trans (real_inner_self_eq_norm_sq _)).symm.trans
+      (hD G)
+  -- The norm of the gradient is bounded by that of `df`, as `‖G‖² = df(G) ≤ ‖df‖ ‖G‖`.
+  have hbound (v : E) (hv : ‖e v‖ ^ 2 = D v) : ‖e v‖ ^ 2 ≤ K ^ 2 * ‖D‖ ^ 2 := by
+    have h1 : ‖e v‖ ^ 2 ≤ ‖D‖ * K * ‖e v‖ := by
+      rw [hv]
+      calc D v ≤ ‖D‖ * ‖v‖ := (le_abs_self _).trans (D.le_opNorm v)
+        _ ≤ ‖D‖ * (K * ‖e v‖) := mul_le_mul_of_nonneg_left (hK v) (norm_nonneg _)
+        _ = _ := by ring
+    have h2 : ‖e v‖ ≤ ‖D‖ * K := by
+      rcases (norm_nonneg (e v)).eq_or_lt with h0 | h0
+      · rw [← h0]; positivity
+      · nlinarith
+    have := norm_nonneg (e v)
+    nlinarith
+  have hG : ‖e G‖ ^ 2 ≤ K ^ 2 * ‖D‖ ^ 2 := hbound G (hGG.symm.trans hGD)
+  have hX : g.inner x (X x) (X x) ≤ L ^ 2 * ‖X x‖ ^ 2 := by
+    rw [hg x (X x) (X x), real_inner_self_eq_norm_sq, ← mul_pow]
+    exact pow_le_pow_left₀ (norm_nonneg _) (hL _) 2
+  rw [hGG, hD]
+  calc c / (L ^ 2 + K ^ 2 + 1) * (g.inner x (X x) (X x) + ‖e G‖ ^ 2)
+      ≤ c / (L ^ 2 + K ^ 2 + 1) * ((L ^ 2 + K ^ 2 + 1) * (‖X x‖ ^ 2 + ‖D‖ ^ 2)) := by
+        gcongr
+        nlinarith [sq_nonneg ‖X x‖, sq_nonneg ‖D‖, sq_nonneg L, sq_nonneg K]
+    _ = c * (‖X x‖ ^ 2 + ‖D‖ ^ 2) := by field_simp
+    _ ≤ D (X x) := h x
 
 section Local
 

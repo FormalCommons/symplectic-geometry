@@ -7,11 +7,13 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
+import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
-# Liouville vector fields: pullback along related fields, linearization at a zero
+# Liouville vector fields: pullback along related fields, linearization at a zero, linear fields
 
 Let `Φ : M' → M` be a smooth map, `σ` a smooth two-form on `M` and `X` a Liouville vector field
 of `σ`. If a vector field `Y` on `M'` is `Φ`-related to `X`, that is `dΦ_x (Y x) = X (Φ x)` for
@@ -30,6 +32,14 @@ satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`
 (`TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`). The Lie derivative at a zero
 of the field involves only the derivative of the field (`TauCeti.mlieDerivForm_apply_of_eq_zero`),
 so no regularity of `Z` or `σ` is needed.
+
+On a finite-dimensional real normed space `V`, with a linear symplectic form `σ` seen as a
+constant form, a linear vector field `x ↦ A x` is Liouville as soon as
+`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`
+(`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth`). Since the form is constant, its
+Lie derivative along the field involves only the derivative `A` of the field. For linear fields
+this is the converse of `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`, read at
+the zero `0`.
 
 ## References
 
@@ -90,6 +100,35 @@ theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I 
   congr 2 <;> funext i <;> fin_cases i <;> rfl
 
 end Linearization
+
+section Linear
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+
+/-- **Linear Liouville fields.** Let `σ` be a linear symplectic form and `A` an operator with
+`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`. Then the linear vector field `x ↦ A x` is a
+Liouville vector field of the constant form `σ`. -/
+theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V)
+    {A : V →L[ℝ] V} (hA : ∀ u v, σ (A u) v + σ u (A v) = σ u v) :
+    IsLiouvilleVectorField σ.constSmooth.val
+      (fun x ↦ A x : (x : V) → TangentSpace 𝓘(ℝ, V) x) := by
+  refine isLiouvilleVectorField_iff.2 (funext fun x ↦ ?_)
+  refine (mlieDerivForm_eq_lieDerivForm _ _ x).trans ?_
+  ext v
+  refine (lieDerivForm_apply _ v).trans ?_
+  rw [Fin.sum_univ_two]
+  -- The form, read in the model space, is the constant map `u ↦ σ (u 0) (u 1)`.
+  set W : V → V [⋀^Fin 2]→L[ℝ] ℝ := σ.constSmooth.val
+  have h (y : V) (u : Fin 2 → V) : W y u = σ (u 0) (u 1) := by
+    have hu : u = ![u 0, u 1] := by ext i; fin_cases i <;> rfl
+    rw [hu]
+    exact (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (σ.constSmooth_apply y (u 0) (u 1))
+  have hc : W = fun _ ↦ W x := funext fun y ↦ by ext u; rw [h, h]
+  rw [hc]
+  simp only [fderiv_fun_const, Pi.zero_apply, zero_apply, h, A.fderiv]
+  simpa using hA (v 0) (v 1)
+
+end Linear
 
 end TauCeti
 
