@@ -140,7 +140,7 @@ theorem mfderiv_mkNonzero_self_apply (v : TauCeti.puncturedSpace (Fin (n + 1) �
     mfderiv 𝓘(𝕜, Fin (n + 1) → 𝕜) 𝓘(𝕜, Fin n → 𝕜) (mkNonzero 𝕜 n) v w =
       mfderivMk (v : Fin (n + 1) → 𝕜) w := by
   have h := mfderiv_eq_mfderivMk_comp (f := mkNonzero 𝕜 n) (F := Subtype.val) (x := v)
-    (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero)
+    mdifferentiableAt_subtypeVal
     (Filter.Eventually.of_forall fun w ↦ ⟨_, mkNonzero_apply w⟩)
   -- `rw [ContinuousLinearMap.comp_apply]` fails here, as the tangent spaces in `h` are not
   -- syntactically the model spaces; the composite applied to `w` unfolds to the same term.

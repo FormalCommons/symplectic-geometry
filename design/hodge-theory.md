@@ -795,11 +795,10 @@ was found, so `ERRATA.md` needs no entry.
   there, only in the proofs of `L2.lean`.
 - *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
   (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
-  only in the proof of `mpullback_symm_realAlternatingDerivation`,
-  `TauCeti.SmoothAlmostComplexStructure.mfderiv_apply_eq_chartPushforward_apply`,
-  only in the proof of `symbolInChart_realAlternatingDerivation_apply`, and
+  only in the proof of `mpullback_symm_realAlternatingDerivation`, and
   `TauCeti.SmoothAlmostComplexStructure.forall_chartPushforward_apply_eq_iff`,
-  only in the proofs of `KahlerCoordinates.lean`.
+  only in the proofs of `symbolInChart_realAlternatingDerivation_apply` and of
+  `KahlerCoordinates.lean`.
 - Tau Ceti: the declarations listed under *What exists*, and
   `SmoothForm.mapCoeff`, `exactForms`, `closedForms`,
   `deRhamCohomology.mk`, `riemannianVolumeForm`, `integralTopForm`,

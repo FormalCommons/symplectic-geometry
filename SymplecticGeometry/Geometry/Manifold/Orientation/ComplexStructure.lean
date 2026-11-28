@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Topology.VectorBundle.Complex.Orientation
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 
 /-!
 # The orientation of a manifold given by a complex structure on its tangent bundle
@@ -88,7 +88,7 @@ theorem orientation_eq_tangentOrientation (J : SmoothAlmostComplexStructure I M)
     Bundle.ContinuousComplexStructure.toVectorBundleOrientation_tangentOrientation,
     Bundle.ContinuousComplexStructure.orientation_apply,
     ContMDiffAlmostComplexStructure.toContinuousComplexStructure_almostComplexStructureAt,
-    almostComplexStructureAt_toContMDiff]
+    toContMDiff_almostComplexStructureAt]
 
 end TauCeti.SmoothAlmostComplexStructure
 

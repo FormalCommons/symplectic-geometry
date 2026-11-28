@@ -18,7 +18,10 @@ import TauCeti.Geometry.Manifold.MFDeriv.Opens
 
 The inclusion `Subtype.val : U → M` of an open subset `U` of a charted space `M` is differentiable
 (`mdifferentiableAt_subtypeVal`, `mdifferentiable_subtypeVal`), since it is smooth at every
-regularity (Mathlib's `contMDiff_subtypeVal`). Its differential is Tau Ceti's
+regularity (Mathlib's `contMDiff_subtypeVal`). For the same reason, so is the inclusion
+`Opens.inclusion h : U → V` of open subsets (`mdifferentiableAt_inclusion`,
+`mdifferentiable_inclusion`, from Mathlib's `contMDiff_inclusion`). The differential of
+`Subtype.val` is Tau Ceti's
 `TauCeti.Manifold.mfderiv_subtype_val`.
 
 A map between open subsets that agrees near a point with a map `A` of the ambient manifolds has the
@@ -66,6 +69,18 @@ theorem mdifferentiableAt_subtypeVal {U : Opens M} {x : U} :
 /-- The inclusion of an open subset is differentiable. -/
 theorem mdifferentiable_subtypeVal {U : Opens M} : MDifferentiable I I (Subtype.val : U → M) :=
   fun _ ↦ mdifferentiableAt_subtypeVal
+
+/-- The inclusion `Opens.inclusion h : U → V` of an open subset `U` into an open subset `V ≥ U` is
+differentiable at each point. -/
+theorem mdifferentiableAt_inclusion {U V : Opens M} (h : U ≤ V) {x : U} :
+    MDifferentiableAt I I (Opens.inclusion h) x :=
+  (contMDiff_inclusion (n := 1) h x).mdifferentiableAt one_ne_zero
+
+/-- The inclusion `Opens.inclusion h : U → V` of an open subset `U` into an open subset `V ≥ U` is
+differentiable. -/
+theorem mdifferentiable_inclusion {U V : Opens M} (h : U ≤ V) :
+    MDifferentiable I I (Opens.inclusion h) :=
+  fun _ ↦ mdifferentiableAt_inclusion h
 
 namespace TauCeti.Manifold
 
