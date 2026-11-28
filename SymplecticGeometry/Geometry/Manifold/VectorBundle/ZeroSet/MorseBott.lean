@@ -15,6 +15,9 @@ import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Analysis.Normed.Group.LocalExtr
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import SymplecticGeometry.Topology.VectorBundle.Riemannian
+import TauCeti.Geometry.Manifold.Morse.ScalarComposition
+import TauCeti.Geometry.Manifold.Morse.Bott.Lemma
+import TauCeti.Topology.Order.Sublevel
 
 /-!
 # The zero set of a transverse section is a Morse–Bott minimum of `‖s‖²`
@@ -41,6 +44,17 @@ For `s` transverse to the zero section, the kernel of `L` is the tangent space o
 `‖s‖²` (`TauCeti.SmoothEmbedding.isNondegenerateCriticalSubmanifold_norm_sq_ofTransverseSection`)
 of Morse index `0` (`TauCeti.SmoothEmbedding.manifoldMorseIndex_norm_sq_ofTransverseSection`).
 
+A Morse–Bott critical submanifold is isolated in the critical set (Tau Ceti's
+`IsNondegenerateCriticalSubmanifold.exists_isOpen_criticalPoints_inter_eq_range`),
+so an open set `U` cuts the zero set out of the critical set of `‖s‖²`
+(`SymplecticGeometry.exists_isOpen_criticalPoints_norm_sq_inter_eq`). If `X` is compact, `‖s‖²`
+is continuous and positive off the zero set, so some sublevel `{‖s‖² ≤ ε}`, `ε > 0`, lies in `U`
+(Tau Ceti's `TauCeti.exists_pos_sublevel_subset_of_mem_nhdsSet`); there every critical point of
+`‖s‖²` is a zero of `s` (`SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_norm_sq`).
+Where `s ≠ 0`, `log ‖s‖²` and `‖s‖²` have the same critical points, since `log` has a nonzero
+derivative on `(0, ∞)` (Tau Ceti's `TauCeti.mem_criticalPoints_scalar_comp_iff`)
+(`SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_log_norm_sq`).
+
 ## Main results
 
 * `TauCeti.ker_criticalHessian_norm_sq_le_ker_sectionLinearization`: at a zero of a `C^m`
@@ -50,6 +64,12 @@ of Morse index `0` (`TauCeti.SmoothEmbedding.manifoldMorseIndex_norm_sq_ofTransv
   zero set of a transverse section is a Morse–Bott critical submanifold of `‖s‖²`.
 * `TauCeti.SmoothEmbedding.manifoldMorseIndex_norm_sq_ofTransverseSection`: its Morse index is
   `0` at every point.
+* `SymplecticGeometry.exists_isOpen_criticalPoints_norm_sq_inter_eq`: for a transverse section,
+  some open set meets the critical set of `‖s‖²` exactly in the zero set.
+* `SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_norm_sq` and
+  `SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_log_norm_sq`: over a compact
+  manifold, neither `‖s‖²` nor `log ‖s‖²` has a critical point where `0 < ‖s‖² ≤ ε₀`, for some
+  `ε₀ > 0`.
 
 ## References
 
@@ -181,5 +201,74 @@ theorem manifoldMorseIndex_norm_sq_ofTransverseSection (z : ↥{x : X | s x = 0}
     (isLocalMin_norm_sq_of_eq_zero (ofTransverseSection_apply_eq_zero hm hsm hs hE z))
 
 end TauCeti.SmoothEmbedding
+
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+include hsm hs in
+/-- **Near the zero set of a transverse section, `‖s‖²` is critical only on the zero set.** For a
+`C^m` section `s`, `2 ≤ m`, of a real vector bundle with a `C^m` bundle metric over a boundaryless
+manifold, transverse to the zero section, an open set cuts the zero set of `s` out of the critical
+set of `y ↦ ‖s y‖ ^ 2`. -/
+theorem exists_isOpen_criticalPoints_norm_sq_inter_eq (hm2 : 2 ≤ m) :
+    ∃ U : Set X, IsOpen U ∧ criticalPoints J (fun y ↦ ‖s y‖ ^ 2) ∩ U = {x | s x = 0} := by
+  have hm : m ≠ 0 := fun h ↦ by simp [h] at hm2
+  by_cases hk : finrank ℝ F' ≤ finrank ℝ V
+  · have hE : finrank ℝ (EuclideanSpace ℝ (Fin (finrank ℝ V - finrank ℝ F'))) + finrank ℝ F' =
+        finrank ℝ V := by
+      rw [finrank_euclideanSpace_fin]
+      omega
+    let := transverseZeroSetChartedSpace hm hsm hs hE
+    have : IsManifold J 2 X := IsManifold.of_le hm2
+    obtain ⟨U, hU, hUeq⟩ :=
+      (TauCeti.SmoothEmbedding.isNondegenerateCriticalSubmanifold_norm_sq_ofTransverseSection
+        hm hsm hs hE hm2).exists_isOpen_criticalPoints_inter_eq_range hm2
+    exact ⟨U, hU, hUeq.trans (TauCeti.SmoothEmbedding.range_ofTransverseSection hm hsm hs hE)⟩
+  · -- The linearization at a zero maps `V` onto a fibre of rank `finrank F'`, so there is none.
+    refine ⟨∅, isOpen_empty, ?_⟩
+    rw [inter_empty, eq_comm, eq_empty_iff_forall_notMem]
+    intro x hx
+    let e := (trivializationAt F' E' x).continuousLinearEquivAt ℝ x
+      (mem_baseSet_trivializationAt F' E' x)
+    exact hk (LinearMap.finrank_le_finrank_of_surjective
+      (f := (e.toContinuousLinearMap.comp (sectionLinearization J _root_.id s x)).toLinearMap)
+      (e.surjective.comp (hs x hx)))
+
+include hsm hs in
+/-- **`‖s‖²` has no critical points in a thin tube off the zero set of a transverse section.** For
+a `C^m` section `s`, `2 ≤ m`, of a real vector bundle with a `C^m` bundle metric over a compact
+boundaryless manifold, transverse to the zero section, there is `ε₀ > 0` such that no `x` with
+`0 < ‖s x‖ ^ 2 ≤ ε₀` is a critical point of `y ↦ ‖s y‖ ^ 2`. -/
+theorem exists_pos_forall_notMem_criticalPoints_norm_sq [CompactSpace X] (hm2 : 2 ≤ m) :
+    ∃ ε₀ : ℝ, 0 < ε₀ ∧ ∀ x, 0 < ‖s x‖ ^ 2 → ‖s x‖ ^ 2 ≤ ε₀ →
+      x ∉ criticalPoints J (fun y ↦ ‖s y‖ ^ 2) := by
+  obtain ⟨U, hU, hUeq⟩ := exists_isOpen_criticalPoints_norm_sq_inter_eq hsm hs hm2
+  obtain ⟨ε, hε, hεU⟩ := exists_pos_sublevel_subset_of_mem_nhdsSet
+    ((contMDiff_norm_sq_bundle J m F' E').comp hsm).continuous
+    (A := {x | s x = 0}) (fun x (hx : s x ≠ 0) ↦ pow_pos (norm_pos_iff.2 hx) 2)
+    (hU.mem_nhdsSet.2 fun x hx ↦ (hUeq.symm.subset hx).2)
+  refine ⟨ε, hε, fun x hx0 hxε hcrit ↦ ?_⟩
+  have hsx : s x = 0 := hUeq.subset ⟨hcrit, hεU hxε⟩
+  simp [hsx] at hx0
+
+include hsm hs in
+/-- **`log ‖s‖²` has no critical points in a thin tube off the zero set of a transverse section.**
+For a `C^m` section `s`, `2 ≤ m`, of a real vector bundle with a `C^m` bundle metric over a compact
+boundaryless manifold, transverse to the zero section, there is `ε₀ > 0` such that no `x` with
+`0 < ‖s x‖ ^ 2 ≤ ε₀` is a critical point of `y ↦ Real.log (‖s y‖ ^ 2)`. -/
+theorem exists_pos_forall_notMem_criticalPoints_log_norm_sq [CompactSpace X] (hm2 : 2 ≤ m) :
+    ∃ ε₀ : ℝ, 0 < ε₀ ∧ ∀ x, 0 < ‖s x‖ ^ 2 → ‖s x‖ ^ 2 ≤ ε₀ →
+      x ∉ criticalPoints J (fun y ↦ Real.log (‖s y‖ ^ 2)) := by
+  obtain ⟨ε, hε, h⟩ := exists_pos_forall_notMem_criticalPoints_norm_sq hsm hs hm2
+  refine ⟨ε, hε, fun x hx0 hxε hcrit ↦ h x hx0 hxε ?_⟩
+  have hd : MDifferentiableAt J 𝓘(ℝ) (fun y ↦ ‖s y‖ ^ 2) x :=
+    ((contMDiff_norm_sq_bundle J m F' E').comp hsm).contMDiffAt.mdifferentiableAt
+      fun h ↦ by simp [h] at hm2
+  exact (mem_criticalPoints_scalar_comp_iff (φ := Real.log) hd
+    (by simpa [Real.deriv_log] using hx0.ne')).1 hcrit
+
+end SymplecticGeometry
 
 end
