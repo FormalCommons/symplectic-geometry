@@ -14,6 +14,7 @@ import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Prod
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
 import TauCeti.Analysis.Calculus.SecondDerivative
@@ -738,7 +739,7 @@ theorem shapeGraphOverR_eq_neg_comp_prodComm (ρ : ℝ → ℝ) :
     shapeGraphOverR ρ = -(shapeGraph ρ ∘ ContinuousLinearEquiv.prodComm ℝ ℝ ℝ) :=
   funext fun q ↦ by
     rw [shapeGraphOverR_eq_neg_shapeGraph_swap, Pi.neg_apply, Function.comp_apply,
-      ContinuousLinearEquiv.prodComm_apply]
+      ContinuousLinearEquiv.coe_prodComm]
 
 /-- `shapeGraphOverR ρ` is a separated sum of the functions `s ↦ -ρ (√s)` and `t ↦ √t`. -/
 theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
