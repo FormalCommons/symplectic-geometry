@@ -296,6 +296,16 @@ theorem mem_horizontalDistribution_iff {x : M} {v : TangentSpace IM x} :
       ∀ η ∈ (mfderiv IM IB proj x).ker, τ.bilinFormAt x η v = 0 := by
   rw [horizontalDistribution_def, LinearMap.BilinForm.mem_orthogonal_iff]
 
+/-- Two two-forms that agree on `(η, v)` for every vertical vector `η` and every tangent vector
+`v` have the same horizontal spaces. -/
+theorem horizontalDistribution_eq_of_forall
+    (h : ∀ x, ∀ η ∈ (mfderiv IM IB proj x).ker, ∀ v : TangentSpace IM x,
+      τ₁.bilinFormAt x η v = τ₂.bilinFormAt x η v) :
+    horizontalDistribution IB proj τ₁ = horizontalDistribution IB proj τ₂ :=
+  funext fun x ↦ by
+    rw [horizontalDistribution_def, horizontalDistribution_def]
+    exact LinearMap.BilinForm.orthogonal_eq_orthogonal_of_forall (h x)
+
 /-- `τ` pairs a vertical vector with a horizontal one to zero. -/
 theorem val_eq_zero_of_mem_ker_of_mem_horizontalDistribution {x : M} {e h : TangentSpace IM x}
     (he : e ∈ (mfderiv IM IB proj x).ker) (hh : h ∈ horizontalDistribution IB proj τ x) :
@@ -364,9 +374,9 @@ theorem horizontalDistribution_eq_iff [FiniteDimensional ℝ EM]
     horizontalDistribution IB proj τ₁ = horizontalDistribution IB proj τ₂ ↔
       ∀ x, ∀ η ∈ (mfderiv IM IB proj x).ker, ∀ v : TangentSpace IM x,
         τ₁.bilinFormAt x η v = τ₂.bilinFormAt x η v := by
-  rw [funext_iff]
-  exact forall_congr' fun x ↦ LinearMap.BilinForm.orthogonal_eq_orthogonal_iff (h x)
-    (hτ₁.isCompl_horizontalDistribution x).symm.codisjoint
+  refine ⟨fun H x ↦ ?_, horizontalDistribution_eq_of_forall⟩
+  exact (LinearMap.BilinForm.orthogonal_eq_orthogonal_iff (h x)
+    (hτ₁.isCompl_horizontalDistribution x).symm.codisjoint).1 (congrFun H x)
 
 /-! ### Vertical closedness on horizontal vectors -/
 

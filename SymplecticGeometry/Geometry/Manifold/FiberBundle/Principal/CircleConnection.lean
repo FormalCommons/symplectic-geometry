@@ -35,9 +35,9 @@ McDuff–Salamon: `α` is invariant under the action of `Circle` and takes the v
 fundamental vector field of `1 ∈ ℝ`, read in the Lie algebra of `Circle` through `Circle.exp`
 (`SymplecticGeometry.circleLieGenerator`).
 
-Writing `ξ₀ = circleLieGenerator`, the `𝔤`-valued form `α ξ₀` is a connection form in the sense of
-`Principal/Connection/Basic.lean` exactly when `α` is a circle connection form, and its curvature
-is `(d α) ξ₀`, since the bracket term vanishes on the line `𝔤`.
+Writing `ξ₀ = circleLieGenerator`, the `𝔤`-valued form `α ξ₀` is a connection form (Tau Ceti's
+`TauCeti.PrincipalBundle.IsConnectionForm`) exactly when `α` is a circle connection form, and its
+curvature is `(d α) ξ₀`, since the bracket term vanishes on the line `𝔤`.
 
 The exterior derivative `d α` is invariant and, as the curvature of a connection form, vanishes on
 vertical vectors, so it is basic and descends along `π`: its curvature `hα.curvature` is the
@@ -83,7 +83,7 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 ## Implementation notes
 
 That `d α` vanishes on vertical vectors is the case `G = Circle` of
-`SymplecticGeometry.IsConnectionForm.isSemibasic_gaugeCurvature`, applied to
+`TauCeti.PrincipalBundle.IsConnectionForm.isSemibasic_gaugeCurvature`, applied to
 `α ξ₀` through `SymplecticGeometry.isConnectionForm_mapCoeff_iff` and
 `TauCeti.gaugeCurvature_mapCoeff_toSpanSingleton`.
 
@@ -107,6 +107,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
+open TauCeti.PrincipalBundle (IsConnectionForm)
 open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
@@ -199,7 +200,8 @@ theorem isConnectionForm_mapCoeff_iff :
     rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
     exact toSpanSingleton_circleLieGenerator_apply _
   refine ⟨fun hA ↦ ⟨fun z ↦ (hpull z).mp (hA.mpullback_op_smul z), fun x ↦ ?_⟩,
-    fun hα ↦ ⟨fun g ↦ (hpull g).mpr (hα.mpullback_op_smul g), fun x ξ ↦ ?_⟩⟩
+    fun hα ↦ IsConnectionForm.of_mpullback_op_smul (fun x ξ ↦ ?_)
+      fun g ↦ (hpull g).mpr (hα.mpullback_op_smul g)⟩
   · refine smul_left_injective ℝ circleLieGenerator_ne_zero ?_
     simp only [one_smul]
     rw [← hval, hA.apply_rightFundamentalVectorField]
