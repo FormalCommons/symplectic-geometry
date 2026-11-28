@@ -17,6 +17,7 @@ public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Sign
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -358,9 +359,7 @@ theorem hasFDerivAt_normalTubeChart (hΦ : f.IsNormalizedTube hn hdim Φ) :
     simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
       ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk]
     rw [normalTubeChartDeriv_symm_apply]
-    -- Mathlib's `HasMFDerivAt` casts the tangent spaces to the model spaces by
-    -- `tangentSpaceCastModel`, which is the identity by definition and has no lemma saying so.
-    rfl
+    rw [tangentSpaceCastModel_apply, tangentSpaceCastModel_symm_apply]
   have hψ : ContinuousLinearEquiv.prodComm ℝ P E (ψ (f z)) =
       extChartAt (I.prod 𝓘(ℝ, P)) p₀ p₀ := by
     have hzW :=
