@@ -58,10 +58,25 @@ quotient `W^σ ⧸ (W ∩ W^σ)` of the `σ_x`-orthogonal of `W`, which `J x` do
 later steps of the proof need a `J x`-invariant subspace of `T_x M` on which `H` acts, which is
 why `S` is taken as the `g`-orthogonal complement of `T` instead.
 
+At a zero of the moment map, for a complement `K` of the isotropy algebra `𝔥` of `x` (such as
+its orthogonal complement `𝔥ᗮ` for a positive definite symmetric form `B`,
+`LinearMap.BilinForm.isCompl_orthogonal_of_anisotropic`), the linear map
+`(α, β, v) ↦ J x (X_α x) + X_β x + v` from `K × K × S` to `T_x M`
+(`SymplecticGeometry.complexOrbitSliceMap`) is bijective
+(`SymplecticGeometry.bijective_complexOrbitSliceMap`). For a complexified action it is the
+derivative at `0` of `(α, β, v) ↦ C.expI α * C.toHom (mulInvariantExp β) • e.symm v` in a
+linearizing chart `e`, since `X_{i ξ} = J X_ξ`; this is the linear part of Step 3 of the proof of
+Theorem 12.5 of [GeorgoulasRobbinSalamon2021]. Injectivity uses that `W` is totally real and
+that `T` meets `S` only in `0`; surjectivity, that `K` maps onto `W`.
+
 ## Main definitions
 
 * `SymplecticGeometry.complexOrbitTangent I G J x`: the subspace `W + J x W` of `T_x M`.
 * `SymplecticGeometry.complexOrbitNormal I G J x`: its orthogonal complement for the metric.
+* `SymplecticGeometry.complexOrbitSliceMap I G J x K`: the linear map
+  `(α, β, v) ↦ J x (X_α x) + X_β x + v` on `K × K × S`.
+* `SymplecticGeometry.complexOrbitSliceEquiv`: the same map as a linear equivalence, at a zero of
+  the moment map and for a complement `K` of the isotropy algebra.
 
 ## Main results
 
@@ -77,6 +92,9 @@ why `S` is taken as the `g`-orthogonal complement of `T` instead.
   differentials at `x` of the elements of the stabilizer.
 * `SymplecticGeometry.isotropyLinearization_apply_mem_complexOrbitNormal`: `S` is invariant under
   the linearized isotropy action.
+* `SymplecticGeometry.bijective_complexOrbitSliceMap`: at a zero of the moment map, the map
+  `(α, β, v) ↦ J x (X_α x) + X_β x + v` is bijective for every complement `K` of the isotropy
+  algebra.
 
 ## References
 
@@ -350,6 +368,140 @@ theorem isotropyLinearization_apply_mem_complexOrbitNormal [T2Space G] [T2Space 
     (isClosed_complexOrbitNormal J x) fun t ↦
       mfderiv_smul_apply_mem_complexOrbitNormal hσG hJG hg
         (mulInvariantExp_smul_mem_stabilizer ξ t) hv
+
+/-! ### The derivative of the slice map -/
+
+variable (I G) in
+/-- For a subspace `K` of the Lie algebra of `G`, the linear map
+`(α, β, v) ↦ J x (X_α x) + X_β x + v` from `K × K × S` to `T_x M`, where `S` is the complex
+orbit normal space at `x`. For a complexified action, it is the derivative at `0` of
+`(α, β, v) ↦ C.expI α * C.toHom (mulInvariantExp β) • e.symm v` read in a chart `e` at `x`
+whose derivative at `x` is the identity. It is bijective when `K` is a complement of the
+isotropy algebra and `x` is a zero of the moment map
+(`SymplecticGeometry.bijective_complexOrbitSliceMap`). -/
+def complexOrbitSliceMap (J : SmoothAlmostComplexStructure I' M) (x : M)
+    (K : Submodule ℝ (GroupLieAlgebra I G)) :
+    K × K × complexOrbitNormal I G J x →ₗ[ℝ] TangentSpace I' x :=
+  ((J.toEndomorphism x).toLinearMap ∘ₗ (InfinitesimalAction.fundamental I G I' M).eval x ∘ₗ
+      K.subtype).coprod
+    (((InfinitesimalAction.fundamental I G I' M).eval x ∘ₗ K.subtype).coprod
+      (complexOrbitNormal I G J x).subtype)
+
+omit [FiniteDimensional ℝ E] in
+theorem complexOrbitSliceMap_def (J : SmoothAlmostComplexStructure I' M) (x : M)
+    (K : Submodule ℝ (GroupLieAlgebra I G)) :
+    complexOrbitSliceMap I G J x K =
+      ((J.toEndomorphism x).toLinearMap ∘ₗ (InfinitesimalAction.fundamental I G I' M).eval x ∘ₗ
+          K.subtype).coprod
+        (((InfinitesimalAction.fundamental I G I' M).eval x ∘ₗ K.subtype).coprod
+          (complexOrbitNormal I G J x).subtype) :=
+  (rfl)
+
+omit [FiniteDimensional ℝ E] in
+@[simp]
+theorem complexOrbitSliceMap_apply (J : SmoothAlmostComplexStructure I' M) (x : M)
+    (K : Submodule ℝ (GroupLieAlgebra I G)) (a : K × K × complexOrbitNormal I G J x) :
+    complexOrbitSliceMap I G J x K a =
+      J x (fundamentalVectorField I' (a.1 : GroupLieAlgebra I G) x) +
+        fundamentalVectorField I' (a.2.1 : GroupLieAlgebra I G) x + a.2.2 := by
+  rw [add_assoc, complexOrbitSliceMap_def]
+  simp only [LinearMap.coprod_apply, LinearMap.comp_apply, Submodule.coe_subtype,
+    InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply,
+    ContinuousLinearMap.coe_coe]
+
+/-- **The derivative of the slice map is bijective.** Let `-μ` be an equivariant moment map for
+`σ`, let the metric be `g(u, w) = σ(u, J w)`, let `μ x = 0`, and let `K` be a complement of the
+isotropy algebra `𝔥` of `x` in the Lie algebra of `G`. Then
+`(α, β, v) ↦ J x (X_α x) + X_β x + v` is a bijection from `K × K × S` onto `T_x M`, where `S`
+is the complex orbit normal space at `x`. -/
+theorem bijective_complexOrbitSliceMap {σ : SmoothTwoForm I' M}
+    {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    {K : Submodule ℝ (GroupLieAlgebra I G)}
+    (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
+    Function.Bijective (complexOrbitSliceMap I G J x K) := by
+  have hTS := isCompl_complexOrbitTangent (I := I) (G := G) J x
+  have hW (ξ : GroupLieAlgebra I G) : fundamentalVectorField I' ξ x ∈
+      (InfinitesimalAction.fundamental I G I' M).orbitTangent x := by
+    rw [← InfinitesimalAction.fundamental_apply]
+    exact InfinitesimalAction.mem_orbitTangent _ x ξ
+  -- `α ↦ X_α x` identifies `K` with the orbit tangent space, through `𝔤 ⧸ 𝔥`.
+  let eK := (Submodule.quotientEquivOfIsCompl _ K hK).symm.trans
+    ((InfinitesimalAction.fundamental I G I' M).quotIsotropyEquivOrbitTangent x)
+  have heK (α : K) :
+      (eK α : TangentSpace I' x) = fundamentalVectorField I' (α : GroupLieAlgebra I G) x := by
+    simp [eK, InfinitesimalAction.fundamental_apply]
+  have hKX {α : K} (h : fundamentalVectorField I' (α : GroupLieAlgebra I G) x = 0) : α = 0 :=
+    eK.map_eq_zero_iff.1 (Subtype.ext ((heK α).trans h))
+  have hXK (ξ : GroupLieAlgebra I G) :
+      ∃ α : K, fundamentalVectorField I' (α : GroupLieAlgebra I G) x =
+        fundamentalVectorField I' ξ x := by
+    obtain ⟨α, hα⟩ := eK.surjective ⟨_, hW ξ⟩
+    exact ⟨α, (heK α).symm.trans (congrArg Subtype.val hα)⟩
+  refine ⟨?_, fun u ↦ ?_⟩
+  · rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
+    rintro ⟨α, β, v⟩ h0
+    rw [complexOrbitSliceMap_apply] at h0
+    set w := J x (fundamentalVectorField I' (α : GroupLieAlgebra I G) x) +
+      fundamentalVectorField I' (β : GroupLieAlgebra I G) x with hw_def
+    have hwT : w ∈ complexOrbitTangent I G J x :=
+      mem_complexOrbitTangent_iff.2 ⟨β, α, add_comm _ _⟩
+    have hwS : w ∈ complexOrbitNormal I G J x := by
+      rw [eq_neg_of_add_eq_zero_left h0]
+      exact (complexOrbitNormal I G J x).neg_mem v.property
+    have hw : w = 0 :=
+      Submodule.disjoint_def.1 hTS.disjoint w hwT hwS
+    have hv : (v : TangentSpace I' x) = 0 := by
+      rw [hw, zero_add] at h0
+      exact h0
+    -- `J x (X_α x) = -X_β x` lies in `W ∩ J x W`, which is `0`.
+    have hJα : J x (fundamentalVectorField I' (α : GroupLieAlgebra I G) x) = 0 := by
+      refine Submodule.disjoint_def.1
+        (isTotallyReal_orbitTangent_of_moment_eq_zero hμ hg hx).disjoint _ ?_
+        (SmoothAlmostComplexStructure.mem_map_toEndomorphism_iff.2
+          ⟨_, hW (α : GroupLieAlgebra I G), rfl⟩)
+      rw [eq_neg_of_add_eq_zero_left hw]
+      exact Submodule.neg_mem _ (hW (β : GroupLieAlgebra I G))
+    have hXα : fundamentalVectorField I' (α : GroupLieAlgebra I G) x = 0 :=
+      J.injective x (hJα.trans (map_zero (J.toEndomorphism x)).symm)
+    have hXβ : fundamentalVectorField I' (β : GroupLieAlgebra I G) x = 0 := by
+      rw [hw_def, hJα, zero_add] at hw
+      exact hw
+    obtain rfl := hKX hXα
+    obtain rfl := hKX hXβ
+    obtain rfl : v = 0 := Subtype.ext hv
+    simp only [Prod.mk_zero_zero]
+  · obtain ⟨t, s, ht, hs, rfl⟩ :=
+      Submodule.codisjoint_iff_exists_add_eq.1 hTS.codisjoint u
+    obtain ⟨ξ, η, hξη⟩ := mem_complexOrbitTangent_iff.1 ht
+    obtain ⟨α, hα⟩ := hXK η
+    obtain ⟨β, hβ⟩ := hXK ξ
+    refine ⟨(α, β, ⟨s, hs⟩), ?_⟩
+    rw [complexOrbitSliceMap_apply, hα, hβ, add_comm (J x _), hξη]
+
+/-- The linear equivalence `(α, β, v) ↦ J x (X_α x) + X_β x + v` from `K × K × S` onto `T_x M`
+(`SymplecticGeometry.complexOrbitSliceMap`), for `K` a complement of the isotropy algebra of a
+zero `x` of the moment map (`SymplecticGeometry.bijective_complexOrbitSliceMap`). -/
+def complexOrbitSliceEquiv {σ : SmoothTwoForm I' M}
+    {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    {K : Submodule ℝ (GroupLieAlgebra I G)}
+    (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
+    (K × K × complexOrbitNormal I G J x) ≃ₗ[ℝ] TangentSpace I' x :=
+  LinearEquiv.ofBijective _ (bijective_complexOrbitSliceMap hμ hg hx hK)
+
+@[simp]
+theorem complexOrbitSliceEquiv_apply {σ : SmoothTwoForm I' M}
+    {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    {K : Submodule ℝ (GroupLieAlgebra I G)}
+    (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K)
+    (a : K × K × complexOrbitNormal I G J x) :
+    complexOrbitSliceEquiv hμ hg hx hK a = complexOrbitSliceMap I G J x K a :=
+  LinearEquiv.ofBijective_apply _ a
 
 end SymplecticGeometry
 
