@@ -346,13 +346,8 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
     rw [lie_self, map_zero, LinearMap.zero_apply, eq_comm, neg_eq_zero] at hl
     -- The goal mixes `EC` and `GroupLieAlgebra IC Gc`, which are the same type only up to
     -- unfolding, so `rw` and `simp` do not apply and the equalities are chained as terms.
-    have hA := (Module.End.toContinuousLinearMap_apply (E := EC) _ y).trans <|
-      (LinearEquiv.conj_apply_apply (groupLieAlgebraEquivModelVectorSpace (I := IC) (G := Gc)) _
-        y).trans <|
-      (groupLieAlgebraEquivModelVectorSpace_apply _).trans <|
-      (congrArg (LieAlgebra.ad ℝ (GroupLieAlgebra IC Gc) (L (ξ z)))
-        (groupLieAlgebraEquivModelVectorSpace_symm_apply (I := IC) (G := Gc) y)).trans <|
-      (LieAlgebra.ad_apply ℝ (GroupLieAlgebra IC Gc) _ _).trans <|
+    have hA := (toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_ad_apply
+        (E := EC) _ y).trans <|
       congrArg (fun x : GroupLieAlgebra IC Gc ↦ ⁅x, y⁆) (hL (ξ z))
     exact (ContinuousLinearMap.comp_apply _ _ y).trans <| (congrArg φ hA).trans <|
       (congrFun (LinearMap.coe_toContinuousLinearMap' _) _).trans <|
