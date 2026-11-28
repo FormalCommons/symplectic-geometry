@@ -18,7 +18,7 @@ import SymplecticGeometry.Analysis.LocallyConvex.CWType
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
-import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.CompletelyMetrizable
 
 /-!
@@ -289,7 +289,7 @@ theorem cwType_symplecticFormsInClass (hcover : ∀ x, ∃ i, x ∈ U i)
   have hcl : ContMDiffTwoForm.tangentEquiv σ ∈ TauCeti.closedForms I M 2 := by
     simpa using add_mem (TauCeti.exactForms_le_closedForms I 2 hσ) hα
   have hex := TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms h t hcl
-  rw [TauCeti.SmoothForm.mpullback_eq_self_of_eq_id _ (funext ContMDiffMap.id_apply)] at hex
+  rw [TauCeti.SmoothForm.mpullback_eq_self_of_eq_id _ ContMDiffMap.coe_id] at hex
   simp only [mem_symplecticFormsInClass, LinearEquiv.apply_symm_apply]
   refine ⟨⟨(TauCeti.SmoothForm.isClosed_iff_mem_closedForms _).2
     (TauCeti.SmoothForm.mpullback_mem_closedForms _ _ hcl), ?_⟩, ?_⟩

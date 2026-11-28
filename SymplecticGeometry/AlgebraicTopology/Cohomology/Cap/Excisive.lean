@@ -199,13 +199,7 @@ theorem singularCap_comp_singularHomologyπ_eq_singularRelativeCap (u : T ⟶ R 
     (chainComplexMap_toSmallSingularSubcomplexPair_relativeAlexanderWhitneyDiagonal U V u)
     (SSetPair.chainComplexπ_chainComplexPairing
       (TopPair.toSSetPair.obj (TopPair.ofSubset V)) μ).symm p q n h a
-  have hid : HomologicalComplex.homologyMap
-      (K := ((TopPair.ofSubset U).singularChainComplex R).linearYonedaObj k M)
-      (L := ((TopPair.ofSubset U).singularChainComplex R).linearYonedaObj k M)
-      ((TauCeti.ChainComplex.linearYonedaFunctor k M).map (𝟙 _).op) p = 𝟙 _ := by
-    rw [op_id, CategoryTheory.Functor.map_id]
-    exact HomologicalComplex.homologyMap_id _ _
-  rw [hid, ModuleCat.id_apply] at this
+  rw [ChainComplex.homologyMap_linearYonedaFunctor_map_id, ModuleCat.id_apply] at this
   -- The map `Hₙ(X, U) ⟶ Hₙ(X, U ∪ V)` factors through the small-chain quotient.
   have hH : SSetPair.homologyMap
       (toSmallSingularSubcomplexPair ![U, V] (A := U) (i := 0) subset_rfl) T n ≫
