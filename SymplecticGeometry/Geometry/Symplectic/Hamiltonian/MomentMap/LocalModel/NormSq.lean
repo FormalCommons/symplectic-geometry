@@ -14,7 +14,7 @@ public import SymplecticGeometry.LinearAlgebra.Dual.PolynomialFunctions
 
 Let `D : SymplecticGeometry.LocalModelData K V A` be the data of the Marle–Guillemin–Sternberg
 local model `Y = G ×_K (A × V)`, with moment map `μ_Y [g, p] = Ad*_g (ν p)`
-(`SymplecticGeometry.LocalModelData.descendedMomentMap`), where
+(`TauCeti.CotangentBundle.balancedProductInducedMomentMap`), where
 `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` are the covectors `SymplecticGeometry.LocalModelData.covector`.
 Fix a nondegenerate bilinear form `B` on `𝔤` and write `B^∨ = B.dualForm hB` for the form it
 induces on `𝔤*`.
@@ -48,7 +48,7 @@ coordinates `(η, v)`.
 
 public section
 
-open TauCeti TauCeti.Lie
+open TauCeti TauCeti.Lie TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -76,14 +76,17 @@ the local model at `[g, p]` is that of the covector `D.covector p`:
 theorem dualForm_descendedMomentMap_mk
     (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (g : G) (p : A × V) :
     letI := D.fiberDistribMulAction
-    B.dualForm hB (D.descendedMomentMap (BalancedProduct.mk K (K.toRightTranslation g) p))
-        (D.descendedMomentMap (BalancedProduct.mk K (K.toRightTranslation g) p)) =
+    B.dualForm hB
+        (balancedProductInducedMomentMap G D.covectorCLM_smul
+          (BalancedProduct.mk K (K.toRightTranslation g) p))
+        (balancedProductInducedMomentMap G D.covectorCLM_smul
+          (BalancedProduct.mk K (K.toRightTranslation g) p)) =
       B.dualForm hB (D.covector p) (D.covector p) := by
   let := D.fiberDistribMulAction
-  have h := momentNormSq_smul (hB := hB) hBG D.descendedMomentMap_smul g
+  have h := momentNormSq_smul (hB := hB) hBG D.balancedProductInducedMomentMap_smul g
     (BalancedProduct.mk K (K.toRightTranslation 1) p)
   rw [BalancedProduct.smul_mk_toRightTranslation, mul_one, momentNormSq_def, momentNormSq_def,
-    descendedMomentMap_mk (g := 1), map_one, one_apply_eq_self] at h
+    balancedProductInducedMomentMap_mk (g := 1), map_one, one_apply_eq_self] at h
   exact h
 
 /-- The composite of the covectors `ν = D.covector` of the local model with any linear functional

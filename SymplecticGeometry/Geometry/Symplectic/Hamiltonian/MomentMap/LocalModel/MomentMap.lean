@@ -112,7 +112,6 @@ theorem isEquivariantMomentMap_form [T2Space G] [I.Boundaryless]
 
 /-- The moment map `[g, p] ↦ Ad*_g (D.covector p)` of the local model on `G ×_K (A × V)`, Tau
 Ceti's `TauCeti.CotangentBundle.balancedProductInducedMomentMap`, at `[g, p]`. -/
-@[simp]
 theorem balancedProductInducedMomentMap_mk (g : G) (p : A × V) :
     letI := D.fiberDistribMulAction
     balancedProductInducedMomentMap G D.covectorCLM_smul

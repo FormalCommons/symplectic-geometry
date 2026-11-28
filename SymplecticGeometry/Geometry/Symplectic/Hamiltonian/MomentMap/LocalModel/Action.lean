@@ -90,7 +90,10 @@ model invariant under `(g, p) ↦ (g * k⁻¹, k • p)`, by
 * `SymplecticGeometry.LocalModelData.fiberDistribMulAction_smul_eq_toContinuousLinearMap`,
   `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_const_smul`: each `k` acts on
   `A × V` by a continuous linear map, which is its own differential at every point.
-* `SymplecticGeometry.LocalModelData.covector_smul`: `ν (k • p) = Ad*_k (ν p)`.
+* `SymplecticGeometry.LocalModelData.covector_smul`,
+  `SymplecticGeometry.LocalModelData.covectorCLM_smul`: `ν (k • p) = Ad*_k (ν p)`.
+* `SymplecticGeometry.LocalModelData.mpullback_smul_mpullback_snd_constSmooth`: the pullback of
+  `σ` to `A × V` is invariant under `K`.
 * `SymplecticGeometry.LocalModelData.mpullback_prodMap_mul_right_smul_form`: the form `D.form`
   on `G × (A × V)` is invariant under `(g, p) ↦ (g * k⁻¹, k • p)` for `k ∈ K`.
 * `SymplecticGeometry.LocalModelData.equivDual𝔪_mfderiv_repA_apply`,

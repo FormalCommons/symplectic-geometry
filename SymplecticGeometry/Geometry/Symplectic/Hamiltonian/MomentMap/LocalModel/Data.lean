@@ -65,6 +65,9 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
 * `SymplecticGeometry.LocalModelData.adjointRepresentation_mem_𝔥`: `𝔥` is invariant under the
   adjoint action of `K`.
 * `SymplecticGeometry.LocalModelData.contMDiff_covector_apply`: the components of `ν` are smooth.
+* `SymplecticGeometry.LocalModelData.covectorCLM`,
+  `SymplecticGeometry.LocalModelData.form_eq_inducedForm`: the covectors as continuous linear
+  forms, and `D.form` as Tau Ceti's induced form of them.
 * `SymplecticGeometry.LocalModelData.isClosed_form`,
   `SymplecticGeometry.LocalModelData.mpullback_mul_left_form`: the form is closed and invariant
   under `(g, η, v) ↦ (k * g, η, v)`.
