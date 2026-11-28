@@ -70,6 +70,7 @@ theorem isCompleteVectorField (A : X →L[ℝ] X) :
     ⟨_, by simp, A.isMIntegralCurve_flow x⟩
 
 /-- The maximal flow of the vector field `x ↦ A x` is the linear flow `exp (t • A)` of `A`. -/
+@[simp]
 theorem flowOf_eq_flow (A : X →L[ℝ] X) (t : ℝ) (x : X) :
     flowOf (I := 𝓘(ℝ, X)) (fun y : X ↦ A y) t x = A.flow t x := by
   simpa using flowOf_eq_of_isMIntegralCurve (A.contMDiff_tangent 1) (A.isMIntegralCurve_flow x) t
