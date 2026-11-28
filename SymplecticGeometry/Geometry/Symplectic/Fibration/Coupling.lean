@@ -488,10 +488,7 @@ theorem eq_add_mpullback_of_isClosed [ConnectedSpace F] (hA : A.IsContMDiff ∞ 
       β.IsClosed ∧ τ' = τ + SmoothForm.mpullback proj hA.contMDiff_proj β := by
   have hsub : Manifold.IsSubmersion IM IB ∞ proj := hA.isSubmersion ENat.LEInfty.out
   -- `proj` is onto, since the model fibre is nonempty.
-  obtain ⟨y₀⟩ := (inferInstance : Nonempty F)
-  have hsurj : Function.Surjective proj := fun b ↦
-    ⟨(A.trivAt b).toOpenPartialHomeomorph.symm (b, y₀),
-      (A.trivAt b).proj_symm_apply' (A.mem_baseSet_trivAt b)⟩
+  have hsurj := A.surjective_proj
   have hbasic := isBasic_sub_of_horizontalDistribution_eq hA hσ hτc hτ'c hτ hτ' hD
   have hpull : SmoothForm.mpullback proj hA.contMDiff_proj
       (SmoothForm.descendedForm hsub hsurj (τ' - τ) hbasic) = τ' - τ :=
