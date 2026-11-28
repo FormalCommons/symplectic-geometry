@@ -35,10 +35,6 @@ Tau Ceti's `TauCeti.SmoothBundleForm.contMDiffAt_eval₂`. Two cases follow:
   the tangent space at `y` (`TangentBundle.contMDiff_totalSpaceMk`), through Mathlib's
   `contMDiff_equivTangentBundleProd_symm`.
 
-Two smooth bundle-valued one-forms are equal once they agree on each single tangent vector
-(`TauCeti.SmoothBundleForm.ext_fin_one`). This is the degree-one analogue of Tau Ceti's
-`TauCeti.SmoothBundleForm.ext_eval₂`, and follows from `ContinuousAlternatingMap.ext_fin_one`.
-
 ## References
 
 * John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
@@ -71,23 +67,6 @@ theorem apply_eq_smul_of_ker_le {α β : RoughForm I M ℝ 1} {x : M} {v : Tange
   rw [ContinuousAlternatingMap.smul_apply, h, smul_eq_mul, mul_comm]
 
 end TauCeti.RoughForm
-
-namespace TauCeti.SmoothBundleForm
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
-  [∀ x, TopologicalSpace (V x)] [TopologicalSpace (TotalSpace F V)]
-  [FiberBundle F V] [VectorBundle ℝ F V]
-  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
-
-/-- Two smooth bundle-valued one-forms are equal when they agree on every tangent vector. -/
-theorem ext_fin_one {φ ψ : SmoothBundleForm I F V 1}
-    (h : ∀ x v, φ.val x ![v] = ψ.val x ![v]) : φ = ψ :=
-  Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one (h x)
-
-end TauCeti.SmoothBundleForm
 
 namespace TauCeti.SmoothForm
 

@@ -14,7 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
@@ -253,7 +253,7 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
       SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
           (G.velocityForm σ)) := by
-  refine SmoothBundleForm.ext_fin_one fun x w ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun x w ↦ ?_
   have hcomp : mfderiv J I (fun y ↦ G (t, Opens.inclusion h y)) x w =
       mfderiv J I (fun y ↦ G (t, y)) (Opens.inclusion h x) w :=
     mfderiv_comp_inclusion_apply (g := fun y ↦ G (t, y)) h x w
@@ -374,7 +374,7 @@ theorem isSmoothFamily_velocityForm (σ : SmoothTwoForm I M)
         ((k q.1).velocityForm σ) := by
   refine isSmoothFamily_def.2 ⟨SmoothForm.interiorProduct unitIntervalSqSndField
     (SmoothForm.mpullback Ĝ hĜ σ),
-    fun ⟨t, s⟩ ↦ SmoothBundleForm.ext_fin_one fun x w ↦ ?_⟩
+    fun ⟨t, s⟩ ↦ SmoothBundleForm.ext_eval₁ fun x w ↦ ?_⟩
   have hkt : (k t : unitInterval × P → M) = fun p ↦ Ĝ ((t, p.1), p.2) := funext (hk t)
   have hĜd := hĜ.mdifferentiableAt (x := ((t, s), x)) (by simp)
   rw [SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s x w, hkt]

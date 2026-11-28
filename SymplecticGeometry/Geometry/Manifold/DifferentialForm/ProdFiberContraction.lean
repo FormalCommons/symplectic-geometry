@@ -150,7 +150,8 @@ theorem mfderiv_prodFiberContraction (x : (E × F) × unitInterval) (w : E × F)
       |>.mdifferentiableAt
   rw [prodFiberContraction_eq_comp]
   refine (mfderiv_comp_apply x hs
-    ((contMDiff_prodMap_id_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero x) _).trans ?_
+    (mdifferentiableAt_fst.prodMk_space ((mdifferentiableAt_subtypeVal_Icc x.2).comp x
+      mdifferentiableAt_snd)) _).trans ?_
   have h := mfderiv_prodMap_id_subtypeVal_Icc (I := 𝓘(ℝ, E × F)) x w r
   rw [mfderiv_prod_modelWithCornersSelf_target] at h
   refine (congrArg (mfderiv 𝓘(ℝ, (E × F) × ℝ) 𝓘(ℝ, E × F) fiberScaling _) h).trans ?_

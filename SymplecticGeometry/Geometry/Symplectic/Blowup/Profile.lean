@@ -977,10 +977,8 @@ theorem isKahler_profileForm {l ε : ℝ} {h : ℝ → ℝ} (hh : IsBlowupProfil
       (profileForm n l ε h) =
       SmoothForm.mpullback (Subtype.val : V → BlowupModel n) contMDiff_subtypeVal
         (blowupForm n l) :=
-    SmoothBundleForm.ext fun p v ↦ by
-      rw [SmoothForm.mpullback_apply, SmoothForm.mpullback_apply,
-        profileForm_eq_blowupForm_on n p
-          (openNbhd_subset_closedNbhd ε (mem_openNbhdOpens_iff.1 p.property))]
+    SmoothForm.mpullback_eq_of_forall_apply_eq _ fun p ↦ profileForm_eq_blowupForm_on n p
+      (openNbhd_subset_closedNbhd ε (mem_openNbhdOpens_iff.1 p.property))
   -- On `U`, it is the pull-back along `π` of a Kähler form on `E ∖ 0`.
   have hU : SmoothTwoForm.Compatible
       (SmoothForm.mpullback (Subtype.val : U → BlowupModel n) contMDiff_subtypeVal

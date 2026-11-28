@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Complex.DdbarForm.DC
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
@@ -102,7 +102,7 @@ complexification of `f` to the complexification of the real one-form
 theorem dC_mapCoeff_ofReal (f : SmoothForm I M ℝ 0) :
     J.dC (SmoothForm.mapCoeff Complex.ofRealCLM f) =
       SmoothForm.mapCoeff Complex.ofRealCLM (J.covectorComplexStructure (mextDerivₗ I 0 f)) := by
-  refine SmoothBundleForm.ext_fin_one fun x v ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun x v ↦ ?_
   rw [J.dC_apply_apply, ← mextDerivₗ_zero_apply, SmoothForm.mextDerivₗ_mapCoeff]
   simp
 
@@ -235,7 +235,7 @@ theorem mpullback_covectorComplexStructure {f : M → M'} (hf : ContMDiff I I' �
     (hJ : IsPseudoholomorphic J J' f) (a : SmoothForm I' M' ℝ 1) :
     SmoothForm.mpullback f hf (J'.covectorComplexStructure a) =
       J.covectorComplexStructure (SmoothForm.mpullback f hf a) := by
-  refine SmoothBundleForm.ext_fin_one fun x v ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun x v ↦ ?_
   rw [SmoothForm.mpullback_apply_one,
     covectorComplexStructure_apply_vec, covectorComplexStructure_apply_vec,
     SmoothForm.mpullback_apply_one, (hJ.isPseudoholomorphicAt x).mfderiv_apply_commute]
