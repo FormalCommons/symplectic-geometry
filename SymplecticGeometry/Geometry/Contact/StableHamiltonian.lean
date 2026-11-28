@@ -621,39 +621,44 @@ form on `ℝ × M`, applies to the pullback `β` of `σ`. Since `c' 0 = 1`, the 
 `ι_{∂_t} β` is `-λ₀`.
 -/
 
-/-- The map `(r, x) ↦ (c r, x)` from `ℝ × M` to the strip, for the smooth map `c` of `ℝ` into
-`[-ε / 2, ε / 2]` with `c 0 = 0` and `c' 0 = 1` that `TauCeti.exists_contDiff_hasDerivAt_abs_le`
-gives. -/
+/-- A smooth map `c` of `ℝ` into `[-ε / 2, ε / 2]` with `c 0 = 0` and `c' 0 = 1`, chosen by
+`TauCeti.exists_contDiff_hasDerivAt_abs_le`. -/
+private noncomputable def stripReparam (hε : 0 < ε) : ℝ → ℝ :=
+  (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose
+
+private theorem stripReparam_spec (hε : 0 < ε) :
+    ContDiff ℝ ⊤ (stripReparam hε) ∧ stripReparam hε 0 = 0 ∧
+      HasDerivAt (stripReparam hε) 1 0 ∧ ∀ t, |stripReparam hε t| ≤ ε / 2 :=
+  (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec
+
+private theorem abs_stripReparam_lt (hε : 0 < ε) (r : ℝ) : |stripReparam hε r| < ε :=
+  ((stripReparam_spec hε).2.2.2 r).trans_lt (half_lt_self hε)
+
+/-- The map `(r, x) ↦ (c r, x)` from `ℝ × M` to the strip, for the map `c = stripReparam hε`. -/
 private noncomputable def stripChart (hε : 0 < ε) (p : ℝ × M) : symmStrip M ε :=
-  symmStripMk (((TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec.2.2.2
-    p.1).trans_lt (half_lt_self hε)) p.2
+  symmStripMk (abs_stripReparam_lt hε p.1) p.2
 
 private theorem val_comp_stripChart (hε : 0 < ε) :
-    Subtype.val ∘ stripChart (M := M) hε =
-      Prod.map (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose id := by
+    Subtype.val ∘ stripChart (M := M) hε = Prod.map (stripReparam hε) id := by
   funext p
   simp [stripChart, Prod.map]
 
 private theorem contMDiff_stripChart (hε : 0 < ε) :
     ContMDiff (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ (stripChart (M := M) hε) := by
   rw [← TauCeti.ContMDiff.subtypeVal_comp_iff, val_comp_stripChart]
-  exact ((TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec.1.of_le
-    le_top).contMDiff.prodMap contMDiff_id
+  exact ((stripReparam_spec hε).1.of_le le_top).contMDiff.prodMap contMDiff_id
 
 private theorem stripChart_comp_prodMk (hε : 0 < ε) (r : ℝ) :
-    ∃ (r' : ℝ) (hr' : |r'| < ε), stripChart (M := M) hε ∘ Prod.mk r = symmStripMk hr' :=
-  ⟨_, ((TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec.2.2.2 r).trans_lt
-    (half_lt_self hε), rfl⟩
+    stripChart (M := M) hε ∘ Prod.mk r = symmStripMk (abs_stripReparam_lt hε r) := rfl
 
 private theorem stripChart_zero (hε : 0 < ε) (y : M) :
     stripChart hε ((0 : ℝ), y) = symmStripMk (abs_zero.trans_lt hε) y :=
-  Subtype.ext (by
-    simp [stripChart, (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec.2.1])
+  Subtype.ext (by simp [stripChart, (stripReparam_spec hε).2.1])
 
 private theorem mfderiv_stripChart_apply (hε : 0 < ε) (y : M) (s : ℝ) (w : TangentSpace I y) :
     mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
       ((s, w) : TangentSpace (𝓘(ℝ).prod I) ((0 : ℝ), y)) = (s, w) := by
-  obtain ⟨hc, -, hc', -⟩ := (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec
+  obtain ⟨hc, -, hc', -⟩ := stripReparam_spec hε
   refine (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (U := symmStrip M ε)
     (f := stripChart hε) (I := 𝓘(ℝ).prod I) (J := 𝓘(ℝ).prod I) _).symm.trans ?_
   rw [val_comp_stripChart]
@@ -791,14 +796,13 @@ theorem isStableHamiltonian_zeroSliceOneForm (hε : 0 < ε)
     exact hnd
   ker_le_ker x v hv := by
     set β := mpullback (stripChart hε) (contMDiff_stripChart hε) σ
-    -- The slices of `β` are slices of `σ`, so `v` lies in the kernel of all of them.
+    -- The slices of `β` are those of `σ`, so `v` lies in the kernel of all of them.
+    have hslice (u : ℝ) : mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β =
+        mpullback (symmStripMk (abs_stripReparam_lt hε u)) (contMDiff_symmStripMk _) σ := by
+      simp only [β, mpullback_mpullback, stripChart_comp_prodMk]
     have hzero (u : ℝ) (w : TangentSpace I x) :
         (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β).val x ![v, w] = 0 := by
-      obtain ⟨r, hr, hcomp⟩ := stripChart_comp_prodMk (M := M) hε u
-      have hslice : mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β =
-          mpullback (symmStripMk hr) (contMDiff_symmStripMk _) σ := by
-        simp only [β, mpullback_mpullback, hcomp]
-      have hv' : v ∈ LinearMap.ker ((mpullback (symmStripMk hr)
+      have hv' : v ∈ LinearMap.ker ((mpullback (symmStripMk (abs_stripReparam_lt hε u))
           (contMDiff_symmStripMk _) σ).bilinFormAt x) := by
         rw [hker _ _ 0 (abs_zero.trans_lt hε) x]
         exact hv

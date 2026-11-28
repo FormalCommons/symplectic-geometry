@@ -8,9 +8,9 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Homotopy
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import Mathlib.MeasureTheory.Integral.Prod
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Analysis.Calculus.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
@@ -42,8 +42,8 @@ a family of rectangles in two parameters, to a third parameter.
 
 The derivative at `s₀` depends only on `u` near the slice at `s₀`: composing `u` in `s` with a
 smooth map of `ℝ` into a neighbourhood of `s₀` that is the identity near `s₀`
-(`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), gives the formula for `u` smooth only
-near that slice (`TauCeti.hasDerivAt_rectangleIntegral_slice_of_contMDiffOn`).
+(Tau Ceti's `TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`), gives the formula
+for `u` smooth only near that slice (`TauCeti.hasDerivAt_rectangleIntegral_slice_of_contMDiffOn`).
 
 ## Main results
 
@@ -205,6 +205,7 @@ theorem hasDerivAt_rectangleIntegral_slice [CompleteSpace F] {τ : RoughForm I M
   exact (intervalIntegral.hasDerivAt_integral_integral_of_contDiff (hg ![(0, 1, 0), (0, 0, 1)])
     0 1 0 1
     s₀).congr_deriv key
+
 /-- **The first variation of the area of a family of cylinders, from smoothness near a slice.**
 The derivative at `s₀` in `TauCeti.hasDerivAt_rectangleIntegral_slice` only needs `u` to be `C²`,
 and `1`-periodic in its last coordinate, for `s` in a neighbourhood `U` of `s₀`. -/
@@ -217,15 +218,15 @@ theorem hasDerivAt_rectangleIntegral_slice_of_contMDiffOn [CompleteSpace F]
           ![(1, 0, 0), (0, 1, 0), (0, 0, 1)]) +
         ∫ θ in 0..1, (mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ (s₀, 1, θ) ![(1, 0, 0), (0, 0, 1)] -
           mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ (s₀, 0, θ) ![(1, 0, 0), (0, 0, 1)])) s₀ := by
-  obtain ⟨δ, hδ, hball⟩ := Metric.mem_nhds_iff.1 hU
-  -- A smooth map `ρ` of `ℝ` into the ball of radius `δ` about `s₀`, the identity near `s₀`.
-  obtain ⟨ρ, hρ, hρid, hρU, -⟩ := SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo
-    (a := s₀ - δ / 2) (b := s₀ + δ / 2) (by linarith) (half_pos hδ)
-  replace hρU (r : ℝ) : ρ r ∈ U := hball (by
-    rw [Real.ball_eq_Ioo]
-    convert hρU r using 2 <;> ring)
-  have hρs : ρ =ᶠ[𝓝 s₀] id :=
-    Filter.eventuallyEq_of_mem (Icc_mem_nhds (by linarith) (by linarith)) hρid
+  -- A smooth map `ρ` of `ℝ` into `U`, the identity near `s₀`.
+  obtain ⟨g, hg, hgid⟩ := TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id
+    ⟨interior U, isOpen_interior⟩ (convex_singleton s₀) isCompact_singleton
+    (singleton_nonempty s₀) (singleton_subset_iff.2 (mem_interior_iff_mem_nhds.2 hU))
+  set ρ : ℝ → ℝ := fun r ↦ g r
+  have hρ : ContDiff ℝ 2 ρ :=
+    (contMDiff_iff_contDiff.1 (contMDiff_subtypeVal.comp hg)).of_le (by simp)
+  have hρU (r : ℝ) : ρ r ∈ U := interior_subset (g r).property
+  have hρs : ρ =ᶠ[𝓝 s₀] id := hgid s₀ rfl
   -- `u` reparametrized by `ρ` in `s` is smooth everywhere, and agrees with `u` near `s₀`.
   set w : ℝ × ℝ × ℝ → M := fun p ↦ u (ρ p.1, p.2)
   have hw : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) I 2 w :=
