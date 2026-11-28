@@ -309,8 +309,7 @@ complement `W`, on which both classes can be evaluated: every relative cocycle
 class of `S` in `H₂(Blowup, W; ℝ)`, and the real relative dual class of `Z` pairs to `-1` with
 its class in `H₂(Blowup, Blowup ∖ Z; ℝ)`. The simplex is the line disc `hψ.lineDisc v` after a
 positively oriented simplex of `ℝ²` around `0`. -/
-private theorem exists_smoothSimplex_singularKronecker_relClass [SecondCountableTopology M]
-    [SigmaCompactSpace (Blowup hN.blowupChart)] :
+private theorem exists_smoothSimplex_singularKronecker_relClass [SigmaCompactSpace M] :
     ∃ (S : SmoothSimplex 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2)
       (t : Fin 3 → SmoothSimplex 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup.offDivisorOpens hN.blowupChart) 1)
       (ht : ∀ i, (smoothSingularSubcomplex 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) :
@@ -432,7 +431,7 @@ private theorem exists_smoothSimplex_singularKronecker_relClass [SecondCountable
     exact (Blowup.divisorRealEmbedding hN.blowupChart
       ).singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp hn
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-            (Blowup.isClosed_range_divisorRealEmbedding _)
+      (Blowup.isClosed_range_divisorRealEmbedding _)
       (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex
       (Projectivization.mk ℂ v hv) μ hμ
       ((isOpen_setOf_curveLift_smul_mem_openNbhd hv r).mem_nhds
@@ -453,9 +452,15 @@ under the lift `ψ̃` (such as the primitive of
 `relativeDeRhamHom [y] ∈ H²(Blowup, W; ℝ)` is `π l²` times the image of the real relative dual
 class `TauCeti.SmoothEmbedding.realRelDualClass` of `Z` (`Blowup.divisorRealEmbedding`, oriented
 by `Blowup.divisorNormalOrientation`) under the identity map of pairs from `(Blowup, W)` to
-`(Blowup, Blowup ∖ Z)`. -/
-theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SecondCountableTopology M]
-    [SigmaCompactSpace (Blowup hN.blowupChart)] {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h)
+`(Blowup, Blowup ∖ Z)`.
+
+The sign depends on the normalization of `realRelDualClass`: it pairs to `-1` with the class of a
+disc that meets `Z` once, transversally, and is oriented as the normal bundle of `Z`, while
+`relativeDeRhamHom [y]` pairs to `-π l²` with it, so the multiple is `+π l²`. For a dual class
+normalized to pair to `+1` with such a disc, as McDuff–Salamon's Poincaré dual `e` of `Z` is,
+the multiple is `-π l²`. -/
+theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SigmaCompactSpace M] {h : ℝ → ℝ}
+    (hh : IsBlowupProfile l ε h)
     (y : relativeDeRhamCohomology.cocycles 𝓘(ℝ, Fin (n + 1) → ℂ)
       (Blowup.offDivisorOpens hN.blowupChart) 1)
     (hy : y.val.1 = hψ.normalizedBlowupForm h - SmoothForm.mpullback
@@ -468,24 +473,22 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SecondCountableTopology M
         (TopPair.ofSubsetMap (𝟙 (TopCat.of (Blowup hN.blowupChart)))
           (B := ((Blowup.offDivisorOpens hN.blowupChart : Set (Blowup hN.blowupChart)) :
             Set (TopCat.of (Blowup hN.blowupChart))))
-          (B' := (range (Blowup.divisorRealEmbedding hN.blowupChart))ᶜ) fun x hx ↦ by
-            rw [Blowup.range_divisorRealEmbedding, ← Blowup.coe_offDivisorOpens]
-            exact hx) 2
+          (B' := (range (Blowup.divisorRealEmbedding hN.blowupChart))ᶜ)
+          fun _ hx ↦
+            Blowup.coe_offDivisorOpens_eq_compl_range_divisorRealEmbedding hN.blowupChart ▸ hx) 2
         ((Blowup.divisorRealEmbedding hN.blowupChart).realRelDualClass hn
           (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-            (Blowup.isClosed_range_divisorRealEmbedding _)
+          (Blowup.isClosed_range_divisorRealEmbedding _)
           (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex) := by
   set f := Blowup.divisorRealEmbedding hN.blowupChart
   have hWf : ((Blowup.offDivisorOpens hN.blowupChart : Set (Blowup hN.blowupChart)) :
-      Set (TopCat.of (Blowup hN.blowupChart))) = (range f)ᶜ := by
-    rw [Blowup.coe_offDivisorOpens, Blowup.range_divisorRealEmbedding]
+      Set (TopCat.of (Blowup hN.blowupChart))) = (range f)ᶜ :=
+    Blowup.coe_offDivisorOpens_eq_compl_range_divisorRealEmbedding _
   -- The identity maps of pairs between `(Blowup, W)` and `(Blowup, (range f)ᶜ)`.
   set F := TopPair.ofSubsetMap (𝟙 (TopCat.of (Blowup hN.blowupChart)))
     (B := ((Blowup.offDivisorOpens hN.blowupChart : Set (Blowup hN.blowupChart)) :
       Set (TopCat.of (Blowup hN.blowupChart))))
-    (B' := (range f)ᶜ) fun x hx ↦ by
-      rw [Blowup.range_divisorRealEmbedding, ← Blowup.coe_offDivisorOpens]
-      exact hx
+    (B' := (range f)ᶜ) fun _ hx ↦ hWf ▸ hx
   set G := TopPair.ofSubsetMap (𝟙 (TopCat.of (Blowup hN.blowupChart))) (B := (range f)ᶜ)
     (B' := ((Blowup.offDivisorOpens hN.blowupChart : Set (Blowup hN.blowupChart)) :
       Set (TopCat.of (Blowup hN.blowupChart)))) fun x hx ↦ hWf ▸ hx
@@ -500,7 +503,7 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SecondCountableTopology M
     Complex.finrank_real_complex
   obtain ⟨m, hm⟩ := f.exists_eq_smul_realRelDualClass hn
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-            (Blowup.isClosed_range_divisorRealEmbedding _)
+    (Blowup.isClosed_range_divisorRealEmbedding _)
     (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex
     (TopPair.singularCohomologyMap G 2 b)
   have hb : b = m • TopPair.singularCohomologyMap F 2 D := by
@@ -521,22 +524,11 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SecondCountableTopology M
       -1 := by
     -- The pairs' ambient spaces agree only up to unfolding `TopPair.ofSubset`, so `rw` cannot
     -- rewrite here.
-    erw [TopPair.singularKronecker_naturality]
-    have hS : ∀ i, Set.range ((TopCat.of (Blowup hN.blowupChart)).toSSetObjEquiv _
-        ((TopCat.toSSet.obj (TopCat.of (Blowup hN.blowupChart))).δ i S.val)) ⊆
-        Set.range (TopPair.ofSubset (range f)ᶜ).map := fun i ↦
-      (range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app S t ht i).trans
-        (subset_of_eq (congrArg (fun A : Set (TopCat.of (Blowup hN.blowupChart)) ↦
-          range (TopPair.ofSubset A).map) hWf))
-    refine (ConcreteCategory.comp_apply _ _ _).trans ((congrArg _ ?_).trans (h2 hS))
-    refine (ConcreteCategory.comp_apply _ _ _).symm.trans ?_
-    erw [TopPair.relClass_singularHomologyMap]
-    congr 3
-    erw [show TopPair.Hom.fst F = 𝟙 _ from TopPair.ofSubsetMap_fst _ _,
-      CategoryTheory.Functor.map_id]
-    -- The identity natural transformation of `TopCat.toSSet` acts as the identity on simplices.
-    rfl
+    erw [TopPair.singularKronecker_naturality, ConcreteCategory.comp_apply,
+      TopPair.relClass_singularHomologyMap_ofSubsetMap_id_apply]
+    exact h2 _
   rw [← hbdef, hb] at h1
+  -- As for `hF`, the pair's ambient space is `Blowup` only up to unfolding, so `rw` fails.
   erw [map_smul] at h1
   have hm' : m * -1 = -(Real.pi * l ^ 2) := by
     rw [← hF]
