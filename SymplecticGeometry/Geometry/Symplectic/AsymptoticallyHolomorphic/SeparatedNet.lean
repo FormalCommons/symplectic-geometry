@@ -23,9 +23,6 @@ volume bound `TauCeti.card_le_of_le_dist_of_subset_closedBall` controls.
 
 ## Main results
 
-* `SymplecticGeometry.RescaledUnitaryCharts.mem_source_and_norm_le_of_rescaledEDist_le`: a point
-  at `d_k` at most `r` from `y`, for `r` below the same threshold, lies in the source of
-  `D.chart k y`, with image of norm at most `√2 * r`.
 * `SymplecticGeometry.RescaledUnitaryCharts.card_filter_rescaledEDist_le`: if the distinct points
   of `S` are at `d_k` at least `r₀ > 0`, then for every `y` and every `0 ≤ r` with
   `r < ρ₁ * √k / √2`, `ρ₁` a comparison radius for `D.chart k y`, at most
@@ -58,36 +55,6 @@ variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
   {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1} {k₀ : ℕ} {ρ₀ : ℝ}
   (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-
-/-- **Points close to the centre for `d_k`, in the rescaled chart.** Let `M` be Hausdorff,
-with a Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `y` be a
-point, and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k y` (`IsComparisonRadius`). If
-`0 ≤ r < ρ₁ * √k / √2` and the rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to `y` is
-at most `r`, then `x` lies in the source of `D.chart k y`, and its image has norm at most
-`√2 * r`. -/
-theorem mem_source_and_norm_le_of_rescaledEDist_le [T2Space M]
-    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
-    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
-    {k : ℕ} (hk : k₀ ≤ k) (y : M) (hcmp : D.IsComparisonRadius k y ρ₁)
-    {r : ℝ} (hr : 0 ≤ r) (hrρ : r < (√2)⁻¹ * (ρ₁ * √k)) {x : M}
-    (hxy : rescaledEDist I k x y ≤ ENNReal.ofReal r) :
-    x ∈ (D.chart k y).source ∧ ‖D.chart k y x‖ ≤ √2 * r := by
-  rw [rescaledEDist_comm] at hxy
-  obtain ⟨z, hz, rfl⟩ := D.exists_norm_lt_symm_eq_of_rescaledEDist_lt hg hρ₁₀ hk y hcmp
-    le_rfl (hxy.trans_lt ((ENNReal.ofReal_lt_ofReal_iff_of_nonneg hr).2 hrρ))
-  have h2 : (0 : ℝ) < √2 := by positivity
-  have hzB : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k) := by
-    rw [mem_ball_zero_iff]
-    calc ‖z‖ < √2 * ((√2)⁻¹ * (ρ₁ * √k)) := hz
-      _ = ρ₁ * √k := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
-  have hzt : z ∈ (D.chart k y).target :=
-    (ball_subset_ball (by gcongr)).trans (D.ball_subset_target hk y) hzB
-  refine ⟨(D.chart k y).map_target hzt, ?_⟩
-  rw [PartialDiffeomorph.symm_toPartialEquiv, (D.chart k y).right_inv hzt]
-  have h := (D.ofReal_mul_norm_le_rescaledEDist_symm hg hρ₁₀ hk y hcmp hzB).trans hxy
-  rw [ENNReal.ofReal_le_ofReal_iff hr] at h
-  calc ‖z‖ = √2 * ((√2)⁻¹ * ‖z‖) := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
-    _ ≤ √2 * r := by gcongr
 
 /-- **Points of a separated set in a small `d_k`-ball.** Let `M` be Hausdorff, with a Riemannian
 metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `y` be a point, and let
@@ -136,8 +103,8 @@ theorem card_filter_rescaledEDist_le [T2Space M]
   have h32 : √2 * √(3 / 2) = √3 := by
     rw [← Real.sqrt_mul zero_le_two]
     norm_num
-  field_simp
-  rw [mul_assoc, h32, mul_comm]
+  rw [div_div_eq_mul_div, ← h32]
+  ring
 
 /-- **Points of a separated set in a small `d_k`-ball, for the real distance.** The statement of
 `card_filter_rescaledEDist_le` for the real rescaled distance `rescaledDist`, on a preconnected
