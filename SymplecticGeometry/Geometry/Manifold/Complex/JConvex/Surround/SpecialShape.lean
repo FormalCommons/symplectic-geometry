@@ -230,6 +230,12 @@ theorem deriv_struweShape_mul (hδ : 0 < δ) (hK : 1 < K) (c : ℝ) :
     deriv (struweShape δ K c) (K * δ) = 1 / √(log K) := by
   rw [deriv_struweShape hδ hK.le c (lt_mul_of_one_lt_left hδ hK), mul_div_cancel_right₀ _ hδ.ne']
 
+/-- At `r > δ`, the slope of Struwe's shape is at most `√2 * r / √(r ^ 2 - δ ^ 2)`, the slope of
+`√2 * √(r ^ 2 - δ ^ 2)`. -/
+theorem deriv_struweShape_le_sqrt_two_mul_div (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ}
+    (hr : δ < r) : deriv (struweShape δ K c) r ≤ √2 * r / √(r ^ 2 - δ ^ 2) :=
+  (deriv_struweShape hδ hK c hr).trans_le (Real.one_div_sqrt_log_div_le hδ hr)
+
 /-- Struwe's equation: the second derivative of Struwe's shape at `r > δ` is `-χ'³ / (2 r)`,
 with `χ' = 1 / √(log (r / δ))`. -/
 theorem iteratedDeriv_two_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : δ < r) :
