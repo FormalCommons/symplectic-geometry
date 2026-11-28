@@ -177,7 +177,8 @@ the group that the stabilizer and the fibration need.
   `mem_realSubgroup_iff` (iff
   `(U : Matrix ι ι ℂ).map Complex.im = 0`); `orthogonalComplexMatrix_mem_realSubgroup`;
   `isClosed_realSubgroup`, from Tau Ceti's `Subgroup.isClosed_unitaryPart`
-  (`Topology/Algebra/Star/Unitary.lean`) and `TauCeti.GLOrthogonal.isClosed`.
+  (`Topology/Algebra/Star/Unitary.lean`) and `TauCeti.GLOrthogonal.isClosed`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Orthogonal/Basic.lean`).
 
 ### `LinearAlgebra/Matrix/OfReal.lean`
 
@@ -1039,7 +1040,9 @@ The manifold structure and the milestone.
     `TauCeti.GLSymplectic.symJ`, `TauCeti.GLSymplectic.sum`, `TauCeti.GLSymplectic.continuous_sum`,
     `Matrix.symplecticSum`, `Matrix.UnitaryGroup.sum`,
     `Matrix.UnitaryGroup.continuous_sum`, `TauCeti.GLOrthogonal`,
-    `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`,
+    `TauCeti.GLOrthogonal.isClosed`, `Subgroup.unitaryPart`,
+    `Subgroup.mem_unitaryPart`, `Subgroup.isClosed_unitaryPart`,
+    `Matrix.exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one`,
     `Matrix.realify_fromBlocks_zero`, the `CompactSpace` instance of
     `unitaryGroup`, `Matrix.unitaryReindexContinuousMulEquiv`,
     `Matrix.coe_unitaryReindexContinuousMulEquiv_apply`,
