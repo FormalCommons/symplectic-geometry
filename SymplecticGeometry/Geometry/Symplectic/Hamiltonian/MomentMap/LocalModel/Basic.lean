@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Induced
+public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Induced.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 

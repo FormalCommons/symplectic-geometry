@@ -17,23 +17,23 @@ with this equation, and `SymplecticGeometry.prodFstMulAction` is one. For the co
 `μ (g, p) = Ad*_g (ν p)` is a coadjoint-equivariant moment map of the local model's two-form on
 `G × (A × V)`. This is the case of the local model of
 `TauCeti.CotangentBundle.isEquivariantMomentMap_inducedForm`, in
-`SymplecticGeometry/Geometry/Symplectic/Cotangent/Bundle/Induced.lean`.
+`SymplecticGeometry/Geometry/Symplectic/Cotangent/Bundle/Induced/Basic.lean`.
 
 The last part of the file states, for the local model, the values of Tau Ceti's moment map
 `TauCeti.CotangentBundle.balancedProductInducedMomentMap`, `[g, p] ↦ Ad*_g (ν p)`, on the balanced
 product `G ×_K (A × V)`. Tau Ceti's
 `TauCeti.CotangentBundle.isEquivariantMomentMap_balancedProductInducedForm` makes it an
 equivariant moment map of the descended form
-`TauCeti.CotangentBundle.balancedProductInducedForm`.
+`TauCeti.CotangentBundle.balancedProductInducedForm`, and its equivariance needs no smooth
+structure (`TauCeti.CotangentBundle.balancedProductInducedMomentMap_smul`).
 
 ## Main results
 
 * `SymplecticGeometry.isEquivariantMomentMap_localModelForm`,
   `SymplecticGeometry.LocalModelData.isEquivariantMomentMap_form`: the cases of the local model's
   form, from linear data and from `SymplecticGeometry.LocalModelData`.
-* `SymplecticGeometry.LocalModelData.balancedProductInducedMomentMap_smul`,
-  `SymplecticGeometry.LocalModelData.balancedProductInducedMomentMap_mk_zero`: the equivariance of
-  the moment map of the local model on `G ×_K (A × V)`, and its values along the zero section.
+* `SymplecticGeometry.LocalModelData.balancedProductInducedMomentMap_mk_zero`: the values of the
+  moment map of the local model on `G ×_K (A × V)` along the zero section.
 
 ## References
 
@@ -106,21 +106,6 @@ theorem isEquivariantMomentMap_form [T2Space G] [I.Boundaryless]
   exact isEquivariantMomentMap_localModelForm _ _ _ _ _ hsmul
 
 /-! ### The moment map on `G ×_K (A × V)` -/
-
-/-- The moment map of the local model is equivariant for the action `k • [g, p] = [k g, p]`
-of `G` on `G ×_K (A × V)` and the coadjoint action: `μ_Y (k • y) = Ad*_k (μ_Y y)`. Unlike
-`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.apply_smul`, this needs no smooth structure. -/
-theorem balancedProductInducedMomentMap_smul (k : G)
-    (y : letI := D.fiberDistribMulAction; BalancedProduct K K.RightTranslation (A × V)) :
-    letI := D.fiberDistribMulAction
-    balancedProductInducedMomentMap G D.covectorCLM_smul (k • y) =
-      coadjointRepresentation ℝ I G k
-        (balancedProductInducedMomentMap G D.covectorCLM_smul y) := by
-  let := D.fiberDistribMulAction
-  induction y using BalancedProduct.induction_on_toRightTranslation with
-  | h g p =>
-    rw [BalancedProduct.smul_mk_toRightTranslation, balancedProductInducedMomentMap_mk,
-      balancedProductInducedMomentMap_mk, coe_covectorCLM, map_mul, mul_apply_eq_comp]
 
 /-- Along the zero section, the moment map of the local model is `[g, 0, 0] ↦ Ad*_g τ`. -/
 theorem balancedProductInducedMomentMap_mk_zero (g : G) :
