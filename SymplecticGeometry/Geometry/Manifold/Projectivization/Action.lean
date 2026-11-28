@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 
 /-!
 # Smooth linear actions on projective space
@@ -71,18 +71,12 @@ theorem contMDiffAt_of_eventually_eq_mk_restrictScalars {M : Type*} [Topological
     (hF : ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → 𝕜) r F x)
     (hf : ∀ᶠ y in 𝓝 x, ∃ hy : F y ≠ 0, f y = mk 𝕜 (F y) hy) :
     ContMDiffAt I 𝓘(ℝ, Fin n → 𝕜) r f x := by
-  classical
-  have hx : F x ≠ 0 := hf.self_of_nhds.1
-  -- `F` read in the punctured space, with the value `F x` where `F` vanishes.
-  set F' : M → puncturedSpace (Fin (n + 1) → 𝕜) := fun y ↦
-    if hy : F y = 0 then ⟨F x, mem_puncturedSpace.2 hx⟩ else ⟨F y, mem_puncturedSpace.2 hy⟩
-  have hF' : ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → 𝕜) r F' x := by
-    refine (TauCeti.ContMDiffAt.subtypeVal_comp_iff _ F' x).1 (hF.congr_of_eventuallyEq ?_)
-    filter_upwards [hf] with y ⟨hy, _⟩
-    simp [F', hy]
+  obtain ⟨F', hF', hFF'⟩ :=
+    hF.exists_subtypeVal_comp_eventuallyEq (mem_puncturedSpace.2 hf.self_of_nhds.1)
   refine ((contMDiff_mkNonzero 𝕜 n r).contMDiffAt.comp x hF').congr_of_eventuallyEq ?_
-  filter_upwards [hf] with y ⟨hy, hfy⟩
-  simp [F', hy, hfy, mkNonzero_apply]
+  filter_upwards [hf, hFF'] with y ⟨hy, hfy⟩ hy'
+  rw [comp_apply] at hy'
+  simp only [comp_apply, mkNonzero_apply, hfy, hy']
 
 /-- **Joint smoothness of a linear action on projective space.** If a group acts `𝕜`-linearly
 on `𝕜ⁿ⁺¹` and the action `(g, v) ↦ g • v` is `C^r`, then the induced action
