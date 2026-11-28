@@ -20,6 +20,7 @@ import TauCeti.Geometry.Euclidean.Inversion
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Sphere
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The pointwise connected-sum obstruction
@@ -208,7 +209,7 @@ private theorem exists_isNondegenerate_chart {e : E → M} (de : IsLocalDiffeomo
     SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback, ← hGk] at h
   -- The restriction of `G` to `W` is `G ∘ Subtype.val`, by definition of composition.
   rw [h, show (fun x : W ↦ G x) = G ∘ Subtype.val from rfl,
-    mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero)
+    mpullback_comp_at mdifferentiableAt_subtypeVal
       (hGw.mdifferentiableAt (by simp)), mpullback_subtype_val_apply]
 
 end Chart

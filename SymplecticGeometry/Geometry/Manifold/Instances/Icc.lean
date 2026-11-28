@@ -71,8 +71,6 @@ open scoped Manifold ContDiff
 
 variable {x y : ℝ} [Fact (x < y)] {n : WithTop ℕ∞}
 
-namespace SymplecticGeometry
-
 /-- The inclusion `Icc x y → ℝ` of a closed interval is differentiable, up to both ends. -/
 theorem mdifferentiable_subtypeVal_Icc :
     MDifferentiable (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) :=
@@ -121,6 +119,8 @@ theorem mfderiv_prodMap_id_subtypeVal_Icc (z : M × Icc x y) (w : TangentSpace I
   exact Prod.ext rfl (mfderiv_subtypeVal_Icc_smul_one z.2 r)
 
 end ProdMapManifold
+
+namespace SymplecticGeometry
 
 section Cylinder
 
@@ -191,6 +191,8 @@ theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
 
 end Cylinder
 
+end SymplecticGeometry
+
 /-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
 at `t`. If the derivative at `t` of `Subtype.val ∘ f : M → ℝ` sends `v` to `r`, then the
 derivative of `f` at `t` sends `v` to `r` times the unit tangent vector `1` at `f t`. -/
@@ -227,8 +229,6 @@ theorem mfderiv_apply_zero_one_of_eq_add_smul {E H M F : Type*} [NormedAddCommGr
   -- `smulRight_apply` do not rewrite here; both hold by definition.
   exact (congrArg ((1 : ℝ →L[ℝ] ℝ).smulRight v) (mfderiv_subtypeVal_Icc_one t)).trans
     (one_smul ℝ v)
-
-end SymplecticGeometry
 
 /-- Two continuous linear maps on a tangent space of a closed interval `[x, y]`, `x < y`, are equal
 when they agree on the unit tangent vector `1`. -/
@@ -270,13 +270,13 @@ theorem mfderiv_convexComb_one (s t : Icc x y) (u : unitInterval) :
       ((t : ℝ) - s) • (1 : TangentSpace (𝓡∂ 1) (convexComb s t u)) := by
   have hc : ContMDiff (𝓡∂ 1) (𝓡∂ 1) 1 (convexComb s t) :=
     contMDiff_const.convexComb contMDiff_const contMDiff_id
-  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc (hc.mdifferentiable one_ne_zero u) ?_
+  refine mfderiv_apply_eq_smul_one_Icc (hc.mdifferentiable one_ne_zero u) ?_
   have hval : Subtype.val ∘ convexComb s t = (fun r : ℝ ↦ (1 - r) * s + r * t) ∘ Subtype.val :=
     funext (coe_convexComb s t)
   have hd : HasDerivAt (fun r : ℝ ↦ (1 - r) * s + r * t) ((t : ℝ) - s) (u : ℝ) :=
     funext (AffineMap.lineMap_apply_ring (s : ℝ) t) ▸ AffineMap.hasDerivAt_lineMap
   rw [hval, mfderiv_comp_apply u hd.differentiableAt.mdifferentiableAt
-    (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc u), mfderiv_subtypeVal_Icc_one,
+    (mdifferentiableAt_subtypeVal_Icc u), mfderiv_subtypeVal_Icc_one,
     mfderiv_eq_fderiv, hd.hasFDerivAt.fderiv]
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     ContinuousLinearMap.toSpanSingleton_apply]
@@ -291,14 +291,14 @@ namespace unitInterval
 times the unit tangent vector at `T t`. -/
 theorem mfderiv_mul_left_one (T t : unitInterval) :
     mfderiv (𝓡∂ 1) (𝓡∂ 1) (T * ·) t 1 = (T : ℝ) • (1 : TangentSpace (𝓡∂ 1) (T * t)) := by
-  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc mdifferentiableAt_mul_left ?_
+  refine mfderiv_apply_eq_smul_one_Icc mdifferentiableAt_mul_left ?_
   have hval : (Subtype.val : unitInterval → ℝ) ∘ (T * ·) = (T : ℝ) • Subtype.val :=
     funext fun s ↦ Set.Icc.coe_mul T s
-  rw [hval, const_smul_mfderiv (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc t)]
+  rw [hval, const_smul_mfderiv (mdifferentiableAt_subtypeVal_Icc t)]
   -- The tangent spaces of `ℝ` at `t` and at `(T • Subtype.val) t` are equal only up to
   -- unfolding, so `smul_apply` does not rewrite the left side.
   exact (map_smul _ (T : ℝ) 1).symm.trans
-    (SymplecticGeometry.mfderiv_subtypeVal_Icc_smul_one t T)
+    (mfderiv_subtypeVal_Icc_smul_one t T)
 
 end unitInterval
 

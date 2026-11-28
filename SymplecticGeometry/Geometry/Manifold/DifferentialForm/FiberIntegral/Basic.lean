@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The fibre integral of a fibration with an atlas
@@ -237,8 +238,6 @@ theorem fiberIntegrand_eq_prodFiberIntegrand
     e.fiberIntegrand (I := I) α b v = prodFiberIntegrand
       (mpullback (I.prod J) IM (fun p : U × F ↦ e.toOpenPartialHomeomorph.symm (p.1, p.2)) α) b v
     := by
-  have hval : MDifferentiableAt I I (Subtype.val : U → B) b :=
-    contMDiff_subtypeVal.mdifferentiableAt one_ne_zero
   have hf (y : F) : MDifferentiableAt (I.prod J) (I.prod J) (Prod.map (Subtype.val : U → B) id)
       (b, y) := ((contMDiff_subtypeVal.prodMap contMDiff_id).mdifferentiableAt one_ne_zero)
   have hg (y : F) :
@@ -250,7 +249,7 @@ theorem fiberIntegrand_eq_prodFiberIntegrand
   symm
   funext y
   rw [prodFiberIntegrand_def, hcomp, mpullback_comp_at (hf y) (hg y), ← prodFiberIntegrand_def,
-    prodFiberIntegrand_mpullback_prodMap hval]
+    prodFiberIntegrand_mpullback_prodMap mdifferentiableAt_subtypeVal]
   simp only [Manifold.mfderiv_subtype_val_apply]
   exact congrFun (e.fiberIntegrand_def (J := J) α (b : B) v).symm y
 
