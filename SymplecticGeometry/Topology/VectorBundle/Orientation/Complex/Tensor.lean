@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
+public import TauCeti.Geometry.Manifold.VectorBundle.ExternalTensor
 public import SymplecticGeometry.Topology.VectorBundle.TensorProduct.External
 public import TauCeti.Topology.VectorBundle.TensorProduct.Operations
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
@@ -24,9 +25,9 @@ import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
 
 Let `T` and `T'` be the tautological lines of the complex projective spaces `ℙ ℂ V` and `ℙ ℂ W`
 (`Projectivization.Tautological`), and let `T ⊠ T'` be their external tensor product over
-`ℙ ℂ V × ℙ ℂ W`: Tau Ceti's tensor product bundle of the pull-backs of `T` and `T'` along the two
-projections, with model fibre `TauCeti.ProjectiveTensor ℂ ℂ ℂ`, a complex line
-(`TauCeti.ProjectiveTensor.finrank_eq_mul`). This file computes its Euler class: it is
+`ℙ ℂ V × ℙ ℂ W` (`TauCeti.ExternalTensor`): Tau Ceti's tensor product bundle of the pull-backs of
+`T` and `T'` along the two projections, with model fibre `TauCeti.ProjectiveTensor ℂ ℂ ℂ`, a
+complex line (`TauCeti.ProjectiveTensor.finrank_eq_mul`). This file computes its Euler class: it is
 `pr₁^* e(T) + pr₂^* e(T')` (`Projectivization.complexEulerClass_tensorProduct_tautological`), and
 so `-(pr₁^* h + pr₂^* h')` in integral cohomology, `h` and `h'` being the hyperplane classes
 (`Projectivization.uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological`).
@@ -103,24 +104,21 @@ namespace Projectivization
 variable {V W : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] [NormedAddCommGroup W]
   [NormedSpace ℂ W]
 
-/-- The fibres `T x ⊗[ℂ] T' y` of the external tensor product of the tautological lines `T` and
-`T'` of `ℙ ℂ V` and `ℙ ℂ W`. -/
-local notation "TT" => fun x : ℙ ℂ V × ℙ ℂ W ↦
-  ((ContinuousMap.fst : C(ℙ ℂ V × ℙ ℂ W, ℙ ℂ V)) *ᵖ (Tautological ℂ V)) x ⊗[ℂ]
-    ((ContinuousMap.snd : C(ℙ ℂ V × ℙ ℂ W, ℙ ℂ W)) *ᵖ (Tautological ℂ W)) x
 
 /-- On `ℙ ℂ V × {y₀}`, the Euler class of the external tensor product of the tautological lines
 pulls back to that of the tautological line of `ℙ ℂ V`. -/
 private theorem complexEulerClass_tensorProduct_tautological_left (y₀ : ℙ ℂ W) :
     complexEulerClass (r := 0) ℂ (Tautological ℂ V) (finrank_self ℂ) =
       TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.id _) (.const _ y₀))) 2
-        (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
+        (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ)
+          (ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
           (by simp)) := by
   -- `c ↦ c • y₀.rep`, from `ℂ` to the line `y₀`.
   let e : ℂ ≃ₗ[ℂ] Tautological ℂ W y₀ :=
     LinearEquiv.toSpanNonzeroSingleton ℂ W y₀.rep y₀.rep_ne_zero ≪≫ₗ
       LinearEquiv.ofEq _ _ (submodule_eq y₀).symm
-  let φ : ∀ x : ℙ ℂ V, Tautological ℂ V x ≃L[ℂ] TT (x, y₀) := fun x ↦
+  let φ : ∀ x : ℙ ℂ V, Tautological ℂ V x ≃L[ℂ]
+      ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W) (x, y₀) := fun x ↦
     letI : IsModuleTopology ℂ (Tautological ℂ V x) := isModuleTopologyOfFiniteDimensional
     LinearEquiv.toContinuousLinearEquivOfIsModuleTopology
       ((TensorProduct.rid ℂ (Tautological ℂ V x)).symm ≪≫ₗ
@@ -132,7 +130,9 @@ private theorem complexEulerClass_tensorProduct_tautological_left (y₀ : ℙ �
     -- identify with the fibres of `T` and `T'`; `exact` does.
     exact TensorProduct.congr_tmul _ _ _ _
   have hc : Continuous fun p : TotalSpace ℂ (Tautological ℂ V) ↦
-      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ) (E := TT) (p.proj, y₀) (p.snd ⊗ₜ[ℂ] e 1) := by
+      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ)
+        (E := ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
+        (p.proj, y₀) (p.snd ⊗ₜ[ℂ] e 1) := by
     refine Continuous.tmul_section (F₁ := ℂ) (F₂ := ℂ)
       (b := fun p : TotalSpace ℂ (Tautological ℂ V) ↦ (p.proj, y₀)) ?_ ?_
     · exact Pullback.continuous_iff.2
@@ -149,13 +149,15 @@ pulls back to that of the tautological line of `ℙ ℂ W`. -/
 private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ ℂ V) :
     complexEulerClass (r := 0) ℂ (Tautological ℂ W) (finrank_self ℂ) =
       TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.const _ x₀) (.id _))) 2
-        (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
+        (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ)
+          (ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
           (by simp)) := by
   -- `c ↦ c • x₀.rep`, from `ℂ` to the line `x₀`.
   let e : ℂ ≃ₗ[ℂ] Tautological ℂ V x₀ :=
     LinearEquiv.toSpanNonzeroSingleton ℂ V x₀.rep x₀.rep_ne_zero ≪≫ₗ
       LinearEquiv.ofEq _ _ (submodule_eq x₀).symm
-  let φ : ∀ y : ℙ ℂ W, Tautological ℂ W y ≃L[ℂ] TT (x₀, y) := fun y ↦
+  let φ : ∀ y : ℙ ℂ W, Tautological ℂ W y ≃L[ℂ]
+      ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W) (x₀, y) := fun y ↦
     letI : IsModuleTopology ℂ (Tautological ℂ W y) := isModuleTopologyOfFiniteDimensional
     LinearEquiv.toContinuousLinearEquivOfIsModuleTopology
       ((TensorProduct.lid ℂ (Tautological ℂ W y)).symm ≪≫ₗ
@@ -166,7 +168,9 @@ private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ �
     -- As in `complexEulerClass_tensorProduct_tautological_left`.
     exact TensorProduct.congr_tmul _ _ _ _
   have hc : Continuous fun p : TotalSpace ℂ (Tautological ℂ W) ↦
-      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ) (E := TT) (x₀, p.proj) (e 1 ⊗ₜ[ℂ] p.snd) := by
+      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ)
+        (E := ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
+        (x₀, p.proj) (e 1 ⊗ₜ[ℂ] p.snd) := by
     refine Continuous.tmul_section (F₁ := ℂ) (F₂ := ℂ)
       (b := fun p : TotalSpace ℂ (Tautological ℂ W) ↦ (x₀, p.proj)) ?_ ?_
     · exact Pullback.continuous_iff.2
@@ -183,7 +187,8 @@ private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ �
 finite-dimensional. The Euler class of the tensor product of their pull-backs to
 `ℙ ℂ V × ℙ ℂ W` along the two projections is `pr₁^* e(T) + pr₂^* e(T')`. -/
 theorem complexEulerClass_tensorProduct_tautological [FiniteDimensional ℂ W] :
-    complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
+    complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ)
+        (ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
         (by simp) =
       TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.fst) 2
           (complexEulerClass (r := 0) ℂ (Tautological ℂ V) (finrank_self ℂ)) +
@@ -231,7 +236,8 @@ class of `complexEulerClass_tensorProduct_tautological` is `-(pr₁^* h + pr₂^
 theorem uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological
     [FiniteDimensional ℂ W] :
     ((TopCat.of (ℙ ℂ V × ℙ ℂ W)).uliftIntegralCohomologyIso 2).hom
-        (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
+        (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ)
+          (ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
           (by simp)) =
       -(TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.fst) 2 (hyperplaneClass V) +
         TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.snd) 2 (hyperplaneClass W)) := by
@@ -300,13 +306,16 @@ theorem complexEulerClass_tensorProduct (hG : finrank ℂ G = 1)
   let := Bundle.TensorProduct.fiberBundle ℂ ℂ ((γ : B → P) *ᵖ A₁) ℂ ((γ : B → P) *ᵖ A₂)
   let := Bundle.TensorProduct.vectorBundle ℂ ℂ ((γ : B → P) *ᵖ A₁) ℂ ((γ : B → P) *ᵖ A₂)
   have hΦ : Continuous fun v : TotalSpace (ProjectiveTensor ℂ G G') (fun b ↦ L b ⊗[ℂ] L' b) ↦
-      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ) (E := fun x ↦ A₁ x ⊗[ℂ] A₂ x) (γ v.proj)
+      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ)
+        (E := ExternalTensor ℂ (Tautological ℂ (Fin N → ℂ)) (Tautological ℂ (Fin M → ℂ)))
+        (γ v.proj)
         (bundleTensorCongr ψ ψ' v.proj v.snd) := by
     refine ((continuous_tensorProduct_pullback (F₁ := ℂ) (F₂ := ℂ) (E₁ := A₁) (E₂ := A₂) γ).comp
       (bundleTensorCongrHomeomorph ψ ψ' hψ hψ').continuous).congr fun v ↦ ?_
     rw [Function.comp_apply, bundleTensorCongrHomeomorph_apply]
   rw [complexEulerClass_eq_singularCohomologyMap_of_fiberwise (g := γ)
-      (F := ProjectiveTensor ℂ ℂ ℂ) (E := fun x ↦ A₁ x ⊗[ℂ] A₂ x)
+      (F := ProjectiveTensor ℂ ℂ ℂ)
+      (E := ExternalTensor ℂ (Tautological ℂ (Fin N → ℂ)) (Tautological ℂ (Fin M → ℂ)))
       (φ := bundleTensorCongr ψ ψ') (by simp) _ hΦ,
     complexEulerClass_tensorProduct_tautological, map_add,
     complexEulerClass_eq_singularCohomologyMap_of_fiberwise _ hG hφ,
