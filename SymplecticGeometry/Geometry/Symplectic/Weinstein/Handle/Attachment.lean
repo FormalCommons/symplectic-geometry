@@ -46,7 +46,9 @@ in `K`, where `g < 0`.
 For fact (4), `IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
 `IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`
 (`Weinstein/Handle/StableDisc.lean`) give the smoothness of the crossing time and the crossing
-point of a level crossed upwards, on the open set of points whose orbits meet it. The
+point of a level crossed upwards, on the open set of points whose orbits meet it, and
+`IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_isRegularValue`, in the same file, is the
+case of a regular level of `f`. The
 level `g ⁻¹' {0}` is a closed subset of the compact region `f ⁻¹' Icc a b`, on which the continuous
 crossing time of `f ⁻¹' {b}` is bounded.
 
@@ -60,9 +62,6 @@ out as above.
   of `{f ≤ b}` enters `{g < 0}`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_flow_apply_eq_upper`: the forward orbit of a
   point of `g ⁻¹' {0}` reaches `f ⁻¹' {b}`.
-* `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_isRegularValue`: the
-  crossing time of a regular level of `f` is smooth on the open set of points whose orbits meet
-  it.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_forall_levelCrossingTime_mem_Ioc`: the time from
   `g ⁻¹' {0}` to `f ⁻¹' {b}` lies in `Ioc 0 T` for a common `T`.
 
@@ -146,16 +145,6 @@ theorem exists_flow_apply_eq_upper {a b : ℝ}
     exact Or.inr (mem_biUnion hp hxp)
 
 /-! ### Crossing times -/
-
-/-- **The crossing time of a regular level is smooth.** For a regular value `b` of the function of
-a Weinstein structure with flow `φ`, the time `Flow.levelCrossingTime φ f b` at which orbits cross
-the level `f ⁻¹' {b}` is smooth on the open set of points whose orbits meet that level. -/
-theorem contMDiffOn_levelCrossingTime_of_isRegularValue {b : ℝ}
-    (hb : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f b) :
-    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) (Flow.levelCrossingTime hW.flow f b)
-      {x | ∃ t, f (hW.flow t x) = b} :=
-  hW.contMDiffOn_levelCrossingTime_of_mvfderiv_pos hW.isGeneralizedMorse.contMDiff
-    fun _ hx ↦ hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb hx
 
 /-- **The time from `g ⁻¹' {0}` to the upper level is bounded.** Let `b` be a regular value of the
 function of a Weinstein structure with flow `φ`, let `g` be continuous with `f < b` on
