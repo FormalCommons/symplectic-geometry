@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.FiberBundle.Basic
+public import Mathlib.Topology.Maps.Proper.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
 public import SymplecticGeometry.Topology.Homeomorph.Prod
 import SymplecticGeometry.Logic.Equiv.Prod
@@ -37,6 +38,8 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
   inverse.
 * `Bundle.Trivialization.mapFiberHomeomorph`: the fibre `TauCeti.MapFiber proj b` over a point `b`
   of the base set of a trivialization, identified with the model fibre.
+* `Bundle.Trivialization.compactSpace_of_isProperMap`: the model fibre of a proper map is compact
+  as soon as some trivialization has a point in its base set.
 * `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
   the map, base set, source, target and inverse of Mathlib's
   `Bundle.Trivialization.compHomeomorph`, which precomposes a trivialization with a homeomorphism
@@ -268,6 +271,13 @@ theorem mapFiberHomeomorph_symm_apply (v : F) :
     (e.mapFiberHomeomorph hb).symm v =
       ⟨e.toOpenPartialHomeomorph.symm (b, v), e.proj_symm_apply' hb⟩ :=
   (rfl)
+
+include hb in
+/-- If `proj` is a proper map with a trivialization `e` whose base set contains a point `b`, then
+the model fibre `F` is compact, being homeomorphic to the compact fibre of `proj` over `b`. -/
+theorem compactSpace_of_isProperMap (hp : IsProperMap proj) : CompactSpace F :=
+  have := isCompact_iff_compactSpace.1 (hp.isCompact_preimage (isCompact_singleton (x := b)))
+  (e.preimageSingletonHomeomorph hb).compactSpace
 
 end mapFiberHomeomorph
 
