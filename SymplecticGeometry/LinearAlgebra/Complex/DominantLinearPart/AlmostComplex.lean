@@ -95,16 +95,16 @@ theorem surjective_of_norm_complexAntilinearPart_lt [FiniteDimensional ℝ V]
       ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
         (smulIEquiv W : W →L[ℝ] W) F‖) :
     Function.Surjective F := by
-  have hs := IsComplexLinear.surjective_of_norm_lt hW
-    (by
-      rw [coe_complexLinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
-        coe_smulIEquiv_eq_ofComplexModule]
-      exact isComplexLinear_complexLinearPart J.square_neg (ofComplexModule W).square_neg _)
-    (by
-      rw [coe_complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
-        coe_smulIEquiv_eq_ofComplexModule]
-      exact isComplexAntilinear_complexAntilinearPart J.square_neg (ofComplexModule W).square_neg _)
-    h
+  have hJ : LinearMap.toContinuousLinearMap J.toLinearMap ∘L
+      LinearMap.toContinuousLinearMap J.toLinearMap = -1 := by
+    ext v
+    simp
+  have hA := isComplexLinear_complexLinearPartContinuousLinearMap hJ
+    (smulIEquiv_comp_smulIEquiv W) F
+  have hB := isComplexAntilinear_complexAntilinearPartContinuousLinearMap hJ
+    (smulIEquiv_comp_smulIEquiv W) F
+  rw [LinearMap.coe_toContinuousLinearMap, coe_smulIEquiv_eq_ofComplexModule] at hA hB
+  have hs := IsComplexLinear.surjective_of_norm_lt hW hA hB h
   rwa [complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
     at hs
 

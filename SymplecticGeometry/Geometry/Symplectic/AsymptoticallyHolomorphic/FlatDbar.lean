@@ -210,13 +210,13 @@ theorem flatDbar_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι} (h :
 @[simp]
 theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
     flatDbar (complexToRealEuclideanCoord ι j) = 0 := by
-  ext z v : 2
+  ext z : 1
+  have h := isComplexLinear_complexToRealEuclideanCoord (ι := ι) j
+  rw [← LinearMap.coe_toContinuousLinearMap (stdComplexStructure ι).toLinearMap,
+    ← Complex.coe_smulIEquiv_eq_ofComplexModule] at h
   rw [flatDbar_eq, (complexToRealEuclideanCoord ι j).fderiv,
-    complexAntilinearPartContinuousLinearMap_apply_apply, LinearMap.coe_toContinuousLinearMap,
-    Complex.coe_smulIEquiv_eq_ofComplexModule,
-    (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero
-      (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
-  simp
+    h.complexAntilinearPartContinuousLinearMap_eq_zero (Complex.smulIEquiv_comp_smulIEquiv ℂ),
+    Pi.zero_apply]
 
 /-! ### The flat `∂` -/
 

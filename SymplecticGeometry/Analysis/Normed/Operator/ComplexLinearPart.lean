@@ -52,6 +52,17 @@ structure and no finite dimension, `TauCeti.complexLinearPartContinuousLinearMap
 real-linear operators `F ↦ ½ (F ∓ J' ∘L F ∘L J)` on the continuous real-linear maps. They add up
 to the identity
 (`TauCeti.complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap`).
+When `J ∘L J = -1` and `J' ∘L J' = -1`, their values are complex linear and complex antilinear
+for `J` and `J'` (`TauCeti.isComplexLinear_complexLinearPartContinuousLinearMap`,
+`TauCeti.isComplexAntilinear_complexAntilinearPartContinuousLinearMap`, from Tau Ceti's
+`TauCeti.isComplexLinear_complexLinearPart` and
+`TauCeti.isComplexAntilinear_complexAntilinearPart`),
+and each vanishes on the maps of the other kind
+(`TauCeti.IsComplexLinear.complexAntilinearPartContinuousLinearMap_eq_zero`,
+`TauCeti.IsComplexAntilinear.complexLinearPartContinuousLinearMap_eq_zero`). For multiplication by
+`i` on complex normed spaces, `TauCeti.complexAntilinearPartContinuousLinearMap` is Tau Ceti's
+`ContinuousLinearMap.complexAntilinearPartL`
+(`ContinuousLinearMap.complexAntilinearPartL_eq_complexAntilinearPartContinuousLinearMap`).
 For fields of endomorphisms and of operators that are `C^n` at a point, the
 field of their complex-antilinear parts is `C^n` there
 (`ContDiffAt.complexAntilinearPartContinuousLinearMap`). Changing the endomorphism of the source
@@ -247,6 +258,13 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
   exact ((hf.clm_apply contDiffOn_const).add
     ((hf.clm_apply contDiffOn_const).const_smul Complex.I)).const_smul _
 
+/-- A continuous linear endomorphism that squares to `-1` does so as a linear map. -/
+theorem ContinuousLinearMap.coe_comp_self_eq_neg_id {R M : Type*} [Ring R] [AddCommGroup M]
+    [Module R M] [TopologicalSpace M] [IsTopologicalAddGroup M] {J : M →L[R] M}
+    (h : J ∘L J = -1) : (J : M →ₗ[R] M) ∘ₗ J = -LinearMap.id := by
+  ext v
+  simpa using DFunLike.congr_fun h v
+
 /-! ### The algebraic complex-linear and complex-antilinear parts as continuous operators -/
 
 namespace TauCeti
@@ -357,6 +375,48 @@ theorem complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuous
     complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap,
     one_apply_eq_self]
 
+/-- The value at `F` of `TauCeti.complexLinearPartContinuousLinearMap J J'` is complex linear for
+`J` and `J'`, when both square to `-1`. -/
+theorem isComplexLinear_complexLinearPartContinuousLinearMap {J : V →L[ℝ] V} {J' : W →L[ℝ] W}
+    (hJ : J ∘L J = -1) (hJ' : J' ∘L J' = -1) (F : V →L[ℝ] W) :
+    IsComplexLinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
+      (complexLinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) := by
+  rw [coe_complexLinearPartContinuousLinearMap_apply]
+  exact isComplexLinear_complexLinearPart (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ)
+    (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ') _
+
+/-- The value at `F` of `TauCeti.complexAntilinearPartContinuousLinearMap J J'` is complex
+antilinear for `J` and `J'`, when both square to `-1`. -/
+theorem isComplexAntilinear_complexAntilinearPartContinuousLinearMap {J : V →L[ℝ] V}
+    {J' : W →L[ℝ] W} (hJ : J ∘L J = -1) (hJ' : J' ∘L J' = -1) (F : V →L[ℝ] W) :
+    IsComplexAntilinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
+      (complexAntilinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) := by
+  rw [coe_complexAntilinearPartContinuousLinearMap_apply]
+  exact isComplexAntilinear_complexAntilinearPart (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ)
+    (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ') _
+
+/-- A map that is complex linear for `J` and `J'` has zero continuous complex-antilinear part,
+when `J'` squares to `-1`. -/
+theorem IsComplexLinear.complexAntilinearPartContinuousLinearMap_eq_zero {J : V →L[ℝ] V}
+    {J' : W →L[ℝ] W} {F : V →L[ℝ] W}
+    (h : IsComplexLinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →ₗ[ℝ] W))
+    (hJ' : J' ∘L J' = -1) : complexAntilinearPartContinuousLinearMap J J' F = 0 :=
+  ContinuousLinearMap.coe_injective <| by
+    rw [coe_complexAntilinearPartContinuousLinearMap_apply,
+      h.complexAntilinearPart_eq_zero (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ'),
+      ContinuousLinearMap.toLinearMap_zero]
+
+/-- A map that is complex antilinear for `J` and `J'` has zero continuous complex-linear part,
+when `J'` squares to `-1`. -/
+theorem IsComplexAntilinear.complexLinearPartContinuousLinearMap_eq_zero {J : V →L[ℝ] V}
+    {J' : W →L[ℝ] W} {F : V →L[ℝ] W}
+    (h : IsComplexAntilinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →ₗ[ℝ] W))
+    (hJ' : J' ∘L J' = -1) : complexLinearPartContinuousLinearMap J J' F = 0 :=
+  ContinuousLinearMap.coe_injective <| by
+    rw [coe_complexLinearPartContinuousLinearMap_apply,
+      h.complexLinearPart_eq_zero (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ'),
+      ContinuousLinearMap.toLinearMap_zero]
+
 /-- For a field `J` of continuous endomorphisms of `V` and a field `F` of operators `V →L[ℝ] W`,
 both `C^n` at `x`, the field of complex-antilinear parts
 `y ↦ TauCeti.complexAntilinearPartContinuousLinearMap (J y) J' (F y)` is `C^n` at `x`. -/
@@ -371,6 +431,19 @@ theorem _root_.ContDiffAt.complexAntilinearPartContinuousLinearMap {X : Type*}
   simp [complexAntilinearPart_apply]
 
 end TauCeti
+
+/-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` is
+`TauCeti.complexAntilinearPartContinuousLinearMap` for multiplication by `i` on the source and on
+the target. -/
+theorem ContinuousLinearMap.complexAntilinearPartL_eq_complexAntilinearPartContinuousLinearMap
+    {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedSpace ℂ E]
+    [IsScalarTower ℝ ℂ E] [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
+    [IsScalarTower ℝ ℂ F] :
+    (complexAntilinearPartL : (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F) =
+      TauCeti.complexAntilinearPartContinuousLinearMap (Complex.smulIEquiv E : E →L[ℝ] E)
+        (Complex.smulIEquiv F : F →L[ℝ] F) := by
+  ext Ψ v
+  simp [TauCeti.complexAntilinearPart_apply]
 
 /-! ### Changing the source structure of the algebraic complex-linear part -/
 
