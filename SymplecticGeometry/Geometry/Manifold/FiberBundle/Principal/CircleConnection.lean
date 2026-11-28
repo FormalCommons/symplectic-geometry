@@ -223,6 +223,7 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
       rw [gaugeCurvature_mapCoeff_toSpanSingleton (GroupLieAlgebra.bracketL (𝓡 1) Circle)
           (ξ := circleLieGenerator) (GroupLieAlgebra.bracketL_self _), SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply] at h
+      -- `h` reads `α ξ₀` in the model space; `toSpanSingleton_apply` turns it into `c • ξ₀`.
       exact (smul_eq_zero.mp (((ContinuousLinearMap.toSpanSingleton_apply _ _ _).symm.trans h :)
         :)).resolve_right circleLieGenerator_ne_zero)
 

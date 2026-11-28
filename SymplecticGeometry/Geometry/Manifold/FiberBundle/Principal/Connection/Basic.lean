@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
-public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
@@ -146,8 +145,7 @@ variable {k : ℕ} {a b : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k}
 
 /-- The zero form is tensorial. -/
 theorem zero :
-    IsTensorialForm (0 : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P)
-      EG k) :=
+    IsTensorialForm (0 : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k) :=
   ⟨fun g ↦ by rw [map_zero, map_zero], by
     rw [ZeroMemClass.coe_zero]; exact RoughForm.isSemibasic_zero _ _⟩
 
