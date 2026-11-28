@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
@@ -241,20 +242,21 @@ values in the Lie algebra `𝔤` of `G` that is equivariant, `R_g^* β = Ad(g⁻
 is the `𝔤`-valued counterpart of `mlieDerivForm_rightFundamentalVectorField_eq_zero`. -/
 theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
     [IB.Boundaryless] [IG.Boundaryless] {k : ℕ}
-    {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k}
+    {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k}
     (hβ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) β =
-        SmoothForm.mapCoeff (Lie.adjointContinuousLinearMap g⁻¹) β)
+      (contMDiff_const_smul (op g)) β = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) β)
     (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
     (v : Fin k → TangentSpace (IB.prod IG) x) :
-    mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v = -⁅ξ, β.val x v⁆ := by
+    mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v =
+      -GroupLieAlgebra.bracketL IG G ξ (β.val x v) := by
   have : T2Space G := IG.t2Space_of_lieGroup ∞
   -- The flow of the field is `x ↦ x • exp (t ξ)`, along which `β` changes by
   -- `Ad(exp (-t ξ))`.
   have h := hasDerivAt_mpullback_op_mulInvariantExp_smul ξ (β.mdifferentiable x)
-  have hv : HasDerivAt (fun t : ℝ ↦ Lie.tangentAd (mulInvariantExp (t • -ξ)) (β.val x v))
+  have hv : HasDerivAt
+      (fun t : ℝ ↦ show EG from Lie.tangentAd (I := IG) (mulInvariantExp (t • -ξ)) (β.val x v))
       (mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v) 0 := by
-    convert (ContinuousAlternatingMap.apply ℝ _ (GroupLieAlgebra IG G) v).hasFDerivAt
+    convert (ContinuousAlternatingMap.apply ℝ _ EG v).hasFDerivAt
       |>.comp_hasDerivAt 0 h using 1
     swap
     · exact ContinuousAlternatingMap.apply_apply.symm
@@ -262,15 +264,17 @@ theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
     have e := DFunLike.congr_fun
       (congrFun (congrArg Subtype.val (hβ (mulInvariantExp (t • ξ)))) x) v
     simp only [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply] at e
-    rw [Lie.tangentAd_apply, smul_neg, mulInvariantExp_neg, ← e]
-    -- `Function.comp_apply` does not rewrite here, as the values lie in the fibre `Trivial _ 𝔤 x`;
+    dsimp only
+    refine (Lie.tangentAd_apply (I := IG) _ _).trans ?_
+    rw [smul_neg, mulInvariantExp_neg, ← GroupLieAlgebra.adjointL_apply, ← e]
+    -- `Function.comp_apply` does not rewrite here, as the values lie in the fibre `Trivial _ EG x`;
     -- `ContinuousAlternatingMap.apply_apply` closes the goal through the composition.
     rw [SmoothForm.coe_mpullback]
-    exact ContinuousAlternatingMap.apply_apply.symm
-  have hd : HasDerivAt (fun t : ℝ ↦ Lie.tangentAd (mulInvariantExp (t • -ξ)) (β.val x v))
-      ⁅-ξ, β.val x v⁆ 0 :=
-    Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero (I := IG) (-ξ) (β.val x v)
-  rw [hv.unique hd, neg_lie]
+    exact ContinuousAlternatingMap.apply_apply (E := TangentSpace (IB.prod IG) x) (F := EG) |>.symm
+  have hd := Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero (I := IG) (-ξ) (β.val x v)
+  refine (hv.unique hd).trans
+    ((LieAlgebra.ad_apply ℝ (GroupLieAlgebra IG G) (-ξ) _).trans ((neg_lie ξ _).trans ?_))
+  exact congrArg Neg.neg (GroupLieAlgebra.bracketL_apply (I := IG) (G := G) ξ (β.val x v)).symm
 
 end LieAlgebraValued
 

@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
@@ -91,7 +91,7 @@ public section
 noncomputable section
 
 open Bundle Manifold Module MulOpposite TauCeti TauCeti.Lie
-open scoped Manifold ContDiff GroupLieAlgebra
+open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
 
@@ -111,12 +111,12 @@ space with values in the Lie algebra `𝔤` of `G` that is equivariant, `R_g^* A
 the right action `R_g` of every `g : G`, and takes the value `ξ` on the fundamental vector field
 of every `ξ ∈ 𝔤`. -/
 structure IsConnectionForm
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) : Prop where
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) : Prop where
   /-- A connection form is equivariant: its pull-back by the action of `g` is its image under
   `Ad(g⁻¹)`. -/
   mpullback_op_smul (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) A = SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) A
+      (contMDiff_const_smul (op g)) A = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A
   /-- A connection form takes the value `ξ` on the fundamental vector field of `ξ`. -/
   apply_rightFundamentalVectorField (x : ManifoldTotalSpace G P) (ξ : GroupLieAlgebra IG G) :
     A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ
@@ -128,25 +128,25 @@ of its arguments is vertical, that is, in the kernel of the derivative of the pr
 forms stand for the `k`-forms on the base with values in the adjoint bundle
 (`TauCeti.AdjointBundle`). -/
 structure IsTensorialForm {k : ℕ}
-    (a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k) : Prop where
+    (a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k) : Prop where
   /-- A tensorial form is equivariant: its pull-back by the action of `g` is its image under
   `Ad(g⁻¹)`. -/
   mpullback_op_smul (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) a = SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a
+      (contMDiff_const_smul (op g)) a = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) a
   /-- A tensorial form is semibasic for the projection: it vanishes as soon as one of its
   arguments is vertical. -/
-  isSemibasic : RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
+  isSemibasic : RoughForm.IsSemibasic (F := EG) IB
     (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) a.val
 
 namespace IsTensorialForm
 
-variable {k : ℕ} {a b : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k}
+variable {k : ℕ} {a b : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k}
 
 /-- The zero form is tensorial. -/
 theorem zero :
     IsTensorialForm (0 : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P)
-      (GroupLieAlgebra IG G) k) :=
+      EG k) :=
   ⟨fun g ↦ by rw [map_zero, map_zero], by
     rw [ZeroMemClass.coe_zero]; exact RoughForm.isSemibasic_zero _ _⟩
 
@@ -171,7 +171,7 @@ at `x` on `v`. -/
 theorem apply_mfderiv_op_smul (ha : IsTensorialForm a) (g : G) (x : ManifoldTotalSpace G P)
     (v : Fin k → TangentSpace (IB.prod IG) x) :
     a.val (op g • x) (fun i ↦ mfderiv (IB.prod IG) (IB.prod IG) (fun y ↦ op g • y) x (v i)) =
-      adjointContinuousLinearMap g⁻¹ (a.val x v) := by
+      GroupLieAlgebra.adjointL IG g⁻¹ (a.val x v) := by
   have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (ha.mpullback_op_smul g)) x) v
   simp only [SmoothForm.mpullback_apply, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply] at h
   exact h
@@ -185,7 +185,7 @@ end IsTensorialForm
 /-- **Affine combinations of connection forms.** A combination `∑ i ∈ s, c i • A i` of
 connection forms whose weights `c i` sum to `1` is a connection form. -/
 theorem isConnectionForm_sum_smul {ι : Type*} (s : Finset ι)
-    {A : ι → SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : ι → SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : ∀ i ∈ s, IsConnectionForm (A i)) {c : ι → ℝ} (hc : ∑ i ∈ s, c i = 1) :
     IsConnectionForm (∑ i ∈ s, c i • A i) where
   mpullback_op_smul g := by
@@ -195,8 +195,10 @@ theorem isConnectionForm_sum_smul {ι : Type*} (s : Finset ι)
     rw [SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply,
       Finset.sum_congr rfl fun i hi ↦ by
         rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
-          (hA i hi).apply_rightFundamentalVectorField],
-      ← Finset.sum_smul, hc, one_smul]
+          (hA i hi).apply_rightFundamentalVectorField]]
+    -- The weights act on `ξ` as an element of the model space `EG`.
+    have key (y : EG) : ∑ i ∈ s, c i • y = y := by rw [← Finset.sum_smul, hc, one_smul]
+    exact key ξ
 
 /-! ### Horizontal spaces -/
 
@@ -205,13 +207,13 @@ omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
 bundle at `x`: the kernel of `A` at `x`. For a connection form it is a complement of the vertical
 space (`IsConnectionForm.isCompl_horizontal`). -/
 def horizontal
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1)
     (x : ManifoldTotalSpace G P) : Submodule ℝ (TangentSpace (IB.prod IG) x) :=
   (SmoothForm.degreeOneEquiv A x).ker
 
 omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
 theorem horizontal_def
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1)
     (x : ManifoldTotalSpace G P) :
     horizontal A x = (SmoothForm.degreeOneEquiv A x).ker :=
   (rfl)
@@ -220,7 +222,7 @@ omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
 /-- A tangent vector is horizontal for `A` exactly when `A` vanishes on it. -/
 @[simp]
 theorem mem_horizontal_iff
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     {x : ManifoldTotalSpace G P} {v : TangentSpace (IB.prod IG) x} :
     v ∈ horizontal A x ↔ A.val x ![v] = 0 := by
   rw [horizontal_def, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
@@ -228,7 +230,7 @@ theorem mem_horizontal_iff
 
 namespace IsConnectionForm
 
-variable {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+variable {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
 
 /-- The equivariance of a connection form at a point: its value at `x • g` on the image of a
 tangent vector `v` under the derivative of the action of `g` is `Ad(g⁻¹)` applied to its value at
@@ -236,7 +238,7 @@ tangent vector `v` under the derivative of the action of `g` is `Ad(g⁻¹)` app
 theorem apply_mfderiv_op_smul (hA : IsConnectionForm A) (g : G) (x : ManifoldTotalSpace G P)
     (v : TangentSpace (IB.prod IG) x) :
     A.val (op g • x) ![mfderiv (IB.prod IG) (IB.prod IG) (fun y ↦ op g • y) x v] =
-      adjointContinuousLinearMap g⁻¹ (A.val x ![v]) := by
+      GroupLieAlgebra.adjointL IG g⁻¹ (A.val x ![v]) := by
   have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (hA.mpullback_op_smul g)) x) ![v]
   simp only [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
     at h
@@ -248,15 +250,16 @@ theorem isCompl_horizontal {n : ℕ∞ω} (hA : IsConnectionForm A) (x : Manifol
     IsCompl (horizontal A x)
       (mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x).ker := by
   rw [ManifoldTotalSpace.coe_projContMDiffMap]
-  set e := PrincipalBundle.verticalLinearEquiv IB IG (P := P) x
-  set f : TangentSpace (IB.prod IG) x →ₗ[ℝ] GroupLieAlgebra IG G :=
+  set e : EG ≃ₗ[ℝ] _ := PrincipalBundle.verticalLinearEquiv IB IG (P := P) x
+  set f : TangentSpace (IB.prod IG) x →ₗ[ℝ] EG :=
     (SmoothForm.degreeOneEquiv A x).toLinearMap
   have hf (ξ : GroupLieAlgebra IG G) : f (rightFundamentalVectorField (IB.prod IG) ξ x) = ξ := by
     rw [ContinuousLinearMap.coe_coe, SmoothForm.degreeOneEquiv_apply_apply_vec,
       hA.apply_rightFundamentalVectorField]
   have h := LinearMap.isCompl_of_proj (f := e.toLinearMap ∘ₗ f) fun v ↦ by
     rw [LinearMap.comp_apply, ← PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm
-      x v, hf, LinearEquiv.coe_coe, LinearEquiv.apply_symm_apply]
+      x v, hf]
+    exact (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).apply_symm_apply v
   rw [LinearMap.ker_comp, LinearEquiv.ker, Submodule.comap_bot] at h
   rw [horizontal_def]
   exact h.symm
@@ -281,17 +284,18 @@ theorem isEhresmannConnection_horizontal [FiniteDimensional ℝ EB] [FiniteDimen
   surjective_mfderiv x :=
     (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ G P IB IG).surjective_mfderiv (by simp) x
   isContMDiffDistribution := by
-    have h := SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv (n := ∞) A fun x ξ ↦
+    have h := SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv (n := ∞) A
+      fun x (ξ : GroupLieAlgebra IG G) ↦
       ⟨rightFundamentalVectorField (IB.prod IG) ξ x, by
         rw [SmoothForm.degreeOneEquiv_apply_apply_vec, hA.apply_rightFundamentalVectorField]⟩
-    rw [Module.finrank_prod, TauCeti.finrank_tangentSpace, Nat.add_sub_cancel] at h
+    rw [Module.finrank_prod, Nat.add_sub_cancel] at h
     rwa [show horizontal A = _ from funext (horizontal_def A)]
 
 /-! ### The affine structure of connection forms -/
 
 /-- Adding a tensorial one-form to a connection form gives a connection form. -/
 theorem add_isTensorialForm (hA : IsConnectionForm A)
-    {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (ha : IsTensorialForm a) : IsConnectionForm (A + a) where
   mpullback_op_smul g := by
     rw [map_add, map_add, hA.mpullback_op_smul, ha.mpullback_op_smul]
@@ -301,11 +305,12 @@ theorem add_isTensorialForm (hA : IsConnectionForm A)
         rw [ManifoldTotalSpace.coe_projContMDiffMap]
         exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ)
     rw [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
-      hA.apply_rightFundamentalVectorField, ha0, add_zero]
+      hA.apply_rightFundamentalVectorField, ha0]
+    exact add_zero _
 
 /-- The difference of two connection forms is a tensorial one-form. -/
 theorem isTensorialForm_sub (hA : IsConnectionForm A)
-    {A' : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A' : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA' : IsConnectionForm A') : IsTensorialForm (A - A') where
   mpullback_op_smul g := by
     rw [map_sub, map_sub, hA.mpullback_op_smul, hA'.mpullback_op_smul]
@@ -319,12 +324,13 @@ theorem isTensorialForm_sub (hA : IsConnectionForm A)
       rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
         PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
     rw [hv, SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
-      hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField, sub_self]
+      hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField]
+    exact sub_self _
 
 /-- **The connection forms are an affine space over the tensorial one-forms.** Any connection
 form `A'` is the sum of a given connection form `A` and a unique tensorial one-form. -/
 theorem existsUnique_eq_add (hA : IsConnectionForm A)
-    {A' : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A' : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA' : IsConnectionForm A') : ∃! a, IsTensorialForm a ∧ A' = A + a :=
   ⟨A' - A, ⟨hA'.isTensorialForm_sub hA, (add_sub_cancel A A').symm⟩,
     fun a ⟨_, h⟩ ↦ by rw [h, add_sub_cancel_left]⟩
@@ -337,12 +343,12 @@ end IsConnectionForm
 commutative, its adjoint action is trivial, and a smooth `𝔤`-valued form on the total space is
 tensorial exactly when it is basic for the projection. -/
 theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ}
-    {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k} :
-    IsTensorialForm a ↔ RoughForm.IsBasic (V := GroupLieAlgebra IG G) IB
+    {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k} :
+    IsTensorialForm a ↔ RoughForm.IsBasic (V := EG) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG) a.val := by
   -- The adjoint action of a commutative group is trivial.
-  have hAd (g : G) : SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a = a := by
-    rw [adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
+  have hAd (g : G) : SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) a = a := by
+    rw [GroupLieAlgebra.adjointL_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
   refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
       (fun g ↦ (h.mpullback_op_smul g).trans (hAd g))
       (ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff.mp h.isSemibasic),

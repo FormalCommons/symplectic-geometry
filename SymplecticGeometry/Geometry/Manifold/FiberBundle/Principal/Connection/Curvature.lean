@@ -79,16 +79,15 @@ theorem IsConnectionForm.mpullback_op_smul_gaugeCurvature {EB HB B : Type*}
     {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
     [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
     [ContMDiffFiberBundle ∞ G P IB IG]
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
         (contMDiff_const_smul (op g))
-        (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) =
-      SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
-        (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) := by
+        (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) =
+      SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹)
+        (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) := by
   rw [mpullback_gaugeCurvature, hA.mpullback_op_smul,
-    gaugeCurvature_mapCoeff _ _ _ fun a b ↦ by
-      rw [lieL_apply, lieL_apply, adjointContinuousLinearMap_lie]]
+    gaugeCurvature_mapCoeff _ _ _ fun a b ↦ GroupLieAlgebra.adjointL_bracketL g⁻¹ a b]
 
 section Tensorial
 
@@ -98,7 +97,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
   [ContMDiffFiberBundle ∞ G P IB IG]
-  {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+  {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
 
 /-- The curvature of a connection form vanishes when its first argument is the value of a
 fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket
@@ -106,23 +105,24 @@ fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, whi
 theorem IsConnectionForm.gaugeCurvature_apply_rightFundamentalVectorField
     (hA : IsConnectionForm A) (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
     (w : TangentSpace (IB.prod IG) x) :
-    (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val x
+    (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val x
       ![rightFundamentalVectorField (IB.prod IG) ξ x, w] = 0 := by
   have hV := (PrincipalBundle.contMDiff_rightFundamentalVectorField (P := P) (IB := IB)
     (m := 1) (n := ∞) (by simp) ξ x).mdifferentiableAt one_ne_zero
-  have h := mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ ξ)
+  -- The constant function `ξ`, read with values in the model space `EG`.
+  have h := mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ @id EG ξ)
     (fun y ↦ hA.apply_rightFundamentalVectorField y ξ) (A.mdifferentiable x) hV w
   rw [PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
     hA.mpullback_op_smul, mvfderiv_const, zero_apply, add_zero] at h
-  rw [gaugeCurvature_val _ (fun a b ↦ by rw [lieL_apply, lieL_apply, lie_skew]), lieL_apply,
+  rw [gaugeCurvature_val _ (fun a b ↦ GroupLieAlgebra.bracketL_swap b a),
     hA.apply_rightFundamentalVectorField, ← h, neg_add_cancel]
 
 /-- **The curvature of a connection form is horizontal**: it is semibasic for the projection,
 that is, it vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω} (hA : IsConnectionForm A) :
-    RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
+    RoughForm.IsSemibasic (F := EG) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG)
-      (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val := by
+      (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val := by
   refine RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr ?_
   rw [Submodule.mem_conormalForms_fin_two_iff_le_ker, ManifoldTotalSpace.coe_projContMDiffMap,
     ← PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
@@ -134,7 +134,7 @@ theorem IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω} (hA : IsConne
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isTensorialForm_gaugeCurvature (hA : IsConnectionForm A) :
-    IsTensorialForm (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) where
+    IsTensorialForm (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) where
   mpullback_op_smul := hA.mpullback_op_smul_gaugeCurvature
   isSemibasic := hA.isSemibasic_gaugeCurvature
 
