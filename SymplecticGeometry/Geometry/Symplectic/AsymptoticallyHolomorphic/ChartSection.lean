@@ -322,22 +322,22 @@ theorem contDiffAt_reading_and_dbarReading_sectionOfReading [T2Space M] [I.Bound
 /-! ### `∂̄` against the model `∂̄` -/
 
 /-- **`∂̄` against the model `∂̄` in the chart at the centre.** On a boundaryless manifold, for
-every order `r` there is a constant `C`, independent of `k ≥ k₀`, of the centre `x` and of the
+every order `r` there is a constant `C ≥ 0`, independent of `k ≥ k₀`, of the centre `x` and of the
 section `s`, such that at every point `z` of the ball of radius `ρ₀ * √k` where the reading `f` of
 `s` in the chart at `x` is `C^(r + 1)`, the `r`-jet norm at `z` of the `∂̄` reading of `s` is at
 most that of the model `∂̄` of `f` plus `C * (√k)⁻¹ * (1 + ‖z‖) ^ 2` times the `(r + 1)`-jet norm
 of `f` at `z`. -/
 theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
-    ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
-      z ∈ ball 0 (ρ₀ * √k) → ContDiffAt ℝ (r + 1 : ℕ) (D.reading k x s) z →
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) (s : Π y, PowerBundle P k y)
+      {z : StdSpace ι}, z ∈ ball 0 (ρ₀ * √k) → ContDiffAt ℝ (r + 1 : ℕ) (D.reading k x s) z →
         jetNormAt ℝ r (D.dbarReading k x s) z ≤
           jetNormAt ℝ r (modelDbar (D.reading k x s)) z +
             C * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) (D.reading k x s) z := by
   set J₀ : StdSpace ι →L[ℝ] StdSpace ι :=
     LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
   obtain ⟨A₁, hA₁0, hA₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
-  obtain ⟨A₂, hA₂⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
-  refine ⟨A₁ * A₂, fun {k} hk x s z hz hs ↦ ?_⟩
+  obtain ⟨A₂, hA₂0, hA₂⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
+  refine ⟨A₁ * A₂, by positivity, fun {k} hk x s z hz hs ↦ ?_⟩
   set g := D.reading k x s
   set JJ := J.chartPushforward (D.chart k x).toOpenPartialHomeomorph
   have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
@@ -365,19 +365,19 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
         ring
 
 /-- **`∂̄` of sections extended by zero against the model `∂̄`.** On a boundaryless manifold, for
-every order `r` there is a constant `C`, independent of `k ≥ k₀`, of the centre `x` and of `f`,
-such that at every point `z` of the ball of radius `ρ₀ * √k` where `f` is `C^(r + 1)`, the
+every order `r` there is a constant `C ≥ 0`, independent of `k ≥ k₀`, of the centre `x` and of
+`f`, such that at every point `z` of the ball of radius `ρ₀ * √k` where `f` is `C^(r + 1)`, the
 `r`-jet norm at `z` of the `∂̄` reading in the chart at `x` of the section extended by zero from
 `f` is at most that of the model `∂̄` of `f` plus `C * (√k)⁻¹ * (1 + ‖z‖) ^ 2` times the
 `(r + 1)`-jet norm of `f` at `z`. -/
 theorem exists_jetNormAt_dbarReading_sectionOfReading_le [I.Boundaryless] (r : ℕ) :
-    ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) (f : StdSpace ι → ℂ) {z : StdSpace ι},
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) (f : StdSpace ι → ℂ) {z : StdSpace ι},
       z ∈ ball 0 (ρ₀ * √k) → ContDiffAt ℝ (r + 1 : ℕ) f z →
         jetNormAt ℝ r (D.dbarReading k x (D.sectionOfReading k x f)) z ≤
           jetNormAt ℝ r (modelDbar f) z +
             C * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) f z := by
-  obtain ⟨C, hC⟩ := D.exists_jetNormAt_dbarReading_le r
-  refine ⟨C, fun {k} hk x f z hz hf ↦ ?_⟩
+  obtain ⟨C, hC0, hC⟩ := D.exists_jetNormAt_dbarReading_le r
+  refine ⟨C, hC0, fun {k} hk x f z hz hf ↦ ?_⟩
   -- Near `z`, the reading of the section is `f`.
   have heq : D.reading k x (D.sectionOfReading k x f) =ᶠ[𝓝 z] f :=
     Filter.eventually_of_mem (isOpen_ball.mem_nhds hz) (D.reading_sectionOfReading hk x f)
@@ -518,7 +518,7 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
           Real.exp (-c * rescaledDist I k x y ^ 2) := by
   obtain ⟨ρ, hρ, hρρ₀, hchg⟩ := D.dbarJetNorm_le_of_chart_change hg hJ hα hρ₀
   obtain ⟨C₁, hC₁⟩ := hchg r
-  obtain ⟨C₂, hC₂⟩ := D.exists_jetNormAt_dbarReading_sectionOfReading_le r
+  obtain ⟨C₂, hC₂0, hC₂⟩ := D.exists_jetNormAt_dbarReading_sectionOfReading_le r
   obtain ⟨ρ₁, hρ₁, hρ₁ρ₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   -- One Gaussian bound, with constants `A₀`, `N₀` and `c`, for both hypotheses.
   obtain ⟨A₀, N₀, c, hc, hA₀⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
@@ -528,7 +528,7 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
     (d := fun _ z ↦ ‖z‖) (fun _ _ ↦ norm_nonneg _) (fun _ ↦ by positivity) hfg hdg
   set ρ₂ := min ρ ρ₁
   set N := N₀ + 2
-  set A := max A₀ 0 + max C₂ 0 * max A₀ 0
+  set A := max A₀ 0 + C₂ * max A₀ 0
   refine ⟨max C₁ 0 * A * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
   filter_upwards [hfs, hfb ρ₂ (lt_min hρ hρ₁), hA₀, Filter.eventually_ge_atTop k₀]
     with k hfs hball hA₀ hk
@@ -568,20 +568,18 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
     calc _ ≤ jetNormAt ℝ r (modelDbar (f k)) z +
           C₂ * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) (f k) z := h2
       _ ≤ A₀ * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N₀ * Real.exp (-c * ‖z‖ ^ 2) +
-          max C₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 2 *
+          C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 2 *
             (A₀ * (1 + ‖z‖) ^ N₀ * Real.exp (-c * ‖z‖ ^ 2)) := by
         rw [Real.inv_sqrt_eq_rpow]
         have hA₁z := (hA₀ z).1
         have hA₂z := (hA₀ z).2
-        have hC₂0 : C₂ ≤ max C₂ 0 := le_max_left _ _
         gcongr
-        exact jetNormAt_nonneg _ _ _
       _ = A₀ * (k : ℝ) ^ (-1 / 2 : ℝ) * ((1 + ‖z‖) ^ N₀ * Real.exp (-c * ‖z‖ ^ 2)) +
-          max C₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) *
+          C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) *
             (A₀ * ((1 + ‖z‖) ^ (2 + N₀) * Real.exp (-c * ‖z‖ ^ 2))) := by
         ring
       _ ≤ max A₀ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * T +
-          max C₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * (max A₀ 0 * T) := by
+          C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (max A₀ 0 * T) := by
         gcongr
         · exact le_max_left _ _
         · exact le_max_left _ _
