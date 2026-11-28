@@ -45,6 +45,8 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothTwoForm.Compatible.metric_inner_apply_apply`: `g_J` is invariant under `J`.
 * `TauCeti.SmoothTwoForm.Compatible.inner_riemannianBundle`: with `g_J` installed on the tangent
   spaces as `TauCeti.SmoothTwoForm.Compatible.riemannianBundle`, `⟪u, w⟫ = σ(u, J w)`.
+* `TauCeti.SmoothTwoForm.Compatible.isContMDiffRiemannianBundle`: with it installed, the tangent
+  bundle is a smooth Riemannian bundle.
 * `TauCeti.SmoothTwoForm.Compatible.exists_eval₂_apply_le_mul_norm_sq`: on a compact set,
   `g_J(v, v) = σ(v, J v)` is at most a constant times `‖v‖ ^ 2` for any continuous Riemannian
   metric on `TM`, by Tau Ceti's `IsCompact.exists_bound_of_continuousOn_bilinear_bundle`.
