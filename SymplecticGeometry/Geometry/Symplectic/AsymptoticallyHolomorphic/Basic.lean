@@ -105,6 +105,20 @@ asymptotically holomorphic sequence, the operator norm of the `(0,1)`-part of
 `(2π k)^(-1/2)` times it is `O(k ^ (-1/2))`
 (`SymplecticGeometry.RescaledUnitaryCharts.exists_rpow_mul_norm_zeroOnePart_powerConnection_le`).
 
+Away from the centre, at a point `z` of the ball of radius `ρ₀ * √k`, the `(1,0)`-part
+`J.oneZeroPart` of `D_k s` at `y = (D.chart k x).symm z` reads in the chart as the complex-linear
+part `½ (∇u - i ∇(J_z u))` of the connection reading `∇`, for the pushed-forward structure `J_z`
+(`SymplecticGeometry.RescaledUnitaryCharts.oneZeroPart_powerConnection_chart_symm_apply`). Since
+`J_z` differs from `J₀ = stdComplexStructure ι` by at most `D.bound 1 * ‖z‖ / √k`, and the chart
+compares `2π k σ(v, J v)` with the square of the norm of the image of `v` up to the same factor
+(`SymplecticGeometry.RescaledUnitaryCharts.abs_eval₂_apply_sub_norm_sq_le`), the complex-linear
+part of `∇` for `J₀` is at most `(1 + C ‖z‖ / √k) (2π k)^(-1/2) ‖∂ s(y)‖ + C ‖z‖ / √k ‖∇‖`, for
+the metric `σ(·, J ·)` on `M` and `C = max (D.bound 1) 0`
+(`SymplecticGeometry.RescaledUnitaryCharts.norm_complexLinearPart_connectionReading_le` and
+`SymplecticGeometry.RescaledUnitaryCharts.norm_complexLinearPart_connectionReading_le_of_inner_eq`).
+A lower bound on the flat `∂` of a reading thus becomes a lower bound on the quantity that
+uniform transversality uses.
+
 A sequence
 is uniformly transverse with constant `η`
 (`SymplecticGeometry.IsUniformlyTransverse`) when, for large `k` and every `x`, either `‖s k x‖`
@@ -407,6 +421,45 @@ theorem zeroOnePart_powerConnection_chart_symm_apply [∀ y, Nonempty (P y)]
   rw [algebra_compatible_smul ℂ (2⁻¹ : ℝ), ← map_smul, ← map_smul, smul_eq_mul,
     Complex.coe_algebraMap]
 
+
+/-- **`∂ s` read in the chart.** For `k₀ ≤ k`, at a point `z` of the ball of radius `ρ₀ * √k`
+where the reading of `s` is differentiable, the `(1,0)`-part `J.oneZeroPart` of `D_k s` at
+`(D.chart k x).symm z`, evaluated on the image of `v` under the derivative of the inverse chart,
+is the class of the frame and of `½ (∇v - i ∇(J_z v))`, for `∇` the connection read in the chart
+at `z` and `J_z` the structure `J` pushed forward by the chart at `z`. -/
+theorem oneZeroPart_powerConnection_chart_symm_apply [∀ y, Nonempty (P y)]
+    (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z)
+    (v : StdSpace ι) :
+    J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))
+        (mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm z v) =
+      AssociatedBundle.mk Circle (D.frame k x ((D.chart k x).symm z))
+        (PowerModel.toComplex.symm ((2⁻¹ : ℝ) • (D.connectionReading k x s z v -
+          Complex.I * D.connectionReading k x s z
+            (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z v)))) := by
+  have hJ := J.mfderiv_symm_apply_chartPushforward_apply (D.chart k x)
+    (D.ball_subset_target hk x hz) v
+  rw [J.oneZeroPart_apply, ← hJ, D.powerConnection_chart_symm_apply hα hk hz hs,
+    D.powerConnection_chart_symm_apply hα hk hz hs]
+  simp only [← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ),
+    ← map_smul, ← map_sub, smul_eq_mul, Complex.real_smul]
+  rw [algebra_compatible_smul ℂ (2⁻¹ : ℝ), ← map_smul, ← map_smul, smul_eq_mul,
+    Complex.coe_algebraMap]
+
+/-- The norm of the `(1,0)`-part of `D_k s` at `(D.chart k x).symm z`, on the image of `v` under
+the derivative of the inverse chart, is that of `½ (∇v - i ∇(J_z v))`, under the hypotheses of
+`SymplecticGeometry.RescaledUnitaryCharts.oneZeroPart_powerConnection_chart_symm_apply`. -/
+theorem norm_oneZeroPart_powerConnection_chart_symm_apply [∀ y, Nonempty (P y)]
+    (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z)
+    (v : StdSpace ι) :
+    ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))
+        (mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm z v)‖ =
+      ‖(2⁻¹ : ℝ) • (D.connectionReading k x s z v - Complex.I * D.connectionReading k x s z
+          (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z v))‖ := by
+  rw [D.oneZeroPart_powerConnection_chart_symm_apply hα hk hz hs,
+    ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), LinearIsometryEquiv.norm_map,
+    LinearIsometryEquiv.norm_map]
 /-- The `∂̄` reading is additive on sections whose readings are differentiable at `z`. -/
 theorem dbarReading_add {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y} {z : StdSpace ι}
     (hs : DifferentiableAt ℝ (D.reading k x s) z) (ht : DifferentiableAt ℝ (D.reading k x t) z) :
@@ -808,6 +861,99 @@ theorem norm_zeroOnePart_powerConnection_apply [∀ y, Nonempty (P y)]
   rw [h, ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), LinearIsometryEquiv.norm_map,
     LinearIsometryEquiv.norm_map]
 
+/-! ### The `(1,0)`-part of the connection away from the centre of a chart -/
+
+/-- **The flat `∂` reading is controlled by `∂ s`.** Let `k₀ ≤ k`, `z` a point of the ball of
+radius `ρ₀ * √k` where the reading of `s` is differentiable, `y = (D.chart k x).symm z`, and
+`A ≥ 0` with `‖∂ s(y) v‖ ≤ A √(σ(v, J v))` for every tangent vector `v` at `y`, where `∂ s` is the
+`(1,0)`-part `J.oneZeroPart` of `D_k s`. Then, for `∇` the connection read in the chart at `z`
+and `C = max (D.bound 1) 0`, the complex-linear part `½ (∇u - i ∇(J₀ u))` of `∇` for the standard
+structure `J₀ = stdComplexStructure ι` satisfies
+`‖½ (∇u - i ∇(J₀ u))‖ ≤ ((1 + C ‖z‖ / √k) (2π k)^(-1/2) A + C ‖z‖ / √k ‖∇‖) ‖u‖`. -/
+theorem norm_complexLinearPart_connectionReading_le [∀ y, Nonempty (P y)]
+    (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z)
+    {A : ℝ} (hA₀ : 0 ≤ A)
+    (hA : ∀ v : TangentSpace I ((D.chart k x).symm z),
+      ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z)) v‖ ≤
+        A * √(σ.eval₂ ((D.chart k x).symm z) v (J ((D.chart k x).symm z) v)))
+    (u : StdSpace ι) :
+    ‖(2⁻¹ : ℝ) • (D.connectionReading k x s z u -
+        Complex.I * D.connectionReading k x s z (stdComplexStructure ι u))‖ ≤
+      ((1 + max (D.bound 1) 0 * ‖z‖ / √k) * ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * A) +
+        max (D.bound 1) 0 * ‖z‖ / √k * ‖D.connectionReading k x s z‖) * ‖u‖ := by
+  set ψ := D.chart k x
+  set L := D.connectionReading k x s z
+  set Jz := J.chartPushforward ψ.toOpenPartialHomeomorph z
+  set C := max (D.bound 1) 0
+  set t := C * ‖z‖ / √k
+  set p := (2 * Real.pi * k) ^ (-1 / 2 : ℝ)
+  have hzt : z ∈ ψ.target := D.ball_subset_target hk x hz
+  have hy : ψ.symm z ∈ ψ.source := ψ.map_target hzt
+  have hψy : ψ (ψ.symm z) = z := ψ.right_inv hzt
+  have hkpos : (0 : ℝ) < k := by
+    have h0 : 0 < ρ₀ * √k := (norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)
+    refine Real.sqrt_pos.1 ((Real.sqrt_nonneg _).lt_of_ne fun h ↦ ?_)
+    rw [← h, mul_zero] at h0
+    exact lt_irrefl 0 h0
+  have ht : 0 ≤ t := by positivity
+  have hbt : D.bound 1 * (√k)⁻¹ * ‖z‖ ≤ t := by
+    simp only [t, C, div_eq_mul_inv, mul_right_comm _ (√(k : ℝ))⁻¹]
+    gcongr
+    exact le_max_left _ _
+  -- The `(1,0)`-part for the structure `J_z` of the chart is `∂ s` read in the chart.
+  set v := mfderiv 𝓘(ℝ, StdSpace ι) I ψ.symm z u
+  have hv : mvfderiv I ψ (ψ.symm z) v = u := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hzt u
+  have h1 : ‖(2⁻¹ : ℝ) • (L u - Complex.I * L (Jz u))‖ ≤ p * A * (1 + t) * ‖u‖ := by
+    rw [← D.norm_oneZeroPart_powerConnection_chart_symm_apply hα hk hz hs u]
+    refine (hA v).trans ((mul_le_mul_of_nonneg_left ?_ hA₀).trans_eq
+      (by ring : A * (p * ((1 + t) * ‖u‖)) = p * A * (1 + t) * ‖u‖))
+    have hq := D.abs_eval₂_apply_sub_norm_sq_le hk x hy (by rw [hψy]; exact hz) v
+    rw [hv, hψy] at hq
+    have hsq : p ^ 2 * (2 * Real.pi * k) = 1 := by
+      simp only [p]
+      rw [← Real.rpow_mul_natCast (by positivity : (0 : ℝ) ≤ 2 * Real.pi * k),
+        ← Real.rpow_add_one (by positivity : (2 * Real.pi * k : ℝ) ≠ 0)]
+      norm_num
+    refine Real.sqrt_le_iff.2 ⟨by positivity, ?_⟩
+    have hle : 2 * Real.pi * k * σ.eval₂ (ψ.symm z) v (J (ψ.symm z) v) ≤
+        (1 + t) ^ 2 * ‖u‖ ^ 2 := by
+      have := (abs_le.1 hq).2
+      have : (1 + t) ≤ (1 + t) ^ 2 := by nlinarith
+      have : t * ‖u‖ ^ 2 ≥ D.bound 1 * (√k)⁻¹ * ‖z‖ * ‖u‖ ^ 2 := by gcongr
+      nlinarith [sq_nonneg ‖u‖]
+    calc σ.eval₂ (ψ.symm z) v (J (ψ.symm z) v)
+        = p ^ 2 * (2 * Real.pi * k * σ.eval₂ (ψ.symm z) v (J (ψ.symm z) v)) := by
+          rw [← mul_assoc, hsq, one_mul]
+      _ ≤ p ^ 2 * ((1 + t) ^ 2 * ‖u‖ ^ 2) := by gcongr
+      _ = (p * ((1 + t) * ‖u‖)) ^ 2 := by ring
+  -- Replacing `J_z` by `J₀` changes the complex-linear part by `(i / 2) L ∘ (J_z - J₀)`.
+  set Δ := Jz - LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
+  have hΔ : Jz u = stdComplexStructure ι u + Δ u := by
+    simp only [Δ, sub_apply, LinearMap.coe_toContinuousLinearMap',
+      add_sub_cancel]
+  have h2 : ‖(2⁻¹ : ℝ) • (Complex.I * L (Δ u))‖ ≤ t * ‖L‖ * ‖u‖ := by
+    rw [norm_smul, norm_mul, Complex.norm_I, one_mul, Real.norm_of_nonneg (by norm_num)]
+    calc 2⁻¹ * ‖L (Δ u)‖ ≤ 1 * (‖L‖ * (‖Δ‖ * ‖u‖)) := by
+          gcongr
+          · norm_num
+          · exact (L.le_opNorm _).trans (by gcongr; exact Δ.le_opNorm u)
+      _ ≤ ‖L‖ * (t * ‖u‖) := by
+          rw [one_mul]
+          gcongr
+          exact (D.jStruct_sub_le hk x z hz).trans hbt
+      _ = t * ‖L‖ * ‖u‖ := by ring
+  have hsplit : (2⁻¹ : ℝ) • (L u - Complex.I * L (stdComplexStructure ι u)) =
+      (2⁻¹ : ℝ) • (L u - Complex.I * L (Jz u)) + (2⁻¹ : ℝ) • (Complex.I * L (Δ u)) := by
+    simp only [hΔ, map_add, mul_add, smul_sub, smul_add]
+    abel
+  rw [hsplit]
+  refine (norm_add_le _ _).trans ((add_le_add h1 h2).trans_eq ?_)
+  ring
+
+
 section Riemannian
 
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
@@ -878,6 +1024,28 @@ theorem exists_rpow_mul_norm_zeroOnePart_powerConnection_le [FiniteDimensional �
   exact hk x
 
 end Riemannian
+
+/-- **The flat `∂` reading is controlled by `∂ s`, for the metric of `(σ, J)`.** Let the metric
+of `M` be `g(u, w) = σ(u, J w)`, as for Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`. For
+`k₀ ≤ k`, `z` a point of the ball of radius `ρ₀ * √k` where the reading of `s` is
+differentiable, `y = (D.chart k x).symm z`, `∇` the connection read in the chart at `z` and
+`C = max (D.bound 1) 0`, the complex-linear part `½ (∇u - i ∇(J₀ u))` of `∇` for the standard
+structure `J₀ = stdComplexStructure ι` satisfies
+`‖½ (∇u - i ∇(J₀ u))‖ ≤ ((1 + C ‖z‖ / √k) (2π k)^(-1/2) ‖∂ s(y)‖ + C ‖z‖ / √k ‖∇‖) ‖u‖`, where
+`∂ s(y)` is the `(1,0)`-part `J.oneZeroPart` of `D_k s` at `y`, with its operator norm. -/
+theorem norm_complexLinearPart_connectionReading_le_of_inner_eq
+    [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [∀ y, Nonempty (P y)]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z)
+    (u : StdSpace ι) :
+    ‖(2⁻¹ : ℝ) • (D.connectionReading k x s z u -
+        Complex.I * D.connectionReading k x s z (stdComplexStructure ι u))‖ ≤
+      ((1 + max (D.bound 1) 0 * ‖z‖ / √k) * ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+          ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖) +
+        max (D.bound 1) 0 * ‖z‖ / √k * ‖D.connectionReading k x s z‖) * ‖u‖ :=
+  D.norm_complexLinearPart_connectionReading_le hα hk hz hs (norm_nonneg _) (fun v ↦
+    (ContinuousLinearMap.le_opNorm _ v).trans_eq (by rw [norm_eq_sqrt_real_inner v, hg])) u
 
 end RescaledUnitaryCharts
 
