@@ -13,8 +13,8 @@ import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
 
 * `ContDiffAt.continuousAt_iteratedDeriv_prod_right`: if `f : P × 𝕜 → F` is `Cⁿ` at `(p, x)`,
   then for `m ≤ n` the `m`-th iterated derivative of the slices `y ↦ f (q.1, y)`, evaluated at
-  `q.2`, is continuous in `q` at `(p, x)`. It is the one-variable form of the case of order zero
-  of Tau Ceti's `ContDiffAt.iteratedFDeriv_snd`.
+  `q.2`, is continuous in `q` at `(p, x)`. It is the case `m = 0` (continuity) of Tau Ceti's
+  `ContDiffAt.iteratedFDeriv_snd`, read through `iteratedDeriv_eq_iteratedFDeriv`.
 -/
 
 public section
@@ -28,6 +28,6 @@ theorem ContDiffAt.continuousAt_iteratedDeriv_prod_right {n : WithTop ℕ∞} {f
     {p : P} {x : 𝕜} (hf : ContDiffAt 𝕜 n f (p, x)) {m : ℕ} (hm : m ≤ n) :
     ContinuousAt (fun q : P × 𝕜 ↦ iteratedDeriv m (fun y ↦ f (q.1, y)) q.2) (p, x) := by
   simp only [iteratedDeriv_eq_iteratedFDeriv]
-  have h := ContDiffAt.iteratedFDeriv_snd (m := 0) (f := fun a y ↦ f (a, y)) hf
-    (i := m) (by simpa using hm)
-  exact (continuous_eval_const _).continuousAt.comp h.continuousAt
+  rw [← Function.uncurry_curry f] at hf
+  exact (continuous_eval_const _).continuousAt.comp
+    (hf.iteratedFDeriv_snd (m := 0) (by simpa using hm)).continuousAt
