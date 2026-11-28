@@ -69,7 +69,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   larger argument increases and the other does not decrease (`deriv_smoothedMax_pos_left`,
   `deriv_smoothedMax_pos_right`), `smoothedMax_eq_max`, `smoothedMax_eq_left`,
   `smoothedMax_eq_right`, their versions near a set (`smoothedMax_eventuallyEq_left`,
-  `smoothedMax_eventuallyEq_right`), `max_le_smoothedMax`, `smoothedMax_le_max_add`
+  `smoothedMax_eventuallyEq_right`) and near a point for arguments continuous there
+  (`smoothedMax_eventuallyEq_left_of_continuousAt`,
+  `smoothedMax_eventuallyEq_right_of_continuousAt`), `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
 * `SymplecticGeometry.smoothedSign_eq_smoothedSign_one`,
   `SymplecticGeometry.smoothedAbs_eq_mul_smoothedAbs_one` and
@@ -685,6 +687,22 @@ theorem smoothedMax_eventuallyEq_right {X : Type*} [TopologicalSpace X] {f g : X
     (h : ∀ x ∈ s, f x + δ < g x) : (fun x ↦ smoothedMax δ (f x) (g x)) =ᶠ[𝓝ˢ s] g := by
   filter_upwards [(isOpen_lt (hf.add continuous_const) hg).mem_nhdsSet.2 h] with x hx
   exact smoothedMax_eq_right hδ hx.le
+
+/-- For `δ > 0` and `f` and `g` continuous at `x` with `g x + δ < f x`, the smoothed maximum
+of `f` and `g` equals `f` near `x`. -/
+theorem smoothedMax_eventuallyEq_left_of_continuousAt {X : Type*} [TopologicalSpace X]
+    {f g : X → ℝ} {x : X} (hδ : 0 < δ) (hf : ContinuousAt f x) (hg : ContinuousAt g x)
+    (h : g x + δ < f x) : (fun y ↦ smoothedMax δ (f y) (g y)) =ᶠ[𝓝 x] f := by
+  filter_upwards [(hg.add continuousAt_const).eventually_lt hf h] with y hy
+  exact smoothedMax_eq_left hδ hy.le
+
+/-- For `δ > 0` and `f` and `g` continuous at `x` with `f x + δ < g x`, the smoothed maximum
+of `f` and `g` equals `g` near `x`. -/
+theorem smoothedMax_eventuallyEq_right_of_continuousAt {X : Type*} [TopologicalSpace X]
+    {f g : X → ℝ} {x : X} (hδ : 0 < δ) (hf : ContinuousAt f x) (hg : ContinuousAt g x)
+    (h : f x + δ < g x) : (fun y ↦ smoothedMax δ (f y) (g y)) =ᶠ[𝓝 x] g := by
+  filter_upwards [(hf.add continuousAt_const).eventually_lt hg h] with y hy
+  exact smoothedMax_eq_right hδ hy.le
 
 /-- For `δ > 0`, the smoothed maximum lies above the maximum. -/
 theorem max_le_smoothedMax (hδ : 0 < δ) (a b : ℝ) : max a b ≤ smoothedMax δ a b := by
