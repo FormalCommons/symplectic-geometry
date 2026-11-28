@@ -132,7 +132,7 @@ theorem contMDiff_modelHandleField {n : WithTop ℕ∞} :
       (fun p ↦ (⟨p, modelHandleField k m p⟩ :
         TangentBundle 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
           (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)))) :=
-  contMDiff_vectorSpace_iff_contDiff.mpr (modelHandleField k m).contDiff
+  (modelHandleField k m).contMDiff_tangent n
 
 /-! ### Completeness and the flow -/
 
