@@ -15,11 +15,12 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pushforward
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -91,11 +92,10 @@ the blowdown.
   form is normalized at every point, for some compatible `J`, radius and map. The map is the
   inverse of a Darboux chart onto `StdSpace (Fin (n + 1))`
   (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`), restricted to a closed ball
-  in its target; `J` is a compatible structure that the derivative of the chart carries to `J₀`
-  on the image of that ball
-  (`TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible_mfderiv_apply_eq`, which rests on Tau
-  Ceti's `TauCeti.SmoothTwoForm.Compatible.exists_compatible_eqOn`). This is McDuff–Salamon,
-  Remark 7.1.18 (i).
+  in its target; `J` is a compatible structure for which the inverse of the chart is
+  pseudoholomorphic from `J₀` at the points of that ball, Tau Ceti's relative extension of a
+  pushed-forward structure (`PartialDiffeomorph.exists_compatible_mfderiv_apply_eq`). This is
+  McDuff–Salamon, Remark 7.1.18 (i).
 * `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift_of_mem_openNbhd`,
   `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift_of_blowdown_ne_zero`: the two
   descriptions of the lift.
@@ -327,17 +327,22 @@ theorem exists_isNormalizedAt [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymp
     ⟨⟨χ.target, χ.open_target, hδt, χ.symm.contMDiffOn⟩, χ.symm.injOn.mono hδt,
       fun z hz ↦ SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ
         (hδt (ball_subset_closedBall hz))⟩
-  -- A compatible `J` that `dχ` carries to `J₀` on the image of `B(δ)`.
-  obtain ⟨J, hJ, hJχ⟩ := hσ.isNondegenerate.exists_compatible_mfderiv_apply_eq hχ
-    stdForm_compatible (hψ.isCompact_image_closedBall le_rfl).isClosed
-    (by rintro _ ⟨z, hz, rfl⟩; exact χ.map_target (hδt hz))
+  -- A compatible `J` for which `χ⁻¹` is pseudoholomorphic from `J₀` at the points of `B(δ)`.
+  obtain ⟨J, hJ, hJχ⟩ := χ.symm.exists_compatible_mfderiv_apply_eq
+    (stdComplexStructure (Fin (n + 1))).constSmooth hσ.isNondegenerate χ.open_target
+    (by simp) (fun _ ↦ stdForm (Fin (n + 1)))
+    (fun _ _ ↦ by
+      rw [AlmostComplexStructure.constSmooth_almostComplexStructureAt]
+      exact stdForm_compatible)
+    (fun z hz v w ↦ (SmoothTwoForm.isSymplecticMapOn_iff.1
+        (SmoothTwoForm.isSymplecticMapOn_constSmooth_symm hχ) z hz v w).trans
+      (SymplecticForm.constSmooth_apply _ _ _ _))
+    (isCompact_closedBall 0 (ε / 2)) hδt
   refine ⟨J, ε / 2, χ.symm, hJ, by positivity, hψ, by rw [← hp0]; exact χ.left_inv hp,
     isPseudoholomorphicOn_iff.2 fun z hz ↦ ?_⟩
-  have hzt := hδt (ball_subset_closedBall hz)
-  refine ((χ.toOpenPartialHomeomorph_mdifferentiable (by simp)).isPseudoholomorphicAt_symm hzt
-    (isPseudoholomorphicAt_iff_mfderiv.2 ⟨χ.mdifferentiableAt (by simp) (χ.map_target hzt),
-      fun w ↦ (hJχ _ ⟨z, ball_subset_closedBall hz, rfl⟩ w).trans
-        (AlmostComplexStructure.constSmooth_apply _ _ _).symm⟩)).isPseudoholomorphicWithinAt
+  exact (isPseudoholomorphicAt_iff_mfderiv.2
+    ⟨χ.symm.mdifferentiableAt (by simp) (hδt (ball_subset_closedBall hz)),
+      hJχ z (ball_subset_closedBall hz)⟩).isPseudoholomorphicWithinAt
 
 /-! ### Normalized ball embeddings and their lifts -/
 

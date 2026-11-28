@@ -1097,7 +1097,7 @@ containing `ι '' closedBall 0 1`:
       √(log (7 / 2))` on `Icc (7 * δ / 2) (4 * δ)`), and
       `2 * r - 8 * δ - S ≥ δ / 4` on `Ici (9 * δ / 2)`. API:
       `struweLineShape_def`, `struweLineShape_eq_struweShape` (`= S r`
-      on `Ioc δ (7 * δ / 2)`), `struweLineShape_eq_linear`
+      on `Icc δ (7 * δ / 2)`), `struweLineShape_eq_linear`
       (`= 2 * r - 8 * δ` on `Ici (9 * δ / 2)`),
       `contDiffOn_struweLineShape` (`Ioi δ`),
       `struweShape_le_struweLineShape` and `struweLineShape_le`
@@ -1107,7 +1107,7 @@ containing `ι '' closedBall 0 1`:
       `isConvexShapeAt_struweLineShape_add`: for `δ < r` and `t` with
       `2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t` and
       `r * √(log (r / δ)) + 2 * δ < struweLineShape δ r + t` when
-      `r ≤ 9 * δ / 2`, and `8 * δ < t`, `r < 8 * (t - 8 * δ)` when
+      `r ≤ 9 * δ / 2`, and `r < 8 * (t - 8 * δ)` when
       `7 * δ / 2 ≤ r`, `r ↦ struweLineShape δ r + t` is a convex shape
       at `r` (`isConvexShapeAt_struweShape_of_lt`,
       `isConvexShapeAt_linear`, `isConvexShapeAt_smoothedMax` with
@@ -1121,7 +1121,7 @@ containing `ι '' closedBall 0 1`:
     - What this needs in `Surround/SpecialShape.lean`:
       `struweShape_add` (`struweShape δ K (a + c) r = a +
       struweShape δ K c r`, by `struweShape_def`) and
-      `struweShape_eq_struweShape` (for `0 < δ`, `1 ≤ K`, `1 ≤ K'` and
+      `struweShape_eq_struweShape_apply_mul` (for `0 < δ`, `1 ≤ K`, `1 ≤ K'` and
       `δ ≤ r`, `struweShape δ K c r = struweShape δ K'
       (struweShape δ K c (K' * δ)) r`, by
       `intervalIntegral.integral_add_adjacent_intervals`): all Struwe
@@ -1231,7 +1231,7 @@ containing `ι '' closedBall 0 1`:
     Building issues, in this order, after the leaves
     `ℓ ∈ Icc 0 (7 * δ)` and `exists_convexShapeFamily_struweShape`:
     (1) in `Surround/SpecialShape.lean`, `struweShape_add` and
-    `struweShape_eq_struweShape`, and in `Surround/BridgeLeaf.lean`,
+    `struweShape_eq_struweShape_apply_mul`, and in `Surround/BridgeLeaf.lean`,
     `struweLineShape` with its API (about 250 lines); (2) the first two
     stages, with the public bounds on `sqrtAddLeaf` in
     `Surround/CutoffLeaf.lean` (about 300 lines); (3) the last stage
@@ -2291,10 +2291,9 @@ through Tau Ceti's `coe_stableSubspace` and `mem_stableSubspace`), the
 isotropy
 of the core, `range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
 modelDisc k m '' sphere 0 √(c / a)` for `0 < c` (the attaching sphere of
-the model), and, for `k = 0`, `isWeinsteinStructure_handle_zero`. That
-last lemma is the radial structure of `Weinstein/Basic.lean`, carried by
-`IsWeinsteinStructure.pullback` along the linear equivalence of
-`ℂ⁰ × ℂᵐ` with `ℂᵐ`, and by `.comp` with `t ↦ b t`. No flow is defined
+the model), and, for `k = 0`, `isWeinsteinStructure_modelHandle_zero`. That
+last lemma checks the conditions one by one: the results above,
+`isMorse_modelHandle`, and `b ‖p‖²` being proper and bounded below. No flow is defined
 here: Tau Ceti's `ContinuousLinearMap.flow` and `stableSubspace` give
 the flow of any bounded linear field and the stable set of `0`, as 15c
 already uses them. Searched: neither Tau Ceti nor the library has this
@@ -2348,9 +2347,9 @@ birth–death points are allowed.
 
 - **Issue 16c** (`Handle/Attachment.lean`): the orbit facts.
   (1) Under `hgX`, an orbit meets `g ⁻¹' {0}` at most once, going from
-  `g < 0` to `g > 0`. This is a fact about any flow, as
-  `subsingleton_setOfPred_flow_apply_eq` (15e) is for a regular level of
-  `f`, and it goes with the library's
+  `g < 0` to `g > 0`. This is a fact about any flow; its case `g = f`, at
+  a regular level of `f`, gives `eq_levelCrossingTime_iff` (15e), and it
+  goes with the library's
   `Geometry/Manifold/IntegralCurve/Monotone.lean` if it fits there.
   (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
   it reaches `{f ≤ a}`, or it stays in the compact region, where its
@@ -2363,7 +2362,7 @@ birth–death points are allowed.
   `K ⊆ {g < 0}`.
   (4) The crossing times of `g ⁻¹' {0}` and of `f ⁻¹' {b}`
   (`Flow.levelCrossingTime`) are smooth where the crossing exists,
-  through Tau Ceti's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
+  through the library's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
   the crossing time of `f ⁻¹' {b}` from `g ⁻¹' {0}` is bounded, as
   `g ⁻¹' {0}` is compact.
 - **Issue 16d** (`Handle/Attachment.lean`): the theorem. On the open set
@@ -2402,7 +2401,7 @@ gives ($2(k-1)+2m+1=2n-1$), and the model sphere comes with a constant
 framing.
 
 **Index zero.** The model for `k = 0` is a Weinstein structure
-(`isWeinsteinStructure_handle_zero`). The stable set of a minimum is the
+(`isWeinsteinStructure_modelHandle_zero`). The stable set of a minimum is the
 point itself (`IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`,
 15e), so in the attachment theorem `hK` asks only that the minimum lie
 in `{g < 0}`, and a new component of the sublevel is a ball around it.

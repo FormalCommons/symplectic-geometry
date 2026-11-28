@@ -16,6 +16,12 @@ import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
   `q.2`, is continuous in `q` at `(p, x)`. It is Tau Ceti's `ContDiffAt.iteratedFDeriv_snd`
   with smoothness order `0` (continuity) and derivative order `i = m`, read through
   `iteratedDeriv_eq_iteratedFDeriv`.
+* `ContinuousOn.uncurry_of_iteratedDeriv` and `ContinuousOn.deriv_of_iteratedDeriv`: if the
+  iterated derivatives of orders up to `m` of the members `G p` of a family are jointly
+  continuous in `(p, x)` on a set, then so are the values and, for `1 ≤ m`, the derivatives.
+* `ContDiff.continuousOn_iteratedDeriv_snd`: the iterated derivatives of orders up to `m ≤ n`
+  of a `Cⁿ` function `f`, seen as functions of `(p, x)` that do not depend on `p`, are
+  continuous.
 -/
 
 public section
@@ -32,3 +38,30 @@ theorem ContDiffAt.continuousAt_iteratedDeriv_prod_right {n : WithTop ℕ∞} {f
   rw [← Function.uncurry_curry f] at hf
   exact (continuous_eval_const _).continuousAt.comp
     (hf.iteratedFDeriv_snd (m := 0) (by simpa using hm)).continuousAt
+
+section Family
+
+variable {Q : Type*} [TopologicalSpace Q] {s : Set (Q × 𝕜)} {m : ℕ}
+
+/-- If `(p, x) ↦ iteratedDeriv k (G p) x` is continuous on `s` for every `k ≤ m`, then so is
+`(p, x) ↦ G p x`. -/
+theorem ContinuousOn.uncurry_of_iteratedDeriv {G : Q → 𝕜 → F}
+    (h : ∀ k ≤ m, ContinuousOn (fun q : Q × 𝕜 ↦ iteratedDeriv k (G q.1) q.2) s) :
+    ContinuousOn (fun q : Q × 𝕜 ↦ G q.1 q.2) s := by
+  simpa only [iteratedDeriv_zero] using h 0 m.zero_le
+
+/-- If `(p, x) ↦ iteratedDeriv k (G p) x` is continuous on `s` for every `k ≤ m`, where
+`1 ≤ m`, then so is `(p, x) ↦ deriv (G p) x`. -/
+theorem ContinuousOn.deriv_of_iteratedDeriv {G : Q → 𝕜 → F}
+    (h : ∀ k ≤ m, ContinuousOn (fun q : Q × 𝕜 ↦ iteratedDeriv k (G q.1) q.2) s) (hm : 1 ≤ m) :
+    ContinuousOn (fun q : Q × 𝕜 ↦ deriv (G q.1) q.2) s := by
+  simpa only [iteratedDeriv_one] using h 1 hm
+
+/-- If `f` is `Cⁿ` and `m ≤ n`, then for every `k ≤ m` the function
+`(p, x) ↦ iteratedDeriv k f x` is continuous on `s`. -/
+theorem ContDiff.continuousOn_iteratedDeriv_snd {n : WithTop ℕ∞} {f : 𝕜 → F}
+    (hf : ContDiff 𝕜 n f) (hm : m ≤ n) :
+    ∀ k ≤ m, ContinuousOn (fun q : Q × 𝕜 ↦ iteratedDeriv k f q.2) s := fun k hk ↦
+  ((hf.continuous_iteratedDeriv k ((Nat.cast_le.2 hk).trans hm)).comp continuous_snd).continuousOn
+
+end Family

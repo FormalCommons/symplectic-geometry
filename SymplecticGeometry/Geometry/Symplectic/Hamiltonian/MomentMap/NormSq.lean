@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.GroupLieAlgebra
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
@@ -13,20 +12,22 @@ import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
 /-!
 # The dual of a moment map and its norm square
 
-Write `𝔤 = GroupLieAlgebra I G` for the Lie algebra of a Lie group `G`, and fix a nondegenerate
-bilinear form `B` on `𝔤`. A map `μ : M → 𝔤*`, such as a moment map, then has a dual
-`μ♯ : M → 𝔤`, characterized by `B (μ♯ x) ξ = μ x ξ` for all `ξ`, so `μ♯ x = K (μ x)` for the
+Let `𝔤` be a finite-dimensional real vector space, usually the Lie algebra `GroupLieAlgebra I G`
+of a Lie group `G`, and fix a nondegenerate bilinear form `B` on `𝔤`. A map `μ : M → 𝔤*`, such as
+a moment map, then has a dual `μ♯ : M → 𝔤`, characterized by
+`B (μ♯ x) ξ = μ x ξ` for all `ξ`, so `μ♯ x = K (μ x)` for the
 inverse `K = (B.toDual hB).symm` of `ξ ↦ B ξ`. The norm square of `μ` is Tau Ceti's
 `TauCeti.momentNormSq μ K`, `x ↦ μ x (K (μ x)) = B (μ♯ x) (μ♯ x)`
 (`TauCeti.momentNormSq_toDual_symm`). Tau Ceti also proves that, for a moment map `μ`, it is
 smooth, and computes its derivative and gradient
 (`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq`,
-`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`); and that it is `G`-invariant when
+`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`,
+`TauCeti.SmoothTwoForm.IsMomentMap.mgradient_momentNormSq`); and that it is `G`-invariant when
 `μ` is equivariant for the dual of a representation `ρ` and `K` intertwines that dual with `ρ`
 (`TauCeti.momentNormSq_smul`). This file adds the results that use the form `B`, and the
-behaviour of `μ♯` and of the norm square under `μ ↦ -μ`. The results on the norm square hold for
-any finite-dimensional real vector space `𝔤`. Usually `B` is an `Ad`-invariant inner product,
-such as the one that `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`
+behaviour of `μ♯` and of the norm square under `μ ↦ -μ`. None of them uses a Lie bracket on `𝔤`.
+Usually `B` is an `Ad`-invariant inner product, such as the one that
+`TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`
 gives on a compact group; the definitions take any nondegenerate `B`, and each result assumes
 only what it uses. Nothing here uses a symplectic form.
 
@@ -66,17 +67,13 @@ namespace SymplecticGeometry
 
 section MomentSharp
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
-  {M : Type*}
-  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
-  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {x : M}
+variable {M 𝔤 : Type*} [AddCommGroup 𝔤] [Module ℝ 𝔤] [FiniteDimensional ℝ 𝔤]
+  {B : LinearMap.BilinForm ℝ 𝔤} {hB : B.Nondegenerate} {μ : M → Module.Dual ℝ 𝔤} {x : M}
 
 variable (B hB μ) in
-/-- The vector `μ♯ x` of the Lie algebra dual to `μ x` under the nondegenerate bilinear form `B`:
-the unique vector with `B (μ♯ x) ξ = μ x ξ` for every `ξ`. -/
-def momentSharp (x : M) : GroupLieAlgebra I G :=
+/-- The vector `μ♯ x` of `𝔤` dual to `μ x` under the nondegenerate bilinear form `B`: the unique
+vector with `B (μ♯ x) ξ = μ x ξ` for every `ξ`. -/
+def momentSharp (x : M) : 𝔤 :=
   (B.toDual hB).symm (μ x)
 
 theorem momentSharp_def : momentSharp B hB μ x = (B.toDual hB).symm (μ x) :=
@@ -84,11 +81,11 @@ theorem momentSharp_def : momentSharp B hB μ x = (B.toDual hB).symm (μ x) :=
 
 /-- The defining property of `μ♯ x`: pairing it with `ξ` under `B` gives `μ x ξ`. -/
 @[simp]
-theorem apply_momentSharp (ξ : GroupLieAlgebra I G) : B (momentSharp B hB μ x) ξ = μ x ξ := by
+theorem apply_momentSharp (ξ : 𝔤) : B (momentSharp B hB μ x) ξ = μ x ξ := by
   rw [momentSharp_def, LinearMap.BilinForm.apply_toDual_symm_apply]
 
 /-- `μ♯ x` is the only vector `v` with `B v ξ = μ x ξ` for every `ξ`. -/
-theorem momentSharp_eq_iff {v : GroupLieAlgebra I G} :
+theorem momentSharp_eq_iff {v : 𝔤} :
     momentSharp B hB μ x = v ↔ ∀ ξ, B v ξ = μ x ξ := by
   rw [momentSharp_def, LinearEquiv.symm_apply_eq, eq_comm, LinearMap.ext_iff]
   simp only [LinearMap.BilinForm.toDual_def]

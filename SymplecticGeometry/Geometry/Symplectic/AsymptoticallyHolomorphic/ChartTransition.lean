@@ -67,8 +67,8 @@ for it, for `k ≥ k₀`:
   `SymplecticGeometry.jetNormAt_le_of_norm_iteratedFDeriv_succ_le`);
 * if `σ` is compatible with `J`, then so is `ω₀` with `J` read in the chart at each point of its
   target, since the chart pulls `ω₀` back to `2π k σ`
-  (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_compatible_chartPushforwardAt`, from
-  `TauCeti.SmoothAlmostComplexStructure.compatible_chartPushforwardAt` and
+  (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_compatible_pushforwardAt`, from
+  `TauCeti.SmoothTwoForm.Compatible.compatible_pushforwardAt` and
   `TauCeti.SmoothTwoForm.Compatible.smul`); the forms `g_{k,x}(w)` are then symmetric and positive
   definite there;
 * since `J_x(w)² = -1`, each `g_{k,x}(w)` on the target is invertible as a map to the dual, with
@@ -116,14 +116,23 @@ for it, for `k ≥ k₀`:
   compatible with `J`, the Koszul formula writes its second derivative through its first and the
   Christoffel symbols of the forms read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.fderiv_fderiv_chartTransition`); then `(τ, Dτ)`
-  solves a first-order system, and the uniform bounds above on the Christoffel symbols and on
-  `Dτ(0)` bound every derivative of the transition at `0`: there is `ρ₁ > 0` such that for each
-  `r` some `C` bounds the derivatives of order `1` to `r` at `0` of the transitions from the
-  chart at `(D.chart k x)⁻¹ z` to the chart at `x`, for all `k ≥ k₀`, `x` and `z` in the ball of
-  radius `ρ₁ * √k`
+  solves a first-order system, and the uniform bounds above on the Christoffel symbols bound
+  every derivative of the transition at each point `w` of `D.chartTransitionDomain k x y` by a
+  constant that depends only on the order and on a bound for `‖Dτ(w)‖`
   (in the namespace `SymplecticGeometry.RescaledUnitaryCharts`,
-  `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`, from
-  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`).
+  `exists_forall_norm_iteratedFDeriv_chartTransition_le`, from
+  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`). So there is
+  `ρ₁ > 0` such that for each `r` some `C` bounds the derivatives of order `1` to `r` at `0` of
+  the transitions from the chart at `(D.chart k x)⁻¹ z` to the chart at `x`, for all `k ≥ k₀`,
+  `x` and `z` in the ball of radius `ρ₁ * √k` (in the same namespace,
+  `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`);
+* in the other direction, the transition from the chart at `x` to the chart at
+  `(D.chart k x)⁻¹ z` sends `z` to `0`, its domain contains `z`, and its derivative at `z` has
+  norm at most `√2` on a comparison radius, since `2π k σ(v, J v)` is the square of the norm in
+  the chart at the centre (in the same namespace, `chartTransition_chart_symm_apply_self`,
+  `mem_chartTransitionDomain_chart_symm` and `norm_fderiv_chartTransition_chart_symm_le`). Both
+  bounds by `√2` come from one comparison of the charts
+  (`norm_fderiv_chartTransition_le_of_norm_mvfderiv_le`).
 
 ## References
 
@@ -424,9 +433,9 @@ theorem norm_iteratedFDeriv_associatedBilinFormInChart_le [I.Boundaryless] {k : 
 /-- At a point `w` of the target of the chart centred at `x`, for `k ≥ k₀`, `ω₀` is compatible
 with `J` read in the chart at `w`, provided that `σ` is compatible with `J`: the chart pulls `ω₀`
 back to `2π k σ`. -/
-theorem stdForm_compatible_chartPushforwardAt (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
+theorem stdForm_compatible_pushforwardAt (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
     (x : M) {w : StdSpace ι} (hw : w ∈ (D.chart k x).target) :
-    (stdForm ι).Compatible (J.chartPushforwardAt (D.chart k x) hw) := by
+    (stdForm ι).Compatible ((D.chart k x).pushforwardAt J hw) := by
   rcases Nat.eq_zero_or_pos k with rfl | hk0
   · -- For `k = 0` the chart pulls `ω₀` back to `0`, so `StdSpace ι` is trivial.
     have hsurj := ((D.chart 0 x).bijective_mvfderiv (by simp) (D.mem_source hk x)).surjective
@@ -438,7 +447,7 @@ theorem stdForm_compatible_chartPushforwardAt (hJ : σ.Compatible J) {k : ℕ} (
       exact (LinearMap.map_zero₂ _ _).symm
     exact .of_tames ((SymplecticForm.invariant_iff _ _).2 fun a b ↦ by rw [h0 a, h0 b]; simp)
       fun a ha ↦ absurd (h0 a) ha
-  · refine J.compatible_chartPushforwardAt (hJ.smul (2 * Real.pi * k) (by positivity))
+  · refine (hJ.smul (2 * Real.pi * k) (by positivity)).compatible_pushforwardAt
       (D.chart k x) (fun y hy u v ↦ ?_) hw
     rw [SmoothForm.eval₂_smul, smul_eq_mul]
     exact D.eval₂_eq hk x y hy u v
@@ -449,16 +458,18 @@ theorem stdForm_compatible_chartPushforwardAt (hJ : σ.Compatible J) {k : ℕ} (
 theorem associatedBilinFormInChart_apply_swap (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
     (x : M) {w : StdSpace ι} (hw : w ∈ (D.chart k x).target) (u v : StdSpace ι) :
     D.associatedBilinFormInChart k x w u v = D.associatedBilinFormInChart k x w v u := by
-  simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using
-    (D.stdForm_compatible_chartPushforwardAt hJ hk x hw).associatedBilinForm_apply_swap u v
+  simp only [associatedBilinFormInChart_apply,
+    ← PartialDiffeomorph.pushforwardAt_apply_eq_chartPushforward_apply _ J hw]
+  exact (D.stdForm_compatible_pushforwardAt hJ hk x hw).associatedBilinForm_apply_swap u v
 
 /-- **The forms read in the charts are positive definite.** If `σ` is compatible with `J`, then
 for `k ≥ k₀`, `w` in the target of the chart centred at `x` and `u ≠ 0`, `g_{k,x}(w)(u, u) > 0`. -/
 theorem associatedBilinFormInChart_apply_self_pos (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
     (x : M) {w : StdSpace ι} (hw : w ∈ (D.chart k x).target) {u : StdSpace ι} (hu : u ≠ 0) :
     0 < D.associatedBilinFormInChart k x w u u := by
-  simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using
-    (D.stdForm_compatible_chartPushforwardAt hJ hk x hw).associated_pos hu
+  rw [associatedBilinFormInChart_apply,
+    ← PartialDiffeomorph.pushforwardAt_apply_eq_chartPushforward_apply _ J hw]
+  exact (D.stdForm_compatible_pushforwardAt hJ hk x hw).tames u hu
 
 /-- **The forms read in the charts are nondegenerate.** At a point `w` of the target of the chart
 centred at `x`, the form `g_{k,x}(w)`, as a map from `StdSpace ι` to its dual, is invertible. This
@@ -466,8 +477,9 @@ only uses `J_x(w)² = -1`, not the compatibility of `J` with `σ`. -/
 theorem isInvertible_associatedBilinFormInChart {k : ℕ} {x : M} {w : StdSpace ι}
     (hw : w ∈ (D.chart k x).target) : (D.associatedBilinFormInChart k x w).IsInvertible := by
   rw [associatedBilinFormInChart_def]
-  exact isInvertible_stdFormCompRightL_apply
-    (J.chartPushforward_apply_chartPushforward_apply _ hw)
+  exact isInvertible_stdFormCompRightL_apply fun u ↦ by
+    rw [J.chartPushforward_toOpenPartialHomeomorph]
+    exact (D.chart k x).pushforwardEndomorphism_apply_pushforwardEndomorphism J hw u
 
 /-- **The inverse of the forms read in the charts.** At a point `w` of the target of the chart
 centred at `x`, the inverse of `g_{k,x}(w)` is `stdFormCompRightInverseL ι` applied to `J_x(w)`: it
@@ -477,7 +489,9 @@ theorem inverse_associatedBilinFormInChart {k : ℕ} {x : M} {w : StdSpace ι}
     (D.associatedBilinFormInChart k x w).inverse =
       stdFormCompRightInverseL ι (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w) := by
   rw [associatedBilinFormInChart_def]
-  exact inverse_stdFormCompRightL_apply (J.chartPushforward_apply_chartPushforward_apply _ hw)
+  exact inverse_stdFormCompRightL_apply fun u ↦ by
+    rw [J.chartPushforward_toOpenPartialHomeomorph]
+    exact (D.chart k x).pushforwardEndomorphism_apply_pushforwardEndomorphism J hw u
 
 /-- The norm of the inverse of `g_{k,x}(w)`, at a point `w` of the target of the chart centred
 at `x`, is at most the norm of `J_x(w)`. -/
@@ -605,10 +619,44 @@ theorem exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInCh
 derivative of the chart. -/
 theorem eval₂_apply_self_eq_norm_sq {k : ℕ} (hk : k₀ ≤ k) (x : M) (v : TangentSpace I x) :
     2 * Real.pi * k * σ.eval₂ x v (J x v) = ‖mvfderiv I (D.chart k x) x v‖ ^ 2 := by
-  rw [D.eval₂_eq hk x x (D.mem_source hk x), mvfderiv_apply_eq_mfderiv_apply (v := J x v),
-    J.mfderiv_apply_eq_chartPushforward_apply _ (D.mem_source hk x),
+  have h : mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) =
+      J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x x)
+        (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) := by
+    rw [J.chartPushforward_toOpenPartialHomeomorph]
+    exact ((D.chart k x).pushforwardEndomorphism_mfderiv_apply J (D.mem_source hk x) v).symm
+  rw [D.eval₂_eq hk x x (D.mem_source hk x), mvfderiv_apply_eq_mfderiv_apply (v := J x v), h,
     ← mvfderiv_apply_eq_mfderiv_apply, D.apply_self hk, D.chartPushforward_zero hk,
     stdForm_apply_stdComplexStructure, real_inner_self_eq_norm_sq]
+
+/-- **The derivative of a transition, from a comparison of the two charts.** Let `w` be a point
+of the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, and
+let `c ≥ 0`. If, for every tangent vector `v` at `(D.chart k y)⁻¹ w`, the image of `v` under the
+derivative of the chart at `x` has norm at most `c` times that of its image under the derivative
+of the chart at `y`, then `‖Dτ(w)‖ ≤ c`. -/
+theorem norm_fderiv_chartTransition_le_of_norm_mvfderiv_le {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) {c : ℝ} (hc : 0 ≤ c)
+    (h : ∀ v : TangentSpace I ((D.chart k y).symm w),
+      ‖mvfderiv I (D.chart k x) ((D.chart k y).symm w) v‖ ≤
+        c * ‖mvfderiv I (D.chart k y) ((D.chart k y).symm w) v‖) :
+    ‖fderiv ℝ (D.chartTransition k x y) w‖ ≤ c := by
+  have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hw).1
+  -- The derivative of the inverse of the chart at `y`, at `w`, and the chain rule there.
+  have hinv := (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) hwt
+  have hT := (D.chart k y).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k x) (by simp)
+    (by rwa [chartTransition_def] at hw)
+  rw [← chartTransition_def] at hT
+  refine ContinuousLinearMap.opNorm_le_bound _ hc fun u ↦ ?_
+  -- The tangent vector `v` that the chart at `y` sends to `u`; the chart at `x` sends it to the
+  -- image of `u` under the derivative of the transition.
+  set v : TangentSpace I ((D.chart k y).symm w) :=
+    mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w u
+  have hu : mvfderiv I (D.chart k y) ((D.chart k y).symm w) v = u := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact hinv u
+  have hTu : mvfderiv I (D.chart k x) ((D.chart k y).symm w) v =
+      fderiv ℝ (D.chartTransition k x y) w u := by
+    rw [hT, ContinuousLinearMap.comp_apply, hu]
+  simpa only [hu, hTu] using h v
 
 /-- **The derivative at the centre of a transition, on a comparison radius.** Let `k ≥ k₀`, let
 `ρ₁` be a comparison radius for the chart centred at `x` (`IsComparisonRadius`), and let `y` be a
@@ -619,26 +667,13 @@ theorem norm_fderiv_chartTransition_zero_le {ρ₁ : ℝ} {k : ℕ} (hk : k₀ �
     (hcmp : D.IsComparisonRadius k x ρ₁) {y : M} (hy : y ∈ (D.chart k x).source)
     (hyB : D.chart k x y ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
     ‖fderiv ℝ (D.chartTransition k x y) 0‖ ≤ √2 := by
-  have h0 := D.zero_mem_chartTransition_source hk hy
-  have h0y : (0 : StdSpace ι) ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 h0).1
-  have hy0 : (D.chart k y).symm 0 = y := D.chart_symm_zero hk y
-  -- The derivative of the chart at `y`, at its centre `y`, and the chain rule there.
-  have hinv := (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) h0y
-  have hT := (D.chart k y).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k x) (by simp)
-    (by rwa [chartTransition_def] at h0)
-  rw [← chartTransition_def] at hT
-  rw [hy0] at hinv hT
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-  -- The tangent vector `v` at `y` that the chart at `y` sends to `u`.
-  set v : TangentSpace I y := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm 0 u
-  have hu : mvfderiv I (D.chart k y) y v = u := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact hinv u
-  -- In the chart at `x`, the image of `v` is `T u`, for `T` the derivative of the transition.
-  have hTu : mvfderiv I (D.chart k x) y v = fderiv ℝ (D.chartTransition k x y) 0 u := by
-    rw [hT, ContinuousLinearMap.comp_apply, hu]
+  refine D.norm_fderiv_chartTransition_le_of_norm_mvfderiv_le
+    (D.zero_mem_chartTransition_source hk hy) (by positivity) ?_
+  rw [D.chart_symm_zero hk y]
+  intro v
+  -- At the centre `y`, `2π k σ(v, J v)` is the squared norm in the chart at `y`.
   have hcmpy := (hcmp.mem_Icc hy hyB v).1
-  rw [D.eval₂_apply_self_eq_norm_sq hk y v, hu, hTu] at hcmpy
+  rw [D.eval₂_apply_self_eq_norm_sq hk y v] at hcmpy
   refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
   rw [mul_pow, Real.sq_sqrt zero_le_two]
   linarith
@@ -791,32 +826,30 @@ private theorem contDiff_koszulRHS : ContDiff ℝ ∞ (koszulRHS (ι := ι)) := 
   unfold koszulRHS
   fun_prop
 
-/-- **Uniform bounds on the derivatives of the transitions at the centre.** On a boundaryless
-manifold, if `σ` is compatible with `J` and `ρ₀ > 0`, there is a radius `ρ₁` with
-`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for
-all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ₁ * √k` and all `1 ≤ j ≤ r`, the
-`j`-th iterated derivative at `0` of the transition from the chart centred at
-`(D.chart k x)⁻¹ z` to the chart centred at `x` has norm at most `C`.
+/-- **Uniform bounds on the derivatives of the transitions.** On a boundaryless manifold, if `σ` is
+compatible with `J`, then for every order `r` and every bound `B` there is a constant `C` with the
+following property: for all `k ≥ k₀`, all points `x` and `y` and every `w` in
+`D.chartTransitionDomain k x y` at which the derivative of the transition `τ` from the chart
+centred at `y` to the chart centred at `x` has norm at most `B`, the `j`-th iterated derivative of
+`τ` at `w` has norm at most `C` for all `1 ≤ j ≤ r`.
 
-The pair `(τ, Dτ)` solves a first-order system by `fderiv_fderiv_chartTransition`; the
-Christoffel symbols of the forms read in the charts have uniformly bounded derivatives
-(`exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le`) and
-`‖Dτ(0)‖ ≤ √2` (`exists_forall_norm_fderiv_chartTransition_zero_le`), so
+The pair `(τ, Dτ)` solves a first-order system by `fderiv_fderiv_chartTransition`, and the
+Christoffel symbols of the forms read in the charts have uniformly bounded derivatives on the
+balls of radius `ρ₀ * √k`
+(`exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le`), so
 `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq` applies. -/
-theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryless]
-    (hJ : σ.Compatible J) (hρ₀ : 0 < ρ₀) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
-      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k), ∀ j, 1 ≤ j → j ≤ r →
-        ‖iteratedFDeriv ℝ j (D.chartTransition k x ((D.chart k x).symm z)) 0‖ ≤ C := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hT⟩ := D.exists_forall_norm_fderiv_chartTransition_zero_le hρ₀
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
+theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
+    (hJ : σ.Compatible J) (r : ℕ) (B : ℝ) :
+    ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
+      w ∈ D.chartTransitionDomain k x y → ‖fderiv ℝ (D.chartTransition k x y) w‖ ≤ B →
+      ∀ j, 1 ≤ j → j ≤ r → ‖iteratedFDeriv ℝ j (D.chartTransition k x y) w‖ ≤ C := by
   obtain ⟨CΓ, hCΓ⟩ :=
     D.exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le r
   have : ProperSpace (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) :=
     FiniteDimensional.proper_real (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι)
   have : ProperSpace (StdSpace ι →L[ℝ] StdSpace ι) :=
     FiniteDimensional.proper_real (StdSpace ι →L[ℝ] StdSpace ι)
-  set R := max |CΓ| √2
+  set R := max |CΓ| B
   -- Sets of norm at most `R` rather than closed balls: the closed ball's centre `0` cannot be
   -- matched with the zero that `mem_closedBall_zero_iff` expects in these spaces of maps.
   have hRc {V : Type _} [NormedAddCommGroup V] [ProperSpace V] : IsCompact {G : V | ‖G‖ ≤ R} :=
@@ -825,18 +858,14 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryles
   obtain ⟨K, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq (r := r)
     ((contDiff_koszulRHS (ι := ι)).of_le (by simp))
     (hRc.prod (hRc.prod hRc)) R
-  refine ⟨K, fun {k} hk x z hz j hj₁ hj ↦ ?_⟩
-  set y := (D.chart k x).symm z
-  have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
-  have h0 : (0 : StdSpace ι) ∈ ball (0 : StdSpace ι) (ρ₀ * √k) :=
-    mem_ball_self (pos_of_mem_ball hz₀)
-  have hzt : z ∈ (D.chart k x).target := D.ball_subset_target hk x hz₀
-  have h0t : (0 : StdSpace ι) ∈ (D.chart k y).target := D.zero_mem_chart_target hk y
-  have h0s : (0 : StdSpace ι) ∈ (D.chartTransition k x y).source :=
-    D.zero_mem_chartTransition_source hk ((D.chart k x).map_target hzt)
-  have hτ0 : D.chartTransition k x y 0 = z := D.chartTransition_symm_zero hk hzt
+  refine ⟨K, fun {k} hk x y w hw hB j hj₁ hj ↦ ?_⟩
+  obtain ⟨hwB, hws, hτB⟩ := D.mem_chartTransitionDomain_iff.1 hw
+  have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hws).1
+  have hτt : D.chartTransition k x y w ∈ (D.chart k x).target := by
+    rw [chartTransition_apply]
+    exact (D.chart k x).map_source (D.mem_chartTransition_source_iff.1 hws).2
   have hk0 : 0 < √k := (Real.sqrt_nonneg _).lt_of_ne fun h ↦ by
-    simpa [← h] using pos_of_mem_ball hz₀
+    simpa [← h] using pos_of_mem_ball hwB
   have hk1 : (√k)⁻¹ ≤ 1 := by
     refine inv_le_one_of_one_le₀ (Real.one_le_sqrt.2 ?_)
     exact_mod_cast Nat.one_le_iff_ne_zero.2 fun h ↦ by simp [h] at hk0
@@ -849,23 +878,81 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryles
       _ ≤ R := by rw [mul_one]; exact le_max_left _ _
   refine hK (τ := D.chartTransition k x y)
     (a := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y))
-    (b := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) (w₀ := 0)
-    (D.contDiffAt_chartTransition h0s)
+    (b := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) (w₀ := w)
+    (D.contDiffAt_chartTransition hws)
     (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k y).contDiffAt
-      ((D.chart k y).open_target.mem_nhds h0t)).of_le (by simp))
-    ?_ ?_ ?_ (fun i _ hi ↦ hΓ y h0 i hi) (fun i _ hi ↦ ?_) j hj₁ (by omega)
-  · rw [hτ0]
-    exact ((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k x).contDiffAt
-      ((D.chart k x).open_target.mem_nhds hzt)).of_le (by simp)
-  · filter_upwards [(D.chartTransition k x y).open_source.mem_nhds h0s] with w hw
+      ((D.chart k y).open_target.mem_nhds hwt)).of_le (by simp))
+    (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k x).contDiffAt
+      ((D.chart k x).open_target.mem_nhds hτt)).of_le (by simp))
+    ?_ ?_ (fun i _ hi ↦ hΓ y hwB i hi) (fun i _ hi ↦ hΓ x hτB i hi) j hj₁ (by omega)
+  · filter_upwards [(D.chartTransition k x y).open_source.mem_nhds hws] with w hw
     rw [koszulRHS_apply]
     exact D.fderiv_fderiv_chartTransition hJ hk hw
   · refine Set.mk_mem_prod ?_ (Set.mk_mem_prod ?_ ?_)
-    · simpa using hΓ y h0 0 (Nat.zero_le _)
-    · simpa [hτ0] using hΓ x hz₀ 0 (Nat.zero_le _)
-    · exact (hT hk x z hz).trans (le_max_right _ _)
-  · rw [hτ0]
-    exact hΓ x hz₀ i hi
+    · simpa using hΓ y hwB 0 (Nat.zero_le _)
+    · simpa using hΓ x hτB 0 (Nat.zero_le _)
+    · exact hB.trans (le_max_right _ _)
+
+/-- **Uniform bounds on the derivatives of the transitions at the centre.** On a boundaryless
+manifold, if `σ` is compatible with `J` and `ρ₀ > 0`, there is a radius `ρ₁` with
+`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for
+all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ₁ * √k` and all `1 ≤ j ≤ r`, the
+`j`-th iterated derivative at `0` of the transition from the chart centred at
+`(D.chart k x)⁻¹ z` to the chart centred at `x` has norm at most `C`.
+
+This is `exists_forall_norm_iteratedFDeriv_chartTransition_le` at `0`, where
+`‖Dτ(0)‖ ≤ √2` (`exists_forall_norm_fderiv_chartTransition_zero_le`). -/
+theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryless]
+    (hJ : σ.Compatible J) (hρ₀ : 0 < ρ₀) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
+      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k), ∀ j, 1 ≤ j → j ≤ r →
+        ‖iteratedFDeriv ℝ j (D.chartTransition k x ((D.chart k x).symm z)) 0‖ ≤ C := by
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hT⟩ := D.exists_forall_norm_fderiv_chartTransition_zero_le hρ₀
+  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
+  obtain ⟨C, hC⟩ := D.exists_forall_norm_iteratedFDeriv_chartTransition_le hJ r √2
+  exact ⟨C, fun {k} hk x z hz ↦ hC hk
+    (D.zero_mem_chartTransitionDomain hk x (ball_subset_ball (by gcongr) hz)) (hT hk x z hz)⟩
+
+/-! ### The transitions back to the chart centred at a point of the ball -/
+
+/-- For `k ≥ k₀`, the transition from the chart centred at `x` to the chart centred at
+`(D.chart k x)⁻¹ z` sends `z` to `0`. -/
+theorem chartTransition_chart_symm_apply_self {k : ℕ} (hk : k₀ ≤ k) (x : M) (z : StdSpace ι) :
+    D.chartTransition k ((D.chart k x).symm z) x z = 0 := by
+  rw [chartTransition_apply]
+  exact D.apply_self hk _
+
+/-- For `k ≥ k₀` and `z` in the ball of radius `ρ₀ * √k`, the domain of the transition from the
+chart centred at `x` to the chart centred at `(D.chart k x)⁻¹ z` contains `z`. -/
+theorem mem_chartTransitionDomain_chart_symm {k : ℕ} (hk : k₀ ≤ k) (x : M) {z : StdSpace ι}
+    (hz : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+    z ∈ D.chartTransitionDomain k ((D.chart k x).symm z) x := by
+  refine ⟨hz, D.mem_chartTransition_source_iff.2
+    ⟨D.ball_subset_target hk x hz, D.mem_source hk _⟩, ?_⟩
+  rw [Set.mem_preimage, D.chartTransition_chart_symm_apply_self hk]
+  exact mem_ball_self (pos_of_mem_ball hz)
+
+/-- **The derivative of a transition back to the centre, on a comparison radius.** Let `k ≥ k₀`,
+let `ρ₁` be a comparison radius for the chart centred at `x` (`IsComparisonRadius`), and let `z`
+be a point of the target of that chart in the ball of radius `ρ₁ * √k`. Then the derivative at
+`z` of the transition from the chart centred at `x` to the chart centred at `(D.chart k x)⁻¹ z`
+has norm at most `√2`. -/
+theorem norm_fderiv_chartTransition_chart_symm_le {ρ₁ : ℝ} {k : ℕ} (hk : k₀ ≤ k) {x : M}
+    (hcmp : D.IsComparisonRadius k x ρ₁) {z : StdSpace ι} (hzt : z ∈ (D.chart k x).target)
+    (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
+    ‖fderiv ℝ (D.chartTransition k ((D.chart k x).symm z) x) z‖ ≤ √2 := by
+  set y := (D.chart k x).symm z
+  have hy : y ∈ (D.chart k x).source := (D.chart k x).map_target hzt
+  have hzs : z ∈ (D.chartTransition k y x).source :=
+    D.mem_chartTransition_source_iff.2 ⟨hzt, D.mem_source hk y⟩
+  refine D.norm_fderiv_chartTransition_le_of_norm_mvfderiv_le hzs (by positivity) fun v ↦ ?_
+  -- At the centre `y`, `2π k σ(v, J v)` is the squared norm in the chart at `y`.
+  have hyz : D.chart k x y = z := (D.chart k x).right_inv hzt
+  have hcmpy := (hcmp.mem_Icc hy (by rwa [hyz]) v).2
+  rw [D.eval₂_apply_self_eq_norm_sq hk y v] at hcmpy
+  refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
+  rw [mul_pow, Real.sq_sqrt zero_le_two]
+  nlinarith [sq_nonneg ‖mvfderiv I (D.chart k x) y v‖]
 
 end RescaledUnitaryCharts
 
