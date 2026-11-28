@@ -224,7 +224,7 @@ notes of the approving review of #2280.
    oriented by `Orientation.sphereOrientation` of the standard orientation of
    `EuclideanSpace ℝ (Fin 3)`, and for $\mathrm{SO}(3)$ as
    `Matrix.specialOrthogonalGroup (Fin 3) ℝ` acting through
-   `TauCeti.orthogonalToDiffSphere 2 ∞`. It is carried over from `OnePoint ℂ`
+   `TauCeti.specialOrthogonalToDiffSphere 2 ∞`. It is carried over from `OnePoint ℂ`
    by conjugation, `Diffeomorph.diffCongrContinuousMulEquiv`, along
    `roundSphereDiffeomorph`, `OnePoint.diffeomorphSphere v ι` as a `C^∞` map,
    with $v$ the north pole and $\iota\,z=(\operatorname{Re}z,-\operatorname{Im}z,0)$. With
@@ -421,7 +421,7 @@ Issue 8:
   for `sphereOrientation`, and `map_diffPlus_diffCongr`: conjugation by
   `roundSphereDiffeomorph` maps `diffPlus` onto `roundDiffPlus`.
 - `diffCongr_mobiusHom_toPSL`: conjugation sends `mobiusHom (toPSL k)` to
-  `orthogonalToDiffSphere 2 ∞ (SU2.toSO3 k)`; hence it maps
+  `specialOrthogonalToDiffSphere 2 ∞ (SU2.toSO3 k)`; hence it maps
   `rotationSubgroup` onto the image of `Matrix.specialOrthogonalGroup (Fin 3) ℝ`
   (`TauCeti.SU2.toSO3_surjective`), which therefore lies in `roundDiffPlus`.
 

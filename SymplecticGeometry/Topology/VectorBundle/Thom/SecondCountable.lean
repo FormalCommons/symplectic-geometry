@@ -10,6 +10,7 @@ public import TauCeti.Topology.MayerVietoris
 public import TauCeti.Topology.VectorBundle.Thom.Isomorphism
 public import TauCeti.Topology.VectorBundle.MayerVietoris.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.PullbackCup
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.AlgebraicTopology.Cohomology.DegreeZero
 
 /-!
@@ -95,9 +96,10 @@ private def trivializingOpens : Set (Opens B) :=
 
 private theorem isBasis_trivializingOpens : Opens.IsBasis (trivializingOpens (F := F) (E := E)) :=
   Opens.isBasis_iff_nbhd.2 fun {U x} hx ↦
-    ⟨U ⊓ ⟨_, (trivializationAt F E x).open_baseSet⟩,
-      ⟨trivializationAt F E x, inferInstance, inter_subset_right⟩,
-      ⟨hx, mem_baseSet_trivializationAt F E x⟩, inf_le_left⟩
+    ⟨U ⊓ (trivializationAt F E x).baseSetOpens,
+      ⟨trivializationAt F E x, inferInstance,
+        inter_subset_right.trans (trivializationAt F E x).coe_baseSetOpens.subset⟩,
+      ⟨hx, FiberBundle.mem_baseSetOpens_trivializationAt F E x⟩, inf_le_left⟩
 
 omit [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℝ F E] in
 private theorem inf_mem_trivializingOpens {U V : Opens B}

@@ -55,6 +55,8 @@ two trivializations, these inclusions differ by the coordinate change.
 * `Bundle.Trivialization.compTotalSpaceHomeomorph_refl`: a trivialization transported by Tau
   Ceti's `Bundle.Trivialization.compTotalSpaceHomeomorph` along the identity of the total space
   is itself.
+* `TauCeti.MapFiber.Atlas.mem_baseSetOpens_trivAt`: each point `b` of the base lies in
+  `(A.trivAt b).baseSetOpens`.
 * `TauCeti.MapFiber.Atlas.iUnion_baseSet_trivAt` and
   `TauCeti.MapFiber.Atlas.isOpenCover_baseSet_trivAt`: the base sets of the trivializations of an
   atlas cover the base, as sets and as an open cover.
@@ -67,6 +69,8 @@ two trivializations, these inclusions differ by the coordinate change.
   preferred trivializations and as its atlas.
 * `FiberBundle.iUnion_baseSet_trivializationAt`: the base sets of the preferred trivializations
   of a fibre bundle cover the base.
+* `FiberBundle.mem_baseSetOpens_trivializationAt`: each point `x` of the base lies in
+  `(trivializationAt F E x).baseSetOpens`.
 * `FiberBundle.exists_mem_baseSetOpens_trivializationAt`: each point of the base lies in
   `(trivializationAt F E b).baseSetOpens` for some `b`.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
@@ -237,6 +241,11 @@ section Cover
 variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
   {proj : Z → B} (A : Atlas F proj)
 
+/-- Each point `b` of the base lies in the base set, read as an open set, of the trivialization
+of the atlas at `b`. -/
+theorem mem_baseSetOpens_trivAt (b : B) : b ∈ (A.trivAt b).baseSetOpens :=
+  Trivialization.mem_baseSetOpens_iff.2 (A.mem_baseSet_trivAt b)
+
 /-- The base sets of the trivializations of an atlas cover the base. -/
 @[simp]
 theorem iUnion_baseSet_trivAt : ⋃ b, (A.trivAt b).baseSet = Set.univ :=
@@ -245,8 +254,7 @@ theorem iUnion_baseSet_trivAt : ⋃ b, (A.trivAt b).baseSet = Set.univ :=
 /-- The base sets of the trivializations of an atlas, as open sets of the base, form an open
 cover of it. -/
 theorem isOpenCover_baseSet_trivAt :
-    TopologicalSpace.IsOpenCover fun b ↦
-      (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ : TopologicalSpace.Opens B) :=
+    TopologicalSpace.IsOpenCover fun b ↦ (A.trivAt b).baseSetOpens :=
   .of_sets (fun b ↦ (A.trivAt b).open_baseSet) A.iUnion_baseSet_trivAt
 
 include A in
@@ -294,12 +302,18 @@ theorem iUnion_baseSet_trivializationAt : ⋃ b, (trivializationAt F E b).baseSe
   Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, mem_baseSet_trivializationAt F E b⟩
 
 variable (F E) in
+/-- Each point `x` of the base lies in the base set, read as an open set, of the preferred
+trivialization at `x`. -/
+theorem mem_baseSetOpens_trivializationAt (x : B) : x ∈ (trivializationAt F E x).baseSetOpens :=
+  Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F E x)
+
+variable (F E) in
 /-- Each point of the base lies in the base set, read as an open set, of some preferred
 trivialization of a fibre bundle. With `trivializationAt F E`, this is for instance the covering
 hypothesis `hcover` of Tau Ceti's `ContMDiffSection.frameTopology_le_of_cover`. -/
 theorem exists_mem_baseSetOpens_trivializationAt (x : B) :
     ∃ b, x ∈ (trivializationAt F E b).baseSetOpens :=
-  ⟨x, Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F E x)⟩
+  ⟨x, mem_baseSetOpens_trivializationAt F E x⟩
 
 /-- A set `s` of the total space of a fibre bundle is open if there is an open set `t` of the
 model fibre such that, for each point `b` of the base, a point `q` of the source of the

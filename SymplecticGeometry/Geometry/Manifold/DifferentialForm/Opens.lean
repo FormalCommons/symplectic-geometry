@@ -139,6 +139,11 @@ complement of `C` and the target. For `η = 0` this extends the push-forward by 
 (`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_mextDeriv_eq`). The symplectic blowup
 uses both, to build its forms and their primitives from those of the model.
 
+For an injective local diffeomorphism `f : M → M'` into a Hausdorff manifold, the first of these,
+applied to `IsLocalDiffeomorph.partialDiffeomorphOfInjective` with `η = 0`, pushes a
+smooth form vanishing off a compact set `K` forward to a smooth form on `M'` vanishing off
+`f '' K` (`IsLocalDiffeomorph.exists_smoothForm_mpullback_eq_of_injective`).
+
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer, 2013, Chapter 14.
@@ -664,5 +669,39 @@ theorem exists_diffeomorph_opens_mpullback_eq {e : X → Y}
 end Transport
 
 end PartialDiffeomorph
+
+namespace IsLocalDiffeomorph
+
+variable {E H M E' H' M' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' ∞ M']
+  [T2Space M'] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- **Push-forward along an injective local diffeomorphism, extended by zero.** Let `f : M → M'`
+be an injective local diffeomorphism into a Hausdorff manifold, and `α` a smooth form on `M` that
+vanishes off a compact set `K`. Then `α = f^* β` for a smooth form `β` on `M'` that vanishes off
+`f '' K`. -/
+theorem exists_smoothForm_mpullback_eq_of_injective {f : M → M'}
+    (hf : IsLocalDiffeomorph I I' ∞ f) (hinj : Function.Injective f)
+    (α : TauCeti.SmoothForm I M F k) {K : Set M} (hK : IsCompact K)
+    (hαK : ∀ y ∉ K, α.val y = 0) :
+    ∃ β : TauCeti.SmoothForm I' M' F k, TauCeti.SmoothForm.mpullback f hf.contMDiff β = α ∧
+      ∀ x ∉ f '' K, β.val x = 0 := by
+  rcases isEmpty_or_nonempty M with hM | hM
+  · exact ⟨0, Subtype.ext (funext isEmptyElim), fun _ _ ↦ by simp⟩
+  set Φ := hf.partialDiffeomorphOfInjective hinj
+  have hΦ : ⇑Φ = f := hf.coe_partialDiffeomorphOfInjective hinj
+  obtain ⟨β, hβα, hβ0⟩ := PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem Φ
+    (hK.image hf.contMDiff.continuous).isClosed
+    (by rw [hf.partialDiffeomorphOfInjective_target hinj]; exact image_subset_range f K) 0 α
+    fun y _ hy ↦ by
+      rw [hαK y fun hyK ↦ hy (hΦ ▸ mem_image_of_mem f hyK)]
+      simp
+  refine ⟨β, Subtype.ext (funext fun y ↦ ?_), fun x hx ↦ by simpa using hβ0 x hx⟩
+  rw [TauCeti.SmoothForm.coe_mpullback, ← hΦ]
+  exact hβα y (by simp [Φ])
+
+end IsLocalDiffeomorph
 
 end

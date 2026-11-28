@@ -831,29 +831,29 @@ containing `ι '' closedBall 0 1`:
       `_of_le`, `_of_ge`, `tendsto_deriv_`, convexity, smoothness in
       `(ℓ, r)` and strict monotonicity in `ℓ`, and the slope bound of
       `sqrtAddLeaf`, follow from those of `cutoffLeaf`.
-    - `exists_isConvexShapeAt_sqrtAddLeaf`: there is `L₀ ≥ 1` such that
-      for `L ≥ L₀`, `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
+    - `eventually_isConvexShapeAt_sqrtAddLeaf`: for all large enough `L`
+      (`∀ᶠ L in atTop`), `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
       `IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r` (the range above `7 * δ`
       serves the bridge leaves below). For `δ = 1` both
       families are `b * (1 - H) + S` with `S ^ 2 = 64 * r ^ 2 - 64 + c * H`:
       `b = (ℓ + 8) / 64 ≤ 1 / 8` and `c = 64 - ℓ ^ 2 ≤ 64` for
       `sqrtSubLeaf`, `b = 1 / 8 + ℓ ≤ 61 / 8` and `c = 64 + ℓ ^ 2 ≤ 121`
-      here. So the private steps of `exists_isConvexShapeAt_sqrtSubLeaf`
+      here. So the private steps of `eventually_isConvexShapeAt_sqrtSubLeaf`
       move to `CutoffLeaf.lean` and become public, for both:
       `isConvexShapeAt_of_bounds`, as `isConvexShapeAt_of_cutoff_bounds`,
       with `0 ≤ b ≤ 8`, `0 ≤ c ≤ 128`, `|p| ≤ 1 / 1024` and
       `|r * q| ≤ 1 / 1024` in place of `1 / 8`, `64` and `1 / 64`;
       `abs_deriv_cutoff_le`, as `Real.smoothTransition.abs_deriv_sub_div_le`
       in `SmoothTransition/Deriv.lean`, for the cutoff
-      `x ↦ smoothTransition ((x - a) / L)` with `0 ≤ a` and
-      `A + a * B + M ≤ ε * L`, bounding both quantities by `ε` (here
+      `x ↦ smoothTransition ((x - a) / L)` with any real `a` and
+      `A + |a| * B + M ≤ ε * L`, bounding both quantities by `ε` (here
       `a = 2`, `ε = 1 / 1024`); and the
       first two derivatives of
       `x ↦ b * (1 - H x) + √(64 * x ^ 2 - 64 + c * H x)`, `0 ≤ c`, in
       place of `deriv_sqrtSubLeaf_one` and
       `iteratedDeriv_two_sqrtSubLeaf_one`.
-      `exists_isConvexShapeAt_sqrtSubLeaf` keeps its statement, with
-      the larger `L₀`. For `2 ≤ r` the bounds become `6 * r ≤ S ≤ 9 * r`,
+      `eventually_isConvexShapeAt_sqrtSubLeaf` holds for all large enough
+      `L`. For `2 ≤ r` the bounds become `6 * r ≤ S ≤ 9 * r`,
       `|c * p| ≤ 1 / 8` and `|b * p| ≤ 1 / 128`, so the slope is still at
       least `7`, and the second derivative is at least
       `-(20 + 1 / 128) / r`, against `343 / r` and `1 / χ ≤ 1 / (6 * r)`.
@@ -899,7 +899,7 @@ containing `ι '' closedBall 0 1`:
       `T 2 ≤ T 1 + √6 ≤ 11`, and the slope of `T` is at most
       `1 / √(log 2) < 5 / 4` on `Ici 2`.
       - Convexity, for `ℓ > 6` (for `ℓ ≤ 6` it is
-        `exists_isConvexShapeAt_sqrtAddLeaf`), with `η = g / 200`. Where
+        `eventually_isConvexShapeAt_sqrtAddLeaf`), with `η = g / 200`. Where
         `A - T > η` the leaf is `A` near `r` (`smoothedMax_eq_left`);
         where `A - T < -η` it is `T` (`smoothedMax_eq_right`), and by the
         bounds this happens only in `Ioc 1 2`, where `T` is a convex
@@ -955,8 +955,8 @@ containing `ι '' closedBall 0 1`:
       for `δ ≠ 0`, by the substitution `u = δ * v`).
 
     `exists_convexShapeFamily_surround` takes these leaves as its part
-    `ℓ ∈ Icc 0 (7 * δ)`, with one `L` at least the `L₀` of
-    `exists_isConvexShapeAt_sqrtSubLeaf` and of
+    `ℓ ∈ Icc 0 (7 * δ)`, with one `L` for which
+    `eventually_isConvexShapeAt_sqrtSubLeaf` holds and at least the `L₀` of
     `exists_isConvexShapeAt_struweSwitchLeaf`. They are standard from
     `r₀ = (2 + L) * δ` on, and they meet `sqrtSubLeaf L δ` at `ℓ = 0`,
     so the joint continuity of `χ`, `∂χ/∂r` and `∂²χ/∂r²` on
@@ -966,8 +966,8 @@ containing `ι '' closedBall 0 1`:
 
     Building issues, in this order: (1) in `Surround/CutoffLeaf.lean`,
     the shared estimate, `sqrtAddLeaf` with its API and
-    `exists_isConvexShapeAt_sqrtAddLeaf`, with the proof of
-    `exists_isConvexShapeAt_sqrtSubLeaf` rewritten through the estimate
+    `eventually_isConvexShapeAt_sqrtAddLeaf`, with the proof of
+    `eventually_isConvexShapeAt_sqrtSubLeaf` rewritten through the estimate
     (about 300 lines); (2) the rescalings and the monotonicity in the
     width above, in `SmoothedMax.lean` and `SpecialShape.lean` (about
     150 lines), independent of (1); (3) in `Surround/CutoffLeaf.lean`,
@@ -1138,7 +1138,7 @@ containing `ι '' closedBall 0 1`:
       `w = √(r ^ 2 - δ ^ 2)`: `A ≥ 8 * w`, `A ≤ δ / 8 + ℓ + 8 * r + ℓ`,
       `A = δ / 8 + ℓ + 8 * w` on `Ioc δ (2 * δ)` and
       `deriv A ≤ 11` on `Ici (2 * δ)` (the bounds in the proof of
-      `exists_isConvexShapeAt_sqrtAddLeaf`, made public). Where
+      `eventually_isConvexShapeAt_sqrtAddLeaf`, made public). Where
       `P t ≥ A - δ / 200`, the height conditions of
       `isConvexShapeAt_struweLineShape_add` hold (`A ≥ 7 * δ` on
       `Ioc δ (2 * δ)`, `8 * w - 2 * r * √(log (r / δ)) ^ 3 > 3 * δ` on
@@ -1346,11 +1346,14 @@ containing `ι '' closedBall 0 1`:
        `exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two`
        (`Surround/ConvexShape/Basic.lean`), a convex shape.
     The shapes of `exists_convexShapeFamily_surround` have vertical
-    tangents at `r = δ`, where they are not graphs over `r`; there the
-    same statement is used with `r` as a function of `R`, the shapes
-    being graphs over `R` near that line, and the building issue states
-    that second form (`Surround/ShapeFoliation/OverR.lean`) with the
-    criterion of 14d1 rewritten for it.
+    tangents at `r = δ`, where they are not graphs over `r`. A second
+    form of this statement, with `r` as a function of `R` and the
+    criterion of 14d1 rewritten for it
+    (`Surround/ShapeFoliation/OverR.lean`), was made for a smoothing
+    near that line. The route of issue 14d7 does not use it there: it
+    smooths over `r` only above some `r_a > δ`, and writes the leaves
+    near the cylinder as smoothed minima of curves over `R` that are
+    already smooth.
   - `exists_contDiff_shapeLevel` (`Surround/ShapeFoliation/Level.lean`,
     the function of a foliation): a family
     as above, on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂` and with `0 < ∂χ/∂ℓ`, defines,
@@ -1379,36 +1382,206 @@ containing `ι '' closedBall 0 1`:
   Corollary 4.3 and Corollary 4.4 for `J = i`, with `1 < a`,
   `γ ∈ Ioo 0 1` and `Ψst = modelHandle k m 1 a`.
   - `exists_shapeFoliation_cylinder` (the leaves near the cylinder; the
-    book has no counterpart, see issue 14d4's paragraph on the corner):
-    take the family of `exists_convexShapeFamily_surround`, made smooth
-    by `exists_shapeFoliation` (applied in the parameter `u = ℓ * |ℓ|`,
-    in which the standard leaves `√(64 * r ^ 2 + u)` have positive
-    `u`-derivative, also at `u = 0`; on a rectangle whose lower end in
-    `r` lies above the `r₀` of issue 14d5, where the family is standard
-    for `ℓ` near `-8 * δ`; and continued a little past `u = 1` by
-    `χ 1 r + √(64 * r ^ 2 + u) - √(64 * r ^ 2 + 1)`, which is standard
-    for `γ ≤ r`, so smooth across `u = 1` there, is a convex shape for
-    `u` close to `1` by
-    `exists_forall_isConvexShapeAt_of_abs_sub_lt`, and lies
-    strictly above `χ 1`, hence above every earlier member), and write its leaf `ℓ` near the line
-    `r = δ` as `r = ρ ℓ R` over `R ≥ 0`, with `ρ ℓ = δ` on
-    `Icc 0 (χ ℓ δ)`. For `δ' < δ` close to `δ` there are `r₁ ∈ Ioo δ γ`,
-    `R₁ > 0` and curves `r = ρ' ℓ R`, `ℓ ∈ Icc (-8 * δ) 1`, smooth in
-    `ℓ` and in `R ^ 2`, such that `ρ' ℓ = ρ ℓ` outside
-    `{r < r₁ ∧ R < R₁}`, `ρ' 1` is the `ρ'` of `Σ'`, `ρ' ℓ R` is
-    strictly decreasing in `ℓ` (the new leaves are disjoint), each new
-    leaf is a convex shape over `R` at each of its points (the criterion
-    of issue 14d1 for graphs over `R`), and for `ℓ` near `1` the function
-    `ρ' ℓ` is constant on `Icc 0 1`. The leaf `ℓ` is built as `Σ'` is:
-    `ρ' ℓ` is the smoothed minimum of `ρ ℓ` and a curve `q ℓ`, constant
-    equal to `c ℓ` up to `R₀ ℓ` and convex beyond, crossing `ρ ℓ` once,
-    transversally, beyond the corner, with `c` strictly decreasing from
-    `δ` at `ℓ = -8 * δ` to `δ'` at `ℓ = 1`. For the leaves of small
-    height, near `ℓ = -8 * δ`, `R₀ ℓ = 0` and `q ℓ` is a function of
-    `R ^ 2`, so that the leaf is smooth on the axis `s = 0`, and `q ℓ`
-    must tend, with the crossing, to the smooth leaf `χ (-8 * δ)`
-    (`r = √(δ ^ 2 + R ^ 2 / 64)`) as the height tends to `0`. That limit
-    is the step to check first.
+    book has no counterpart, see issue 14d4's paragraph on the corner).
+    Write `u₀ = -64 * δ ^ 2` and `st u R = √(R ^ 2 - u) / 8`, the
+    standard leaf `s = 64 * t + u` as a curve `r = st u R` over `R`. The
+    leaves are labelled by `u = ℓ * |ℓ|`, the label of the standard leaf
+    `√(64 * r ^ 2 + ℓ * |ℓ|)`, so that the level `-u` is `64 * t - s` on
+    every standard leaf and below the bottom leaf; "decreasing in `u`" is
+    always a strict sign of the `u`-derivative. Statement:
+
+    ```
+    theorem exists_shapeFoliation_cylinder {γ : ℝ} (hγ : 0 < γ) :
+        ∀ᶠ δ in 𝓝[>] 0, ∃ χ₁ : ℝ → ℝ, ∃ u₂ > 1, ∃ ε > 0, ∃ σ > 0,
+          ∃ ρ T : ℝ → ℝ → ℝ,
+          -- the top leaf of the family of issue 14d5
+          ContDiffOn ℝ ∞ χ₁ (Ioi δ) ∧ ContinuousOn χ₁ (Ici δ) ∧
+          StrictMonoOn χ₁ (Ici δ) ∧ (∀ r, δ < r → IsConvexShapeAt χ₁ r) ∧
+          (∀ r, γ ≤ r → χ₁ r = √(64 * r ^ 2 + 1)) ∧
+          Tendsto (deriv χ₁) (𝓝[>] δ) atTop ∧ 1 < χ₁ δ ∧ χ₁ δ < 1 + γ ∧
+          -- the leaves `r = ρ u R` over `R > 0`
+          ContDiffOn ℝ ∞ (Function.uncurry ρ) (Icc (-64 * δ ^ 2) u₂ ×ˢ Ioi 0) ∧
+          (∀ u ∈ Icc (-64 * δ ^ 2) u₂, ∀ R, 0 < R →
+            IsConvexShapeOverRAt (ρ u) R ∧ deriv (fun u' ↦ ρ u' R) u < 0 ∧
+              0 ≤ deriv (ρ u) R) ∧
+          -- near the axis, the same leaves as graphs `t = T u s`
+          ContDiffOn ℝ ∞ (Function.uncurry T) (Icc (-64 * δ ^ 2) u₂ ×ˢ Ioo (-σ) σ) ∧
+          (∀ u ∈ Icc (-64 * δ ^ 2) u₂, ∀ R, 0 ≤ R → R ^ 2 < σ →
+            ρ u R ^ 2 = T u (R ^ 2)) ∧
+          (∀ u ∈ Icc (-64 * δ ^ 2) u₂, ∀ s ∈ Ico 0 σ, 0 < T u s ∧
+            0 ≤ deriv (T u) s ∧
+            deriv (T u) s + 2 * s * max (iteratedDeriv 2 (T u) s) 0 < 1 ∧
+            deriv (fun u' ↦ T u' s) u < 0) ∧
+          -- standard leaves near the bottom, and wherever `γ ≤ r`
+          (∀ u ∈ Icc (-64 * δ ^ 2) (-64 * δ ^ 2 + ε), ∀ R, 0 ≤ R →
+            ρ u R = √(R ^ 2 - u) / 8) ∧
+          (∀ u ∈ Icc (-64 * δ ^ 2) u₂, ∀ R, 0 ≤ R → γ ≤ ρ u R →
+            ρ u R = √(R ^ 2 - u) / 8) ∧
+          -- the top leaves are cylinders on `s ≤ 1`; `Σ'` is the leaf `1`
+          (∃ u₁ < 1, ∀ u ∈ Icc u₁ u₂, ∀ R ∈ Icc 0 1, ρ u R = ρ u 0) ∧
+          ρ 1 0 < δ ∧ ∃ r₁ ∈ Ioo δ γ, ∀ r, r₁ ≤ r → ρ 1 (χ₁ r) = r
+    ```
+
+    The leaf `u` is `{p | ρ u (√(s p)) = √(t p)}`. The `u₁` clause is
+    what `exists_modelHandle_collar` needs, the leaves `u ∈ Ioc 1 u₂` the
+    collar inside `Σ'`, and the last clause says that `Σ'` is `Σ` from the
+    radius `r₁` on. As the route below stands, with `1 < u₄`, the leaf
+    `1` is changed by the smoothing on `Icc r_a γ`; the next design issue
+    either moves the label `1` into the strip kept near `u₄` (the
+    relabelling found by the split of #9003) or replaces the last clause
+    by the one its construction gives, and fixes `r₁`, `δ' = ρ 1 0` and
+    the rest of the constants of `Σ'`. `0 ≤ ∂ρ/∂R` and `0 ≤ ∂T/∂s` give
+    `∂H/∂s ≤ 0` in `exists_modelHandle_exterior`.
+
+    *Where the family is made smooth.* Take `χ` from
+    `exists_convexShapeFamily_surround` with `γ / 2` for `γ`, `χ₁ = χ 1`,
+    its `r₀`, and write `χ̃ u = χ ℓ` for `u = ℓ * |ℓ|`; `ℓ ↦ ℓ * |ℓ|` is
+    a homeomorphism, so the `r`-derivatives of `χ̃` are jointly continuous
+    as those of `χ` are. Continue `χ̃` past `u = 1` by
+    `χ₁ r + √(64 * r ^ 2 + u) - √(64 * r ^ 2 + 1)`, which is smooth in
+    `(u, r)`, standard for `γ / 2 ≤ r`, a convex shape for `u` close to `1`
+    by `exists_forall_isConvexShapeAt_of_abs_sub_lt`, and strictly above
+    `χ₁`, hence above every earlier member, for `u > 1`. There is one
+    smoothing, by `exists_shapeFoliation`, on
+    `Icc u₃ u₄ ×ˢ Icc r_a γ`, where `δ < r_a`, `u₀ < u₃ < 0` and
+    `1 < u₄ < u₂`. Its output `ψ`, extended by `χ̃` outside the
+    rectangle, is smooth in `(u, r)` on `Icc u₀ u₂ ×ˢ Ici r_a` with
+    `∂ψ/∂u > 0`, standard for `γ ≤ r`. The kept part of the boundary is
+    smooth because the leaves near `u₃` are the low leaves of issue 14d5,
+    which are smooth near the cylinder (below), those near `u₄` are the
+    continuation, and those near `r = γ` are standard. So the lower end
+    of the rectangle is just above `δ`, not above `r₀`, and there is no
+    smoothing over `R`: near the cylinder each leaf is a smoothed minimum
+    of two families that are already smooth in `(u, R)` (below), which
+    needs no gluing. One smoothing over `R` alone would not do: a
+    rectangle in `R` tall enough to reach the corners of the top leaves,
+    above `R = 1`, contains points of the low leaves with `γ ≤ r`, which
+    would then no longer be standard. The only radii are `r_a` and `γ` here, `r₀` of issue
+    14d5, `R_q` below, and the `r₁` of `Σ'`. The family starts at `u₀`;
+    below the leaf `u₀`, `exists_modelHandle_exterior` uses `64 * t - s`,
+    the level of the standard leaves `st u` for `u < u₀`, so nothing is
+    asked of `χ` for `ℓ < -8 * δ` and no two-sided form of its clause at
+    `-8 * δ` is needed.
+
+    The clause this uses is one that `exists_convexShapeFamily_surround`
+    does not state yet: for some `ℓ₃ ∈ Ioo (-8 * δ) 0`, `χ` is smooth in
+    `(ℓ, r)` on a neighbourhood of `Icc (-8 * δ) ℓ₃ ×ˢ Ioi δ`, with
+    `0 < ∂χ/∂ℓ` there. It holds for the leaves `sqrtSubLeaf L δ ℓ` that the
+    family takes for `ℓ ≤ 0` (`exists_convexShapeFamily_sqrt_sub` has the
+    smoothness, and `∂χ/∂ℓ > 0` follows from the formula for `ℓ < 0`), and
+    `u₃` is taken below `-ℓ₃ ^ 2`. In `u = -ℓ ^ 2` the family is
+    then smooth with `∂/∂u > 0` there, as `ℓ < 0`.
+
+    Over `R`, write `ψ̂ u` for the leaf `ψ u` as a curve over `R`, the
+    inverse of `ψ u` on `R ≥ ψ u r_a` (for `u < u₃`, on `R ≥ χ̃ u δ`, and
+    `δ` below). It is smooth in `(u, R)` by
+    `ContDiffAt.of_local_left_inverse` (`Analysis/Calculus/InverseFunctionTheorem/ContDiff.lean`),
+    applied to `(u, r) ↦ (u, ψ u r)`, it is a convex shape over `R` by
+    `isConvexShapeAt_iff_isConvexShapeOverRAt` below, and it has
+    `∂ψ̂/∂u < 0` and `∂ψ̂/∂R > 0`.
+
+    *The leaves near the cylinder.* The leaf `u` is
+    `ρ u = -smoothedMax w (-ρ̂ u) (-q u)`, the smoothed minimum of
+    `OverR.lean`, for a small width `w > 0`, where `ρ̂ u = st u` for
+    `u ≤ u₀ + η` and `ρ̂ u = ψ̂ u` beyond, and `q u R = c u + Q u R`
+    with `c` smooth, `c' < 0`, and `Q u = 0` on `Icc 0 (R_q u)`,
+    `Q` smooth in `(u, R)`, nondecreasing in `R` and nonincreasing in `u`.
+    What the construction must give:
+    - where `|q u - ρ̂ u| < w`, both curves are convex shapes over `R`, so
+      `isConvexShapeOverRAt_smoothedMin` applies; elsewhere `ρ u` is one of
+      them;
+    - `q u ≤ ρ̂ u - w` on `Icc 0 (R_q u)`, and `R_q u` lies above every
+      height where `ρ̂ u` is not smooth in `(u, R)`: the corner of the leaf
+      of issue 14d5, the radius `r_a` of `ψ u`, and the switch from `st u`
+      to `ψ̂ u` at `u₀ + η`. So the leaf is the cylinder `c u` there;
+    - `q u ≥ ρ̂ u + w` from some `R` on, for good. Beyond that `ρ u = ψ̂ u`,
+      standard for `γ ≤ r`, and `q u` need not be a convex shape there: a
+      curve that comes back towards `ψ̂ u` after the crossing (a finding of
+      the split of #9003) can be bent upwards once it is `w` above it;
+    - `∂ρ/∂u < 0` and `∂ρ/∂R ≥ 0`, as the partial derivatives of the
+      smoothed minimum are convex combinations of those of the two curves
+      (`deriv_smoothedMax_weighted`), and `∂q/∂u = c' + ∂Q/∂u < 0`,
+      `∂ψ̂/∂R > 0`, `(st u)' ≥ 0`, `∂Q/∂R ≥ 0`.
+
+    *The leaves near `u₀`.* Let `η > 0` with `2 * η ≤ u₃ - u₀`; then
+    `ψ = χ̃` is standard on `Ici r₀` for `u ≤ u₀ + 2 * η`, as the leaves
+    with `ℓ ≤ 0` are. For `u ≤ u₀ + 2 * η` take `R_q u = R_q` above
+    `√(64 * r₀ ^ 2 + u)`, the height of `r₀` on those leaves, which is
+    above their corners, and `Q u = Q` with slope rising from `0` to
+    `1 / 2` on `Icc R_q (3 * R_q)` with `Q'' ≤ 1 / (2 * R_q)`, and `1 / 2`
+    beyond. As `(st u)' ≤ 1 / 8`, `q u - st u` increases on
+    `Ici (3 * R_q)`.
+    - For `u ≤ u₀ + η / 3`, take `c u ≥ st u (3 * R_q) + w`. Then
+      `q u ≥ st u + w` everywhere and `ρ u = st u` exactly, for `u < u₀`
+      too: the leaves just above the bottom one are standard, with no
+      crossing and no width tending to `0`.
+    - For `u ∈ Icc (u₀ + η / 2) (u₀ + 2 * η)`, take
+      `c u ≤ st u 0 - w`. Both choices of `ρ̂ u` are at least `st u 0` on
+      `Icc 0 R_q` (the leaf of 14d5 over `R` is at least `δ`), so the leaf
+      is the cylinder `c u` there whichever `ρ̂ u` is; beyond `R_q` both are
+      `st u`. So the switch at `u₀ + η` does not show, and `ρ` is smooth in
+      `(u, R)` across it. Since `q u - st u` increases on `Ici (3 * R_q)`
+      with slope at least `3 / 8`, `q u ≥ st u + w` from some `R` on.
+    - The criterion where `|q u - st u| < w`: on `Icc 0 R_q` the curve
+      `q u` is constant. On the bend, `q u < st u (3 * R_q) + w ≤ R_q / 2`
+      for small `δ` (as `R_q ≥ 8 * r₀` and `δ ≪ r₀`), so
+      `1 / q - q' ^ 3 / R ≥ 2 / R_q - 1 / (8 * R_q) > Q''`. On the straight
+      part `q'' = 0`, `q < R / 8 + δ + w` gives `q' * q < R` and
+      `q' ^ 3 / R < 1 / q` (`isConvexShapeOverRAt_iff`).
+    For `u ≥ u₀ + 2 * η` the next design issue chooses `c`, `R_q u` and
+    `Q u`, joining the cylinder to `ψ̂ u` past the corner of the leaf of
+    14d5 for `u ≤ u₃` and past `r_a` beyond, where `ψ̂ u` is still flat
+    enough; `R_q u ≥ 1` for `u ≥ u₁`. It also designs the top end: the
+    leaves near `u₄`, so that the leaf `1` is `Σ'`, and the constants of
+    `Σ'`.
+
+    *Near the axis* (`s = R ^ 2 < σ` with `σ < R_q ^ 2`), with
+    `F u s = √(s - u) / 8`, the leaves are
+    `T u s = (-smoothedMax w (-F u s) (-c u)) ^ 2` for `u ≤ u₀ + η / 2`
+    and `c u ^ 2` beyond, where the two agree; `T` is smooth on
+    `ℝ × Ioo (-σ) σ` as `s - u > 0` there, and is `(s - u) / 64` for
+    `u ≤ u₀ + η / 3`. Write `m` for the smoothed minimum as a function of
+    `s`. By `min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax`
+    (negated), `m'' ≤ max F'' 0 = 0`, and `m'` lies between `0` and
+    `F' = 1 / (128 * F)`. So `T' = 2 * m * m' ≤ 1 / 64` and
+    `2 * s * T'' ≤ 4 * s * m' ^ 2 ≤ s / (64 * (s - u)) ≤ 1 / 64`, and
+    `T' + 2 * s * max T'' 0 < 1`, at `s = 0` too; `∂T/∂u < 0` and
+    `T' ≥ 0` as above. The next design issue keeps `q u` constant on
+    `Icc 0 (√σ)` for `u ≥ u₀ + 2 * η`, so `T u = c u ^ 2` there.
+
+    *Lemmas.*
+    - `isConvexShapeOverRAt_sqrt_comp_sq` (`Surround/ConvexShape/Basic.lean`):
+      for `T` `C²` at `s = R ^ 2` with `0 < R`, `0 < T s` and
+      `deriv T s + 2 * s * max (iteratedDeriv 2 T s) 0 < 1`,
+      `IsConvexShapeOverRAt (fun R ↦ √(T (R ^ 2))) R`. With
+      `ρ ^ 2 = T (R ^ 2)` the three inequalities of
+      `isConvexShapeOverRAt_iff` become `T' < 1`,
+      `T * (1 - T' - 2 * s * T'') + s * T' ^ 2 * (1 - T') > 0` and
+      `T * (1 - T' - 2 * s * T'') + 2 * s * T' ^ 2 > 0`. Standard leaves
+      (`T = (s - u) / 64`), cylinders and lines `a + b * s` with
+      `0 ≤ b < 1` are cases; it gives the criterion over `R` of the leaves
+      near the axis.
+    - `isConvexShapeAt_iff_isConvexShapeOverRAt` (same file): if `χ` is
+      `C²` at `r` with `0 < deriv χ r`, and `ρ (χ x) = x` for `x` near
+      `r`, then `IsConvexShapeAt χ r ↔ IsConvexShapeOverRAt ρ (χ r)`. With
+      `ρ' = 1 / χ'` and `ρ'' = -χ'' / χ' ^ 3`, the two inequalities of
+      `isConvexShapeAt_iff` become the first two of
+      `isConvexShapeOverRAt_iff`, which imply the third.
+    - `exists_contDiff_shapeLevel_overS` (`Surround/ShapeFoliation/Level.lean`),
+      the level function of leaves `t = T u s`: for `T` smooth on
+      `Ioo u₀ u₁ ×ˢ Ioo s₁ s₂` with `∂T/∂u < 0` there, a `φ` with
+      `φ (s, T u s) = -u`, smooth at those points, with
+      `∂φ/∂t = -1 / ∂T/∂u > 0` and `∂φ/∂s = ∂T/∂s / ∂T/∂u`, and, where
+      moreover `0 < T u s` and `T' + 2 * s * max T'' 0 < 1`, with the Levi
+      form of `φ ∘ shape` positive on the complex tangents of its level at
+      each `p` with `shape p = (s, T u s)`. The map `(u, s) ↦ (s, T u s)`
+      is a local diffeomorphism where `∂T/∂u ≠ 0`, also at `s = 0`, unlike
+      `(u, R) ↦ (R ^ 2, ρ u R ^ 2)` of `exists_contDiff_shapeLevel_overR`;
+      the Levi form comes from `isStrictlyPlurisubharmonicAt_shape`
+      applied to `t - T u s` and
+      `re_leviForm_comp_shape_pos_of_fderiv_eq_smul`. On `R > 0` the level
+      is `exists_contDiff_shapeLevel_overR`, and the two agree where both
+      apply, being `-u` on the same leaves.
   - `exists_modelHandle_exterior` (Theorem 4.2 (i)–(iii), with `Σ'` for
     `Σ`): there are `δ ∈ Ioo 0 γ` and a shape `χ` with the properties
     that `exists_convexShape_surround` gives, so that `Σ` is a
@@ -1428,10 +1601,12 @@ containing `ι '' closedBall 0 1`:
     The proof: the shapes of `exists_convexShapeFamily_surround` (with a
     smaller `γ'` for `γ`) continued by the levels of the separable
     interpolation above, which replaces Proposition 3.26,
-    `exists_shapeFoliation` for Proposition 3.25, and
-    `exists_shapeFoliation_cylinder` near the cylinder; `Ψ` is `-ℓ` on
-    the new leaf `ℓ`, smooth by `exists_contDiff_shapeLevel` (in the form
-    over `R` near `r = δ`). So `χ` is the shape `χ 1` of that family,
+    and `exists_shapeFoliation_cylinder` for Proposition 3.25, which
+    smooths the family by `exists_shapeFoliation` (over `r`, in `u`);
+    `Ψ` is `-u` on its leaf `u`, smooth by
+    `exists_contDiff_shapeLevel_overR` on `R > 0` and by
+    `exists_contDiff_shapeLevel_overS` near the axis, and `Σ'` is its
+    leaf `1`. So `χ` is the shape `χ 1` of that family,
     continued, and not the one of `exists_convexShape_surround`.
   - `exists_modelHandle_collar` (Corollary 4.3): for small `σ > 0`, the
     same on an open `Ω ⊇ Ωext` with values in `Ioi (-1 - σ)`, and a

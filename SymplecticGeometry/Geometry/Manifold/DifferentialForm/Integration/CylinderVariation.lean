@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Analysis.Calculus.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 /-!
 # Variation of the integral of a two-form over a family of cylinders
@@ -172,9 +173,11 @@ theorem hasDerivAt_rectangleIntegral_slice [CompleteSpace F] {τ : RoughForm I M
       (fun ⟨a, b, c⟩ ↦ by simpa using hper a b c) τ y
   have hQ (t : ℝ) : ∫ θ in 0..1,
       fderiv ℝ (fun y ↦ ψ y ![(1, 0, 0), (0, 1, 0)]) (s₀, t, θ) (0, 0, 1) = 0 := by
-    rw [intervalIntegral.integral_eq_sub_of_hasDerivAt (fun θ _ ↦ hpd _ (hcurve s₀ t θ))
-      (hint (hgd _ _) t), sub_eq_zero]
-    simpa using congrArg (· ![((1 : ℝ), (0 : ℝ), (0 : ℝ)), (0, 1, 0)]) (hψper (s₀, t, 0))
+    have hgp : Function.Periodic (fun θ ↦ ψ (s₀, t, θ) ![(1, 0, 0), (0, 1, 0)]) 1 := fun θ ↦ by
+      simpa using congrArg (· ![((1 : ℝ), (0 : ℝ), (0 : ℝ)), (0, 1, 0)]) (hψper (s₀, t, θ))
+    have h := hgp.intervalIntegral_eq_zero_of_hasDerivAt (a := 0)
+      (fun θ _ ↦ hpd _ (hcurve s₀ t θ)) (by rw [zero_add]; exact hint (hgd _ _) t)
+    rwa [zero_add] at h
   -- The term in `t` integrates to the boundary values.
   have hP : ∫ t in 0..1, ∫ θ in 0..1,
       fderiv ℝ (fun y ↦ ψ y ![(1, 0, 0), (0, 0, 1)]) (s₀, t, θ) (0, 1, 0) =

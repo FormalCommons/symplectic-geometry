@@ -163,21 +163,23 @@ theorem contMDiff_equivProjectivization_symm_mk_twistCore
   intro x
   -- Work on the base set `U` of the trivialization `e` at `x`, in the coordinates of `e`.
   let e := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x
-  let U : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, e.open_baseSet⟩
+  let U : TopologicalSpace.Opens (OnePoint ℂ) := e.baseSetOpens
+  have hU : (U : Set (OnePoint ℂ)) ⊆ e.baseSet := e.coe_baseSetOpens.subset
   let c (u : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) :=
-    e.frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U) subset_rfl u
+    e.frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U) hU u
   have hc (u : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) (y : U) :
       c u y = (e ⟨y, u y⟩).2 :=
     Bundle.Trivialization.frameCoordinates_apply _ _ _ _
   have hne₀ (y : U) : (![(e ⟨y, s y⟩).2, (e ⟨y, t y⟩).2] : Fin 2 → ℂ) ≠ 0 :=
-    vec_trivialization_ne_zero_twistCore e y.property (hst y)
+    vec_trivialization_ne_zero_twistCore e (hU y.property) (hst y)
   have hne (y : U) : (![c ⟨s, hs⟩ y, c ⟨t, ht⟩ y] : Fin 2 → ℂ) ≠ 0 := by
     rw [hc, hc]
     exact hne₀ y
-  refine (contMDiffAt_subtype_iff (U := U) (x := ⟨x, mem_baseSet_trivializationAt ℂ _ x⟩)).1 ?_
+  have hx : x ∈ U := FiberBundle.mem_baseSetOpens_trivializationAt ℂ _ x
+  refine (contMDiffAt_subtype_iff (U := U) (x := ⟨x, hx⟩)).1 ?_
   refine (contMDiff_equivProjectivization_symm_mk (c ⟨s, hs⟩).contMDiff (c ⟨t, ht⟩).contMDiff
     hne _).congr_of_eventuallyEq (Eventually.of_forall fun y ↦ ?_)
-  have h := mk_trivialization_twistCore e y.property (hst y) (hne₀ y)
+  have h := mk_trivialization_twistCore e (hU y.property) (hst y) (hne₀ y)
   simp only [hc] at h ⊢
   exact congrArg _ h.symm
 

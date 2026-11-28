@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
@@ -506,11 +507,12 @@ the chart `e = A.trivAt b`, as an open set of `B`. The integrand over `b` is the
 theorem fiberIntegrand_eq_prodFiberIntegrand (hA : A.IsContMDiff n I J IM) (hn : n ≠ 0)
     (α : RoughForm IM M ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
     A.fiberIntegrand α b v = prodFiberIntegrand
-      (mpullback (I.prod J) IM (fun p : (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ :
-        TopologicalSpace.Opens B) × F ↦ (A.trivAt b).toOpenPartialHomeomorph.symm (p.1, p.2)) α)
-      ⟨b, A.mem_baseSet_trivAt b⟩ v :=
+      (mpullback (I.prod J) IM (fun p : (A.trivAt b).baseSetOpens × F ↦
+        (A.trivAt b).toOpenPartialHomeomorph.symm (p.1, p.2)) α)
+      ⟨b, A.mem_baseSetOpens_trivAt b⟩ v :=
   (A.trivAt b).fiberIntegrand_eq_prodFiberIntegrand
-    ((hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn) subset_rfl α ⟨b, A.mem_baseSet_trivAt b⟩ v
+    ((hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn) (A.trivAt b).coe_baseSetOpens.subset α
+    ⟨b, A.mem_baseSetOpens_trivAt b⟩ v
 
 /-- **The integrand does not depend on the lifts.** For a `C^n` atlas, `n ≠ 0`, whose model fibre
 has a model space of dimension at most `m`, let `e = A.trivAt b` be the chart at `b`, and let
@@ -568,8 +570,7 @@ theorem isSmoothForm_fiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F] [IsMan
     (v : Fin r → TangentSpace I b) :
     IsSmoothForm J ∞ (A.fiberIntegrand α.val b v) := by
   have h := (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_symm_val_prod
-    (hA.contMDiffOn_trivAt_symm b) (U := ⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩)
-    subset_rfl) α).isSmoothForm
+    (hA.contMDiffOn_trivAt_symm b) (A.trivAt b).coe_baseSetOpens.subset) α).isSmoothForm
   rw [SmoothForm.coe_mpullback] at h
   rw [fiberIntegrand_eq_prodFiberIntegrand hA (by simp)]
   exact isSmoothForm_prodFiberIntegrand h _ v
@@ -587,8 +588,8 @@ integral on `U × F` of the pull-back of `α` along `(b', y) ↦ e⁻¹ (b', y)`
 private def fiberIntegralAt (hA : A.IsContMDiff ∞ I J IM) (b : B) :
     SmoothForm IM M ℝ (r + m) →ₗ[ℝ] TangentSpace I b [⋀^Fin r]→L[ℝ] ℝ where
   toFun α := (prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_symm_val_prod
-    (hA.contMDiffOn_trivAt_symm b) (U := ⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩)
-    subset_rfl) α)).val ⟨b, A.mem_baseSet_trivAt b⟩
+    (hA.contMDiffOn_trivAt_symm b) (A.trivAt b).coe_baseSetOpens.subset) α)).val
+    ⟨b, A.mem_baseSetOpens_trivAt b⟩
   -- The sums and multiples are taken in the tangent space of the open set `U` at `⟨b, _⟩` and
   -- in that of `B` at `b`; both are the model space `E`, so they agree by `rfl`.
   map_add' α β := by simp only [map_add, SmoothBundleForm.add_apply]; rfl
@@ -601,8 +602,8 @@ private theorem fiberIntegralAt_apply (hA : A.IsContMDiff ∞ I J IM)
   -- By definition, the left side is the value of `prodFiberIntegral` at `⟨b, _⟩`, on `v` read in
   -- the tangent space of the open set; `LinearMap.coe_mk` does not apply, since the codomain is
   -- written with the tangent space of `B` at `b`.
-  exact prodFiberIntegral_apply (B := (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ :
-    TopologicalSpace.Opens B)) o _ ⟨b, A.mem_baseSet_trivAt b⟩ v
+  exact prodFiberIntegral_apply (B := (A.trivAt b).baseSetOpens) o _
+    ⟨b, A.mem_baseSetOpens_trivAt b⟩ v
 
 /-- The rough form underlying the fibre integral: at `b`, the continuous alternating map
 `v ↦ ∫_F A.fiberIntegrand α b v`. -/
@@ -619,27 +620,28 @@ on the product `U × F` of the pull-back along `(b, y) ↦ e⁻¹ (b, y)`. -/
 private theorem mpullback_subtypeVal_fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J IM)
     {hn : (∞ : ℕ∞ω) ≠ 0} (ho : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
     (α : SmoothForm IM M ℝ (r + m)) (b' : B) :
-    mpullback I I (Subtype.val : (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ :
-        TopologicalSpace.Opens B) → B) (fiberIntegralRoughForm o hA α) =
+    mpullback I I (Subtype.val : (A.trivAt b').baseSetOpens → B) (fiberIntegralRoughForm o hA α) =
       (prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b').contMDiff_symm_val_prod
-        (hA.contMDiffOn_trivAt_symm b') subset_rfl) α)).val := by
+        (hA.contMDiffOn_trivAt_symm b') (A.trivAt b').coe_baseSetOpens.subset) α)).val := by
   funext b
   ext v
   rw [mpullback_subtype_val_apply, prodFiberIntegral_apply, SmoothForm.coe_mpullback]
   refine (fiberIntegralRoughForm_apply o hA α b v).trans ?_
-  refine (integralTopForm_fiberIntegrand_trivAt o hA ho α.val b.property v).symm.trans ?_
+  refine (integralTopForm_fiberIntegrand_trivAt o hA ho α.val
+    (Bundle.Trivialization.mem_baseSetOpens_iff.1 b.property) v).symm.trans ?_
   rw [(A.trivAt b').fiberIntegrand_eq_prodFiberIntegrand
-    ((hA.contMDiffOn_trivAt_symm b').mdifferentiableOn (by simp)) subset_rfl]
+    ((hA.contMDiffOn_trivAt_symm b').mdifferentiableOn (by simp))
+    (A.trivAt b').coe_baseSetOpens.subset]
 
 private theorem isSmoothForm_fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J IM)
     {hn : (∞ : ℕ∞ω) ≠ 0} (ho : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
     (α : SmoothForm IM M ℝ (r + m)) : IsSmoothForm I ∞ (fiberIntegralRoughForm o hA α) := by
   refine (isSmoothForm_def _ _).2 fun b ↦ ?_
   have h := (prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_symm_val_prod
-    (hA.contMDiffOn_trivAt_symm b) (U := ⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩)
-    subset_rfl) α)).isSmoothForm
+    (hA.contMDiffOn_trivAt_symm b) (A.trivAt b).coe_baseSetOpens.subset) α)).isSmoothForm
   rw [← mpullback_subtypeVal_fiberIntegralRoughForm o hA ho α b, isSmoothForm_def] at h
-  exact (contMDiffAt_mpullback_subtypeVal_iff _ ⟨b, A.mem_baseSet_trivAt b⟩).1 (h _)
+  exact (contMDiffAt_mpullback_subtypeVal_iff _
+    ⟨b, A.mem_baseSetOpens_trivAt b⟩).1 (h _)
 
 variable {o} in
 /-- **The fibre integral of a fibration with an oriented atlas.** Let `A` be a smooth atlas of
@@ -673,10 +675,10 @@ theorem fiberIntegral_apply (α : SmoothForm IM M ℝ (r + m)) (b : B)
 restriction of the fibre integral of `α` is the fibre integral on the product `U × F` of the
 pull-back of `α` along `(b, y) ↦ e⁻¹ (b, y)`. -/
 theorem mpullback_subtypeVal_fiberIntegral (α : SmoothForm IM M ℝ (r + m)) (b' : B) :
-    SmoothForm.mpullback (Subtype.val : (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ :
-        TopologicalSpace.Opens B) → B) contMDiff_subtypeVal (A.fiberIntegral hA ho α) =
+    SmoothForm.mpullback (Subtype.val : (A.trivAt b').baseSetOpens → B) contMDiff_subtypeVal
+        (A.fiberIntegral hA ho α) =
       prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b').contMDiff_symm_val_prod
-        (hA.contMDiffOn_trivAt_symm b') subset_rfl) α) :=
+        (hA.contMDiffOn_trivAt_symm b') (A.trivAt b').coe_baseSetOpens.subset) α) :=
   SmoothBundleForm.ext fun b v ↦ by
     rw [SmoothForm.coe_mpullback, ← mpullback_subtypeVal_fiberIntegralRoughForm o hA ho α b',
       mpullback_subtype_val_apply, mpullback_subtype_val_apply]
