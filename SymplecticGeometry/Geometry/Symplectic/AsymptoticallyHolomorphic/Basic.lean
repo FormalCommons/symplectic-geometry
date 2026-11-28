@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.P
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
+import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
@@ -230,6 +231,15 @@ theorem le_transversalityQuantity_iff {a : ℝ} (k : ℕ) (s : Π y, PowerBundle
         a ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖ := by
   rw [transversalityQuantity_def]
   exact le_max_iff
+
+/-- At a zero of `s`, the transversality quantity is `(2π k)^(-1/2)` times the norm of the
+`(1,0)`-part of `D_k s` there. -/
+theorem transversalityQuantity_of_eq_zero {k : ℕ} {s : Π y, PowerBundle P k y} {x : M}
+    (hx : s x = 0) :
+    transversalityQuantity J α k s x =
+      (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖ := by
+  rw [transversalityQuantity_def, hx, norm_zero]
+  exact max_eq_right (by positivity)
 
 end TransversalityQuantity
 
@@ -1258,6 +1268,20 @@ theorem exists_rpow_mul_norm_zeroOnePart_powerConnection_le [FiniteDimensional �
     mul_comm C]
   gcongr
   exact hk x
+
+/-- **The rescaled `∂̄` of an asymptotically holomorphic sequence is eventually small.** Under the
+hypotheses of `exists_norm_zeroOnePart_powerConnection_le`, for every `η > 0`, for `k` large and
+every point `x`, `(2π k)^(-1/2)` times the operator norm of the `(0,1)`-part
+`J.zeroOnePart (powerConnection α k (s k) x)` is less than `η`. -/
+theorem eventually_rpow_mul_norm_zeroOnePart_powerConnection_lt [FiniteDimensional ℝ E]
+    [CompactSpace M] [∀ y, Nonempty (P y)] (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α)
+    (hρ₀ : 0 < ρ₀) {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    {η : ℝ} (hη : 0 < η) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M,
+      (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.zeroOnePart (powerConnection α k (s k) x)‖ < η := by
+  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
+  filter_upwards [hC, Real.eventually_mul_rpow_neg_half_lt C hη] with k hCk hsk x
+  exact (hCk x).trans_lt hsk
 
 end Riemannian
 
