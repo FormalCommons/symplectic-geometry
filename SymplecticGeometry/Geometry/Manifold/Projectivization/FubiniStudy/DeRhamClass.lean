@@ -100,8 +100,7 @@ theorem deRhamHom_mk_eq_neg_hyperplaneClass_of_integralTopForm_eq_one
   refine Manifold.Orientation.deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq hE
     (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))) φ _ ?_
   have h1 := complexManifoldEvalFundamentalClass_hyperplaneClass
-  rw [complexManifoldEvalFundamentalClass_def, complexManifoldHomologicalOrientation_def,
-    ← complexCurveOrientation_eq_complexManifoldOrientationOfFinrank] at h1
+  rw [complexManifoldEvalFundamentalClass_eq_complexCurveOrientation] at h1
   rw [hφ, ← HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
     Iso.inv_hom_id_apply]
   exact_mod_cast h1.symm

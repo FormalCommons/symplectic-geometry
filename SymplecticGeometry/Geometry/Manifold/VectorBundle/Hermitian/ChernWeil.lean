@@ -20,8 +20,6 @@ import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.RealCohomology
-import TauCeti.AlgebraicTopology.Cohomology.Point
-import TauCeti.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Sphere.Connected
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 
@@ -35,24 +33,16 @@ Let `V` be a smooth complex line bundle with a smooth Hermitian metric `g`, and 
 the de Rham homomorphism `TauCeti.deRhamHom` sends the first to **minus** the real image
 (`TopCat.singularCohomologyRealImageAddMonoidHom`) of the second.
 
-This file proves this over a closed connected orientable surface `M`. Both classes lie in
-`H²(M; ℝ)`, where a class is determined by its value on a fundamental class
-(`TauCeti.HomologicalOrientation.evalFundamentalClass_id_injective`). Choose an orientation `o`
-of `M`, and take the fundamental class of the homological orientation of `-o`.
-
-* The class `deRhamHom [φ]` of a closed two-form takes the value `∫_o φ` there
-  (`evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk`, in the namespace
-  `TauCeti.Manifold.Orientation`).
-  Since the real first Chern class is `-(2π)⁻¹` times the class of a curvature `F_α`
-  (`SymplecticGeometry.IsCircleConnectionForm.realFirstChernClass_eq`), its image takes the
-  value `-(2π)⁻¹ ∫_o F_α`, the first Chern number for the homological orientation of `o`
-  (`SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
-* The real image of the Euler class takes the cast of the value of the Euler class
-  (`TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`). The Euler
-  class is the first Chern class
-  (`SymplecticGeometry.Bundle.firstChernClass_eq_complexEulerClass`), and reversing the
-  orientation negates the Chern number (`SymplecticGeometry.Bundle.chernNumber_neg_orientation`),
-  so this value is minus the same Chern number.
+This file proves this over a closed connected orientable surface `M`. Choose an orientation `o`
+of `M`. The real first Chern class is the class of `φ = -(2π)⁻¹ F_α` for a curvature `F_α`
+(`SymplecticGeometry.IsCircleConnectionForm.realFirstChernClass_eq`), and `∫_o φ` is the first
+Chern number for the homological orientation of `o`
+(`SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`), that is, the value of the
+first Chern class, which is the Euler class
+(`SymplecticGeometry.Bundle.firstChernClass_eq_complexEulerClass`), on the fundamental class.
+The comparison of a closed two-form with an integral class on a surface,
+`TauCeti.Manifold.Orientation.deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq`, then gives
+the identity.
 
 The identity moves along a smooth map `f : B' → B` between manifolds of any dimension. The sum
 `deRhamHom c₁ + e_ℝ` is natural: the real first Chern class pulls back by
@@ -152,11 +142,6 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
   have hE := finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)
   obtain ⟨o⟩ := Orientable.nonempty_orientation (I := 𝓡 2) (M := M)
   rw [hE] at o
-  let e := (TopCat.of M).singularCohomologyIntChainsIso ℝ 2
-  -- Both sides are determined by their value on the fundamental class of `-o`.
-  refine (ConcreteCategory.bijective_of_isIso e.hom).1
-    (((-o).toHomologicalOrientation hE).evalFundamentalClass_id_injective hE
-      (ModuleCat.of ℤ ℝ) ?_)
   obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (IB := 𝓡 2) (P := Fiber ℂ F V ℂ)
   have hφ : -(2 * Real.pi)⁻¹ • hα.curvature ∈ closedForms (𝓡 2) M 2 :=
     Submodule.smul_mem _ _ hα.curvature_mem_closedForms
@@ -164,14 +149,10 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
       deRhamCohomology.mk (𝓡 2) 2 ⟨_, hφ⟩ := by
     rw [hα.realFirstChernClass_eq, ← _root_.map_smul, SetLike.mk_smul_mk]
   rw [hc]
-  refine (o.evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk hE
-    ⟨_, hφ⟩).trans ?_
-  rw [← map_neg ((TopCat.of M).singularCohomologyRealImageAddMonoidHom 2),
-    TopCat.singularCohomologyRealImageAddMonoidHom_apply, map_neg, map_neg, map_neg,
-    HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage,
-    ← firstChernClass_eq_complexEulerClass, ← chernNumber_def,
-    Manifold.Orientation.toHomologicalOrientation_neg, chernNumber_neg_orientation,
-    Int.cast_neg, neg_neg, chernNumber_eq_integral_curvature g hI o hα]
+  refine Manifold.Orientation.deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq hE o
+    ⟨_, hφ⟩ _ ?_
+  rw [← firstChernClass_eq_complexEulerClass, ← chernNumber_def,
+    chernNumber_eq_integral_curvature g hI o hα]
   exact integralTopForm_smul o _ _
 
 end Surface
@@ -336,18 +317,14 @@ theorem deRhamHom_realFirstChernClass_eq_neg_projectiveSpace :
         (complexEulerClass (r := 0) F V Fact.out) := by
   rcases N with _ | n
   · -- `ℙ ℂ (Fin 1 → ℂ)` is a point, so its second cohomology vanishes.
-    have : Subsingleton (ℙ ℂ (Fin (0 + 1) → ℂ)) :=
-      Projectivization.subsingleton_of_rank_le_one (by simp)
-    have := ModuleCat.subsingleton_of_isZero
-      (isZero_singularCohomology_of_contractibleSpace (R := ModuleCat.of ℝ ℝ) (k := ℝ)
-        (M := ModuleCat.of ℝ ℝ) (TopCat.of (ℙ ℂ (Fin (0 + 1) → ℂ))) two_ne_zero)
-    exact Subsingleton.elim _ _
+    exact (ModuleCat.subsingleton_of_isZero
+      (Projectivization.isZero_singularCohomology_of_finrank_eq_one (ModuleCat.of ℝ ℝ) ℝ
+        (ModuleCat.of ℝ ℝ) (K := ℂ) (E := Fin (0 + 1) → ℂ) (by simp) two_ne_zero)).elim _ _
   · -- Restrict to a projective line, where the identity holds and `H²(-; ℝ)` injects.
     have : ∀ b, ContinuousSMul ℂ (V b) := VectorBundle.continuousSMul ℂ F V
-    let ι : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1 + 1) → ℂ :=
-      LinearMap.funLeft ℂ ℂ fun i ↦ if i = 0 then 0 else 1
-    have hι : Function.Injective ι := LinearMap.funLeft_injective_of_surjective _ _ _
-      fun j ↦ by fin_cases j <;> [exact ⟨0, rfl⟩; exact ⟨1, rfl⟩]
+    let ι := Function.ExtendByZero.linearMap ℂ ℂ
+      (Fin.castLE (by omega) : Fin 2 → Fin (n + 1 + 1))
+    have hι : Function.Injective ι := Function.extend_injective (Fin.castLE_injective _) 0
     let f : C(ℙ ℂ (Fin 2 → ℂ), ℙ ℂ (Fin (n + 1 + 1) → ℂ)) :=
       Projectivization.mapContinuousMap ι hι
     have hf : ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ f :=
