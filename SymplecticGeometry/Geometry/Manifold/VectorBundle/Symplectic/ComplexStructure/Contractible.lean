@@ -357,19 +357,25 @@ def Compatible.compatibleCayleyContraction (hcover : ∀ x, ∃ i, x ∈ U i) :
     (ContinuousMap.id {J : ContMDiffComplexStructure I n F V // ω.Compatible J}).HomotopyRel
       (ContinuousMap.const _ ⟨J₀, h₀⟩) {⟨J₀, h₀⟩} :=
   letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
-  have hc : Continuous fun J : {J : ContMDiffComplexStructure I n F V // ω.Compatible J} ↦
-      (⟨J.val, J.property.tames⟩ : {J : ContMDiffComplexStructure I n F V // ω.Tames J}) :=
-    continuous_subtypeVal.subtype_mk _
-  { toFun := fun p ↦ ⟨h₀.cayleyPath p.2.property.tames (1 - p.1),
+  { toFun := fun p ↦ ⟨h₀.cayleyContraction e U hU hcover (p.1, ⟨p.2, p.2.property.tames⟩),
       h₀.compatible_cayleyPath p.2.property _⟩
-    continuous_toFun := ((h₀.continuous_cayleyPath e U hU hcover).comp
-      ((continuous_const.sub (continuous_subtypeVal.comp continuous_fst)).prodMk
-        (hc.comp continuous_snd))).subtype_mk _
-    map_zero_left := fun J ↦ Subtype.ext (h₀.cayleyPath_of_one_le J.property.tames (by simp))
-    map_one_left := fun J ↦ Subtype.ext (h₀.cayleyPath_of_nonpos J.property.tames (by simp))
+    continuous_toFun := ((h₀.cayleyContraction e U hU hcover).continuous.comp
+      (continuous_fst.prodMk ((continuous_subtypeVal.comp continuous_snd).subtype_mk _))
+      ).subtype_mk _
+    map_zero_left := fun J ↦ Subtype.ext (by simp)
+    map_one_left := fun J ↦ Subtype.ext (by simp)
     prop' := fun t J hJ ↦ by
       obtain rfl := hJ
-      exact Subtype.ext (h₀.cayleyPath_self _) }
+      exact Subtype.ext (by simp) }
+
+/-- The compatible Cayley contraction onto `J₀` is the Cayley contraction of the `ω`-tame
+structures, restricted to the `ω`-compatible ones. -/
+@[simp]
+theorem Compatible.coe_compatibleCayleyContraction (hcover : ∀ x, ∃ i, x ∈ U i)
+    (t : unitInterval) (J : {J : ContMDiffComplexStructure I n F V // ω.Compatible J}) :
+    (h₀.compatibleCayleyContraction e U hU hcover (t, J) : ContMDiffComplexStructure I n F V) =
+      h₀.cayleyContraction e U hU hcover (t, ⟨J, J.property.tames⟩) :=
+  (rfl)
 
 /-- At time `t`, the compatible Cayley contraction onto `J₀` sends an `ω`-compatible structure
 `J` to the Cayley path from `J₀` to `J` at time `1 - t`. -/

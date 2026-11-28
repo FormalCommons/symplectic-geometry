@@ -2491,14 +2491,14 @@ complete target and a function on the whole half-space.
 ### 22. Almost complex manifolds
 
 - **Files:** `Geometry/Symplectic/Manifold/AlmostComplex/Contractible.lean`
-  (the case $E=TM$ of part 12's
+  (for compatible structures, the case $E=TM$ of part 12's
   `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`: through
   `tangentEquiv`, `tangentHomeomorph` and `compatible_tangentEquiv_iff`, the
   subtype of compatible structures of
   `TauCeti.SmoothAlmostComplexStructure I M` for a nondegenerate `ω` is
   contractible in Tau Ceti's `frameTopology`, and the subtype of taming
-  structures is, by the contraction along Tau Ceti's Cayley path; the spaces of compatible and
-  of taming forms for a fixed structure, and the homotopy equivalence
+  structures is, by the contraction along Tau Ceti's Cayley path; the
+  spaces of compatible and of taming forms for a fixed structure, and the homotopy equivalence
   $\omega\mapsto J_{g,\omega}$, are stated on part 12's
   `Bundle.ContMDiffTwoForm I ⊤ EB (TangentSpace I)` with its frame topology,
   since Tau Ceti puts no topology on `SmoothTwoForm`; and the two
