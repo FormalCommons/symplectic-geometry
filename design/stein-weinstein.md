@@ -2484,12 +2484,15 @@ agree (forms pulled back by `Subtype.val`).
 - **Issue 18a** (`Weinstein/Rescale.lean`; Lemma 12.1 (i), Remark 12.2 (a),
   Corollary 12.3 (i)). For `hW : IsWeinsteinStructure ω X f` and a smooth
   `h : M → ℝ` with `0 < h` and `0 ≤ dh(X)`:
-  `IsWeinsteinStructure.rescaledForm hW hh`, the form `mextDerivₗ 𝓘(ℝ, E) 1`
+  `rescaledForm ω X h` (in `Liouville/Rescale.lean`, for a smooth field and
+  function, without `hW`), the form `mextDerivₗ 𝓘(ℝ, E) 1`
   of the smooth 1-form `h • ι_X ω`, with `rescaledForm_def`;
-  `rescaledField X h`, the field `x ↦ (h x / (h x + dh(X x))) • X x`, with
+  `rescaledField X h` (also there), the field
+  `x ↦ (h x / (h x + dh(X x))) • X x`, with
   `rescaledField_apply`; `IsWeinsteinStructure.rescale`
-  (`IsWeinsteinStructure (hW.rescaledForm hh) (rescaledField X h) f`; its
-  primitive is `h • ι_X ω`: `interior_rescaledField_rescaledForm`); and
+  (`IsWeinsteinStructure (rescaledForm ω X h) (rescaledField X h) f`; its
+  primitive is `h • ι_X ω`: `interior_rescaledField_rescaledForm`, in
+  `Liouville/Rescale.lean`); and
   `IsWeinsteinStructure.isWeinsteinHomotopy_rescale`, the family
   `t ↦` rescaling by `1 - t + t h`, a Weinstein homotopy from `(ω, X, f)`
   to the rescaled structure with function `f` at every time. The form is
