@@ -109,7 +109,7 @@ theorem firstChernClass_pullback_eq_add [T2Space M] [SigmaCompactSpace M]
     ← SmoothAlmostComplexStructure.pullbackComplexStructure_def,
     ← ContMDiffComplexStructure.firstChernClass_pushforward G (G' × Gν) _ hΦ,
     pushforward_pullbackComplexStructure_normalSplitting hdim hJ hf hω,
-    firstChernClass_congr (ContMDiffComplexStructure.prodFiberEquiv _ _)
+    TauCeti.firstChernClass_eq_of_fiberwise (φ := ContMDiffComplexStructure.prodFiberEquiv _ _)
       (ContMDiffComplexStructure.continuous_prodFiberEquiv _ G' Gν _ _),
     firstChernClass_prod_of_chartedSpace I',
     ContMDiffComplexStructure.toContinuousComplexStructure_tangentEquiv_symm,
