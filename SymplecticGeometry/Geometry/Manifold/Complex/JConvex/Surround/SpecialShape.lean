@@ -281,6 +281,17 @@ theorem contDiffOn_uncurry_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) :
   exact contDiffOn_fst.add ((contDiffOn_struweShape hδ hK 0).comp contDiffOn_snd
     fun p hp ↦ hp.2)
 
+/-- **Changing the base point of Struwe's shape.** For `δ > 0`, `1 ≤ K`, `1 ≤ K'` and `δ ≤ r`,
+Struwe's shape with value `c` at `K δ` is the one based at `K' δ` with the same value there: all
+Struwe shapes for the radius `δ` differ by constants on `[δ, ∞)`. -/
+theorem struweShape_eq_struweShape_apply_mul (hδ : 0 < δ) (hK : 1 ≤ K) {K' : ℝ} (hK' : 1 ≤ K')
+    (c : ℝ) {r : ℝ} (hr : δ ≤ r) :
+    struweShape δ K c r = struweShape δ K' (struweShape δ K c (K' * δ)) r := by
+  rw [struweShape_def, struweShape_def, struweShape_def, add_assoc,
+    integral_add_adjacent_intervals
+      (intervalIntegrable_struwe_of_lt hδ hK (le_mul_of_one_le_left hδ.le hK'))
+      (intervalIntegrable_struwe_of_lt hδ hK' hr)]
+
 /-- Struwe's shape is continuous on `[δ, ∞)`: its integrand is integrable near `δ`. -/
 theorem continuousOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
     ContinuousOn (struweShape δ K c) (Ici δ) := by

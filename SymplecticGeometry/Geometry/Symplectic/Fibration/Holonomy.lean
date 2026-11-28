@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Connection
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Analysis.Complex.Circle
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.InnerProductSpace.Calculus
@@ -32,6 +34,15 @@ transport `hD.parallelTransportIn e e γ 0 1` from time `0` to time `1`. The con
 *Hamiltonian holonomy around discs* when this holonomy is a Hamiltonian diffeomorphism of
 `(F, σ)` for every loop that bounds a smooth disc and every chart at its base point.
 
+A smooth disc `Δ` with centre `x` sweeps out loops `t ↦ Δ (s, t)` at `x`, constant for `s = 0`.
+Read in a chart `e` at `x`, their holonomies form a diffeotopy of the model fibre
+(`TauCeti.IsEhresmannConnection.holonomyDiffeotopy`), built with the library's
+`TauCeti.Diffeotopy.ofContMDiff`: it starts at the identity since transport along a constant
+curve is trivial, and it is jointly smooth because transport depends smoothly on a family of
+curves (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`). It ends at the
+holonomy of the boundary loop of the disc, and for a symplectic connection all its slices
+preserve `σ`.
+
 ## Main definitions
 
 * `SymplecticGeometry.BoundsSmoothDisc IB γ`: the loop `γ` bounds a smooth disc.
@@ -39,6 +50,8 @@ transport `hD.parallelTransportIn e e γ 0 1` from time `0` to time `1`. The con
 * `TauCeti.IsEhresmannConnection.HasHamiltonianDiscHolonomy hD A σ`: the holonomy of `D` around
   every loop that bounds a smooth disc, read in every chart of `A` at its base point, is a
   Hamiltonian diffeomorphism of `σ`.
+* `TauCeti.IsEhresmannConnection.holonomyDiffeotopy`: the diffeotopy of the model fibre whose
+  slice at `s` is the holonomy, read in a chart, of the loop `t ↦ Δ (s, t)` of a smooth disc.
 
 ## Main results
 
@@ -52,6 +65,13 @@ transport `hD.parallelTransportIn e e γ 0 1` from time `0` to time `1`. The con
   coordinate changes preserve `σ`, one chart per loop suffices, since a change of charts
   conjugates the holonomy by a diffeomorphism preserving `σ`, and the Hamiltonian group is normal
   in the group of such diffeomorphisms.
+* `TauCeti.IsEhresmannConnection.contMDiff_parallelTransportIn_isSmoothDisc`: the holonomies of
+  the loops of a smooth disc depend smoothly on the loop.
+* `TauCeti.IsEhresmannConnection.final_holonomyDiffeotopy`: the holonomy diffeotopy of a disc
+  ends at the holonomy of its boundary loop.
+* `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`, in the namespace
+  `TauCeti.IsEhresmannConnection`: for a symplectic connection, every slice of the holonomy
+  diffeotopy preserves `σ`.
 
 ## References
 
@@ -199,6 +219,11 @@ theorem of_isSmoothDisc_slice {x : B} {γ' : Path x x} {D : ℝ × ℝ → B}
 
 end BoundsSmoothDisc
 
+/-- Each loop `t ↦ Δ (s, t)` of a smooth disc `Δ` is smooth. -/
+theorem _root_.TauCeti.IsSmoothDisc.contMDiff_slice {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B}
+    (hΔ : TauCeti.IsSmoothDisc IB γ Δ) (s : ℝ) : ContMDiff 𝓘(ℝ, ℝ) IB ∞ fun t ↦ Δ (s, t) :=
+  hΔ.contMDiff.comp (contDiff_const.prodMk contDiff_id).contMDiff
+
 end Disc
 
 end SymplecticGeometry
@@ -294,6 +319,125 @@ theorem hasHamiltonianDiscHolonomy_iff_forall_exists (hn : 1 ≤ n) (hfp : IsPro
   rw [hD.parallelTransportIn_coordChange hn (hA.contMDiff_proj.of_le hn') hfp
     (hγ.contMDiff.of_le hn') hb hb₂ (hγ.apply_one ▸ hb) v, Diffeomorph.coe_mul,
     Diffeomorph.coe_mul, comp_apply, comp_apply, hψi, hφe, hψe, hγ.apply_one]
+
+section HolonomyDiffeotopy
+
+variable [CompleteSpace EF] [BoundarylessManifold IF F]
+  {e : Trivialization F proj} {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B}
+
+omit [IsManifold IF ∞ F] [CompleteSpace EF] [BoundarylessManifold IF F] in
+/-- **The holonomies of the slices of a disc depend smoothly on the slice.** Let `D` be a smooth
+Ehresmann connection on a proper smooth map `proj`, `Δ` a smooth disc with centre `x`, and `e` a
+trivialization of `proj`, smooth with a smooth inverse, whose base set contains `x`. The map
+`(s, v) ↦` transport of `v` along the loop `t ↦ Δ (s, t)` from `0` to `1`, read in `e`, is smooth
+on `[0, 1] × F`. -/
+theorem contMDiff_parallelTransportIn_isSmoothDisc
+    (hD : IsEhresmannConnection IM IB ∞ proj D) (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj) (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) :
+    ContMDiff ((𝓡∂ 1).prod IF) IF ∞
+      fun p : unitInterval × F ↦ hD.parallelTransportIn e e (fun t ↦ Δ (p.1, t)) 0 1 p.2 := by
+  have hf' : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hf.of_le (by simp)
+  have hΔc : ContMDiff (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)) IB ((⊤ : ℕ∞) + 1) Δ :=
+    contMDiff_prod_modelWithCornersSelf_iff.2 (hΔ.contMDiff.of_le (by simp))
+  have hT := hD.contMDiffOn_parallelTransport_param le_top hf' hfp isOpen_univ
+    hΔc.contMDiffOn 0 1
+  -- The point of the fibre over the centre with coordinate `v`, at the parameter `s`.
+  have hg : ContMDiff ((𝓡∂ 1).prod IF) (𝓘(ℝ, ℝ).prod IM) ∞
+      fun p : unitInterval × F ↦ ((p.1 : ℝ), e.fiberInclusionMap hx p.2) :=
+    (contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk
+      ((e.contMDiff_fiberInclusionMap he_symm hx).comp contMDiff_snd)
+  have h₁ := hT.comp_contMDiff hg fun p ↦
+    ⟨mem_univ _, (e.proj_fiberInclusionMap hx p.2).trans (hΔ.apply_seam p.1).symm⟩
+  have h₂ := he.comp_contMDiff h₁ fun p ↦ by
+    refine e.mem_source.2 ?_
+    have hy := hD.parallelTransport_mem_preimage le_top hf' hfp
+      ((hΔ.contMDiff_slice p.1).of_le (by simp))
+      (x := e.fiberInclusionMap hx p.2)
+      ((e.proj_fiberInclusionMap hx p.2).trans (hΔ.apply_seam p.1).symm) 1
+    rw [mem_preimage, mem_singleton_iff] at hy
+    rw [comp_apply, hy]
+    exact (hΔ.apply_seam_one p.1).symm ▸ hx
+  refine (contMDiff_snd.comp h₂).congr fun p ↦ ?_
+  simp only [comp_apply, parallelTransportIn_def, hΔ.apply_seam p.1, e.fiberInclusionMap_apply]
+
+/-- **The holonomy diffeotopy of a smooth disc.** Let `D` be a smooth Ehresmann connection on a
+proper smooth map `proj`, `Δ` a smooth disc bounding a loop `γ` at `x`, and `e` a trivialization
+of `proj`, smooth with a smooth inverse, whose base set contains `x`. The diffeotopy of the model
+fibre `F` whose slice at time `s` is the holonomy of the loop `t ↦ Δ (s, t)` read in `e`, the
+transport `hD.parallelTransportIn e e (fun t ↦ Δ (s, t)) 0 1`. It starts at the identity, since
+the loop at `s = 0` is constant, and ends at the holonomy of the boundary loop
+`t ↦ Δ (1, t)`. -/
+def holonomyDiffeotopy (hD : IsEhresmannConnection IM IB ∞ proj D)
+    (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) : Diffeotopy IF ∞ F :=
+  Diffeotopy.ofContMDiff
+    (fun s ↦ hD.parallelTransportInDiffeomorph e e (fun t ↦ Δ (s, t)) 0 1 le_top
+      (hf.of_le (by simp)) hfp
+      ((hΔ.contMDiff_slice _).of_le (by simp)) he he_symm he
+      he_symm ((hΔ.apply_seam s).symm ▸ hx) ((hΔ.apply_seam_one s).symm ▸ hx))
+    (by simpa only [coe_parallelTransportInDiffeomorph] using
+      hD.contMDiff_parallelTransportIn_isSmoothDisc hf hfp he he_symm hΔ hx)
+    fun v ↦ by
+      simp only [coe_parallelTransportInDiffeomorph, Set.Icc.coe_zero, hΔ.apply_zero_eq,
+        parallelTransportIn_def]
+      rw [hD.parallelTransport_const (by simp) (hf.of_le (by simp)), e.apply_symm_apply' hx]
+
+variable {hD : IsEhresmannConnection IM IB ∞ proj D} {hf : ContMDiff IM IB ∞ proj}
+  {hfp : IsProperMap proj} {he : ContMDiffOn IM (IB.prod IF) ∞ e e.source}
+  {he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target}
+
+/-- The holonomy diffeotopy of a disc `Δ` sends `(s, v)` to the transport of `v` along the loop
+`t ↦ Δ (s, t)` from `0` to `1`, read in `e`. -/
+@[simp]
+theorem holonomyDiffeotopy_apply (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet)
+    (p : unitInterval × F) :
+    hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx p =
+      hD.parallelTransportIn e e (fun t ↦ Δ (p.1, t)) 0 1 p.2 := by
+  rw [holonomyDiffeotopy, Diffeotopy.ofContMDiff_apply, coe_parallelTransportInDiffeomorph]
+
+/-- The slice at time `s` of the holonomy diffeotopy of a disc `Δ` is the holonomy of the loop
+`t ↦ Δ (s, t)` read in `e`, as a diffeomorphism. -/
+theorem timeSlice_holonomyDiffeotopy (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet)
+    (s : unitInterval) :
+    (hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx).timeSlice s =
+      hD.parallelTransportInDiffeomorph e e (fun t ↦ Δ (s, t)) 0 1 le_top
+        (hf.of_le (by simp)) hfp
+        ((hΔ.contMDiff_slice _).of_le (by simp)) he he_symm he
+        he_symm ((hΔ.apply_seam s).symm ▸ hx) ((hΔ.apply_seam_one s).symm ▸ hx) :=
+  by rw [holonomyDiffeotopy, Diffeotopy.timeSlice_ofContMDiff]
+
+/-- **The holonomy diffeotopy ends at the holonomy.** The final map of the holonomy diffeotopy of
+a disc `Δ` is the holonomy, read in `e`, of its boundary loop `t ↦ Δ (1, t)`, the `1`-periodic
+smooth loop that agrees with `γ` on `[0, 1]`: transport along it from `0` to `1`, as a
+diffeomorphism. -/
+theorem final_holonomyDiffeotopy (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) :
+    (hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx).final =
+      hD.parallelTransportInDiffeomorph e e (fun t ↦ Δ (1, t)) 0 1 le_top (hf.of_le (by simp))
+        hfp ((hΔ.contMDiff_slice _).of_le (by simp)) he
+        he_symm he he_symm ((hΔ.apply_seam 1).symm ▸ hx) ((hΔ.apply_seam_one 1).symm ▸ hx) := by
+  rw [Diffeotopy.final_def, timeSlice_holonomyDiffeotopy]
+  simp only [Set.Icc.coe_one]
+
+/-- **The holonomy diffeotopy of a symplectic connection is symplectic.** For a symplectic smooth
+Ehresmann connection on a proper map with a smooth atlas `A`, every slice of the holonomy
+diffeotopy of a disc, read in a chart of `A` whose base set contains the centre of the disc,
+preserves `σ`. -/
+theorem IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer
+    {A : MapFiber.Atlas F proj} {σ : SmoothTwoForm IF F} (h : hD.IsSymplectic A σ)
+    (hfp : IsProperMap proj) (hA : A.IsContMDiff ∞ IB IF IM) {b : B}
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ (A.trivAt b).baseSet) (s : unitInterval) :
+    (hD.holonomyDiffeotopy hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b)
+        (hA.contMDiffOn_trivAt_symm b) hΔ hx).timeSlice s ∈
+      SmoothForm.diffeomorphStabilizer σ := by
+  rw [timeSlice_holonomyDiffeotopy]
+  exact h.parallelTransportInDiffeomorph_mem_diffeomorphStabilizer hfp hA
+    (hΔ.contMDiff_slice _) _ _
+
+end HolonomyDiffeotopy
 
 end IsEhresmannConnection
 

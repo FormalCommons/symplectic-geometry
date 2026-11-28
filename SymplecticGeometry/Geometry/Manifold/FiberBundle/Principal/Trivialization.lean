@@ -28,9 +28,11 @@ for `θ` differentiable over the base set of `e`, stated for an arbitrary form o
   fundamental vector field of `ξ` at `x` to the left-invariant vector field of `ξ` at `θ x`, since
   `θ` maps the orbit of `x` to the left translate of `G` by `θ x`.
 
-They give the local connection forms of `Principal/CircleConnection.lean` and
-`Principal/Connection/Existence.lean`, for the angular form of the circle and the Maurer–Cartan
-form of `G`.
+They give the local connection forms of `Principal/CircleConnection.lean`, for the angular form of
+the circle and for the trivialization of a local section as well as those of the atlas. For the
+trivializations of the atlas, Tau Ceti states the same facts of its fibre coordinate
+`TauCeti.ManifoldTotalSpace.fiberCoord` (`TauCeti.PrincipalBundle.fiberCoord_op_smul`,
+`TauCeti.PrincipalBundle.mfderiv_fiberCoord_rightFundamentalVectorField`).
 
 ## References
 
