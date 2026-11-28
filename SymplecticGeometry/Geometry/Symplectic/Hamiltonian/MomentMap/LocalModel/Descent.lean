@@ -122,9 +122,7 @@ theorem isMomentMap_mpullback_snd_constSmooth :
 /-- **The vertical space at `(1, 0, 0)`.** A tangent vector at `(1, 0, 0)` lies in the kernel of
 the differential of the projection `(g, p) ↦ [g, p]` onto `G ×_K (A × V)` exactly when it is
 `(ξ, 0, 0)` for some `ξ ∈ 𝔥`: at `p = 0` the infinitesimal action of `K` on `A × V` vanishes, and
-the images in `𝔤` of the Lie algebra of `K` fill `𝔥`. By
-`SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`, this is also the
-kernel of `D.form` at `(1, 0, 0)`. -/
+the images in `𝔤` of the Lie algebra of `K` fill `𝔥`. -/
 theorem mem_ker_mfderiv_mk_one_zero_iff [I.Boundaryless]
     (u : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))) :
     letI := D.fiberDistribMulAction
