@@ -50,6 +50,8 @@ local notation for it.
 * [C. J. Earle, J. Eells, *The diffeomorphism group of a compact Riemann
   surface*][EarleEells1967] (the action of orientation-preserving diffeomorphisms on complex
   structures).
+* [M. W. Hirsch, *Differential Topology*][Hirsch1976], Chapter 2, §1 (the weak topology on
+  spaces of maps).
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   p. 164 (on a surface, the almost complex structures tamed by an area form are those inducing
   its orientation).
