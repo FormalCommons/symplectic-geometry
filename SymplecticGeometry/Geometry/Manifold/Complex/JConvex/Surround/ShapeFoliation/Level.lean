@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import Mathlib.Analysis.Calculus.Deriv.Shift
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Prod
 import TauCeti.Analysis.Calculus.ContDiff.Prod
 import TauCeti.Analysis.Calculus.ParametricFDeriv
 import TauCeti.Analysis.Normed.Operator.Prod
@@ -359,7 +360,7 @@ theorem exists_contDiff_shapeLevel_overR {ρ : ℝ → ℝ → ℝ} {R₁ R₂ :
   simp only [neg_neg] at hv hc hd
   rw [hAeq] at hd
   have hLq : L (R ^ 2, ρ ℓ R ^ 2) = (ρ ℓ R ^ 2, R ^ 2) := by
-    rw [hLdef, ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk]
+    rw [hLdef, ContinuousLinearEquiv.coe_prodComm, Prod.swap_prod_mk]
   have hφd : HasFDerivAt (fun q ↦ -ψ (L q))
       (-(fderiv ℝ ψ (ρ ℓ R ^ 2, R ^ 2)).comp (L : ℝ × ℝ →L[ℝ] ℝ × ℝ)) (R ^ 2, ρ ℓ R ^ 2) := by
     have h := (hc.differentiableAt (by simp)).hasFDerivAt
@@ -369,7 +370,7 @@ theorem exists_contDiff_shapeLevel_overR {ρ : ℝ → ℝ → ℝ} {R₁ R₂ :
       (b / (2 * ρ ℓ R) - a * deriv (ρ ℓ) R / (2 * R)) / -deriv (fun ℓ' ↦ ρ ℓ' R) ℓ := by
     rw [hφd.fderiv, neg_apply, ContinuousLinearMap.comp_apply]
     have hL : (L : ℝ × ℝ →L[ℝ] ℝ × ℝ) (a, b) = (b, a) := by
-      rw [ContinuousLinearEquiv.coe_coe, hLdef, ContinuousLinearEquiv.prodComm_apply,
+      rw [ContinuousLinearEquiv.coe_coe, hLdef, ContinuousLinearEquiv.coe_prodComm,
         Prod.swap_prod_mk]
     rw [hL, hd]
     ring
@@ -378,7 +379,7 @@ theorem exists_contDiff_shapeLevel_overR {ρ : ℝ → ℝ → ℝ} {R₁ R₂ :
   have hval : ∀ R' ∈ Ioo R₁ R₂, -ψ (L (R' ^ 2, ρ ℓ R' ^ 2)) = -ℓ := fun R' hR' ↦ by
     have h := (hψ (-ℓ) hℓ' R' hR').1
     simp only [neg_neg] at h
-    rw [hLdef, ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk, h]
+    rw [hLdef, ContinuousLinearEquiv.coe_prodComm, Prod.swap_prod_mk, h]
   refine ⟨hval R hR, hφc, ?_, ?_, ?_⟩
   · rw [hdφ]
     refine div_pos ?_ (neg_pos.2 hA)

@@ -63,6 +63,10 @@ The move itself changes time along each orbit through `g ⁻¹' {0}` by a functi
 `f ⁻¹' {b}` and `μ` is a bump that vanishes before a time `-δ` and equals `1` at time `0`
 (`exists_contDiff_bump_neg_one_lt_mul_deriv`); `τ` is `0` off these orbits. It is nonnegative,
 and it vanishes on `{f ≤ a}` when `δ` is the margin of `exists_pos_forall_lt_flow_apply`.
+When `μ` has compact support, so does `τ`: its support lies in the compact set of points `Φ s y`
+with `s` in `tsupport μ` and `y` on `g ⁻¹' {0}`, which is inside the open set of orbits crossing
+`g ⁻¹' {0}`. There `τ` is built from the smooth crossing times and crossing point of fact (4), so
+`τ` is smooth everywhere.
 
 ## Main definitions
 
@@ -83,6 +87,9 @@ and it vanishes on `{f ≤ a}` when `δ` is the margin of `exists_pos_forall_lt_
 * `SymplecticGeometry.IsWeinsteinStructure.attachmentTime_nonneg`,
   `SymplecticGeometry.IsWeinsteinStructure.attachmentTime_eq_zero_of_le`: `0 ≤ τ`, and `τ = 0` on
   `{f ≤ a}`.
+* `SymplecticGeometry.IsWeinsteinStructure.hasCompactSupport_attachmentTime`,
+  `SymplecticGeometry.IsWeinsteinStructure.contMDiff_attachmentTime`: `τ` has compact support and
+  is smooth, for a compact level `g ⁻¹' {0}` and a smooth bump `μ` with compact support.
 
 ## References
 
@@ -309,6 +316,63 @@ theorem attachmentTime_eq_zero_of_le {a δ : ℝ}
     simpa only [Flow.map_neg_apply_map] using
       hδ _ (Flow.apply_flow_levelCrossingTime h) _ hlt.le
   rw [hμ _ hle, mul_zero]
+
+/-- **The support of the time function.** The support of `τ = hW.attachmentTime g b μ` lies in
+the image of `Function.support μ ×ˢ g ⁻¹' {0}` under `(s, y) ↦ Φ s y`: a point where `τ` does
+not vanish is `Φ s y` for a point `y` of `g ⁻¹' {0}` and a time `s` with `μ s ≠ 0`. -/
+theorem support_attachmentTime_subset :
+    Function.support (hW.attachmentTime g b μ) ⊆
+      (fun p : ℝ × M ↦ hW.flow p.1 p.2) '' (Function.support μ ×ˢ (g ⁻¹' {0})) := by
+  intro x hx
+  by_cases h : ∃ t, g (hW.flow t x) = 0
+  swap
+  · exact (hx (hW.attachmentTime_of_forall_ne fun t ht ↦ h ⟨t, ht⟩)).elim
+  rw [Function.mem_support, hW.attachmentTime_of_exists h] at hx
+  exact ⟨(-Flow.levelCrossingTime hW.flow g 0 x, hW.flow (Flow.levelCrossingTime hW.flow g 0 x) x),
+    ⟨right_ne_zero_of_mul hx, Flow.apply_flow_levelCrossingTime h⟩,
+    Flow.map_neg_apply_map _ _ _⟩
+
+/-- **The closed support of the time function.** If `g ⁻¹' {0}` is compact and `μ` has compact
+support, then the closed support of `τ = hW.attachmentTime g b μ` lies in the image of
+`tsupport μ ×ˢ g ⁻¹' {0}` under `(s, y) ↦ Φ s y`, which is compact. -/
+theorem tsupport_attachmentTime_subset (hg : IsCompact (g ⁻¹' {0})) (hμ : HasCompactSupport μ) :
+    tsupport (hW.attachmentTime g b μ) ⊆
+      (fun p : ℝ × M ↦ hW.flow p.1 p.2) '' (tsupport μ ×ˢ (g ⁻¹' {0})) :=
+  closure_minimal (hW.support_attachmentTime_subset.trans
+      (image_mono (prod_mono (subset_tsupport μ) subset_rfl)))
+    ((hμ.isCompact.prod hg).image (hW.flow.continuous continuous_fst continuous_snd)).isClosed
+
+/-- **The time function has compact support**, if `g ⁻¹' {0}` is compact and the bump `μ` has
+compact support. -/
+theorem hasCompactSupport_attachmentTime (hg : IsCompact (g ⁻¹' {0}))
+    (hμ : HasCompactSupport μ) : HasCompactSupport (hW.attachmentTime g b μ) :=
+  ((hμ.isCompact.prod hg).image
+    (hW.flow.continuous continuous_fst continuous_snd)).of_isClosed_subset
+      (isClosed_tsupport _) (hW.tsupport_attachmentTime_subset hg hμ)
+
+/-- **The time function is smooth.** Let `b` be a regular value of `f`, let `g` be smooth with
+`dg(X) > 0` along a compact level `g ⁻¹' {0}` whose points have orbits that meet `f ⁻¹' {b}`, and
+let the bump `μ` be smooth with compact support. Then `τ = hW.attachmentTime g b μ` is smooth. -/
+theorem contMDiff_attachmentTime (hb : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f b)
+    (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
+    (hgX : ∀ y, g y = 0 → 0 < mvfderiv 𝓘(ℝ, E) g y (X y)) (hgc : IsCompact (g ⁻¹' {0}))
+    (hgb : ∀ y, g y = 0 → ∃ t, f (hW.flow t y) = b)
+    (hμ : ContDiff ℝ (⊤ : ℕ∞) μ) (hμc : HasCompactSupport μ) :
+    ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) (hW.attachmentTime g b μ) := by
+  have hU : IsOpen {x | ∃ t, g (hW.flow t x) = 0} :=
+    isOpen_setOf_exists_flow_apply_eq hW.isMIntegralCurve_flow hg.continuous
+      fun x hx ↦ ⟨hg.mdifferentiableAt (by simp), hgX x hx⟩
+  -- On the open set of orbits crossing `g ⁻¹' {0}`, `τ` is a product of smooth composites.
+  have hT := (hW.contMDiffOn_levelCrossingTime_of_isRegularValue hb).comp
+    (hW.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos hg hgX) fun x hx ↦
+      hgb _ (Flow.apply_flow_levelCrossingTime hx)
+  have hc := hμ.contMDiff.comp_contMDiffOn
+    (hW.contMDiffOn_levelCrossingTime_of_mvfderiv_pos hg hgX).neg
+  have hon := (hT.mul hc).congr fun x hx ↦ hW.attachmentTime_of_exists (b := b) (μ := μ) hx
+  -- The closed support of `τ` lies in that set, since `g (Φ (-s) (Φ s y)) = g y = 0`.
+  refine contMDiff_of_tsupport fun x hx ↦ hon.contMDiffAt (hU.mem_nhds ?_)
+  obtain ⟨⟨s, y⟩, ⟨-, hy⟩, rfl⟩ := hW.tsupport_attachmentTime_subset hgc hμc hx
+  exact ⟨-s, by simpa only [Flow.map_neg_apply_map, mem_preimage, mem_singleton_iff] using hy⟩
 
 end IsWeinsteinStructure
 
