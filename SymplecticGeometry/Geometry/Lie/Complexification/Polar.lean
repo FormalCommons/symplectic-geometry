@@ -25,6 +25,8 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Commute
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
+import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The polar decomposition of a complexification
@@ -342,11 +344,20 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
     let η : GroupLieAlgebra I G := ξ z
     have hl := Lie.lieInvariant_of_isInvariantForm_adjointRepresentation hB η η (C.re y)
     rw [lie_self, map_zero, LinearMap.zero_apply, eq_comm, neg_eq_zero] at hl
-    -- `φ`, the conjugation by the identity `groupLieAlgebraEquivModelVectorSpace` and `L` are
-    -- unfolded to state the value in the Lie algebra.
-    change B η (C.im ⁅C.cplx (C.lieMap η), y⁆) = 0
-    rw [im_lie_cplx_lieMap]
-    exact hl
+    -- The goal mixes `EC` and `GroupLieAlgebra IC Gc`, which are the same type only up to
+    -- unfolding, so `rw` and `simp` do not apply and the equalities are chained as terms.
+    have hA := (Module.End.toContinuousLinearMap_apply (E := EC) _ y).trans <|
+      (LinearEquiv.conj_apply_apply (groupLieAlgebraEquivModelVectorSpace (I := IC) (G := Gc)) _
+        y).trans <|
+      (groupLieAlgebraEquivModelVectorSpace_apply _).trans <|
+      (congrArg (LieAlgebra.ad ℝ (GroupLieAlgebra IC Gc) (L (ξ z)))
+        (groupLieAlgebraEquivModelVectorSpace_symm_apply (I := IC) (G := Gc) y)).trans <|
+      (LieAlgebra.ad_apply ℝ (GroupLieAlgebra IC Gc) _ _).trans <|
+      congrArg (fun x : GroupLieAlgebra IC Gc ↦ ⁅x, y⁆) (hL (ξ z))
+    exact (ContinuousLinearMap.comp_apply _ _ y).trans <| (congrArg φ hA).trans <|
+      (congrFun (LinearMap.coe_toContinuousLinearMap' _) _).trans <|
+      (LinearMap.comp_apply _ _ _).trans <| (congrArg (B η) (C.im_lie_cplx_lieMap η y)).trans <|
+      hl.trans (zero_apply y).symm
   refine (φ.apply_oneSubExpNegDivSelf_apply_of_comp_eq_zero hφ _).trans ?_
   have hd : mfderiv IM 𝓘(ℝ, EC) (fun z ↦ L (ξ z)) z w = L (mfderiv IM 𝓘(ℝ, E) ξ z w) :=
     congrArg (· w) (L.hasMFDerivAt.comp z hξ.hasMFDerivAt).mfderiv
