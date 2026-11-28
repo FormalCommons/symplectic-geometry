@@ -9,11 +9,20 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Connection
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Path
+public import TauCeti.Geometry.Symplectic.Manifold.Flat
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import SymplecticGeometry.Analysis.Complex.Circle
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Period
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CylinderVariation
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
+import SymplecticGeometry.Geometry.Manifold.Distribution.Horizontal
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
+import TauCeti.Analysis.Calculus.Deriv.BoundedReparametrization
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
@@ -65,6 +74,18 @@ differentiable at every `s ∈ [0, 1]`, so that its derivative there is `X_s`
 (`TauCeti.Diffeotopy.velocity_apply_eq_mfderiv`); two maps differentiable at `s` that agree on
 `[0, 1]` have the same derivative there, as in the proof that the cylinder does not move in `s` at
 `t = 0`.
+
+For a two-form `τ` whose horizontal spaces form the connection, `τ (∂ₜC, ∂_θC) = 0`, so every
+slice `(t, θ) ↦ C (s, t, θ)` has `τ`-area zero, and so has the derivative of that area in `s`.
+The library's first variation formula `TauCeti.hasDerivAt_rectangleIntegral_slice` computes this
+derivative; it needs a map smooth on all of `ℝ³`, so it is applied to `C` reparametrized in `s`
+by a smooth map of `ℝ` into a small interval about `s` that is tangent to the identity at `s`,
+built from Tau Ceti's bounded reparametrization `TauCeti.exists_contDiff_hasDerivAt_abs_le`.
+The term at `t = 0` vanishes, and the term at `t = 1` is the line integral of `ι_{X_s} σ` along
+the moved loop `θ ↦ Φ (s, c θ)` when `τ` restricts to `σ`. When `σ` is closed and the
+slices of `Φ` preserve it, `ι_{X_s} σ` is closed, and its line integral along the moved loop is
+its line integral along `c` (`TauCeti.Diffeotopy.pathIntegral_apply_eq`). This gives the
+variation of holonomy, `TauCeti.IsEhresmannConnection.period_interior_velocity_holonomyDiffeotopy`.
 
 ## Main definitions
 
@@ -122,6 +143,12 @@ differentiable at every `s ∈ [0, 1]`, so that its derivative there is `X_s`
   `τ` that restricts to `σ` along an atlas containing `e`, its value at `t = 1` on the derivatives
   of the cylinder in `s` and `θ` is `σ (X_s, ∂_θ Φ (s, c θ))`, the integrand of the line
   integral of `ι_{X_s} σ` along the curve `θ ↦ Φ (s, c θ)`.
+* `TauCeti.IsEhresmannConnection.integral_mpullback_mextDeriv_transportedCylinder_add_eq_zero`:
+  for such a `τ`, the integral of `dτ (∂ₛC, ∂ₜC, ∂_θC)` over the square plus the integral of
+  `τ (∂ₛC, ∂_θC)` along `t = 1` vanishes.
+* `TauCeti.IsEhresmannConnection.period_interior_velocity_holonomyDiffeotopy`: the variation of
+  holonomy, the line integral of `ι_{X_s} σ` along a loop `c` is minus the integral of
+  `dτ (∂ₛC, ∂ₜC, ∂_θC)` over the square.
 
 ## References
 
@@ -618,16 +645,10 @@ theorem mfderiv_transportedCylinder_apply_mem (hn : 1 ≤ n) (hf : ContMDiff IM 
     (hp : Δ (p.1, 0) ∈ e.baseSet) :
     mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 1, 0) ∈
       D (hD.transportedCylinder e Δ c p) := by
-  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p
-  swap
-  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
-    exact (D _).zero_mem
   obtain ⟨s, t, θ⟩ := p
-  rw [← hC.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ (s, r, θ))
-    (HasDerivAt.prodMk (hasDerivAt_const t s)
-      (HasDerivAt.prodMk (hasDerivAt_id t) (hasDerivAt_const t θ))),
-    Manifold.curveVelocity_apply]
-  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).mfderiv_mem t 1
+  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).mfderiv_apply_mem_of_hasDerivAt
+    (g := fun r : ℝ ↦ (s, r, θ))
+    ((hasDerivAt_const t s).prodMk ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ)))
 
 /-- **The derivative of the transported cylinder in `θ` is vertical.** For a `C^n` connection,
 `1 ≤ n`, on a proper `C^(n+1)` map and a `C^(n+1)` family `Δ`, the derivative of the transported
@@ -640,25 +661,13 @@ theorem mfderiv_transportedCylinder_apply_mem_ker (hn : 1 ≤ n)
     mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 0, 1) ∈
       (mfderiv IM IB proj (hD.transportedCylinder e Δ c p)).ker := by
   obtain ⟨s, t, θ⟩ := p
-  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ)
-  swap
-  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
-    exact (LinearMap.ker _).zero_mem
-  have hproj : MDifferentiableAt IM IB proj (hD.transportedCylinder e Δ c (s, t, θ)) :=
-    (hf.mdifferentiable (by simp)).mdifferentiableAt
   -- Along the line through `(s, t, θ)` in the direction of `θ`, the projection of the cylinder
   -- is constant.
-  have h := mfderiv_apply_eq_zero_of_const_line (I := IB)
-    (f := proj ∘ hD.transportedCylinder e Δ c)
-    (z := (s, t, θ)) (w := (0, 0, 1)) fun r ↦ by
-      have hr : (s, t, θ) + r • ((0 : ℝ), (0 : ℝ), (1 : ℝ)) = (s, t, θ + r) := by
-        ext <;> simp
-      rw [hr, comp_apply, comp_apply, hD.proj_transportedCylinder hn hf hfp hΔ hp,
-        hD.proj_transportedCylinder hn hf hfp hΔ hp]
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-  -- `h` applies the derivative to `(0, 0, 1)` as a vector of `ℝ × ℝ × ℝ`, and the chain rule to a
-  -- tangent vector, so `rw` does not match them.
-  exact (mfderiv_comp_apply (s, t, θ) hproj hC _).symm.trans h
+  refine mfderiv_apply_mem_ker_of_const_line (w := ((0 : ℝ), (0 : ℝ), (1 : ℝ)))
+    (hf.mdifferentiable (by simp)).mdifferentiableAt fun r ↦ ?_
+  have hr : (s, t, θ) + r • ((0 : ℝ), (0 : ℝ), (1 : ℝ)) = (s, t, θ + r) := by
+    ext <;> simp
+  rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hp, hD.proj_transportedCylinder hn hf hfp hΔ hp]
 
 /-- **A two-form defining the connection vanishes on the derivatives of the transported cylinder
 in `t` and in `θ`.** Let `τ` be a two-form on `M` whose horizontal spaces form the connection
@@ -691,32 +700,21 @@ theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
         mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (0, 1)] = 0 := by
   subst hτ
   obtain ⟨t, θ⟩ := q
-  by_cases hu : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ) IM
-    (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (t, θ)
-  swap
-  · rw [mfderiv_zero_of_not_mdifferentiableAt hu]
-    exact SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
-      (IB := IB) (proj := proj) (Submodule.zero_mem _) (LinearMap.ker _).zero_mem
   refine SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (IB := IB)
     (proj := proj) ?_ ?_
-  · rw [← hu.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ (r, θ))
-      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ)), Manifold.curveVelocity_apply]
-    exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_mem t 1
-  · have hproj : MDifferentiableAt IM IB proj (hD.transportedCylinder e Δ c (s, t, θ)) :=
-      (hf.mdifferentiable (by simp)).mdifferentiableAt
-    -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
+  · exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_apply_mem_of_hasDerivAt
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (g := fun r : ℝ ↦ (r, θ))
+      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ))
+  · -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
     -- constant.
-    have h := mfderiv_apply_eq_zero_of_const_line (I := IB)
-      (f := proj ∘ fun q' ↦ hD.transportedCylinder e Δ c (s, q'))
-      (z := (t, θ)) (w := (0, 1)) fun r ↦ by
-        have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
-          ext <;> simp
-        rw [hr, comp_apply, comp_apply, hD.proj_transportedCylinder hn hf hfp hΔ hs,
-          hD.proj_transportedCylinder hn hf hfp hΔ hs]
-    rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-    -- As in `mfderiv_transportedCylinder_apply_mem_ker`, `h` and the chain rule type `(0, 1)`
-    -- differently, so `rw` does not match them.
-    exact (mfderiv_comp_apply (t, θ) hproj hu _).symm.trans h
+    refine mfderiv_apply_mem_ker_of_const_line
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (z := (t, θ))
+      (w := ((0 : ℝ), (1 : ℝ)))
+      (hf.mdifferentiable (by simp)).mdifferentiableAt fun r ↦ ?_
+    have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
+      ext <;> simp
+    rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hs,
+      hD.proj_transportedCylinder hn hf hfp hΔ hs]
 
 end TransportedCylinder
 
@@ -877,7 +875,165 @@ theorem apply_mfderiv_transportedCylinder_one_of_restrictsTo {A : MapFiber.Atlas
   have hp : C ((s : ℝ), 1, θ) = ι (φ θ) := congrFun hCι θ
   rw [hds, hdθ, hp, ← TauCeti.mpullback_apply_pair, MapFiber.Atlas.restrictsTo_iff.1 hτ b x hx]
 
+
+omit [IsManifold IF ∞ F] [CompleteSpace EF] [BoundarylessManifold IF F] in
+/-- **The first variation of the vanishing area of the transported cylinder.** Let `τ` be a
+two-form whose horizontal spaces form the smooth connection `D` of a proper smooth map, `Δ` a
+smooth disc with centre `x`, `e` a trivialization with a smooth inverse whose base set contains
+`x`, and `c` a smooth `1`-periodic map, with transported cylinder `C`. Every slice
+`(t, θ) ↦ C (s, t, θ)` has `τ`-area zero, and so has the derivative of that area in `s`. For
+`s ∈ [0, 1]`, by the first variation formula and since `C` does not move in `s` at `t = 0`, the
+integral of `dτ (∂ₛC, ∂ₜC, ∂_θC)` over the square plus the integral over `θ ∈ [0, 1]` of
+`τ (∂ₛC, ∂_θC)` at `t = 1` vanishes. -/
+theorem integral_mpullback_mextDeriv_transportedCylinder_add_eq_zero {τ : SmoothTwoForm IM M}
+    (hτD : SmoothTwoForm.horizontalDistribution IB proj τ = D) (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c)
+    (hcp : Periodic c 1) (s : unitInterval) :
+    (∫ t in 0..1, ∫ θ in 0..1, mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c)
+        (mextDeriv τ.val) ((s : ℝ), t, θ) ![(1, 0, 0), (0, 1, 0), (0, 0, 1)]) +
+      ∫ θ in 0..1, mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) τ.val
+        ((s : ℝ), 1, θ) ![(1, 0, 0), (0, 0, 1)] = 0 := by
+  set C := hD.transportedCylinder e Δ c
+  -- A smooth map `ρ` of `ℝ` into an interval about `s` on which the cylinder starts in the base
+  -- set of `e`, with `ρ s = s` and `ρ' s = 1`.
+  have hS : IsOpen {r : ℝ | Δ (r, 0) ∈ e.baseSet} :=
+    e.open_baseSet.preimage (hΔ.contMDiff.continuous.comp (by fun_prop))
+  obtain ⟨δ, hδ, hball⟩ := Metric.isOpen_iff.1 hS s
+    ((congrArg (· ∈ e.baseSet) (hΔ.apply_seam s)).mpr hx)
+  obtain ⟨ρ, hρ, hρmem, hρs, hρd⟩ : ∃ ρ : ℝ → ℝ, ContDiff ℝ ∞ ρ ∧
+      (∀ r, ρ r ∈ Metric.ball (s : ℝ) δ) ∧ ρ s = s ∧ HasDerivAt ρ 1 s := by
+    obtain ⟨φ, hφ, hφ0, hφd, hφb⟩ := TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hδ)
+    have h : HasDerivAt φ 1 ((s : ℝ) - s) := by rwa [sub_self]
+    refine ⟨fun r ↦ (s : ℝ) + φ (r - s),
+      contDiff_const.add ((hφ.of_le le_top).comp (contDiff_id.sub contDiff_const)), fun r ↦ ?_,
+      by simp [hφ0], (h.comp_sub_const (s : ℝ) (s : ℝ)).const_add (s : ℝ)⟩
+    rw [Metric.mem_ball, Real.dist_eq, add_sub_cancel_left]
+    exact (hφb _).trans_lt (half_lt_self hδ)
+  -- The cylinder reparametrized by `ρ` in `s` is smooth everywhere, and has the derivative of
+  -- `C` at the points `(s, t, θ)`.
+  set g : ℝ × ℝ × ℝ → ℝ × ℝ × ℝ := fun p ↦ (ρ p.1, p.2)
+  set u : ℝ × ℝ × ℝ → M := C ∘ g
+  have hu : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ u :=
+    (hD.contMDiffOn_transportedCylinder hf hfp he_symm hΔ.contMDiff hc).comp_contMDiff
+      ((hρ.comp contDiff_fst).prodMk contDiff_snd).contMDiff fun p ↦ hball (hρmem p.1)
+  have hgs (t θ : ℝ) : g ((s : ℝ), t, θ) = ((s : ℝ), t, θ) := by simp [g, hρs]
+  have hgd (t θ : ℝ) : HasFDerivAt g (ContinuousLinearMap.id ℝ (ℝ × ℝ × ℝ)) ((s : ℝ), t, θ) := by
+    have h₁ : HasFDerivAt (fun p : ℝ × ℝ × ℝ ↦ ρ p.1)
+        ((ContinuousLinearMap.smulRight (1 : ℝ →L[ℝ] ℝ) (1 : ℝ)).comp
+          (ContinuousLinearMap.fst ℝ ℝ (ℝ × ℝ))) ((s : ℝ), t, θ) :=
+      hρd.hasFDerivAt.comp ((s : ℝ), t, θ) hasFDerivAt_fst
+    convert h₁.prodMk (hasFDerivAt_snd (p := ((s : ℝ), t, θ))) using 1
+    ext <;> simp
+  have hpb {k : ℕ} (φ : RoughForm IM M ℝ k) (t θ : ℝ) :
+      mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM u φ ((s : ℝ), t, θ) =
+        mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM C φ ((s : ℝ), t, θ) := by
+    have hCd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (g ((s : ℝ), t, θ)) := by
+      rw [hgs]
+      exact (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc
+        s.property).mdifferentiableAt (by simp)
+    have h := (hCd.hasMFDerivAt.comp ((s : ℝ), t, θ)
+      (hasMFDerivAt_iff_hasFDerivAt.2 (hgd t θ))).mfderiv
+    ext v
+    rw [mpullback_apply, mpullback_apply, h]
+    simp only [u, comp_apply]
+    rw [hgs]
+    -- The two sides differ only in the tangent spaces in which the vectors are typed.
+    rfl
+  -- The `τ`-area of every slice of `u` vanishes, since `τ (∂ₜC, ∂_θC) = 0`.
+  have hzero (r : ℝ) : rectangleIntegral τ.val (fun z ↦ u (r, z)) (0, 0) (1, 1) = 0 := by
+    rw [rectangleIntegral_def]
+    refine (intervalIntegral.integral_congr fun t _ ↦ ?_).trans intervalIntegral.integral_zero
+    refine (intervalIntegral.integral_congr fun θ _ ↦ ?_).trans intervalIntegral.integral_zero
+    rw [mpullback_apply]
+    refine Eq.trans ?_ (hD.val_mfderiv_transportedCylinder_slice_eq_zero (n := ⊤) (c := c) hτD
+      le_top (hf.of_le (by simp)) hfp (hΔ.contMDiff.of_le (by simp)) (hball (hρmem r)) (t, θ))
+    congr 1
+    ext i
+    fin_cases i <;> rfl
+  -- So its derivative in `s` vanishes; by the first variation formula, it is the left side
+  -- plus the integral at `t = 0`.
+  have key := (hasDerivAt_rectangleIntegral_slice (τ := τ.val) (τ.isSmoothForm.of_le (by simp))
+    (hu.of_le (by simp)) (fun r t θ ↦ hD.transportedCylinder_add_one hcp (ρ r) t θ) s).unique
+    ((hasDerivAt_const (s : ℝ) (0 : ℝ)).congr_of_eventuallyEq (.of_forall hzero))
+  -- At `t = 0` the cylinder does not move in `s`.
+  have h₀ (θ : ℝ) :
+      mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM C τ.val ((s : ℝ), 0, θ) ![(1, 0, 0), (0, 0, 1)] = 0 := by
+    rw [mpullback_apply]
+    exact (τ.val (C ((s : ℝ), 0, θ))).map_coord_zero 0
+      (hD.mfderiv_transportedCylinder_zero_apply hΔ s.property θ)
+  simpa only [hpb, h₀, sub_zero] using key
 end HolonomyCylinder
+
+end IsEhresmannConnection
+
+end TauCeti
+
+namespace TauCeti
+
+namespace IsEhresmannConnection
+
+variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  {HM : Type*} [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M] [IM.Boundaryless]
+  [T2Space M]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B] [IB.Boundaryless]
+  [T2Space B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [FiniteDimensional ℝ EF]
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} [IF.Boundaryless]
+  {F : Type} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F] [T2Space F]
+  {proj : M → B} {D : Π x : M, Submodule ℝ (TangentSpace IM x)}
+  {hD : IsEhresmannConnection IM IB ∞ proj D} {A : MapFiber.Atlas F proj} {b x : B}
+  {γ : Path x x} {Δ : ℝ × ℝ → B} {c : ℝ → F}
+
+/-- **The variation of holonomy.** Let `τ` be a two-form on `M` that restricts to a closed form
+`σ` on the fibres of a smooth atlas `A` of a proper map, and whose horizontal spaces form the
+smooth connection `D`. Let `Δ` be a smooth disc with centre `x` in the base set of a chart
+`e = A.trivAt b`, `Φ` its holonomy diffeotopy read in `e`, all of whose slices preserve `σ`, and
+`X_s` the velocity of `Φ` at time `s`. For a smooth `1`-periodic loop `c` in `F` with transported
+cylinder `C`, the line integral of `ι_{X_s} σ` along `c` from `0` to `1` is minus the integral of
+`dτ (∂ₛC, ∂ₜC, ∂_θC)` over `(t, θ) ∈ [0, 1] × [0, 1]`. -/
+theorem period_interior_velocity_holonomyDiffeotopy {σ : SmoothTwoForm IF F}
+    {τ : SmoothTwoForm IM M} (hτD : SmoothTwoForm.horizontalDistribution IB proj τ = D)
+    (hτ : A.RestrictsTo σ τ) (hσ : σ.IsClosed) (hfp : IsProperMap proj)
+    (hA : A.IsContMDiff ∞ IB IF IM) (hΔ : IsSmoothDisc IB γ Δ)
+    (hx : x ∈ (A.trivAt b).baseSet)
+    (hΦ : ∀ s, (hD.holonomyDiffeotopy hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b)
+        (hA.contMDiffOn_trivAt_symm b) hΔ hx).timeSlice s ∈ SmoothForm.diffeomorphStabilizer σ)
+    (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) (hcp : Periodic c 1) (s : unitInterval) :
+    pathIntegral (σ.interiorₗ ((hD.holonomyDiffeotopy hA.contMDiff_proj hfp
+        (hA.contMDiffOn_trivAt b) (hA.contMDiffOn_trivAt_symm b) hΔ hx).smoothVelocity s)).val
+        c 0 1 =
+      -∫ t in 0..1, ∫ θ in 0..1, mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM
+        (hD.transportedCylinder (A.trivAt b) Δ c) (mextDeriv τ.val) ((s : ℝ), t, θ)
+          ![(1, 0, 0), (0, 1, 0), (0, 0, 1)] := by
+  have key := integral_mpullback_mextDeriv_transportedCylinder_add_eq_zero (hD := hD) hτD
+    hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt_symm b) hΔ hx hc hcp s
+  set Φ := hD.holonomyDiffeotopy hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b)
+    (hA.contMDiffOn_trivAt_symm b) hΔ hx
+  set C := hD.transportedCylinder (A.trivAt b) Δ c
+  set α := σ.interiorₗ (Φ.smoothVelocity s)
+  -- At `t = 1` the integrand is that of the line integral of `ι_{X_s} σ` along the moved loop.
+  have h₁ (θ : ℝ) :
+      mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM C τ.val ((s : ℝ), 1, θ) ![(1, 0, 0), (0, 0, 1)] =
+        α.val (Φ (s, c θ)) fun _ ↦ Manifold.curveVelocity IF (fun θ ↦ Φ (s, c θ)) θ := by
+    rw [mpullback_apply, SmoothTwoForm.coe_interiorₗ, RoughForm.interior_apply,
+      Diffeotopy.coe_smoothVelocity]
+    refine (Eq.trans ?_ (apply_mfderiv_transportedCylinder_one_of_restrictsTo (hD := hD) rfl hτ
+      hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b) (hA.contMDiffOn_trivAt_symm b) hΔ hx hc s
+      θ)).trans ?_ <;>
+    · congr 1
+      ext i
+      fin_cases i <;> rfl
+  -- The closed form `ι_{X_s} σ` has the same line integral along `c` and along the moved loop.
+  have hα := (mem_closedForms IF α).1 (Φ.interiorₗ_smoothVelocity_mem_closedForms hσ hΦ s)
+  rw [← Φ.pathIntegral_apply_eq (α.isSmoothForm.of_le (by simp)) hα (hc.of_le (by simp))
+    (by simpa using hcp 0) s, pathIntegral_def]
+  simp only [h₁] at key
+  linear_combination key
 
 end IsEhresmannConnection
 
