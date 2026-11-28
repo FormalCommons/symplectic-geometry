@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Integrable almost complex structures
@@ -272,7 +273,7 @@ theorem isIntegrable_restrictOpen_source {G : Type*} [NormedAddCommGroup G] [Nor
   have hd (y : U) (v : TangentSpace I y) : mfderiv I 𝓘(ℝ, G) ψ y v =
       mfderiv I 𝓘(ℝ, G) φ y (Manifold.tangentSpaceOpenEquiv (I := I) y v) := by
     rw [hψ, mfderiv_comp_apply y (φ.mdifferentiableAt hn y.property)
-      (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), Manifold.mfderiv_subtype_val,
+      mdifferentiableAt_subtypeVal, Manifold.mfderiv_subtype_val,
       ContinuousLinearEquiv.coe_coe]
   refine ⟨ψ, J₀, by simp [ψ], fun y _ v ↦ ?_⟩
   rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]

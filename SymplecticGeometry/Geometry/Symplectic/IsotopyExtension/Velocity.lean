@@ -113,8 +113,7 @@ public noncomputable section
 
 open Set Bundle VectorField
 open scoped Manifold ContDiff
-open SymplecticGeometry (unitIntervalTimeField coe_unitIntervalTimeField
-  contMDiff_prodVectorField_one_zero)
+open SymplecticGeometry (unitIntervalTimeField coe_unitIntervalTimeField)
 
 namespace TauCeti
 
@@ -223,7 +222,7 @@ theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
         (0 : Π y : P, TangentSpace J y)) β.val := by
     rw [velocityForm_def, SmoothForm.coe_interiorProduct, coe_unitIntervalTimeField]
     exact (mlieDerivForm_eq_mextDeriv_interior (fun p ↦ β.mdifferentiableAt p)
-      (contMDiff_prodVectorField_one_zero.mdifferentiable (by simp)) hβ).symm
+      (Manifold.contMDiff_prodVectorField_one_zero.mdifferentiable (by simp)) hβ).symm
   rw [← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback,
     SmoothForm.coe_mpullback, mextDerivₗ_apply, hd]
   funext x

@@ -43,7 +43,7 @@ agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
 
 A map `Φ : M × [x, y] → F` into a normed space that is affine in time on the slice through `p`,
 `Φ (p, s) = a + s • v`, has derivative at `(p, t)` sending the unit time vector `(0, 1)` to `v`,
-ends of the interval included (`mfderiv_apply_zero_one_of_eq_add_smul`).
+ends of the interval included (`mfderiv_apply_zero_one_of_eq_add_smul_Icc`).
 
 Between two points `s` and `t` of `[x, y]`, the derivative of Mathlib's convex combination
 `Set.Icc.convexComb s t`, from the unit interval, sends the unit vector to `t - s` times the
@@ -70,8 +70,6 @@ open Set
 open scoped Manifold ContDiff
 
 variable {x y : ℝ} [Fact (x < y)] {n : WithTop ℕ∞}
-
-namespace SymplecticGeometry
 
 /-- The inclusion `Icc x y → ℝ` of a closed interval is differentiable, up to both ends. -/
 theorem mdifferentiable_subtypeVal_Icc :
@@ -128,6 +126,8 @@ variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topologic
   {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
   [IsManifold J 1 P]
 
+namespace TauCeti.Manifold
+
 /-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P` is smooth, up to both ends. -/
 theorem contMDiff_prodVectorField_one_zero :
     ContMDiff ((𝓡∂ 1).prod J) ((𝓡∂ 1).prod J).tangent ∞ (fun p : unitInterval × P ↦
@@ -137,13 +137,17 @@ theorem contMDiff_prodVectorField_one_zero :
     TauCeti.contMDiff_one_tangentSpace_Icc
     (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))
 
+end TauCeti.Manifold
+
+namespace SymplecticGeometry
+
 /-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P`, as a smooth section of the
 tangent bundle. -/
 noncomputable def unitIntervalTimeField :
     Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
       TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯ :=
   ⟨TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
-    (0 : Π y : P, TangentSpace J y), contMDiff_prodVectorField_one_zero⟩
+    (0 : Π y : P, TangentSpace J y), TauCeti.Manifold.contMDiff_prodVectorField_one_zero⟩
 
 /-- The unit time field of the cylinder is the product field of `1` on `[0, 1]` and `0` on
 `P`. -/
@@ -189,6 +193,8 @@ theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
   -- The two sides differ only in the types `TangentSpace` and its model space for the zeros.
   rfl
 
+end SymplecticGeometry
+
 end Cylinder
 
 /-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
@@ -207,7 +213,7 @@ theorem mfderiv_apply_eq_smul_one_Icc {E H M : Type*} [NormedAddCommGroup E] [No
 time along the slice through `p`: `Φ (p, s) = a + s • v` for every `s`. Then the derivative of
 `Φ` at `(p, t)` sends the unit time vector `(0, 1)` to `v`. This holds at the ends of the interval
 too, where the derivative is one-sided. -/
-theorem mfderiv_apply_zero_one_of_eq_add_smul {E H M F : Type*} [NormedAddCommGroup E]
+theorem mfderiv_apply_zero_one_of_eq_add_smul_Icc {E H M F : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
     [ChartedSpace H M] [NormedAddCommGroup F] [NormedSpace ℝ F] {Φ : M × Icc x y → F} {p : M}
     {t : Icc x y} (hΦ : MDifferentiableAt (I.prod (𝓡∂ 1)) 𝓘(ℝ, F) Φ (p, t)) {a v : F}
@@ -227,8 +233,6 @@ theorem mfderiv_apply_zero_one_of_eq_add_smul {E H M F : Type*} [NormedAddCommGr
   -- `smulRight_apply` do not rewrite here; both hold by definition.
   exact (congrArg ((1 : ℝ →L[ℝ] ℝ).smulRight v) (mfderiv_subtypeVal_Icc_one t)).trans
     (one_smul ℝ v)
-
-end SymplecticGeometry
 
 /-- Two continuous linear maps on a tangent space of a closed interval `[x, y]`, `x < y`, are equal
 when they agree on the unit tangent vector `1`. -/
@@ -270,13 +274,13 @@ theorem mfderiv_convexComb_one (s t : Icc x y) (u : unitInterval) :
       ((t : ℝ) - s) • (1 : TangentSpace (𝓡∂ 1) (convexComb s t u)) := by
   have hc : ContMDiff (𝓡∂ 1) (𝓡∂ 1) 1 (convexComb s t) :=
     contMDiff_const.convexComb contMDiff_const contMDiff_id
-  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc (hc.mdifferentiable one_ne_zero u) ?_
+  refine mfderiv_apply_eq_smul_one_Icc (hc.mdifferentiable one_ne_zero u) ?_
   have hval : Subtype.val ∘ convexComb s t = (fun r : ℝ ↦ (1 - r) * s + r * t) ∘ Subtype.val :=
     funext (coe_convexComb s t)
   have hd : HasDerivAt (fun r : ℝ ↦ (1 - r) * s + r * t) ((t : ℝ) - s) (u : ℝ) :=
     funext (AffineMap.lineMap_apply_ring (s : ℝ) t) ▸ AffineMap.hasDerivAt_lineMap
   rw [hval, mfderiv_comp_apply u hd.differentiableAt.mdifferentiableAt
-    (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc u), mfderiv_subtypeVal_Icc_one,
+    (mdifferentiableAt_subtypeVal_Icc u), mfderiv_subtypeVal_Icc_one,
     mfderiv_eq_fderiv, hd.hasFDerivAt.fderiv]
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     ContinuousLinearMap.toSpanSingleton_apply]
@@ -291,14 +295,14 @@ namespace unitInterval
 times the unit tangent vector at `T t`. -/
 theorem mfderiv_mul_left_one (T t : unitInterval) :
     mfderiv (𝓡∂ 1) (𝓡∂ 1) (T * ·) t 1 = (T : ℝ) • (1 : TangentSpace (𝓡∂ 1) (T * t)) := by
-  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc mdifferentiableAt_mul_left ?_
+  refine mfderiv_apply_eq_smul_one_Icc mdifferentiableAt_mul_left ?_
   have hval : (Subtype.val : unitInterval → ℝ) ∘ (T * ·) = (T : ℝ) • Subtype.val :=
     funext fun s ↦ Set.Icc.coe_mul T s
-  rw [hval, const_smul_mfderiv (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc t)]
+  rw [hval, const_smul_mfderiv (mdifferentiableAt_subtypeVal_Icc t)]
   -- The tangent spaces of `ℝ` at `t` and at `(T • Subtype.val) t` are equal only up to
   -- unfolding, so `smul_apply` does not rewrite the left side.
   exact (map_smul _ (T : ℝ) 1).symm.trans
-    (SymplecticGeometry.mfderiv_subtypeVal_Icc_smul_one t T)
+    (mfderiv_subtypeVal_Icc_smul_one t T)
 
 end unitInterval
 
