@@ -383,7 +383,7 @@ cubic, the inverse of the isomorphism from the normal space of the fibre embeddi
 class of any tangent vector `v` of the surface with `d(affineCoordinate)(v) = z`
 (`fibreNormalEquiv_mfderiv`). -/
 noncomputable def fibreNormalEquiv (x : SmoothProjectiveHypersurface.fermat 1 3) :
-    ℂ ≃L[ℝ] fibreEmbedding.isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
+    ℂ ≃L[ℝ] fibreEmbedding.isImmersion.NormalSpace x ENat.coe_top_ne_zero :=
   (fibreEmbedding.normalSpaceEquivOfLevel x _ (eventually_affineCoordinate_fibreEmbedding x)
     (isRegularPoint_restrictScalars_affineCoordinate x)
     finrank_add_finrank_eq_fibreEmbedding).symm
@@ -401,7 +401,7 @@ the real differential of the affine coordinate applied to `v`. -/
 theorem fibreNormalEquiv_symm_normalClass (x : SmoothProjectiveHypersurface.fermat 1 3)
     (v : TangentSpace 𝓘(ℝ, Fin 2 → ℂ) (fibreEmbedding x)) :
     (fibreNormalEquiv x).symm
-        (fibreEmbedding.isImmersion.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
+        (fibreEmbedding.isImmersion.normalClass x ENat.coe_top_ne_zero v) =
       mfderiv 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) affineCoordinate (fibreEmbedding x) v := by
   rw [fibreNormalEquiv_def, ContinuousLinearEquiv.symm_symm,
     SmoothEmbedding.normalSpaceEquivOfLevel_normalClass]
@@ -412,19 +412,19 @@ tangent vector `v` to the normal class of `v`. -/
 theorem fibreNormalEquiv_mfderiv (x : SmoothProjectiveHypersurface.fermat 1 3)
     (v : TangentSpace 𝓘(ℝ, Fin 2 → ℂ) (fibreEmbedding x)) :
     fibreNormalEquiv x (mfderiv 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) affineCoordinate (fibreEmbedding x) v) =
-      fibreEmbedding.isImmersion.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v := by
+      fibreEmbedding.isImmersion.normalClass x ENat.coe_top_ne_zero v := by
   rw [← fibreNormalEquiv_symm_normalClass, ContinuousLinearEquiv.apply_symm_apply]
 
 /-- The normal trivialization is smooth: `(x, z) ↦ fibreNormalEquiv x z` is a smooth map from
 the product of the Fermat cubic with `ℂ` to the normal bundle of the fibre embedding. -/
 theorem contMDiff_fibreNormalEquiv :
-    letI := fibreEmbedding.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    letI := fibreEmbedding.normalSpaceFiberBundle ENat.coe_top_ne_zero
       (Nat.eq_sub_of_add_eq' finrank_add_finrank_eq_fibreEmbedding)
     ContMDiff (𝓘(ℝ, Fin 1 → ℂ).prod 𝓘(ℝ, ℂ)) (𝓘(ℝ, Fin 1 → ℂ).prod 𝓘(ℝ, ℂ)) ∞
       (fun x : SmoothProjectiveHypersurface.fermat 1 3 × ℂ ↦
         (⟨x.1, fibreNormalEquiv x.1 x.2⟩ : Bundle.TotalSpace ℂ
           (fun q ↦ fibreEmbedding.isImmersion.NormalSpace q
-            (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) :=
+            ENat.coe_top_ne_zero))) :=
   SmoothEmbedding.contMDiff_normalSpaceEquivOfLevel_symm
     contMDiffAt_affineCoordinate_fibreEmbedding eventually_affineCoordinate_fibreEmbedding
     isRegularPoint_restrictScalars_affineCoordinate _ finrank_add_finrank_eq_fibreEmbedding
@@ -435,7 +435,7 @@ on the normal space of the fibre sends `fibreNormalEquiv x z` to `fibreNormalEqu
 @[simp]
 theorem normalComplexStructureAt_fibreNormalEquiv (x : SmoothProjectiveHypersurface.fermat 1 3)
     (z : ℂ) :
-    fibreEmbedding.normalComplexStructureAt (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    fibreEmbedding.normalComplexStructureAt ENat.coe_top_ne_zero
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface) x
         (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding x) (fibreNormalEquiv x z) =
       fibreNormalEquiv x (Complex.I * z) := by
@@ -452,7 +452,7 @@ complex structure of the normal space, and the symplectic form of the surface ta
 structure. -/
 theorem symplecticNormalForm_fibreNormalEquiv_pos (x : SmoothProjectiveHypersurface.fermat 1 3) :
     0 < fibreEmbedding.symplecticNormalForm hasSymplecticTangentImages_fibreEmbedding x
-      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (fibreNormalEquiv x 1)
+      ENat.coe_top_ne_zero (fibreNormalEquiv x 1)
         (fibreNormalEquiv x Complex.I) := by
   have h := normalComplexStructureAt_fibreNormalEquiv x 1
   rw [mul_one] at h
@@ -485,10 +485,10 @@ normal symplectic form of the fibre on `(fibreNormalEquiv x 1, fibreNormalEquiv 
 theorem fibreFraming_apply (x : SmoothProjectiveHypersurface.fermat 1 3)
     (v : (zeroSlice 𝓘(ℝ, Fin 1 → ℂ)
       (SmoothProjectiveHypersurface.fermat 1 3)).isImmersion.NormalSpace
-        x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+        x ENat.coe_top_ne_zero) :
     fibreFraming x v = fibreNormalEquiv x
       ((√(fibreEmbedding.symplecticNormalForm hasSymplecticTangentImages_fibreEmbedding x
-        (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (fibreNormalEquiv x 1)
+        ENat.coe_top_ne_zero (fibreNormalEquiv x 1)
           (fibreNormalEquiv x Complex.I)))⁻¹ •
         zeroSliceNormalEquiv 𝓘(ℝ, Fin 1 → ℂ) (SmoothProjectiveHypersurface.fermat 1 3) x v) := by
   rw [fibreFraming_def, SymplecticFraming.ofPos_apply]

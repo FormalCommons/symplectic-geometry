@@ -100,7 +100,7 @@ theorem surjective_of_norm_complexAntilinearPart_lt [FiniteDimensional ℝ V]
     J.toContinuousLinearMap_mul_self (smulIEquiv_comp_smulIEquiv W) F
   have hB := isComplexAntilinear_complexAntilinearPartContinuousLinearMap
     J.toContinuousLinearMap_mul_self (smulIEquiv_comp_smulIEquiv W) F
-  rw [LinearMap.coe_toContinuousLinearMap, coe_smulIEquiv_eq_ofComplexModule] at hA hB
+  rw [LinearMap.coe_toContinuousLinearMap, toLinearMap_smulIEquiv_eq_ofComplexModule] at hA hB
   have hs := IsComplexLinear.surjective_of_norm_lt hW hA hB h
   rwa [complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
     at hs

@@ -766,8 +766,10 @@ the source, first half).
   LieComplexification I₀ H₀ IC₀ Gc₀`,
   with `H₀` and `Gc₀` the identity components of the stabilizers of `x`
   in `G` and `Gc`, closed subgroups made Lie groups by
-  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` (`I₀`, `IC₀` their
-  models). Its `toHom` is `C.toHom` restricted (it maps `H₀` into `Gc₀`,
+  `TauCeti.Lie.EmbeddedLieSubgroupData.ambientConnectedComponentOfOneStabilizer`
+  (`Geometry/Lie/Subgroup/IdentityComponent.lean`), Tau Ceti's
+  `EmbeddedLieSubgroupData.ofIsClosed` for these subgroups (`I₀`, `IC₀`
+  their models). Its `toHom` is `C.toHom` restricted (it maps `H₀` into `Gc₀`,
   being continuous and `H₀` connected); `cplx` is `C.cplx` on the Lie
   algebra of `Gc₀`, read as `𝔤c_x` through
   `EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_eq_isotropy`
@@ -818,8 +820,8 @@ of `hJi` besides the statements that pass it on).
   derivative of the equivariance at `h = mulInvariantExp (t • ξ)`
   (equation (12.5) of the source); for `ξ = 0`, `X_{iη} = J X_η` and `J`
   is constant in `e`.
-- `expI_smul_chart_symm`: if `NormedSpace.exp (s • (J x ∘ A λ)) v` lies in
-  the target of `e` for `s ∈ [0, t]`, then
+- `expI_smul_chart_symm`: for `λ ∈ 𝔥`, if `NormedSpace.exp (s • (J x ∘ A λ)) v` lies in
+  the target of `e` for `s` between `0` and `t` (`uIcc 0 t`), then
   `C.expI (t • λ) • e.symm v = e.symm (NormedSpace.exp (t • (J x ∘ A λ)) v)`:
   both are integral curves of `X_{iλ}` from `e.symm v`
   (`isMIntegralCurve_expI_smul`, the previous item), so they agree.
