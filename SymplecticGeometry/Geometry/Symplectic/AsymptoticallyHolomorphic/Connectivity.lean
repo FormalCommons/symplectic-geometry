@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
@@ -56,11 +57,9 @@ half the dimension of `M`
 (`SymplecticGeometry.IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`), by
 `TauCeti.AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg`.
 
-For a smooth section `s` of `PowerBundle P k`, the points where `s` does not vanish form an open
-set `SymplecticGeometry.nonzeroOpens hs`, and `y ↦ log ‖s y‖²` is a smooth function on it,
-`SymplecticGeometry.logNormSq hs`, since the square norm is smooth (Tau Ceti's
-`TauCeti.contMDiff_norm_sq_bundle`). When each `s k` is smooth, the negativity above passes to the
-critical points of `logNormSq` on this open submanifold, for the restricted almost complex
+When each `s k` is smooth, the negativity above passes to the critical points of the smooth
+function `Bundle.logNormSq`, which is `y ↦ log ‖s k y‖²` on the open submanifold
+`Bundle.nonzeroOpens` where `s k` does not vanish, for the restricted almost complex
 structure `J.restrictOpen`
 (`SymplecticGeometry.IsUniformlyTransverse.criticalHessian_logNormSq_add_neg`),
 by `TauCeti.SmoothAlmostComplexStructure.criticalHessian_comp_subtypeVal_add_neg`.
@@ -288,66 +287,6 @@ theorem IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex [I.Boundaryl
   rw [hE, Nat.mul_div_cancel_left _ two_pos]
   exact h
 
-section LogNormSq
-
-variable {k : ℕ} {s : Π y, PowerBundle P k y}
-
-/-- The open set of the points where a smooth section `s` of `PowerBundle P k` does not
-vanish. -/
-def nonzeroOpens
-    (hs : ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
-      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y))) : TopologicalSpace.Opens M :=
-  ⟨{y | s y ≠ 0}, by
-    have h : Continuous fun y ↦ ‖s y‖ ^ 2 :=
-      ((contMDiff_norm_sq_bundle I ∞ (PowerModel k) (PowerBundle P k)).comp hs).continuous
-    simpa only [ne_eq, pow_eq_zero_iff two_ne_zero, norm_eq_zero] using
-      isOpen_ne_fun h (continuous_const (y := (0 : ℝ)))⟩
-
-omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
-  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] [IsManifold I ∞ M]
-  [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)] in
-@[simp]
-theorem mem_nonzeroOpens
-    {hs : ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
-      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y))} {y : M} :
-    y ∈ nonzeroOpens hs ↔ s y ≠ 0 :=
-  Iff.rfl
-
-/-- For a smooth section `s` of `PowerBundle P k`, the function `y ↦ log ‖s y‖²` as a smooth
-function on the open set `nonzeroOpens hs` where `s` does not vanish. -/
-noncomputable def logNormSq
-    (hs : ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
-      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y))) :
-    C^∞⟮I, nonzeroOpens hs; 𝓘(ℝ), ℝ⟯ :=
-  ⟨fun y ↦ Real.log (‖s y‖ ^ 2),
-    (((contMDiff_norm_sq_bundle I ∞ (PowerModel k) (PowerBundle P k)).comp hs).comp
-      contMDiff_subtypeVal).log fun y ↦ pow_ne_zero 2 (norm_ne_zero_iff.2 y.property)⟩
-
-omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
-  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] [IsManifold I ∞ M]
-  [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)] in
-@[simp]
-theorem logNormSq_apply
-    (hs : ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
-      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y))) (y : nonzeroOpens hs) :
-    logNormSq hs y = Real.log (‖s y‖ ^ 2) :=
-  (rfl)
-
-omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
-  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] [IsManifold I ∞ M]
-  [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)] in
-/-- `logNormSq hs` is the restriction of `y ↦ log ‖s y‖²` to `nonzeroOpens hs`. -/
-theorem coe_logNormSq
-    (hs : ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
-      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y))) :
-    ⇑(logNormSq hs) = (fun y ↦ Real.log (‖s y‖ ^ 2)) ∘ Subtype.val :=
-  funext fun y ↦ logNormSq_apply hs y
-
-end LogNormSq
-
 /-- **The critical Hessian of `log |s_k|²` on `{s_k ≠ 0}` is negative in complex directions.**
 In the setting of `SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a
 boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large, at every critical point
@@ -370,11 +309,11 @@ theorem IsUniformlyTransverse.criticalHessian_logNormSq_add_neg [I.Boundaryless]
     with k hk x hx v hv
   rw [coe_logNormSq] at hx ⊢
   have hcrit := mem_criticalPoints_comp_subtypeVal.1 hx
-  have hx0 : ‖s k x‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.2 x.property)
+  have hs0 : s k x ≠ 0 := mem_nonzeroOpens.1 x.property
   have hf := ((contMDiff_norm_sq_bundle I ∞ (PowerModel k) (PowerBundle P k)).comp
-    (hsm k)).contMDiffAt.log hx0
+    (hsm k)).contMDiffAt.log (pow_ne_zero 2 (norm_ne_zero_iff.2 hs0))
   exact J.criticalHessian_comp_subtypeVal_add_neg (hf.of_le (by simp)) hcrit
-    (hk x ((hsm k).mdifferentiableAt (by simp)) x.property hcrit) v hv
+    (hk x ((hsm k).mdifferentiableAt (by simp)) hs0 hcrit) v hv
 
 end SymplecticGeometry
 
