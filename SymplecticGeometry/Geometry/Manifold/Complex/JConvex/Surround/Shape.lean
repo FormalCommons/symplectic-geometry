@@ -83,6 +83,11 @@ the strict plurisubharmonicity of `f(s) + g(t)`.
   `∂ₛh + c ∂ₜh = 0`, so that the real part of the Levi form is a multiple of `|σ|²` plus terms
   in `|v₁|²` and `|v₂|²`, and `|σ|²` has the Cauchy–Schwarz bounds `|σ|² ≤ s |v₁|²` and
   `(t + c² s) |σ|² ≤ s t |v|²`.
+* `SymplecticGeometry.re_leviForm_comp_shape_pos_of_fderiv_eq_smul`: if `dφ = c dG` with
+  `c > 0` at a zero of `G` where `d(G ∘ shape) ≠ 0`, and `φ` is constant near there on the zeros
+  of `G`, then the positivity of the Levi form on the complex tangencies of the level passes from
+  `G ∘ shape` to `φ ∘ shape`, by
+  `SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_shape`: with `u⁻ = min u 0`, if
   `f' + g' + 2 f''⁻ s + 2 g''⁻ t > 0` and, when `m ≠ 0`, `g' + 2 g''⁻ t > 0`, then
   `f(s) + g(t)` is strictly plurisubharmonic. The flat form is
@@ -680,6 +685,59 @@ theorem re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero {H : ℝ × ℝ → 
             (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2) := hCS
         _ = ((shape p).2 + c ^ 2 * (shape p).1) *
             ((shape p).1 * (shape p).2 * (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2)) := by ring
+
+open Filter Topology in
+/-- **Positivity of the Levi form passes to a function whose level contains a given level.** Let
+`p` lie over `q = shape p`, and let `G, φ : ℝ × ℝ → ℝ` be `C³` at `q`, with `G q = 0`,
+`d(G ∘ shape)_p ≠ 0`, `dφ_q = c • dG_q` for some `c > 0`, and `φ = c₀` near `q` wherever
+`G = 0`. If the Levi form of `G ∘ shape` at `p` has positive real part on the nonzero `u` with
+`d(G ∘ shape)_p u = d(G ∘ shape)_p (i u) = 0`, then the Levi form of `φ ∘ shape` at `p` has
+positive real part on the nonzero `v` with `d(φ ∘ shape)_p v = d(φ ∘ shape)_p (i v) = 0`. -/
+theorem re_leviForm_comp_shape_pos_of_fderiv_eq_smul {G φ : ℝ × ℝ → ℝ} {c c₀ : ℝ}
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} {q : ℝ × ℝ} (hp : shape p = q)
+    (hG : ContDiffAt ℝ 3 G q) (hφ : ContDiffAt ℝ 3 φ q) (hGq : G q = 0)
+    (hG' : fderiv ℝ (G ∘ shape) p ≠ 0) (hc : 0 < c) (hdφ : fderiv ℝ φ q = c • fderiv ℝ G q)
+    (hlevel : ∀ᶠ z in 𝓝 q, G z = 0 → φ z = c₀)
+    (hGL : ∀ u, u ≠ 0 → fderiv ℝ (G ∘ shape) p u = 0 → fderiv ℝ (G ∘ shape) p (I • u) = 0 →
+      0 < (leviForm (G ∘ shape) p u u).re)
+    {v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hv : v ≠ 0)
+    (hv₁ : fderiv ℝ (φ ∘ shape) p v = 0) (hv₂ : fderiv ℝ (φ ∘ shape) p (I • v) = 0) :
+    0 < (leviForm (φ ∘ shape) p v v).re := by
+  subst hp
+  have hshape : ContDiffAt ℝ 3 shape p := contDiff_shape.contDiffAt
+  have hds : DifferentiableAt ℝ shape p := hshape.differentiableAt (by simp)
+  have hfC : ContDiffAt ℝ 3 (G ∘ shape) p := hG.comp p hshape
+  have hgC : ContDiffAt ℝ 3 (φ ∘ shape + fun _ ↦ -c₀) p :=
+    (hφ.comp p hshape).add contDiffAt_const
+  have hf' : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (G ∘ shape) p ≠
+      0 := fun h0 ↦ hG' (ContinuousLinearMap.ext fun u ↦ by
+        have h := mvfderiv_eq_fderiv_apply (𝕜 := ℝ) (G ∘ shape) p u
+        rw [h0] at h
+        exact h.symm.trans (zero_apply _))
+  have hdg : fderiv ℝ (φ ∘ shape + fun _ ↦ -c₀) p = fderiv ℝ (φ ∘ shape) p := by
+    rw [Pi.add_def, fderiv_add_const]
+  have hgf : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (φ ∘ shape + fun _ ↦ -c₀) p = c •
+        mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (G ∘ shape) p := by
+    rw [mvfderiv_eq_fderiv, mvfderiv_eq_fderiv, hdg,
+      fderiv_comp p (hφ.differentiableAt (by simp)) hds,
+      fderiv_comp p (hG.differentiableAt (by simp)) hds, hdφ, ContinuousLinearMap.smul_comp,
+      ContinuousLinearMap.smul_comp]
+  have hfg : ∀ᶠ y in 𝓝 p, (G ∘ shape) y = 0 →
+      (φ ∘ shape + fun _ ↦ -c₀ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → ℝ) y =
+        0 := by
+    filter_upwards [((contDiff_shape (n := 0)).continuous.tendsto p).eventually hlevel]
+      with y hy hy0
+    rw [Pi.add_apply, Function.comp_apply, hy hy0, add_neg_cancel]
+  have hiff := forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul
+    (contMDiffAt_iff_contDiffAt.2 hfC) (contMDiffAt_iff_contDiffAt.2 hgC) hGq hf' hc hgf hfg
+  have hpos := hiff.2 (fun u hu₁ hu₂ hu ↦ by
+    rw [manifoldLeviForm_eq_leviForm]
+    exact hGL u hu ((mvfderiv_eq_fderiv_apply _ _ _).symm.trans hu₁)
+      ((mvfderiv_eq_fderiv_apply _ _ _).symm.trans hu₂)) v
+    ((mvfderiv_eq_fderiv_apply _ _ _).trans (by rw [hdg]; exact hv₁))
+    ((mvfderiv_eq_fderiv_apply _ _ _).trans (by rw [hdg]; exact hv₂)) hv
+  rwa [manifoldLeviForm_eq_leviForm, Pi.add_def, leviForm_add_const] at hpos
 
 /-- **Strict plurisubharmonicity of `f(s) + g(t)`**, on `ℂᵏ × ℂᵐ`. Let `f` and `g` be `C²` at
 `s = (shape p).1` and at `t = (shape p).2`, and write `u⁻ = min u 0`. If

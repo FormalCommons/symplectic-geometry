@@ -376,8 +376,9 @@ theorem exists_forall_isConvexShapeAt_smoothedMax {P : Type*} [TopologicalSpace 
       (hs.pow 3).div continuousOn_snd hr₀
     have h₂ : ContinuousOn (fun q : P × ℝ ↦ 1 / F q.1 q.2) S :=
       continuousOn_const.div hv fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).pos_value.ne'
-    exact hS.exists_forall_le' (((hd 2 le_rfl).add h₁).sub h₂)
-      fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).one_div_lt_iteratedDeriv_add
+    obtain ⟨a, ha, hA⟩ := hS.exists_pos_forall_add_le_of_forall_lt h₂ ((hd 2 le_rfl).add h₁)
+      fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).one_div_lt_iteratedDeriv_add
+    exact ⟨a, ha, fun q hq ↦ le_sub_iff_add_le'.2 (hA q hq)⟩
   obtain ⟨a₁, ha₁, hA₁⟩ := margin hdM hcM
   obtain ⟨a₂, ha₂, hA₂⟩ := margin hdA hcA
   -- Bounds on the error terms.
@@ -841,15 +842,15 @@ theorem exists_forall_isConvexShapeOverRAt_smoothedMin {P : Type*} [TopologicalS
     have hv := ContinuousOn.uncurry_of_iteratedDeriv hd
     have hs := ContinuousOn.deriv_of_iteratedDeriv hd one_le_two
     have hne : ∀ q ∈ S, F q.1 q.2 ≠ 0 := fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).pos_value.ne'
-    obtain ⟨a, ha, hA⟩ := hS.exists_forall_le'
-      (((continuousOn_const.div hv hne).sub ((hs.pow 3).div continuousOn_snd hR₀)).sub
-        (hd 2 le_rfl))
-      fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).iteratedDeriv_two_lt
-    obtain ⟨b, hb, hB⟩ := hS.exists_forall_le'
-      (((continuousOn_const.add (hs.pow 2)).div hv hne).sub (hd 2 le_rfl))
-      fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).iteratedDeriv_two_lt_one_add_sq_div
+    obtain ⟨a, ha, hA⟩ := hS.exists_pos_forall_add_le_of_forall_lt (hd 2 le_rfl)
+      ((continuousOn_const.div hv hne).sub ((hs.pow 3).div continuousOn_snd hR₀))
+      fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).iteratedDeriv_two_lt
+    obtain ⟨b, hb, hB⟩ := hS.exists_pos_forall_add_le_of_forall_lt (hd 2 le_rfl)
+      ((continuousOn_const.add (hs.pow 2)).div hv hne)
+      fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).iteratedDeriv_two_lt_one_add_sq_div
     exact ⟨min a b, lt_min ha hb, fun q hq ↦
-      ⟨(min_le_left _ _).trans (hA q hq), (min_le_right _ _).trans (hB q hq)⟩⟩
+      ⟨(min_le_left _ _).trans (le_sub_iff_add_le'.2 (hA q hq)),
+        (min_le_right _ _).trans (le_sub_iff_add_le'.2 (hB q hq))⟩⟩
   obtain ⟨a₁, ha₁, hA₁⟩ := margin hdM hcM
   obtain ⟨a₂, ha₂, hA₂⟩ := margin hdA hcA
   -- A positive lower bound `μ` for both families, and bounds on the error terms.
