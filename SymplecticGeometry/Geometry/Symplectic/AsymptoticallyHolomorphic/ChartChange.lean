@@ -21,11 +21,16 @@ Near `0`, the reading in the chart at `y` is `e · (f ∘ τ)`, for `f` the read
 `x`, `τ` the transition from the chart at `y` to the chart at `x` and `e` the change of frame
 (`SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`). The Leibniz bound
 `SymplecticGeometry.jetNormAt_fun_smul_le` and the Faà di Bruno bound
-`SymplecticGeometry.jetNormAt_comp_le` reduce the jet norm of this product to those of `e` and
-`τ` at `0`. Both are at most polynomials in `‖z‖ = ‖τ 0‖`, by
-`RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le` and
-`RescaledUnitaryCharts.exists_forall_norm_iteratedFDeriv_chartTransition_zero_le` with
-`SymplecticGeometry.jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le`, and
+`SymplecticGeometry.jetNormAt_comp_le` reduce the jet norm of this product, at any point `w` of
+the domain of `τ`, to those of `e` and `τ` at `w`
+(`SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_reading_le_frameChange_mul`). Where
+`‖Dτ(w)‖` is bounded, both are at most polynomials in `‖w‖` and `‖τ w‖`, by
+`RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_le` and
+`RescaledUnitaryCharts.exists_forall_norm_iteratedFDeriv_chartTransition_le` with
+`SymplecticGeometry.jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le`; these bounds
+are gathered in
+`RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le`.
+At `w = 0`, where `‖Dτ(0)‖ ≤ √2` and `τ 0 = z`, they are polynomials in `‖z‖`, and
 `‖z‖ ≤ √2 * d_k(x, y)`
 (`RescaledUnitaryCharts.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm`) turns the
 bound into a polynomial in `d_k(x, y)`. The bounds at `0` that both results below use, on the
@@ -33,27 +38,36 @@ jets of `e`, of `dτ` and of a map composed with `τ`, are gathered in
 `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le`.
 
 The same holds for the `∂̄` reading `D.dbarReading k y s` of `s`, whose jet norm at `0` is
-`D.dbarJetNorm k r s y`. Near `0` it is `e • ((g ∘ τ) ∘L dτ)`, for `g` the `∂̄` reading in the
-chart at `x` (`SymplecticGeometry.RescaledUnitaryCharts.dbarReading_eq_frameChange_smul_comp`).
-The jets of `dτ` at `0` are bounded by those of `τ` of orders `1` to `r + 1`, with no factor
-`‖z‖` (`SymplecticGeometry.jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le`), and the
-bilinear bound `SymplecticGeometry.jetNormAt_bilinear_le` takes care of the composition with
-`dτ`. The exponent is again `2 * r`.
+`D.dbarJetNorm k r s y`. Near each point `w` of the domain it is `e • ((g ∘ τ) ∘L dτ)`, for `g`
+the `∂̄` reading in the chart at `x`
+(`SymplecticGeometry.RescaledUnitaryCharts.dbarReading_eventuallyEq_frameChange_smul_comp`), and
+the bilinear bound `SymplecticGeometry.jetNormAt_bilinear_le` takes care of the composition with
+`dτ` (`SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_dbarReading_le_frameChange_mul`). The
+jets of `dτ` are bounded by those of `τ` of orders `1` to `r + 1`, with no factor `‖z‖`
+(`SymplecticGeometry.jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le`). The exponent is again
+`2 * r`.
 
 The file also goes the other way, which is what is needed to control one function on a whole
 ball of the chart at `x`: the jet norm at `z` of the reading of `s` in the chart at `x` is
 bounded by the jet norm of `s` at `y`. Near `z`, that reading is `e' · (f_y ∘ τ')`, for `f_y`
 the reading in the chart at `y`, `τ'` the transition from the chart at `x` to the chart at `y`,
-which sends `z` to `0`, and `e'` the change of frame between these charts. The jets of `τ'` and
-`e'` at `z` are bounded in `ChartTransition.lean` and `FrameChange.lean`
-(`RescaledUnitaryCharts.exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le` and
-`RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_chart_symm_le`). Since `τ' z = 0`, the
+which sends `z` to `0`, and `e'` the change of frame between these charts. The same pointwise
+bounds apply at `w = z`, where `‖Dτ'(z)‖ ≤ √2`
+(`RescaledUnitaryCharts.norm_fderiv_chartTransition_chart_symm_le`). Since `τ' z = 0`, the
 Faà di Bruno bound for `f_y ∘ τ'` has no factor `‖z‖`, and only the change of frame brings one,
 so the exponent is `r`. Smoothness moves the same way, and for an asymptotically holomorphic
 sequence the bounds at the centres become bounds on balls of fixed radius.
 
 ## Main results
 
+* `SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_reading_le_frameChange_mul` and
+  `SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_dbarReading_le_frameChange_mul`: at a point
+  `w` of the domain of the transition, the jet norm of the reading (and of the `∂̄` reading) in
+  one chart is bounded by those of the change of frame, of the reading in the other chart
+  composed with the transition (and of the derivative of the transition).
+* `RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le`: the bounds at
+  such a point `w` on the jets of the change of frame, of the derivative of the transition and of
+  a map composed with the transition, where the derivative of the transition is bounded.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le`: the bounds
   at `0` on the jets of the change of frame, of the derivative of the transition and of a map
   composed with the transition, and `(1 + ‖z‖) ^ (2 * r) ≤ 2 ^ r * (1 + d_k(x, y)) ^ (2 * r)`.
@@ -102,6 +116,137 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1} {k₀ : ℕ} {ρ₀ : ℝ}
   (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
 
+/-! ### At a point of the domain of a transition -/
+
+/-- **The jet of a reading under a change of chart, at a point.** Let `k ≥ k₀`, `τ` the transition
+from the chart centred at `y` to the chart centred at `x`, `e` the change of frame between them and
+`w` a point of `D.chartTransitionDomain k x y`. For a section `s` of `PowerBundle P k` whose
+reading `f` in the chart at `x` is `C^r` at `τ w`, the `r`-jet norm at `w` of the reading of `s` in
+the chart at `y` is at most `2 ^ r` times the product of the `r`-jet norms of `e` and of `f ∘ τ`
+at `w`. -/
+theorem jetNormAt_reading_le_frameChange_mul {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι}
+    (hw : w ∈ D.chartTransitionDomain k x y) {r : ℕ} {s : Π y, PowerBundle P k y}
+    (hs : ContDiffAt ℝ r (D.reading k x s) (D.chartTransition k x y w)) :
+    jetNormAt ℝ r (D.reading k y s) w ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k x y) w *
+      jetNormAt ℝ r (D.reading k x s ∘ D.chartTransition k x y) w := by
+  have hws := D.chartTransitionDomain_subset_source k x y hw
+  -- Near `w`, the reading at `y` is `e • (f ∘ τ)`.
+  have heq : D.reading k y s =ᶠ[𝓝 w] fun w' ↦
+      D.frameChange k x y w' • (D.reading k x s ∘ D.chartTransition k x y) w' := by
+    simpa only [smul_eq_mul, Function.comp_apply] using
+      D.reading_eventuallyEq_frameChange_mul hws s
+  rw [jetNormAt_congr_of_eventuallyEq r heq]
+  exact jetNormAt_fun_smul_le (D.contDiffAt_frameChange hk hw)
+    (hs.comp w (D.contDiffAt_chartTransition hws))
+
+/-- **The jet of a `∂̄` reading under a change of chart, at a point.** Let `α` be a connection
+form, `k ≥ k₀`, `τ` the transition from the chart centred at `y` to the chart centred at `x`, `e`
+the change of frame between them and `w` a point of `D.chartTransitionDomain k x y`. For a section
+`s` of `PowerBundle P k` whose reading in the chart at `x` is differentiable near `τ w` and whose
+`∂̄` reading `g` in that chart is `C^r` at `τ w`, the `r`-jet norm at `w` of the `∂̄` reading of `s`
+in the chart at `y` is at most `4 ^ r` times the product of the `r`-jet norms of `e`, of `g ∘ τ`
+and of `dτ` at `w`. -/
+theorem jetNormAt_dbarReading_le_frameChange_mul (hα : IsCircleConnectionForm α) {k : ℕ}
+    (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι} (hw : w ∈ D.chartTransitionDomain k x y) {r : ℕ}
+    {s : Π y, PowerBundle P k y}
+    (hs : ∀ᶠ u in 𝓝 (D.chartTransition k x y w), DifferentiableAt ℝ (D.reading k x s) u)
+    (hds : ContDiffAt ℝ r (D.dbarReading k x s) (D.chartTransition k x y w)) :
+    jetNormAt ℝ r (D.dbarReading k y s) w ≤ 4 ^ r * jetNormAt ℝ r (D.frameChange k x y) w *
+      jetNormAt ℝ r (D.dbarReading k x s ∘ D.chartTransition k x y) w *
+      jetNormAt ℝ r (fderiv ℝ (D.chartTransition k x y)) w := by
+  set τ := D.chartTransition k x y
+  set g := D.dbarReading k x s
+  have hτ : ContDiffAt ℝ (r + 1) τ w :=
+    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y hw)
+  have hgτ : ContDiffAt ℝ r (g ∘ τ) w := hds.comp w (hτ.of_le (by simp))
+  have hdτ : ContDiffAt ℝ r (fderiv ℝ τ) w := hτ.fderiv_right le_rfl
+  have hjgτ := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ τ) w
+  have hjdτ := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ τ) w
+  -- Near `w`, the `∂̄` reading at `y` is `e • ((g ∘ τ) ∘L dτ)`.
+  have heq : D.dbarReading k y s =ᶠ[𝓝 w] fun w' ↦ D.frameChange k x y w' •
+      ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w') (fderiv ℝ τ w') := by
+    simpa only [ContinuousLinearMap.compL_apply, Function.comp_apply] using
+      D.dbarReading_eventuallyEq_frameChange_smul_comp hα hk hw hs
+  -- The jet of `(g ∘ τ) ∘L dτ`, a bilinear combination of `g ∘ τ` and `dτ`.
+  have hgτd : jetNormAt ℝ r (fun w' ↦ ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
+      ((g ∘ τ) w') (fderiv ℝ τ w')) w ≤
+        2 ^ r * jetNormAt ℝ r (g ∘ τ) w * jetNormAt ℝ r (fderiv ℝ τ) w := by
+    refine (jetNormAt_bilinear_le _ hgτ hdτ).trans ?_
+    have hB := ContinuousLinearMap.norm_compL_le ℝ (StdSpace ι) (StdSpace ι) ℂ
+    calc _ ≤ 2 ^ r * 1 * jetNormAt ℝ r (g ∘ τ) w * jetNormAt ℝ r (fderiv ℝ τ) w := by gcongr
+      _ = _ := by rw [mul_one]
+  have hcomp : ContDiffAt ℝ r (fun w' ↦ ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
+      ((g ∘ τ) w') (fderiv ℝ τ w')) w := by
+    simpa only [ContinuousLinearMap.compL_apply] using hgτ.clm_comp hdτ
+  rw [jetNormAt_congr_of_eventuallyEq r heq]
+  calc _ ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k x y) w * jetNormAt ℝ r (fun w' ↦
+        ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w') (fderiv ℝ τ w')) w :=
+        jetNormAt_fun_smul_le (D.contDiffAt_frameChange hk hw) hcomp
+    _ ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k x y) w *
+        (2 ^ r * jetNormAt ℝ r (g ∘ τ) w * jetNormAt ℝ r (fderiv ℝ τ) w) :=
+        mul_le_mul_of_nonneg_left hgτd (mul_nonneg (by positivity) (jetNormAt_nonneg _ _ _))
+    _ = _ := by
+        rw [show (4 : ℝ) = 2 * 2 by norm_num, mul_pow]
+        ring
+
+/-- **Bounds at a point for a change of chart.** On a boundaryless manifold, let `σ` be
+compatible with `J` and let `α` be a connection form. For every order `r` and every bound `B`
+there is a constant `C ≥ 0` with the following property. Let `k ≥ k₀`, `x` and `y` points, `τ`
+the transition from the chart centred at `y` to the chart centred at `x`, `e` the change of frame
+between them, and `w` a point of `D.chartTransitionDomain k x y` with `‖Dτ(w)‖ ≤ B`. Then the
+`r`-jet norm of `e` at `w` is at most `C * (1 + ‖w‖ + ‖τ w‖) ^ r`, that of `dτ` at `w` is at most
+`C`, and that of `g ∘ τ` at `w` is at most `C * (1 + ‖τ w‖) ^ r` times that of `g` at `τ w`, for
+every `g` that is `C^r` at `τ w`. -/
+theorem exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le [I.Boundaryless]
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (r : ℕ) (B : ℝ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
+      w ∈ D.chartTransitionDomain k x y → ‖fderiv ℝ (D.chartTransition k x y) w‖ ≤ B →
+        jetNormAt ℝ r (D.frameChange k x y) w ≤
+          C * (1 + ‖w‖ + ‖D.chartTransition k x y w‖) ^ r ∧
+        jetNormAt ℝ r (fderiv ℝ (D.chartTransition k x y)) w ≤ C ∧
+        (∀ {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {g : StdSpace ι → F},
+          ContDiffAt ℝ r g (D.chartTransition k x y w) →
+          jetNormAt ℝ r (g ∘ D.chartTransition k x y) w ≤
+            C * jetNormAt ℝ r g (D.chartTransition k x y w) *
+              (1 + ‖D.chartTransition k x y w‖) ^ r) := by
+  -- One bound `Cτ` for the derivatives of orders `1` to `r + 1` of the transition serves the
+  -- change of frame and the jets of `τ` and of `dτ`.
+  obtain ⟨Cτ, hCτ⟩ := D.exists_forall_norm_iteratedFDeriv_chartTransition_le hJ (r + 1) B
+  obtain ⟨Ce, hCe⟩ := D.exists_forall_jetNormAt_frameChange_le hα r Cτ
+  set A : ℝ := 1 + r * |Cτ|
+  have hA : 1 ≤ A := le_add_of_nonneg_right (by positivity)
+  set C : ℝ := |Ce| + (r + 1)! * A ^ r + (r + 1) * |Cτ|
+  have hCe' : 0 ≤ |Ce| := abs_nonneg _
+  have hCA : 0 ≤ ((r + 1)! : ℝ) * A ^ r := by positivity
+  have hCτ' : 0 ≤ ((r : ℝ) + 1) * |Cτ| := by positivity
+  refine ⟨C, by positivity, fun {k} hk x y w hw hB ↦ ?_⟩
+  set τ := D.chartTransition k x y
+  have hCτw := hCτ hk hw hB
+  have hτr : ContDiffAt ℝ r τ w :=
+    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y hw)
+  refine ⟨?_, ?_, fun {F} _ _ {g} hg ↦ ?_⟩
+  · -- The change of frame.
+    refine (hCe hk hw hCτw).trans (mul_le_mul_of_nonneg_right ?_ (by positivity))
+    exact (le_abs_self _).trans (by linarith)
+  · -- The derivative of the transition.
+    exact (jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
+      hCτw (j + 1) (by omega) (by omega)).trans (by linarith)
+  · -- Faà di Bruno for `g ∘ τ`, with `max 1 (jetNormAt ℝ r τ w) ≤ A * (1 + ‖τ w‖)`.
+    have hjτ : max 1 (jetNormAt ℝ r τ w) ≤ A * (1 + ‖τ w‖) :=
+      max_le (by nlinarith [norm_nonneg (τ w)])
+        (jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
+          hCτw (j + 1) (by omega) (by omega))
+    have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g (τ w)
+    refine (jetNormAt_comp_le hg hτr).trans ?_
+    calc _ ≤ (r + 1)! * jetNormAt ℝ r g (τ w) * (A * (1 + ‖τ w‖)) ^ r :=
+          mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (by positivity) hjτ r) (by positivity)
+      _ = (r + 1)! * A ^ r * jetNormAt ℝ r g (τ w) * (1 + ‖τ w‖) ^ r := by rw [mul_pow]; ring
+      _ ≤ C * jetNormAt ℝ r g (τ w) * (1 + ‖τ w‖) ^ r :=
+          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (by linarith) hjg)
+            (by positivity)
+
+/-! ### From the chart at the centre to the chart at a point of the ball -/
+
 /-- **Bounds at the centre for a change of chart.** Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.jetNorm_le_of_chart_change`, there is a radius `ρ` with
 `0 < ρ ≤ ρ₀` such that for every order `r` there is a constant `C ≥ 0` with the following
@@ -129,72 +274,37 @@ theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
             C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r) ∧
         (1 + ‖z‖) ^ (2 * r) ≤ 2 ^ r * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
           Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ (2 * r) := by
-  obtain ⟨ρ₁, hρ₁, -, hT⟩ := D.exists_forall_norm_iteratedFDeriv_chartTransition_zero_le hJ hρ₀
-  obtain ⟨ρ₂, hρ₂, -, hE⟩ := D.exists_forall_jetNormAt_frameChange_zero_le hJ hα hρ₀
+  obtain ⟨ρ₁, hρ₁, -, hT⟩ := D.exists_forall_norm_fderiv_chartTransition_zero_le hρ₀
   obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
-  refine ⟨min ρ₁ (min ρ₂ ρ₃), lt_min hρ₁ (lt_min hρ₂ hρ₃),
-    (min_le_right _ _).trans ((min_le_right _ _).trans hρ₃₀), fun r ↦ ?_⟩
-  -- One bound `Cτ` for the derivatives of orders `1` to `r + 1` of the transition serves both
-  -- the jets of `τ` and those of `dτ`.
-  obtain ⟨Cτ, hCτ⟩ := hT (r + 1)
-  obtain ⟨Ce, hCe⟩ := hE r
-  set A : ℝ := 1 + r * |Cτ|
-  have hA : 1 ≤ A := le_add_of_nonneg_right (by positivity)
-  set C : ℝ := |Ce| + (r + 1)! * A ^ r + (r + 1) * |Cτ|
-  have hCe' : 0 ≤ |Ce| := abs_nonneg _
-  have hCA : 0 ≤ ((r + 1)! : ℝ) * A ^ r := by positivity
-  have hCτ' : 0 ≤ ((r : ℝ) + 1) * |Cτ| := by positivity
-  refine ⟨C, by positivity, fun {k} hk x z hz ↦ ?_⟩
-  have hball {ρ' : ℝ} (h : min ρ₁ (min ρ₂ ρ₃) ≤ ρ') : z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
+  refine ⟨min ρ₁ ρ₃, lt_min hρ₁ hρ₃, (min_le_right _ _).trans hρ₃₀, fun r ↦ ?_⟩
+  obtain ⟨C, hC, hB⟩ := D.exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le hJ hα r √2
+  refine ⟨C, hC, fun {k} hk x z hz ↦ ?_⟩
+  have hball {ρ' : ℝ} (h : min ρ₁ ρ₃ ≤ ρ') : z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
     ball_subset_ball (mul_le_mul_of_nonneg_right h (Real.sqrt_nonneg _)) hz
   have hz₁ := hball (min_le_left _ _)
-  have hz₂ := hball ((min_le_right _ _).trans (min_le_left _ _))
-  have hz₃ := hball ((min_le_right _ _).trans (min_le_right _ _))
-  have hz₀ := hball ((min_le_right _ _).trans ((min_le_right _ _).trans hρ₃₀))
+  have hz₃ := hball (min_le_right _ _)
+  have hz₀ := hball ((min_le_right _ _).trans hρ₃₀)
   set y := (D.chart k x).symm z
-  set τ := D.chartTransition k x y
-  set e := D.frameChange k x y
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
-  have hτ0 : τ 0 = z := D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀)
+  have hτ0 : D.chartTransition k x y 0 = z :=
+    D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀)
   have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
-  have hτr : ContDiffAt ℝ r τ 0 :=
-    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y h0W)
+  obtain ⟨he, hdτ, hcomp⟩ := hB hk h0W (hT hk x z hz₁)
+  rw [hτ0, norm_zero, add_zero] at he
+  rw [hτ0] at hcomp
+  refine ⟨h0W, hτ0, D.contDiffAt_frameChange hk h0W, he, hdτ, fun hg ↦ hcomp hg, ?_⟩
+  -- The rescaled distance bounds `‖z‖`: `1 + ‖z‖ ≤ √2 * (1 + d)`.
   have hz0 : 0 ≤ 1 + ‖z‖ := by positivity
-  refine ⟨h0W, hτ0, D.contDiffAt_frameChange hk h0W, ?_, ?_,
-    fun {F} _ _ {g} hgz ↦ ?_, ?_⟩
-  · -- The change of frame.
-    refine (hCe hk x z hz₂).trans (mul_le_mul_of_nonneg_right ?_ (by positivity))
-    exact (le_abs_self _).trans (by linarith)
-  · -- The derivative of the transition.
-    refine (jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
-      hCτ hk x z hz₁ (j + 1) (by omega) (by omega)).trans (by linarith)
-  · -- Faà di Bruno for `g ∘ τ`, with `max 1 (jetNormAt ℝ r τ 0) ≤ A * (1 + ‖z‖)`.
-    have hjτ : max 1 (jetNormAt ℝ r τ 0) ≤ A * (1 + ‖z‖) := by
-      have h := jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le (r := r) (f := τ)
-        (z := 0) fun j hj ↦ hCτ hk x z hz₁ (j + 1) (by omega) (by omega)
-      rw [hτ0] at h
-      exact max_le (by nlinarith [norm_nonneg z]) h
-    have hg' : ContDiffAt ℝ r g (τ 0) := by rwa [hτ0]
-    have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g z
-    refine (jetNormAt_comp_le hg' hτr).trans ?_
-    rw [hτ0]
-    calc _ ≤ (r + 1)! * jetNormAt ℝ r g z * (A * (1 + ‖z‖)) ^ r :=
-          mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (by positivity) hjτ r) (by positivity)
-      _ = (r + 1)! * A ^ r * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r := by rw [mul_pow]; ring
-      _ ≤ C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r :=
-          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (by linarith) hjg)
-            (by positivity)
-  · -- The rescaled distance bounds `‖z‖`: `1 + ‖z‖ ≤ √2 * (1 + d)`.
-    have hd : 1 + ‖z‖ ≤ √2 * (1 + d) := by
-      have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₃₀ hk x
-        (hcmp hk x) hz₃
-      nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
-    have hd2 : (1 + ‖z‖) ^ 2 ≤ 2 * (1 + d) ^ 2 :=
-      calc (1 + ‖z‖) ^ 2 ≤ (√2 * (1 + d)) ^ 2 := pow_le_pow_left₀ hz0 hd 2
-        _ = 2 * (1 + d) ^ 2 := by rw [mul_pow, Real.sq_sqrt (by norm_num)]
-    calc (1 + ‖z‖) ^ (2 * r) = ((1 + ‖z‖) ^ 2) ^ r := pow_mul _ _ _
-      _ ≤ (2 * (1 + d) ^ 2) ^ r := pow_le_pow_left₀ (by positivity) hd2 r
-      _ = 2 ^ r * (1 + d) ^ (2 * r) := by rw [mul_pow, pow_mul]
+  have hd : 1 + ‖z‖ ≤ √2 * (1 + d) := by
+    have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₃₀ hk x
+      (hcmp hk x) hz₃
+    nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
+  have hd2 : (1 + ‖z‖) ^ 2 ≤ 2 * (1 + d) ^ 2 :=
+    calc (1 + ‖z‖) ^ 2 ≤ (√2 * (1 + d)) ^ 2 := pow_le_pow_left₀ hz0 hd 2
+      _ = 2 * (1 + d) ^ 2 := by rw [mul_pow, Real.sq_sqrt (by norm_num)]
+  calc (1 + ‖z‖) ^ (2 * r) = ((1 + ‖z‖) ^ 2) ^ r := pow_mul _ _ _
+    _ ≤ (2 * (1 + d) ^ 2) ^ r := pow_le_pow_left₀ (by positivity) hd2 r
+    _ = 2 ^ r * (1 + d) ^ (2 * r) := by rw [mul_pow, pow_mul]
 
 /-- **Jet norms under a change of chart.** Let `M` be a Hausdorff boundaryless manifold, let `σ`
 be compatible with `J`, and let `M` carry a Riemannian metric whose inner product is
@@ -221,24 +331,15 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
   obtain ⟨C, hC, hB⟩ := hB r
   refine ⟨4 ^ r * C ^ 2, fun {k} hk x z hz {s} hs ↦ ?_⟩
-  obtain ⟨h0W, hτ0, her, he, -, hcomp, hd⟩ := hB hk x z hz
+  obtain ⟨h0W, hτ0, -, he, -, hcomp, hd⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
-  set τ := D.chartTransition k x y
-  set e := D.frameChange k x y
   set f := D.reading k x s
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
-  have h0s := D.chartTransitionDomain_subset_source k x y h0W
-  have hτr : ContDiffAt ℝ r τ 0 := D.contDiffAt_chartTransition h0s
-  have hs' : ContDiffAt ℝ r f (τ 0) := by rwa [hτ0]
-  -- Near `0`, the reading at `y` is `e • (f ∘ τ)`.
-  have heq : D.reading k y s =ᶠ[𝓝 0] fun w ↦ e w • (f ∘ τ) w := by
-    simpa only [smul_eq_mul, Function.comp_apply] using
-      D.reading_eventuallyEq_frameChange_mul h0s s
   have hjf := jetNormAt_nonneg (𝕜 := ℝ) r f z
-  calc D.jetNorm k r s y = jetNormAt ℝ r (fun w ↦ e w • (f ∘ τ) w) 0 := by
-        rw [jetNorm_def, jetNormAt_congr_of_eventuallyEq r heq]
-    _ ≤ 2 ^ r * jetNormAt ℝ r e 0 * jetNormAt ℝ r (f ∘ τ) 0 :=
-        jetNormAt_fun_smul_le her (hs'.comp 0 hτr)
+  calc D.jetNorm k r s y ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k x y) 0 *
+        jetNormAt ℝ r (f ∘ D.chartTransition k x y) 0 := by
+        rw [jetNorm_def]
+        exact D.jetNormAt_reading_le_frameChange_mul hk h0W (by rwa [hτ0])
     _ ≤ 2 ^ r * (C * (1 + ‖z‖) ^ r) * (C * jetNormAt ℝ r f z * (1 + ‖z‖) ^ r) :=
         mul_le_mul (mul_le_mul_of_nonneg_left he (by positivity)) (hcomp hs)
           (jetNormAt_nonneg _ _ _) (by positivity)
@@ -274,56 +375,22 @@ theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
   obtain ⟨C, hC, hB⟩ := hB r
   refine ⟨8 ^ r * C ^ 3, fun {k} hk x z hz {s} hs hds ↦ ?_⟩
-  obtain ⟨h0W, hτ0, her, he, hjdτ, hcomp, hd⟩ := hB hk x z hz
+  obtain ⟨h0W, hτ0, -, he, hjdτ, hcomp, hd⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
-  set τ := D.chartTransition k x y
-  set e := D.frameChange k x y
   set g := D.dbarReading k x s
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
-  have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds h0W
-  -- The transition is smooth at `0`, and `g ∘ τ` and `dτ` are `C^r` there.
-  have hτ : ContDiffAt ℝ (r + 1) τ 0 :=
-    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y h0W)
-  have hτr : ContDiffAt ℝ r τ 0 := hτ.of_le (by simp)
-  have hdτ : ContDiffAt ℝ r (fderiv ℝ τ) 0 := hτ.fderiv_right le_rfl
-  have hg' : ContDiffAt ℝ r g (τ 0) := by rwa [hτ0]
-  -- Near `0`, the `∂̄` reading at `y` is `e • ((g ∘ τ) ∘L dτ)`.
-  have hsτ : ∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k x s) (τ w) :=
-    hτr.continuousAt.tendsto.eventually (hτ0 ▸ hs)
-  have heq : D.dbarReading k y s =ᶠ[𝓝 0] fun w ↦
-      e w • ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w) (fderiv ℝ τ w) :=
-    ((Filter.eventually_mem_set.2 hW).and hsτ).mono fun w ⟨hw, hsw⟩ ↦ by
-      simpa only [ContinuousLinearMap.compL_apply, Function.comp_apply] using
-        D.dbarReading_eq_frameChange_smul_comp hα hk hw hsw
   have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g z
+  have hjgτ := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ D.chartTransition k x y) 0
+  have hjdτ0 := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ (D.chartTransition k x y)) 0
   have hgτ := hcomp hds
-  -- The jet of `(g ∘ τ) ∘L dτ`, a bilinear combination of `g ∘ τ` and `dτ`.
-  have hgτd : jetNormAt ℝ r (fun w ↦ ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
-      ((g ∘ τ) w) (fderiv ℝ τ w)) 0 ≤
-        2 ^ r * (C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r) * C := by
-    refine (jetNormAt_bilinear_le _ (hg'.comp 0 hτr) hdτ).trans ?_
-    have := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ τ) 0
-    have := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ τ) 0
-    have hB := ContinuousLinearMap.norm_compL_le ℝ (StdSpace ι) (StdSpace ι) ℂ
-    calc _ ≤ 2 ^ r * 1 * jetNormAt ℝ r (g ∘ τ) 0 * jetNormAt ℝ r (fderiv ℝ τ) 0 := by gcongr
-      _ ≤ 2 ^ r * (C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r) * C := by
-          rw [mul_one]
-          gcongr
-  have hcomp' : ContDiffAt ℝ r (fun w ↦ ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
-      ((g ∘ τ) w) (fderiv ℝ τ w)) 0 := by
-    simpa only [ContinuousLinearMap.compL_apply] using (hg'.comp 0 hτr).clm_comp hdτ
-  calc D.dbarJetNorm k r s y = jetNormAt ℝ r (fun w ↦ e w •
-        ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w) (fderiv ℝ τ w)) 0 := by
-        rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r heq]
-    _ ≤ 2 ^ r * jetNormAt ℝ r e 0 * jetNormAt ℝ r (fun w ↦
-          ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w) (fderiv ℝ τ w)) 0 :=
-        jetNormAt_fun_smul_le her hcomp'
-    _ ≤ 2 ^ r * (C * (1 + ‖z‖) ^ r) * (2 ^ r * (C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r) * C) :=
-        mul_le_mul (mul_le_mul_of_nonneg_left he (by positivity)) hgτd
-          (jetNormAt_nonneg _ _ _) (by positivity)
-    _ = 4 ^ r * C ^ 3 * (1 + ‖z‖) ^ (2 * r) * jetNormAt ℝ r g z := by
-        rw [show (4 : ℝ) = 2 * 2 by norm_num, mul_pow]
-        ring
+  calc D.dbarJetNorm k r s y ≤ 4 ^ r * jetNormAt ℝ r (D.frameChange k x y) 0 *
+        jetNormAt ℝ r (g ∘ D.chartTransition k x y) 0 *
+        jetNormAt ℝ r (fderiv ℝ (D.chartTransition k x y)) 0 := by
+        rw [dbarJetNorm_def]
+        exact D.jetNormAt_dbarReading_le_frameChange_mul hα hk h0W (by rwa [hτ0]) (by rwa [hτ0])
+    _ ≤ 4 ^ r * (C * (1 + ‖z‖) ^ r) * (C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r) * C := by
+        gcongr
+    _ = 4 ^ r * C ^ 3 * (1 + ‖z‖) ^ (2 * r) * jetNormAt ℝ r g z := by ring
     _ ≤ 4 ^ r * C ^ 3 * (2 ^ r * (1 + d) ^ (2 * r)) * jetNormAt ℝ r g z :=
         mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hd (by positivity)) hjg
     _ = 8 ^ r * C ^ 3 * (1 + d) ^ (2 * r) * jetNormAt ℝ r g z := by
@@ -358,71 +425,36 @@ theorem exists_forall_jetNormAt_chartChange_chart_symm_le [T2Space M] [I.Boundar
           ContDiffAt ℝ r g 0 →
           jetNormAt ℝ r (g ∘ D.chartTransition k ((D.chart k x).symm z) x) z ≤
             C * jetNormAt ℝ r g 0) := by
-  obtain ⟨ρ₁, hρ₁, -, hT⟩ :=
-    D.exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le hJ hρ₀
-  obtain ⟨ρ₂, hρ₂, -, hE⟩ := D.exists_forall_jetNormAt_frameChange_chart_symm_le hJ hα hρ₀
-  obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
-  refine ⟨min ρ₁ (min ρ₂ ρ₃), lt_min hρ₁ (lt_min hρ₂ hρ₃),
-    (min_le_right _ _).trans ((min_le_right _ _).trans hρ₃₀), fun r ↦ ?_⟩
-  -- One bound `Cτ` for the derivatives of orders `1` to `r + 1` of the transition serves both
-  -- the jets of `τ` and those of `dτ`.
-  obtain ⟨Cτ, hCτ⟩ := hT (r + 1)
-  obtain ⟨Ce, hCe⟩ := hE r
-  set A : ℝ := 1 + r * |Cτ|
-  have hA : 1 ≤ A := le_add_of_nonneg_right (by positivity)
-  set C : ℝ := 2 ^ r * |Ce| + (r + 1)! * A ^ r + (r + 1) * |Cτ|
-  have hCe' : 0 ≤ 2 ^ r * |Ce| := by positivity
-  have hCA : 0 ≤ ((r + 1)! : ℝ) * A ^ r := by positivity
-  have hCτ' : 0 ≤ ((r : ℝ) + 1) * |Cτ| := by positivity
-  refine ⟨C, by positivity, fun {k} hk x z hz ↦ ?_⟩
-  have hball {ρ' : ℝ} (h : min ρ₁ (min ρ₂ ρ₃) ≤ ρ') : z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
-    ball_subset_ball (mul_le_mul_of_nonneg_right h (Real.sqrt_nonneg _)) hz
-  have hz₁ := hball (min_le_left _ _)
-  have hz₂ := hball ((min_le_right _ _).trans (min_le_left _ _))
-  have hz₃ := hball ((min_le_right _ _).trans (min_le_right _ _))
-  have hz₀ := hball ((min_le_right _ _).trans ((min_le_right _ _).trans hρ₃₀))
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
+  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
+  obtain ⟨C, hC, hB⟩ := D.exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le hJ hα r √2
+  have h2C : C ≤ 2 ^ r * C := le_mul_of_one_le_left hC (one_le_pow₀ one_le_two)
+  refine ⟨2 ^ r * C, by positivity, fun {k} hk x z hz ↦ ?_⟩
+  have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
   set y := (D.chart k x).symm z
-  set τ := D.chartTransition k y x
-  set e := D.frameChange k y x
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
-  have hτz : τ z = 0 := D.chartTransition_chart_symm_apply_self hk x z
+  have hτz : D.chartTransition k y x z = 0 := D.chartTransition_chart_symm_apply_self hk x z
   have hzW := D.mem_chartTransitionDomain_chart_symm hk x hz₀
-  have hτr : ContDiffAt ℝ r τ z :=
-    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k y x hzW)
-  refine ⟨hzW, hτz, ?_, ?_, fun {F} _ _ {g} hg0 ↦ ?_⟩
-  · -- The change of frame, with `1 + ‖z‖ ≤ √2 * (1 + d) ≤ 2 * (1 + d)`.
-    have hd : 1 + ‖z‖ ≤ 2 * (1 + d) := by
-      have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₃₀ hk x
-        (hcmp hk x) hz₃
-      have h2 : √2 ≤ 2 := by
-        rw [Real.sqrt_le_left (by norm_num)]
-        norm_num
-      have hd0 : 0 ≤ d := ENNReal.toReal_nonneg
-      nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
-    calc jetNormAt ℝ r e z ≤ Ce * (1 + ‖z‖) ^ r := hCe hk x z hz₂
-      _ ≤ |Ce| * (2 * (1 + d)) ^ r :=
-          mul_le_mul (le_abs_self _) (pow_le_pow_left₀ (by positivity) hd r) (by positivity)
-            (abs_nonneg _)
-      _ = 2 ^ r * |Ce| * (1 + d) ^ r := by rw [mul_pow]; ring
-      _ ≤ C * (1 + d) ^ r :=
-          mul_le_mul_of_nonneg_right (by linarith) (pow_nonneg (by positivity) r)
-  · -- The derivative of the transition.
-    refine (jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
-      hCτ hk x z hz₁ (j + 1) (by omega) (by omega)).trans (by linarith)
-  · -- Faà di Bruno for `g ∘ τ`, with `max 1 (jetNormAt ℝ r τ z) ≤ A`, since `τ z = 0`.
-    have hjτ : max 1 (jetNormAt ℝ r τ z) ≤ A := by
-      have h := jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le (r := r) (f := τ)
-        (z := z) fun j hj ↦ hCτ hk x z hz₁ (j + 1) (by omega) (by omega)
-      rw [hτz, norm_zero, add_zero, mul_one] at h
-      exact max_le hA h
-    have hg' : ContDiffAt ℝ r g (τ z) := by rwa [hτz]
-    have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g 0
-    refine (jetNormAt_comp_le hg' hτr).trans ?_
-    rw [hτz]
-    calc _ ≤ (r + 1)! * jetNormAt ℝ r g 0 * A ^ r :=
-          mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (by positivity) hjτ r) (by positivity)
-      _ = (r + 1)! * A ^ r * jetNormAt ℝ r g 0 := by ring
-      _ ≤ C * jetNormAt ℝ r g 0 := mul_le_mul_of_nonneg_right (by linarith) hjg
+  obtain ⟨he, hdτ, hcomp⟩ := hB hk hzW (D.norm_fderiv_chartTransition_chart_symm_le hk
+    (hcmp hk x) (D.ball_subset_target hk x hz₀) hz)
+  rw [hτz, norm_zero, add_zero] at he
+  rw [hτz, norm_zero, add_zero, one_pow] at hcomp
+  refine ⟨hzW, hτz, ?_, hdτ.trans h2C, fun hg ↦
+    (hcomp hg).trans (by
+      rw [mul_one]
+      exact mul_le_mul_of_nonneg_right h2C (jetNormAt_nonneg _ _ _))⟩
+  -- The change of frame, with `1 + ‖z‖ ≤ √2 * (1 + d) ≤ 2 * (1 + d)`.
+  have hd : 1 + ‖z‖ ≤ 2 * (1 + d) := by
+    have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₁₀ hk x
+      (hcmp hk x) hz
+    have h2 : √2 ≤ 2 := by
+      rw [Real.sqrt_le_left (by norm_num)]
+      norm_num
+    have hd0 : 0 ≤ d := ENNReal.toReal_nonneg
+    nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
+  calc jetNormAt ℝ r (D.frameChange k y x) z ≤ C * (1 + ‖z‖) ^ r := he
+    _ ≤ C * (2 * (1 + d)) ^ r := by gcongr
+    _ = 2 ^ r * C * (1 + d) ^ r := by rw [mul_pow]; ring
 
 /-- **Smoothness moves back to the centre.** For `k ≥ k₀`, a point `x`, `z` in the ball of radius
 `ρ₀ * √k` and a section `s` of `PowerBundle P k`, if the reading of `s` in the chart centred at
@@ -461,14 +493,9 @@ theorem contDiffAt_dbarReading_of_chart_change (hα : IsCircleConnectionForm α)
   have hτn : ContDiffAt ℝ n τ z := hτ.of_le (by exact_mod_cast le_self_add)
   have hdτ : ContDiffAt ℝ n (fderiv ℝ τ) z := hτ.fderiv_right (by exact_mod_cast le_rfl)
   have hds' : ContDiffAt ℝ n (D.dbarReading k y s) (τ z) := by rwa [hτz]
-  have hsτ : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ (D.reading k y s) (τ w) :=
-    hτn.continuousAt.tendsto.eventually (hτz ▸ hs)
-  have heq : D.dbarReading k x s =ᶠ[𝓝 z] fun w ↦
-      D.frameChange k y x w • (D.dbarReading k y s (τ w)).comp (fderiv ℝ τ w) :=
-    ((Filter.eventually_mem_set.2 ((D.isOpen_chartTransitionDomain k y x).mem_nhds hzW)).and
-      hsτ).mono fun w ⟨hw, hsw⟩ ↦ D.dbarReading_eq_frameChange_smul_comp hα hk hw hsw
   exact ((D.contDiffAt_frameChange hk hzW).smul
-    ((hds'.comp z hτn).clm_comp hdτ)).congr_of_eventuallyEq heq
+    ((hds'.comp z hτn).clm_comp hdτ)).congr_of_eventuallyEq
+    (D.dbarReading_eventuallyEq_frameChange_smul_comp hα hk hzW (by rwa [hτz]))
 
 /-- **Jet norms of a reading off the centre.** Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.jetNorm_le_of_chart_change`, there is a radius `ρ` with
@@ -495,21 +522,11 @@ theorem jetNormAt_reading_le_of_chart_change [T2Space M] [I.Boundaryless]
   refine ⟨2 ^ r * C ^ 2, fun {k} hk x z hz {s} hs ↦ ?_⟩
   obtain ⟨hzW, hτz, he, -, hcomp⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
-  set τ := D.chartTransition k y x
-  set e := D.frameChange k y x
   set f := D.reading k y s
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
-  have hzs := D.chartTransitionDomain_subset_source k y x hzW
-  have hτr : ContDiffAt ℝ r τ z := D.contDiffAt_chartTransition hzs
-  have hs' : ContDiffAt ℝ r f (τ z) := by rwa [hτz]
-  -- Near `z`, the reading at `x` is `e • (f ∘ τ)`.
-  have heq : D.reading k x s =ᶠ[𝓝 z] fun w ↦ e w • (f ∘ τ) w := by
-    simpa only [smul_eq_mul, Function.comp_apply] using
-      D.reading_eventuallyEq_frameChange_mul hzs s
-  calc jetNormAt ℝ r (D.reading k x s) z = jetNormAt ℝ r (fun w ↦ e w • (f ∘ τ) w) z :=
-        jetNormAt_congr_of_eventuallyEq r heq
-    _ ≤ 2 ^ r * jetNormAt ℝ r e z * jetNormAt ℝ r (f ∘ τ) z :=
-        jetNormAt_fun_smul_le (D.contDiffAt_frameChange hk hzW) (hs'.comp z hτr)
+  calc jetNormAt ℝ r (D.reading k x s) z ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k y x) z *
+        jetNormAt ℝ r (f ∘ D.chartTransition k y x) z :=
+        D.jetNormAt_reading_le_frameChange_mul hk hzW (by rwa [hτz])
     _ ≤ 2 ^ r * (C * (1 + d) ^ r) * (C * jetNormAt ℝ r f 0) :=
         mul_le_mul (mul_le_mul_of_nonneg_left he (by positivity)) (hcomp hs)
           (jetNormAt_nonneg _ _ _) (by positivity)
@@ -542,53 +559,18 @@ theorem jetNormAt_dbarReading_le_of_chart_change [T2Space M] [I.Boundaryless]
   refine ⟨4 ^ r * C ^ 3, fun {k} hk x z hz {s} hs hds ↦ ?_⟩
   obtain ⟨hzW, hτz, he, hjdτ, hcomp⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
-  set τ := D.chartTransition k y x
-  set e := D.frameChange k y x
   set g := D.dbarReading k y s
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
-  have hW := (D.isOpen_chartTransitionDomain k y x).mem_nhds hzW
-  -- The transition is smooth at `z`, and `g ∘ τ` and `dτ` are `C^r` there.
-  have hτ : ContDiffAt ℝ (r + 1) τ z :=
-    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k y x hzW)
-  have hτr : ContDiffAt ℝ r τ z := hτ.of_le (by simp)
-  have hdτ : ContDiffAt ℝ r (fderiv ℝ τ) z := hτ.fderiv_right le_rfl
-  have hg' : ContDiffAt ℝ r g (τ z) := by rwa [hτz]
-  -- Near `z`, the `∂̄` reading at `x` is `e • ((g ∘ τ) ∘L dτ)`.
-  have hsτ : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ (D.reading k y s) (τ w) :=
-    hτr.continuousAt.tendsto.eventually (hτz ▸ hs)
-  have heq : D.dbarReading k x s =ᶠ[𝓝 z] fun w ↦
-      e w • ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w) (fderiv ℝ τ w) :=
-    ((Filter.eventually_mem_set.2 hW).and hsτ).mono fun w ⟨hw, hsw⟩ ↦ by
-      simpa only [ContinuousLinearMap.compL_apply, Function.comp_apply] using
-        D.dbarReading_eq_frameChange_smul_comp hα hk hw hsw
   have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g 0
+  have hjgτ := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ D.chartTransition k y x) z
+  have hjdτ0 := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ (D.chartTransition k y x)) z
   have hgτ := hcomp hds
-  -- The jet of `(g ∘ τ) ∘L dτ`, a bilinear combination of `g ∘ τ` and `dτ`.
-  have hgτd : jetNormAt ℝ r (fun w ↦ ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
-      ((g ∘ τ) w) (fderiv ℝ τ w)) z ≤ 2 ^ r * (C * jetNormAt ℝ r g 0) * C := by
-    refine (jetNormAt_bilinear_le _ (hg'.comp z hτr) hdτ).trans ?_
-    have := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ τ) z
-    have := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ τ) z
-    have hB := ContinuousLinearMap.norm_compL_le ℝ (StdSpace ι) (StdSpace ι) ℂ
-    calc _ ≤ 2 ^ r * 1 * jetNormAt ℝ r (g ∘ τ) z * jetNormAt ℝ r (fderiv ℝ τ) z := by gcongr
-      _ ≤ 2 ^ r * (C * jetNormAt ℝ r g 0) * C := by
-          rw [mul_one]
-          gcongr
-  have hcomp' : ContDiffAt ℝ r (fun w ↦ ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
-      ((g ∘ τ) w) (fderiv ℝ τ w)) z := by
-    simpa only [ContinuousLinearMap.compL_apply] using (hg'.comp z hτr).clm_comp hdτ
-  calc jetNormAt ℝ r (D.dbarReading k x s) z = jetNormAt ℝ r (fun w ↦ e w •
-        ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w) (fderiv ℝ τ w)) z :=
-        jetNormAt_congr_of_eventuallyEq r heq
-    _ ≤ 2 ^ r * jetNormAt ℝ r e z * jetNormAt ℝ r (fun w ↦
-          ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ ((g ∘ τ) w) (fderiv ℝ τ w)) z :=
-        jetNormAt_fun_smul_le (D.contDiffAt_frameChange hk hzW) hcomp'
-    _ ≤ 2 ^ r * (C * (1 + d) ^ r) * (2 ^ r * (C * jetNormAt ℝ r g 0) * C) :=
-        mul_le_mul (mul_le_mul_of_nonneg_left he (by positivity)) hgτd
-          (jetNormAt_nonneg _ _ _) (by positivity)
-    _ = 4 ^ r * C ^ 3 * (1 + d) ^ r * D.dbarJetNorm k r s y := by
-        rw [dbarJetNorm_def, show (4 : ℝ) = 2 * 2 by norm_num, mul_pow]
-        ring
+  calc jetNormAt ℝ r (D.dbarReading k x s) z ≤ 4 ^ r * jetNormAt ℝ r (D.frameChange k y x) z *
+        jetNormAt ℝ r (g ∘ D.chartTransition k y x) z *
+        jetNormAt ℝ r (fderiv ℝ (D.chartTransition k y x)) z :=
+        D.jetNormAt_dbarReading_le_frameChange_mul hα hk hzW (by rwa [hτz]) (by rwa [hτz])
+    _ ≤ 4 ^ r * (C * (1 + d) ^ r) * (C * jetNormAt ℝ r g 0) * C := by gcongr
+    _ = 4 ^ r * C ^ 3 * (1 + d) ^ r * D.dbarJetNorm k r s y := by rw [dbarJetNorm_def]; ring
 
 /-- **Asymptotically holomorphic sequences, read on balls of fixed radius.** Let `M` be a
 Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry the metric `g_J`

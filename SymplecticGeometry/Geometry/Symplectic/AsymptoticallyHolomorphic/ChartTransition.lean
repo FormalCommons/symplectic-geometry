@@ -127,12 +127,12 @@ for it, for `k ≥ k₀`:
   `x` and `z` in the ball of radius `ρ₁ * √k` (in the same namespace,
   `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`);
 * in the other direction, the transition from the chart at `x` to the chart at
-  `(D.chart k x)⁻¹ z` sends `z` to `0`, its domain contains `z`, its derivative at `z` has norm
-  at most `√2` on a comparison radius, since `2π k σ(v, J v)` is the square of the norm in the
-  chart at the centre (in the same namespace, `chartTransition_chart_symm_apply_self`,
-  `mem_chartTransitionDomain_chart_symm` and `norm_fderiv_chartTransition_chart_symm_le`), and
-  so its derivatives at `z` are bounded in the same way
-  (`exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le`).
+  `(D.chart k x)⁻¹ z` sends `z` to `0`, its domain contains `z`, and its derivative at `z` has
+  norm at most `√2` on a comparison radius, since `2π k σ(v, J v)` is the square of the norm in
+  the chart at the centre (in the same namespace, `chartTransition_chart_symm_apply_self`,
+  `mem_chartTransitionDomain_chart_symm` and `norm_fderiv_chartTransition_chart_symm_le`). Both
+  bounds by `√2` come from one comparison of the charts
+  (`norm_fderiv_chartTransition_le_of_norm_mvfderiv_le`).
 
 ## References
 
@@ -619,6 +619,36 @@ theorem eval₂_apply_self_eq_norm_sq {k : ℕ} (hk : k₀ ≤ k) (x : M) (v : T
     ← mvfderiv_apply_eq_mfderiv_apply, D.apply_self hk, D.chartPushforward_zero hk,
     stdForm_apply_stdComplexStructure, real_inner_self_eq_norm_sq]
 
+/-- **The derivative of a transition, from a comparison of the two charts.** Let `w` be a point
+of the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, and
+let `c ≥ 0`. If, for every tangent vector `v` at `(D.chart k y)⁻¹ w`, the image of `v` under the
+derivative of the chart at `x` has norm at most `c` times that of its image under the derivative
+of the chart at `y`, then `‖Dτ(w)‖ ≤ c`. -/
+theorem norm_fderiv_chartTransition_le_of_norm_mvfderiv_le {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) {c : ℝ} (hc : 0 ≤ c)
+    (h : ∀ v : TangentSpace I ((D.chart k y).symm w),
+      ‖mvfderiv I (D.chart k x) ((D.chart k y).symm w) v‖ ≤
+        c * ‖mvfderiv I (D.chart k y) ((D.chart k y).symm w) v‖) :
+    ‖fderiv ℝ (D.chartTransition k x y) w‖ ≤ c := by
+  have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hw).1
+  -- The derivative of the inverse of the chart at `y`, at `w`, and the chain rule there.
+  have hinv := (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) hwt
+  have hT := (D.chart k y).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k x) (by simp)
+    (by rwa [chartTransition_def] at hw)
+  rw [← chartTransition_def] at hT
+  refine ContinuousLinearMap.opNorm_le_bound _ hc fun u ↦ ?_
+  -- The tangent vector `v` that the chart at `y` sends to `u`; the chart at `x` sends it to the
+  -- image of `u` under the derivative of the transition.
+  set v : TangentSpace I ((D.chart k y).symm w) :=
+    mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w u
+  have hu : mvfderiv I (D.chart k y) ((D.chart k y).symm w) v = u := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact hinv u
+  have hTu : mvfderiv I (D.chart k x) ((D.chart k y).symm w) v =
+      fderiv ℝ (D.chartTransition k x y) w u := by
+    rw [hT, ContinuousLinearMap.comp_apply, hu]
+  simpa only [hu, hTu] using h v
+
 /-- **The derivative at the centre of a transition, on a comparison radius.** Let `k ≥ k₀`, let
 `ρ₁` be a comparison radius for the chart centred at `x` (`IsComparisonRadius`), and let `y` be a
 point of the source of that chart whose image lies in the ball of radius `ρ₁ * √k`. Then the
@@ -628,26 +658,13 @@ theorem norm_fderiv_chartTransition_zero_le {ρ₁ : ℝ} {k : ℕ} (hk : k₀ �
     (hcmp : D.IsComparisonRadius k x ρ₁) {y : M} (hy : y ∈ (D.chart k x).source)
     (hyB : D.chart k x y ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
     ‖fderiv ℝ (D.chartTransition k x y) 0‖ ≤ √2 := by
-  have h0 := D.zero_mem_chartTransition_source hk hy
-  have h0y : (0 : StdSpace ι) ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 h0).1
-  have hy0 : (D.chart k y).symm 0 = y := D.chart_symm_zero hk y
-  -- The derivative of the chart at `y`, at its centre `y`, and the chain rule there.
-  have hinv := (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) h0y
-  have hT := (D.chart k y).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k x) (by simp)
-    (by rwa [chartTransition_def] at h0)
-  rw [← chartTransition_def] at hT
-  rw [hy0] at hinv hT
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-  -- The tangent vector `v` at `y` that the chart at `y` sends to `u`.
-  set v : TangentSpace I y := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm 0 u
-  have hu : mvfderiv I (D.chart k y) y v = u := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact hinv u
-  -- In the chart at `x`, the image of `v` is `T u`, for `T` the derivative of the transition.
-  have hTu : mvfderiv I (D.chart k x) y v = fderiv ℝ (D.chartTransition k x y) 0 u := by
-    rw [hT, ContinuousLinearMap.comp_apply, hu]
+  refine D.norm_fderiv_chartTransition_le_of_norm_mvfderiv_le
+    (D.zero_mem_chartTransition_source hk hy) (by positivity) ?_
+  rw [D.chart_symm_zero hk y]
+  intro v
+  -- At the centre `y`, `2π k σ(v, J v)` is the squared norm in the chart at `y`.
   have hcmpy := (hcmp.mem_Icc hy hyB v).1
-  rw [D.eval₂_apply_self_eq_norm_sq hk y v, hu, hTu] at hcmpy
+  rw [D.eval₂_apply_self_eq_norm_sq hk y v] at hcmpy
   refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
   rw [mul_pow, Real.sq_sqrt zero_le_two]
   linarith
@@ -919,46 +936,14 @@ theorem norm_fderiv_chartTransition_chart_symm_le {ρ₁ : ℝ} {k : ℕ} (hk : 
   have hy : y ∈ (D.chart k x).source := (D.chart k x).map_target hzt
   have hzs : z ∈ (D.chartTransition k y x).source :=
     D.mem_chartTransition_source_iff.2 ⟨hzt, D.mem_source hk y⟩
-  -- The derivative of the inverse of the chart at `x`, at `z`, and the chain rule there.
-  have hinv := (D.chart k x).mfderiv_apply_mfderiv_symm_apply (by simp) hzt
-  have hT := (D.chart k x).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k y) (by simp)
-    (by rwa [chartTransition_def] at hzs)
-  rw [← chartTransition_def] at hT
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-  -- The tangent vector `v` at `y` that the chart at `x` sends to `u`.
-  set v : TangentSpace I y := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm z u
-  have hu : mvfderiv I (D.chart k x) y v = u := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact hinv u
-  -- In the chart at `y`, the image of `v` is `T u`, for `T` the derivative of the transition.
-  have hTu : mvfderiv I (D.chart k y) y v = fderiv ℝ (D.chartTransition k y x) z u := by
-    rw [hT, ContinuousLinearMap.comp_apply, hu]
+  refine D.norm_fderiv_chartTransition_le_of_norm_mvfderiv_le hzs (by positivity) fun v ↦ ?_
+  -- At the centre `y`, `2π k σ(v, J v)` is the squared norm in the chart at `y`.
   have hyz : D.chart k x y = z := (D.chart k x).right_inv hzt
   have hcmpy := (hcmp.mem_Icc hy (by rwa [hyz]) v).2
-  rw [D.eval₂_apply_self_eq_norm_sq hk y v, hu, hTu] at hcmpy
+  rw [D.eval₂_apply_self_eq_norm_sq hk y v] at hcmpy
   refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
   rw [mul_pow, Real.sq_sqrt zero_le_two]
-  nlinarith [sq_nonneg ‖u‖]
-
-/-- **Uniform bounds on the derivatives of the transitions back to the centre.** On a boundaryless
-manifold, if `σ` is compatible with `J` and `ρ₀ > 0`, there is a radius `ρ₁` with
-`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for
-all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ₁ * √k` and all `1 ≤ j ≤ r`, the
-`j`-th iterated derivative at `z` of the transition from the chart centred at `x` to the chart
-centred at `(D.chart k x)⁻¹ z` has norm at most `C`. -/
-theorem exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le [I.Boundaryless]
-    (hJ : σ.Compatible J) (hρ₀ : 0 < ρ₀) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
-      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k), ∀ j, 1 ≤ j → j ≤ r →
-        ‖iteratedFDeriv ℝ j (D.chartTransition k ((D.chart k x).symm z) x) z‖ ≤ C := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
-  obtain ⟨C, hC⟩ := D.exists_forall_norm_iteratedFDeriv_chartTransition_le hJ r √2
-  refine ⟨C, fun {k} hk x z hz ↦ ?_⟩
-  have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
-  exact hC hk (D.mem_chartTransitionDomain_chart_symm hk x hz₀)
-    (D.norm_fderiv_chartTransition_chart_symm_le hk (hcmp hk x) (D.ball_subset_target hk x hz₀)
-      hz)
+  nlinarith [sq_nonneg ‖mvfderiv I (D.chart k x) y v‖]
 
 end RescaledUnitaryCharts
 
