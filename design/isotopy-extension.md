@@ -783,7 +783,8 @@ Let `M : Type` be compact, `Q : Set M`, `U : Opens M` with `Q ⊆ U`, and let
   `exists_isOpen_range_singularHomologyMap_le` with
   `TauCeti.exists_mextDeriv_eq_of_homologyPeriodHom_eq_zero` and
   `TauCeti.homologyPeriodHom_singularHomologyMap` for the inclusion `V → U`.
-- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for any `SmoothIsotopy`
+- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`, in
+  `Geometry/Manifold/DeRham/HomologyPeriod.lean`: for any `SmoothIsotopy`
   `φ` starting at `f₀` and a closed one-form `θ`, the periods of `φ_t^* θ`
   are those of `f₀^* θ`, and from the inclusion of `U` those of `θ`. The
   slices are homotopic to `f₀`, so

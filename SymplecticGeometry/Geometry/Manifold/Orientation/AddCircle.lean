@@ -211,8 +211,5 @@ theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_symm
   refine (isOrientationPreservingAt_iff_of_coe_eq _ _ _ z
     Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv
     (Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv.mfderiv_eq (x := z)).symm).2 ?_
-  rw [orientationAt_complex, orientationAt_euclideanSpace,
-    ← Complex.orientation_map_orthonormalBasisOneI_repr]
-  -- The derivative is the inverse of `repr`, and `Orientation.map` of an inverse is the inverse
-  -- of `Orientation.map` (`Orientation.map_symm`).
-  exact (Orientation.map (Fin 2) Complex.orthonormalBasisOneI.repr.toLinearEquiv).symm_apply_apply _
+  rw [orientationAt_complex, orientationAt_euclideanSpace]
+  exact Complex.orientation_map_orthonormalBasisOneI_repr_symm
