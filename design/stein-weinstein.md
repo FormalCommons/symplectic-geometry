@@ -1102,7 +1102,7 @@ containing `ι '' closedBall 0 1`:
       `contDiffOn_struweLineShape` (`Ioi δ`),
       `struweShape_le_struweLineShape` and `struweLineShape_le`
       (`≤ max (S r) (2 * r - 8 * δ) + δ / 8`, `smoothedMax_le_max_add`),
-      `deriv_struweLineShape_le` (`≤ 2` on `Ici (7 * δ / 2)`,
+      `deriv_struweLineShape_le` (`≤ 2` on `Ici (2 * δ)`,
       `deriv_smoothedMax_le_max`), and
       `isConvexShapeAt_struweLineShape_add`: for `δ < r` and `t` with
       `2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t` and
@@ -1128,8 +1128,8 @@ containing `ι '' closedBall 0 1`:
       shapes at `δ` differ by constants, so near the cylinder every leaf
       below is a Struwe shape plus a constant.
     - `isConvexShapeAt_bridgeLeaf_sqrtAddLeaf` (first stage,
-      `ℓ ∈ Icc (7 * δ) (15 * δ / 2)`): with the `L₀` of
-      `exists_isConvexShapeAt_sqrtAddLeaf`, for `L ≥ L₀`, `δ > 0`, such
+      `ℓ ∈ Icc (7 * δ) (15 * δ / 2)`): for `L` with the hypotheses on `L`
+      of `isConvexShapeAt_sqrtAddLeaf`, `δ > 0`, such
       `ℓ`, `t₀ ≤ t` and `δ < r`,
       `r ↦ smoothedMax (δ / 200) (sqrtAddLeaf L δ ℓ r) (P t r)` is a
       convex shape at `r`. With `A = sqrtAddLeaf L δ ℓ` and
