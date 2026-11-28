@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiffMap
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.CompLinear
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivWithinApply
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
@@ -31,7 +32,7 @@ For smooth maps, `f ↦ f.tangentMap` is continuous for Tau Ceti's weak Whitney 
 On a compact set `K` of a tangent-bundle chart target, the chart expression of `f.tangentMap`
 is `(z, v) ↦ (f̃ z, Df̃(z) v)`; the iterated derivatives of the difference of these expressions
 for `f` and `f₀` are bounded by those of `f̃ - f̃₀` of one order more
-(`norm_iteratedFDerivWithin_comp_fst_sub_le` and
+(`Prod.norm_iteratedFDerivWithin_comp_fst_sub` and
 `norm_iteratedFDerivWithin_fderivWithin_apply_sub_le`),
 taken on a relatively open part of the base chart target where both maps are visible, and those
 converge uniformly on the compact set of base points of `K` by Tau Ceti's
@@ -205,8 +206,8 @@ private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
     (_, _) (_, _)).trans Prod.dist_eq).trans_le ?_
   rw [dist_eq_norm, dist_eq_norm]
   exact max_le_max
-    (SymplecticGeometry.norm_iteratedFDerivWithin_comp_fst_sub_le (hsm f fun z hz ↦ (hsrc hz).1)
-      (hsm f₀ fun z hz ↦ (hsrc hz).2) hs (by exact_mod_cast Nat.le_succ j) hws)
+    (Prod.norm_iteratedFDerivWithin_comp_fst_sub (hsm f fun z hz ↦ (hsrc hz).1)
+      (hsm f₀ fun z hz ↦ (hsrc hz).2) hs (by exact_mod_cast Nat.le_succ j) hws).le
     (SymplecticGeometry.norm_iteratedFDerivWithin_fderivWithin_apply_sub_le hs
       (hsm f fun z hz ↦ (hsrc hz).1) (hsm f₀ fun z hz ↦ (hsrc hz).2) hws w.2)
 
