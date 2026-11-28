@@ -572,6 +572,14 @@ theorem modelDel_zero (z : StdSpace ι) : modelDel (0 : StdSpace ι → ℂ) z =
   rw [coe_modelDel, modelConnection_zero, ContinuousLinearMap.toLinearMap_zero,
     complexLinearPart_zero]
 
+/-- The model `∂` of `f` at `z` has operator norm at most that of the model connection of `f` at
+`z`, since `J₀` and multiplication by `i` preserve norms. -/
+theorem norm_modelDel_le (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    ‖modelDel f z‖ ≤ ‖modelConnection f z‖ := by
+  rw [modelDel_def]
+  exact norm_complexLinearPartContinuousLinearMap_le
+    (fun v ↦ (norm_stdComplexStructure v).le) (fun w ↦ by simp) _
+
 /-- The **Leibniz rule** for the model `∂`: for `f` and `g` differentiable at `z`, the model
 `∂` of `f * g` at `z` is `f z` times the model `∂` of `g` plus `g z` times the flat `∂` of
 `f`. -/
