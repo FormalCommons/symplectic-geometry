@@ -33,6 +33,12 @@ orientation and `K = {0}`, the generator of `H²(ℝ², ℝ² ∖ {0}; ℤ)` tha
 selects (`Orientation.localCohomologyClass`) therefore pairs to `-1` with `[σ]`
 (`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`).
 
+For `C = ℝ²` and `K = {0}`, the face statement carries over to a map `g' : ℝ² → X` into a
+topological space that sends no point of a set `B ⊇ σ(Δ²)` other than `0` into a set `K' ⊆ X`:
+the faces of any singular simplex of `X` that agrees with `g' ∘ σ` on `Δ²` avoid `K'`
+(`TauCeti.SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl_of_eq_comp`), since they are `g'` of
+points of `B` on the faces of `σ`, which are not `0`.
+
 The sign comes from `TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation`: Tau Ceti's
 homological orientation of a smooth orientation selects at each point minus the class of a
 positively oriented simplex around it.
@@ -58,6 +64,9 @@ image `[σ]` under `g` is minus that of `o` at `x`.
 * `TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`: in `ℝ²`, the standard
   generator of `H²(ℝ², ℝ² ∖ {0}; ℤ)` pairs to `-1` with the class of a positively oriented
   simplex around `0`.
+* `TauCeti.SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl_of_eq_comp`: the faces of a simplex
+  of `X` that agrees with `g' ∘ σ` avoid `K'`, when `g'` sends no point of `B ⊇ σ(Δ²)` but `0`
+  into `K'`.
 
 ## References
 
@@ -190,6 +199,42 @@ theorem relativeClass_eq_fundamentalClassOn [FiniteDimensional ℝ E'] [T2Space 
 end TauCeti.SmoothSimplex
 
 namespace TauCeti.SmoothSimplex
+
+/-- **The faces of a simplex carried through a disc avoid a set.** Let `B ⊆ ℝ²`, and let
+`g : ℝ² → X` send no point of `B` other than `0` into `K ⊆ X`. Let `σ` be a smooth `2`-simplex of
+`ℝ²` with values in `B`, the restriction to `Δ²` of a map `φ` that is an open embedding on an open
+neighbourhood `U` of `Δ²`, with `0 ∈ φ (interior Δ²)`. Then every face of a singular `2`-simplex
+`s` of `X` that agrees with `g ∘ σ` on `Δ²` lies in `X ∖ K`. -/
+theorem range_toSSetObjEquiv_δ_subset_compl_of_eq_comp {X : Type*} [TopologicalSpace X]
+    {K : Set X} {B : Set (EuclideanSpace ℝ (Fin 2))} {g : EuclideanSpace ℝ (Fin 2) → X}
+    (hgK : ∀ w ∈ B, g w ∈ K → w = 0)
+    (σ : SmoothSimplex 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) 2)
+    {U : Opens (EuclideanSpace ℝ (Fin 2))} (hU : fullSimplex 2 ⊆ U)
+    {φ : EuclideanSpace ℝ (Fin 2) → EuclideanSpace ℝ (Fin 2)}
+    (hφσ : ∀ y : fullSimplex 2, φ y = σ.toContinuousMap y)
+    (hφ : IsOpenEmbedding (φ ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
+    (h0 : 0 ∈ φ '' interior (fullSimplex 2)) (hσB : ∀ y, σ.toContinuousMap y ∈ B)
+    (s : (TopCat.toSSet.obj (TopCat.of X)) _⦋2⦌)
+    (hs : ∀ y, (TopCat.of X).toSSetObjEquiv _ s (fullSimplexEquivStdSimplex 2 y) =
+      g (σ.toContinuousMap y)) (i : Fin 3) :
+    Set.range ((TopCat.of X).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i s)) ⊆
+      Set.range (TopPair.ofSubset (Kᶜ : Set (TopCat.of X))).map := by
+  rintro _ ⟨z, rfl⟩
+  -- The faces of `σ` avoid `0`.
+  obtain ⟨⟨w, hw⟩, hwz⟩ := range_toSSetObjEquiv_δ_subset_compl σ hU hφσ hφ
+    (singleton_subset_iff.2 h0) i ⟨z, rfl⟩
+  rw [TopPair.ofSubset_map] at hwz
+  -- The point of the face of `s` is `g` of the point `w` of the face of `σ`.
+  obtain ⟨y, hy⟩ :=
+    (fullSimplexEquivStdSimplex 2).surjective (Convexity.StdSimplex.map i.succAbove z)
+  have hσy : σ.toContinuousMap y = w := by
+    rw [toContinuousMap_apply, hy]
+    exact hwz.symm
+  suffices hz : (TopCat.of X).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i s) z ∉ K from
+    ⟨⟨_, hz⟩, rfl⟩
+  intro hz
+  rw [TopCat.toSSetObjEquiv_δ_apply, ← hy, hs, hσy] at hz
+  exact hw (hgK w (hσy ▸ hσB y) hz)
 
 /-- **The standard generator on a positively oriented simplex of `ℝ²`.** Let `σ` be a smooth
 `2`-simplex of `ℝ²`, the restriction to `Δ²` of a map `g` that, on an open neighbourhood `U` of
