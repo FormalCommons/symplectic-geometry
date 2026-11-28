@@ -250,7 +250,8 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   `IsComplexifiedAction.fundamentalVectorField_cplx` and
   `isMIntegralCurve_expI_smul` (the velocity of $t\mapsto\exp(it\xi)p$ is
   $JX_\xi$ at the moving point).
-- `momentSharp B hB μ x : 𝔤`, with `B (momentSharp …) ξ = μ x ξ`. The norm
+- `momentSharp B hB μ x`, in any finite-dimensional real vector space (here
+  `𝔤`), with `B (momentSharp …) ξ = μ x ξ`. The norm
   square is Tau Ceti's `momentNormSq μ (B.toDual hB).symm x : ℝ`, with its
   invariance under `G` and smoothness; here `momentNormSq_nonneg` and
   `momentNormSq_eq_zero_iff`.
