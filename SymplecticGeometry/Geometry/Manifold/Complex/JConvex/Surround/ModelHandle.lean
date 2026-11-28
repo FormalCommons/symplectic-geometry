@@ -152,7 +152,7 @@ theorem eventually_exists_contDiff_eqOn_mul_Iic_eqOn_mul_Ici {a b L : ℝ} (ha :
   -- `t ψ'` and `t² ψ''` are `O(1 / Λ)`.
   have H := one_lt_add_add_two_mul_min hΛ₀ hmain
     (mul_nonneg ht (deriv_logCutoffProfile_nonneg ht₀₀ h2 t))
-    (mul_deriv_logCutoffProfile_le ht₀₀ h4 ht) (hc₁ ht₀₀ h4 t) hΛc
+    (mul_deriv_logCutoffProfile_le ht₀₀ h4 t) (hc₁ ht₀₀ h4 t) hΛc
   convert H using 4
   ring
 
