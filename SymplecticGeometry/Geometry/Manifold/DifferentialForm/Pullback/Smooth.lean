@@ -26,7 +26,9 @@ naturality of the exterior derivative, it gives `dθ` at `x` for a smooth form `
 near `x` with a pullback (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`).
 On a basis `c` of the tangent space at `x`, the pullback takes the value of `φ (f x)` on the
 image of `c` under the differential, when that is given as a linear equivalence
-(`TauCeti.mpullback_apply_basis_map`).
+(`TauCeti.mpullback_apply_basis_map`). On three vectors `![u, v, w]`, the pullback of a three-form
+is the form on their images under the differential (`TauCeti.mpullback_apply_triple`), as Tau
+Ceti's `TauCeti.mpullback_apply_pair` says for two-forms.
 With naturality alone, when `f` maps `s` into `t`, a form that is exact on a neighbourhood of `t`
 pulls back to one that is exact on a neighbourhood of `s`
 (`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
@@ -84,6 +86,8 @@ under translation by `c`, so is the pullback along `u` of every form
 
 * `TauCeti.mpullback_apply_eq_compContinuousLinearMap`: the pullback at `x` is
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
+* `TauCeti.mpullback_apply_triple`: the pullback of a three-form at `x` on `![u, v, w]` is the
+  form at `f x` on the images of `u`, `v`, `w` under the differential.
 * `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
   the differential of the map at `x`.
 * `Filter.EventuallyEq.mpullback_apply_eq_self`, and its smooth case
@@ -154,6 +158,18 @@ theorem mpullback_apply_eq_compContinuousLinearMap (f : M → M') (φ : RoughFor
     (x : M) :
     mpullback I I' f φ x = (φ (f x)).compContinuousLinearMap (mfderiv I I' f x) :=
   ContinuousAlternatingMap.ext fun v ↦ mpullback_apply f φ x v
+
+/-- The pullback of a three-form at `x`, evaluated on three tangent vectors, is the form at `f x`
+evaluated on their images under the differential of `f` at `x`; Tau Ceti's
+`TauCeti.mpullback_apply_pair` is the same statement for two-forms. -/
+theorem mpullback_apply_triple (f : M → M') (φ : RoughForm I' M' F 3) (x : M)
+    (u v w : TangentSpace I x) :
+    mpullback I I' f φ x ![u, v, w] =
+      φ (f x) ![mfderiv I I' f x u, mfderiv I I' f x v, mfderiv I I' f x w] := by
+  rw [mpullback_apply]
+  congr 1
+  funext i
+  fin_cases i <;> rfl
 
 /-- Two maps with the same value and the same differential at `x` pull a form back to the same
 value at `x`. -/

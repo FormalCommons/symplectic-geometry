@@ -957,12 +957,9 @@ theorem integral_mpullback_mextDeriv_transportedCylinder_add_eq_zero {τ : Smoot
     rw [rectangleIntegral_def]
     refine (intervalIntegral.integral_congr fun t _ ↦ ?_).trans intervalIntegral.integral_zero
     refine (intervalIntegral.integral_congr fun θ _ ↦ ?_).trans intervalIntegral.integral_zero
-    rw [mpullback_apply]
-    refine Eq.trans ?_ (hD.val_mfderiv_transportedCylinder_slice_eq_zero (n := ⊤) (c := c) hτD
-      le_top (hf.of_le (by simp)) hfp (hΔ.contMDiff.of_le (by simp)) hr (t, θ))
-    congr 1
-    ext i
-    fin_cases i <;> rfl
+    exact (mpullback_apply_pair _ _ _ _ _).trans <|
+      hD.val_mfderiv_transportedCylinder_slice_eq_zero (n := ⊤) (c := c) hτD le_top
+        (hf.of_le (by simp)) hfp (hΔ.contMDiff.of_le (by simp)) hr (t, θ)
   -- So its derivative in `s` vanishes; by the first variation formula, it is the left side
   -- plus the integral at `t = 0`.
   have key := (hasDerivAt_rectangleIntegral_slice_of_contMDiffOn (τ := τ.val)
@@ -1032,14 +1029,13 @@ theorem period_interior_velocity_holonomyDiffeotopy {σ : SmoothTwoForm IF F}
   have h₁ (θ : ℝ) :
       mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM C τ.val ((s : ℝ), 1, θ) ![(1, 0, 0), (0, 0, 1)] =
         α.val (Φ (s, c θ)) fun _ ↦ Manifold.curveVelocity IF (fun θ ↦ Φ (s, c θ)) θ := by
-    rw [mpullback_apply, SmoothTwoForm.coe_interiorₗ, RoughForm.interior_apply,
-      Diffeotopy.coe_smoothVelocity]
-    refine (Eq.trans ?_ (apply_mfderiv_transportedCylinder_one_of_restrictsTo (hD := hD) rfl hτ
-      hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b) (hA.contMDiffOn_trivAt_symm b) hΔ hx hc s
-      θ)).trans ?_ <;>
-    · congr 1
-      ext i
-      fin_cases i <;> rfl
+    rw [SmoothTwoForm.coe_interiorₗ, RoughForm.interior_apply, Diffeotopy.coe_smoothVelocity]
+    refine (mpullback_apply_pair _ _ _ _ _).trans <|
+      (apply_mfderiv_transportedCylinder_one_of_restrictsTo (hD := hD) rfl hτ hA.contMDiff_proj
+        hfp (hA.contMDiffOn_trivAt b) (hA.contMDiffOn_trivAt_symm b) hΔ hx hc s θ).trans ?_
+    congr 1
+    ext i
+    fin_cases i <;> rfl
   -- The closed form `ι_{X_s} σ` has the same line integral along `c` and along the moved loop.
   have hα := (mem_closedForms IF α).1 (Φ.interiorₗ_smoothVelocity_mem_closedForms hσ hΦ s)
   rw [← Φ.pathIntegral_apply_eq (α.isSmoothForm.of_le (by simp)) hα (hc.of_le (by simp))
