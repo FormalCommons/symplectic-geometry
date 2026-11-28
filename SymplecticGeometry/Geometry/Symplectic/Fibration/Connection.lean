@@ -275,10 +275,8 @@ theorem mlieDerivForm_apply_eq_mextDeriv_apply (hA : A.IsContMDiff ∞ IB IF IM)
     mlieDerivForm X τ.val x ![η₁, η₂] = mextDeriv τ.val x ![X x, η₁, η₂] := by
   -- The contraction `ι_X τ` vanishes on vertical vectors, as `X` is horizontal.
   have hsb : RoughForm.IsSemibasic IB proj (RoughForm.interior X τ.val) := by
-    refine RoughForm.isSemibasic_iff.2 fun y v i hv ↦ ?_
-    obtain rfl : i = 0 := Subsingleton.elim _ _
-    rw [RoughForm.interior_apply,
-      show v = ![v 0] from funext fun i ↦ by rw [Subsingleton.elim i 0, Matrix.cons_val_zero]]
+    refine RoughForm.isSemibasic_iff_of_degree_one.2 fun y v hv ↦ ?_
+    rw [RoughForm.interior_apply]
     exact val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (hXh y) hv
   have hsm : IsSmoothBundleForm (I := IM) (F := ℝ) (V := Trivial M ℝ) 1
       (RoughForm.interior X τ.val) :=
