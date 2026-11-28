@@ -866,8 +866,8 @@ theorem tendsto_deriv_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (
 `A = sqrtAddLeaf L 1 ℓ`, `T` Struwe's shape with value `2 ℓ - 47 / 8` at `1` and the width
 `η = (ℓ - 6) / 200`: the leaf is `A` near `r` where `A r - T r > η`; it is `T` near `r` where
 `A r - T r < -η`, which happens only below `2`, where `T` is an `i`-convex shape; elsewhere `r < 2`
-too, and the slopes of `A` and `T` at `r` are small enough against `1 / η` for
-`isConvexShapeAt_smoothedMax`. -/
+too, and the slopes of `A` and `T` at `r` are small enough against `1 / η`. These are the three
+cases of `isConvexShapeAt_smoothedMax_of_imp`. -/
 private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤ L)
     (hℓ : ℓ ∈ Ioc 6 7) (hr : 1 < r) (hA : IsConvexShapeAt (sqrtAddLeaf L 1 ℓ) r) :
     IsConvexShapeAt (struweSwitchLeaf L 1 ℓ) r := by
@@ -886,34 +886,24 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
   have hTc : ContDiffAt ℝ 2 T r :=
     ((contDiffOn_struweShape one_pos le_rfl _).contDiffAt (Ioi_mem_nhds hr)).of_le
       (by simp)
-  rcases lt_or_ge η (A r - T r) with h₁ | h₁
-  · -- The leaf is `A` near `r`.
-    refine hA.congr_of_eventuallyEq ?_
-    rw [hχ]
-    exact smoothedMax_eventuallyEq_left_of_continuousAt hη₀ hAc.continuousAt hTc.continuousAt
-      (by linarith)
   -- From `2` on, `A - T ≥ 2 > η`.
-  have hr₂ : r < 2 := by
-    by_contra! h
-    have := two_le_sqrtAddLeaf_sub_struweShape L ⟨by linarith, hℓ₇⟩ h
+  have hr₂ : A r - T r ≤ η → r < 2 := fun h ↦ by
+    by_contra! h'
+    have := two_le_sqrtAddLeaf_sub_struweShape L ⟨by linarith, hℓ₇⟩ h'
     linarith
-  -- Struwe's shape is an `i`-convex shape on `(1, 2]`.
-  have hT : IsConvexShapeAt T r := by
+  rw [hχ]
+  refine isConvexShapeAt_smoothedMax_of_imp hAc hTc hη₀ (fun _ ↦ hA) (fun h ↦ ?_) (fun h ↦ ?_)
+  · -- Struwe's shape is an `i`-convex shape on `(1, 2]`.
+    have hr₂ := hr₂ (by linarith)
     have hs : √(log (2 / 1)) ≤ 1 :=
       sqrt_le_one.2 (by rw [div_one]; linarith [log_two_lt_d9])
     have hs₀ : 0 ≤ √(log (2 / 1)) := sqrt_nonneg _
     refine isConvexShapeAt_struweShape_of_le_of_mem_Ioc (m := 6) one_pos le_rfl
       (by rw [struweShape_one_apply_self]; linarith) (by linarith) ?_ ⟨hr, hr₂.le⟩
     nlinarith [pow_le_one₀ hs₀ hs (n := 3)]
-  rcases lt_or_ge (A r - T r) (-η) with h₂ | h₂
-  · -- The leaf is `T` near `r`.
-    refine hT.congr_of_eventuallyEq ?_
-    rw [hχ]
-    exact smoothedMax_eventuallyEq_right_of_continuousAt hη₀ hAc.continuousAt hTc.continuousAt
-      (by linarith)
   -- Where `|A r - T r| ≤ η`, the width condition of `isConvexShapeAt_smoothedMax`.
-  rw [hχ]
-  refine isConvexShapeAt_smoothedMax hAc hTc hη₀ hA hT ?_
+  obtain ⟨h₂, h₁⟩ := abs_le.1 h
+  have hr₂ := hr₂ h₁
   set w := √(r ^ 2 - 1)
   have hw₀ : 0 < w := sqrt_pos.2 (by nlinarith)
   have h8 : √(64 * r ^ 2 - 64 * 1 ^ 2) = 8 * w := by
