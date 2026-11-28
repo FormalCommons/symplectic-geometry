@@ -304,6 +304,7 @@ theorem relDualClass_ofTransverseSection {r : ℕ} (o' : VectorBundleOrientation
   refine ((ConcreteCategory.congr_hom (TopPair.singularCohomologyMap_id _ _) _).symm.trans
     (singularCohomologyMap_relDualClass_eq_of_relDualClassOf _ hm _ _
       (normalOrientationOfSection hm hsm hs hE hι o') rfl (𝟙 _) _ _ ?_)).symm
+  -- The remaining goal is stated for `ModuleCat.instLinear`; `rw` must find that instance.
   let : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear
   rw [TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply, ← h,
     TopPair.singularCohomologyLinearCongr_naturality,
