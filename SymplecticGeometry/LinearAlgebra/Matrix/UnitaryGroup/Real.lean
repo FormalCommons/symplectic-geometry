@@ -10,6 +10,7 @@ public import Mathlib.Analysis.Complex.Basic
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Orthogonal.Unitary
 public import TauCeti.LinearAlgebra.Matrix.OfReal
 public import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
+import SymplecticGeometry.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
 
 /-!
 # The real points of the unitary group
@@ -32,8 +33,6 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff_exists`: `U` lies in it iff `U` is the complex image
   of a real orthogonal matrix.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff`: `U` lies in it iff its entries are real.
-* `TauCeti.coe_orthogonalComplexMatrix`: Tau Ceti's embedding `O(n) →* U(n)` sends `O` to the
-  complex matrix `O.map (↑)` with the same entries.
 * `Matrix.UnitaryGroup.realSubgroup_eq_range`: it is the range of Tau Ceti's embedding
   `TauCeti.orthogonalComplexMatrix`.
 * `Matrix.UnitaryGroup.orthogonalComplexMatrix_mem_realSubgroup`: the image of a real
@@ -49,14 +48,6 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 public section
 
 open Matrix
-
-/-- Tau Ceti's embedding `O(n) →* U(n)` sends a real orthogonal matrix to the complex matrix with
-the same entries. -/
-@[simp]
-theorem TauCeti.coe_orthogonalComplexMatrix {ι : Type*} [Fintype ι] [DecidableEq ι]
-    (g : orthogonalGroup ι ℝ) :
-    (TauCeti.orthogonalComplexMatrix g : Matrix ι ι ℂ) = (g : Matrix ι ι ℝ).map (↑) := by
-  ext; simp
 
 namespace Matrix.UnitaryGroup
 

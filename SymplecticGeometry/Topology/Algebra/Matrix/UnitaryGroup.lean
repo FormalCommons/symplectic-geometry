@@ -8,7 +8,7 @@ module
 public import Mathlib.Topology.Instances.Matrix
 public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Projective
 public import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
-import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
+import SymplecticGeometry.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
 
 /-!
 # Continuity of maps into the unitary group
