@@ -59,7 +59,7 @@ differential at `[1, 0]` is `T`, is such a `Ψ₀`.
 
 If moreover `μ : M → 𝔤*` is a coadjoint-equivariant moment map of `σ` with `μ x = D.τ`, then `N`
 can be shrunk so that also `μ ∘ Ψ` is the moment map `μ_Y` of the local model
-(`SymplecticGeometry.LocalModelData.descendedMomentMap`). Give `N` the restricted action of `G`
+(`TauCeti.CotangentBundle.balancedProductInducedMomentMap`). Give `N` the restricted action of `G`
 (`TopologicalSpace.Opens.mulActionOfForallSMulMem`). Both `μ ∘ Ψ` and `μ_Y` restricted to `N` are
 equivariant moment maps of `Ψ^* σ = ω|_N`
 (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.mpullback`, from Tau Ceti), so the set where they
@@ -114,6 +114,7 @@ inverse of `Ψ ∘ s`, followed by a linear isomorphism onto a Euclidean space, 
 public section
 
 open Function MulAction TauCeti TauCeti.Lie TauCeti.Manifold TopologicalSpace
+  TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -177,7 +178,10 @@ theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
           (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
             (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
               ((0 : A), (0 : V))) v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
       ∃ (N : Opens (BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V)))
@@ -192,7 +196,10 @@ theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
           Ψ ⟨_, h⟩ = g • x) ∧
         IsLocalDiffeomorph 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' ∞ Ψ ∧
         SmoothForm.mpullback Ψ hΨ σ =
-          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal D.descendedForm := by
+          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal
+              (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+                D.mpullback_smul_mpullback_snd_constSmooth
+                D.isMomentMap_mpullback_snd_constSmooth) := by
   intro σ hσc hσ Ψ₀ hΨ₀G hΨ1 hΨ₀d hT'
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
@@ -227,8 +234,9 @@ theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
     simp [f, BalancedProduct.zeroSectionRightTranslation_mk]
   obtain ⟨N, Ψ, hΨ, hfN, hNG, hΨG, hΨf, hΨd, hΨσ⟩ :=
     SmoothEmbedding.exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along I f
-      (fun g q ↦ ⟨g • q, by simp [f]⟩) D.isClosed_descendedForm
-      (fun g ↦ D.mpullback_smul_descendedForm g _) hσc hσ hΨ₀G
+      (fun g q ↦ ⟨g • q, by simp [f]⟩) (isClosed_balancedProductInducedForm
+        ((SymplecticForm.isClosed_constSmooth D.σ).mpullback _ _))
+      (fun g ↦ mpullback_smul_balancedProductInducedForm g) hσc hσ hΨ₀G
       (fun q ↦ by
         induction q using QuotientGroup.induction_on with
         | H g => rw [hf, ← hmk]; exact (isLocalDiffeomorphAt_smul_iff hΨ₀G g).2 hΨ₀d)
@@ -267,7 +275,10 @@ theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
         (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
           ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
       (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
       (∀ (k : stabilizer G x) u,
@@ -289,7 +300,10 @@ theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
           Ψ ⟨_, h⟩ = g • x) ∧
         IsLocalDiffeomorph 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' ∞ Ψ ∧
         SmoothForm.mpullback Ψ hΨ σ =
-          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal D.descendedForm := by
+          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal
+              (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+                D.mpullback_smul_mpullback_snd_constSmooth
+                D.isMomentMap_mpullback_snd_constSmooth) := by
   intro σ hσc hσ T hTσ hTk hTξ
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
@@ -310,7 +324,7 @@ theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
 moreover `μ : M → 𝔤*` be a coadjoint-equivariant moment map of `σ` whose value at `x` is the
 covector `D.τ` of the local model. Then `N` and `Ψ` can be chosen with all the properties given
 there and moreover `μ (Ψ y) = μ_Y y` for every `y ∈ N`, where `μ_Y` is the moment map
-`D.descendedMomentMap` of the local model. -/
+`TauCeti.CotangentBundle.balancedProductInducedMomentMap` of the local model. -/
 theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
@@ -325,7 +339,10 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
         (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
           ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
       (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
       (∀ (k : stabilizer G x) u,
@@ -347,8 +364,11 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
           Ψ ⟨_, h⟩ = g • x) ∧
         IsLocalDiffeomorph 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' ∞ Ψ ∧
         SmoothForm.mpullback Ψ hΨ σ =
-          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal D.descendedForm ∧
-        ∀ y : N, μ (Ψ y) = D.descendedMomentMap y := by
+          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal
+              (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+                D.mpullback_smul_mpullback_snd_constSmooth
+                D.isMomentMap_mpullback_snd_constSmooth) ∧
+        ∀ y : N, μ (Ψ y) = balancedProductInducedMomentMap G D.covectorCLM_smul y := by
   intro σ hσc hσ μ hμ hτ T hTσ hTk hTξ
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
@@ -368,13 +388,15 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
     (congrArg Ψ (Subtype.ext (hcN g y))).trans (hΨG g y (hNG g y y.property))
   have h₁ := hμ.mpullback hΨ hΨG'
   rw [hΨσ] at h₁
-  have h₂ := D.isEquivariantMomentMap_descendedForm.mpullback contMDiff_subtypeVal hcN
+  have h₂ := (isEquivariantMomentMap_balancedProductInducedForm (hf := D.contMDiff_covectorCLM)
+    (hfK := D.covectorCLM_smul) (hσK := D.mpullback_smul_mpullback_snd_constSmooth)
+    (hμ := D.isMomentMap_mpullback_snd_constSmooth)).mpullback contMDiff_subtypeVal hcN
   -- The set where the two agree is open and `G`-invariant; restrict `Ψ` to it.
-  let V : Opens N := ⟨{y | μ (Ψ y) = D.descendedMomentMap y},
+  let V : Opens N := ⟨{y | μ (Ψ y) = balancedProductInducedMomentMap G D.covectorCLM_smul y},
     (h₁.toIsMomentMap.isClopen_setOfPred_eq h₂.toIsMomentMap).isOpen⟩
   have hVG (g : G) (y : N) (hy : y ∈ V) : g • y ∈ V := by
     simp only [V, Opens.mem_mk, Set.mem_ofPred_eq] at hy ⊢
-    rw [hΨG', hμ.apply_smul, hcN, descendedMomentMap_smul, hy]
+    rw [hΨG', hμ.apply_smul, hcN, D.balancedProductInducedMomentMap_smul, hy]
   let N' := Opens.imageVal V
   have hN'N : N' ≤ N := Opens.imageVal_le V
   refine ⟨N', Ψ ∘ Opens.inclusion hN'N, hΨ.comp (contMDiff_inclusion hN'N),
@@ -384,7 +406,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
     fun ⟨y, hy⟩ ↦ (Opens.mem_imageVal.1 hy).2⟩
   · -- The zero section: there both maps are `Ad*_g τ`.
     simp only [V, Opens.mem_mk, Set.mem_ofPred_eq]
-    rw [hΨ0, hμ.apply_smul, descendedMomentMap_mk_zero, hτ]
+    rw [hΨ0, hμ.apply_smul, D.balancedProductInducedMomentMap_mk_zero, hτ]
   · rw [← SmoothForm.mpullback_mpullback _ _ (contMDiff_inclusion hN'N) hΨ, hΨσ,
       SmoothForm.mpullback_inclusion_mpullback_subtypeVal]
 
@@ -409,7 +431,8 @@ dimension of the symplectic slice at `x`, to that slice, and `eA` from `ℝ^m`,
 descended form `ω`, there are a `G`-invariant open set `N` of `Y` containing every point
 `[g, 0]` of the zero section and a smooth map `Ψ : N → M`, `G`-equivariant, with
 `Ψ [g, 0] = g • x`, a local diffeomorphism, with `Ψ^* σ = ω` on `N`, and with `μ (Ψ y) = μ_Y y`
-for every `y ∈ N`, where `μ_Y` is the moment map `D.descendedMomentMap` of the local model. -/
+for every `y ∈ N`, where `μ_Y` is the moment map
+`TauCeti.CotangentBundle.balancedProductInducedMomentMap` of the local model. -/
 theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ.IsClosed)
     (hσ : σ.IsNondegenerate)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
@@ -460,8 +483,11 @@ theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ
           (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule (E × (A × V)))
           I' ∞ Ψ ∧
         SmoothForm.mpullback Ψ hΨ σ =
-          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal D.descendedForm ∧
-        ∀ y : N, μ (Ψ y) = D.descendedMomentMap y := by
+          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal
+              (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+                D.mpullback_smul_mpullback_snd_constSmooth
+                D.isMomentMap_mpullback_snd_constSmooth) ∧
+        ∀ y : N, μ (Ψ y) = balancedProductInducedMomentMap G D.covectorCLM_smul y := by
   have hx : IsClosed (stabilizer G x : Set G) := isClosed_stabilizer
     (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
   intro d _ _ _ V A
