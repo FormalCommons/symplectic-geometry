@@ -529,8 +529,9 @@ the library.
   is the image of $[\omega]$ under Tau Ceti's de Rham homomorphism
   `TauCeti.deRhamHom` (`Geometry/Manifold/SmoothSingular/SingularCohomology.lean`);
   the definition uses no de Rham theorem, and *Asymptotically holomorphic
-  sections* proves the de Rham theorem as a prerequisite, to read the lift as
-  a de Rham class. The Hermitian line bundle of §7.4 has a unitary
+  sections* reads the lift as a de Rham class through Tau Ceti's de Rham
+  theorem `TauCeti.bijective_deRhamHom`
+  (`Geometry/Manifold/SmoothSingular/DeRham/Equiv.lean`). The Hermitian line bundle of §7.4 has a unitary
   connection whose curvature is $-2\pi i\omega$, as on the page;
   *Asymptotically holomorphic sections* rescales to Auroux's $\Omega=2\pi\omega$ inside its
   proofs only.
@@ -3009,10 +3010,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   (`TauCeti.deRhamHom` in
   `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the base
   cases of the de Rham theorem in
-  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the compact case
-  is the merged `TauCeti.bijective_deRhamHom_of_compactSpace` of
-  *Asymptotically holomorphic sections*, in
-  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`), or directly from
+  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the theorem
+  itself is Tau Ceti's `TauCeti.bijective_deRhamHom`, in
+  `Geometry/Manifold/SmoothSingular/DeRham/Equiv.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
   page's route through the Poincaré dual of an orbit is replaced by the
@@ -3916,8 +3916,8 @@ hypersurface theorem.
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
   *Minimal coupling*, corrected by an imaginary one-form; it uses the merged
-  prerequisites `TauCeti.injective_deRhamHom` (the de Rham theorem, in
-  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`),
+  prerequisites `TauCeti.bijective_deRhamHom` (the de Rham theorem, Tau
+  Ceti's, in `SmoothSingular/DeRham/Equiv.lean`),
   `SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq`
   (every integral class of degree two is the Euler class of a line bundle, in
   `VectorBundle/Hermitian/Realization.lean`) and
@@ -4456,8 +4456,8 @@ Both milestones, proved in full. Their parts wait for no part of
 - **Betti numbers.** In the Hodge milestone they are dimensions of de Rham
   cohomology, since the decomposition is one of de Rham classes by
   harmonic forms; on a closed manifold these are the dimensions of real
-  singular cohomology by the library's de Rham theorem
-  (`TauCeti.bijective_deRhamHom_of_compactSpace`), so nothing is lost. The
+  singular cohomology by Tau Ceti's de Rham theorem
+  (`TauCeti.bijective_deRhamHom`), so nothing is lost. The
   book's use of the result, the first Betti number of the Kodaira–Thurston
   manifold, is computed in de Rham cohomology by Tau Ceti.
 - **Signs on `atlas/symplectic-group-actions.md`.** This page uses the
@@ -4499,10 +4499,8 @@ Both milestones, proved in full. Their parts wait for no part of
 - **Real Chern classes.** The page uses only the image of $c_1(\mathrm{Ver})$
   in real cohomology, which it identifies with de Rham cohomology. The
   library builds the real class directly as a de Rham class by Chern–Weil,
-  instead of carrying the integral class back through the de Rham theorem,
-  which the library proves only on manifolds with a finite good cover
-  (`SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`, compact
-  ones among them): the Chern–Weil class is
+  instead of carrying the integral class back through the de Rham theorem
+  (`TauCeti.bijective_deRhamHom`): the Chern–Weil class is
   defined over every Hausdorff $\sigma$-compact base and comes with the
   curvature form that represents it, which the constructions use. The two
   are compared over closed oriented surfaces, through Chern numbers.
