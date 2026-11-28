@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Automorphism
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Section.ScalarTopology
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 import TauCeti.Topology.VectorBundle.ZeroSection
 
@@ -79,6 +80,14 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
   transformation fixing `0`, `1` and `∞` is the identity (Tau Ceti's
   `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`). Hence
   `SymplecticGeometry.uniformizingDiffeomorph_ofComplexManifold`: `σ(i) = 1`.
+* `SymplecticGeometry.exists_continuousAt_mem_twistOneKernel_eq_zero`: near a structure `J₀`, one
+  can pick, continuously in `J`, a smooth section of `𝒪(1)` in `E_J` that is nonzero and has
+  a zero at a given point `p`. With the family `T_J` of
+  `SymplecticGeometry.exists_continuousAt_twistOneKernelFamily` and a basis `a, b` of `E_{J₀}`,
+  it is `T_J b (p) • T_J a - T_J a (p) • T_J b`. As `T_J` is injective, it is nonzero once
+  `T_J a` and `T_J b` do not both vanish at `p`. This holds at `J₀`, since `a` and `b` are
+  not proportional (`SymplecticGeometry.exists_smul_eq_of_mem_twistOneKernel`), and so near
+  `J₀`, since evaluation at `p` is continuous on smooth sections.
 
 ## References
 
@@ -516,6 +525,116 @@ theorem uniformizingDiffeomorph_ofComplexManifold :
     uniformizingDiffeomorph tameOfComplexManifold = 1 := by
   refine Subtype.ext ((eq_uniformizingDiffeomorph_iff _).2 ?_).symm
   simp [Diffeomorph.one_def]
+
+/-! ### Kernel elements vanishing at a point, near a given structure -/
+
+section Family
+
+universe u
+
+open Bundle
+open OnePoint (twistCore)
+open scoped VectorBundle.ComplexToReal
+
+variable {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} {ι : Type*}
+  (e : ι → Trivialization (ℂ →L[ℝ] ℂ) (π (ℂ →L[ℝ] ℂ) (fun x : OnePoint ℂ ↦
+    TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+  [∀ i, MemTrivializationAtlas (e i)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+  (hU : ∀ i, (U i : Set (OnePoint ℂ)) ⊆ (e i).baseSet)
+
+/-- **Kernel elements vanishing at a point, continuous in the structure.** Let a two-form `σ` on
+the sphere tame both `J₀` and the standard structure `i`, and give the structures tamed by `σ`
+the subspace topology of `SmoothAlmostComplexStructure.frameTopology e U hU`, for frames whose
+domains cover the sphere. For every point `p` of the sphere there is a family `S` of smooth
+sections of `𝒪(1)` such that, for `J` near `J₀`, `S J` is a nonzero element of
+`twistOneKernel J` vanishing at `p`, and `S` is continuous at `J₀` for
+`ContMDiffSection.frameTopology e' U' hU'`, for every frame system `(e', U')` of `𝒪(1)`.
+
+For `p = 0` and `p = ∞` this gives the two sections of the formula of `uniformizingMap_eq`,
+chosen continuously in the structure. -/
+theorem exists_continuousAt_mem_twistOneKernel_eq_zero (hcover : ∀ x, ∃ i, x ∈ U i)
+    {J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ₀ : σ.Tames J₀)
+    (hi : σ.Tames 𝒊) (p : OnePoint ℂ) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    ∃ S : {J // σ.Tames J} →
+        Cₛ^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯,
+      (∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, ⇑(S J) ∈ twistOneKernel J.val ∧ ⇑(S J) ≠ 0 ∧ S J p = 0) ∧
+      ∀ {κ : Type u} (e' : κ → Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber))
+        [∀ i, MemTrivializationAtlas (e' i)] (U' : κ → TopologicalSpace.Opens (OnePoint ℂ))
+        (hU' : ∀ i, (U' i : Set (OnePoint ℂ)) ⊆ (e' i).baseSet),
+        letI := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+          e' U' hU'
+        ContinuousAt S ⟨J₀, hJ₀⟩ := by
+  intro _
+  obtain ⟨T, hT, hT₀, hS⟩ :=
+    exists_continuousAt_twistOneKernelFamily.{_, u} e U hU hcover hJ₀ hi
+  have := finiteDimensional_twistOneKernel hJ₀ hi
+  -- A basis `a, b` of the plane `twistOneKernel J₀`.
+  let v := Module.finBasisOfFinrankEq ℂ _ (finrank_twistOneKernel hJ₀ hi)
+  have hv : LinearIndependent ℂ ![v 0, v 1] := by
+    convert v.linearIndependent
+    ext i
+    fin_cases i <;> rfl
+  -- Evaluation at `p` is continuous for the frame system of the trivializations at each point,
+  -- so `J ↦ T J s p` is continuous at `J₀`.
+  let e₁ (x : ULift.{u} (OnePoint ℂ)) := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber x.down
+  let U₁ (x : ULift.{u} (OnePoint ℂ)) : TopologicalSpace.Opens (OnePoint ℂ) :=
+    ⟨_, (e₁ x).open_baseSet⟩
+  have hU₁ : ∀ x, (U₁ x : Set (OnePoint ℂ)) ⊆ (e₁ x).baseSet := fun _ ↦ subset_rfl
+  have hev (s : twistOneKernel J₀) : ContinuousAt (fun J ↦ T J s p) ⟨J₀, hJ₀⟩ := by
+    obtain ⟨S', hS', hS'c⟩ := hS s
+    let := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+      e₁ U₁ hU₁
+    refine (((ContMDiffSection.continuous_eval_const e₁ U₁ hU₁
+      (fun x ↦ ⟨⟨x⟩, mem_baseSet_trivializationAt _ _ x⟩) p).continuousAt).comp
+        (hS'c e₁ U₁ hU₁)).congr ?_
+    filter_upwards [hS'] with J hJ using congrFun hJ p
+  -- At `J₀`, `a` and `b` do not both vanish at `p`, since they are not proportional.
+  have hl₀ : (T ⟨J₀, hJ₀⟩ (v 0) p, T ⟨J₀, hJ₀⟩ (v 1) p) ≠ 0 := by
+    rw [hT₀, hT₀]
+    intro h
+    obtain ⟨c, hc⟩ := exists_smul_eq_of_mem_twistOneKernel hJ₀ hi (v 0).property (v 1).property
+      (fun h₀ ↦ v.ne_zero 0 (Subtype.ext h₀)) (congrArg Prod.fst h) (congrArg Prod.snd h)
+    have h₁ := LinearIndependent.pair_iff.1 hv c (-1) (Subtype.ext (by simp [hc]))
+    exact one_ne_zero (neg_eq_zero.1 h₁.2)
+  obtain ⟨Sa, hSa, hSac⟩ := hS (v 0)
+  obtain ⟨Sb, hSb, hSbc⟩ := hS (v 1)
+  let S (J : {J // σ.Tames J}) :
+      Cₛ^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ :=
+    T J (v 1) p • Sa J - T J (v 0) p • Sb J
+  refine ⟨S, ?_, fun e' _ U' hU' ↦ ?_⟩
+  · filter_upwards [hT, hSa, hSb, ((hev (v 0)).prodMk (hev (v 1))).eventually_ne hl₀]
+      with J hJ ha hb hne
+    -- The equation is stated for functions to `ℂ`, which is what each fibre of `𝒪(1)` is.
+    have hSJ : @Eq (OnePoint ℂ → ℂ) ⇑(S J) (T J (T J (v 1) p • v 0 - T J (v 0) p • v 1)) := by
+      simp only [S, ContMDiffSection.coe_sub, ContMDiffSection.coe_smul_of_normedAlgebra, ha,
+        hb, map_sub, map_smul]
+      -- The two sides differ only in the scalar action: on the fibres of `𝒪(1)`, and on `ℂ`.
+      rfl
+    refine ⟨?_, fun h ↦ hne ?_, ?_⟩
+    · have hm : T J (T J (v 1) p • v 0 - T J (v 0) p • v 1) ∈ twistOneKernel J.val :=
+        hJ.2 ▸ LinearMap.mem_range_self _ _
+      exact hSJ ▸ hm
+    · have h₀ : T J (T J (v 1) p • v 0 - T J (v 0) p • v 1) = T J 0 :=
+        (hSJ.symm.trans h).trans (map_zero (T J)).symm
+      have h₁ := LinearIndependent.pair_iff.1 hv (T J (v 1) p) (-T J (v 0) p)
+        (by rw [neg_smul, ← sub_eq_add_neg]; exact hJ.1 h₀)
+      exact Prod.ext (neg_eq_zero.1 h₁.2) h₁.1
+    · refine (congrFun hSJ p).trans ?_
+      exact (by simp [mul_comm] : T J (T J (v 1) p • v 0 - T J (v 0) p • v 1) p = (0 : ℂ))
+  · let _ := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+      e' U' hU'
+    have hg := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := 𝓘(ℝ, ℂ))
+      (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' U' hU'
+    have := ContMDiffSection.continuousSMul_frameTopology_ofNormedAlgebra (𝕜' := ℂ)
+      (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' U' hU'
+    -- Instance search does not derive this from `hg` here, so it is given by hand.
+    have : ContinuousSub
+        Cₛ^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ :=
+      @IsTopologicalAddGroup.to_continuousSub _ _ _ hg
+    exact ((hev (v 1)).smul (hSac e' U' hU')).sub ((hev (v 0)).smul (hSbc e' U' hU'))
+
+end Family
 
 end SymplecticGeometry
 
