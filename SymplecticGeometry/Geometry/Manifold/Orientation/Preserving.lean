@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Topology.Algebra.Module.Determinant
 import TauCeti.Geometry.Manifold.Orientation.Pullback
 
 /-!
@@ -17,7 +18,10 @@ A map of a finite-dimensional real normed space `E` whose derivative at `v` has 
 determinant preserves every orientation of `E` at `v`
 (`TauCeti.Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos`). This is the
 counterpart of Tau Ceti's `TauCeti.Manifold.Orientation.isOrientationReversingAt_of_det_fderiv_neg`,
-and its proof is that of Tau Ceti's lemma with the sign changed.
+and its proof is that of Tau Ceti's lemma with the sign changed. In particular, for `0 < c`, the
+affine map `y ↦ q + c • (y - p)` of `E`, whose derivative `c • id` has determinant
+`c ^ finrank ℝ E`, preserves every orientation of `E` at every point
+(`TauCeti.Manifold.Orientation.isOrientationPreservingAt_add_smul_sub`).
 
 The inverse of a chart of the maximal `C¹` atlas of a manifold modelled on `E` preserves
 orientation at a point of its target when the chart preserves it at the corresponding point of its
@@ -59,6 +63,17 @@ theorem isOrientationPreservingAt_of_det_fderiv_pos (o : Manifold.Orientation �
     exact (fderiv ℝ f v).coe_toContinuousLinearEquivOfDetNeZero hdet.ne'
   · rw [orientationAt_eq_orientationAt o (f v) v]
     exact (_root_.Orientation.map_eq_iff_det_pos _ _ o.card_eq).mpr hdet
+
+/-- **Positive homotheties preserve orientation.** For `0 < c`, the affine map
+`y ↦ q + c • (y - p)` of a finite-dimensional real normed space `E` preserves every orientation of
+`E` at every point. -/
+theorem isOrientationPreservingAt_add_smul_sub (o : Manifold.Orientation 𝓘(ℝ, E) E ι) {c : ℝ}
+    (hc : 0 < c) (q p v : E) : IsOrientationPreservingAt o o (fun y ↦ q + c • (y - p)) v := by
+  refine isOrientationPreservingAt_of_det_fderiv_pos o ?_
+  have hd : HasFDerivAt (fun y ↦ q + c • (y - p)) (c • ContinuousLinearMap.id ℝ E) v :=
+    (((hasFDerivAt_id v).sub_const p).const_smul c).const_add q
+  rw [hd.fderiv, ContinuousLinearMap.det_smul, ContinuousLinearMap.det_id, mul_one]
+  positivity
 
 /-- **The inverse of an oriented smooth chart preserves orientation.** If a chart `e` of the
 maximal `C¹` atlas of a manifold `M` modelled on `E` preserves orientations at `e.symm y`, from
