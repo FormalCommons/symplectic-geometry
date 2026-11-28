@@ -3596,8 +3596,7 @@ Differential topology and complex analysis only; it waits for no part of
 - **The design file decides:** the models of $X_B$ that the constructions
   use and the isomorphisms between them, and how the coefficients
   $\mu_\pm$ are read (as the integrals of $a$ over $B_{\pm1}$, which
-  avoids Poincaré duality in the statement), and how the singular
-  Leray–Hirsch theorem is brought to de Rham classes.
+  avoids Poincaré duality in the statement).
 
 ### 57. Connected sums
 
