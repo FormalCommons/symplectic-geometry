@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
@@ -42,6 +44,10 @@ linear field `x ↦ A x` the condition reads `σ (A u) v + σ u (A v) = σ u v`
 (`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth`). For linear fields
 this is the converse of `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`, read at
 the zero `0`.
+
+For a closed smooth two-form `σ` and a smooth Liouville field `X`, the contraction `ι_X σ` is a
+primitive of `σ` as a smooth one-form (`TauCeti.IsLiouvilleVectorField.mextDerivₗ_interiorₗ`),
+by Tau Ceti's `TauCeti.isLiouvilleVectorField_iff_mextDeriv_interior_eq`.
 
 ## References
 
@@ -145,5 +151,22 @@ theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V
 end Linear
 
 end TauCeti
+
+namespace TauCeti.IsLiouvilleVectorField
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+
+/-- For a closed smooth two-form `σ` and a smooth Liouville vector field `X` of `σ`, the one-form
+`ι_X σ` is a primitive of `σ`: `d(ι_X σ) = σ`, as smooth forms. -/
+theorem mextDerivₗ_interiorₗ {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
+    {X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯} (hX : IsLiouvilleVectorField σ.val X) :
+    mextDerivₗ I 1 (σ.interiorₗ X) = σ :=
+  Subtype.ext <| by
+    rw [mextDerivₗ_apply, SmoothTwoForm.coe_interiorₗ]
+    exact (isLiouvilleVectorField_iff_mextDeriv_interior_eq σ.mdifferentiable
+      (X.contMDiff.mdifferentiable (by simp)) ((SmoothForm.isClosed_def _).1 hσ)).1 hX
+
+end TauCeti.IsLiouvilleVectorField
 
 end

@@ -207,7 +207,7 @@ for a boundaryless `M` over `𝓘(ℝ, E)` with `E` finite-dimensional:
   `IsGradientLike.comp` (`h ∘ f` for `h` with `h' > 0`), and
   `isGradientLike_mgradient` (the gradient of `f` for any smooth metric,
   with `δ = 1 / 2`).
-- `isGradientLike_of_forall_exists_nhds`: the condition is local. If each
+- `isGradientLike_of_forall_isGradientLikeAt`: the condition is local. If each
   point has a neighbourhood, a metric and a constant for which the
   inequality holds there, the metrics glue by a partition of unity: for a
   convex combination of metrics, $|X|^2$ is the combination, and $|df|^2$ is
@@ -2484,12 +2484,15 @@ agree (forms pulled back by `Subtype.val`).
 - **Issue 18a** (`Weinstein/Rescale.lean`; Lemma 12.1 (i), Remark 12.2 (a),
   Corollary 12.3 (i)). For `hW : IsWeinsteinStructure ω X f` and a smooth
   `h : M → ℝ` with `0 < h` and `0 ≤ dh(X)`:
-  `IsWeinsteinStructure.rescaledForm hW hh`, the form `mextDerivₗ 𝓘(ℝ, E) 1`
+  `rescaledForm ω X h` (in `Liouville/Rescale.lean`, for a smooth field and
+  function, without `hW`), the form `mextDerivₗ 𝓘(ℝ, E) 1`
   of the smooth 1-form `h • ι_X ω`, with `rescaledForm_def`;
-  `rescaledField X h`, the field `x ↦ (h x / (h x + dh(X x))) • X x`, with
+  `rescaledField X h` (also there), the field
+  `x ↦ (h x / (h x + dh(X x))) • X x`, with
   `rescaledField_apply`; `IsWeinsteinStructure.rescale`
-  (`IsWeinsteinStructure (hW.rescaledForm hh) (rescaledField X h) f`; its
-  primitive is `h • ι_X ω`: `interior_rescaledField_rescaledForm`); and
+  (`IsWeinsteinStructure (rescaledForm ω X h) (rescaledField X h) f`; its
+  primitive is `h • ι_X ω`: `interior_rescaledField_rescaledForm`, in
+  `Liouville/Rescale.lean`); and
   `IsWeinsteinStructure.isWeinsteinHomotopy_rescale`, the family
   `t ↦` rescaling by `1 - t + t h`, a Weinstein homotopy from `(ω, X, f)`
   to the rescaled structure with function `f` at every time. The form is
