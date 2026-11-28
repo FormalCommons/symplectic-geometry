@@ -120,7 +120,8 @@ The regularity of the family, which the gluing of `exists_convexShapeFamily_surr
   shapes `F ℓ` are, the other shapes of the bridge leaves being smooth there.
 * `SymplecticGeometry.bridgeFamily_eq_sqrt`: from `max R ((t₁ + 2 δ) / 6)` on, where every `F ℓ`
   is standard from `R` on, each leaf is the standard leaf, since there the raised shape lies more
-  than the width below `8 r` (`SymplecticGeometry.bridgeLeaf_eq_sqrt`).
+  than the width below `8 r` (`SymplecticGeometry.bridgeLeaf_eq_sqrt`); for the first two stages
+  this holds from `(t₁ + 2 δ) / 6` on (`SymplecticGeometry.bridgeFamily_eq_sqrt_of_le`).
 * `SymplecticGeometry.bridgeFamily_le_or_eq`: on `[δ, (t₁ + 2 δ) / 6)` each leaf is at most
   `2 t₁ + 9 (2 ℓ₀)`, or, in the last stage, equal to `F ℓ`.
 * `SymplecticGeometry.bridgeFamily_le_sqrt_or_eq`: from `(t₁ + 2 δ) / 6` on, every leaf is at most
@@ -1200,19 +1201,15 @@ theorem bridgeLeaf_eq_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} {G : ℝ → ℝ} (
   have h8 := eight_mul_le_sqrt_sixtyFour_mul_sq_add ℓ r
   rw [bridgeLeaf_eq_left hη.1 (by rw [hG]; linarith [hη.2]), hG]
 
-/-- **The far part of the bridge family is standard.** Let `L, δ > 0`, `15 δ / 2 < ℓ₀`,
-`M ≥ 0`, `t₁ = bridgeHeight L δ ℓ₀`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be the standard
-leaf `r ↦ √(64 r² + ℓ²)` from `R` on. Then for `ℓ ≤ 2 ℓ₀` and `r ≥ max R ((t₁ + 2 δ) / 6)` the
-leaf `ℓ` of the bridge family is `√(64 r² + ℓ²)` at `r`. (The cutoff region `r < (2 + L) δ` of
-the first stage ends below `(t₁ + 2 δ) / 6`.) -/
-theorem bridgeFamily_eq_sqrt {L ℓ₀ M R ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ)
-    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) {F : ℝ → ℝ → ℝ}
-    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, R ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2)) (hℓ : ℓ ≤ 2 * ℓ₀)
-    (hr : max R ((bridgeHeight L δ ℓ₀ + 2 * δ) / 6) ≤ r) :
+/-- **The far part of the first two stages of the bridge family is standard.** Let `L, δ > 0`,
+`15 δ / 2 < ℓ₀`, `M ≥ 0` and `t₁ = bridgeHeight L δ ℓ₀`. Then for `ℓ ≤ ℓ₀` and
+`r ≥ (t₁ + 2 δ) / 6` the leaf `ℓ` of the bridge family is `√(64 r² + ℓ²)` at `r`. (The cutoff
+region `r < (2 + L) δ` of the first stage ends below `(t₁ + 2 δ) / 6`.) -/
+theorem bridgeFamily_eq_sqrt_of_le {L ℓ₀ M ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) (F : ℝ → ℝ → ℝ) (hℓ : ℓ ≤ ℓ₀)
+    (hr : (bridgeHeight L δ ℓ₀ + 2 * δ) / 6 ≤ r) :
     bridgeFamily L δ ℓ₀ M F ℓ r = √(64 * r ^ 2 + ℓ ^ 2) := by
-  have hR := (le_max_left _ _).trans hr
-  have h6 : bridgeHeight L δ ℓ₀ + 2 * δ ≤ 6 * r := by
-    linarith [(le_max_right _ _).trans hr]
+  have h6 : bridgeHeight L δ ℓ₀ + 2 * δ ≤ 6 * r := by linarith
   have ht₁ := add_le_bridgeHeight L hδ ℓ₀
   have hLδ : 0 ≤ L * δ := by positivity
   have hrδ : δ ≤ r := by linarith
@@ -1226,11 +1223,30 @@ theorem bridgeFamily_eq_sqrt {L ℓ₀ M R ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < 
       sub_struweShape_le_bridgeHeight hL.le hδ.le (by linarith)
     exact bridgeLeaf_eq_sqrt hδ ⟨by positivity, by linarith⟩ hrδ (by nlinarith)
       (sqrtAddLeaf_of_ge hL hδ (by nlinarith))
-  rcases le_or_gt ℓ ℓ₀ with h0 | h0
-  · rw [bridgeFamily_of_lt_of_le h15 h0]
+  · rw [bridgeFamily_of_lt_of_le h15 hℓ]
     have hτ₀ := smoothTransition.nonneg ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2))
     have hτ₁ := smoothTransition.le_one ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2))
     exact bridgeLeaf_eq_sqrt hδ ⟨by nlinarith, by nlinarith⟩ hrδ h6 rfl
+
+/-- **The far part of the bridge family is standard.** Let `L, δ > 0`, `15 δ / 2 < ℓ₀`,
+`M ≥ 0`, `t₁ = bridgeHeight L δ ℓ₀`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be the standard
+leaf `r ↦ √(64 r² + ℓ²)` from `R` on. Then for `ℓ ≤ 2 ℓ₀` and `r ≥ max R ((t₁ + 2 δ) / 6)` the
+leaf `ℓ` of the bridge family is `√(64 r² + ℓ²)` at `r`. -/
+theorem bridgeFamily_eq_sqrt {L ℓ₀ M R ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) {F : ℝ → ℝ → ℝ}
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, R ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2)) (hℓ : ℓ ≤ 2 * ℓ₀)
+    (hr : max R ((bridgeHeight L δ ℓ₀ + 2 * δ) / 6) ≤ r) :
+    bridgeFamily L δ ℓ₀ M F ℓ r = √(64 * r ^ 2 + ℓ ^ 2) := by
+  have hR := (le_max_left _ _).trans hr
+  have h6 : bridgeHeight L δ ℓ₀ + 2 * δ ≤ 6 * r := by
+    linarith [(le_max_right _ _).trans hr]
+  have ht₁ := add_le_bridgeHeight L hδ ℓ₀
+  have hLδ : 0 ≤ L * δ := by positivity
+  have hrδ : δ ≤ r := by linarith
+  have hη₀ := bridgeWidth_pos hδ hM
+  have hη₁ := bridgeWidth_le δ M
+  rcases le_or_gt ℓ ℓ₀ with h0 | h0
+  · exact bridgeFamily_eq_sqrt_of_le hL hδ hℓ₀ hM F h0 ((le_max_right _ _).trans hr)
   · rw [bridgeFamily_of_lt (by linarith) h0]
     have hτ := smoothTransition.nonneg ((ℓ - ℓ₀) / ℓ₀)
     exact bridgeLeaf_eq_sqrt hδ ⟨hη₀, by linarith⟩ hrδ (by nlinarith)
@@ -1300,22 +1316,10 @@ theorem bridgeFamily_le_sqrt_or_eq {L ℓ₀ M ℓ r : ℝ} (hL : 0 < L) (hδ : 
   have ht₁ := add_le_bridgeHeight L hδ ℓ₀
   have hLδ : 0 ≤ L * δ := by positivity
   have hrδ : δ ≤ r := by linarith
-  have h6 : bridgeHeight L δ ℓ₀ + 2 * δ ≤ 6 * r := by linarith
   have hη₀ := bridgeWidth_pos hδ hM
   have hη₁ := bridgeWidth_le δ M
-  rcases le_or_gt ℓ (15 * δ / 2) with h15 | h15
-  · -- The cutoff region of `sqrtAddLeaf` ends at `(2 + L) δ ≤ r`, and `t ≤ t₁`.
-    rw [bridgeFamily_of_le h15]
-    have hτ := smoothTransition.le_one ((ℓ - 7 * δ) / (δ / 2))
-    have ht : 65 * δ / 8 - struweShape δ 4 0 δ ≤ bridgeHeight L δ ℓ₀ :=
-      sub_struweShape_le_bridgeHeight hL.le hδ.le (by linarith)
-    exact Or.inl (bridgeLeaf_eq_sqrt hδ ⟨by positivity, by linarith⟩ hrδ (by nlinarith)
-      (sqrtAddLeaf_of_ge hL hδ (by nlinarith))).le
   rcases le_or_gt ℓ ℓ₀ with h0 | h0
-  · rw [bridgeFamily_of_lt_of_le h15 h0]
-    have hτ₀ := smoothTransition.nonneg ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2))
-    have hτ₁ := smoothTransition.le_one ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2))
-    exact Or.inl (bridgeLeaf_eq_sqrt hδ ⟨by nlinarith, by nlinarith⟩ hrδ h6 rfl).le
+  · exact Or.inl (bridgeFamily_eq_sqrt_of_le hL hδ hℓ₀ hM F h0 hr).le
   · rw [bridgeFamily_of_lt (by linarith) h0]
     have hτ := smoothTransition.nonneg ((ℓ - ℓ₀) / ℓ₀)
     set t := bridgeHeight L δ ℓ₀ - (bridgeHeight L δ ℓ₀ - 8 * δ) *
