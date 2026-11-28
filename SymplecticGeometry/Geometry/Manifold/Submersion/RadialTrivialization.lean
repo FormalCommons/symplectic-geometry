@@ -21,6 +21,7 @@ public import SymplecticGeometry.Topology.FiberBundle.Trivialization
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
 import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
+import TauCeti.Topology.FiberBundle.Trivialization
 
 /-!
 # Local trivializations by parallel transport

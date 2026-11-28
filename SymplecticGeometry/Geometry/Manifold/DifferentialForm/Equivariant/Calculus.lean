@@ -180,8 +180,8 @@ theorem formCalculus_zero_component :
     formCalculus F hF f τ 0 = SmoothForm.ofFunction (formCalculusCoeff F hF f 0) := by
   -- The degree `2 * 0` of `formCalculus_apply_of_le` reduces to `0`.
   refine (formCalculus_apply_of_le F hF f τ (Nat.zero_le _)).trans ?_
-  rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
-    SmoothForm.funSMulₗ_ofFunction, mul_one]
+  rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul,
+    SmoothForm.wedgePow_zero_eq_ofFunction_one, SmoothForm.funSMulₗ_ofFunction, mul_one]
 
 /-- The component of degree `0` of `F(f + τ)` at a point `x` is the constant `F (f x)`. -/
 theorem formCalculus_zero_component_val (x : M) :
@@ -282,8 +282,8 @@ theorem formCalculus_id :
     split_ifs <;> simp_all [iteratedDeriv_id]
   rw [formCalculus_def, Finset.sum_eq_add 0 1 zero_ne_one]
   · simp only [hcoeff, Nat.factorial_zero, Nat.factorial_one, Nat.cast_one, inv_one, one_smul,
-      SmoothForm.funSMulₗ_one, SmoothForm.wedgePow_one, SmoothForm.wedgePow_zero, one_ne_zero,
-      ↓reduceIte]
+      SmoothForm.funSMulₗ_one, SmoothForm.wedgePow_one, SmoothForm.wedgePow_zero_eq_ofFunction_one,
+      one_ne_zero, ↓reduceIte]
     rw [SmoothForm.funSMulₗ_ofFunction, mul_one]
     -- The degrees `2 * 0` and `2 * 1` reduce to `0` and `2`.
     rfl
@@ -301,8 +301,8 @@ omit [FiniteDimensional ℝ E] in
 theorem formCalculus_const (c : ℝ) :
     formCalculus (fun _ ↦ c) contDiff_const f τ = algebraMap ℝ (⨁ k, SmoothForm I M ℝ k) c := by
   rw [formCalculus_def, Finset.sum_eq_single 0, SmoothForm.algebraMap_apply_eq_of_ofFunction]
-  · rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
-      SmoothForm.funSMulₗ_ofFunction, mul_one]
+  · rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul,
+      SmoothForm.wedgePow_zero_eq_ofFunction_one, SmoothForm.funSMulₗ_ofFunction, mul_one]
     exact congrArg _ (congrArg _ (ContMDiffMap.ext fun x ↦ by simp))
   · intro k _ hk
     have : formCalculusCoeff (fun _ ↦ c) contDiff_const f k = 0 := by

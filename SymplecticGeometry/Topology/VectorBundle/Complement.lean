@@ -10,6 +10,7 @@ public import Mathlib.Topology.Homotopy.Contractible
 public import TauCeti.Topology.VectorBundle.Complement
 
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import TauCeti.Topology.FiberBundle.Prod
 import TauCeti.Topology.VectorBundle.Contractible
 
 /-!
@@ -69,11 +70,8 @@ theorem continuous_bundleComplementFiberEquiv_symm_fst :
     Continuous fun q : B × V ↦
       TotalSpace.mk' F q.1 ((bundleComplementFiberEquiv (F := F) j hinj q.1).symm q.2).1 := by
   let := bundleComplementFiberBundle (F := F) j hj hinj
-  have h := (FiberBundle.Prod.isInducing_diag F E
-    (Fin (Module.finrank 𝕜 V - Module.finrank 𝕜 F) → 𝕜)
-    (fun x ↦ (bundleComplementProjection (F := F) j x).range)).continuous.comp
-      (bundleComplementHomeomorph (F := F) j hj hinj).symm.continuous
-  refine (continuous_fst.comp h).congr fun q ↦ ?_
+  refine (FiberBundle.Prod.continuous_totalSpaceFst.comp
+    (bundleComplementHomeomorph (F := F) j hj hinj).symm.continuous).congr fun q ↦ ?_
   exact congrArg (fun v ↦ TotalSpace.mk' F v.proj v.snd.1)
     (bundleComplementHomeomorph_symm_apply (F := F) j hj hinj q)
 
