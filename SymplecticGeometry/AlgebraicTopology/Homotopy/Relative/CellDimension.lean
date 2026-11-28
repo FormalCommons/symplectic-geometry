@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Topology.CWComplex.Classical.Basic
 public import Mathlib.Topology.Homotopy.Equiv
-public import TauCeti.Topology.CWComplex.Classical.Skeleton.Basic
 public import TauCeti.Topology.Homotopy.HomotopyGroup.ConnectedMap.Basic
 import TauCeti.AlgebraicTopology.Homotopy.Relative.Skeleton
+import TauCeti.Topology.CWComplex.Classical.Skeleton.Basic
 import TauCeti.Topology.Homotopy.HomotopyGroup.WeakHomotopyEquivalence
 
 /-!
