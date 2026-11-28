@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -1086,16 +1085,10 @@ theorem isNondegenerate_iff_isNondegenerate_mpullback
           (SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff α) := by
   refine ⟨fun h ↦ ⟨h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inl φ),
     h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inr φ)⟩,
-    fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_def.2 fun z ↦ ?_⟩
+    fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun z v hv ↦ ?_⟩
   rcases exists_inl_or_exists_inr φ.toHomeomorph z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
-      ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp))
-      (congrFun (SmoothForm.coe_mpullback _ _ _) x).symm).2
-      (h₁.nondegenerate_bilinFormAt x)
-  · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
-      ((isLocalDiffeomorph_inr φ y).isInvertible_mfderiv (by simp))
-      (congrFun (SmoothForm.coe_mpullback _ _ _) y).symm).2
-      (h₂.nondegenerate_bilinFormAt y)
+  · exact (isLocalDiffeomorph_inl φ).eq_zero_of_isNondegenerate_mpullback h₁ x v hv
+  · exact (isLocalDiffeomorph_inr φ).eq_zero_of_isNondegenerate_mpullback h₂ y v hv
 
 variable (φ) in
 /-- A two-form on the glued space is symplectic exactly when its pull-backs by `inl` and `inr`

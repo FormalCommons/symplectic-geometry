@@ -16,6 +16,7 @@ import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem.Parametric
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Topology.Algebra.Module.FiniteDimension
 
@@ -133,15 +134,9 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
     -- see `t` as the coercion of a point of `unitInterval`, to use `hGslice`
     change Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (fun x ↦ G ((⟨t, ht⟩ : unitInterval), x)) x₀)
     rw [hGslice]
-    have hφ : MDifferentiableAt I 𝓘(ℝ, E) φ (e (⟨t, ht⟩, x₀)) :=
-      mdifferentiableAt_extChartAt (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)
-    have het : MDifferentiableAt 𝓘(ℝ, F) I (fun x ↦ e (⟨t, ht⟩, x)) x₀ :=
-      ((he.contMDiffAt ((isOpen_univ.prod hU).mem_nhds ⟨trivial, hx₀⟩)).comp x₀
-        (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt (by simp)
-    rw [show (fun x ↦ φ (e (⟨t, ht⟩, x))) = φ ∘ fun x ↦ e (⟨t, ht⟩, x) from rfl,
-      mfderiv_comp x₀ hφ het]
-    exact (isInvertible_mfderiv_extChartAt
-      (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)).injective.comp (hd _)
+    exact TauCeti.injective_mfderiv_comp (f := fun x ↦ e (⟨t, ht⟩, x)) (g := φ)
+      (isInvertible_mfderiv_extChartAt (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)).injective
+      (hd _)
   -- An open `T ⊇ [0, 1] × {x₀}` on which `Φ` is injective and a local diffeomorphism.
   obtain ⟨T, hT, hKT, hTinj, hTloc⟩ := Set.InjOn.exists_isOpen_superset_isLocalDiffeomorphOn
     (f := Φ) (K := Icc (0 : ℝ) 1 ×ˢ {x₀}) (fun p hp q hq h ↦
