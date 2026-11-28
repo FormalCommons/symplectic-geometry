@@ -131,6 +131,10 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   leaves `ℓ ≥ 0` increase strictly with `ℓ`
   (`SymplecticGeometry.strictMonoOn_struweSwitchLeaf`), since both pieces do and the width grows
   with `ℓ`.
+* `SymplecticGeometry.exists_isConvexShapeAt_struweSwitchLeaf` collects these properties of the
+  leaves `ℓ ∈ [0, 7 δ]`, for one `L` large enough, in the form in which the family over the
+  cylinder uses them. Its leaf `0` is `sqrtAddLeaf L δ 0`, which `Surround/ShapeFamily.lean`
+  identifies with the leaf `0` of `sqrtSubLeaf L δ` (`SymplecticGeometry.sqrtAddLeaf_zero`).
 
 ## References
 
@@ -1080,6 +1084,37 @@ theorem strictMonoOn_struweSwitchLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr :
     _ ≤ smoothedMax ((ℓ' - 6 * δ) / 200) a' (b + 2 * (ℓ' - ℓ)) :=
         smoothedMax_le_smoothedMax (by linarith [min_le_left (a' - a) (2 * (ℓ' - ℓ))])
           (by linarith [min_le_right (a' - a) (2 * (ℓ' - ℓ))])
+
+/-- **The leaves `ℓ ∈ [0, 7 δ]` of the family over the cylinder.** There is `L₀ ≥ 1` such that
+for every `L ≥ L₀` and `δ > 0` the leaves `χ = struweSwitchLeaf L δ` satisfy:
+* `χ` is smooth in `(ℓ, r)` at every point of `[0, 7 δ] × (δ, ∞)`;
+* each leaf `χ ℓ`, `ℓ ∈ [0, 7 δ]`, is an `i`-convex shape at every `r > δ`, is continuous on
+  `[δ, ∞)`, and its slope tends to `+∞` at `δ`;
+* the leaf `0` is `sqrtAddLeaf L δ 0`, and from `2 δ` on the leaf `ℓ` is `sqrtAddLeaf L δ ℓ`;
+* at each `r > δ` the leaves increase strictly with `ℓ ∈ [0, 7 δ]`;
+* on `(δ, 257 δ / 256]` the leaf `7 δ` is Struwe's shape with value `65 δ / 8` at `δ`. -/
+theorem exists_isConvexShapeAt_struweSwitchLeaf :
+    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ →
+      (∀ q ∈ Icc 0 (7 * δ) ×ˢ Ioi δ,
+        ContDiffAt ℝ ∞ (Function.uncurry (struweSwitchLeaf L δ)) q) ∧
+      (∀ ℓ ∈ Icc 0 (7 * δ), ∀ r, δ < r → IsConvexShapeAt (struweSwitchLeaf L δ ℓ) r) ∧
+      (∀ ℓ ∈ Icc 0 (7 * δ), ContinuousOn (struweSwitchLeaf L δ ℓ) (Ici δ) ∧
+        Tendsto (deriv (struweSwitchLeaf L δ ℓ)) (𝓝[>] δ) atTop) ∧
+      struweSwitchLeaf L δ 0 = sqrtAddLeaf L δ 0 ∧
+      (∀ ℓ ∈ Icc 0 (7 * δ), ∀ r, 2 * δ ≤ r →
+        struweSwitchLeaf L δ ℓ r = sqrtAddLeaf L δ ℓ r) ∧
+      (∀ r, δ < r → StrictMonoOn (fun ℓ ↦ struweSwitchLeaf L δ ℓ r) (Icc 0 (7 * δ))) ∧
+      ∀ r ∈ Ioc δ (257 * δ / 256),
+        struweSwitchLeaf L δ (7 * δ) r = struweShape δ 1 (65 * δ / 8) r := by
+  obtain ⟨L₀, hL₀, hconv⟩ := exists_forall_isConvexShapeAt_struweSwitchLeaf
+  refine ⟨L₀, hL₀, fun L hL δ hδ ↦ ?_⟩
+  have hL' : 0 ≤ L := by linarith
+  exact ⟨fun q hq ↦ contDiffAt_uncurry_struweSwitchLeaf hL' hδ hq.2, hconv L hL δ hδ,
+    fun ℓ _ ↦ ⟨continuousOn_struweSwitchLeaf L hδ ℓ, tendsto_deriv_struweSwitchLeaf hL' hδ ℓ⟩,
+    struweSwitchLeaf_of_le (by linarith),
+    fun ℓ hℓ r hr ↦ struweSwitchLeaf_of_two_mul_le L hδ hℓ hr,
+    fun r hr ↦ (strictMonoOn_struweSwitchLeaf L hδ.le hr).mono Icc_subset_Ici_self,
+    fun r hr ↦ struweSwitchLeaf_seven_mul_of_mem_Ioc hL' hδ hr⟩
 
 end SymplecticGeometry
 
