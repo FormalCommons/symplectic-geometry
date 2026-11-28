@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
 import SymplecticGeometry.Topology.MetricSpace.Thickening
+import TauCeti.Analysis.Calculus.ContDiff.Prod
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 
 /-!
@@ -342,9 +343,7 @@ theorem continuous_fderiv_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι)
       fun p : S × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
       b p.1 p.2 :=
     c.contDiff_mpullback_chart i hB
-  have hd := ContDiff.fderiv
-    (f := fun (q : S × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) y ↦ b q.1 y)
-    (h.comp (contDiff_fst.fst.prodMk contDiff_snd)) contDiff_snd (n := 0) (by simp)
+  have hd := contDiff_iff_contDiffAt.2 fun _ ↦ h.contDiffAt.fderiv_slice (m := 0) (by simp)
   exact hd.continuous.comp (hs.prodMap continuous_id)
 
 variable {ι : Type*}

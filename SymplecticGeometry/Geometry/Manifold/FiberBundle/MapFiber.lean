@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -70,6 +71,9 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
+* `TauCeti.MapFiber.Atlas.apply_eq_of_mfderiv_eq_zero_of_proj_eq`: over a preconnected model
+  fibre, a real function whose derivative vanishes on vertical vectors at every point of a fibre
+  takes the same value at any two points of that fibre.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_eq_add` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`: for nonempty finite-dimensional
   `M`, a smooth atlas has `dim M = dim B + dim F`, so its fibre has dimension `dim M - dim B`.
@@ -522,6 +526,48 @@ theorem IsContMDiff.contMDiffAt_snd_trivAt (hA : A.IsContMDiff n IB IF IM) {b : 
     ContMDiffAt IM IF n (fun y ↦ (A.trivAt b y).2) x :=
   (hA.contMDiffOn_snd_trivAt b).contMDiffAt
     ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).mem_source.2 hx))
+
+end TauCeti.MapFiber.Atlas
+
+/-! ### Functions constant along fibres -/
+
+namespace TauCeti.MapFiber.Atlas
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
+  [ChartedSpace HB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*} [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  {proj : M → B} {A : Atlas F proj} {n : ℕ∞ω}
+
+/-- **Functions constant along a fibre.** Let `A` be a `C^n` atlas of `proj`, `n ≠ 0`, with
+preconnected model fibre `F`, and let `g : M → ℝ` be differentiable at every point over `proj x`,
+with derivative zero there on every vertical vector. Then `g x = g y` whenever
+`proj x = proj y`. -/
+theorem apply_eq_of_mfderiv_eq_zero_of_proj_eq [IsManifold IF 1 F] [PreconnectedSpace F]
+    (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) {g : M → ℝ} {x y : M} (hxy : proj x = proj y)
+    (hg : ∀ z, proj z = proj x → MDifferentiableAt IM 𝓘(ℝ, ℝ) g z)
+    (h0 : ∀ z, proj z = proj x → ∀ η : TangentSpace IM z, mfderiv IM IB proj z η = 0 →
+      mfderiv IM 𝓘(ℝ, ℝ) g z η = 0) :
+    g x = g y := by
+  let e := A.trivAt (proj x)
+  have hb : proj x ∈ e.baseSet := A.mem_baseSet_trivAt (proj x)
+  have hι := e.mdifferentiable_fiberInclusionMap (hA.mdifferentiable_trivAt hn (proj x)) hb
+  have hgι : MDifferentiable IF 𝓘(ℝ, ℝ) (g ∘ e.fiberInclusionMap hb) := fun p ↦
+    (hg _ (e.proj_fiberInclusionMap hb p)).comp p (hι p)
+  have hzero (p : F) : mfderiv IF 𝓘(ℝ, ℝ) (g ∘ e.fiberInclusionMap hb) p = 0 := by
+    ext ε
+    rw [mfderiv_comp p (hg _ (e.proj_fiberInclusionMap hb p)) (hι p),
+      ContinuousLinearMap.comp_apply, zero_apply]
+    exact h0 _ (e.proj_fiberInclusionMap hb p) _
+      (e.mfderiv_proj_mfderiv_fiberInclusionMap_apply hb p ε)
+  have hxι : e.fiberInclusionMap hb (e x).2 = x := e.fiberInclusionMap_snd_apply hb
+  have hyι : e.fiberInclusionMap hb (e y).2 = y := by
+    rw [e.fiberInclusionMap_apply, hxy, e.symm_apply_mk_proj (e.mem_source.2 (hxy ▸ hb))]
+  have h := hgι.apply_eq_of_mfderiv_eq_zero hzero (e x).2 (e y).2
+  rwa [Function.comp_apply, Function.comp_apply, hxι, hyι] at h
 
 end TauCeti.MapFiber.Atlas
 

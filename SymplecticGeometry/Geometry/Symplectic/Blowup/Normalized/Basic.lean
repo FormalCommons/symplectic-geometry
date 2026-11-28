@@ -133,10 +133,9 @@ The symplectic form is called `σ`, since `ω` is a token once the scope `ContDi
 definition asks for `0 < δ`, without which the open ball is empty and `ψ₀` gives no chart at
 `p₀`.
 
-The form `ω̃_{ψ,l,ε}` is glued by `SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq`, which
-glues a form on the blowup, here the pull-back of `σ` by the blowdown, with a form on an open
-subset, here the image of the lift; the forms are compared through Tau Ceti's
-`SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff`. The image of `closedNbhd n (l + ε)` is
+The form `ω̃_{ψ,l,ε}` comes from
+`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem` along the lift, with `η`
+the pull-back of `σ` by the blowdown and `C` the image of `closedNbhd n (l + ε)`. That image is
 compact, so closed since `M`, and hence the blowup, is Hausdorff. If `h` is not a profile of the
 blowup, `normalizedBlowupForm hψ h` is the pull-back of `σ` by the blowdown.
 
@@ -745,22 +744,6 @@ theorem mpullback_ballLiftPartialDiffeomorph_mpullback_blowdown {y : BlowupModel
   exact mpullback_apply_congr ((ω₀E_def n ▸
     hψ.isSymplecticBallEmbedding.isSymplecticMapOn_complexPartialDiffeomorph).mpullback_apply hg)
 
-/-- The lift pulls back the pull-back of `σ` by the blowdown of `Blowup hN.blowupChart` to the
-pull-back of `ω₀` by the blowdown of the model, on the source of the lift, read as a
-diffeomorphism onto its image (`mpullback_ballLiftPartialDiffeomorph_mpullback_blowdown`). -/
-private theorem mpullback_toDiffeomorphSourceTarget_blowdown :
-    SmoothForm.mpullback hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget
-        hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget.contMDiff
-        (SmoothForm.mpullback (Subtype.val : hψ.targetOpens → Blowup hN.blowupChart)
-            contMDiff_subtypeVal
-          (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
-            (Blowup.contMDiff_blowdown_real _) σ)) =
-      SmoothForm.mpullback (Subtype.val : hψ.sourceOpens → BlowupModel n) contMDiff_subtypeVal
-        (SmoothForm.mpullback blowdown ((contMDiff_blowdown ∞).restrictScalars' ℝ) (ω₀E n)) :=
-  (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hy ↦
-    hψ.mpullback_ballLiftPartialDiffeomorph_mpullback_blowdown
-      (by rwa [ballLiftPartialDiffeomorph_source] at hy)
-
 variable [T2Space M]
 
 /-- The complement of the image under the lift of `L(l + ε) = closedNbhd n (l + ε)`, an open
@@ -770,47 +753,38 @@ private def outerOpens : Opens (Blowup hN.blowupChart) :=
     (hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd
       hψ.weight_add_width_lt).isClosed.isOpen_compl⟩
 
-/-- The complement of the image of `closedNbhd n (l + ε)` under the lift and the image of the lift
-cover the blowup. -/
-private theorem outerOpens_union_targetOpens :
-    (hψ.outerOpens : Set (Blowup hN.blowupChart)) ∪ hψ.targetOpens = univ := by
-  refine eq_univ_of_forall fun x ↦ ?_
-  by_contra hx
-  simp only [mem_union, not_or, SetLike.mem_coe, outerOpens, Opens.mem_mk, mem_compl_iff,
-    not_not] at hx
-  obtain ⟨y, hy, rfl⟩ := hx.1
-  exact hx.2 (hψ.ballLiftPartialDiffeomorph.map_source
-    (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy))
+/-- Membership in `outerOpens`, the complement of the image of `L(l + ε)` under the lift. -/
+private theorem mem_outerOpens {x : Blowup hN.blowupChart} :
+    x ∈ hψ.outerOpens ↔ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) :=
+  Iff.rfl
+
+omit [T2Space M] in
+/-- The image under the lift of `L(l + ε) = closedNbhd n (l + ε)` lies in the image of the lift. -/
+private theorem image_closedNbhd_subset_target :
+    hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) ⊆
+      hψ.ballLiftPartialDiffeomorph.target :=
+  image_subset_iff.2 fun _ hy ↦ hψ.ballLiftPartialDiffeomorph.map_source
+    (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy)
 
 /-- The pull-back of `σ` by the blowdown, off the image of `closedNbhd n (l + ε)`, and the
 push-forward of `ω̃_{l,ε}` by the lift, on its image, glue to a two-form on the blowup. -/
 private theorem exists_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h) :
     ∃ τ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart),
-      (∀ x ∈ (hψ.outerOpens : Set (Blowup hN.blowupChart)), τ.val x =
+      (∀ y ∈ openNbhd n r, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        hψ.ballLiftPartialDiffeomorph τ.val y = (profileForm n l ε h).val y) ∧
+      ∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε), τ.val x =
         (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
-          (Blowup.contMDiff_blowdown_real _) σ).val x) ∧
-      SmoothForm.mpullback (Subtype.val : hψ.targetOpens → Blowup hN.blowupChart)
-          contMDiff_subtypeVal τ =
-        SmoothForm.mpullback hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget.symm
-          hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget.symm.contMDiff
-          (SmoothForm.mpullback (Subtype.val : hψ.sourceOpens → BlowupModel n) contMDiff_subtypeVal
-            (profileForm n l ε h)) := by
-  set Φ := hψ.ballLiftPartialDiffeomorph
-  set D := Φ.toDiffeomorphSourceTarget
-  refine SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq hψ.outerOpens.isOpen
-    hψ.outerOpens_union_targetOpens _ _ fun x hx ↦ ?_
-  · have hD := hψ.mpullback_toDiffeomorphSourceTarget_blowdown
-    set η := SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
-      (Blowup.contMDiff_blowdown_real _) σ
-    rw [← SmoothForm.coe_mpullback_subtype_val_apply η x, ← SmoothForm.mpullback_symm_mpullback D
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal η), hD]
-    simp only [SmoothForm.coe_mpullback]
-    ext v
-    simp only [TauCeti.mpullback_apply, mpullback_subtype_val_apply]
-    congr 1
-    rw [← SmoothForm.coe_mpullback]
-    exact profileForm_eq_on_compl n hh _ fun hK ↦
-      hx ⟨_, hK, hψ.ballLiftPartialDiffeomorph.apply_toDiffeomorphSourceTarget_symm x⟩
+          (Blowup.contMDiff_blowdown_real _) σ).val x := by
+  obtain ⟨τ, hτ, hτK⟩ := PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem
+    hψ.ballLiftPartialDiffeomorph
+    (hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd hψ.weight_add_width_lt).isClosed
+    hψ.image_closedNbhd_subset_target
+    (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart) (Blowup.contMDiff_blowdown_real _) σ)
+    (profileForm n l ε h) fun y hy hyK ↦ by
+      rw [ballLiftPartialDiffeomorph_source] at hy
+      rw [hψ.mpullback_ballLiftPartialDiffeomorph_mpullback_blowdown hy]
+      exact profileForm_eq_on_compl n hh y fun hyL ↦ hyK ⟨y, hyL, rfl⟩
+  exact ⟨τ, fun y hy ↦ hτ y (by rwa [ballLiftPartialDiffeomorph_source]), hτK⟩
 
 open scoped Classical in
 /-- **The form `ω̃_{ψ,l,ε}` of the blowup** (McDuff–Salamon, §7.1), for a profile `h` of the
@@ -845,16 +819,13 @@ private theorem mpullback_subtypeVal_eq_of_eq_on_ballLift {h : ℝ → ℝ}
 
 /-- The two properties that define `ω̃_{ψ,l,ε}`, for a profile of the blowup. -/
 private theorem normalizedBlowupForm_choose_spec {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h) :
-    (∀ x ∈ (hψ.outerOpens : Set (Blowup hN.blowupChart)), (hψ.normalizedBlowupForm h).val x =
-        (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
-          (Blowup.contMDiff_blowdown_real _) σ).val x) ∧
-      SmoothForm.mpullback (Subtype.val : hψ.targetOpens → Blowup hN.blowupChart)
-          contMDiff_subtypeVal
-          (hψ.normalizedBlowupForm h) =
-        SmoothForm.mpullback hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget.symm
-          hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget.symm.contMDiff
-          (SmoothForm.mpullback (Subtype.val : hψ.sourceOpens → BlowupModel n) contMDiff_subtypeVal
-            (profileForm n l ε h)) := by
+    (∀ y ∈ openNbhd n r, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        hψ.ballLiftPartialDiffeomorph (hψ.normalizedBlowupForm h).val y =
+          (profileForm n l ε h).val y) ∧
+      ∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε),
+        (hψ.normalizedBlowupForm h).val x =
+          (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
+            (Blowup.contMDiff_blowdown_real _) σ).val x := by
   rw [normalizedBlowupForm, dite_eq_left hh]
   exact (hψ.exists_normalizedBlowupForm hh).choose_spec
 
@@ -862,11 +833,8 @@ private theorem normalizedBlowupForm_choose_spec {h : ℝ → ℝ} (hh : IsBlowu
 theorem normalizedBlowupForm_eq_on_ballLift {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h) :
     ∀ y ∈ openNbhd n r, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
       hψ.ballLiftPartialDiffeomorph (hψ.normalizedBlowupForm h).val y =
-        (profileForm n l ε h).val y := by
-  intro y hy
-  refine (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).1 ?_ y
-    (by rwa [ballLiftPartialDiffeomorph_source])
-  rw [(hψ.normalizedBlowupForm_choose_spec hh).2, SmoothForm.mpullback_mpullback_symm]
+        (profileForm n l ε h).val y :=
+  (hψ.normalizedBlowupForm_choose_spec hh).1
 
 /-- Unless `h` is a profile of the blowup of weight `l` with collar `ε`, the form
 `hψ.normalizedBlowupForm h` is the pull-back of `σ` by the blowdown. -/
@@ -884,7 +852,7 @@ theorem normalizedBlowupForm_eq_on_compl {h : ℝ → ℝ} :
         (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
           (Blowup.contMDiff_blowdown_real _) σ).val x := fun x hx ↦ by
   by_cases hh : IsBlowupProfile l ε h
-  · exact (hψ.normalizedBlowupForm_choose_spec hh).1 x hx
+  · exact (hψ.normalizedBlowupForm_choose_spec hh).2 x hx
   · rw [hψ.normalizedBlowupForm_of_not hh]
 
 /-- **Uniqueness of `ω̃_{ψ,l,ε}`.** A two-form on the blowup that the lift `ψ̃` pulls back to
@@ -907,9 +875,8 @@ theorem eq_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h)
         hx⟩) h₁
     exact (SmoothForm.coe_mpullback_subtype_val_apply α ⟨x, hx⟩).symm.trans
       (h₂.trans (SmoothForm.coe_mpullback_subtype_val_apply _ ⟨x, hx⟩))
-  · have hK : x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := fun ⟨y, hy, hyx⟩ ↦
-      hx (hyx ▸ hψ.ballLiftPartialDiffeomorph.map_source
-        (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy))
+  · have hK : x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := fun hK ↦
+      hx (hψ.image_closedNbhd_subset_target hK)
     exact (hα' x hK).trans (hψ.normalizedBlowupForm_eq_on_compl x hK).symm
 
 /-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup
@@ -952,8 +919,7 @@ theorem isSymplectic_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfil
     refine IsOpenCover.mk (eq_top_iff.2 fun z _ ↦ Opens.mem_iSup.2 ?_)
     by_cases hz : z ∈ Φ.target
     · exact ⟨0, hz⟩
-    · refine ⟨1, ⟨fun ⟨y, hy, hyz⟩ ↦ hz (hyz ▸ Φ.map_source
-        (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy)), ?_⟩⟩
+    · refine ⟨1, ⟨fun hK ↦ hz (hψ.image_closedNbhd_subset_target hK), ?_⟩⟩
       exact (Blowup.mem_offDivisorOpens _).2 fun hZ ↦
         hz (hψ.exceptionalDivisor_subset_ballLiftPartialDiffeomorph_target hZ)
   refine (SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtypeVal hcover).2 ?_
@@ -962,7 +928,8 @@ theorem isSymplectic_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfil
   -- `simp only [Matrix.cons_val_zero]` cannot rewrite it, and `change` states the goal on `U`.
   · change SmoothTwoForm.IsSymplectic (SmoothForm.mpullback
       (Subtype.val : hψ.targetOpens → Blowup hN.blowupChart) contMDiff_subtypeVal _)
-    rw [(hψ.normalizedBlowupForm_choose_spec hh).2]
+    rw [hψ.mpullback_subtypeVal_eq_of_eq_on_ballLift
+      (hψ.normalizedBlowupForm_eq_on_ballLift hh)]
     exact (D.symm.isLocalDiffeomorph.isSymplectic_mpullback_iff D.symm.surjective).2
       (((isKahler_profileForm n hh).isSymplectic).mpullback_subtype_val _)
   · -- As above, `change` states the goal on `![U, W] 1 = W`.
@@ -976,7 +943,8 @@ theorem isSymplectic_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfil
         (Blowup.blowdown hN.blowupChart) contMDiff_subtypeVal (Blowup.contMDiff_blowdown_real _)]
       refine Subtype.ext (funext fun x ↦ ?_)
       exact (SmoothForm.coe_mpullback_subtype_val_apply (hψ.normalizedBlowupForm h) x).trans
-        (((hψ.normalizedBlowupForm_choose_spec hh).1 x x.property.1).trans
+        ((hψ.normalizedBlowupForm_eq_on_compl x
+          (hψ.mem_outerOpens.1 x.property.1)).trans
           (SmoothForm.coe_mpullback_subtype_val_apply (SmoothForm.mpullback
             (Blowup.blowdown hN.blowupChart) (Blowup.contMDiff_blowdown_real _) σ) x).symm)
     have hloc : IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
@@ -999,43 +967,21 @@ theorem exists_mextDeriv_eq_normalizedBlowupForm_sub {h₀ h₁ : ℝ → ℝ}
     ∃ β : SmoothForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) ℝ 1,
       mextDeriv β.val = (hψ.normalizedBlowupForm h₁ - hψ.normalizedBlowupForm h₀).val ∧
       ∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε), β.val x = 0 := by
-  set Φ := hψ.ballLiftPartialDiffeomorph
-  set D := Φ.toDiffeomorphSourceTarget
-  have hK := hψ.closedNbhd_subset_source hψ.weight_add_width_lt
   obtain ⟨α, hα, hα0⟩ := exists_mextDeriv_eq_profileForm_sub n hh₀ hh₁
-  -- The push-forward of `α` vanishes at the points of the image of the lift off `Φ '' L(l + ε)`.
-  obtain ⟨β, hβW, hβT⟩ := SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq
-    hψ.outerOpens.isOpen hψ.outerOpens_union_targetOpens 0
-    (SmoothForm.mpullback D.symm D.symm.contMDiff
-      (SmoothForm.mpullback (Subtype.val : hψ.sourceOpens → BlowupModel n) contMDiff_subtypeVal α))
+  obtain ⟨β, -, hβ0, hdβ⟩ := PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_mextDeriv_eq
+    (τ := (hψ.normalizedBlowupForm h₁ - hψ.normalizedBlowupForm h₀).val)
+    hψ.ballLiftPartialDiffeomorph
+    (hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd hψ.weight_add_width_lt).isClosed
+    hψ.image_closedNbhd_subset_target α (fun y _ hyK ↦ hα0 y fun hyL ↦ hyK ⟨y, hyL, rfl⟩)
+    (fun y hy ↦ by
+      rw [ballLiftPartialDiffeomorph_source] at hy
+      rw [hα, Submodule.coe_sub, Submodule.coe_sub, mpullback_sub, Pi.sub_apply, Pi.sub_apply,
+        hψ.normalizedBlowupForm_eq_on_ballLift hh₁ y hy,
+        hψ.normalizedBlowupForm_eq_on_ballLift hh₀ y hy])
     fun x hx ↦ by
-      have h0 : α.val (D.symm x) = 0 := hα0 _ fun hK ↦
-        hx ⟨_, hK, hψ.ballLiftPartialDiffeomorph.apply_toDiffeomorphSourceTarget_symm x⟩
-      simp only [SmoothForm.coe_mpullback]
-      exact TauCeti.mpullback_apply_eq_zero (TauCeti.mpullback_apply_eq_zero h0)
-  have hβ0 : ∀ x ∉ Φ '' closedNbhd n (l + ε), β.val x = 0 := fun x hx ↦ by
-    simpa using hβW x hx
-  -- The lift pulls `β` back to `α`.
-  have hΦβ : ∀ y ∈ Φ.source, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-      Φ β.val y = α.val y :=
-    (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff Φ).1
-      (by rw [hβT, SmoothForm.mpullback_mpullback_symm])
-  refine ⟨β, funext fun x ↦ ?_, hβ0⟩
-  by_cases hx : x ∈ Φ '' closedNbhd n (l + ε)
-  · obtain ⟨y, hy, rfl⟩ := hx
-    have hyS := hK hy
-    have hyr : y ∈ openNbhd n r := by rwa [ballLiftPartialDiffeomorph_source] at hyS
-    rw [(Φ.isLocalDiffeomorphAt _ _ _ hyS).mextDeriv_apply_eq_iff (by simp)
-        ((β.contMDiff _).of_le (by simp)),
-      mextDeriv_congr_of_eventuallyEq (Filter.eventually_of_mem (Φ.open_source.mem_nhds hyS) hΦβ),
-      hα, Submodule.coe_sub, Submodule.coe_sub, mpullback_sub, Pi.sub_apply, Pi.sub_apply,
-      hψ.normalizedBlowupForm_eq_on_ballLift hh₁ y hyr,
-      hψ.normalizedBlowupForm_eq_on_ballLift hh₀ y hyr]
-  · have hβx : ∀ᶠ z in 𝓝 x, β.val z = (0 : RoughForm 𝓘(ℝ, Fin (n + 1) → ℂ) _ ℝ 1) z :=
-      Filter.eventually_of_mem (hψ.outerOpens.isOpen.mem_nhds hx) hβ0
-    rw [mextDeriv_congr_of_eventuallyEq hβx, mextDeriv_zero, Submodule.coe_sub, Pi.sub_apply,
-      hψ.normalizedBlowupForm_eq_on_compl x hx, hψ.normalizedBlowupForm_eq_on_compl x hx,
-      sub_self, Pi.zero_apply]
+      rw [Submodule.coe_sub, Pi.sub_apply, hψ.normalizedBlowupForm_eq_on_compl x hx,
+        hψ.normalizedBlowupForm_eq_on_compl x hx, sub_self]
+  exact ⟨β, hdβ, hβ0⟩
 
 /-! #### Compatibility with the almost complex blowup -/
 

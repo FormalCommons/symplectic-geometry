@@ -129,7 +129,12 @@ function and field stay generalized Morse and gradient-like by
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
   Definition 7.4.5 (Weinstein manifolds and domains)
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11
+  Definition 11.10, for Weinstein manifolds and domains, with a Morse function and a field
+  gradient-like in the sense of (9.9) in §9.3. The book admits birth-death critical points only
+  inside homotopies (Remark 11.11 (ii), Definition 11.19); `IsGeneralizedMorse` admits them in
+  every structure. The paragraph after Definition 11.10 exhausts a Weinstein manifold by its
+  regular sublevels, which are Weinstein domains. Example 11.12 (1) is the radial structure on
+  `ℂⁿ`, with the function `|z|² / 4` in place of `|z|²`
 -/
 
 public section
