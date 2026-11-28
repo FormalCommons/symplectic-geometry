@@ -128,8 +128,13 @@ theorem injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp {Y : Ty
     congr 1
     refine hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
     rw [ofSubsetIso_hom]
-    -- The points of the pairs are those of `univ` and `Y` only up to unfolding `ofSubset`.
-    erw [ofSubsetMap_fst_apply]
+    -- The `MapsTo` proofs inside the `ofSubsetMap` terms are lambdas whose type is
+    -- `Set.MapsTo …` only up to unfolding, so the goal fails `rw`'s type check;
+    -- `generalize_proofs` replaces them by hypotheses.
+    generalize_proofs
+    rw [ofSubsetMap_fst_apply, ofSubsetMap_fst_apply]
+    simp only [ConcreteCategory.hom_ofHom, ContinuousMap.coe_mk, Homeomorph.Set.univ_apply]
+    exact (ContinuousMap.subtypeVal_apply univ w).symm
   have hinj := ConcreteCategory.injective_of_mono_of_preservesPullback
     (singularCohomologyMapIso R k M j n).hom
   rwa [singularCohomologyMapIso_hom, hj] at hinj
