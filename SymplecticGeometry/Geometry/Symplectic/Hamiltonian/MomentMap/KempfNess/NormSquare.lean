@@ -44,7 +44,8 @@ action of `G` on `M` by fundamental vector fields, `J` is an almost complex stru
 the metric is `g(u, w) = σ(u, J w)`. For symmetric `B`, `SymplecticGeometry.mgradient_momentNormSq`
 computes the gradient of `f`.
 
-The gradient is computed from the derivative `SymplecticGeometry.mvfderiv_momentNormSq`, twice
+The gradient is computed from the derivative of the norm square of the moment map `-μ`
+(`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`, which is unchanged by the sign), twice
 that of the component `y ↦ μ y (μ♯ x)`, and the gradient `-J X_ξ` of the component `y ↦ μ y ξ`
 (`SymplecticGeometry.mgradient_moment_apply`), taken at `ξ = μ♯ x`. No `Ad`-invariance of `B`
 and no nondegeneracy of `σ` are used. With the norm square normalized as `½ ‖μ‖²` instead, the
@@ -246,12 +247,13 @@ theorem mgradient_momentNormSq
     (x : M) :
     Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) x =
       (-2 : ℝ) • J x (fundamentalVectorField I' (momentSharp B hB μ x) x) := by
-  have hd (ξ : GroupLieAlgebra I G) : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x :=
-    (hμ.contMDiff_of_neg ξ).mdifferentiableAt (by simp)
+  have hd := hμ.mvfderiv_momentNormSq (K := (B.toDual hB).symm)
+    (fun _ _ ↦ hBs.apply_toDual_symm_comm hB _ _) x
+  simp only [momentNormSq_neg', map_neg, LinearMap.neg_apply, neg_neg, LinearEquiv.coe_coe] at hd
   rw [neg_smul, ← smul_neg, ← mgradient_moment_apply hμ hg]
   refine ext_inner_right ℝ fun v ↦ ?_
-  rw [Manifold.inner_mgradient, mvfderiv_momentNormSq hBs hd, real_inner_smul_left,
-    Manifold.inner_mgradient, smul_apply, smul_eq_mul]
+  rw [Manifold.inner_mgradient, hd, real_inner_smul_left, Manifold.inner_mgradient, smul_apply,
+    smul_eq_mul, momentSharp_def]
 
 end Gradient
 

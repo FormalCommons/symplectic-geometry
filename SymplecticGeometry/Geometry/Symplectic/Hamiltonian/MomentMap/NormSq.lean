@@ -5,18 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.Algebra.Structures
-public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
+public import Mathlib.Geometry.Manifold.GroupLieAlgebra
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
-public import TauCeti.RepresentationTheory.InvariantForm
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
-public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
-import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
-import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The dual of a moment map and its norm square
@@ -26,15 +18,17 @@ bilinear form `B` on `𝔤`. A map `μ : M → 𝔤*`, such as a moment map, the
 `μ♯ : M → 𝔤`, characterized by `B (μ♯ x) ξ = μ x ξ` for all `ξ`, so `μ♯ x = K (μ x)` for the
 inverse `K = (B.toDual hB).symm` of `ξ ↦ B ξ`. The norm square of `μ` is Tau Ceti's
 `TauCeti.momentNormSq μ K`, `x ↦ μ x (K (μ x)) = B (μ♯ x) (μ♯ x)`
-(`TauCeti.momentNormSq_toDual_symm`). Tau Ceti also proves that it is smooth and `G`-invariant
-and computes its derivative and gradient, for a moment map `μ`
-(`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq`, `TauCeti.momentNormSq_smul`,
-`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`); this file adds what uses the form `B`
-or holds without a moment map. Usually `B` is an `Ad`-invariant inner product, such as the one
-that `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant` gives on a
-compact group; the definitions take any nondegenerate `B`, and each result assumes only what it
-uses. Nothing here uses a symplectic form: the results hold for any map `μ` with the stated
-equivariance or smoothness.
+(`TauCeti.momentNormSq_toDual_symm`). Tau Ceti also proves that, for a moment map `μ`, it is
+smooth, and computes its derivative and gradient
+(`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq`,
+`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`); and that it is `G`-invariant when
+`μ` is equivariant for the dual of a representation `ρ` and `K` intertwines that dual with `ρ`
+(`TauCeti.momentNormSq_smul`). This file adds the results that use the form `B`, and the
+behaviour of `μ♯` and of the norm square under `μ ↦ -μ`. The results on the norm square hold for
+any finite-dimensional real vector space `𝔤`. Usually `B` is an `Ad`-invariant inner product,
+such as the one that `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`
+gives on a compact group; the definitions take any nondegenerate `B`, and each result assumes
+only what it uses. Nothing here uses a symplectic form.
 
 ## Main definitions
 
@@ -54,15 +48,6 @@ equivariance or smoothness.
   by `-μ`, as the sign convention of an equivariant moment map may require, negates `μ♯` and
   leaves the norm square unchanged; `SymplecticGeometry.momentNormSq_neg'` states the latter as
   an equality of functions.
-* `SymplecticGeometry.momentSharp_smul`: for an `Ad`-invariant `B` and a coadjoint-equivariant
-  `μ`, `μ♯` is equivariant. This is Tau Ceti's
-  `TauCeti.Representation.IsInvariantForm.toDual_symm_dual_apply` for the adjoint
-  representation.
-* `SymplecticGeometry.contMDiff_momentNormSq`: if each component `x ↦ μ x ξ` is `C^n`, so is the
-  norm square; unlike Tau Ceti's version, `μ` need not be a moment map.
-* `SymplecticGeometry.mvfderiv_momentNormSq`: for a symmetric `B` and differentiable components,
-  the derivative of the norm square at `x` is twice that of `y ↦ μ y (μ♯ x)`; Tau Ceti's
-  version assumes that `μ` is a moment map.
 
 ## References
 
@@ -75,8 +60,7 @@ public section
 
 noncomputable section
 
-open Manifold TauCeti
-open scoped Manifold ContDiff
+open TauCeti
 
 namespace SymplecticGeometry
 
@@ -85,8 +69,7 @@ section MomentSharp
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} {M : Type*}
+  {M : Type*}
   {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {x : M}
 
@@ -119,6 +102,13 @@ theorem momentSharp_eq_zero_iff : momentSharp B hB μ x = 0 ↔ μ x = 0 := by
 theorem momentSharp_neg : momentSharp B hB (fun x ↦ -μ x) x = -momentSharp B hB μ x := by
   simp [momentSharp_def]
 
+end MomentSharp
+
+section NormSq
+
+variable {M 𝔤 : Type*} [AddCommGroup 𝔤] [Module ℝ 𝔤] [FiniteDimensional ℝ 𝔤]
+  {B : LinearMap.BilinForm ℝ 𝔤} {hB : B.Nondegenerate} {μ : M → Module.Dual ℝ 𝔤} {x : M}
+
 /-- The norm square of `μ x` for the inverse of `ξ ↦ B ξ` is the value at `μ x` of the form
 `B.dualForm hB` that `B` induces on `𝔤*`. -/
 theorem momentNormSq_toDual_symm_eq_dualForm :
@@ -143,89 +133,17 @@ theorem bddBelow_range_momentNormSq_comp {ι : Type*} (hpos : B.IsNonneg) (f : �
 vanishes exactly when `μ x` does. -/
 theorem momentNormSq_eq_zero_iff (hB' : B.toQuadraticMap.Anisotropic) :
     momentNormSq μ (B.toDual hB).symm x = 0 ↔ μ x = 0 := by
-  rw [momentNormSq_toDual_symm, ← momentSharp_eq_zero_iff (hB := hB), momentSharp_def]
-  exact ⟨hB' _, fun h ↦ by simp [h]⟩
+  rw [momentNormSq_toDual_symm]
+  exact ⟨fun h ↦ by simpa using hB' _ h, fun h ↦ by simp [h]⟩
 
 /-- **The Cauchy–Schwarz inequality** for the moment map: for a symmetric nonnegative form `B`,
 `|μ x ξ| ≤ √(‖μ x‖²) * √(B ξ ξ)`, where `‖μ x‖² = momentNormSq μ (B.toDual hB).symm x`. -/
-theorem abs_apply_le_sqrt_momentNormSq_mul_sqrt (hBs : B.IsSymm) (hpos : B.IsNonneg)
-    (ξ : GroupLieAlgebra I G) :
+theorem abs_apply_le_sqrt_momentNormSq_mul_sqrt (hBs : B.IsSymm) (hpos : B.IsNonneg) (ξ : 𝔤) :
     |μ x ξ| ≤ √(momentNormSq μ (B.toDual hB).symm x) * √(B ξ ξ) := by
-  rw [← apply_momentSharp (hB := hB), momentNormSq_toDual_symm, ← momentSharp_def]
+  rw [← LinearMap.BilinForm.apply_toDual_symm_apply (hB := hB) (μ x) ξ, momentNormSq_toDual_symm]
   exact B.abs_apply_le_sqrt_mul_sqrt hBs hpos _ _
 
-/-- For a coadjoint-equivariant `μ` and an `Ad`-invariant form `B`, the dual vector is
-`Ad`-equivariant: `μ♯ (g • x) = Ad_g (μ♯ x)`. -/
-theorem momentSharp_smul [LieGroup I 1 G] [MulAction G M]
-    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
-    (hμ : ∀ (g : G) (x : M), μ (g • x) = Lie.coadjointRepresentation ℝ I G g (μ x))
-    (g : G) (x : M) :
-    momentSharp B hB μ (g • x) = Lie.adjointContinuousLinearMap g (momentSharp B hB μ x) := by
-  rw [momentSharp_def, momentSharp_def, hμ, Lie.coadjointRepresentation_def,
-    hBG.toDual_symm_dual_apply hB, Lie.adjointRepresentation_apply]
-
-/-- The norm square through continuous linear maps: write `L y` for the linear form `μ y` on the
-model space `E`, read as a continuous linear map, and `Φ` for the continuous inverse
-`B.toContinuousBilinearMap.inverse` of `B.toDual hB`. Then the norm square at `y` is
-`L y (Φ (L y))`. -/
-theorem momentNormSq_eq_clm_apply :
-    momentNormSq μ (B.toDual hB).symm = fun y ↦ (LinearMap.toContinuousLinearMap (μ y) : E →L[ℝ] ℝ)
-      ((B.toContinuousBilinearMap.inverse : (E →L[ℝ] ℝ) →L[ℝ] E)
-        (LinearMap.toContinuousLinearMap (μ y))) :=
-  funext fun y ↦ by
-    rw [LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply hB,
-      momentNormSq_apply, LinearMap.coe_toContinuousLinearMap]
-    -- The `show` reads `μ y` as a linear form on the model space `E`, the type that
-    -- `LinearMap.toContinuousLinearMap` takes here.
-    exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ y)) _).symm
-
-/-- If every component `x ↦ μ x ξ` of the moment map is `C^n`, so is its norm square. -/
-theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : WithTop ℕ∞}
-    (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) n fun x ↦ μ x ξ) :
-    ContMDiff I' 𝓘(ℝ) n (momentNormSq μ (B.toDual hB).symm) := by
-  have hL := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ
-  rw [momentNormSq_eq_clm_apply]
-  exact hL.clm_apply ((ContinuousLinearMap.contMDiff _).comp hL)
-
-/-- For a symmetric form `B`, if each component `y ↦ μ y ξ` of `μ` is differentiable at `x`, the
-derivative of the norm square at `x` is twice that of the component `y ↦ μ y (μ♯ x)`. -/
-theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.IsSymm)
-    (hμ : ∀ ξ, MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x) :
-    mvfderiv I' (momentNormSq μ (B.toDual hB).symm) x =
-      (2 : ℝ) • mvfderiv I' (fun y ↦ μ y (momentSharp B hB μ x)) x := by
-  -- Read `μ` as a family `L` of continuous linear forms, and `μ♯` as `Φ ∘ L` for the continuous
-  -- inverse `Φ` of `B.toDual hB`; the norm square is then
-  -- `y ↦ L y (Φ (L y))` (`momentNormSq_eq_clm_apply`).
-  set L : M → E →L[ℝ] ℝ := fun y ↦ LinearMap.toContinuousLinearMap (μ y)
-  have hL : MDifferentiableAt I' 𝓘(ℝ, E →L[ℝ] ℝ) L x := mdifferentiableAt_clm_apply.2 hμ
-  -- The Lie algebra carries no normed instances, so `Φ` is taken on the model space `E`.
-  set Φ : (E →L[ℝ] ℝ) →L[ℝ] E := B.toContinuousBilinearMap.inverse
-  have hΦ (f : E →L[ℝ] ℝ) : Φ f = (B.toDual hB).symm (f : E →ₗ[ℝ] ℝ) :=
-    LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply hB _
-  have hLx (y : M) : (L y : E →ₗ[ℝ] ℝ) = μ y := LinearMap.coe_toContinuousLinearMap _
-  have h₁ : Φ (L x) = momentSharp B hB μ x := by rw [hΦ, hLx, momentSharp_def]
-  -- For symmetric `B`, `μ x (Φ f) = B (μ♯ x) (Φ f) = B (Φ f) (μ♯ x) = f (μ♯ x)`.
-  have h₂ (f : E →L[ℝ] ℝ) : L x (Φ f) = f (momentSharp B hB μ x) := by
-    have h (g : Module.Dual ℝ (GroupLieAlgebra I G)) :
-        μ x ((B.toDual hB).symm g) = g (momentSharp B hB μ x) := by
-      rw [momentSharp_def, hBs.apply_toDual_symm_comm]
-    rw [hΦ]
-    exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ x)) _).trans
-      (h (f : E →ₗ[ℝ] ℝ))
-  -- `momentNormSq_eq_clm_apply` with `L` and `Φ` folded, checked by definitional equality;
-  -- rewriting with the theorem itself leaves terms that the rewrites below do not match.
-  have hN : momentNormSq μ (B.toDual hB).symm = fun y ↦ L y (Φ (L y)) := momentNormSq_eq_clm_apply
-  ext v
-  have h₃ : mvfderiv I' L x v (momentSharp B hB μ x) =
-      mvfderiv I' (fun y ↦ μ y (momentSharp B hB μ x)) x v :=
-    mvfderiv_toContinuousLinearMap_apply (E := E) hμ v _
-  have hΦL := Φ.mvfderiv_comp_apply hL v
-  rw [Function.comp_def] at hΦL
-  rw [hN,
-    mvfderiv_clm_apply (p := fun y ↦ Φ (L y)) hL (Φ.mdifferentiableAt.comp x hL) v, hΦL, h₁, h₂, h₃,
-    smul_apply, two_smul]
-
-end MomentSharp
+end NormSq
 
 section Neg
 
