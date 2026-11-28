@@ -46,7 +46,7 @@ The operator is the composite `π^{0,1}_i ∘ Φ_J ∘ ∇` of three bounded ope
 
 * the Sobolev realization `IsCovariantDerivativeOn.sobolevL` of the connection, from
   `W^{k+1,2}(L)` to `W^{k,2}` of `L`-valued one-forms;
-* the action `TauCeti.SobolevSection.contMDiffHomMulL` of the smooth field
+* the action `TauCeti.SobolevSection.bundleMapL` of the smooth field
   `Φ_J = TauCeti.SmoothAlmostComplexStructure.zeroOnePartL J` of `(0,1)`-projections for `J`,
   a smooth section of the endomorphism bundle of the `L`-valued one-forms
   (`TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`);
@@ -64,7 +64,7 @@ Only the middle factor depends on `J`. So `D_J` is continuous in `J`, from the `
 (`SymplecticGeometry.continuous_twistOneDelBarSobolev`): the section of `(0,1)`-projections is
 continuous in `J` (`TauCeti.SmoothAlmostComplexStructure.continuous_zeroOnePartSection`), and
 the action of a smooth hom section on Sobolev sections is continuous in the section for the
-frame topology (`TauCeti.SobolevSection.tendsto_contMDiffHomMulL_of_tendsto`).
+frame topology (`TauCeti.SobolevSection.tendsto_bundleMapL_of_tendsto`).
 
 Tau Ceti's realization `TauCeti.IsRealCauchyRiemannOperator.sobolevSuccL`
 (`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Basic.lean`) is not used: it
@@ -194,17 +194,17 @@ def twistOneDelBarSobolev :
     SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
       zeroOneSobolevSections (twistCoreAtlas 1) volume 2 k :=
   (zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k).comp
-    ((SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-        (J.contMDiff_zeroOnePartL le_rfl)).comp
+    ((SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+        (J.contMDiff_zeroOnePartL le_rfl) volume 2 k).comp
       (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
         (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k))
 
 theorem twistOneDelBarSobolev_def :
     twistOneDelBarSobolev J k = (zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k).comp
-      ((SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-          (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-          (J.contMDiff_zeroOnePartL le_rfl)).comp
+      ((SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+          (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+          (J.contMDiff_zeroOnePartL le_rfl) volume 2 k).comp
         (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
           (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k)) :=
   (rfl)
@@ -212,9 +212,9 @@ theorem twistOneDelBarSobolev_def :
 /-- The operator applied to a Sobolev section, as the three operators applied in turn. -/
 theorem twistOneDelBarSobolev_apply (w : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1)) :
     twistOneDelBarSobolev J k w = zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k
-      (SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-        (J.contMDiff_zeroOnePartL le_rfl)
+      (SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+        (J.contMDiff_zeroOnePartL le_rfl) volume 2 k
         (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
           (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k w)) :=
   (rfl)
@@ -244,7 +244,7 @@ theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
     exact isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
       (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k s i
   -- The chart data of `Φ_J ∇s` are the readings of the section `x ↦ Φ_J x (∇s x)`.
-  have hΦ := SobolevSection.chartValueL_contMDiffHomMulL_ae_coord_self
+  have hΦ := SobolevSection.chartValueL_bundleMapL_ae_coord_self
     (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
     hcov i
   simp only [FiniteBundleAtlas.image_tangentHom, SmoothAlmostComplexStructure.zeroOnePartL_apply]
@@ -279,11 +279,11 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
         TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) x
   let U' (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e' x).open_baseSet⟩
   have hΦ : Continuous fun J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) ↦
-      SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-        (J.zeroOnePartSection (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber)).contMDiff :=
+      SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+        (J.zeroOnePartSection (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber)).contMDiff volume 2 k :=
     continuous_iff_continuousAt.2 fun J₀ ↦
-      SobolevSection.tendsto_contMDiffHomMulL_of_tendsto
+      SobolevSection.tendsto_bundleMapL_of_tendsto
         (fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩)
         (@Continuous.tendsto _ _ (SmoothAlmostComplexStructure.frameTopology e U hU)
           (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' fun _ ↦ subset_rfl) _
@@ -291,7 +291,7 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
             fun _ ↦ subset_rfl) J₀)
   rw [funext (twistOneDelBarSobolev_def · k)]
   refine continuous_const.clm_comp ((hΦ.congr fun J ↦ ?_).clm_comp continuous_const)
-  exact SobolevSection.contMDiffHomMulL_congr _ _ (funext J.zeroOnePartSection_apply)
+  exact SobolevSection.bundleMapL_congr _ _ (funext J.zeroOnePartSection_apply)
 
 /-- **Continuity in `J` on the structures tamed by `σ`.** The restriction of
 `continuous_twistOneDelBarSobolev` to the almost complex structures tamed by a two-form `σ`, with
