@@ -42,7 +42,9 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   (`isSubmersion_mkNonzero`), and the kernel of its real derivative at `v` is the line `𝕜 ∙ v`
   (`ker_mfderiv_mkNonzero`). Its fibre over `[v]` is the punctured line of the nonzero multiples
   of `v` (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ` and `n = 1` it is the pencil
-  `[z₀ : z₁]` on `ℂ² ∖ 0`.
+  `[z₀ : z₁]` on `ℂ² ∖ 0`. A group acting on `V` by additive maps acts on
+  `TauCeti.puncturedSpace V` (`TauCeti.puncturedSpace.instMulAction`, `coe_smul`); when it acts
+  `𝕜`-linearly on `𝕜ⁿ⁺¹`, `mkNonzero` is equivariant (`mkNonzero_smul`).
 * `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
   the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
   (`mkNonzero_comp_affineLift`). It is holomorphic over `𝕜` (`contMDiff_affineLift_self`), smooth
@@ -89,6 +91,27 @@ public section
 open Set Function Module TopologicalSpace Manifold
 open scoped Manifold ContDiff LinearAlgebra.Projectivization Topology InnerProductSpace
 
+namespace TauCeti.puncturedSpace
+
+variable {G V : Type*} [Group G] [AddMonoid V] [TopologicalSpace V] [T1Space V]
+  [DistribMulAction G V]
+
+/-- A group acting on `V` by additive maps acts on the punctured space `V ∖ {0}`, since
+`g • v ≠ 0` when `v ≠ 0`. -/
+instance instMulAction : MulAction G (puncturedSpace V) where
+  smul g v := ⟨g • (v : V), mem_puncturedSpace.2 ((smul_ne_zero_iff_ne g).2
+    (mem_puncturedSpace.1 v.property))⟩
+  one_smul v := Subtype.ext (one_smul G (v : V))
+  mul_smul g h v := Subtype.ext (mul_smul g h (v : V))
+
+/-- The action on the punctured space is the restriction of the action on `V`. -/
+@[simp, norm_cast]
+theorem coe_smul (g : G) (v : puncturedSpace V) :
+    ((g • v : puncturedSpace V) : V) = g • (v : V) :=
+  (rfl)
+
+end TauCeti.puncturedSpace
+
 namespace Projectivization
 
 section MkNonzero
@@ -122,6 +145,14 @@ theorem preimage_mkNonzero_singleton_mk {v : Fin (n + 1) → 𝕜} (hv : v ≠ 0
   ext z
   simp only [mem_preimage, mem_singleton_iff, mkNonzero_apply, mk_eq_mk_iff', mem_ofPred_eq]
   exact exists_congr fun _ ↦ eq_comm
+
+/-- `mkNonzero` is equivariant for a group acting `𝕜`-linearly on `𝕜ⁿ⁺¹`: the group acts on the
+punctured space by restriction and on `ℙ 𝕜 (Fin (n + 1) → 𝕜)` by `g • [v] = [g • v]`. -/
+theorem mkNonzero_smul {G : Type*} [Group G] [DistribMulAction G (Fin (n + 1) → 𝕜)]
+    [SMulCommClass G 𝕜 (Fin (n + 1) → 𝕜)] (g : G)
+    (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
+    mkNonzero 𝕜 n (g • v) = g • mkNonzero 𝕜 n v := by
+  simp only [mkNonzero_apply, TauCeti.puncturedSpace.coe_smul, smul_mk]
 
 variable (𝕜 n) in
 /-- Every point of projective space is the line through a nonzero vector. -/
