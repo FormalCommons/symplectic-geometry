@@ -138,24 +138,27 @@ theorem fst_pullbackParam_apply (t : unitInterval) (p : S × M) :
     (Φ.pullbackParam hΦ hπ (t, p)).1 = p.1 := by
   rw [pullbackParam_apply]
 
+/-- The inverse of the level-preserving diffeomorphism of `Φ.pullbackParam hΦ hπ` sends
+`(t, (q, y))` to `(t, (q, y'))`, where `y'` is the image of `y` under the inverse of the slice of
+`Φ` at `π q` and time `t`. -/
+@[simp]
+theorem toDiffeomorph_symm_pullbackParam_apply (p : unitInterval × S × M) :
+    (Φ.pullbackParam hΦ hπ).toDiffeomorph.symm p =
+      (p.1, p.2.1, (Φ.slice hΦ (π p.2.1) p.1).symm p.2.2) :=
+  (rfl)
+
 /-- The inverse of the pullback `Φ.pullbackParam hΦ hπ` sends `(t, (q, y))` to
-`(q, (Φ.symm (t, (π q, y))).2)`. -/
+`(q, (Φ.symm (t, (π q, y))).2)`. `simp` proves it through `symm_apply`,
+`toDiffeomorph_symm_pullbackParam_apply` and `symm_slice_apply`. -/
 theorem symm_pullbackParam_apply (p : unitInterval × S × M) :
     (Φ.pullbackParam hΦ hπ).symm p = (p.2.1, (Φ.symm (p.1, (π p.2.1, p.2.2))).2) := by
-  rw [symm_apply]
-  exact congrArg (Prod.mk p.2.1) (Φ.symm_slice_apply hΦ (π p.2.1) p.1 p.2.2)
+  rw [symm_apply, toDiffeomorph_symm_pullbackParam_apply, symm_slice_apply]
 
 /-- The slice at `q` of the pullback `Φ.pullbackParam hΦ hπ` is the slice of `Φ` at `π q`. -/
 @[simp]
 theorem slice_pullbackParam (q : S) (t : unitInterval) :
     (Φ.pullbackParam hΦ hπ).slice (Φ.fst_pullbackParam_apply hΦ hπ) q t = Φ.slice hΦ (π q) t :=
   Diffeomorph.ext fun x ↦ by rw [slice_apply, slice_apply, pullbackParam_apply]
-
-/-- The pullback `Φ.pullbackParam hΦ hπ` fixes `(q, x)` at time `t` if `Φ` fixes `(π q, x)` at
-time `t`. -/
-theorem pullbackParam_apply_eq_self {t : unitInterval} {q : S} {x : M}
-    (h : Φ (t, (π q, x)) = (π q, x)) : Φ.pullbackParam hΦ hπ (t, (q, x)) = (q, x) := by
-  rw [pullbackParam_apply, h]
 
 end pullbackParam
 
