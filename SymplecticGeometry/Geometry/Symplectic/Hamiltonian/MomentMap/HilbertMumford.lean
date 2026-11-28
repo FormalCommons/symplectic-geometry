@@ -664,24 +664,6 @@ theorem tendsto_kempfNessFunction_expI_neg_smul_div (h : IsComplexifiedAction C 
     (.of_forall (hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ))
     (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
 
-omit [CompactSpace M] in
-/-- **Chords of the Kempf–Ness function along a geodesic.** Under the hypotheses of
-`tendsto_deriv_kempfNessFunction`, for `0 < s ≤ r`,
-`r * Φ_p (C.expI (s • ζ)) ≤ s * Φ_p (C.expI (r • ζ))`: the convex function
-`s ↦ Φ_p (C.expI (s • ζ))` vanishes at `0`, so it lies below its chord from `0` to `r`. -/
-theorem mul_kempfNessFunction_expI_smul_le (h : IsComplexifiedAction C J)
-    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
-    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
-    (p : M) (ζ : GroupLieAlgebra I G) {s r : ℝ} (hs : 0 < s) (hsr : s ≤ r) :
-    r * kempfNessFunction C μ p (C.expI (s • ζ)) ≤
-      s * kempfNessFunction C μ p (C.expI (r • ζ)) := by
-  have hr := hs.trans_le hsr
-  have hc := (convexOn_kempfNessFunction_geodesic C μ p h hμ hg 1 ζ).secant_mono
-    (a := 0) (x := s) (y := r) trivial trivial trivial hs.ne' hr.ne' hsr
-  simp only [one_mul, zero_smul, C.expI_zero, kempfNessFunction_one, sub_zero] at hc
-  rw [div_le_div_iff₀ hs hr] at hc
-  linarith
-
 /-- **A linear bound gives a weight.** Under the hypotheses of `tendsto_deriv_kempfNessFunction`,
 if `Φ_p (C.expI (s • ζ)) ≤ -(c * s)` for every `s > 0`, then `c ≤ w_μ(p, -ζ)`. -/
 theorem le_momentWeight_neg_of_kempfNessFunction_expI_smul_le (h : IsComplexifiedAction C J)
@@ -985,46 +967,6 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
 
-/-- **Linear descent of the Kempf–Ness function along the flow of `‖μ‖²`.** In the setting of
-`exists_mem_orbit_maximalIntegralCurve`, let `B` be moreover nonnegative and `Ad`-invariant, let
-`m²` be the infimum of `‖μ‖²` over the `Gc`-orbit of `p`, and let `L` bound `√(‖μ‖²)` on `M`,
-both norms being those of `B`. Then for every `t ≥ 0` there is `η` with `√(B η η) ≤ 2 * L * t`
-and `Φ_p (C.expI η) ≤ -(2 * m² * t)`. -/
-theorem exists_sqrt_le_kempfNessFunction_expI_le (h : IsComplexifiedAction C J)
-    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
-    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
-    (hpos : B.IsNonneg)
-    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) {L : ℝ}
-    (hL : ∀ x, √(momentNormSq μ (B.toDual hB).symm x) ≤ L) {t : ℝ} (ht : 0 ≤ t) :
-    ∃ η : GroupLieAlgebra I G, √(B η η) ≤ 2 * L * t ∧
-      kempfNessFunction C μ p (C.expI η) ≤
-        -(2 * (⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)) * t) := by
-  obtain ⟨g, hg0, hgd, -, hΦ⟩ := exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hg hBs p
-  refine ⟨(C.polar.symm (g t)).1, ?_, ?_⟩
-  · -- The imaginary part of `g⁻¹ ġ` is `-2 μ♯(g⁻¹ p)`, of norm at most `2 * L`.
-    have hK (s : ℝ) : √(B (C.im ((-2 : ℝ) • C.cplx (C.lieMap
-        (momentSharp B hB μ ((g s)⁻¹ • p))))) (C.im ((-2 : ℝ) • C.cplx (C.lieMap
-        (momentSharp B hB μ ((g s)⁻¹ • p)))))) ≤ 2 * L := by
-      rw [map_smul, C.im_cplx_lieMap, LinearMap.map_smul₂, map_smul, smul_eq_mul, smul_eq_mul,
-        ← mul_assoc, ← momentNormSq_toDual_symm_eq_apply_momentSharp,
-        Real.sqrt_mul (by norm_num), show (-2 : ℝ) * -2 = 2 ^ 2 by norm_num,
-        Real.sqrt_sq (by norm_num)]
-      exact mul_le_mul_of_nonneg_left (hL _) (by norm_num)
-    have hR := C.sqrt_polar_symm_fst_le_add_mul hBs hpos hBG hgd hK ht
-    rwa [hg0, ← C.expI_zero, C.polar_symm_expI_fst, map_zero,
-      Real.sqrt_zero, zero_add] at hR
-  · -- `Φ_p ∘ g` has derivative `-2 ‖μ (g⁻¹ p)‖² ≤ -2 m²` and vanishes at `0`.
-    have hbdd := bddBelow_range_momentNormSq_comp (hB := hB) (μ := μ) hpos (· • p : Gc → M)
-    have := image_sub_le_mul_sub_of_deriv_le
-      (C := -2 * ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p))
-      (fun s ↦ (hΦ s).differentiableAt)
-      (fun s ↦ (hΦ s).deriv.trans_le <| by
-        have := ciInf_le hbdd (g s)⁻¹
-        linarith) ht
-    rw [hg0, kempfNessFunction_one, sub_zero, sub_zero, ← C.expI_mul_toHom_polar_symm (g t),
-      kempfNessFunction_mul_toHom] at this
-    linarith
-
 /-- **A positive infimum of the norm square gives a direction of positive weight.** In the
 setting of `exists_mem_orbit_maximalIntegralCurve`, with `B` moreover positive definite and
 `Ad`-invariant, if the infimum of `‖μ‖²` over the `Gc`-orbit of `p` is positive, then some `ξ` with
@@ -1076,7 +1018,7 @@ theorem exists_momentWeight_pos_of_iInf_momentNormSq_pos (h : IsComplexifiedActi
   -- `[0, r n]`.
   have hconv (n : ℕ) {s : ℝ} (hs : 0 < s) (hsr : s ≤ r n) :
       kempfNessFunction C μ p (C.expI (s • ζ n)) ≤ -(m / L * s) := by
-    have hc := mul_kempfNessFunction_expI_smul_le h hμ hg p (ζ n) hs hsr
+    have hc := mul_kempfNessFunction_expI_smul_le C μ p h hμ hg (ζ n) hs hsr
     rw [hζη] at hc
     have h1 : -(m / L * s) * (r n * L) = -(m * s * r n) := by field_simp
     refine le_of_mul_le_mul_right ?_ (mul_pos (hr0 n) hL0)

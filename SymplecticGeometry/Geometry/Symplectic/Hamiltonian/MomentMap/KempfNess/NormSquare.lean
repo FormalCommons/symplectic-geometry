@@ -17,6 +17,7 @@ import Mathlib.Geometry.Manifold.Metrizable
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
+import SymplecticGeometry.Geometry.Lie.Complexification.Polar
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
@@ -106,6 +107,12 @@ solutions, `TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`. The derivati
 Kempf–Ness function along `g` is
 `SymplecticGeometry.HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction`.
 
+So `Φ_p (g t) ≤ -2 m² t` for `t ≥ 0`, with `m²` the infimum of `‖μ‖²` over the orbit, while
+the polar radius of `g t` grows at most like `2 L t`, for `L` a bound of `√(‖μ‖²)` on `M`
+(`SymplecticGeometry.LieComplexification.sqrt_polar_symm_fst_le_add_mul`); since `Φ_p` is
+invariant under right multiplication by `G`, this bounds `Φ_p` at `C.expI` of the polar part
+(`SymplecticGeometry.exists_sqrt_le_kempfNessFunction_expI_le`).
+
 ## The polar radius between two flow curves
 
 Following the proof of Theorem 6.4 of [GeorgoulasRobbinSalamon2021], with the distance of
@@ -185,6 +192,9 @@ trajectory, not only its finite energy. Since `Φ_p` has derivative `-2 ‖μ‖
 * `SymplecticGeometry.exists_mem_orbit_maximalIntegralCurve`: for a complexified action, that
   flow stays in the `Gc`-orbit of its start, along a curve in `Gc` on which the Kempf–Ness
   function has derivative `-2 ‖μ‖²`.
+* `SymplecticGeometry.exists_sqrt_le_kempfNessFunction_expI_le`: along that curve, for each
+  `t ≥ 0` some `η` has `√(B η η) ≤ 2 * L * t` and `Φ_p (C.expI η) ≤ -(2 * m² * t)`, for `L` a
+  bound of `√(‖μ‖²)` on `M` and `m²` the infimum of `‖μ‖²` over the `Gc`-orbit of `p`.
 * `SymplecticGeometry.hasDerivAt_polar_symm_fst_inv_mul`,
   `SymplecticGeometry.antitoneOn_polar_symm_fst_inv_mul`: the derivative of the polar radius of
   `(g t)⁻¹ * g' t` for two such curves in `Gc`, and its monotonicity.
@@ -502,6 +512,46 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   refine (hgξ.hasDerivAt_kempfNessFunction C μ p h hμ hg Filter.univ_mem).congr_deriv ?_
   rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_apply,
     LinearEquiv.coe_coe, momentSharp_def]
+
+/-- **Linear descent of the Kempf–Ness function along the flow of `‖μ‖²`.** In the setting of
+`exists_mem_orbit_maximalIntegralCurve`, let `B` be moreover nonnegative and `Ad`-invariant, let
+`m²` be the infimum of `‖μ‖²` over the `Gc`-orbit of `p`, and let `L` bound `√(‖μ‖²)` on `M`,
+both norms being those of `B`. Then for every `t ≥ 0` there is `η` with `√(B η η) ≤ 2 * L * t`
+and `Φ_p (C.expI η) ≤ -(2 * m² * t)`. -/
+theorem exists_sqrt_le_kempfNessFunction_expI_le (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hpos : B.IsNonneg)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) {L : ℝ}
+    (hL : ∀ x, √(momentNormSq μ (B.toDual hB).symm x) ≤ L) {t : ℝ} (ht : 0 ≤ t) :
+    ∃ η : GroupLieAlgebra I G, √(B η η) ≤ 2 * L * t ∧
+      kempfNessFunction C μ p (C.expI η) ≤
+        -(2 * (⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)) * t) := by
+  obtain ⟨g, hg0, hgd, -, hΦ⟩ := exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hg hBs p
+  refine ⟨(C.polar.symm (g t)).1, ?_, ?_⟩
+  · -- The imaginary part of `g⁻¹ ġ` is `-2 μ♯(g⁻¹ p)`, of norm at most `2 * L`.
+    have hK (s : ℝ) : √(B (C.im ((-2 : ℝ) • C.cplx (C.lieMap
+        (momentSharp B hB μ ((g s)⁻¹ • p))))) (C.im ((-2 : ℝ) • C.cplx (C.lieMap
+        (momentSharp B hB μ ((g s)⁻¹ • p)))))) ≤ 2 * L := by
+      rw [map_smul, C.im_cplx_lieMap, LinearMap.map_smul₂, map_smul, smul_eq_mul, smul_eq_mul,
+        ← mul_assoc, ← momentNormSq_toDual_symm_eq_apply_momentSharp,
+        Real.sqrt_mul (by norm_num), show (-2 : ℝ) * -2 = 2 ^ 2 by norm_num,
+        Real.sqrt_sq (by norm_num)]
+      exact mul_le_mul_of_nonneg_left (hL _) (by norm_num)
+    have hR := C.sqrt_polar_symm_fst_le_add_mul hBs hpos hBG hgd hK ht
+    rwa [hg0, ← C.expI_zero, C.polar_symm_expI_fst, map_zero,
+      Real.sqrt_zero, zero_add] at hR
+  · -- `Φ_p ∘ g` has derivative `-2 ‖μ (g⁻¹ p)‖² ≤ -2 m²` and vanishes at `0`.
+    have hbdd := bddBelow_range_momentNormSq_comp (hB := hB) (μ := μ) hpos (· • p : Gc → M)
+    have := image_sub_le_mul_sub_of_deriv_le
+      (C := -2 * ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p))
+      (fun s ↦ (hΦ s).differentiableAt)
+      (fun s ↦ (hΦ s).deriv.trans_le <| by
+        have := ciInf_le hbdd (g s)⁻¹
+        linarith) ht
+    rw [hg0, kempfNessFunction_one, sub_zero, sub_zero, ← C.expI_mul_toHom_polar_symm (g t),
+      kempfNessFunction_mul_toHom] at this
+    linarith
 
 end Flow
 
