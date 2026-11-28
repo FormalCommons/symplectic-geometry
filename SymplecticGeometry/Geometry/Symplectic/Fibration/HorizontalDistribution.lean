@@ -52,6 +52,10 @@ of its three arguments are vertical.
   trivialization.
 * `TauCeti.SmoothTwoForm.convex_setOfPred_restrictsTo_isVerticallyClosed`: the vertically closed
   two-forms that restrict to a given form on the fibre along an atlas form a convex set.
+* `TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul`: two vertically closed forms
+  that agree on vertical pairs stay vertically closed when blended with a weight `f ∘ proj` that
+  depends only on the base point, since `d (f ∘ proj)` is semibasic; the weight need not be
+  constant, unlike in the convexity above.
 * `IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution`:
   for a smooth submersion, the horizontal spaces of a vertically nondegenerate form are a smooth
   distribution of the rank of the base.
@@ -172,6 +176,61 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mono {τ : RoughForm IM M 
     {s t : Set M} (h : τ.IsVerticallyClosedOn IB proj s) (hts : t ⊆ s) :
     τ.IsVerticallyClosedOn IB proj t :=
   fun x hx ↦ h x (hts hx)
+
+omit [IsManifold IM ∞ M] in
+/-- **Blending two vertically closed forms by a function of the base.** Let `τ₁` and `τ₂` be
+two-forms on `M`, vertically closed on `s` for `proj : M → B`, that agree on every pair of
+vectors of the kernel of the derivative of `proj` at each point of `s`. Let `f : B → ℝ`. If
+`proj`, `τ₁` and `τ₂` are differentiable at the points of `s`, and `f` at their images under
+`proj`, then the blend `(f ∘ proj) • τ₁ + (1 - f ∘ proj) • τ₂` is vertically closed on `s`. -/
+theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul [IsManifold IM 1 M]
+    {f : B → ℝ} {τ₁ τ₂ : RoughForm IM M ℝ 2} {s : Set M}
+    (h₁ : τ₁.IsVerticallyClosedOn IB proj s) (h₂ : τ₂.IsVerticallyClosedOn IB proj s)
+    (hproj : ∀ x ∈ s, MDifferentiableAt IM IB proj x)
+    (hf : ∀ x ∈ s, MDifferentiableAt IB 𝓘(ℝ) f (proj x))
+    (hτ₁ : ∀ x ∈ s, MDifferentiableAt IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y (τ₁ y)) x)
+    (hτ₂ : ∀ x ∈ s, MDifferentiableAt IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y (τ₂ y)) x)
+    (heq : ∀ x ∈ s, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
+      τ₁ x ![η₁, η₂] = τ₂ x ![η₁, η₂]) :
+    RoughForm.IsVerticallyClosedOn IB proj
+      (fun y ↦ f (proj y) • τ₁ y + (1 - f (proj y)) • τ₂ y) s := by
+  intro x hx η₁ hη₁ η₂ hη₂ v
+  have hg : MDifferentiableAt IM 𝓘(ℝ) (f ∘ proj) x := (hf x hx).comp x (hproj x hx)
+  have hδ : MDifferentiableAt IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y ((τ₁ - τ₂) y)) x :=
+    mdifferentiableAt_sub_section (hτ₁ x hx) (hτ₂ x hx)
+  -- The blend is `τ₂ + (f ∘ proj) • (τ₁ - τ₂)`.
+  have hblend : (fun y ↦ f (proj y) • τ₁ y + (1 - f (proj y)) • τ₂ y) =
+      (fun y ↦ (f ∘ proj) y • (τ₁ - τ₂) y) + τ₂ := by
+    funext y
+    simp only [Pi.add_apply, Pi.sub_apply, Function.comp_apply]
+    module
+  -- The derivative of `τ₁ - τ₂` is the difference of the derivatives.
+  have hdδ : mextDeriv (τ₁ - τ₂) x = mextDeriv τ₁ x - mextDeriv τ₂ x := by
+    rw [eq_sub_iff_add_eq, ← mextDeriv_add
+      ((τ₁ - τ₂).differentiableWithinAt_range_inChartAt_of_mdifferentiableAt hδ)
+      (τ₂.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt (hτ₂ x hx)),
+      sub_add_cancel]
+  -- The difference `τ₁ - τ₂` vanishes on vertical pairs, and `d (f ∘ proj)` is semibasic.
+  have hψ : ∀ u w : TangentSpace IM x, mfderiv IM IB proj x u = 0 →
+      mfderiv IM IB proj x w = 0 → (τ₁ - τ₂) x ![u, w] = 0 := fun u w hu hw ↦ by
+    rw [Pi.sub_apply, ContinuousAlternatingMap.sub_apply, sub_eq_zero]
+    exact heq x hx u hu w hw
+  have hwedge := (RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp (hf x hx)
+    (hproj x hx)).wedge_apply_eq_zero hψ hη₁ hη₂ v
+  rw [hblend, mextDeriv_add
+      (RoughForm.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt
+        (fun y ↦ (f ∘ proj) y • (τ₁ - τ₂) y) (hg.smul_section hδ))
+      (τ₂.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt (hτ₂ x hx)),
+    ContinuousAlternatingMap.add_apply, mextDeriv_fun_smul hg hδ, hdδ,
+    ContinuousAlternatingMap.sub_apply, h₁ x hx η₁ hη₁ η₂ hη₂ v, h₂ x hx η₁ hη₁ η₂ hη₂ v]
+  -- The derivative formula reads the arguments in degree `0 + 1 + 2`, through `Fin.cast`.
+  change (mextDeriv (RoughForm.ofFunction IM (f ∘ proj))).wedge (τ₁ - τ₂) x ![η₁, η₂, v] +
+    _ + _ = 0
+  rw [hwedge]
+  simp
 
 section Pullback
 

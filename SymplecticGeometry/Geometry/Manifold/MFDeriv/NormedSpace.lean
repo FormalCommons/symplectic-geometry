@@ -33,6 +33,11 @@ left multiplication, evaluated at a tangent vector.
 hypothesis on the function. It is the form for subtraction of Tau Ceti's
 `TauCeti.mvfderiv_add_const`, from which it follows, and the manifold version of Mathlib's
 `fderiv_sub_const`.
+
+`mfderiv_apply_mem_ker_of_const_line` says that if `g ∘ f` is constant along the line through
+`z` in the direction `w`, for a map `f` on a normed space and a map `g` differentiable at `f z`,
+then `df_z w` lies in the kernel of `dg_(f z)`. It combines Tau Ceti's
+`TauCeti.mfderiv_apply_eq_zero_of_const_line`, applied to `g ∘ f`, with the chain rule.
 -/
 
 public section
@@ -103,6 +108,35 @@ theorem mvfderiv_sub_const (g : M → F) (c : F) (x : M) :
   exact TauCeti.mvfderiv_add_const g (-c) x
 
 end SubConst
+
+section ConstLine
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {J : ModelWithCorners 𝕜 E' H'}
+  {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
+  {V : Type*} [NormedAddCommGroup V] [NormedSpace 𝕜 V]
+
+/-- Let `f` be a map on a normed space and `g` a map differentiable at `f z`. If `g ∘ f` is
+constant along the line through `z` in the direction `w`, then the derivative of `f` at `z` in
+the direction `w` lies in the kernel of the derivative of `g` at `f z`. -/
+theorem mfderiv_apply_mem_ker_of_const_line {f : V → M} {g : M → M'} {z w : V}
+    (hg : MDifferentiableAt I J g (f z)) (hconst : ∀ r : 𝕜, g (f (z + r • w)) = g (f z)) :
+    mfderiv 𝓘(𝕜, V) I f z w ∈ (mfderiv I J g (f z)).ker := by
+  by_cases hf : MDifferentiableAt 𝓘(𝕜, V) I f z
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hf]
+    exact (LinearMap.ker _).zero_mem
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+  -- Tau Ceti's lemma applies the derivative to `w` as a vector of `V`, and the chain rule to a
+  -- tangent vector, so `rw` does not match them.
+  exact (mfderiv_comp_apply z hg hf _).symm.trans
+    (TauCeti.mfderiv_apply_eq_zero_of_const_line (f := g ∘ f) hconst)
+
+end ConstLine
 
 namespace SymplecticGeometry
 

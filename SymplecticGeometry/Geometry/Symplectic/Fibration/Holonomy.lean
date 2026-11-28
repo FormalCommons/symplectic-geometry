@@ -11,9 +11,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Analysis.Complex.Circle
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
+import SymplecticGeometry.Geometry.Manifold.Distribution.Horizontal
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
@@ -618,16 +619,10 @@ theorem mfderiv_transportedCylinder_apply_mem (hn : 1 ≤ n) (hf : ContMDiff IM 
     (hp : Δ (p.1, 0) ∈ e.baseSet) :
     mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 1, 0) ∈
       D (hD.transportedCylinder e Δ c p) := by
-  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p
-  swap
-  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
-    exact (D _).zero_mem
   obtain ⟨s, t, θ⟩ := p
-  rw [← hC.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ (s, r, θ))
-    (HasDerivAt.prodMk (hasDerivAt_const t s)
-      (HasDerivAt.prodMk (hasDerivAt_id t) (hasDerivAt_const t θ))),
-    Manifold.curveVelocity_apply]
-  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).mfderiv_mem t 1
+  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).mfderiv_apply_mem_of_hasDerivAt
+    (g := fun r : ℝ ↦ (s, r, θ))
+    ((hasDerivAt_const t s).prodMk ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ)))
 
 /-- **The derivative of the transported cylinder in `θ` is vertical.** For a `C^n` connection,
 `1 ≤ n`, on a proper `C^(n+1)` map and a `C^(n+1)` family `Δ`, the derivative of the transported
@@ -640,25 +635,13 @@ theorem mfderiv_transportedCylinder_apply_mem_ker (hn : 1 ≤ n)
     mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 0, 1) ∈
       (mfderiv IM IB proj (hD.transportedCylinder e Δ c p)).ker := by
   obtain ⟨s, t, θ⟩ := p
-  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ)
-  swap
-  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
-    exact (LinearMap.ker _).zero_mem
-  have hproj : MDifferentiableAt IM IB proj (hD.transportedCylinder e Δ c (s, t, θ)) :=
-    (hf.mdifferentiable (by simp)).mdifferentiableAt
   -- Along the line through `(s, t, θ)` in the direction of `θ`, the projection of the cylinder
   -- is constant.
-  have h := mfderiv_apply_eq_zero_of_const_line (I := IB)
-    (f := proj ∘ hD.transportedCylinder e Δ c)
-    (z := (s, t, θ)) (w := (0, 0, 1)) fun r ↦ by
-      have hr : (s, t, θ) + r • ((0 : ℝ), (0 : ℝ), (1 : ℝ)) = (s, t, θ + r) := by
-        ext <;> simp
-      rw [hr, comp_apply, comp_apply, hD.proj_transportedCylinder hn hf hfp hΔ hp,
-        hD.proj_transportedCylinder hn hf hfp hΔ hp]
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-  -- `h` applies the derivative to `(0, 0, 1)` as a vector of `ℝ × ℝ × ℝ`, and the chain rule to a
-  -- tangent vector, so `rw` does not match them.
-  exact (mfderiv_comp_apply (s, t, θ) hproj hC _).symm.trans h
+  refine mfderiv_apply_mem_ker_of_const_line (w := ((0 : ℝ), (0 : ℝ), (1 : ℝ)))
+    (hf.mdifferentiable (by simp)).mdifferentiableAt fun r ↦ ?_
+  have hr : (s, t, θ) + r • ((0 : ℝ), (0 : ℝ), (1 : ℝ)) = (s, t, θ + r) := by
+    ext <;> simp
+  rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hp, hD.proj_transportedCylinder hn hf hfp hΔ hp]
 
 /-- **A two-form defining the connection vanishes on the derivatives of the transported cylinder
 in `t` and in `θ`.** Let `τ` be a two-form on `M` whose horizontal spaces form the connection
@@ -691,32 +674,21 @@ theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
         mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (0, 1)] = 0 := by
   subst hτ
   obtain ⟨t, θ⟩ := q
-  by_cases hu : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ) IM
-    (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (t, θ)
-  swap
-  · rw [mfderiv_zero_of_not_mdifferentiableAt hu]
-    exact SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
-      (IB := IB) (proj := proj) (Submodule.zero_mem _) (LinearMap.ker _).zero_mem
   refine SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (IB := IB)
     (proj := proj) ?_ ?_
-  · rw [← hu.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ (r, θ))
-      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ)), Manifold.curveVelocity_apply]
-    exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_mem t 1
-  · have hproj : MDifferentiableAt IM IB proj (hD.transportedCylinder e Δ c (s, t, θ)) :=
-      (hf.mdifferentiable (by simp)).mdifferentiableAt
-    -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
+  · exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_apply_mem_of_hasDerivAt
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (g := fun r : ℝ ↦ (r, θ))
+      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ))
+  · -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
     -- constant.
-    have h := mfderiv_apply_eq_zero_of_const_line (I := IB)
-      (f := proj ∘ fun q' ↦ hD.transportedCylinder e Δ c (s, q'))
-      (z := (t, θ)) (w := (0, 1)) fun r ↦ by
-        have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
-          ext <;> simp
-        rw [hr, comp_apply, comp_apply, hD.proj_transportedCylinder hn hf hfp hΔ hs,
-          hD.proj_transportedCylinder hn hf hfp hΔ hs]
-    rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-    -- As in `mfderiv_transportedCylinder_apply_mem_ker`, `h` and the chain rule type `(0, 1)`
-    -- differently, so `rw` does not match them.
-    exact (mfderiv_comp_apply (t, θ) hproj hu _).symm.trans h
+    refine mfderiv_apply_mem_ker_of_const_line
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (z := (t, θ))
+      (w := ((0 : ℝ), (1 : ℝ)))
+      (hf.mdifferentiable (by simp)).mdifferentiableAt fun r ↦ ?_
+    have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
+      ext <;> simp
+    rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hs,
+      hD.proj_transportedCylinder hn hf hfp hΔ hs]
 
 end TransportedCylinder
 
