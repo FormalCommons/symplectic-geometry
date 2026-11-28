@@ -164,7 +164,7 @@ theorem commute_expI_of_lie_eq_zero [FiniteDimensional ℝ E] {η ξ : GroupLieA
     (h : ⁅η, ξ⁆ = 0) : Commute (C.expI η) (C.expI ξ) := by
   have := C.finiteDimensional
   rw [expI_def, expI_def]
-  refine commute_mulInvariantExp_of_lie_eq_zero ?_
+  refine Lie.commute_mulInvariantExp_of_lie_eq_zero ?_
   rw [C.cplx_lie_cplx, ← LieHom.map_lie, h, map_zero, neg_zero]
 
 /-- `expI (-ξ) = (expI ξ)⁻¹`. -/
