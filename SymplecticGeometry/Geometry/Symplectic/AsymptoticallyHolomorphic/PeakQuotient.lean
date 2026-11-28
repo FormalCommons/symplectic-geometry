@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
+import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
@@ -39,7 +40,10 @@ difference.
   `G = exp (-‖z‖ ^ 2 / 4)`, the model `∂` of `q * G` at `z` is `G z • (∂q(z) + q z • μ z)`, for
   `∂q(z) = flatDel q z` the flat `∂` of `q` and `μ = gaussianConnectionForm`; so its operator
   norm is at least `G z * (‖∂q(z)‖ - ‖z‖ ‖q z‖ / 2)`
-  (`SymplecticGeometry.mul_sub_le_norm_modelDel_mul_gaussian`).
+  (`SymplecticGeometry.mul_sub_le_norm_modelDel_mul_gaussian`). The
+  whole model connection of `q * G` at `z` has operator norm at most
+  `G z * (‖dq_z‖ + ‖z‖ ‖q z‖ / 2)`
+  (`SymplecticGeometry.norm_modelConnection_mul_gaussian_le`).
 * `SymplecticGeometry.exists_jetNormAt_div_peakFunction_le`: on the closed ball of radius `R` and
   for `R < k ^ (1 / 6)`, the `r`-jet norm of `f / peakFunction k` is at most `C` times that
   of `f`.
@@ -160,6 +164,23 @@ theorem mul_sub_le_norm_modelDel_mul_gaussian {q : StdSpace ι → ℂ} {z : Std
   have h2 := norm_sub_norm_le (flatDel q z) (-(q z • gaussianConnectionForm z))
   rw [norm_neg, sub_neg_eq_add] at h2
   linarith
+
+/-- **An upper bound on the model connection of a product with the Gaussian.** For `q`
+differentiable at `z` and `G = exp (-‖·‖ ^ 2 / 4)`, the operator norm of the model connection of
+`q * G` at `z` is at most `G z * (‖dq_z‖ + ‖z‖ ‖q z‖ / 2)`. -/
+theorem norm_modelConnection_mul_gaussian_le {q : StdSpace ι → ℂ} {z : StdSpace ι}
+    (hq : DifferentiableAt ℝ q z) :
+    ‖modelConnection (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z‖ ≤
+      Real.exp (-‖z‖ ^ 2 / 4) * (‖fderiv ℝ q z‖ + ‖z‖ * ‖q z‖ / 2) := by
+  have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
+  rw [modelConnection_mul hq hGd, modelConnection_gaussian]
+  refine (norm_add_le _ _).trans ?_
+  rw [norm_smul, norm_smul, norm_smul, Complex.norm_real,
+    Real.norm_of_nonneg (Real.exp_pos _).le]
+  have h := mul_le_mul_of_nonneg_left (norm_gaussianConnectionForm_le z)
+    (mul_nonneg (norm_nonneg (q z)) (Real.exp_pos (-‖z‖ ^ 2 / 4)).le)
+  nlinarith
 
 /-- **Jets of the quotient by the cut-off Gaussian.** For every order `r` and radius `R` there is
 a constant `C` such that, for every `k` with `R < k ^ (1 / 6)`, every `f` and every `z` with
@@ -383,12 +404,9 @@ theorem exists_forall_norm_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (B :
   refine ⟨hqC, (norm_le_jetNormAt 1 q z).trans hqJ,
     (norm_fderiv_le_jetNormAt le_rfl q z).trans hqJ,
     (norm_le_jetNormAt 1 _ z).trans hdJ, fun b ↦ ?_⟩
-  rw [fderiv_clm_apply hdD (differentiableAt_const b), fderiv_const_apply,
-    ContinuousLinearMap.comp_zero, zero_add]
-  calc ‖(fderiv ℝ (flatDbar q) z).flip b‖ ≤ ‖(fderiv ℝ (flatDbar q) z).flip‖ * ‖b‖ :=
-        ContinuousLinearMap.le_opNorm _ b
+  calc ‖fderiv ℝ (fun y ↦ flatDbar q y b) z‖ ≤ ‖fderiv ℝ (flatDbar q) z‖ * ‖b‖ :=
+        norm_fderiv_clm_apply_const_le hdD b
     _ ≤ 2 * C₂ * B * t * ‖b‖ := by
-        rw [ContinuousLinearMap.opNorm_flip]
         gcongr
         exact (norm_fderiv_le_jetNormAt le_rfl _ z).trans hdJ
 
@@ -460,9 +478,7 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
   have hk0 : 0 < √(k : ℝ) := hC.trans_lt (by linarith)
   have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
   have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
-    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
-      ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
-      one_ne_zero z
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
   have hs : DifferentiableAt ℝ (D.reading k x s) z := (hq.mul hGd).congr_of_eventuallyEq hfeq
   set G := Real.exp (-‖z‖ ^ 2 / 4)
   set a := ‖q z‖
