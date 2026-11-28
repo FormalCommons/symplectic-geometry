@@ -112,8 +112,8 @@ the transversality hypothesis of the tube and Morse–Bott results on the zero s
 The inequality between the two parts is also stated by itself, with the `(1,0)`- and
 `(0,1)`-parts written as `TauCeti.complexLinearPartContinuousLinearMap` and
 `TauCeti.complexAntilinearPartContinuousLinearMap` for `J` and multiplication by `i`
-(`SymplecticGeometry.IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt`). This is the
-form of the hypothesis of the zero set criterion
+(`IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt_norm_complexLinearPart`, in the
+namespace `SymplecticGeometry`). This is the form of the hypothesis of the zero set criterion
 `SymplecticGeometry.dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`, and it needs no
 differentiability of `s k`.
 
@@ -233,7 +233,7 @@ form, and `D` rescaled unitary charts of radius `ρ₀ > 0`. If `s` is asymptoti
 the complex-antilinear part of `∇ s_k(x)`, for `J` on `T_x M` and multiplication by `i` on the
 fibre, has smaller operator norm than its complex-linear part. Here `∇` is the connection
 `powerConnection α k`, and the operator norms are those of the given metric and of the fibre. -/
-theorem IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt
+theorem IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt_norm_complexLinearPart
     (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
     (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
     {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
