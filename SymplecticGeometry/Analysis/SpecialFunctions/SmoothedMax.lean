@@ -73,8 +73,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `smoothedMax_eq_right`, their versions near a set (`smoothedMax_eventuallyEq_left`,
   `smoothedMax_eventuallyEq_right`) and near a point for arguments continuous there
   (`smoothedMax_eventuallyEq_left_of_continuousAt`,
-  `smoothedMax_eventuallyEq_right_of_continuousAt`), `max_le_smoothedMax`, `smoothedMax_le_max_add`
-  and `one_div_smoothedMax_le`.
+  `smoothedMax_eventuallyEq_right_of_continuousAt`), on an interval `[a, u)` for arguments
+  continuous at `a` within `[a, ∞)` (`exists_eqOn_smoothedMax_right`), `max_le_smoothedMax`,
+  `smoothedMax_le_max_add` and `one_div_smoothedMax_le`.
 * `SymplecticGeometry.smoothedSign_eq_smoothedSign_one`,
   `SymplecticGeometry.smoothedAbs_eq_mul_smoothedAbs_one` and
   `SymplecticGeometry.smoothedMax_eq_mul_smoothedMax_one`: for `δ ≠ 0`, each is its width-`1`
@@ -748,6 +749,16 @@ theorem smoothedMax_eventuallyEq_right_of_continuousAt {X : Type*} [TopologicalS
     (h : f x + δ < g x) : (fun y ↦ smoothedMax δ (f y) (g y)) =ᶠ[𝓝 x] g := by
   filter_upwards [(hf.add continuousAt_const).eventually_lt hg h] with y hy
   exact smoothedMax_eq_right hδ hy.le
+
+/-- For `η > 0` and `f` and `g` continuous at `a` within `[a, ∞)` with `f a + η < g a`, the
+smoothed maximum of `f` and `g` equals `g` on some interval `[a, u)` with `a < u`. -/
+theorem exists_eqOn_smoothedMax_right {η a : ℝ} {f g : ℝ → ℝ} (hη : 0 < η)
+    (hf : ContinuousWithinAt f (Ici a) a) (hg : ContinuousWithinAt g (Ici a) a)
+    (h : f a + η < g a) :
+    ∃ u, a < u ∧ EqOn (fun r ↦ smoothedMax η (f r) (g r)) g (Ico a u) := by
+  obtain ⟨u, hu, hsub⟩ := mem_nhdsGE_iff_exists_Ico_subset.1
+    (Filter.Tendsto.eventually_lt (hf.add continuousWithinAt_const) hg h)
+  exact ⟨u, hu, fun r hr ↦ smoothedMax_eq_right hη (hsub hr).le⟩
 
 /-- For `δ > 0`, the smoothed maximum lies above the maximum. -/
 theorem max_le_smoothedMax (hδ : 0 < δ) (a b : ℝ) : max a b ≤ smoothedMax δ a b := by
