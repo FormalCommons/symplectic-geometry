@@ -9,13 +9,18 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 public import TauCeti.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 /-!
-# Functions with vanishing integrals over initial intervals
+# Consequences of the fundamental theorem of calculus
 
 A function `g : ℝ → E`, continuous on `[a, b]`, all of whose integrals `∫ u in a..s, g u`,
 `s ∈ [a, b]`, vanish is zero on `[a, b]`, for `a < b`
 (`ContinuousOn.eqOn_zero_of_forall_intervalIntegral_eq_zero`). On `(a, b)`, `g` is the
 derivative of these integrals (Tau Ceti's `ContinuousOn.integral_hasDerivAt_of_mem_Ioo`), which
 are constant; at the ends it vanishes by continuity.
+
+The derivative of a `T`-periodic function, differentiable on an interval of length `T` with an
+integrable derivative there, integrates to zero over that interval
+(`Function.Periodic.intervalIntegral_deriv_eq_zero`), by Mathlib's
+`intervalIntegral.integral_deriv_eq_sub`.
 -/
 
 public section
@@ -37,5 +42,13 @@ theorem ContinuousOn.eqOn_zero_of_forall_intervalIntegral_eq_zero
     exact hd.unique ((hasDerivAt_const s (0 : E)).congr_of_eventuallyEq hF)
   exact hzero.of_subset_closure hg continuousOn_const Ioo_subset_Icc_self
     (closure_Ioo hab.ne).ge
+
+/-- The derivative of a `T`-periodic function, differentiable on `[a, a + T]` with an integrable
+derivative there, integrates to zero over `[a, a + T]`. -/
+theorem Function.Periodic.intervalIntegral_deriv_eq_zero {T : ℝ} (hg : Function.Periodic g T)
+    (hd : ∀ x ∈ uIcc a (a + T), DifferentiableAt ℝ g x)
+    (hint : IntervalIntegrable (deriv g) MeasureTheory.volume a (a + T)) :
+    ∫ x in a..a + T, deriv g x = 0 := by
+  rw [intervalIntegral.integral_deriv_eq_sub hd hint, hg a, sub_self]
 
 end

@@ -8,9 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 public import Mathlib.LinearAlgebra.SesquilinearForm.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import TauCeti.Geometry.Manifold.IsManifold.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import TauCeti.Geometry.Manifold.VectorBundle.Tensoriality
 import TauCeti.Geometry.Manifold.VectorField.Related
 import TauCeti.Geometry.Manifold.ContMDiff.Defs
@@ -110,6 +110,7 @@ and their curvature is `-curvature`.
   only on their values at `f x`.
 * `TauCeti.IsEhresmannConnection.curvatureTensor_apply` and `eq_curvatureTensor_iff`: the
   curvature tensor computes the curvature of smooth fields, and is characterized by this;
+  `curvature_contMDiffExtend`: it is the curvature of the smooth extensions of its arguments;
   `curvatureTensor_mem_ker`, `curvatureTensor_self` and `curvatureTensor_swap`;
   `curvatureTensor_isAlt` states that it is alternating as Mathlib's `LinearMap.IsAlt`.
 
@@ -598,6 +599,16 @@ theorem curvatureTensor_apply (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x
   hD.curvature_congr hn hf (FiberBundle.contMDiff_contMDiffExtend (n := ∞) J F _) hv₁
     (FiberBundle.contMDiff_contMDiffExtend (n := ∞) J F _) hv₂
     (FiberBundle.contMDiffExtend_apply_self J F _) (FiberBundle.contMDiffExtend_apply_self J F _)
+
+/-- At a point `x` over `b`, the curvature of the smooth extensions
+`FiberBundle.contMDiffExtend J F u₁` and `FiberBundle.contMDiffExtend J F u₂` of two tangent
+vectors `u₁ u₂` of `B` at `b` is the curvature tensor at `x` on `u₁ u₂`. -/
+theorem curvature_contMDiffExtend (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) {b : B}
+    (hx : f x = b) (u₁ u₂ : TangentSpace J b) :
+    hD.curvature (FiberBundle.contMDiffExtend J F u₁) (FiberBundle.contMDiffExtend J F u₂) x =
+      hD.curvatureTensor hn hf u₁ u₂ := by
+  subst hx
+  rfl
 
 /-- The curvature tensor is the only bilinear map on `TangentSpace J (f x)` that computes the
 curvature at `x` of smooth vector fields on the base from their values at `f x`. -/
