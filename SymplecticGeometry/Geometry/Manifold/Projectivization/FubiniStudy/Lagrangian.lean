@@ -237,9 +237,10 @@ theorem isSmoothEmbedding_cliffordTorus :
     rw [injective_iff_map_eq_zero]
     -- Read the tangent vector as a vector of `Fin n → ℝ`, the tangent space of the covering.
     intro (a : Fin n → ℝ) ha
-    have hq := (AddCircle.contMDiff_coe_pi (ι := Fin n) (2 * π) 1).mdifferentiable one_ne_zero
+    have hq :=
+      (AddCircle.contMDiff_coe_pi (ι := Fin n) (fun _ ↦ 2 * π) 1).mdifferentiable one_ne_zero
     have hG := ((contMDiff_cliffordTorusLift 1).comp
-      (AddCircle.contMDiff_coe_pi (ι := Fin n) (2 * π) 1)).mdifferentiable one_ne_zero
+      (AddCircle.contMDiff_coe_pi (ι := Fin n) (fun _ ↦ 2 * π) 1)).mdifferentiable one_ne_zero
     -- Through the covering map, whose derivative is the identity, `a` is in the kernel of the
     -- derivative of `mkNonzero ℂ n` after that of the lift.
     have e₁ := mfderiv_comp t ((contMDiff_cliffordTorus n 1 _).mdifferentiableAt one_ne_zero)
@@ -307,7 +308,7 @@ theorem isLagrangianEmbedding_cliffordTorus :
     (fun t ↦ by rw [AddCircle.mfderiv_coe_pi]; exact surjective_id) ?_
   rw [cliffordTorus_def, comp_assoc, isIsotropicMap_mkNonzero_comp_iff
     (((contMDiff_cliffordTorusLift 1).comp
-      (AddCircle.contMDiff_coe_pi (ι := Fin n) (2 * π) 1)).mdifferentiable one_ne_zero)]
+      (AddCircle.contMDiff_coe_pi (ι := Fin n) (fun _ ↦ 2 * π) 1)).mdifferentiable one_ne_zero)]
   -- Read the tangent vectors as vectors of `Fin n → ℝ`, the tangent space of the covering.
   intro t (a : Fin n → ℝ) (b : Fin n → ℝ)
   -- The derivative of the lift `z` sends `a` to the vector of real multiples `aⱼ • (i zⱼ)`.

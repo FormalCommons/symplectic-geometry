@@ -444,7 +444,7 @@ point. -/
 theorem mvfderiv_rescaledChart (y : M) :
     mvfderiv I (D.rescaledChart c x) y = (c : ℝ) • mvfderiv I (D.chart x) y := by
   rw [rescaledChart_def, PartialDiffeomorph.mvfderiv_transAffine,
-    ContinuousLinearEquiv.coe_smulLeft, ContinuousLinearMap.smul_comp,
+    ContinuousLinearEquiv.coe_smulLeft, Units.smul_def, ContinuousLinearMap.smul_comp,
     ContinuousLinearMap.id_comp]
 
 /-- The target of the chart rescaled by `c` contains the ball of radius `|c| * D.radius`
@@ -530,7 +530,7 @@ theorem norm_iteratedFDeriv_chartPushforward_rescaledChart_le (r : ℕ) {z : Std
     (ContinuousLinearEquiv.smulLeft c) r (D.ball_subset_rescaledChart_target c x hz)
   rw [← rescaledChart_def, ContinuousLinearEquiv.smulLeft_symm, ContinuousLinearEquiv.coe_smulLeft,
     ContinuousLinearEquiv.coe_smulLeft, ContinuousLinearEquiv.smulLeft_apply_apply, add_zero,
-    Units.smul_def, Units.val_inv_eq_inv_val] at h
+    Units.smul_def, Units.smul_def, Units.smul_def, Units.val_inv_eq_inv_val] at h
   calc _ ≤ _ := h
     _ ≤ |(c : ℝ)| * |(c : ℝ)|⁻¹ ^ (r + 1) * D.bound r := by
         gcongr

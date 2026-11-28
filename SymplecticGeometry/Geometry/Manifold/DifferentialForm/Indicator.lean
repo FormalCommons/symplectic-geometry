@@ -14,9 +14,10 @@ import SymplecticGeometry.Topology.Algebra.Support
 For a rough form `f` on `M` and a subset `U` of `M`, `U.indicator f` is `f` on `U` and `0` off
 `U`. When `U` is open, `f` is a `C^n` section at the points of `U`, and `f` vanishes on `U` outside
 a closed set `K ⊆ U`, the form `U.indicator f` is `C^n` on all of `M`
-(`TauCeti.IsSmoothForm.indicator`). Its support then lies in `K`, by the lemma
+(`TauCeti.IsSmoothForm.indicator_of_isClosed`). Its support then lies in `K`, by the lemma
 `tsupport_indicator_subset_of_eqOn` about functions. This cuts a form into the pieces it has in
-finitely many disjoint open sets.
+finitely many disjoint open sets. Tau Ceti's `TauCeti.IsSmoothForm.indicator` gives the same
+conclusion for a form that is `C^n` on all of `M` and vanishes near every point outside `U`.
 
 The proof of smoothness follows Tau Ceti's `TauCeti.IsSmoothForm.extendByZero`, written for a set
 of `M` rather than an open subset seen as a manifold.
@@ -36,8 +37,8 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
 /-- **Restricting a form to an open set and extending by zero.** Let `U` be open and `K ⊆ U`
 closed. If a form `f` is a `C^n` section at every point of `U` and vanishes on `U` outside `K`,
 then `U.indicator f` is a `C^n` form on `M`. -/
-theorem IsSmoothForm.indicator [IsManifold I 1 M] {n : WithTop ℕ∞} {f : RoughForm I M F k}
-    {U K : Set M} (hU : IsOpen U) (hK : IsClosed K) (hKU : K ⊆ U)
+theorem IsSmoothForm.indicator_of_isClosed [IsManifold I 1 M] {n : WithTop ℕ∞}
+    {f : RoughForm I M F k} {U K : Set M} (hU : IsOpen U) (hK : IsClosed K) (hKU : K ⊆ U)
     (hf : ∀ x ∈ U, ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) n
       (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (f y)) x)
     (hf0 : ∀ x ∈ U, x ∉ K → f x = 0) :
