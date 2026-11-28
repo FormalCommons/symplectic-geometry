@@ -530,7 +530,7 @@ theorem mem_ker_sliceOperator_zero_iff {C : LieComplexification I G IC Gc}
         p.1 = C.lieMap ξ + C.cplx (C.lieMap η) ∧ p.2 = 0 := by
   obtain ⟨Z, w⟩ := p
   have hiso := hC.isotropy_eq_map_lieMap_sup_of_moment_eq_zero hμ hg hx
-  rw [LinearMap.mem_ker, sliceOperator_apply, sub_eq_zero, e.hasMFDerivAt_symm.mfderiv,
+  rw [LinearMap.mem_ker, sliceOperator_apply, sub_eq_zero, e.mfderiv_chart_symm_zero,
     e.symm_zero]
   -- `ContinuousLinearMap.id_apply` does not rewrite once the identity of `E'` is applied to a
   -- vector of `T_x M`; the identity applied to `w` is `w` by definition.
