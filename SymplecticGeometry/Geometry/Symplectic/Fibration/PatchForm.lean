@@ -10,6 +10,8 @@ import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # A two-form on `EB × F` that reads a two-form on `M` near a point of a patch
@@ -39,15 +41,16 @@ the first term being extended by zero off `W`.
 
 ## Implementation notes
 
-The smoothness of the first term is `TauCeti.isSmoothForm_fun_smul_of_mpullback_subtypeVal`. Over
-`W`, vertical closedness is the blending lemma
-`TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul`. Its hypotheses hold there: the
-two forms are vertically closed, by
-`TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm`
-and since `σ` is closed, being a fibre form of `τ`; and they agree on vertical pairs, both
-having fibre components `σ`, by
-`TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm`.
-Off the support of `χ`, `τ'` is `pr₂^* σ` near the point.
+The smoothness of the first term is `TauCeti.isSmoothForm_fun_smul_of_mpullback_subtypeVal`.
+Vertical closedness is the blending lemma
+`TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul_of_tsupport_subset`, for the
+weight `χ` supported in `W`. Its hypotheses hold: over `W`, `ψ^* τ` is vertically closed by
+`TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm`;
+`pr₂^* σ` is closed, since `σ` is closed by
+`TauCeti.SmoothTwoForm.IsVerticallyClosed.isClosed_of_restrictsTo`; and the two agree on
+vertical pairs over `W`, both having fibre components `σ`, by
+`TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm` and
+`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`.
 
 ## References
 
@@ -114,8 +117,6 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
   set νs : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F) :=
     SmoothForm.mpullback Prod.snd contMDiff_snd σ
   set ν := νs.val
-  have hνdef : ν = mpullback (𝓘(ℝ, EB).prod IF) IF Prod.snd σ.val :=
-    SmoothForm.coe_mpullback _ _ _
   have hWo : IsOpen W := e.isOpen_extChartAt_target_inter_symm_preimage_baseSet b₀
   have hbφ : b ∈ φ.source := by rw [extChartAt_source]; exact hb.2
   have hbW : φ b ∈ W := ⟨φ.map_source hbφ, by
@@ -131,8 +132,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
     hχ.comp contMDiff_fst
   have hgW : tsupport (fun z : EB × F ↦ χ z.1) ⊆ W ×ˢ univ := by
     rw [prod_univ]
-    exact (closure_minimal (fun z hz ↦ (subset_tsupport χ hz : z ∈ Prod.fst ⁻¹' tsupport χ))
-      ((isClosed_tsupport _).preimage continuous_fst)).trans (preimage_mono hχW)
+    exact (tsupport_comp_subset_preimage χ continuous_fst).trans (preimage_mono hχW)
   -- The facts about the two forms that are blended.
   set WU : TopologicalSpace.Opens (EB × F) := ⟨W ×ˢ univ, hWo.prod isOpen_univ⟩
   have hμ := hA.contMDiffOn_mpullback_symm_extChartAt_symm b' b₀ τ
@@ -142,16 +142,15 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
   let τ' : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F) :=
     ⟨fun z ↦ χ z.1 • μ z + (1 - χ z.1) • ν z, (h₁.add h₂).mem_smoothBundleForms⟩
   have hτ' (z : EB × F) : τ'.val z = χ z.1 • μ z + (1 - χ z.1) • ν z := rfl
-  have hσc : σ.IsClosed := by
-    have := hτ.isClosed_mpullback_fiberInclusionMap (hA.contMDiffOn_trivAt b')
-      (hA.contMDiffOn_trivAt_symm b') hb.1
-    rwa [hτσ.mpullback_fiberInclusionMap_eq hA hb.1] at this
+  have : Nonempty B := ⟨b⟩
+  have hσc : σ.IsClosed := hτ.isClosed_of_restrictsTo hA hτσ
   have hνc : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst ν univ :=
     SmoothTwoForm.isVerticallyClosedOn_univ_iff.2 (hσc.mpullback _ contMDiff_snd).isVerticallyClosed
   have hfibμ {x : EB} (hx : x ∈ W) : RoughForm.fiberComponent μ x = σ.val :=
     hτσ.fiberComponent_mpullback_symm_extChartAt_symm hA (by simp) hx
   have hfibν (x : EB) : RoughForm.fiberComponent ν x = σ.val := by
-    rw [hνdef, RoughForm.fiberComponent_mpullback_snd]
+    rw [← SmoothTwoForm.coe_smoothFiberComponent, SmoothTwoForm.smoothFiberComponent_def,
+      SmoothForm.mpullback_prodMk_mpullback_snd]
   -- On a pair of vectors tangent to a fibre, the two forms take the value of `σ`.
   have hvert {x : EB} {y : F} (w₁ w₂ : TangentSpace IF y) :
       ν (x, y) ![((0 : EB), w₁), ((0 : EB), w₂)] = σ.val y ![w₁, w₂] ∧
@@ -159,8 +158,12 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
     ⟨by rw [← RoughForm.fiberComponent_apply, hfibν],
       fun hx ↦ by rw [← RoughForm.fiberComponent_apply, hfibμ hx]⟩
   have hχ0 {x : EB} (hx : x ∉ W) : χ x = 0 := image_eq_zero_of_notMem_tsupport fun h ↦ hx (hχW h)
+  -- Over `U`, `χ = 1`, so `τ'` is `ψ^* τ`.
+  have hU {z : EB × F} (hz : z.1 ∈ Metric.ball (φ b) (ε / 4)) : τ'.val z = μ z := by
+    rw [hτ', χ.one_of_mem_closedBall (Metric.ball_subset_closedBall hz), one_smul, sub_self,
+      zero_smul, add_zero]
   refine ⟨Metric.ball (φ b) (ε / 4), Metric.isOpen_ball, Metric.mem_ball_self (by positivity),
-    τ', fun x ↦ ?_, ?_, fun z hz ↦ ?_, fun c hc hcU y ↦ ?_⟩
+    τ', fun x ↦ ?_, ?_, fun z hz ↦ hU hz.1, fun c hc hcU y ↦ ?_⟩
   · -- The fibre components.
     refine SmoothBundleForm.ext fun y w ↦ ?_
     have hw : w = ![w 0, w 1] := (FinVec.etaExpand_eq w).symm
@@ -172,33 +175,20 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
     · rw [(hvert (w 0) (w 1)).2 hx, ← add_smul, add_sub_cancel, one_smul]
     · rw [hχ0 hx, zero_smul, zero_add, sub_zero, one_smul]
   · -- Vertical closedness.
-    rw [SmoothTwoForm.isVerticallyClosed_iff]
-    intro z η₁ hη₁ η₂ hη₂ v
-    by_cases hz : z.1 ∈ W
-    · refine RoughForm.isVerticallyClosedOn_iff.1
-        (RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul (f := χ)
-        (hτ.isVerticallyClosedOn_mpullback_symm_extChartAt_symm hA (by simp) b' b₀)
-        (hνc.mono (subset_univ _)) (fun _ _ ↦ mdifferentiableAt_fst)
-        (fun _ _ ↦ (hχ _).mdifferentiableAt (by simp))
-        (fun q hq ↦ (hμ.contMDiffAt ((hWo.prod isOpen_univ).mem_nhds hq)).mdifferentiableAt
-          (by simp))
-        (fun q _ ↦ (νs.contMDiff q).mdifferentiableAt (by simp)) ?_) z ⟨hz, mem_univ _⟩
-        η₁ hη₁ η₂ hη₂ v
-      rintro ⟨x, y⟩ hq u₁ hu₁ u₂ hu₂
-      rw [mem_ker_mfderiv_fst_iff] at hu₁ hu₂
-      have hu₁' : u₁ = ((0 : EB), u₁.2) := Prod.ext hu₁ rfl
-      have hu₂' : u₂ = ((0 : EB), u₂.2) := Prod.ext hu₂ rfl
-      rw [hu₁', hu₂', (hvert u₁.2 u₂.2).1, (hvert u₁.2 u₂.2).2 hq.1]
-    · -- Off the support of `χ`, `τ'` is `pr₂^* σ` near `z`.
-      have hev : ∀ᶠ q in 𝓝 z, τ'.val q = ν q := by
-        filter_upwards [((isClosed_tsupport χ).isOpen_compl.preimage continuous_fst).mem_nhds
-          (show z.1 ∉ tsupport χ from fun h ↦ hz (hχW h))] with q hq
-        rw [hτ', image_eq_zero_of_notMem_tsupport hq, zero_smul, zero_add, sub_zero, one_smul]
-      rw [mextDeriv_congr_of_eventuallyEq hev]
-      exact RoughForm.isVerticallyClosedOn_iff.1 hνc z (mem_univ _) η₁ hη₁ η₂ hη₂ v
-  · -- Over `U`, `χ = 1`.
-    rw [hτ', χ.one_of_mem_closedBall (Metric.ball_subset_closedBall hz.1), one_smul, sub_self,
-      zero_smul, add_zero]
+    rw [← SmoothTwoForm.isVerticallyClosedOn_univ_iff, show τ'.val = _ from funext hτ']
+    refine RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul_of_tsupport_subset (f := χ)
+      (proj := Prod.fst) hχW continuous_fst
+      (prod_univ (s := W) ▸
+        hτ.isVerticallyClosedOn_mpullback_symm_extChartAt_symm hA (by simp) b' b₀) hνc
+      (fun _ _ ↦ mdifferentiableAt_fst) (fun _ _ ↦ (hχ _).mdifferentiableAt (by simp))
+      (fun q hq ↦ (hμ.contMDiffAt ((hWo.prod isOpen_univ).mem_nhds ⟨hq, mem_univ _⟩)
+        ).mdifferentiableAt (by simp))
+      (fun q _ ↦ (νs.contMDiff q).mdifferentiableAt (by simp)) ?_
+    rintro ⟨x, y⟩ hq u₁ hu₁ u₂ hu₂
+    rw [mem_ker_mfderiv_fst_iff] at hu₁ hu₂
+    have hu₁' : u₁ = ((0 : EB), u₁.2) := Prod.ext hu₁ rfl
+    have hu₂' : u₂ = ((0 : EB), u₂.2) := Prod.ext hu₂ rfl
+    rw [hu₁', hu₂', (hvert u₁.2 u₂.2).1, (hvert u₁.2 u₂.2).2 hq]
   · -- The pull-back by `Φ`.
     set Φ : M → EB × F := fun p ↦ (φ (proj p), (e p).2) with hΦdef
     set p₀ := e.toOpenPartialHomeomorph.symm (c, y)
@@ -225,15 +215,8 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
       hεW (Metric.ball_subset_ball (by linarith) (show (Φ p).1 ∈ _ from hpU.1))
     have hψ : MDifferentiableAt (𝓘(ℝ, EB).prod IF) IM ψ (Φ p) :=
       (hA.contMDiffAt_symm_extChartAt_symm (q := Φ p) hpW).mdifferentiableAt (by simp)
-    have hτμ : τ'.val (Φ p) = μ (Φ p) := by
-      rw [hτ', χ.one_of_mem_closedBall (Metric.ball_subset_closedBall hpU.1), one_smul, sub_self,
-        zero_smul, add_zero]
-    have hpull : mpullback IM (𝓘(ℝ, EB).prod IF) Φ τ'.val p =
-        mpullback IM (𝓘(ℝ, EB).prod IF) Φ μ p := by
-      ext v
-      rw [mpullback_apply, mpullback_apply, hτμ]
-    rw [hpull, ← mpullback_comp_at ((hΦ hp).mdifferentiableAt (by simp)) hψ,
-      hid.mpullback_apply_eq_self]
+    rw [mpullback_apply_congr (hU hpU.1),
+      ← mpullback_comp_at ((hΦ hp).mdifferentiableAt (by simp)) hψ, hid.mpullback_apply_eq_self]
 
 end TauCeti
 

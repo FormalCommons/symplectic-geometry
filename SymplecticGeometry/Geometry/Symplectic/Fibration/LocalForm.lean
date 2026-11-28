@@ -81,7 +81,6 @@ since it inverts the flat maps of the smooth family `σ`.
 ## Main results
 
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
-* `TauCeti.RoughForm.fiberComponent_mpullback_snd`: the slices of `pr₂^* σ` are all `σ`.
 * `TauCeti.RoughForm.mextDeriv_fiberComponent_apply`: on vectors tangent to the fibre over `x`,
   the exterior derivative of `τ` is that of its slice `σ(x)`, for `τ` of class `C¹` at the point.
 * `TauCeti.RoughForm.differentiableAt_fiberComponent`: the slices of a form differentiable at
@@ -177,15 +176,6 @@ theorem fiberComponent_apply (x : EB) (y : F) (w₁ w₂ : TangentSpace IF y) :
   -- The two sides differ only in the type of the vectors, `TangentSpace` of the product or
   -- the product of the tangent spaces, which agree by definition.
   rfl
-
-/-- The fibre components of the pull-back `pr₂^* σ` of a two-form `σ` on `F` are all `σ`. -/
-@[simp]
-theorem fiberComponent_mpullback_snd (σ : RoughForm IF F ℝ 2) (x : EB) :
-    (mpullback (𝓘(ℝ, EB).prod IF) IF Prod.snd σ).fiberComponent x = σ := by
-  funext y
-  rw [fiberComponent_def, ← mpullback_comp_at (f := Prod.mk x)
-    (mdifferentiableAt_const.prodMk mdifferentiableAt_id) mdifferentiableAt_snd,
-    Prod.snd_comp_mk, mpullback_id]
 
 /-- The exterior derivative of the fibre component of `τ` over `x` is that of `τ` on vectors
 tangent to the fibre: on `w₁, w₂, u` at `y`, `d(σ(x))` takes the value of `dτ` at `(x, y)` on
