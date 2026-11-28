@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.UnitFrame
 public import TauCeti.Topology.VectorBundle.Complex.Clutching
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
@@ -387,7 +388,7 @@ the loop of normalized determinants of the clutching transition. -/
 private theorem sectionIndex_clutchingSection (hn : finrank ℝ EM = 2) (i : ι)
     (hs : Continuous fun x ↦
       TotalSpace.mk' ℂ (E := DetBundle ℂ G E) x (clutchingSection hφ hΦ hΦout x)) :
-    (VectorBundleOrientation.reindex (finCongr (by simp))
+    (VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
         (VectorBundleOrientation.complex ℂ (DetBundle ℂ G E))).sectionIndex
         (by simp [finrank_real_eq_two_mul_finrank_complex]) o hs (φ i 0) =
       Circle.degree (ContinuousMap.mk _
@@ -438,7 +439,7 @@ theorem exists_detBundle_section_clutching [Finite ι] (hn : finrank ℝ EM = 2)
     ∃ (s : ∀ x, DetBundle ℂ G E x)
       (hs : Continuous fun x ↦ TotalSpace.mk' ℂ (E := DetBundle ℂ G E) x (s x)),
       {x | s x = 0} = range (fun i ↦ φ i 0) ∧
-      ∀ i, (VectorBundleOrientation.reindex (finCongr (by simp))
+      ∀ i, (VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
           (VectorBundleOrientation.complex ℂ (DetBundle ℂ G E))).sectionIndex
           (by simp [finrank_real_eq_two_mul_finrank_complex]) o hs (φ i 0) =
         Circle.degree (ContinuousMap.mk _

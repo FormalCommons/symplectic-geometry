@@ -14,6 +14,7 @@ public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Symplectic.Manifold.Orientation
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # Charts that carry a tamed almost complex structure to `i`
@@ -77,7 +78,7 @@ theorem localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames
         ((ψ.toOpenPartialHomeomorph.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨z, hz⟩ (1 + 1)).symm
           (complexManifoldHomologicalOrientation ℂ M (r := 0) (by simp) z)).val =
-      ((Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+      ((Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self)
         (complexOrientation ℂ)).localOrientation (by simp)).val := by
   -- The derivative `D` of `ψ` at `z`, read on `ℂ`, the tangent space of both sides.
   obtain ⟨D, hD⟩ : ∃ D : ℂ ≃L[ℝ] ℂ, (D : ℂ →L[ℝ] ℂ) = mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ z :=
