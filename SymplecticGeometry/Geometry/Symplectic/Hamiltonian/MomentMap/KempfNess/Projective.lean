@@ -23,7 +23,8 @@ complexified action on `V` holds by definition, and since the generator `X_Z v` 
 (`TauCeti.fundamentalVectorField_eq_mfderiv_apply`), the second is the identity
 `dρ₁ (C.cplx Z) = i • dρ₁ Z` on the directions `Z = C.lieMap ξ`. The library's Fubini–Study form
 is invariant under the elements that act by unitary matrices, and `J` under every element
-(`Projectivization.isPseudoholomorphic_smul`).
+(`TauCeti.isPseudoholomorphic_const_smul`, which applies by Tau Ceti's
+`Projectivization.instContMDiffConstSMul`).
 
 ## Main results
 
