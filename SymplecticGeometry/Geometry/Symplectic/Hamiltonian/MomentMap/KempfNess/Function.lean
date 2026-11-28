@@ -90,6 +90,8 @@ the polystable `Gc`-orbits.
 * `SymplecticGeometry.hasDerivAt_kempfNessFunction_expI_neg_smul`: the case `g = 1`, direction
   `-ξ`: along `t ↦ C.expI (-(t • ξ))` the derivative of `Φ_p` is `-μ (C.expI (t • ξ) • p) ξ`.
 * `SymplecticGeometry.convexOn_kempfNessFunction_geodesic`: `Φ_p` is convex along these curves.
+* `SymplecticGeometry.mul_kempfNessFunction_expI_smul_le`: the chord bound
+  `r * Φ_p (C.expI (s • ζ)) ≤ s * Φ_p (C.expI (r • ζ))` for `0 < s ≤ r`.
 * `SymplecticGeometry.kempfNessFunction_add_moment_le`,
   `SymplecticGeometry.kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le`: the tangent line at
   `t = 0` bounds `Φ_p (g * C.expI η * C.toHom u)` below by `Φ_p g + μ (g⁻¹ • p) η`, and by
@@ -551,6 +553,25 @@ theorem convexOn_kempfNessFunction_geodesic [FiniteDimensional ℝ E']
   -- The derivative is `μ (C.expI ((-t) • ξ) • g⁻¹ • p) ξ`, antitone in `-t`.
   rw [(hD a).deriv, (hD b).deriv, ← neg_smul, ← neg_smul]
   exact antitone_moment_expI h hμ.toIsMomentMap hg ξ (g⁻¹ • p) (neg_le_neg hab)
+
+/-- **Chords of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then `r * Φ_p (C.expI (s • ζ)) ≤ s * Φ_p (C.expI (r • ζ))` for
+`0 < s ≤ r`: the convex function `s ↦ Φ_p (C.expI (s • ζ))` vanishes at `0`, so it lies below
+its chord from `0` to `r`. -/
+theorem mul_kempfNessFunction_expI_smul_le [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ζ : GroupLieAlgebra I G) {s r : ℝ} (hs : 0 < s) (hsr : s ≤ r) :
+    r * kempfNessFunction C μ p (C.expI (s • ζ)) ≤
+      s * kempfNessFunction C μ p (C.expI (r • ζ)) := by
+  have hr := hs.trans_le hsr
+  have hc := (convexOn_kempfNessFunction_geodesic C μ p h hμ hg 1 ζ).secant_mono
+    (a := 0) (x := s) (y := r) trivial trivial trivial hs.ne' hr.ne' hsr
+  simp only [one_mul, zero_smul, C.expI_zero, kempfNessFunction_one, sub_zero] at hc
+  rw [div_le_div_iff₀ hs hr] at hc
+  linarith
 
 /-- **The lower bound from convexity.** Let the action of `Gc` be a complexified action, let `-μ`
 be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. Then
