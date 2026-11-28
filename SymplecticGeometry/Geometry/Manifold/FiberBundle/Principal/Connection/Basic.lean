@@ -250,7 +250,8 @@ theorem of_mpullback_op_smul
         SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) A) :
     IsConnectionForm A where
   apply_rightFundamentalVectorField := h₁
-  apply_mfderiv_op_smul g := (SmoothForm.mpullback_eq_mapCoeff_iff_one _).1 (h₂ g)
+  apply_mfderiv_op_smul g :=
+    (SmoothForm.mpullback_eq_mapCoeff_iff_one (F := EG) (G := EG) _).1 (h₂ g)
 
 /-- **The equivariance of a connection form, as forms.** The pull-back of a connection form `A`
 by the action of `g` is its image `Ad(g⁻¹) ∘ A` under the adjoint action of `g⁻¹`. -/
