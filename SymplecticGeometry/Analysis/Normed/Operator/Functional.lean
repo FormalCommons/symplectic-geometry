@@ -29,9 +29,10 @@ convex combination of two functionals or of two vectors that satisfy it and adds
 * `ContinuousLinearMap.mul_opNorm_le_norm_of_mul_le_apply`: `c ‖ℓ‖ ≤ ‖v‖`.
 * `ContinuousLinearMap.norm_sub_le_of_mul_le_apply`: if `ℓ` and `ℓ'` both satisfy the inequality
   for the same `v` and `c > 0`, then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`.
-* `mul_le_apply_one_sub_smul_add_smul_add_of_le`: for a real linear functional `φ`, not
-  necessarily continuous, a perturbed convex combination of two vectors that satisfy an
-  inequality of this shape satisfies it with the constant `c / 2`, if the error is small.
+* `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`: for a real linear
+  functional `φ`, not necessarily continuous, a perturbed convex combination of two vectors
+  that satisfy an inequality of this shape satisfies it with the constant `c / 2`, if the error
+  is small.
 * `ContinuousLinearMap.mul_le_one_sub_smul_add_smul_add_apply`: a convex combination of two
   functionals that satisfy the inequality for the same `v`, plus an error small relative to the
   first, satisfies it with the constant `c / 2`.
@@ -45,6 +46,8 @@ convex combination of two functionals or of two vectors that satisfy it and adds
 -/
 
 public section
+
+namespace SymplecticGeometry
 
 section LinearMapClass
 
@@ -79,6 +82,8 @@ theorem mul_le_apply_one_sub_smul_add_smul_add_of_le {F : Type*} [FunLike F E �
   nlinarith [mul_le_mul_of_nonneg_left hn hc]
 
 end LinearMapClass
+
+end SymplecticGeometry
 
 namespace ContinuousLinearMap
 
@@ -143,7 +148,8 @@ theorem mul_le_one_sub_smul_add_smul_add_apply {a b e : E →L[ℝ] ℝ} {s η :
   have hkey : c * (c * ‖e‖ ^ 2 + ‖e‖ * ‖v‖) ≤ c * (c / 2 * ‖v‖ ^ 2) := by
     nlinarith [mul_le_mul_of_nonneg_right hce (norm_nonneg v), sq_nonneg ‖v‖,
       pow_le_pow_left₀ (by positivity) hce 2]
-  have h := mul_le_apply_one_sub_smul_add_smul_add_of_le (φ := apply ℝ ℝ v)
+  have h := SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le
+    (φ := apply ℝ ℝ v)
     hc.le hs (by simpa [add_comm] using ha) (by simpa [add_comm] using hb)
     (abs_le.1 (e.le_opNorm v)).1 (le_of_mul_le_mul_left hkey hc)
   simpa [add_comm] using h
@@ -159,7 +165,7 @@ theorem mul_le_apply_one_sub_smul_add_smul_add {a : E →L[ℝ] ℝ} {w e : E} {
     (hw : c * (‖w‖ ^ 2 + ‖a‖ ^ 2) ≤ a w) (hη : 2 * (η + η ^ 2) ≤ c ^ 2)
     (he : ‖e‖ ≤ η * ‖a‖) :
     c / 2 * (‖(1 - s) • v + s • w + e‖ ^ 2 + ‖a‖ ^ 2) ≤ a ((1 - s) • v + s • w + e) := by
-  refine mul_le_apply_one_sub_smul_add_smul_add_of_le hc.le hs hv hw
+  refine SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le hc.le hs hv hw
     (by simpa [mul_comm] using (abs_le.1 (a.le_opNorm e)).1) ?_
   -- The error estimate: trivial if `a = 0`; otherwise `c ≤ 1 / 2`, so `‖e‖ ≤ c / 4 * ‖a‖`.
   rcases (norm_nonneg a).eq_or_lt with h0 | h0

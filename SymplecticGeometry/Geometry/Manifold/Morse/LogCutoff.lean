@@ -51,7 +51,7 @@ with the roles of vectors and covectors exchanged, is
 of the cut-off in Lemma 12.9 of [CieliebakEliashberg2012].
 
 Both pointwise estimates are cases of one statement about a linear functional `φ` on a
-seminormed space, `mul_le_apply_one_sub_smul_add_smul_add_of_le`, taking
+seminormed space, `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`, taking
 `φ` to be evaluation at `v` in the first and the covector `a` in the second; each then only
 bounds its own error term. Both cut-offs, with the constant `m` that bounds their error, come from
 `SymplecticGeometry.exists_contDiff_tsupport_subset_ball_mul_norm_mul_norm_fderiv_le`.
