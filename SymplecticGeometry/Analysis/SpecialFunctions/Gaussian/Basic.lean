@@ -21,6 +21,8 @@ public import Mathlib.Analysis.SpecialFunctions.Exp
   in a nonnegative `d`, each with its own nonnegative weight, hold with one set of constants.
 * `Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le`: the case of two bounds, the first
   unweighted.
+* `Real.exp_neg_mul_max_sub_sq_le`: for `R ≥ 0`, a Gaussian in `max (R - a) 0` is at most a
+  constant times a Gaussian in `R` with half the exponent.
 
 ## References
 
@@ -117,6 +119,20 @@ theorem exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le {ι α : Type*} {l : Fil
     (l := l) (F := fun b ↦ b.rec F G) (w := fun b k ↦ b.rec 1 (w k)) hd
     (by rintro (_ | _) k <;> simp [hw]) (by rintro (_ | _); exacts [by simpa using h₁, h₂])
   exact ⟨C, hC, N, c, hc, h.mono fun k hk i ↦ ⟨by simpa using hk false i, hk true i⟩⟩
+
+/-- A Gaussian in the truncated difference `max (R - a) 0` is at most a constant times a Gaussian
+in `R ≥ 0` with half the exponent: for `c ≥ 0`,
+`exp (-c * max (R - a) 0 ^ 2) ≤ exp (c * a ^ 2) * exp (-(c / 2) * R ^ 2)`. -/
+theorem exp_neg_mul_max_sub_sq_le {a c R : ℝ} (hc : 0 ≤ c) (hR : 0 ≤ R) :
+    exp (-c * max (R - a) 0 ^ 2) ≤ exp (c * a ^ 2) * exp (-(c / 2) * R ^ 2) := by
+  rw [← exp_add, exp_le_exp]
+  have : R ^ 2 / 2 - a ^ 2 ≤ max (R - a) 0 ^ 2 := by
+    rcases le_total R a with h | h
+    · rw [max_eq_right (by linarith)]
+      nlinarith
+    · rw [max_eq_left (by linarith)]
+      nlinarith [sq_nonneg (R - 2 * a)]
+  nlinarith
 
 end Real
 
