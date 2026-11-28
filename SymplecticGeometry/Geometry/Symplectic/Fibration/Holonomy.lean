@@ -126,14 +126,14 @@ variation of holonomy, `TauCeti.IsEhresmannConnection.period_interior_velocity_h
   `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_apply_mem_ker`: the derivative of the
   cylinder in `t` is horizontal, since its curves in `t` are horizontal lifts, and its derivative
   in `θ` is vertical, since its curves in `θ` stay in one fibre.
-* `TauCeti.IsEhresmannConnection.mfderiv_proj_transportedCylinder`,
-  `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_eq_horizontalLiftField`: the
-  derivatives of the cylinder project to those of `Δ`, so its derivative in `t` is the horizontal
-  lift of any field whose value at `Δ (s, t)` is `∂ₜΔ (s, t)`.
 * `TauCeti.IsEhresmannConnection.val_mfderiv_transportedCylinder_eq_zero`,
   `TauCeti.IsEhresmannConnection.val_mfderiv_transportedCylinder_slice_eq_zero`: hence a two-form
   whose horizontal spaces are `D` vanishes on these two derivatives, and the integrand of the
   area of each slice `(t, θ) ↦ C (s, t, θ)` for that form is zero.
+* `TauCeti.IsEhresmannConnection.mfderiv_proj_transportedCylinder`,
+  `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_eq_horizontalLiftField`: the
+  derivatives of the cylinder project to those of `Δ`, so its derivative in `t` is the horizontal
+  lift of any field whose value at `Δ (s, t)` is `∂ₜΔ (s, t)`.
 * `TauCeti.IsEhresmannConnection.transportedCylinder_one_of_isSmoothDisc`,
   `TauCeti.IsEhresmannConnection.apply_transportedCylinder_one`: for `s ∈ [0, 1]`, the cylinder
   ends at the point with coordinates `(x, Φ (s, c θ))` in `e`, where `Φ` is the holonomy
@@ -678,6 +678,37 @@ theorem val_mfderiv_transportedCylinder_eq_zero {τ : SmoothTwoForm IM M}
     (hτ ▸ hD.mfderiv_transportedCylinder_apply_mem hn hf hfp hΔ hp)
     (hD.mfderiv_transportedCylinder_apply_mem_ker hn hf hfp hΔ hp)
 
+/-- **The area integrand of each slice of the transported cylinder vanishes.** Let `τ` be a
+two-form on `M` whose horizontal spaces form the connection `D` of a proper `C^(n+1)` map,
+`1 ≤ n`, and `Δ` a `C^(n+1)` family with `Δ (s, 0)` in the base set of `e`. For the slice
+`u (t, θ) = C (s, t, θ)` of the transported cylinder, the integrand
+`τ (u q) (∂₁u q, ∂₂u q)` of its `τ`-area vanishes at every `q`. -/
+theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
+    (hτ : SmoothTwoForm.horizontalDistribution IB proj τ = D) (hn : 1 ≤ n)
+    (hf : ContMDiff IM IB (n + 1) proj) (hfp : IsProperMap proj)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {s : ℝ} (hs : Δ (s, 0) ∈ e.baseSet)
+    (q : ℝ × ℝ) :
+    τ.val (hD.transportedCylinder e Δ c (s, q))
+      ![mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (1, 0),
+        mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (0, 1)] = 0 := by
+  subst hτ
+  obtain ⟨t, θ⟩ := q
+  refine SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (IB := IB)
+    (proj := proj) ?_ ?_
+  · exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_apply_mem_of_hasDerivAt
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (g := fun r : ℝ ↦ (r, θ))
+      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ))
+  · -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
+    -- constant.
+    refine mfderiv_apply_mem_ker_of_const_line
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (z := (t, θ))
+      (w := ((0 : ℝ), (1 : ℝ)))
+      (hf.mdifferentiable (by simp)).mdifferentiableAt fun r ↦ ?_
+    have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
+      ext <;> simp
+    rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hs,
+      hD.proj_transportedCylinder hn hf hfp hΔ hs]
+
 omit [IsManifold IF ∞ F] in
 /-- **The projection of the derivatives of the transported cylinder.** For a smooth connection on
 a proper smooth map, a smooth family `Δ`, a trivialization `e` with a smooth inverse and a smooth
@@ -736,37 +767,6 @@ theorem mfderiv_transportedCylinder_eq_horizontalLiftField
   refine congrArg Subtype.val ((hD.eq_horizontalLift_iff (w := ⟨_, hmem⟩)).2 ?_)
   refine (hD.mfderiv_proj_transportedCylinder hf hfp he_symm hΔ hc hs (0, 1, 0)).trans ?_
   exact hv.symm.trans (congrArg (fun b ↦ (v b : EB)) hx).symm
-
-/-- **The area integrand of each slice of the transported cylinder vanishes.** Let `τ` be a
-two-form on `M` whose horizontal spaces form the connection `D` of a proper `C^(n+1)` map,
-`1 ≤ n`, and `Δ` a `C^(n+1)` family with `Δ (s, 0)` in the base set of `e`. For the slice
-`u (t, θ) = C (s, t, θ)` of the transported cylinder, the integrand
-`τ (u q) (∂₁u q, ∂₂u q)` of its `τ`-area vanishes at every `q`. -/
-theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
-    (hτ : SmoothTwoForm.horizontalDistribution IB proj τ = D) (hn : 1 ≤ n)
-    (hf : ContMDiff IM IB (n + 1) proj) (hfp : IsProperMap proj)
-    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {s : ℝ} (hs : Δ (s, 0) ∈ e.baseSet)
-    (q : ℝ × ℝ) :
-    τ.val (hD.transportedCylinder e Δ c (s, q))
-      ![mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (1, 0),
-        mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (0, 1)] = 0 := by
-  subst hτ
-  obtain ⟨t, θ⟩ := q
-  refine SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (IB := IB)
-    (proj := proj) ?_ ?_
-  · exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_apply_mem_of_hasDerivAt
-      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (g := fun r : ℝ ↦ (r, θ))
-      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ))
-  · -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
-    -- constant.
-    refine mfderiv_apply_mem_ker_of_const_line
-      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (z := (t, θ))
-      (w := ((0 : ℝ), (1 : ℝ)))
-      (hf.mdifferentiable (by simp)).mdifferentiableAt fun r ↦ ?_
-    have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
-      ext <;> simp
-    rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hs,
-      hD.proj_transportedCylinder hn hf hfp hΔ hs]
 
 end TransportedCylinder
 

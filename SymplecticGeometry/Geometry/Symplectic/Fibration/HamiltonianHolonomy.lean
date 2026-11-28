@@ -91,7 +91,7 @@ variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimens
   {c : ℝ → F}
 
 /-- **The vertical part of `∂ₛC` drops out.** Let `τ` be a vertically closed two-form on `M`,
-in the setting of `contMDiffOn_transportedCylinder`. For fields `v₁ v₂` on `B` whose values at
+in the setting of `mfderiv_proj_transportedCylinder`. For fields `v₁ v₂` on `B` whose values at
 `Δ (s, t)` are the derivatives of `Δ` in `s` and in `t`, the exterior derivative of `τ` at
 `C (s, t, θ)` takes the same value on the derivatives `(∂ₛC, ∂ₜC, ∂_θC)` of the transported
 cylinder `C` as on `(v₁♯, v₂♯, ∂_θC)`. The connection need not be that of `τ`. -/
