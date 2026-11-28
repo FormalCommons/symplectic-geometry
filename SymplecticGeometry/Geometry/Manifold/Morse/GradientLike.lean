@@ -279,10 +279,9 @@ theorem mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
 
 /-- The zeros of a gradient-like field are exactly the critical points of the function. -/
 theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :
-    X x = 0 ↔ mvfderiv 𝓘(ℝ, E) f x = 0 := by
+    X x = 0 ↔ x ∈ criticalPoints 𝓘(ℝ, E) f := by
   obtain ⟨g, δ, -, hδ, h⟩ := hX
-  rw [eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric (hδ x) (h x),
-    mem_criticalPoints]
+  exact eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric (hδ x) (h x)
 
 /-- Along an integral curve of a gradient-like field on a convex set `s` of times that meets no
 critical point of `f`, the function `f` is strictly increasing on `s`. -/
@@ -393,7 +392,7 @@ theorem mpullback {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Fin
     have hloc : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ x :=
       isLocalDiffeomorph_of_mfderiv_eq hΦ (by simp) hΦ' x
     have hf0 := mfderiv_zero_of_not_mdifferentiableAt hf
-    have hX0x : X (Φ x) = 0 := hX0 _ (mvfderiv_eq_zero_iff.2 hf0)
+    have hX0x : X (Φ x) = 0 := hX0 _ (mem_criticalPoints.2 (mvfderiv_eq_zero_iff.2 hf0))
     have hD : mvfderiv 𝓘(ℝ, E') (f ∘ Φ) x = 0 := mvfderiv_eq_zero_iff.2 (by
       rw [hloc.mfderiv_comp (by simp), hf0, ContinuousLinearMap.zero_comp])
     simp [VectorField.mpullback_apply, hX0x, hD, mgradient_eq_zero_iff.2 hD]

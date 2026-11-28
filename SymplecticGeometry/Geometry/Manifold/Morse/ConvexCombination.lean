@@ -11,11 +11,10 @@ import TauCeti.Topology.Algebra.Module.BilinearForm
 /-!
 # Nondegenerate critical points along a segment of functions with a common gradient-like field
 
-Let `X` be differentiable at `p` and satisfy the gradient-like inequality near `p` for two
-functions `f` and `g` (in the local form of `TauCeti.isGradientLike_of_forall_exists_nhds`), each
-with a metric and a constant of its own. If `p` is a nondegenerate critical point of `f` and `g`
-is of class `C²` in the chart at `p`, then `p` is a nondegenerate critical point of every
-function `(1 - s) • f + s • g` with `s ∈ [0, 1]`
+Let `X` be differentiable at `p` and gradient-like near `p` (`TauCeti.IsGradientLikeAt`)
+for two functions `f` and `g`, each with a metric and a constant of its own. If `p` is a
+nondegenerate critical point of `f` and `g` is of class `C²` in the chart at `p`, then `p` is
+a nondegenerate critical point of every function `(1 - s) • f + s • g` with `s ∈ [0, 1]`
 (`TauCeti.IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul`), and so of every function
 equal to one of them near `p`, by Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.congr_of_eventuallyEq`.
@@ -52,27 +51,15 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
   {f g : M → ℝ} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
 
-/-- **Nondegeneracy along a segment of functions.** Let `X` be differentiable at `p` and satisfy
-the gradient-like inequality near `p` for `f` and for `g`, in the local form of
-`TauCeti.isGradientLike_of_forall_exists_nhds`, with a smooth metric and a constant `c > 0` for
-each. Let `p` be a nondegenerate critical point of `f`, and let `g` be of class `C²` in the chart
-at `p`. Then `p` is a nondegenerate critical point of `(1 - s) • f + s • g` for every
-`s ∈ [0, 1]`. -/
+/-- **Nondegeneracy along a segment of functions.** Let `X` be differentiable at `p` and
+gradient-like near `p` (`TauCeti.IsGradientLikeAt`) for `f` and for `g`. Let `p` be a
+nondegenerate critical point of `f`, and let `g` be of class `C²` in the chart at `p`. Then `p` is a
+nondegenerate critical point of `(1 - s) • f + s • g` for every `s ∈ [0, 1]`. -/
 theorem IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul {p : M}
     (hf : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
     (hg : ContDiffAt ℝ 2 (g ∘ (extChartAt 𝓘(ℝ, E) p).symm) (extChartAt 𝓘(ℝ, E) p p))
-    (hXf : ∃ U ∈ 𝓝 p,
-      ∃ G : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨G.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (G.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f y (X y))
-    (hXg : ∃ U ∈ 𝓝 p,
-      ∃ G : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨G.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (G.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) g y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) g y (X y))
+    (hXf : IsGradientLikeAt f X p)
+    (hXg : IsGradientLikeAt g X p)
     (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
       (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
     {s : ℝ} (hs₀ : 0 ≤ s) (hs₁ : s ≤ 1) :
@@ -84,10 +71,9 @@ theorem IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul {p : M}
   set B' := fderiv ℝ (fderiv ℝ (g ∘ φ.symm)) (φ p)
   -- At the critical point `p` of `f`, the inequality for `f` forces `X p = 0`.
   have hX₀ : X p = 0 :=
-    (IsGradientLikeAt.eq_zero_iff ((isGradientLikeAt_def f X p).2 hXf)).2 hf.mem_criticalPoints
+    hXf.eq_zero_iff.2 hf.mem_criticalPoints
   -- Then the inequality for `g` at `p` makes `p` a critical point of `g`.
-  have hgp : p ∈ criticalPoints 𝓘(ℝ, E) g :=
-    (IsGradientLikeAt.eq_zero_iff ((isGradientLikeAt_def g X p).2 hXg)).1 hX₀
+  have hgp : p ∈ criticalPoints 𝓘(ℝ, E) g := hXg.eq_zero_iff.1 hX₀
   obtain ⟨c, hc, hcB⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hXf
     hf.mem_criticalPoints hf'.contDiffAt hXp (A := A) rfl
   obtain ⟨c', hc', hcB'⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hXg hgp hg hXp
