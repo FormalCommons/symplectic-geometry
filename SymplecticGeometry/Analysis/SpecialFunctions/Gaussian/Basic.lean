@@ -62,20 +62,21 @@ theorem one_add_pow_mul_exp_neg_mul_sq_le_of_le {t c c' : ℝ} {N N' : ℕ} (ht 
 set of constants: if eventually along `l`, for all `i`,
 `F k i ≤ C₁ * (1 + d k i) ^ N₁ * exp (-c₁ * d k i ^ 2)` and
 `G k i ≤ C₂ * w k * (1 + d k i) ^ N₂ * exp (-c₂ * d k i ^ 2)`, with `c₁ > 0` and `c₂ > 0`, then
-for some `C`, `N` and `c > 0`, eventually along `l`, for all `i`, both bounds hold with `C`, `N`
-and `c` in place of their constants. -/
+for some `C ≥ 0`, `N` and `c > 0`, eventually along `l`, for all `i`, both bounds hold with
+`C`, `N` and `c` in place of their constants. -/
 theorem exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le {ι α : Type*} {l : Filter ι}
     {F G d : ι → α → ℝ} {w : ι → ℝ} (hd : ∀ k i, 0 ≤ d k i) (hw : ∀ k, 0 ≤ w k)
     (h₁ : ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k in l, ∀ i,
       F k i ≤ C * (1 + d k i) ^ N * exp (-c * d k i ^ 2))
     (h₂ : ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k in l, ∀ i,
       G k i ≤ C * w k * (1 + d k i) ^ N * exp (-c * d k i ^ 2)) :
-    ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k in l, ∀ i,
+    ∃ C : ℝ, 0 ≤ C ∧ ∃ N : ℕ, ∃ c > 0, ∀ᶠ k in l, ∀ i,
       F k i ≤ C * (1 + d k i) ^ N * exp (-c * d k i ^ 2) ∧
         G k i ≤ C * w k * (1 + d k i) ^ N * exp (-c * d k i ^ 2) := by
   obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := h₁
   obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := h₂
-  refine ⟨max (max C₁ 0) (max C₂ 0), N₁ + N₂, min c₁ c₂, lt_min hc₁ hc₂, ?_⟩
+  refine ⟨max (max C₁ 0) (max C₂ 0), le_max_of_le_left (le_max_right _ _), N₁ + N₂, min c₁ c₂,
+    lt_min hc₁ hc₂, ?_⟩
   filter_upwards [h₁, h₂] with k h₁ h₂ i
   set t := d k i
   have ht : 0 ≤ t := hd k i

@@ -456,11 +456,11 @@ theorem exists_jetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
         C * (1 + rescaledDist I k x y) ^ N *
           Real.exp (-c * rescaledDist I k x y ^ 2) := by
   obtain ⟨ρ, hρ, hρρ₀, hchg⟩ := D.jetNorm_le_of_chart_change hg hJ hα hρ₀
-  obtain ⟨C₁, hC₁⟩ := hchg r
+  obtain ⟨C₁, hC₁0, hC₁⟩ := hchg r
   obtain ⟨ρ₁, hρ₁, hρ₁ρ₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   obtain ⟨A, N, c, hc, hA⟩ := hfg
   set ρ₂ := min ρ ρ₁
-  refine ⟨max C₁ 0 * max A 0 * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
+  refine ⟨C₁ * max A 0 * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
   filter_upwards [hfs, hfb ρ₂ (lt_min hρ hρ₁), hA, Filter.eventually_ge_atTop k₀]
     with k hfs hball hA hk
   intro x
@@ -484,11 +484,9 @@ theorem exists_jetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
     (hA z).trans_eq (mul_assoc _ _ _) |>.trans (by gcongr; exact le_max_left _ _)
   calc D.jetNorm k r (D.sectionOfReading k x (f k)) ((D.chart k x).symm z)
       ≤ C₁ * (1 + d) ^ (2 * r) * jetNormAt ℝ r (f k) z := h1
-    _ ≤ max C₁ 0 * (1 + d) ^ (2 * r) * (max A 0 * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))) := by
+    _ ≤ C₁ * (1 + d) ^ (2 * r) * (max A 0 * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))) := by
         gcongr
-        · exact jetNormAt_nonneg _ _ _
-        · exact le_max_left _ _
-    _ = max C₁ 0 * max A 0 * (1 + d) ^ (2 * r) * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) := by
+    _ = C₁ * max A 0 * (1 + d) ^ (2 * r) * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) := by
         ring
 
 /-- **Gaussian decay of `∂̄` of sections extended by zero.** Let `M` be a Hausdorff boundaryless
@@ -517,19 +515,19 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
         C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k x y) ^ N *
           Real.exp (-c * rescaledDist I k x y ^ 2) := by
   obtain ⟨ρ, hρ, hρρ₀, hchg⟩ := D.dbarJetNorm_le_of_chart_change hg hJ hα hρ₀
-  obtain ⟨C₁, hC₁⟩ := hchg r
+  obtain ⟨C₁, hC₁0, hC₁⟩ := hchg r
   obtain ⟨C₂, hC₂0, hC₂⟩ := D.exists_jetNormAt_dbarReading_sectionOfReading_le r
   obtain ⟨ρ₁, hρ₁, hρ₁ρ₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   -- One Gaussian bound, with constants `A₀`, `N₀` and `c`, for both hypotheses.
-  obtain ⟨A₀, N₀, c, hc, hA₀⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+  obtain ⟨A₀, hA₀0, N₀, c, hc, hA₀⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
     (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
     (F := fun k z ↦ jetNormAt ℝ (r + 1) (f k) z)
     (G := fun k z ↦ jetNormAt ℝ r (modelDbar (f k)) z)
     (d := fun _ z ↦ ‖z‖) (fun _ _ ↦ norm_nonneg _) (fun _ ↦ by positivity) hfg hdg
   set ρ₂ := min ρ ρ₁
   set N := N₀ + 2
-  set A := max A₀ 0 + C₂ * max A₀ 0
-  refine ⟨max C₁ 0 * A * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
+  set A := A₀ + C₂ * A₀
+  refine ⟨C₁ * A * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
   filter_upwards [hfs, hfb ρ₂ (lt_min hρ hρ₁), hA₀, Filter.eventually_ge_atTop k₀]
     with k hfs hball hA₀ hk
   intro x y
@@ -538,7 +536,7 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
   have hfb₀ : tsupport (f k) ⊆ ball 0 (ρ₀ * √k) :=
     hball.trans (hsub ((min_le_left _ _).trans hρρ₀))
   have h := D.le_mul_one_add_pow_mul_exp_of_forall_symm_le hg hρ₁ρ₀ hk x (hcmp hk x)
-    (hball.trans (hsub (min_le_right _ _))) (2 * r) N (by positivity : 0 ≤ max C₁ 0 * A *
+    (hball.trans (hsub (min_le_right _ _))) (2 * r) N (by positivity : 0 ≤ C₁ * A *
       (k : ℝ) ^ (-1 / 2 : ℝ)) hc.le
     (fun y hy ↦ D.dbarJetNorm_sectionOfReading_eq_zero hk r hfb₀ hy) (fun z hz ↦ ?_) y
   · exact h.trans_eq (by ring)
@@ -578,22 +576,17 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
           C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) *
             (A₀ * ((1 + ‖z‖) ^ (2 + N₀) * Real.exp (-c * ‖z‖ ^ 2))) := by
         ring
-      _ ≤ max A₀ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * T +
-          C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (max A₀ 0 * T) := by
+      _ ≤ A₀ * (k : ℝ) ^ (-1 / 2 : ℝ) * T + C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (A₀ * T) := by
         gcongr
-        · exact le_max_left _ _
-        · exact le_max_left _ _
       _ = A * (k : ℝ) ^ (-1 / 2 : ℝ) * T := by ring
   set d := rescaledDist I k x ((D.chart k x).symm z)
   have hd : 0 ≤ d := rescaledDist_nonneg I k x _
   calc D.dbarJetNorm k r (D.sectionOfReading k x (f k)) ((D.chart k x).symm z)
       ≤ C₁ * (1 + d) ^ (2 * r) *
           jetNormAt ℝ r (D.dbarReading k x (D.sectionOfReading k x (f k))) z := h1
-    _ ≤ max C₁ 0 * (1 + d) ^ (2 * r) * (A * (k : ℝ) ^ (-1 / 2 : ℝ) * T) := by
+    _ ≤ C₁ * (1 + d) ^ (2 * r) * (A * (k : ℝ) ^ (-1 / 2 : ℝ) * T) := by
         gcongr
-        · exact jetNormAt_nonneg _ _ _
-        · exact le_max_left _ _
-    _ = max C₁ 0 * A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + d) ^ (2 * r) * T := by ring
+    _ = C₁ * A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + d) ^ (2 * r) * T := by ring
 
 /-- **Sections extended by zero from Gaussian families are asymptotically holomorphic.** Let `M`
 be a Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry a Riemannian
@@ -627,28 +620,25 @@ theorem isAsymptoticallyHolomorphic_sectionOfReading [T2Space M] [I.Boundaryless
   obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_sectionOfReading_le hg hJ hα hρ₀ r
     (by exact_mod_cast hfs' (r + 1)) hfb (hfg (r + 1)) (hdg r)
   -- One Gaussian bound, with constants `C`, `N` and `c`, for both jet norms.
-  obtain ⟨C, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+  obtain ⟨C, hC0, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
     (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
     (F := fun k y ↦ D.jetNorm k r (D.sectionOfReading k (x k) (f k)) y)
     (G := fun k y ↦ D.dbarJetNorm k r (D.sectionOfReading k (x k) (f k)) y)
     (d := fun k y ↦ rescaledDist I k (x k) y) (fun k y ↦ rescaledDist_nonneg I k (x k) y)
     (fun _ ↦ by positivity) ⟨C₁, N₁, c₁, hc₁, h₁.mono fun k h ↦ h (x k)⟩
     ⟨C₂, N₂, c₂, hc₂, h₂.mono fun k h ↦ h (x k)⟩
-  refine ⟨max C 0 * (N ! / (c / 2) ^ N * Real.exp c), ?_⟩
+  refine ⟨C * (N ! / (c / 2) ^ N * Real.exp c), ?_⟩
   filter_upwards [h] with k h y
   set W := (1 + rescaledDist I k (x k) y) ^ N * Real.exp (-c * rescaledDist I k (x k) y ^ 2)
-  have hW₀ : 0 ≤ W := mul_nonneg (pow_nonneg (by linarith [rescaledDist_nonneg I k (x k) y]) _)
-    (Real.exp_pos _).le
-  have hB : max C 0 * W ≤ max C 0 * (N ! / (c / 2) ^ N * Real.exp c) :=
-    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc N) (le_max_right _ _)
-  have hCW : C * W ≤ max C 0 * W := mul_le_mul_of_nonneg_right (le_max_left _ _) hW₀
+  have hB : C * W ≤ C * (N ! / (c / 2) ^ N * Real.exp c) :=
+    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc N) hC0
   have hk : 0 ≤ (k : ℝ) ^ (-1 / 2 : ℝ) := by positivity
   obtain ⟨h₁, h₂⟩ := h y
   constructor
   · calc _ ≤ C * W := h₁.trans_eq (by ring)
-      _ ≤ _ := hCW.trans hB
+      _ ≤ _ := hB
   · calc _ ≤ C * W * (k : ℝ) ^ (-1 / 2 : ℝ) := h₂.trans_eq (by ring)
-      _ ≤ _ := mul_le_mul_of_nonneg_right (hCW.trans hB) hk
+      _ ≤ _ := mul_le_mul_of_nonneg_right hB hk
 
 /-- **Lower bound of sections extended by zero near the centre.** Let `M` be Hausdorff, with a
 Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let `ρ₀ > 0`. Let `f k` be
