@@ -49,9 +49,10 @@ which is smooth with onto derivative.
 * `Bundle.Trivialization.patchMap`: the patch map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` of a trivialization
   `e` over a chart `φ` of the base.
 * `Bundle.Trivialization.patchChart` and `Bundle.Trivialization.patchSet`: the patch chart
-  `p ↦ (φ (proj p), (e p).2)`, and the patch `φ.target ∩ φ.symm ⁻¹' e.baseSet`, over which it is
-  inverse to the patch map (`Bundle.Trivialization.patchMap_patchChart`,
-  `Bundle.Trivialization.patchChart_patchMap`).
+  `p ↦ (φ (proj p), (e p).2)` and the patch `φ.target ∩ φ.symm ⁻¹' e.baseSet`. The patch map
+  inverts the patch chart on the source of `e` over the source of `φ`
+  (`Bundle.Trivialization.patchMap_patchChart`), and the patch chart inverts the patch map over
+  the patch (`Bundle.Trivialization.patchChart_patchMap`).
 * `TauCeti.ManifoldTotalSpace.mapFiberAtlas`: the atlas of the projection of the charted total
   space of a fibre bundle, made of the bundle's trivializations.
 
@@ -534,8 +535,8 @@ theorem snd_patchChart (b₀ : B) (p : M) : (e.patchChart IB b₀ p).2 = (e p).2
 
 variable (IB) in
 /-- The patch of a trivialization `e` over the extended chart `φ` of `B` at `b₀`: the set of the
-points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`. Over it the patch chart and
-the patch map are inverse to each other. -/
+points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`. On the points `q` with `q.1`
+in it, the patch chart inverts the patch map. -/
 def patchSet (b₀ : B) : Set EB :=
   (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' e.baseSet
 
