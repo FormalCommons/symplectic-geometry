@@ -35,7 +35,7 @@ fields gradient-like.
 * `TauCeti.MorseBottChart.norm_le_mul_norm_mul_norm_fderiv_quadratic`: the estimate for the
   quadratic normal form, with `K = 1`.
 * `TauCeti.BirthDeathChart.exists_norm_fderiv_normalForm_smul_le`: the derivative of the
-  birth–death normal form grows at most by a constant factor away from the origin.
+  birth–death normal form grows at most by a constant factor `K ≥ 0` towards the origin.
 * `TauCeti.BirthDeathChart.exists_norm_le_mul_norm_mul_norm_fderiv_normalForm`: the estimate for
   the birth–death normal form.
 
@@ -76,34 +76,20 @@ theorem norm_fderiv_quadratic_smul_le {s : ℝ} (hs : s ∈ Icc (0 : ℝ) 1) (z 
 
 /-- **The primitive estimate in a Morse–Bott chart.** If `H : E → F` is differentiable on the
 ball `B(0, r)`, vanishes at `0`, and has `‖D H‖ ≤ C ‖D Q‖` on the ball for the quadratic normal
-form `Q` and some `C ≥ 0`, then `‖H z‖ ≤ C ‖z‖ ‖D Q (z)‖` on the ball. -/
-theorem norm_le_mul_norm_mul_norm_fderiv_quadratic {r C : ℝ} {H : E → F} (hC : 0 ≤ C)
+form `Q` and some `C`, then `‖H z‖ ≤ C ‖z‖ ‖D Q (z)‖` on the ball. -/
+theorem norm_le_mul_norm_mul_norm_fderiv_quadratic {r C : ℝ} {H : E → F}
     (hH : DifferentiableOn ℝ H (ball 0 r)) (hH0 : H 0 = 0)
     (hHQ : ∀ z ∈ ball (0 : E) r, ‖fderiv ℝ H z‖ ≤ C * ‖fderiv ℝ φ.quadratic z‖)
     {z : E} (hz : z ∈ ball 0 r) :
     ‖H z‖ ≤ C * ‖z‖ * ‖fderiv ℝ φ.quadratic z‖ := by
-  simpa using SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le (K := 1) hC
-    (fun z _ s hs ↦ by simpa using φ.norm_fderiv_quadratic_smul_le hs z) hH hH0 hHQ hz
+  simpa using SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le (K := 1) hz
+    (fun s hs ↦ by simpa using φ.norm_fderiv_quadratic_smul_le hs z) hH hH0 hHQ
 
 end MorseBottChart
 
 namespace BirthDeathChart
 
 variable (φ : BirthDeathChart E f x)
-
-/-- The derivative of the birth–death normal form along the `i`-th coordinate vector:
-`wᵢ (L z)ᵢ`, plus `(L z)_{i₀}²` when `i` is the cubic coordinate `i₀`. -/
-private theorem fderiv_normalForm_apply_coord_symm_single (z : E)
-    (i : Fin (Module.finrank ℝ E)) :
-    fderiv ℝ φ.normalForm z (φ.toMorseBottChart.coord.symm (Pi.single i 1)) =
-      φ.toMorseBottChart.weight i * φ.toMorseBottChart.coord z i +
-        if i = φ.cubicIndex then φ.toMorseBottChart.coord z φ.cubicIndex ^ 2 else 0 := by
-  rw [fderiv_normalForm_apply, LinearEquiv.apply_symm_apply,
-    Finset.sum_eq_single i (fun j _ hj ↦ by simp [hj]) (by simp)]
-  by_cases hi : i = φ.cubicIndex
-  · subst hi
-    simp
-  · simp [hi, Ne.symm hi]
 
 /-- The components of the derivative of the birth–death normal form do not grow towards the
 origin. -/
@@ -125,20 +111,20 @@ private theorem abs_fderiv_normalForm_smul_apply_le {s : ℝ} (hs : s ∈ Icc (0
     exact mul_le_of_le_one_left (abs_nonneg _) hs1
 
 /-- The derivative of the normal form of a birth–death chart grows at most by a constant factor
-away from the origin: there is `K` with `‖D N (s z)‖ ≤ K ‖D N (z)‖` for all `z` and `s ∈ [0, 1]`.
+towards the origin: there is `K ≥ 0` with `‖D N (s z)‖ ≤ K ‖D N (z)‖` for all `z` and `s ∈ [0, 1]`.
 In the coordinates of the chart the components of `D N (z)` are `wᵢ (L z)ᵢ` and `(L z)_{i₀}²`;
 `K` compares the norm of `E` with the sup norm of these coordinates. -/
 theorem exists_norm_fderiv_normalForm_smul_le :
-    ∃ K, ∀ z : E, ∀ s ∈ Icc (0 : ℝ) 1,
+    ∃ K, 0 ≤ K ∧ ∀ z : E, ∀ s ∈ Icc (0 : ℝ) 1,
       ‖fderiv ℝ φ.normalForm (s • z)‖ ≤ K * ‖fderiv ℝ φ.normalForm z‖ := by
   let v : Module.Basis (Fin (Module.finrank ℝ E)) ℝ E :=
     (Pi.basisFun ℝ (Fin (Module.finrank ℝ E))).map φ.toMorseBottChart.coord.symm
   have hv (i) : v i = φ.toMorseBottChart.coord.symm (Pi.single i 1) := by
     simp [v]
-  obtain ⟨K₀, -, hK₀⟩ := v.exists_opNorm_le (F := ℝ)
+  obtain ⟨K₀, hK₀pos, hK₀⟩ := v.exists_opNorm_le (F := ℝ)
   set S := ∑ i, ‖v i‖
-  refine ⟨K₀ * S, fun z s hs ↦ ?_⟩
   have hS : 0 ≤ S := Finset.sum_nonneg fun i _ ↦ norm_nonneg _
+  refine ⟨K₀ * S, mul_nonneg hK₀pos.le hS, fun z s hs ↦ ?_⟩
   rw [mul_assoc, mul_comm S]
   refine hK₀ (mul_nonneg (norm_nonneg _) hS) fun i ↦ ?_
   calc ‖fderiv ℝ φ.normalForm (s • z) (v i)‖ ≤ ‖fderiv ℝ φ.normalForm z (v i)‖ := by
@@ -149,18 +135,17 @@ theorem exists_norm_fderiv_normalForm_smul_le :
         exact Finset.single_le_sum (f := fun i ↦ ‖v i‖) (fun i _ ↦ norm_nonneg _)
           (Finset.mem_univ i)
 
-/-- **The primitive estimate in a birth–death chart.** There is `K` such that for every ball
-`B(0, r)`, every `C ≥ 0`, and every `H : E → F` that is differentiable on the ball, vanishes at
+/-- **The primitive estimate in a birth–death chart.** There is `K ≥ 0` such that for every
+ball `B(0, r)`, every `C`, and every `H : E → F` that is differentiable on the ball, vanishes at
 `0`, and has `‖D H‖ ≤ C ‖D N‖` on the ball for the normal form `N`, we have
 `‖H z‖ ≤ C K ‖z‖ ‖D N (z)‖` on the ball. -/
 theorem exists_norm_le_mul_norm_mul_norm_fderiv_normalForm :
-    ∃ K, ∀ {r C : ℝ} {H : E → F}, 0 ≤ C → DifferentiableOn ℝ H (ball 0 r) → H 0 = 0 →
+    ∃ K, 0 ≤ K ∧ ∀ {r C : ℝ} {H : E → F}, DifferentiableOn ℝ H (ball 0 r) → H 0 = 0 →
       (∀ z ∈ ball (0 : E) r, ‖fderiv ℝ H z‖ ≤ C * ‖fderiv ℝ φ.normalForm z‖) →
         ∀ z ∈ ball (0 : E) r, ‖H z‖ ≤ C * K * ‖z‖ * ‖fderiv ℝ φ.normalForm z‖ := by
-  obtain ⟨K, hK⟩ := φ.exists_norm_fderiv_normalForm_smul_le
-  exact ⟨K, fun hC hH hH0 hHN z hz ↦
-    SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le hC
-      (fun z _ ↦ hK z) hH hH0 hHN hz⟩
+  obtain ⟨K, hK0, hK⟩ := φ.exists_norm_fderiv_normalForm_smul_le
+  exact ⟨K, hK0, fun hH hH0 hHN z hz ↦
+    SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le hz (hK z) hH hH0 hHN⟩
 
 end BirthDeathChart
 
