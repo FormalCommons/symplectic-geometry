@@ -191,7 +191,7 @@ is updated to match. The list is in the order of the paths.
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | the complex structure that $J$ induces on the normal spaces and on the normal bundle | 1 |
-| `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean` | the exact sequence of the differential and the normal class map | 3 |
+| `Geometry/Manifold/SmoothEmbedding/NormalSpace/Finrank.lean` | the dimension of the normal spaces | 3 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean` | the representative of a normal class in a complement, as a projection | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
@@ -221,14 +221,17 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
   (`@[simp] almostComplexStructureAt_contMDiffNormalComplexStructure`). Smoothness as in
   *Decisions*.
 
-### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean`
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Finrank.lean`
 
 Namespace `TauCeti.SmoothEmbedding`, for a smooth embedding of any
 regularity `n` over any field, with `hn : n ≠ 0`.
 
-- `exact_mfderiv_normalClass`: the differential at `x` and
-  `normalClass x hn` are exact (`Function.Exact`), from Tau Ceti's
-  `normalClass_ker`.
+- `finrank_normalSpace_eq`: a normal space has the dimension of any `P`
+  with `finrank P = dim F - dim E`.
+- The exactness of the differential at `x` and `normalClass x hn`
+  (`Function.Exact`) is Tau Ceti's
+  `Manifold.IsImmersion.exact_mfderiv_normalClass`, applied to
+  `f.isImmersion`.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean`
 
@@ -311,8 +314,8 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   orientation of `(J.restrict f hJ).almostComplexStructureAt c`, reindexed, Tau
   Ceti's `Orientation.shortExact` of the sequence
   $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
-  `normalClass`, exact by `exact_mfderiv_normalClass` of
-  `NormalSpace/Exact.lean`) sends
+  `normalClass`, exact by Tau Ceti's
+  `Manifold.IsImmersion.exact_mfderiv_normalClass`) sends
   `o.orientationAt c` and the complex orientation of $(\nu_c, J_\nu)$ to the
   complex orientation of $(T_{f c}X, J)$. No splitting is chosen. The complex
   orientations are `AlmostComplexStructure.orientation` of
@@ -444,7 +447,7 @@ sub-issues of #879, *Build the part Adjunction*. Sizes are estimates.
 |---|---|---|---|---|
 | 1 | The complex structure on the normal bundle | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | — | 200 |
 | 2 | The symplectic splitting of the tangent bundle along a $J$-invariant submanifold | `AlmostComplex/NormalSplitting.lean`, `NormalSpace/Representative.lean` | 1 | 400 |
-| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean`, `LinearAlgebra/ComplexStructure/Orientation.lean`, `NormalSpace/Exact.lean` | 1; #784 | 250 |
+| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean`, `LinearAlgebra/ComplexStructure/Orientation.lean`, `NormalSpace/Finrank.lean` | 1; #784 | 250 |
 | 4 | The adjunction formula | `AlmostComplex/AdjunctionFormula.lean` | 2, 3; #784, #788 | 200 |
 
 Issue 1 can start once this design is merged, and issue 2 after it; both
