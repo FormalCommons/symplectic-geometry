@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import SymplecticGeometry.Analysis.ODE.Linear
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -59,16 +60,28 @@ stated property by property.
   grow linearly in `p`. The differential of the model handle function and its bound,
   `SymplecticGeometry.fderiv_modelHandle_apply` and
   `SymplecticGeometry.norm_fderiv_modelHandle_le`, come from `JConvex/Surround/Shape.lean`.
+* `SymplecticGeometry.stableSubspace_modelHandleField`: the stable set of `0` for the handle
+  field, Tau Ceti's `ContinuousLinearMap.stableSubspace`, is the core `range (modelDisc k m)`.
+  Read off the flow formula: `e^{-t} x` tends to `0`, while `e^{2t} y` and `e^{t/2} w` do so only
+  when `y = 0` and `w = 0`.
+* `SymplecticGeometry.prod_imInnerSymplecticForm_eq_zero_of_mem_range_modelDisc`: the core is
+  isotropic for the product form, by `ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace`
+  (`Analysis/ODE/Linear.lean`) applied to the identity above.
+* `SymplecticGeometry.range_modelDisc_inter_preimage_modelHandle_neg`: the attaching sphere of
+  the model. Since `b t - a s` is `-a |x|²` on the core
+  (`SymplecticGeometry.modelHandle_modelDisc`), the core meets the level `-c` in
+  `ι₀ (sphere 0 √(c / a))`.
 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11 (Weinstein structures and the standard handle)
+  Chapter 11 (Weinstein structures and the standard handle); Proposition 11.9 (a) for the
+  isotropy of the stable set of a Liouville field
 -/
 
 public section
 
-open Complex
+open Complex Filter Metric Set Topology
 open scoped Manifold ContDiff InnerProductSpace
 
 namespace SymplecticGeometry
@@ -294,6 +307,86 @@ theorem isGradientLike_modelHandle_modelHandleField {a b : ℝ} (ha : 0 < a) (hb
         linarith
     _ = min (2 * a) b * ‖p‖ ^ 2 := by field_simp
     _ ≤ _ := hκ
+
+/-! ### The core: stable subspace, isotropy and attaching sphere -/
+
+/-- On the core `ι₀ (ℝᵏ)` the flow of the handle field is the contraction `x ↦ e^{-t} x`. -/
+theorem modelHandleField_flow_modelDisc (t : ℝ) (x : EuclideanSpace ℝ (Fin k)) :
+    (modelHandleField k m).flow t (modelDisc k m x) = modelDisc k m (Real.exp (-t) • x) := by
+  rw [modelHandleField_flow_apply]
+  ext j <;> simp
+
+/-- **The stable set of the handle field is the core**: the points whose orbit under the flow of
+`(x + i y, w) ↦ (-x + 2 i y, w / 2)` tends to `0` are those of `ι₀ (ℝᵏ) = {(x, 0)}`. -/
+theorem stableSubspace_modelHandleField :
+    ((modelHandleField k m).stableSubspace :
+        Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))) =
+      range (modelDisc k m) := by
+  ext p
+  rw [ContinuousLinearMap.coe_stableSubspace, Flow.mem_stableSet]
+  constructor
+  · intro hp
+    simp only [modelHandleField_flow_apply] at hp
+    -- If `e^{l t} c` tends to `0` for some `0 ≤ l`, then `c = 0`.
+    have key {c l : ℝ} (hl : 0 ≤ l) (hg : Tendsto (fun t ↦ Real.exp (l * t) * c) atTop (𝓝 0)) :
+        c = 0 := by
+      refine abs_nonpos_iff.1 (ge_of_tendsto (f := fun t ↦ |Real.exp (l * t) * c|)
+        (by simpa using hg.abs) (eventually_atTop.2 ⟨0, fun t ht ↦ ?_⟩))
+      rw [abs_mul, Real.abs_exp]
+      exact le_mul_of_one_le_left (abs_nonneg _) (Real.one_le_exp (by positivity))
+    have him (j : Fin k) : (p.1 j).im = 0 := by
+      have hj := (continuous_im.comp ((PiLp.continuous_apply 2 _ j).comp continuous_fst)).tendsto
+        (0 : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      exact key zero_le_two (by simpa [Function.comp_def, -Complex.ofReal_exp] using hj.comp hp)
+    have h2 : p.2 = 0 := by
+      refine norm_eq_zero.1 (key (l := 2⁻¹) (by norm_num) ?_)
+      simpa [Function.comp_def, norm_smul, div_eq_inv_mul] using
+        ((continuous_norm.comp continuous_snd).tendsto 0).comp hp
+    refine ⟨modelDiscProj k m p, ?_⟩
+    ext j
+    · exact Complex.ext (by simp) (by simp [him j])
+    · simp [h2]
+  · rintro ⟨x, rfl⟩
+    simp only [modelHandleField_flow_modelDisc]
+    have h := Real.tendsto_exp_neg_atTop_nhds_zero.smul_const x
+    rw [zero_smul] at h
+    simpa [Function.comp_def] using ((modelDisc k m).continuous.tendsto 0).comp h
+
+/-- **The core of the handle is isotropic**: the constant form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`
+vanishes on pairs of vectors of `ι₀ (ℝᵏ)`. The core is the stable subspace of the handle field,
+which the field's Liouville identity makes isotropic
+(`ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace`). -/
+theorem prod_imInnerSymplecticForm_eq_zero_of_mem_range_modelDisc
+    {u v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hu : u ∈ range (modelDisc k m))
+    (hv : v ∈ range (modelDisc k m)) :
+    (imInnerSymplecticForm _).prod (imInnerSymplecticForm _) u v = 0 := by
+  rw [← stableSubspace_modelHandleField, SetLike.mem_coe] at hu hv
+  simpa only [LinearMap.toContinuousBilinearMap_apply] using
+    ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace
+      (B := ((imInnerSymplecticForm (EuclideanSpace ℂ (Fin k))).prod
+        (imInnerSymplecticForm (EuclideanSpace ℂ (Fin m)))).toBilinForm.toContinuousBilinearMap)
+      (fun u v ↦ by
+        simpa only [LinearMap.toContinuousBilinearMap_apply] using
+          prod_imInnerSymplecticForm_modelHandleField_add u v) hu hv
+
+/-- **The attaching sphere of the model**: for `0 < a` and `0 ≤ c`, the core `ι₀ (ℝᵏ)` meets the
+level `-c` of the model handle function `b t - a s` in the image of the sphere of radius
+`√(c / a)`, since that function is `-a |x|²` on the core. -/
+theorem range_modelDisc_inter_preimage_modelHandle_neg {a b c : ℝ} (ha : 0 < a) (hc : 0 ≤ c) :
+    range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
+      modelDisc k m '' sphere 0 √(c / a) := by
+  ext p
+  simp only [mem_inter_iff, mem_range, mem_preimage, mem_singleton_iff, mem_image,
+    mem_sphere_zero_iff_norm]
+  constructor
+  · rintro ⟨⟨x, rfl⟩, hx⟩
+    refine ⟨x, ?_, rfl⟩
+    rw [modelHandle_modelDisc, neg_inj] at hx
+    rw [← hx, mul_div_cancel_left₀ _ ha.ne', Real.sqrt_sq (norm_nonneg x)]
+  · rintro ⟨x, hx, rfl⟩
+    refine ⟨⟨x, rfl⟩, ?_⟩
+    rw [modelHandle_modelDisc, hx, Real.sq_sqrt (div_nonneg hc ha.le),
+      mul_div_cancel₀ _ ha.ne']
 
 end SymplecticGeometry
 
