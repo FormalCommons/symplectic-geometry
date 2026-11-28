@@ -11,9 +11,11 @@ public import TauCeti.Geometry.Manifold.SmoothSingular.Basic
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import TauCeti.AlgebraicTopology.Cohomology.Local.Orientation
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.StdSimplex
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
 # The class of a positively oriented simplex in local homology
@@ -26,7 +28,10 @@ preserving orientation from the standard orientation of `ℝ²` to `o` (the hypo
 faces of `σ` avoid `K` (`TauCeti.SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl`), so `σ` has
 a class `[σ] ∈ H₂(C, C ∖ K; ℤ)` (`TopPair.relClass`). This class is the fundamental class along
 `K` of the homological orientation of `-o`
-(`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`).
+(`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`). For `C = ℝ²` with its standard
+orientation and `K = {0}`, the generator of `H²(ℝ², ℝ² ∖ {0}; ℤ)` that the standard orientation
+selects (`Orientation.localCohomologyClass`) therefore pairs to `-1` with `[σ]`
+(`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`).
 
 The sign comes from `TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation`: Tau Ceti's
 homological orientation of a smooth orientation selects at each point minus the class of a
@@ -50,6 +55,9 @@ image `[σ]` under `g` is minus that of `o` at `x`.
 * `TauCeti.SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl`: the faces of the simplex avoid `K`.
 * `TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`: the class of the simplex in
   `H₂(C, C ∖ K; ℤ)` is the fundamental class along `K` of the homological orientation of `-o`.
+* `TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`: in `ℝ²`, the standard
+  generator of `H²(ℝ², ℝ² ∖ {0}; ℤ)` pairs to `-1` with the class of a positively oriented
+  simplex around `0`.
 
 ## References
 
@@ -178,5 +186,52 @@ theorem relativeClass_eq_fundamentalClassOn [FiniteDimensional ℝ E'] [T2Space 
     LocalOrientation.coe_neg]
   -- `f p'` is `g p`.
   rfl
+
+end TauCeti.SmoothSimplex
+
+namespace TauCeti.SmoothSimplex
+
+/-- **The standard generator on a positively oriented simplex of `ℝ²`.** Let `σ` be a smooth
+`2`-simplex of `ℝ²`, the restriction to `Δ²` of a map `g` that, on an open neighbourhood `U` of
+`Δ²`, is an open embedding preserving the standard orientation, with `0 ∈ g (interior Δ²)`. The
+generator of `H²(ℝ², ℝ² ∖ {0}; ℤ)` selected by the standard orientation
+(`Orientation.localCohomologyClass`) pairs to `-1` with the class of `σ` in
+`H₂(ℝ², ℝ² ∖ {0}; ℤ)`.
+
+The generator pairs to `1` with the local orientation of `ℝ²` at `0` that the standard orientation
+selects, and the class of `σ` is minus that local orientation
+(`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`): Tau Ceti's local orientations are
+minus the classes of positively oriented simplices
+(`TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation`). -/
+theorem singularKronecker_localCohomologyClass_relClass
+    (σ : SmoothSimplex 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) 2)
+    {U : Opens (EuclideanSpace ℝ (Fin 2))} (hU : fullSimplex 2 ⊆ U)
+    {g : EuclideanSpace ℝ (Fin 2) → EuclideanSpace ℝ (Fin 2)}
+    (hgσ : ∀ y : fullSimplex 2, g y = σ.toContinuousMap y)
+    (hg : IsOpenEmbedding (g ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
+    (ho : ∀ y ∈ U, Manifold.Orientation.IsOrientationPreservingAt
+      (Manifold.Orientation.euclideanSpace 2) (Manifold.Orientation.euclideanSpace 2) g y)
+    (h0 : 0 ∈ g '' interior (fullSimplex 2)) :
+    ((TopPair.ofSubset (X := TopCat.of (EuclideanSpace ℝ (Fin 2))) {0}ᶜ).singularKronecker ℤ 2
+        ((EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.localCohomologyClass
+          finrank_euclideanSpace_fin)).hom
+      ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).relClass
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (n := 1) σ.val
+        (range_toSSetObjEquiv_δ_subset_compl σ hU hgσ hg (singleton_subset_iff.2 h0)) 1) =
+      -1 := by
+  have hE : finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2 := finrank_euclideanSpace_fin
+  rw [relativeClass_eq_fundamentalClassOn σ hU hgσ hg hE _ ho isCompact_singleton
+      (singleton_subset_iff.2 h0),
+    HomologicalOrientation.fundamentalClassOn_singleton,
+    Manifold.Orientation.toHomologicalOrientation_neg, HomologicalOrientation.neg_apply,
+    LocalOrientation.coe_neg,
+    Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart hE _ hE
+      (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin 2))) (by simp)
+      (ContinuousLinearEquiv.refl ℝ _) ?_ ?_,
+    ← Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl, map_neg,
+    Orientation.kronecker_localCohomologyClass]
+  · simpa using hasFDerivAt_id (𝕜 := ℝ) (0 : EuclideanSpace ℝ (Fin 2))
+  · rw [ContinuousLinearEquiv.toLinearEquiv_refl, Orientation.map_refl]
+    exact Manifold.Orientation.orientationAt_euclideanSpace 2 0
 
 end TauCeti.SmoothSimplex

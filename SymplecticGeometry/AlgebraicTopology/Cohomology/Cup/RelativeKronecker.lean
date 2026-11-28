@@ -197,6 +197,12 @@ theorem homologyMap_shufflePair_singularRelativeCross (p q n : ℕ) (h : p + q =
         (shufflePair X Y A B R S).op) n (TauCeti.singularRelativeCross k X Y hA hB μ p q n h a b) =
       TauCeti.ChainComplex.cup k (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
         (TopPair.ofSubset B).singularChainComplex S)) μ p q n h a b := by
+  have hid : ∀ x : ((TopPair.ofSubset A).singularChainComplex R ⊗
+      (TopPair.ofSubset B).singularChainComplex S).linearYonedaObj k P |>.homology n,
+      homologyMap ((TauCeti.ChainComplex.linearYonedaFunctor k P).map
+        (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+          (TopPair.ofSubset B).singularChainComplex S)).op) n x = x := fun x ↦
+    ConcreteCategory.congr_hom (ChainComplex.homologyMap_linearYonedaFunctor_map_id k P _ n) x
   -- The shuffle map of the pairs factors through the small chains, on which the relative cross
   -- product is the cup product along the relative Alexander–Whitney diagonal.
   rw [← shuffleSmallPair_comp_smallSingularSubcomplexPairToUnion]
@@ -217,10 +223,8 @@ theorem homologyMap_shufflePair_singularRelativeCross (p q n : ℕ) (h : p + q =
       (shuffleAlexanderWhitneyPair_def X Y A B R S).trans (Category.assoc _ _ _).symm)
     p q n h a b).trans ?_
   -- The resulting diagonal of `C(X, A; R) ⊗ C(Y, B; S)` is homotopic to the identity.
-  exact (ConcreteCategory.congr_hom
-    (ChainComplex.homologyMap_linearYonedaFunctor_map_id (i := n) ..) _).trans
-    (TauCeti.ChainComplex.cup_eq_of_homotopy _ μ
-      (shuffleAlexanderWhitneyPairHomotopy X Y A B R S) p q n h a b)
+  exact (hid _).trans (TauCeti.ChainComplex.cup_eq_of_homotopy _ μ
+    (shuffleAlexanderWhitneyPairHomotopy X Y A B R S) p q n h a b)
 
 variable (p q : ℕ)
   [PreservesColimitsOfShape WalkingParallelPair
