@@ -226,20 +226,19 @@ notes of the approving review of #2280.
    `Matrix.specialOrthogonalGroup (Fin 3) ℝ` acting through
    `TauCeti.orthogonalToDiffSphere 2 ∞`. It is carried over from `OnePoint ℂ`
    by conjugation, `Diffeomorph.diffCongrContinuousMulEquiv`, along
-   `roundSphereDiffeomorph := OnePoint.diffeomorphSphere v ι`, with $v$ the
-   north pole and $\iota\,z=(\operatorname{Re}z,-\operatorname{Im}z,0)$. With
+   `roundSphereDiffeomorph`, `OnePoint.diffeomorphSphere v ι` as a `C^∞` map,
+   with $v$ the north pole and $\iota\,z=(\operatorname{Re}z,-\operatorname{Im}z,0)$. With
    this choice its underlying map is `OnePoint.sphereCoords`
-   (`coe_roundSphereDiffeomorph`, from `sphereCoords_coe` and
-   `coe_diffeomorphSphere_coe`), so the conjugate of the Möbius
+   (`coe_roundSphereDiffeomorph_apply`, from
+   `diffeomorphSphere_sphereCoordsIsometry_apply`), so the conjugate of the Möbius
    transformation of `toPSL k` is the rotation `SU2.toSO3 k`
    (`sphereCoords_toPSL_smul`). The review note proposes `pauliRotation`,
    which is the same intertwining for `U(2)`; through `PSL(2, ℂ)` it is
    `SU2.toSO3` and `psuEquivSO3` that apply. The conjugate of `diffPlus` is
    the orientation-preserving subgroup of the round sphere, because the
    pull-back of `sphereOrientation` along `roundSphereDiffeomorph` is
-   $\pm$`complexManifoldOrientation` (from the comparison of the two at each
-   point in Tau Ceti's `OnePoint/Sphere.lean`, on the connected sphere), and
-   a map preserves an orientation exactly when it preserves its opposite.
+   $\pm$`complexManifoldOrientation` (`Manifold.Orientation.eq_or_eq_neg`,
+   on the connected sphere), and a map preserves an orientation exactly when it preserves its opposite.
 10. **"Strong deformation retract"** is Mathlib's
     `ContinuousMap.HomotopyRel`, the form of Tau Ceti's
     `ProjectiveSpecialLinearGroup.polarHomotopy`: a homotopy relative to the
@@ -415,7 +414,7 @@ About 250 lines.
 
 Issue 8:
 
-- `roundSphereDiffeomorph`, Decision 9, with `coe_roundSphereDiffeomorph`
+- `roundSphereDiffeomorph`, Decision 9, with `coe_roundSphereDiffeomorph_apply`
   (its values are `OnePoint.sphereCoords`, read in `EuclideanSpace ℝ (Fin 3)`).
 - `roundDiffPlus`, the orientation-preserving subgroup of the round sphere
   for `sphereOrientation`, and `map_diffPlus_diffCongr`: conjugation by
