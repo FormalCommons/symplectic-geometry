@@ -145,12 +145,12 @@ at the regular level `a`, in the form of
 `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`
 with `g = f`, and not the continuity of `Flow.levelCrossingTime` on a connecting set.
 
-The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`. Its hypotheses are checked one by
-one: near `x` each orbit meets the level `a` at most once, by
-`SymplecticGeometry.IsWeinsteinStructure.eq_levelCrossingTime_iff`; the orbit of `x` reaches the
-level, by `SymplecticGeometry.IsWeinsteinStructure.mapsTo_flow_levelCrossingTime`; and
-`df(X) ≠ 0` at the point where it does, by
-`SymplecticGeometry.IsWeinsteinStructure.mvfderiv_apply_pos_flow_levelCrossingTime`.
+The kernel is the library's `TauCeti.ker_mfderiv_flow_levelCrossingTime_of_mvfderiv_pos` with
+`g = f`, the form of `TauCeti.ker_mfderiv_flow_levelCrossingTime` for a level that the field
+crosses upwards. That `df(X) > 0` on the level `a` is
+`TauCeti.IsGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty`, and
+the orbit of `x` reaches the level by
+`SymplecticGeometry.IsWeinsteinStructure.mapsTo_flow_levelCrossingTime`.
 
 The immersion is the chain rule with Mathlib's `injective_mvfderiv_subtypeVal_sphere` for the
 inclusion of the sphere, and injectivity comes from the left inverse of the disc. That the
@@ -354,16 +354,13 @@ line spanned by `X x`. -/
 theorem ker_mfderiv_flow_levelCrossingTime
     (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅) (hx : f x ∈ Ioo a c) :
     (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E)
-      (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) x).ker = ℝ ∙ X x := by
-  have hIco {y : M} (hy : y ∈ f ⁻¹' Ioo a c) : f y ∈ Ico a c := Ioo_subset_Ico_self hy
-  exact _root_.TauCeti.ker_mfderiv_flow_levelCrossingTime (hW.contMDiff_field.of_le (by simp))
-    hW.isCompleteVectorField hW.flowOf_eq_flow
-    (eventually_of_mem ((isOpen_Ioo.preimage hW.isGeneralizedMorse.contMDiff.continuous).mem_nhds
-      hx) fun _ hy _ hs _ ht ↦ ((hW.eq_levelCrossingTime_iff hc (hIco hy)).2 hs).trans
-        ((hW.eq_levelCrossingTime_iff hc (hIco hy)).2 ht).symm)
-    ⟨_, hW.mapsTo_flow_levelCrossingTime hc (hIco hx)⟩
-    ((hW.isGeneralizedMorse.contMDiff _).of_le (by simp))
-    (hW.mvfderiv_apply_pos_flow_levelCrossingTime hc (hIco hx)).ne'
+      (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) x).ker = ℝ ∙ X x :=
+  _root_.TauCeti.ker_mfderiv_flow_levelCrossingTime_of_mvfderiv_pos
+    (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField hW.flowOf_eq_flow
+    (hW.isGeneralizedMorse.contMDiff.of_le (by simp))
+    (fun _ ↦ hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
+      (hx.1.trans hx.2) hc)
+    ⟨_, hW.mapsTo_flow_levelCrossingTime hc (Ioo_subset_Ico_self hx)⟩
 
 /-- **The backward map preserves stable sets.** If `f` has no critical point in `f ⁻¹' Ico a c`,
 the map `y ↦ φ (Flow.levelCrossingTime φ f a y) y`, for `φ` the flow, sends the points of the
