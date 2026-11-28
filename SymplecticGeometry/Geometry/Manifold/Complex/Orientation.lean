@@ -46,7 +46,9 @@ reindexes the canonical orientation once, for every such `E` and `M`:
 * `SymplecticGeometry.orientationAt_complexCurveOrientation`: at every point it is Tau Ceti's
   complex orientation `TauCeti.complexOrientation E` of the model, reindexed to `Fin 2`;
 * `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the standard
-  orientation `TauCeti.Manifold.Orientation.complex`;
+  orientation `TauCeti.Manifold.Orientation.complex`, and so is Tau Ceti's
+  `complexManifoldOrientation ℂ ℂ` reindexed to `Fin 2`
+  (`TauCeti.reindex_complexManifoldOrientation_complex`);
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
 More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
@@ -164,6 +166,15 @@ theorem _root_.Diffeomorph.isOrientationPreservingAt_complexManifoldOrientation_
     orientationAt_complexManifoldOrientation_eq_complexOrientation]
   exact (complexOrientation E).map_eq_iff_det_pos _ card_fin_two_mul_finrank_complex
 
+/-- Tau Ceti's complex orientation `complexManifoldOrientation ℂ ℂ` of `ℂ`, reindexed from
+`Fin (2 * finrank ℂ ℂ)` to `Fin 2`, is the standard orientation `Manifold.Orientation.complex`
+of `ℂ`. -/
+theorem reindex_complexManifoldOrientation_complex (h : 2 * finrank ℂ ℂ = 2) :
+    (complexManifoldOrientation ℂ ℂ).reindex (finCongr h) = Manifold.Orientation.complex := by
+  ext x
+  rw [Manifold.Orientation.orientationAt_complex]
+  exact orientationAt_reindex_complexManifoldOrientation_complex _ x
+
 end TauCeti
 
 namespace SymplecticGeometry
@@ -196,9 +207,8 @@ theorem orientationAt_complexCurveOrientation (h : finrank ℂ E = 1) (x : M) :
 the orientation of the basis `(1, i)`. -/
 theorem complexCurveOrientation_complex :
     complexCurveOrientation ℂ ℂ = Manifold.Orientation.complex := by
-  ext x
-  rw [complexCurveOrientation_def, Manifold.Orientation.orientationAt_complex]
-  exact orientationAt_reindex_complexManifoldOrientation_complex _ x
+  rw [complexCurveOrientation_def]
+  exact reindex_complexManifoldOrientation_complex _
 
 /-- A biholomorphism `Φ : M → N` of complex curves (a `C^n` diffeomorphism for the complex
 models, `n ≠ 0`) carries `complexCurveOrientation` of `M` to that of `N` at every point. -/
