@@ -29,11 +29,11 @@ import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 /-!
 # The realization of finitely presented groups
 
-This file proves that every finitely presented group is the fundamental group of a compact,
-connected symplectic four-manifold without boundary (`exists_fundamentalGroup_mulEquiv`), by
-Gompf's construction: sum the product of a closed surface with the torus `T²` with copies of the
-rational elliptic surface along disjoint symplectic tori. Most of the file builds those tori and
-computes the effect of the sums on `π₁`.
+This file shows that a group with a finite presentation is, up to isomorphism, `π₁` of some
+compact, connected symplectic four-manifold without boundary
+(`exists_fundamentalGroup_mulEquiv`), by Gompf's construction: sum the product of a closed
+surface with the torus `T²` with copies of the rational elliptic surface along disjoint
+symplectic tori. Most of the file builds those tori and computes the effect of the sums on `π₁`.
 
 Let `Σ` be a Hausdorff manifold of dimension at least two, smooth and
 without boundary, such as the closed surface of genus `g`
@@ -135,8 +135,8 @@ The normal closures in `F × T²` and in its copy on the model correspond
   `ProdTorusOnModel I M p L` pull its form back to `ω_T`.
 * `SymplecticGeometry.ProdTorusOnModel.disjoint_range_graphTorus_iff`: they are disjoint exactly
   when the graph tori in `M × T` are.
-* `SymplecticGeometry.exists_fundamentalGroup_mulEquiv`: every finitely presented group is the
-  fundamental group of a compact, connected, symplectic four-manifold without boundary.
+* `SymplecticGeometry.exists_fundamentalGroup_mulEquiv`: a group with a finite presentation is
+  isomorphic to `π₁` of a compact, connected, symplectic four-manifold without boundary.
 
 ## References
 
