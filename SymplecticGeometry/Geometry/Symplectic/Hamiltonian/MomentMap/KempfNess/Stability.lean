@@ -10,6 +10,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.No
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nonneg
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import TauCeti.LinearAlgebra.BilinearForm.Basic
@@ -169,7 +170,7 @@ theorem isSemistable_of_iInf_momentNormSq_smul_eq_zero (hBp : B.toQuadraticMap.P
   obtain ⟨x, hxK, hxmin⟩ := isClosed_closure.isCompact.exists_isMinOn
     ⟨p, subset_closure (MulAction.mem_orbit_self (M := Gc) p)⟩ hf.continuousOn
   refine isSemistable_iff.2 ⟨x, hxK, (momentNormSq_eq_zero_iff (hB := hB) hBp.anisotropic).1 ?_⟩
-  refine le_antisymm ?_ (momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg))
+  refine le_antisymm ?_ (momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_of_posDef hBp))
   rw [← h0]
   exact le_ciInf fun g ↦ hxmin (subset_closure (MulAction.mem_orbit p g))
 
@@ -180,7 +181,7 @@ when the infimum of `‖μ‖²` over its `Gc`-orbit is `0`. -/
 theorem isSemistable_iff_iInf_momentNormSq_smul_eq_zero (hBp : B.toQuadraticMap.PosDef)
     (hf : Continuous (momentNormSq μ (B.toDual hB).symm)) (p : M) :
     IsSemistable C μ p ↔ ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0 :=
-  ⟨fun hp ↦ hp.iInf_momentNormSq_smul_eq_zero (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hf,
+  ⟨fun hp ↦ hp.iInf_momentNormSq_smul_eq_zero (LinearMap.BilinForm.isNonneg_of_posDef hBp) hf,
     isSemistable_of_iInf_momentNormSq_smul_eq_zero hBp hf⟩
 
 omit [ConnectedSpace G] [ContMDiffSMul IC I' ∞ Gc M] in
@@ -202,7 +203,7 @@ theorem moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClos
     (hgd : ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
       (-2 * momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) t)
     (hL : BddBelow ((fun t ↦ kempfNessFunction C μ p (g t)) '' Ici 0)) : μ x = 0 := by
-  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
+  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_of_posDef hBp
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hI := (tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p).1
@@ -310,7 +311,7 @@ theorem isSemistable_iff_bddBelow_kempfNessFunction (h : IsComplexifiedAction C 
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) :
     IsSemistable C μ p ↔ BddBelow (range (kempfNessFunction C μ p)) := by
   have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
-  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
+  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_of_posDef hBp
   -- The flow from `p`, its limit `x`, and the curve `g` in `Gc` along which it runs.
   obtain ⟨-, x, -, hx, -⟩ := tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p
   rw [momentNormSq_neg'] at hx

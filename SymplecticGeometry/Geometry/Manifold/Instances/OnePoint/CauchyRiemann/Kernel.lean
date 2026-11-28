@@ -70,7 +70,8 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
 * `SymplecticGeometry.exists_mem_twistOneKernel_eq_zero`: every point is the zero of a nonzero
   element of `twistOneKernel J`; by `SymplecticGeometry.exists_smul_eq_of_mem_twistOneKernel` and
   `SymplecticGeometry.finrank_twistOneKernel_inf_ker_proj`, the elements vanishing there form a
-  complex line.
+  complex line. Two independent elements have no common zero
+  (`SymplecticGeometry.prodMk_apply_ne_zero_of_mem_twistOneKernel`).
 * `SymplecticGeometry.twistOneKernelTransfer`: given a map `Q` to `ℂ × ℂ` that stabilizes `D_J`,
   the complex linear map from `twistOneKernel J₀` to `twistOneKernel J` sending `s` to the element
   on which `Q` is `(s 0, s ∞)`; it is bijective (`twistOneKernelTransfer_bijective`).
@@ -595,6 +596,18 @@ theorem exists_smul_eq_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames �
   have hux : (t - (t y / s y) • s) x = 0 := by simp [hsx, htx]
   have huy : (t - (t y / s y) • s) y = 0 := by simp [div_mul_cancel₀ _ hsy]
   exact hyx (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hu hu₀ huy hux)
+
+/-- **Independent kernel elements have no common zero.** Let a two-form `σ` on the sphere tame
+both `J` and the standard structure `i`, and let `s, t ∈ twistOneKernel J` be linearly
+independent over `ℂ`. Then at every point `x` of the sphere, `s x` and `t x` are not both zero. -/
+theorem prodMk_apply_ne_zero_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J)
+    (hst : LinearIndependent ℂ ![s, t]) (x : OnePoint ℂ) : (s x, t x) ≠ 0 := by
+  intro h
+  obtain ⟨c, hc⟩ := exists_smul_eq_of_mem_twistOneKernel hJ hi hs ht
+    (by simpa using hst.ne_zero 0) (congrArg Prod.fst h) (congrArg Prod.snd h)
+  have h₁ := LinearIndependent.pair_iff.1 hst c (-1) (by simp [hc])
+  exact one_ne_zero (neg_eq_zero.1 h₁.2)
 
 /-- **The kernel elements vanishing at a point form a complex line.** Let a two-form `σ` on the
 sphere tame both `J` and the standard structure `i`. Then for every point `x` of the sphere, the

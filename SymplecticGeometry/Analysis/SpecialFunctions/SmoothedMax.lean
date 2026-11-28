@@ -73,7 +73,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `smoothedMax_eq_right`, their versions near a set (`smoothedMax_eventuallyEq_left`,
   `smoothedMax_eventuallyEq_right`) and near a point for arguments continuous there
   (`smoothedMax_eventuallyEq_left_of_continuousAt`,
-  `smoothedMax_eventuallyEq_right_of_continuousAt`), on an interval `[a, u)` for arguments
+  `smoothedMax_eventuallyEq_right_of_continuousAt`), near a point within a set for arguments
+  continuous there within it (`smoothedMax_eventuallyEq_left_of_continuousWithinAt`,
+  `smoothedMax_eventuallyEq_right_of_continuousWithinAt`), on an interval `[a, u)` for arguments
   continuous at `a` within `[a, ∞)` (`exists_eqOn_smoothedMax_right`), `max_le_smoothedMax`,
   `smoothedMax_le_max_add` and `one_div_smoothedMax_le`.
 * `SymplecticGeometry.smoothedSign_eq_smoothedSign_one`,
@@ -750,15 +752,32 @@ theorem smoothedMax_eventuallyEq_right_of_continuousAt {X : Type*} [TopologicalS
   filter_upwards [(hf.add continuousAt_const).eventually_lt hg h] with y hy
   exact smoothedMax_eq_right hδ hy.le
 
-/-- For `η > 0` and `f` and `g` continuous at `a` within `[a, ∞)` with `f a + η < g a`, the
+/-- For `δ > 0` and `f` and `g` continuous at `x` within `s` with `g x + δ < f x`, the
+smoothed maximum of `f` and `g` equals `f` near `x` within `s`. -/
+theorem smoothedMax_eventuallyEq_left_of_continuousWithinAt {X : Type*} [TopologicalSpace X]
+    {f g : X → ℝ} {s : Set X} {x : X} (hδ : 0 < δ) (hf : ContinuousWithinAt f s x)
+    (hg : ContinuousWithinAt g s x) (h : g x + δ < f x) :
+    (fun y ↦ smoothedMax δ (f y) (g y)) =ᶠ[𝓝[s] x] f := by
+  filter_upwards [(hg.add continuousWithinAt_const).eventually_lt hf h] with y hy
+  exact smoothedMax_eq_left hδ hy.le
+
+/-- For `δ > 0` and `f` and `g` continuous at `x` within `s` with `f x + δ < g x`, the
+smoothed maximum of `f` and `g` equals `g` near `x` within `s`. -/
+theorem smoothedMax_eventuallyEq_right_of_continuousWithinAt {X : Type*} [TopologicalSpace X]
+    {f g : X → ℝ} {s : Set X} {x : X} (hδ : 0 < δ) (hf : ContinuousWithinAt f s x)
+    (hg : ContinuousWithinAt g s x) (h : f x + δ < g x) :
+    (fun y ↦ smoothedMax δ (f y) (g y)) =ᶠ[𝓝[s] x] g := by
+  filter_upwards [(hf.add continuousWithinAt_const).eventually_lt hg h] with y hy
+  exact smoothedMax_eq_right hδ hy.le
+
+/-- For `δ > 0` and `f` and `g` continuous at `a` within `[a, ∞)` with `f a + δ < g a`, the
 smoothed maximum of `f` and `g` equals `g` on some interval `[a, u)` with `a < u`. -/
-theorem exists_eqOn_smoothedMax_right {η a : ℝ} {f g : ℝ → ℝ} (hη : 0 < η)
+theorem exists_eqOn_smoothedMax_right {a : ℝ} {f g : ℝ → ℝ} (hδ : 0 < δ)
     (hf : ContinuousWithinAt f (Ici a) a) (hg : ContinuousWithinAt g (Ici a) a)
-    (h : f a + η < g a) :
-    ∃ u, a < u ∧ EqOn (fun r ↦ smoothedMax η (f r) (g r)) g (Ico a u) := by
-  obtain ⟨u, hu, hsub⟩ := mem_nhdsGE_iff_exists_Ico_subset.1
-    (Filter.Tendsto.eventually_lt (hf.add continuousWithinAt_const) hg h)
-  exact ⟨u, hu, fun r hr ↦ smoothedMax_eq_right hη (hsub hr).le⟩
+    (h : f a + δ < g a) :
+    ∃ u, a < u ∧ EqOn (fun r ↦ smoothedMax δ (f r) (g r)) g (Ico a u) :=
+  mem_nhdsGE_iff_exists_Ico_subset.1
+    (smoothedMax_eventuallyEq_right_of_continuousWithinAt hδ hf hg h)
 
 /-- For `δ > 0`, the smoothed maximum lies above the maximum. -/
 theorem max_le_smoothedMax (hδ : 0 < δ) (a b : ℝ) : max a b ≤ smoothedMax δ a b := by
