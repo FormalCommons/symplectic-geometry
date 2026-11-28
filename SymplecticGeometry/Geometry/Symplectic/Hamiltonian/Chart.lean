@@ -6,17 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
-import Mathlib.Analysis.Calculus.ContDiff.Operations
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Analysis.Normed.Module.ContinuousInverse
+import TauCeti.Analysis.Normed.Operator.Bilinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
-import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
 # Hamiltonian vector fields read in a chart of the maximal atlas
 
 Let `σ` be a two-form on a manifold `M` modelled on a finite-dimensional space `E`, and let `e` be
-a chart of the smooth maximal atlas of `M`. Read in `e`, at a coordinate `z` of the target, `σ`
+a chart of the `C^1` maximal atlas of `M`. Read in `e`, at a coordinate `z` of the target, `σ`
 becomes the bilinear form `(u, w) ↦ σ_x(d(e⁻¹)_z u, d(e⁻¹)_z w)` on `E`, with `x = e.symm z`; its
 flat map is `TauCeti.SmoothTwoForm.flatInChart σ e z`. When `σ` is nondegenerate this flat map is
 invertible on the chart target, and its inverse
@@ -31,10 +31,11 @@ Morse and birth–death charts of `TauCeti.MorseChart` are.
 
 ## Main results
 
-* `TauCeti.mvfderiv_chart_apply_mfderiv_chart_symm_apply`: `de` inverts `d(e⁻¹)` on the chart
-  target, the identity behind all chart readings here.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isInvertible_flatInChart`: the flat map in the chart is
   invertible on the chart target.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.flatInChart_inverseFlatInChart_apply`,
+  `TauCeti.SmoothTwoForm.IsNondegenerate.inverseFlatInChart_flatInChart_apply`: on the chart
+  target, `inverseFlatInChart σ e z` and `flatInChart σ e z` are mutually inverse.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.mvfderiv_eq_inverseFlatInChart_fderiv`: a vector `v` with
   `σ_x(v, ·) = dK_x`, read in the chart, is `J z (d(K ∘ e⁻¹)_z)`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.mvfderiv_hamiltonianVectorField`: the Hamiltonian vector
@@ -61,17 +62,6 @@ open Set Metric
 open scoped Manifold Topology ContDiff
 
 namespace TauCeti
-
-/-- The derivative of a chart of the `C^1` maximal atlas, read in the model space, inverts the
-derivative of the inverse chart at each point of the chart target. -/
-theorem mvfderiv_chart_apply_mfderiv_chart_symm_apply {𝕜 E M : Type*} [NontriviallyNormedField 𝕜]
-    [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace M] [ChartedSpace E M]
-    {e : OpenPartialHomeomorph M E} (he : e ∈ IsManifold.maximalAtlas 𝓘(𝕜, E) 1 M) {z : E}
-    (hz : z ∈ e.target) (u : E) :
-    mvfderiv 𝓘(𝕜, E) e (e.symm z) (mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E) e.symm z u) = u :=
-  (mvfderiv_apply_eq_mfderiv_apply _ _ _).trans <| e.mfderiv_apply_mfderiv_symm_apply hz
-    (mdifferentiableAt_of_mem_maximalAtlas he (e.map_target hz))
-    (mdifferentiableAt_symm_of_mem_maximalAtlas he hz) u
 
 namespace SmoothTwoForm
 
@@ -120,41 +110,47 @@ theorem flatInChart_mvfderiv_mvfderiv (he : e ∈ IsManifold.maximalAtlas 𝓘(�
     (hz : z ∈ e.target) (v w : TangentSpace 𝓘(ℝ, E) (e.symm z)) :
     σ.flatInChart e z (mvfderiv 𝓘(ℝ, E) e (e.symm z) v)
         (mvfderiv 𝓘(ℝ, E) e (e.symm z) w) = SmoothBundleForm.eval₂ σ (e.symm z) v w := by
-  have hx := e.map_target hz
-  have h (u : TangentSpace 𝓘(ℝ, E) (e.symm z)) :
-      mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e (e.symm z) u) = u := by
-    have := e.mfderiv_symm_apply_mfderiv_apply hx (mdifferentiableAt_of_mem_maximalAtlas he hx)
-      (by rw [e.right_inv hz]; exact mdifferentiableAt_symm_of_mem_maximalAtlas he hz) u
-    rwa [e.right_inv hz] at this
-  rw [flatInChart_apply, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, h, h]
+  have h := e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he one_ne_zero hz
+  rw [flatInChart_apply, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
+  exact congrArg₂ _ (h v) (h w)
 
 section FiniteDimensional
 
 variable [FiniteDimensional ℝ E]
 
-/-- For a nondegenerate `σ`, the flat map read in a chart of the maximal atlas is invertible at
-every point of the chart target. -/
+/-- For a nondegenerate `σ`, the flat map read in a chart of the `C^1` maximal atlas is invertible
+at every point of the chart target. -/
 theorem IsNondegenerate.isInvertible_flatInChart (hσ : σ.IsNondegenerate)
     (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) (hz : z ∈ e.target) :
     (σ.flatInChart e z).IsInvertible := by
-  refine ContinuousLinearMap.isInvertible_of_injective ((injective_iff_map_eq_zero _).2
-    fun u hu ↦ ?_)
-  set B := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z
-  set A := mvfderiv 𝓘(ℝ, E) e (e.symm z)
-  have hAB (u : E) : A (B u) = u := mvfderiv_chart_apply_mfderiv_chart_symm_apply he hz u
-  have hBu : σ.flat (e.symm z) (B u) = 0 := by
-    ext w
-    have h := congrArg (fun L : E →L[ℝ] ℝ ↦ L (A w)) hu
-    simp only [zero_apply] at h ⊢
-    rw [← hAB u, flatInChart_mvfderiv_mvfderiv he hz] at h
-    rw [flat_apply]
-    exact h
-  have h0 : B u = 0 := isNondegenerate_iff_injective_flat.1 hσ _ (hBu.trans (map_zero _).symm)
-  rw [← hAB u, h0, map_zero]
+  -- `d(e⁻¹)_z`, as a linear equivalence of the model space with inverse `de_{e⁻¹ z}`.
+  let A : E ≃L[ℝ] E := .ofContinuousLinearMap (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z)
+    (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e (e.symm z))
+    (ContinuousLinearMap.ext
+      (e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he one_ne_zero hz))
+    (ContinuousLinearMap.ext fun u ↦ (mvfderiv_apply_eq_mfderiv_apply _ _ _).symm.trans
+      (e.mvfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he hz u))
+  rw [flatInChart_def, ← flat_def]
+  exact (hσ.isInvertible_flat (e.symm z)).bilinearComp (V := E) (V' := E) (W := E) (W' := E)
+    A A
+
+/-- For a nondegenerate `σ` and `z` in the target of a chart `e` of the `C^1` maximal atlas, the
+flat map in the chart undoes its inverse at `z`. -/
+theorem IsNondegenerate.flatInChart_inverseFlatInChart_apply (hσ : σ.IsNondegenerate)
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) (hz : z ∈ e.target) (ℓ : E →L[ℝ] ℝ) :
+    σ.flatInChart e z (σ.inverseFlatInChart e z ℓ) = ℓ := by
+  rw [inverseFlatInChart_def, (hσ.isInvertible_flatInChart he hz).self_apply_inverse]
+
+/-- For a nondegenerate `σ` and `z` in the target of a chart `e` of the `C^1` maximal atlas, the
+inverse flat map in the chart undoes the flat map at `z`. -/
+theorem IsNondegenerate.inverseFlatInChart_flatInChart_apply (hσ : σ.IsNondegenerate)
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) (hz : z ∈ e.target) (u : E) :
+    σ.inverseFlatInChart e z (σ.flatInChart e z u) = u := by
+  rw [inverseFlatInChart_def, (hσ.isInvertible_flatInChart he hz).inverse_apply_self]
 
 /-- **A vector with prescribed contraction, read in a chart.** Let `σ` be nondegenerate, `e` a
-chart of the maximal atlas and `z` a point of its target, with `x = e.symm z`. If a tangent vector
-`v` at `x` satisfies `σ_x(v, ·) = dK_x`, then `de_x v = J z (d(K ∘ e⁻¹)_z)`, with
+chart of the `C^1` maximal atlas and `z` a point of its target, with `x = e.symm z`. If a tangent
+vector `v` at `x` satisfies `σ_x(v, ·) = dK_x`, then `de_x v = J z (d(K ∘ e⁻¹)_z)`, with
 `J = inverseFlatInChart σ e`. -/
 theorem IsNondegenerate.mvfderiv_eq_inverseFlatInChart_fderiv (hσ : σ.IsNondegenerate)
     (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) (hz : z ∈ e.target) {K : M → ℝ}
@@ -162,12 +158,13 @@ theorem IsNondegenerate.mvfderiv_eq_inverseFlatInChart_fderiv (hσ : σ.IsNondeg
     (hv : ∀ w, SmoothBundleForm.eval₂ σ (e.symm z) v w = mvfderiv 𝓘(ℝ, E) K (e.symm z) w) :
     mvfderiv 𝓘(ℝ, E) e (e.symm z) v = σ.inverseFlatInChart e z (fderiv ℝ (K ∘ e.symm) z) := by
   have hx := e.map_target hz
-  rw [inverseFlatInChart_def, eq_comm, (hσ.isInvertible_flatInChart he hz).inverse_apply_eq]
+  rw [← hσ.inverseFlatInChart_flatInChart_apply he hz (mvfderiv 𝓘(ℝ, E) e (e.symm z) v)]
+  congr 1
   have hK := mfderiv_eq_fderiv_comp_of_eqOn (f := K) (h := K ∘ e.symm) he
     (fun y hy ↦ by simp [e.left_inv hy]) hx
   rw [e.right_inv hz] at hK
   ext w
-  have hAB := mvfderiv_chart_apply_mfderiv_chart_symm_apply he hz w
+  have hAB := e.mvfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he hz w
   conv_lhs => rw [← hAB]
   conv_rhs => rw [← hAB]
   rw [flatInChart_mvfderiv_mvfderiv he hz, hv, mvfderiv_apply_eq_mfderiv_apply,
@@ -185,42 +182,35 @@ theorem IsNondegenerate.mvfderiv_hamiltonianVectorField (hσ : σ.IsNondegenerat
   hσ.mvfderiv_eq_inverseFlatInChart_fderiv he hz
     (eval₂_hamiltonianVectorField_of_isInvertible (hσ.isInvertible_flat _) G)
 
-/-- The flat map of `σ` read in a chart of the smooth maximal atlas depends continuously on the
+/-- The flat map of `σ` read in a chart of the `C^1` maximal atlas depends continuously on the
 point of the chart target. -/
 theorem continuousOn_flatInChart (σ : SmoothTwoForm 𝓘(ℝ, E) M)
-    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M) :
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) :
     ContinuousOn (σ.flatInChart e) e.target := by
   refine continuousOn_clm_apply.2 fun u ↦ continuousOn_clm_apply.2 fun w ↦ ?_
   refine ((σ.isSmoothForm.of_le (by simp)).continuousOn_apply_mfderiv e.open_target
-    ((contMDiffOn_symm_of_mem_maximalAtlas he).of_le (by simp)) u w).congr fun z _ ↦ ?_
+    (contMDiffOn_symm_of_mem_maximalAtlas he) u w).congr fun z _ ↦ ?_
   rw [flatInChart_apply, SmoothBundleForm.eval₂_apply]
 
-/-- For a nondegenerate `σ`, the inverse of the flat map read in a chart of the smooth maximal
+/-- For a nondegenerate `σ`, the inverse of the flat map read in a chart of the `C^1` maximal
 atlas depends continuously on the point of the chart target. -/
 theorem IsNondegenerate.continuousOn_inverseFlatInChart (hσ : σ.IsNondegenerate)
-    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M) :
-    ContinuousOn (σ.inverseFlatInChart e) e.target := by
-  intro z hz
-  obtain ⟨L, hL⟩ := hσ.isInvertible_flatInChart
-    (IsManifold.maximalAtlas_subset_of_le (m := 1) (by simp) he) hz
-  have h := (contDiffAt_map_inverse (n := 0) L).continuousAt
-  rw [hL] at h
-  have hJ : σ.inverseFlatInChart e = fun z ↦ (σ.flatInChart e z).inverse :=
-    funext (inverseFlatInChart_def σ e)
-  rw [hJ]
-  exact h.comp_continuousWithinAt (continuousOn_flatInChart σ he z hz)
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) :
+    ContinuousOn (σ.inverseFlatInChart e) e.target := fun z hz ↦
+  (continuousOn_flatInChart σ he z hz).clm_inverse_of_eventually_isInvertible
+    (hσ.isInvertible_flatInChart he hz)
+    (eventually_nhdsWithin_of_forall fun _ hy ↦ hσ.isInvertible_flatInChart he hy)
 
 /-- **Local bounds for the inverse flat map in a chart.** For a nondegenerate `σ`, a chart `e` of
-the smooth maximal atlas and `p` in its source, there are `r > 0`, `B` and `B'` such that the ball
+the `C^1` maximal atlas and `p` in its source, there are `r > 0`, `B` and `B'` such that the ball
 of radius `r` around `e p` lies in the chart target and, at each of its points `z`,
 `J = inverseFlatInChart σ e` satisfies `‖J z‖ ≤ B` and `‖ℓ‖ ≤ B' * ‖J z ℓ‖` for every covector
 `ℓ`. -/
 theorem IsNondegenerate.exists_ball_norm_inverseFlatInChart_le (hσ : σ.IsNondegenerate)
-    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M) {p : M} (hp : p ∈ e.source) :
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) {p : M} (hp : p ∈ e.source) :
     ∃ r > 0, ∃ B B' : ℝ, ball (e p) r ⊆ e.target ∧ ∀ z ∈ ball (e p) r,
       ‖σ.inverseFlatInChart e z‖ ≤ B ∧
         ∀ ℓ : E →L[ℝ] ℝ, ‖ℓ‖ ≤ B' * ‖σ.inverseFlatInChart e z ℓ‖ := by
-  have he₁ := IsManifold.maximalAtlas_subset_of_le (m := 1) (by simp) he
   have hp' := e.map_source hp
   have hn := e.open_target.mem_nhds hp'
   have h₁ : ∀ᶠ z in 𝓝 (e p), ‖σ.inverseFlatInChart e z‖ < ‖σ.inverseFlatInChart e (e p)‖ + 1 :=
@@ -236,7 +226,7 @@ theorem IsNondegenerate.exists_ball_norm_inverseFlatInChart_le (hσ : σ.IsNonde
     fun z hz ↦ (h z hz).2.2, fun z hz ↦ ⟨(h z hz).1.le, fun ℓ ↦ ?_⟩⟩
   obtain ⟨-, hS, hzt⟩ := h z hz
   calc ‖ℓ‖ = ‖σ.flatInChart e z (σ.inverseFlatInChart e z ℓ)‖ := by
-        rw [inverseFlatInChart_def, (hσ.isInvertible_flatInChart he₁ hzt).self_apply_inverse]
+        rw [hσ.flatInChart_inverseFlatInChart_apply he hzt]
     _ ≤ ‖σ.flatInChart e z‖ * ‖σ.inverseFlatInChart e z ℓ‖ := (σ.flatInChart e z).le_opNorm _
     _ ≤ _ := by gcongr
 
