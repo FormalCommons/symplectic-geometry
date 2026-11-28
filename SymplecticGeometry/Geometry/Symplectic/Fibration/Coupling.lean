@@ -117,7 +117,9 @@ smooth atlas whose coordinate changes preserve the symplectic orientation of `F`
 normalization is asked for under those hypotheses. By `fiberIntegral_wedgePow_eq_zero_iff`, it
 says that `fiberMean τ` vanishes (`isCouplingTwoForm_iff_fiberMean`).
 
-Two coupling two-forms `τ` and `τ'` of one connection are equal when `F` is connected
+Let `A` be a smooth atlas with connected model fibre `F` whose coordinate changes preserve the
+symplectic orientation of a nondegenerate `σ` on `F` of dimension `2 * k`. Then two coupling
+two-forms `τ` and `τ'` of one connection, for `A` and `σ`, are equal
 (`TauCeti.IsEhresmannConnection.IsCouplingTwoForm.unique`): by `eq_add_mpullback_of_isClosed`,
 `τ' = τ + proj^* β` for a two-form `β` on `B`, so by `fiberMean_add_mpullback`, `V • β = 0`, where
 the symplectic volume `V` of `F` is positive
@@ -149,8 +151,9 @@ the symplectic volume `V` of `F` is positive
   pull-back of a unique closed two-form on the base.
 * `TauCeti.IsEhresmannConnection.isCouplingTwoForm_iff_fiberMean`: the normalization of coupling
   two-forms in terms of `fiberMean`.
-* `TauCeti.IsEhresmannConnection.IsCouplingTwoForm.unique`: a connection has at most one coupling
-  two-form.
+* `TauCeti.IsEhresmannConnection.IsCouplingTwoForm.unique`: for a fixed atlas `A` and fibre form
+  `σ`, where `A` is smooth with connected model fibre and its coordinate changes preserve the
+  symplectic orientation of a nondegenerate `σ`, a connection has at most one coupling two-form.
 
 ## References
 
