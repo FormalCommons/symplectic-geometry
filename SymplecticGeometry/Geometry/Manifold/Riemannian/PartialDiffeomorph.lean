@@ -33,7 +33,9 @@ metric in the chart. Its Gram matrix in a basis is positive definite on `ψ.targ
 When `E` is finite-dimensional and the metric is continuous, on a compact set `K ⊆ ψ.target` the
 differential of `ψ.symm` is bounded above and below for the Riemannian norm on the tangent spaces
 of `M`, and the Riemannian Jacobian of `ψ.symm` is bounded above and away from zero. These are
-the estimates that compare integrals over `M` with integrals in a chart.
+the estimates that compare integrals over `M` with integrals in a chart. On a compact subset of
+`ψ.source`, the differential of `ψ` is bounded above and below too: both bounds follow from those
+for `ψ.symm` on the image of the set, since the two differentials are mutually inverse.
 
 The norm bounds specialize those for any `C¹` map with injective differentials
 (`ContMDiffOn.exists_norm_mfderiv_le_mul_norm`, `ContMDiffOn.exists_pos_mul_norm_le_norm_mfderiv`)
@@ -65,6 +67,8 @@ injective (`TauCeti.riemannianJacobian_pos`), and continuous
   differential of `ψ.symm` on a compact subset of `ψ.target`.
 * `PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`: the differential of `ψ` is bounded on
   the image of such a set under `ψ.symm`.
+* `PartialDiffeomorph.exists_mul_norm_le_norm_mvfderiv_le`: two-sided bounds for the differential
+  of `ψ` on a compact subset of `ψ.source`.
 * `PartialDiffeomorph.riemannianJacobian_symm_pos` and
   `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`: the Riemannian Jacobian of `ψ.symm`
   is positive on `ψ.target`, and bounded above and away from zero on a compact subset of it.
@@ -278,6 +282,34 @@ theorem exists_norm_mvfderiv_le_mul_norm [FiniteDimensional ℝ E]
   calc ‖mvfderiv I ψ (ψ.symm y) w‖ = c⁻¹ * (c * ‖mvfderiv I ψ (ψ.symm y) w‖) := by field_simp
     _ ≤ c⁻¹ * ‖w‖ := mul_le_mul_of_nonneg_left
         (h.trans_eq (TauCeti.norm_tangentSpace_congr (ψ.left_inv hx) rfl)) (inv_nonneg.2 hc.le)
+
+/-- On a compact subset `K` of the source of a partial diffeomorphism `ψ` from `M` onto an open
+subset of a finite-dimensional real normed space, the differential of `ψ` is bounded above and
+below: `c * ‖w‖ ≤ ‖dψ_x w‖ ≤ C * ‖w‖` for some `0 < c`, every `x ∈ K` and every tangent vector
+`w` at `x`, the norm of `w` being the Riemannian one. -/
+theorem exists_mul_norm_le_norm_mvfderiv_le [FiniteDimensional ℝ E]
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n) (hn : n ≠ 0) {K : Set M} (hK : IsCompact K)
+    (hKψ : K ⊆ ψ.source) :
+    ∃ c C, 0 < c ∧ ∀ x ∈ K, ∀ w : TangentSpace I x,
+      c * ‖w‖ ≤ ‖mvfderiv I ψ x w‖ ∧ ‖mvfderiv I ψ x w‖ ≤ C * ‖w‖ := by
+  have hK' : IsCompact (ψ '' K) := hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hKψ)
+  have hKψ' : ψ '' K ⊆ ψ.target := by
+    rintro _ ⟨x, hx, rfl⟩
+    exact ψ.map_source (hKψ hx)
+  obtain ⟨_, C', -, hC'⟩ := ψ.exists_mul_norm_le_norm_mfderiv_symm_le hn hK' hKψ'
+  obtain ⟨C, hC⟩ := ψ.exists_norm_mvfderiv_le_mul_norm hn hK' hKψ'
+  refine ⟨(max C' 1)⁻¹, C, by positivity, fun x hx w ↦ ⟨?_, hC x ?_ w⟩⟩
+  · -- The differential of `ψ.symm` at `ψ x` undoes that of `ψ` at `x`, and is bounded by `C'`.
+    have key : mfderiv 𝓘(ℝ, E) I ψ.symm (ψ x) (mvfderiv I ψ x w) = w := by
+      rw [mvfderiv_apply_eq_mfderiv_apply]
+      exact ψ.mfderiv_symm_apply_mfderiv_apply hn (hKψ hx) w
+    have h := (hC' (ψ x) (mem_image_of_mem _ hx) (mvfderiv I ψ x w)).2
+    rw [key] at h
+    have h' : ‖w‖ ≤ C' * ‖mvfderiv I ψ x w‖ :=
+      (TauCeti.norm_tangentSpace_congr (ψ.left_inv (hKψ hx)) rfl).symm.trans_le h
+    rw [inv_mul_le_iff₀ (by positivity)]
+    exact h'.trans (by gcongr; exact le_max_left _ _)
+  · exact ⟨ψ x, mem_image_of_mem _ hx, ψ.left_inv (hKψ hx)⟩
 
 /-- On a compact subset of the target of a partial diffeomorphism `ψ` from `M` onto an open
 subset of `E`, the Riemannian Jacobian of `ψ.symm` in any basis of `E` is bounded above and away

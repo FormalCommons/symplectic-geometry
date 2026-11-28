@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -26,6 +27,12 @@ determinant on their sources. Smoothness is Tau Ceti's
 `OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn`, and the determinants are Tau
 Ceti's `TauCeti.det_fderiv_symm_trans_ne_zero`, since `Φ` lies in the maximal atlas of the
 manifold.
+
+For a chart `e` of the maximal atlas of a manifold modelled on `E`, the derivative of
+`f ∘ e.symm` is the differential of `f` composed with that of `e.symm`, for any `f` into a normed
+space, differentiable or not: `e.symm` is a local diffeomorphism at each point of the target
+(Tau Ceti's `OpenPartialHomeomorph.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas`), so this is
+Tau Ceti's chain rule `IsLocalDiffeomorphAt.mfderiv_comp`.
 
 For two `C^n` partial diffeomorphisms `Φ` and `Ψ` from a manifold into normed spaces, the
 transition `Ψ ∘ Φ⁻¹` is `C^n` on its source and, for `n ≠ 0`, differentiable there, with the
@@ -49,6 +56,9 @@ Tau Ceti's `PartialDiffeomorph.inner_fderiv_comp_symm`, with `B` in place of the
   `OpenPartialHomeomorph.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas`: for a chart `e`
   of the `C^1` maximal atlas and `z` in its target, `d(e⁻¹)_z` and `de_{e⁻¹ z}` are mutually
   inverse.
+* `OpenPartialHomeomorph.fderiv_comp_symm_apply_of_mem_maximalAtlas`: for a chart `e` of the
+  `C^n` maximal atlas, `n ≠ 0`, and any `f` into a normed space, the derivative of `f ∘ e.symm` is
+  the differential of `f` composed with that of `e.symm`.
 * `PartialDiffeomorph.contDiffOn_symm_trans_chartAt`,
   `PartialDiffeomorph.contDiffOn_chartAt_symm_trans`,
   `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
@@ -154,6 +164,30 @@ theorem _root_.OpenPartialHomeomorph.mfderiv_apply_mfderiv_symm_apply_of_mem_max
     (mdifferentiableAt_symm_of_mem_maximalAtlas he hz) u
 
 end ChartInverse
+
+section ChartComp
+
+variable {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M']
+
+/-- **The derivative of a function read in a chart.** For a chart `e` of the `C^n` maximal atlas,
+`n ≠ 0`, and a point `z` of its target, the derivative of `f ∘ e.symm` at `z` is the differential
+of `f` at `e.symm z` composed with that of `e.symm` at `z`. No differentiability of `f` is
+needed. -/
+theorem _root_.OpenPartialHomeomorph.fderiv_comp_symm_apply_of_mem_maximalAtlas
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {e : OpenPartialHomeomorph M' E}
+    (hn : n ≠ 0) (he : e ∈ IsManifold.maximalAtlas 𝓘(𝕜, E) n M') {z : E} (hz : z ∈ e.target)
+    (f : M' → F) (u : E) :
+    fderiv 𝕜 (f ∘ e.symm) z u =
+      mvfderiv 𝓘(𝕜, E) f (e.symm z) (mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E) e.symm z u) := by
+  have h := (e.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas he hz).mfderiv_comp
+    (I' := 𝓘(𝕜, F)) hn f
+  rw [← TauCeti.mvfderiv_eq_fderiv_apply (f ∘ e.symm) z u,
+    mvfderiv_apply_eq_mfderiv_apply (f ∘ e.symm) z u, h]
+  -- The composite applied to `u`: `ContinuousLinearMap.comp_apply` does not rewrite here, since
+  -- the two maps are typed with tangent spaces that are `E` only by definition.
+  exact (mvfderiv_apply_eq_mfderiv_apply f (e.symm z) _).symm
+
+end ChartComp
 
 section ChartTransition
 
