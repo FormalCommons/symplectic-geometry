@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DeRham.PathIntegral
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
-import TauCeti.Topology.Algebra.Order.Floor
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Periodize
 
 /-!
 # Exactness of closed `1`-forms from their periods on periodic loops
@@ -18,19 +18,15 @@ closed smooth real `1`-form by its integrals along smooth curves `γ : ℝ → M
 smooth `1`-periodic curves `c : ℝ → M` over `[0, 1]` detect exactness as well.
 
 A curve `γ` with `γ 0 = γ 1` is first flattened near both ends by the collared smooth transition
-`ρ = TauCeti.collaredSmoothTransition`, which is `0` up to `1 / 4` and `1` from `3 / 4` on, and
-then periodized: `c t = γ (ρ (fract t))`. Since `γ ∘ ρ` is periodic just below `0`, the
-periodization is smooth, as in Tau Ceti's `ContMDiff.comp_fract_snd`, whose proof (through
-`TauCeti.apply_fract_snd_eventuallyEq`) is followed here for curves. On `(0, 1)` the curve `c` is
+`ρ = TauCeti.collaredSmoothTransition` and then periodized: `c t = γ (ρ (fract t))`, which is
+smooth by `TauCeti.contMDiff_comp_collaredSmoothTransition_fract`. On `(0, 1)` the curve `c` is
 `γ ∘ ρ`, whose integral is that of `γ` by reparametrization invariance
 (`TauCeti.pathIntegral_comp`).
 
 ## Main results
 
-* `TauCeti.contMDiff_comp_collaredSmoothTransition_fract`: the periodization
-  `t ↦ γ (ρ (fract t))` of a `C^n` curve `γ` with `γ 0 = γ 1` is `C^n`.
-* `TauCeti.pathIntegral_comp_collaredSmoothTransition_fract`: its integral over `[0, 1]` is that
-  of `γ`.
+* `TauCeti.pathIntegral_comp_collaredSmoothTransition_fract`: the integral over `[0, 1]` along
+  the periodization `t ↦ γ (ρ (fract t))` of a curve `γ` is that along `γ`.
 * `TauCeti.mem_exactForms_one_iff_forall_periodic_pathIntegral_eq_zero`: a closed smooth real
   `1`-form on a preconnected manifold is exact exactly when its integrals over `[0, 1]` along all
   smooth `1`-periodic curves vanish.
@@ -51,30 +47,6 @@ namespace TauCeti
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- The curve `t ↦ γ (ρ (fract t))`, for any curve `γ` and the collared smooth transition `ρ`, is
-`1`-periodic. -/
-theorem periodic_comp_collaredSmoothTransition_fract {α : Type*} (γ : ℝ → α) :
-    Function.Periodic (fun t ↦ γ (collaredSmoothTransition (Int.fract t))) 1 := fun t ↦ by
-  simp
-
-/-- The periodization `t ↦ γ (ρ (fract t))` of a `C^n` curve `γ` with `γ 0 = γ 1`, flattened near
-the ends by the collared smooth transition `ρ`, is `C^n`. -/
-theorem contMDiff_comp_collaredSmoothTransition_fract {n : WithTop ℕ∞} (hn : n ≤ ∞)
-    {γ : ℝ → M} (hγ : ContMDiff 𝓘(ℝ, ℝ) I n γ) (h : γ 0 = γ 1) :
-    ContMDiff 𝓘(ℝ, ℝ) I n fun t ↦ γ (collaredSmoothTransition (Int.fract t)) := fun t ↦ by
-  set G : Unit × ℝ → M := fun w ↦ γ (collaredSmoothTransition w.2)
-  have hG : ∀ y : Unit, ∀ {s : ℝ}, -(1 / 4) < s → s < 0 → G (y, s + 1) = G (y, s) :=
-    fun _ s hs₀ hs₁ ↦ by
-      simp only [G, collaredSmoothTransition_eq_one_of_ge (by linarith : (3 / 4 : ℝ) ≤ s + 1),
-        collaredSmoothTransition_eq_zero_of_le (by linarith : s ≤ 1 / 4), h]
-  -- Near `t`, the periodization is a translate of `γ ∘ ρ`.
-  have hev := (apply_fract_snd_eventuallyEq (by norm_num) hG ((), t)).comp_tendsto
-    ((continuous_const.prodMk continuous_id).tendsto t)
-  have hsm : ContMDiff 𝓘(ℝ, ℝ) I n fun s : ℝ ↦ γ (collaredSmoothTransition (s - ⌊t⌋)) :=
-    hγ.comp ((contDiff_collaredSmoothTransition hn).comp
-      (contDiff_id.sub contDiff_const)).contMDiff
-  exact (hsm t).congr_of_eventuallyEq hev
 
 /-- The integral over `[0, 1]` of a continuous `1`-form along the periodization
 `t ↦ γ (ρ (fract t))` of a `C¹` curve `γ`, flattened near the ends by the collared smooth
@@ -114,7 +86,7 @@ theorem mem_exactForms_one_iff_forall_periodic_pathIntegral_eq_zero [FiniteDimen
   rw [← pathIntegral_comp_collaredSmoothTransition_fract (φ.isSmoothForm.of_le (by simp))
     (hγ.of_le (by simp))]
   exact h _ (contMDiff_comp_collaredSmoothTransition_fract le_rfl hγ (hγ₀.trans hγ₁.symm))
-    (periodic_comp_collaredSmoothTransition_fract γ)
+    ((Int.fract_periodic ℝ).comp (γ ∘ collaredSmoothTransition))
 
 end TauCeti
 
