@@ -771,7 +771,6 @@ theorem exists_compact_estimate_twistOneDelBarSobolev
     ∃ (C : ℝ) (K : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
         SobolevSection (twistCoreAtlas 1) volume 2 k),
       IsCompactOperator K ∧ ∀ w, ‖w‖ ≤ C * ‖twistOneDelBarSobolev J k w‖ + ‖K w‖ := by
-  have := (twistCoreAtlas 1).compactSpace
   obtain ⟨C, hC⟩ := exists_norm_le_twistOneDelBarSobolev J k hJ hi
   exact ContinuousLinearMap.exists_compact_estimate_of_norm_le_mul_add_norm
     (SobolevSection.isCompactOperator_lowerOrderL _ _ _ k) hC
