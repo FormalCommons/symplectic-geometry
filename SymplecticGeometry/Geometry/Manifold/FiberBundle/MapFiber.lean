@@ -451,6 +451,8 @@ derivative of a chart at a point of its source identifies the tangent space of `
 theorem IsContMDiff.finrank_eq_add [FiniteDimensional 𝕜 EM] (hA : A.IsContMDiff n IB IF IM)
     (hn : n ≠ 0) (x : M) :
     Module.finrank 𝕜 EM = Module.finrank 𝕜 EB + Module.finrank 𝕜 EF := by
+  -- The tangent spaces of `M` and `B × F` are `EM` and `EB × EF` by definition; the type ascription
+  -- states this, so that `Module.finrank_prod` applies.
   let L : EM ≃ₗ[𝕜] EB × EF := ((hA.mdifferentiable_trivAt hn (proj x)).mfderiv
     ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))).toLinearEquiv
   have : Module.Finite 𝕜 (EB × EF) := Module.Finite.equiv L
