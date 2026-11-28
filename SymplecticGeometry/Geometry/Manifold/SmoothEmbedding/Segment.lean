@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import Mathlib.Order.Filter.AtTopBot.Defs
 import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
@@ -98,15 +99,13 @@ theorem exists_isSmoothEmbedding_real_of_mem_nhds {p : M} {V : Set M} (hV : V �
   have himm : ∀ s ∈ K, Injective (mfderiv 𝓘(ℝ) I f s) := by
     intro s hs
     have h1 := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) (hLK s hs).1
-    rw [mfderiv_comp s (mdifferentiableAt_of_isInvertible_mfderiv h1)
-      (hL.contMDiff.mdifferentiableAt (by simp))]
     have hLd : HasFDerivAt L ((1 : ℝ →L[ℝ] ℝ).smulRight w) s :=
       ((hasFDerivAt_id s).smul_const w).const_add (e p)
+    refine TauCeti.injective_mfderiv_comp (f := L) h1.injective ?_
     rw [(hasMFDerivAt_iff_hasFDerivAt.2 hLd).mfderiv]
     have hinjL : Injective ((1 : ℝ →L[ℝ] ℝ).smulRight w) := fun a b h ↦
       smul_left_injective ℝ hw0 (by simpa using h)
-    -- The tangent spaces of `ℝ` and `E` are `ℝ` and `E` by definition.
-    exact h1.injective.comp hinjL
+    exact hinjL
   obtain ⟨W, hKW, -, hW⟩ := TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn hO hf isCompact_Icc
     (fun s hs ↦ (hLK s hs).1) hinj himm
   -- Reparametrize `f` on `(-1, 1)` by Mathlib's map `univBall 0 1` of `ℝ` onto `(-1, 1)`.

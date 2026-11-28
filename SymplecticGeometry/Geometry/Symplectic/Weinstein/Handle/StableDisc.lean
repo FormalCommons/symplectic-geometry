@@ -553,8 +553,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
       exact P.injective_fderiv_add_comp_subtype (fun w hw ↦ hPz ⟨w, hw⟩) hPg
         (hgz.differentiableAt one_ne_zero)
     refine ⟨contMDiffAt_infty.2 fun m ↦ ?_,
-      injective_mfderiv_extChartAt_symm_comp (hq z hz)
-        ((hF 1 z hgz).differentiableAt one_ne_zero) hinj⟩
+      injective_mfderiv_extChartAt_symm_comp (hq z hz) hinj⟩
     exact (hsmooth (m + 1) m.succ_ne_zero z hz).of_le (by exact_mod_cast m.le_succ)
   -- The image lies in the stable set.
   have hst : ι '' ball 0 ρ ⊆ hW.flow.stableSet p := by

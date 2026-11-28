@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.LinearAlgebra.Dimension.Submodule
 import TauCeti.Topology.Algebra.Module.FiniteDimension
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 
 /-!
@@ -431,22 +432,13 @@ private theorem injective_fderiv_chartLift (z : X) :
       (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z)) := by
   set j := (twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))
   have hz := mem_affineOpen_twistCore_indexAt (𝕜 := ℂ) 1 (z : ℙ ℂ (Fin (n + 2) → ℂ))
-  have h1 : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (affineChart j)
-      (z : ℙ ℂ (Fin (n + 2) → ℂ)) :=
-    mdifferentiableAt_affineChart hz
-  have h2 : MDifferentiableAt 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
-      (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ)) z := by
-    have := (X.embedding.contMDiff.of_le (show (1 : ℕ∞ω) ≤ ω from le_top)).mdifferentiableAt
-      one_ne_zero (x := z)
-    rwa [coe_embedding] at this
   -- The differential of `affineChart j` restricted to `X` is injective: that of the chart is
   -- bijective, and that of the inclusion is injective since `X` is immersed.
   have hinj : Function.Injective (mfderiv 𝓘(ℂ, Fin n → ℂ)
       𝓘(ℂ, Fin (n + 1) → ℂ) (affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) z) := by
-    rw [mfderiv_comp z h1 h2]
     have hi := X.embedding.isImmersion.mfderiv_injective WithTop.top_ne_zero z
     rw [coe_embedding] at hi
-    exact (bijective_mfderiv_affineChart hz).injective.comp hi
+    exact TauCeti.injective_mfderiv_comp (bijective_mfderiv_affineChart hz).injective hi
   replace hinj : Function.Injective (fderiv ℂ
       ((affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) ∘
         (chartAt (Fin n → ℂ) z).symm)
