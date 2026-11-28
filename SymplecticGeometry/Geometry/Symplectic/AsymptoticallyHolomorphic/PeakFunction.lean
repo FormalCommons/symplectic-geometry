@@ -48,6 +48,11 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.modelDbarWith` for the constant structure `J₀`. The smoothness of both,
   and the linearity and Leibniz rule of `modelDbar`, come from those of `flatDbarWith` and
   `modelDbarWith`.
+* `SymplecticGeometry.gaussianConnectionForm`: the form `v ↦ -(⟪z, v⟫ + i ω₀(z, v)) / 2`, which
+  is the model connection of the Gaussian `exp (-‖z‖ ^ 2 / 4)` at `z` divided by its value
+  (`SymplecticGeometry.modelConnection_gaussian`). It is complex linear for `J₀`
+  (`SymplecticGeometry.complexLinearPart_gaussianConnectionForm`) and has operator norm at most
+  `‖z‖` (`SymplecticGeometry.norm_gaussianConnectionForm_le`).
 
 ## Main results
 
@@ -711,6 +716,85 @@ theorem modelDbar_gaussian :
   simp only [Complex.real_smul, zero_apply, Pi.zero_apply]
   push_cast
   ring
+
+/-- The **connection form of the Gaussian** at `z`: the real-linear form
+`v ↦ -(⟪z, v⟫ + i ω₀(z, v)) / 2`, with `ω₀ = stdForm ι`. It is the model connection of the
+Gaussian `G = exp (-‖·‖ ^ 2 / 4)` at `z` divided by `G z` (`modelConnection_gaussian`), and it
+is complex linear for `J₀` and multiplication by `i`
+(`gaussianConnectionForm_apply_stdComplexStructure`). -/
+noncomputable def gaussianConnectionForm (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
+  -(2⁻¹ : ℝ) • ((innerSL ℝ z).smulRight (1 : ℂ) +
+    (LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm z)).smulRight Complex.I)
+
+theorem gaussianConnectionForm_def (z : StdSpace ι) :
+    gaussianConnectionForm z = -(2⁻¹ : ℝ) • ((innerSL ℝ z).smulRight (1 : ℂ) +
+      (LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm z)).smulRight Complex.I) :=
+  (rfl)
+
+theorem gaussianConnectionForm_apply (z v : StdSpace ι) :
+    gaussianConnectionForm z v =
+      -2⁻¹ * ((inner ℝ z v : ℝ) + Complex.I * (stdForm ι z v : ℝ)) := by
+  rw [gaussianConnectionForm_def]
+  simp only [smul_apply, add_apply,
+    ContinuousLinearMap.smulRight_apply, innerSL_apply_apply, LinearMap.coe_toContinuousLinearMap',
+    Complex.real_smul]
+  push_cast
+  ring
+
+/-- The connection form of the Gaussian is complex linear for `J₀` and multiplication by `i`:
+`μ z (J₀ v) = i μ z v`, for `μ = gaussianConnectionForm`. -/
+theorem gaussianConnectionForm_apply_stdComplexStructure (z v : StdSpace ι) :
+    gaussianConnectionForm z (stdComplexStructure ι v) =
+      Complex.I * gaussianConnectionForm z v := by
+  have h : inner ℝ z (stdComplexStructure ι v) = -inner ℝ (stdComplexStructure ι z) v := by
+    rw [← inner_stdComplexStructure_stdComplexStructure z, AlmostComplexStructure.apply_apply,
+      inner_neg_right]
+  rw [gaussianConnectionForm_apply, gaussianConnectionForm_apply, stdForm_apply_eq_inner,
+    stdForm_apply_eq_inner, h, inner_stdComplexStructure_stdComplexStructure]
+  push_cast
+  ring_nf
+  rw [Complex.I_sq]
+  ring
+
+/-- The connection form of the Gaussian is its own complex-linear part, for `J₀` and
+multiplication by `i`. -/
+@[simp]
+theorem complexLinearPart_gaussianConnectionForm (z : StdSpace ι) :
+    complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) =
+      (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) := by
+  ext v
+  simp only [complexLinearPart_apply, ContinuousLinearMap.coe_coe,
+    AlmostComplexStructure.ofComplexModule_apply,
+    gaussianConnectionForm_apply_stdComplexStructure, Complex.real_smul]
+  push_cast
+  linear_combination (-2⁻¹ * gaussianConnectionForm z v) * Complex.I_sq
+
+/-- The operator norm of the connection form of the Gaussian at `z` is at most `‖z‖`. -/
+theorem norm_gaussianConnectionForm_le (z : StdSpace ι) : ‖gaussianConnectionForm z‖ ≤ ‖z‖ := by
+  refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg z) fun v ↦ ?_
+  rw [gaussianConnectionForm_apply, norm_mul, norm_neg, norm_inv, Complex.norm_ofNat]
+  have h1 : ‖((inner ℝ z v : ℝ) : ℂ)‖ ≤ ‖z‖ * ‖v‖ := by
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact abs_real_inner_le_norm z v
+  have h2 : ‖Complex.I * ((stdForm ι z v : ℝ) : ℂ)‖ ≤ ‖z‖ * ‖v‖ := by
+    rw [norm_mul, Complex.norm_I, one_mul, Complex.norm_real, Real.norm_eq_abs]
+    exact abs_stdForm_apply_le z v
+  have := norm_add_le ((inner ℝ z v : ℝ) : ℂ) (Complex.I * ((stdForm ι z v : ℝ) : ℂ))
+  nlinarith
+
+/-- **The model connection of the Gaussian**: at `z`, the model connection of
+`G = exp (-‖·‖ ^ 2 / 4)` is `G z` times the connection form `gaussianConnectionForm z`. -/
+theorem modelConnection_gaussian (z : StdSpace ι) :
+    modelConnection (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z =
+      Real.exp (-‖z‖ ^ 2 / 4) • gaussianConnectionForm z := by
+  ext v
+  rw [modelConnection_apply, fderiv_gaussian_apply, smul_apply,
+    gaussianConnectionForm_apply, Complex.real_smul, Complex.real_smul]
+  push_cast
+  ring
+
 
 /-- The model `∂̄` of `z_j` times `f` is `z_j` times the model `∂̄` of `f`. -/
 theorem modelDbar_coord_mul {f : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
