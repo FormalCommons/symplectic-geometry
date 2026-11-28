@@ -766,13 +766,13 @@ omit [CompleteSpace EB] [CompleteSpace EF] in
 /-- On the fibre over `x`, `τ(∂ᵢ, ∂ⱼ) - τ(Lᵢ, Lⱼ) = σ(x)(Xᵢ, Xⱼ)`, where `Lₖ` is the horizontal
 lift of the constant field `bs k`. -/
 private theorem sub_val_horizontalLiftField_const (i j : ι) (y' : F) :
-    τ.val (x, y') ![(bs i, 0), (bs j, 0)] -
+    RoughForm.baseComponent τ.val bs i j x y' -
         τ.val (x, y') ![hD.horizontalLiftField
             (fun _ ↦ bs i : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y'),
           hD.horizontalLiftField (fun _ ↦ bs j : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y')] =
       SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
         (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y') := by
-  rw [horizontalLiftField_const_eq_add hD bs hσ i y',
+  rw [RoughForm.baseComponent_def, horizontalLiftField_const_eq_add hD bs hσ i y',
     horizontalLiftField_const_eq_add hD bs hσ j y']
   set Xᵢ := τ.mixedVectorField bs i x y'
   set Xⱼ := τ.mixedVectorField bs j x y'
@@ -883,15 +883,8 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     simp only [sub_apply] at h
     rw [hg.mvfderiv_prod_eq_apply_of_fst_eq_zero
       (v := (((0 : EB), w) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y))) rfl]
-    have hf : (fun y' ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
-          (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y')) =
-        fun y' ↦ RoughForm.baseComponent τ.val bs i j x y' -
-          τ.val (x, y') ![Lᵢ (x, y'), Lⱼ (x, y')] :=
-      funext fun y' ↦ by
-        rw [RoughForm.baseComponent_def]
-        exact (sub_val_horizontalLiftField_const hD bs hσ i j y').symm
-    rw [hf]
-    exact h
+    exact (congrArg (fun φ ↦ mvfderiv IF φ y w) (funext fun y' ↦
+      (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
   rw [RoughForm.mixedCurl_def]
   linear_combination -hlhs + hid - hdτ - hcurl + hS
 
