@@ -21,6 +21,20 @@
 # holds also when Tau Ceti's cache has nothing or cannot be read: one job
 # compiles, and the others take its work.
 #
+# In CI a run may also take the modules from the bucket of Lake's cache, and
+# hand over its own; see tauceti-bucket.sh, which finds the mappings
+# file that this script is given as TAUCETI_BUCKET_MAPPINGS. Lake fetches
+# the archives that the file names before the build, and the build takes
+# from them every module whose inputs are as the file has them. (An archive
+# that is not one, though its name is the hash of its content, fails that
+# build and the library's after it; cache-upload.sh cannot tell, and the
+# library's archives are no different in this.) With
+# TAUCETI_MAPPINGS_OUT the build writes to that file the mappings of all the
+# Tau Ceti modules it covered, those that were up to date or fetched as
+# well as those it compiled, for which Lake packs an archive of each module
+# that has none yet. The agents' jobs set neither, and the script is for
+# them as it was.
+#
 # The script never fails: whatever goes wrong, it says so, and the build that
 # follows compiles what is missing. If it is stopped, it stops its build, and
 # the next run goes on from there.
@@ -156,15 +170,38 @@ if [ -e "$state.mapped" ]; then
 else
   with="from source"
 fi
+# The bucket's mappings come after Tau Ceti's, so that they win where both
+# have a module: their archives are fetched here, at once, and Tau Ceti's
+# one by one during the build. The build gets the bucket's service too, in
+# case it must fetch an archive that this command did not.
+if [ -s "${TAUCETI_BUCKET_MAPPINGS:-}" ]; then
+  sed -n '/^\[\[cache\.service\]\]/,$p' .github/lake-config.toml >> "$config"
+  export LAKE_CONFIG=$config
+  if run timeout 10m lake cache get "$TAUCETI_BUCKET_MAPPINGS" --service fc-queue --package TauCeti > "$tmp/bucket.log" 2>&1; then
+    say "fetched $(grep -c 'downloaded artifact' "$tmp/bucket.log") archives of Tau Ceti modules from the bucket (after ${SECONDS}s)"
+    with="$with and the bucket"
+  else
+    tail -n 5 "$tmp/bucket.log"
+    warn "fetching the Tau Ceti modules from the bucket failed or took more than 10 minutes, see the lines above; the build compiles what it lacks"
+  fi
+fi
+out=()
+if [ -n "${TAUCETI_MAPPINGS_OUT:-}" ]; then
+  rm -f "$TAUCETI_MAPPINGS_OUT"
+  out=(-o "$TAUCETI_MAPPINGS_OUT" --package TauCeti)
+fi
 limit=${TAUCETI_CACHE_BUILD_LIMIT:-60m}
 mapfile -t modules < <(sed 's/^/+/' "$tmp/missing.txt")
 say "building ${#modules[@]} imported Tau Ceti modules $with (after ${SECONDS}s); after a move of Tau Ceti this can take 40 minutes, and longer from source"
-if LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true run timeout "$limit" lake build "${modules[@]}" > "$tmp/build.log" 2>&1; then
+if LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true run timeout "$limit" lake build ${out[@]+"${out[@]}"} "${modules[@]}" > "$tmp/build.log" 2>&1; then
   { cat "$tmp/imports.txt"; cat "$state.modules" 2>/dev/null; } | sort -u > "$tmp/modules"
   cp "$tmp/modules" "$state.modules.$$" && mv "$state.modules.$$" "$state.modules"
   say "done after ${SECONDS}s: $(grep -c 'Built TauCeti\.' "$tmp/build.log") modules compiled here, the others fetched or already present"
 else
   tail -n 5 "$tmp/build.log"
+  # Lake writes the mappings of a failed build too, of the modules it got
+  # to. In the bucket such a file would be found before fuller ones.
+  [ -z "${TAUCETI_MAPPINGS_OUT:-}" ] || rm -f "$TAUCETI_MAPPINGS_OUT"
   warn "the build of the Tau Ceti modules $with failed or took more than $limit; the build that follows compiles what is missing"
 fi
 exit 0

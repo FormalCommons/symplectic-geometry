@@ -23,10 +23,6 @@ This file collects smooth functions of one real variable built from `Real.smooth
 about the derivative of `Real.smoothTransition` itself are in
 `SymplecticGeometry/Analysis/SpecialFunctions/SmoothTransition/Deriv.lean`.
 
-A function of class `C^n` on `(δ, ∞)` agrees on `[b, ∞)`, for each `b > δ`, with a function of
-class `C^n` on `ℝ` (`ContDiffOn.exists_contDiff_eqOn_Ici`): its product with
-`x ↦ smoothTransition ((x - m) / (b - m))`, where `m` is the midpoint of `[δ, b]`.
-
 For a function `G` of class `C^n`, the product `t ↦ expNegInvGlue (t - t₀) * exp (G t)` is of
 class `C^n` (`expNegInvGlue.contDiff_sub_mul_exp`), and where `G` has derivative `G'` at `t`, its
 derivative there is `expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`
@@ -326,31 +322,6 @@ theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b d : ℝ} (hcb :
     exact mul_pos (hφ' _ hgx) (by nlinarith [hσm.deriv_nonneg (x := x)])
 
 end Real
-
-namespace ContDiffOn
-
-open Filter Set
-
-/-- A function of class `C^n` on `(δ, ∞)` agrees on `[b, ∞)`, for any `b > δ`, with a function of
-class `C^n` on all of `ℝ`. -/
-theorem exists_contDiff_eqOn_Ici {n : ℕ∞} {g : ℝ → ℝ} {δ b : ℝ} (hg : ContDiffOn ℝ n g (Ioi δ))
-    (hb : δ < b) : ∃ f : ℝ → ℝ, ContDiff ℝ n f ∧ EqOn f g (Ici b) := by
-  set m := (δ + b) / 2
-  have hm : 0 < b - m := by simp only [m]; linarith
-  have hδm : δ < m := by simp only [m]; linarith
-  refine ⟨fun x ↦ Real.smoothTransition ((x - m) / (b - m)) * g x,
-    contDiff_iff_contDiffAt.2 fun x ↦ ?_, fun x (hx : b ≤ x) ↦ ?_⟩
-  · rcases lt_or_ge δ x with hx | hx
-    · exact (Real.smoothTransition.contDiffAt.comp x (by fun_prop)).mul
-        (hg.contDiffAt (Ioi_mem_nhds hx))
-    · refine contDiffAt_const (c := (0 : ℝ)).congr_of_eventuallyEq ?_
-      filter_upwards [Iio_mem_nhds (hx.trans_lt hδm)] with y (hy : y < m)
-      rw [Real.smoothTransition.zero_of_nonpos
-        (div_nonpos_of_nonpos_of_nonneg (by linarith) hm.le), zero_mul]
-  · simp only
-    rw [Real.smoothTransition.one_of_one_le ((one_le_div hm).2 (by linarith)), one_mul]
-
-end ContDiffOn
 
 namespace SymplecticGeometry
 

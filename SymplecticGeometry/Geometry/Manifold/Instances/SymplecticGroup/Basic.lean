@@ -28,8 +28,9 @@ of the matrices, without the norm on matrices that the charts are built with.
   same on an open set.
 * `Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq`: a family of linear maps that is
   smooth on an open set and symplectic there comes from a map into the group, smooth there.
-* `Matrix.SymplecticGroup.contMDiff_coe`, `Matrix.SymplecticGroup.contMDiffAt_iff_coe`: the same
-  for the matrices themselves, with the operator norm on matrices.
+* `Matrix.SymplecticGroup.contMDiffAt_iff_coe`: the same for the matrices themselves, with the
+  operator norm on matrices. That the inclusion into the matrices is smooth is Tau Ceti's
+  `TauCeti.Lie.contMDiff_val_symplecticGroup`.
 
 ## Implementation notes
 
@@ -64,22 +65,13 @@ variable {κ : Type*} [Fintype κ] [DecidableEq κ]
   {E H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X]
 
-/-- The inclusion of the symplectic group into the matrices is smooth. -/
-theorem contMDiff_coe :
-    ContMDiff 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ) 𝓘(ℝ, Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) ∞
-      (fun A : symplecticGroup κ ℝ ↦ (A : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)) := by
-  refine ((Units.contMDiff_val (𝕜 := ℝ) (R := Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) (n := ∞)).comp
-    (TauCeti.Lie.symplecticGroupToGLSmoothHom κ ℝ).contMDiff_toFun).congr fun A ↦ ?_
-  have h := congrArg Units.val (TauCeti.Lie.symplecticGroupToGLSmoothHom_apply κ ℝ A)
-  rw [TauCeti.GLSymplectic.coe_ofSymplecticGroup] at h
-  exact h.symm
-
 /-- A map into the symplectic group is smooth at `x` if and only if its matrices are. -/
 theorem contMDiffAt_iff_coe {f : X → symplecticGroup κ ℝ} {x : X} :
     ContMDiffAt I 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ) ∞ f x ↔
       ContMDiffAt I 𝓘(ℝ, Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) ∞
         (fun y ↦ (f y : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)) x := by
-  refine ⟨fun hf ↦ (contMDiff_coe (κ := κ)).contMDiffAt.comp x hf, fun hf ↦ ?_⟩
+  refine ⟨fun hf ↦ (TauCeti.Lie.contMDiff_val_symplecticGroup κ ℝ).contMDiffAt.comp x hf,
+    fun hf ↦ ?_⟩
   have hc : ContinuousAt f x :=
     Topology.IsInducing.subtypeVal.continuousAt_iff.2 hf.continuousAt
   rw [ContMDiffAt.iff_comp_isImmersionAt
@@ -97,7 +89,7 @@ theorem contMDiff_toEuclideanCLM :
       (fun A : symplecticGroup κ ℝ ↦ toEuclideanCLM (𝕜 := ℝ) (A : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)) :=
   (LinearMap.toContinuousLinearMap
     (toEuclideanCLM (n := κ ⊕ κ) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).contDiff.contMDiff.comp
-    contMDiff_coe
+    (TauCeti.Lie.contMDiff_val_symplecticGroup κ ℝ)
 
 /-- **Smooth maps into the symplectic group.** A map `f` into `Matrix.symplecticGroup κ ℝ` is
 smooth at `x` if and only if the endomorphisms `Matrix.toEuclideanCLM (f y)` of

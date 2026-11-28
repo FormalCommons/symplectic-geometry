@@ -607,7 +607,7 @@ theorem exists_nonempty_clutching_iso_whitneySum_of_linear [CompactSpace X] [T2S
   rw [hk] at i₂
   let T : E ⟶ E := B ≫ inv A
   have hAA (x : X) (v : Fin E.rank → ℂ) : (inv A).fiberMap x (A.fiberMap x v) = v :=
-    congrArg (· v) (fiberMap_hom_inv_id φ x)
+    φ.fiberMap_hom_inv_id_apply x v
   have hkT (w : X × Circle) :
       k.hom.fiberMap w = (w.2 : ℂ) • ContinuousLinearMap.id ℂ _ + T.fiberMap w.1 := by
     ext1 v

@@ -166,9 +166,8 @@ that `GLOrthogonal ι ℂ ⊓ unitarySubgroup (GL ι ℂ)` is the image of the r
 orthogonal group. This file carries that subgroup to `unitaryGroup ι ℂ`,
 which the stabilizer and the fibration need.
 
-- `Matrix.UnitaryGroup.realSubgroup (ι) : Subgroup (unitaryGroup ι ℂ)`, the
-  image of `(GLOrthogonal ι ℂ).subgroupOf (unitarySubgroup (GL ι ℂ))` under
-  Mathlib's `unitarySubgroupUnitsEquiv`.
+- `Matrix.UnitaryGroup.realSubgroup (ι) : Subgroup (unitaryGroup ι ℂ)`,
+  Tau Ceti's `(GLOrthogonal ι ℂ).unitaryPart`.
 - API: `mem_realSubgroup_iff_exists` (`U` is in it iff `U = O.map ofReal` for
   some `O ∈ Matrix.orthogonalGroup ι ℝ`), derived from
   `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real` (Tau Ceti's
@@ -1064,14 +1063,14 @@ The manifold structure and the milestone.
   `Matrix.isHermitian_iff_isSymm`, `LinearEquiv.finrank_eq`,
   `Module.finrank_fintype_fun_eq_card`, `Homeomorph.Quotient.congrRight`,
   `MulAction.compHom`, `MulAction.exists_smul_eq`, `MulAction.stabilizer`,
-  `unitarySubgroupUnitsEquiv`, `IsQuotientMap.continuous_iff`,
+  `IsQuotientMap.continuous_iff`,
   `IsOpenQuotientMap.prodMap`, `Topology.IsInducing.of_comp`,
   `LinearIsometryEquiv.piLpCongrLeft`,
   `PiLp.continuousLinearEquiv`, `contDiffAt_ringInverse`.
 
 Nothing here redefines a Mathlib or Tau Ceti notion. The new definitions are
 `LagrangianGrassmannian` with its topology, `realSubgroup` (Tau Ceti's
-$\mathrm{O}(n)\subset\mathrm{U}(n)$ carried from `GL ι ℂ` to
+`(GLOrthogonal ι ℂ).unitaryPart`, the copy of $\mathrm{O}(n)$ in
 `unitaryGroup ι ℂ`), `StdSpace.graph`, `StdSpace.graphY`, the unitary action, and
 the maps `ofFrame`, `unitaryFrame`, `graphY`, `graph`, `graphYChart`,
 `graphChart`, `sum`, `reindex`, `reindexHomeomorph` and
