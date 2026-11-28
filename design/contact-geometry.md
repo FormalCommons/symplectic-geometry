@@ -394,52 +394,42 @@ constant multiples, `@[simp]` `lieDerivFormWithin_const_smul_left` (with
 `mlieDerivFormWithin_const_smul_left` (with `UniqueMDiffWithinAt`) and
 `mlieDerivForm_const_smul_left (c : ℝ) (V) (φ : RoughForm I M F k) :
 mlieDerivForm (c • V) φ = c • mlieDerivForm V φ`, with no differentiability
-asked. `Geometry/Contact/Hamiltonian.lean` uses them for its submodule.
+asked.
 
 ### `Geometry/Manifold/DifferentialForm/DegreeOne.lean`
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm`:
 `contMDiff_apply_contMDiffSection`, the value `x ↦ α.val x ![X x]` of a
 smooth one-form on a smooth vector field is smooth, from `degreeOneEquiv`.
-`Geometry/Contact/Hamiltonian.lean` uses it for `contactHamiltonianEquiv`.
 
 ### `Geometry/Contact/Hamiltonian.lean`
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
 
-- `contactVectorFields (α : SmoothForm I M ℝ 1) : Submodule ℝ Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯`,
-  the smooth fields `X` with `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`,
-  beside Tau Ceti's `TauCeti.SmoothTwoForm.symplecticVectorFields` (closure
-  under sums by `TauCeti.mlieDerivForm_add_left`, under scalars by
-  `TauCeti.mlieDerivForm_const_smul_left` of `DifferentialForm/LieDeriv.lean`);
-  `@[simp] mem_contactVectorFields_iff`.
-  The multiplier `g` may vanish; no smoothness of `g` is asked, since for a
-  contact form it is forced:
-- `IsContactForm.mem_contactVectorFields_iff_mlieDerivForm_eq (hα) :
-  X ∈ α.contactVectorFields ↔ mlieDerivForm X α.val = fun x ↦
+- The contact vector fields are Tau Ceti's
+  `TauCeti.preservesDistributionLieSubalgebra I α.kerDistribution`, the smooth
+  fields preserving `ker α`, and their correspondence with the smooth
+  functions is Tau Ceti's Lie algebra isomorphism
+  `TauCeti.SmoothForm.contactHamiltonianLieEquiv α hα` (`e` below), $H\mapsto X_H$,
+  from the Jacobi Lie algebra, with inverse $X\mapsto\alpha(X)$
+  (`TauCeti/Geometry/Contact/Jacobi/LieAlgebra.lean`). This file adds two
+  characterizations:
+- `IsContactForm.preservesDistribution_kerDistribution_iff_mlieDerivForm_eq (hα)
+  (hXd : MDifferentiable I I.tangent fun y ↦ (⟨y, X y⟩ : TangentBundle I M))`:
+  `PreservesDistribution I α.kerDistribution X ↔ mlieDerivForm X α.val = fun x ↦
   mvfderiv I (fun y ↦ α.val y ![X y]) x (α.reebVectorField x) • α.val x`,
-  from `eq_mvfderiv_reebVectorField_of_mlieDerivForm_apply_eq_smul`.
-- `IsContactForm.mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf`
-  (`[I.Boundaryless] [T2Space M]`): `X ∈ α.contactVectorFields` exactly when,
+  from Tau Ceti's `IsContactForm.preservesDistribution_kerDistribution_iff`
+  and `IsContactHamiltonianVectorField.mlieDerivForm_eq`.
+- `IsContactForm.preservesDistribution_kerDistribution_iff_ker_mpullback_flowOf`
+  (`[I.Boundaryless] [T2Space M]`, `X` of class `C³`): `X` preserves
+  `ker α` exactly when,
   for every `(t, x)` in `flowDomain X`,
   `RoughForm.ker (TauCeti.mpullback I I (flowOf X t) α.val) x = α.kerDistribution x`,
   that is, the local flow maps the contact hyperplanes to contact hyperplanes.
   Forward: `IsContactHamiltonianVectorField.mpullback_flowOf_apply` for the
   Hamiltonian `α(X)`, whose multiplier is positive. Backward: the equality
   gives `dφ_t (ker α_x) ⊆ ker α_(φ_t x)`, so Tau Ceti's
-  `preservesDistribution_kerDistribution_of_mfderiv_flowOf_mem` and
-  `IsContactForm.preservesDistribution_kerDistribution_iff` make `X` the
-  contact Hamiltonian vector field of `α(X)`.
-- `IsContactForm.contactHamiltonianEquiv (hα) : α.contactVectorFields ≃ₗ[ℝ] C^∞⟮I, M; ℝ⟯`,
-  $X\mapsto\alpha(X)$, with inverse $H\mapsto X_H$
-  (`contactHamiltonianVectorField`, smooth by
-  `IsContactForm.contMDiff_contactHamiltonianVectorField`, contact by
-  `IsContactHamiltonianVectorField.mlieDerivForm_eq`, and the two-sided
-  inverse by `isContactHamiltonianVectorField_iff_mlieDerivForm` and
-  `isContactHamiltonianVectorField_iff_eq`). API:
-  `@[simp] contactHamiltonianEquiv_apply` (`(e X) x = α.val x ![X x]`) and
-  `@[simp] coe_contactHamiltonianEquiv_symm_apply`
-  (`⇑(e.symm H) = α.contactHamiltonianVectorField H`).
+  `preservesDistribution_kerDistribution_of_mfderiv_flowOf_mem` applies.
 - `IsContactForm.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul`:
   for `H` nowhere zero and `C¹` (`ContMDiff I 𝓘(ℝ) 1 H`) and `β` with
   `∀ x, β.val x = (H x)⁻¹ • α.val x`, `β.IsContactForm` and
@@ -470,10 +460,14 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   of `Flow/Family.lean`, with $g(t,y)=R(f_t)(y)$ and Gray's equation given by
   `IsContactHamiltonianVectorField.mlieDerivForm_eq`.
 - **Milestone theorem** `IsContactForm.contactVectorFields_correspondence (hα)`,
-  the conjunction of: the two characterizations of `contactVectorFields`
-  above; `contactHamiltonianEquiv_apply`; for every `H : C^∞⟮I, M; ℝ⟯`, that
-  `(e.symm H : Π x, _)` is the
-  unique field `X` with `IsContactHamiltonianVectorField α H X`, that
+  the conjunction of: for the smooth fields
+  `X : (LieAlgebroid.tangent I M).Sections`, membership in
+  `preservesDistributionLieSubalgebra I α.kerDistribution` is equivalent to
+  `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`, and to each
+  of the two characterizations above;
+  `jacobiLieAlgebraEquiv_contactHamiltonianLieEquiv_symm_apply`; for every
+  `H : C^∞⟮I, M; ℝ⟯`, that the field of `e ((α.jacobiLieAlgebraEquiv hα).symm H)`
+  is the unique field `X` with `IsContactHamiltonianVectorField α H X`, that
   `mlieDerivForm` of it is `R(H) • α`, and `X_1 = R`; the rescaling
   formula from time `0`, for `f` smooth; for every `H` and `x`,
   transversality at `x` as an iff
@@ -794,7 +788,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (with its flat lemmas in `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
+| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (with its flat lemmas in `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (the two characterizations of contact vector fields, the Reeb field of `α/H` and its coorientation) | — | 300 |
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean`, `Geometry/Contact/Standard.lean`, `Geometry/Contact/Pullback.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |

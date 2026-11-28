@@ -216,9 +216,10 @@ The curvature identity, the local curvature formula and the equivalence.
 About 500 lines.
 
 - `TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_sub_mextDeriv`,
-  the first statement of the milestone: for `τ`
-  vertically nondegenerate with `hD` the connection `τ.horizontalDistribution π`,
-  smooth fields `v₁ v₂` on `B`, a point `x` and a vertical vector `η` at `x`,
+  the first statement of the milestone: for `hD` a `C^n` Ehresmann connection
+  (`1 ≤ n`) on a `C^2` map `π` with spaces `τ.horizontalDistribution π` (as for
+  `τ` vertically nondegenerate, by `IsVerticallyNondegenerate.isEhresmannConnection`),
+  fields `v₁ v₂` on `B` that are `C^1` at `π x`, and a vertical vector `η` at `x`,
   `τ.val x ![hD.curvature v₁ v₂ x, η] =
   mvfderiv IM (fun y ↦ τ.val y ![v₁♯ y, v₂♯ y]) x η - mextDeriv τ.val x ![v₁♯ x, v₂♯ x, η]`,
   with `v♯ = hD.horizontalLiftField v`. This is the page's identity, the
