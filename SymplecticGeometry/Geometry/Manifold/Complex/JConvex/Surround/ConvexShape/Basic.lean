@@ -92,7 +92,10 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   last of which follows from the second when `ρ' ≥ -R / ρ`. For the inverse of a shape the first two
   are (4.3) and the case `σ = r` of (4.4). Unlike the slope of a shape, `ρ'` may vanish, as on
   the cylinder itself. `SymplecticGeometry.IsConvexShapeOverRAt.re_leviForm_pos` is its Levi
-  theorem, at `R > 0`.
+  theorem, at `R > 0`. As for `shapeGraph χ`, at a point `(R ², ρ R ²)` of the curve
+  `shapeGraphOverR ρ` vanishes (`SymplecticGeometry.shapeGraphOverR_sq_sq`) and the differential
+  of `shapeGraphOverR ρ ∘ shape` does not
+  (`SymplecticGeometry.fderiv_shapeGraphOverR_comp_shape_ne_zero`), even where `ρ' = 0`.
 * The criterion over `R` has the same stability as `IsConvexShapeAt`, with the inequalities of
   `isConvexShapeOverRAt_iff`: it depends only on the germ
   (`SymplecticGeometry.IsConvexShapeOverRAt.congr_of_eventuallyEq`), survives `ρ - c` for
@@ -763,6 +766,55 @@ theorem fderiv_shapeGraphOverR_comp_shape_apply {ρ : ℝ → ℝ}
     (fderiv ℝ (fun q ↦ (shape q).2) p v)
   rw [Prod.mk.eta] at h
   rw [fderiv_comp_shape_apply hH, h]
+
+/-- `shapeGraphOverR ρ` vanishes at the point `(R ², ρ R ²)` of the curve `r = ρ (R)`, for
+`R ≥ 0` and `ρ R ≥ 0`. -/
+theorem shapeGraphOverR_sq_sq {ρ : ℝ → ℝ} {R : ℝ} (hR : 0 ≤ R) (hr : 0 ≤ ρ R) :
+    shapeGraphOverR ρ (R ^ 2, ρ R ^ 2) = 0 := by
+  rw [shapeGraphOverR_def, Real.sqrt_sq hR, Real.sqrt_sq hr, sub_self]
+
+/-- The differential of `shapeGraphOverR ρ ∘ shape` at a point `p` over the point `(R ², ρ R ²)`
+of the curve `r = ρ (R)`, for `R > 0`, `ρ R > 0` and `ρ` differentiable at `R`:
+`v ↦ -ds_p v ρ'(R) / (2 R) + dt_p v / (2 ρ R)`. -/
+theorem fderiv_shapeGraphOverR_comp_shape_apply_of_shape_eq {ρ : ℝ → ℝ} {R : ℝ}
+    (hρ : DifferentiableAt ℝ ρ R) (hR : 0 < R) (hr : 0 < ρ R)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (R ^ 2, ρ R ^ 2))
+    (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (shapeGraphOverR ρ ∘ shape) p v =
+      -fderiv ℝ (fun q ↦ (shape q).1) p v * deriv ρ R / (2 * R) +
+        fderiv ℝ (fun q ↦ (shape q).2) p v / (2 * ρ R) := by
+  have hsR : √(R ^ 2) = R := Real.sqrt_sq hR.le
+  rw [fderiv_shapeGraphOverR_comp_shape_apply (by rwa [hp, hsR]) (by rw [hp]; positivity)
+    (by rw [hp]; positivity), hp, Real.sqrt_sq hr.le, hsR]
+
+/-- At a point `p` over the point `(R ², ρ R ²)` of the curve `r = ρ (R)`, for `R > 0`,
+`ρ R > 0` and `ρ` differentiable at `R`, the differential of `shapeGraphOverR ρ ∘ shape` does
+not vanish: its values on `p` and on `((Re p₁ⱼ)ⱼ, 0)` differ by `ρ R`. -/
+theorem fderiv_shapeGraphOverR_comp_shape_ne_zero {ρ : ℝ → ℝ} {R : ℝ}
+    (hρ : DifferentiableAt ℝ ρ R) (hR : 0 < R) (hr : 0 < ρ R)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (R ^ 2, ρ R ^ 2)) :
+    fderiv ℝ (shapeGraphOverR ρ ∘ shape) p ≠ 0 := by
+  intro h0
+  have h1 := fderiv_shapeGraphOverR_comp_shape_apply_of_shape_eq hρ hR hr hp p
+  have h2 := fderiv_shapeGraphOverR_comp_shape_apply_of_shape_eq hρ hR hr hp
+    (modelDisc k m (modelDiscProj k m p))
+  rw [h0, zero_apply, fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h1 h2
+  have hs : ∑ j, (p.1 j).re * (p.1 j).re = R ^ 2 := by
+    have h : (shape p).1 = R ^ 2 := by rw [hp]
+    rw [shape_fst] at h
+    rw [← h]
+    exact Finset.sum_congr rfl fun j _ ↦ (sq _).symm
+  have ht : ∑ j, (p.1 j).im * (p.1 j).im + (inner ℂ p.2 p.2).re = ρ R ^ 2 := by
+    have h : (shape p).2 = ρ R ^ 2 := by rw [hp]
+    rw [shape_snd] at h
+    rw [← h, ← RCLike.re_to_complex, inner_self_eq_norm_sq]
+    simp only [← sq]
+  simp only [modelDisc_apply_fst_apply, modelDisc_apply_snd, modelDiscProj_apply,
+    ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero, inner_zero_right, zero_re, add_zero,
+    hs] at h2
+  rw [hs, ht] at h1
+  field_simp at h1 h2
+  nlinarith
 
 variable {ρ : ℝ → ℝ} {R : ℝ}
 
