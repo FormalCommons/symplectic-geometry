@@ -14,17 +14,21 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 # Smooth linear actions on projective space
 
 Let a group `G` act `𝕜`-linearly on `V = 𝕜ⁿ⁺¹`, for `𝕜 = ℝ` or `ℂ` (more generally a nontrivially
-normed field that is a finite-dimensional normed `ℝ`-algebra). Mathlib then lets `G` act on
+normed field that is a normed `ℝ`-algebra). Mathlib then lets `G` act on
 `ℙ 𝕜 V` by `g • [v] = [g • v]` (`Projectivization.instMulAction`, `Projectivization.smul_mk`).
 This file studies that action jointly in `g` and the point, when `G` is a manifold over `ℝ` and
 `ℙ 𝕜 V` carries its underlying real manifold structure, and computes its infinitesimal
 generators.
 
+* `Projectivization.contMDiffAt_of_eventually_eq_mk_restrictScalars`: a map into `ℙ 𝕜 V` that is
+  given near `x` by nonzero homogeneous coordinates, real-`C^r` at `x`, is real-`C^r` at `x`, for
+  a source that is a real manifold. It factors through the projection `mkNonzero` from the
+  nonzero vectors (`contMDiff_mkNonzero`). Tau Ceti's
+  `Projectivization.contMDiffAt_of_eventually_eq_mk` is the version over `𝕜`.
 * `Projectivization.instContMDiffSMul`: if `(g, v) ↦ g • v` is `C^r` on `G × V`, then
-  `(g, x) ↦ g • x` is `C^r` on `G × ℙ 𝕜 V`. On the affine open of a coordinate `j`, the action is
-  `(g, x) ↦ [g • L x]`, where `L x` is the lift of `x` normalized by `1` in coordinate `j` (the
-  lift of Tau Ceti's `Projectivization.exists_contMDiffAt_eventually_eq_mk`), and the projection
-  `mkNonzero` from the nonzero vectors is smooth (`contMDiff_mkNonzero`).
+  `(g, x) ↦ g • x` is `C^r` on `G × ℙ 𝕜 V`. Near `x₀` the action is `(g, x) ↦ [g • L x]`, for the
+  homogeneous coordinates `L` of the identity that Tau Ceti's
+  `Projectivization.exists_contMDiffAt_eventually_eq_mk` gives.
 * `Projectivization.fundamentalVectorField_mk`: the fundamental vector field of `ξ` at `[y]` is
   the image under the differential of `mkNonzero` at `y` of the fundamental vector field of `ξ`
   for the linear action at `y`, by the chain rule along the factorization of the orbit map of
@@ -58,40 +62,48 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedAlgebra ℝ 𝕜] 
 
 variable {r : ℕ∞ω}
 
+/-- A map to projective space that near `x` sends `y` to the line through `F y`, for nonzero
+homogeneous coordinates `F` that are `C^r` at `x` over `ℝ`, is `C^r` at `x` for the underlying
+real manifold structure. This is the form of Tau Ceti's
+`Projectivization.contMDiffAt_of_eventually_eq_mk` for a source that is a manifold over `ℝ`. -/
+theorem contMDiffAt_of_eventually_eq_mk_restrictScalars {M : Type*} [TopologicalSpace M]
+    [ChartedSpace H M] {f : M → ℙ 𝕜 (Fin (n + 1) → 𝕜)} {F : M → Fin (n + 1) → 𝕜} {x : M}
+    (hF : ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → 𝕜) r F x)
+    (hf : ∀ᶠ y in 𝓝 x, ∃ hy : F y ≠ 0, f y = mk 𝕜 (F y) hy) :
+    ContMDiffAt I 𝓘(ℝ, Fin n → 𝕜) r f x := by
+  classical
+  have hx : F x ≠ 0 := hf.self_of_nhds.1
+  -- `F` read in the punctured space, with the value `F x` where `F` vanishes.
+  set F' : M → puncturedSpace (Fin (n + 1) → 𝕜) := fun y ↦
+    if hy : F y = 0 then ⟨F x, mem_puncturedSpace.2 hx⟩ else ⟨F y, mem_puncturedSpace.2 hy⟩
+  have hF' : ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → 𝕜) r F' x := by
+    refine (TauCeti.ContMDiffAt.subtypeVal_comp_iff _ F' x).1 (hF.congr_of_eventuallyEq ?_)
+    filter_upwards [hf] with y ⟨hy, _⟩
+    simp [F', hy]
+  refine ((contMDiff_mkNonzero 𝕜 n r).contMDiffAt.comp x hF').congr_of_eventuallyEq ?_
+  filter_upwards [hf] with y ⟨hy, hfy⟩
+  simp [F', hy, hfy, mkNonzero_apply]
+
 /-- **Joint smoothness of a linear action on projective space.** If a group acts `𝕜`-linearly
 on `𝕜ⁿ⁺¹` and the action `(g, v) ↦ g • v` is `C^r`, then the induced action
 `(g, [v]) ↦ [g • v]` on `ℙ 𝕜 (Fin (n + 1) → 𝕜)` is `C^r` for the underlying real manifold
 structure. -/
-instance instContMDiffSMul [FiniteDimensional ℝ 𝕜]
-    [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → 𝕜) r G (Fin (n + 1) → 𝕜)] :
+instance instContMDiffSMul [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → 𝕜) r G (Fin (n + 1) → 𝕜)] :
     ContMDiffSMul I 𝓘(ℝ, Fin n → 𝕜) r G (ℙ 𝕜 (Fin (n + 1) → 𝕜)) where
   contMDiff_smul := by
     rintro ⟨g₀, x₀⟩
-    obtain ⟨j, hj⟩ := exists_mem_affineOpen x₀
-    have hU : affineOpen j ∈ 𝓝 x₀ := (isOpen_affineOpen j).mem_nhds hj
-    -- The affine lift of the chart of `j`, a real-smooth section of the projection near `x₀`.
-    set L : ℙ 𝕜 (Fin (n + 1) → 𝕜) → Fin (n + 1) → 𝕜 := fun x ↦
-      Fin.insertNth (α := fun _ ↦ 𝕜) j 1 (affineChart j x)
-    have hL0 (x) : L x ≠ 0 := Fin.insertNth_one_ne_zero j _
-    have hLs : ContMDiffAt 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) r L x₀ :=
-      ((contMDiffOn_insertNth_affineChart j r).restrictScalars' ℝ).contMDiffAt hU
-    -- Near `(g₀, x₀)` the action is `(g, x) ↦ [g • L x]`, read in the punctured space.
-    set F : G × ℙ 𝕜 (Fin (n + 1) → 𝕜) → puncturedSpace (Fin (n + 1) → 𝕜) := fun p ↦
-      ⟨p.1 • L p.2, mem_puncturedSpace.2 ((smul_ne_zero_iff_ne p.1).2 (hL0 p.2))⟩
-    have hF : ContMDiffAt (I.prod 𝓘(ℝ, Fin n → 𝕜)) 𝓘(ℝ, Fin (n + 1) → 𝕜) r F (g₀, x₀) :=
-      (TauCeti.ContMDiffAt.subtypeVal_comp_iff _ F _).1
-        ((ContMDiffSMul.contMDiff_smul (I := I) (I' := 𝓘(ℝ, Fin (n + 1) → 𝕜))).contMDiffAt.comp
-          (g₀, x₀) (contMDiffAt_fst.prodMk (hLs.comp (g₀, x₀) contMDiffAt_snd)))
-    refine ((contMDiff_mkNonzero 𝕜 n r).contMDiffAt.comp (g₀, x₀) hF).congr_of_eventuallyEq ?_
-    have hsnd : ContinuousAt (fun p : G × ℙ 𝕜 (Fin (n + 1) → 𝕜) ↦ p.2) (g₀, x₀) :=
-      continuousAt_snd
-    filter_upwards [hsnd.preimage_mem_nhds hU] with p hp
-    have hx : p.2 = mk 𝕜 (L p.2) (hL0 p.2) :=
-      ((affineChart (K := 𝕜) j).left_inv (by rwa [affineChart_source])).symm.trans
-        (affineChart_symm_apply j _)
-    rw [comp_apply, mkNonzero_apply]
-    conv_lhs => rw [hx]
-    exact smul_mk p.1 (hL0 p.2)
+    -- Homogeneous coordinates of the identity near `x₀`, real-smooth at `x₀`.
+    obtain ⟨L, hL, hLx⟩ :=
+      exists_contMDiffAt_eventually_eq_mk (contMDiffAt_id (I := 𝓘(𝕜, Fin n → 𝕜)) (x := x₀) (n := r))
+    refine contMDiffAt_of_eventually_eq_mk_restrictScalars (F := fun p ↦ p.1 • L p.2)
+      ((ContMDiffSMul.contMDiff_smul (I := I) (I' := 𝓘(ℝ, Fin (n + 1) → 𝕜))).contMDiffAt.comp
+        (g₀, x₀) (contMDiffAt_fst.prodMk ((hL.restrictScalars' ℝ).comp (g₀, x₀) contMDiffAt_snd)))
+      ?_
+    filter_upwards [continuousAt_snd.preimage_mem_nhds hLx] with p ⟨hp, hpx⟩
+    refine ⟨(smul_ne_zero_iff_ne p.1).2 hp, ?_⟩
+    rw [id] at hpx
+    conv_lhs => rw [hpx]
+    exact smul_mk p.1 hp
 
 /-- **Fundamental vector fields of a linear action on projective space.** If a group acts
 `𝕜`-linearly on `𝕜ⁿ⁺¹` and the orbit map of `y ≠ 0` is differentiable at `1`, the fundamental
