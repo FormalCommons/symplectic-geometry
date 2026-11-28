@@ -83,6 +83,22 @@ a shape `G` and `r ↦ struweLineShape δ r + t`; it is `G` or the raised shape 
   least `η` above both `G` and the standard leaf up to `ℓ / 4`, where both are at most
   `√5 ℓ ≤ 3 ℓ`, so in the bridge leaf `G` may replace the standard leaf.
 
+`SymplecticGeometry.bridgeFamily L δ ℓ₀ M F` glues the three stages into one family of leaves
+`ℓ ∈ [7 δ, 2 ℓ₀]`, with `ℓ₀ ≥ 24 δ` and shapes `F ℓ` for the last stage. Along `ℓ`, smooth
+transitions first raise the shape of the first stage from `t₀ = 65 δ / 8 - S δ` to the height
+`t₁ = SymplecticGeometry.bridgeHeight L δ ℓ₀`, then narrow the width of the second stage from
+`δ / 200` to `η₁ = SymplecticGeometry.bridgeWidth δ M`, and last lower the shape of the third
+stage from `t₁` to `8 δ`.
+
+* `SymplecticGeometry.bridgeFamily_seven_mul_eqOn`, `SymplecticGeometry.bridgeFamily_of_le`,
+  `SymplecticGeometry.bridgeFamily_eqOn_sqrt`, `SymplecticGeometry.bridgeFamily_eqOn_of_ge` and
+  `SymplecticGeometry.bridgeFamily_two_mul_eqOn`: on `(δ, ∞)` the leaf `7 δ` is
+  `struweSwitchLeaf L δ (7 δ)`, the leaves of each closed stage are given by that stage's
+  formula, so that consecutive stages agree at `15 δ / 2` and at `ℓ₀`, and the leaf `2 ℓ₀` is
+  `F (2 ℓ₀)`.
+* `SymplecticGeometry.isConvexShapeAt_bridgeFamily`: every leaf is an `i`-convex shape at every
+  `r > δ`, stage by stage.
+
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
@@ -727,6 +743,209 @@ theorem bridgeLeaf_sqrt_eq (hδ : 0 < δ) {ℓ η t r : ℝ} {G : ℝ → ℝ} (
     self_mem_Ici (mem_Ici.2 hr.le) hr.le
   have hP := struweShape_le_struweLineShape hδ r
   rw [bridgeLeaf_eq_right hη (by linarith), bridgeLeaf_eq_right hη (by linarith)]
+
+/-! ### The glued bridge family -/
+
+/-- The height `t₁ = 3 (2 ℓ₀) + 8 (3 + L) δ - S δ`, with `S = struweShape δ 4 0`, to which the
+first stage of `SymplecticGeometry.bridgeFamily` raises the Struwe/line shape. -/
+def bridgeHeight (L δ ℓ₀ : ℝ) : ℝ :=
+  3 * (2 * ℓ₀) + 8 * (3 + L) * δ - struweShape δ 4 0 δ
+
+theorem bridgeHeight_def (L δ ℓ₀ : ℝ) :
+    bridgeHeight L δ ℓ₀ = 3 * (2 * ℓ₀) + 8 * (3 + L) * δ - struweShape δ 4 0 δ :=
+  (rfl)
+
+/-- The width `η₁ = min (δ / 200) (6 δ / (2 + M))` of the last stage of
+`SymplecticGeometry.bridgeFamily`, for a slope bound `M` of its shapes. -/
+def bridgeWidth (δ M : ℝ) : ℝ :=
+  min (δ / 200) (6 * δ / (2 + M))
+
+theorem bridgeWidth_def (δ M : ℝ) : bridgeWidth δ M = min (δ / 200) (6 * δ / (2 + M)) :=
+  (rfl)
+
+theorem bridgeWidth_le (δ M : ℝ) : bridgeWidth δ M ≤ δ / 200 :=
+  min_le_left _ _
+
+theorem bridgeWidth_le_six_mul_div (δ M : ℝ) : bridgeWidth δ M ≤ 6 * δ / (2 + M) :=
+  min_le_right _ _
+
+theorem bridgeWidth_pos (hδ : 0 < δ) {M : ℝ} (hM : 0 ≤ M) : 0 < bridgeWidth δ M :=
+  lt_min (by positivity) (by positivity)
+
+/-- **The glued bridge family** over the cylinder of radius `δ`, for `ℓ` from `7 δ` to
+`ℓ₁ = 2 ℓ₀`, made of bridge leaves (`SymplecticGeometry.bridgeLeaf`). With
+`S = struweShape δ 4 0`, `t₀ = 65 δ / 8 - S δ`, `t₁ = bridgeHeight L δ ℓ₀`,
+`η₁ = bridgeWidth δ M` and `τ = Real.smoothTransition`, its leaf `ℓ` is
+* for `ℓ ≤ 15 δ / 2`, the bridge leaf of width `δ / 200` of `sqrtAddLeaf L δ ℓ`, raised by
+  `t₀ + (t₁ - t₀) τ ((ℓ - 7 δ) / (δ / 2))`;
+* for `15 δ / 2 < ℓ ≤ ℓ₀`, the bridge leaf of the standard leaf `r ↦ √(64 r² + ℓ²)`, raised by
+  `t₁`, of width `δ / 200 - (δ / 200 - η₁) τ ((ℓ - 15 δ / 2) / (ℓ₀ - 15 δ / 2))`;
+* for `ℓ₀ < ℓ`, the bridge leaf of width `η₁` of `F ℓ`, raised by
+  `t₁ - (t₁ - 8 δ) τ ((ℓ - ℓ₀) / ℓ₀)`. -/
+def bridgeFamily (L δ ℓ₀ M : ℝ) (F : ℝ → ℝ → ℝ) (ℓ : ℝ) : ℝ → ℝ :=
+  if ℓ ≤ 15 * δ / 2 then
+    bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ)
+      (65 * δ / 8 - struweShape δ 4 0 δ + (bridgeHeight L δ ℓ₀ -
+        (65 * δ / 8 - struweShape δ 4 0 δ)) * smoothTransition ((ℓ - 7 * δ) / (δ / 2)))
+  else if ℓ ≤ ℓ₀ then
+    bridgeLeaf δ (δ / 200 - (δ / 200 - bridgeWidth δ M) *
+        smoothTransition ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2)))
+      (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) (bridgeHeight L δ ℓ₀)
+  else
+    bridgeLeaf δ (bridgeWidth δ M) (F ℓ)
+      (bridgeHeight L δ ℓ₀ - (bridgeHeight L δ ℓ₀ - 8 * δ) *
+        smoothTransition ((ℓ - ℓ₀) / ℓ₀))
+
+theorem bridgeFamily_def (L δ ℓ₀ M : ℝ) (F : ℝ → ℝ → ℝ) (ℓ : ℝ) :
+    bridgeFamily L δ ℓ₀ M F ℓ =
+      if ℓ ≤ 15 * δ / 2 then
+        bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ)
+          (65 * δ / 8 - struweShape δ 4 0 δ + (bridgeHeight L δ ℓ₀ -
+            (65 * δ / 8 - struweShape δ 4 0 δ)) * smoothTransition ((ℓ - 7 * δ) / (δ / 2)))
+      else if ℓ ≤ ℓ₀ then
+        bridgeLeaf δ (δ / 200 - (δ / 200 - bridgeWidth δ M) *
+            smoothTransition ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2)))
+          (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) (bridgeHeight L δ ℓ₀)
+      else
+        bridgeLeaf δ (bridgeWidth δ M) (F ℓ)
+          (bridgeHeight L δ ℓ₀ - (bridgeHeight L δ ℓ₀ - 8 * δ) *
+            smoothTransition ((ℓ - ℓ₀) / ℓ₀)) :=
+  (rfl)
+
+/-- The leaves `ℓ ≤ 15 δ / 2` of the bridge family: the first stage. -/
+theorem bridgeFamily_of_le {L ℓ₀ M : ℝ} {F : ℝ → ℝ → ℝ} {ℓ : ℝ} (hℓ : ℓ ≤ 15 * δ / 2) :
+    bridgeFamily L δ ℓ₀ M F ℓ = bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ)
+      (65 * δ / 8 - struweShape δ 4 0 δ + (bridgeHeight L δ ℓ₀ -
+        (65 * δ / 8 - struweShape δ 4 0 δ)) * smoothTransition ((ℓ - 7 * δ) / (δ / 2))) := by
+  rw [bridgeFamily_def, ite_eq_left hℓ]
+
+/-- **The bridge family starts at the Struwe switch leaf.** For `δ > 0`, the leaf `7 δ` of the
+bridge family is `struweSwitchLeaf L δ (7 δ)` on `(δ, ∞)`. -/
+theorem bridgeFamily_seven_mul_eqOn (L : ℝ) (hδ : 0 < δ) (ℓ₀ M : ℝ) (F : ℝ → ℝ → ℝ) :
+    EqOn (bridgeFamily L δ ℓ₀ M F (7 * δ)) (struweSwitchLeaf L δ (7 * δ)) (Ioi δ) := by
+  rw [bridgeFamily_of_le (by linarith), sub_self, zero_div, smoothTransition.zero, mul_zero,
+    add_zero]
+  exact bridgeLeaf_sqrtAddLeaf_eqOn_struweSwitchLeaf L hδ
+
+/-- The leaves `ℓ ∈ [15 δ / 2, ℓ₀]` of the bridge family, for `L, δ > 0` and `15 δ / 2 < ℓ₀`, are
+on `(δ, ∞)` the bridge leaves of the second stage. At `ℓ = 15 δ / 2` this is the agreement of
+the first two stages. -/
+theorem bridgeFamily_eqOn_sqrt {L ℓ₀ ℓ : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hℓ₀ : 15 * δ / 2 < ℓ₀)
+    (M : ℝ) (F : ℝ → ℝ → ℝ) (hℓ : ℓ ∈ Icc (15 * δ / 2) ℓ₀) :
+    EqOn (bridgeFamily L δ ℓ₀ M F ℓ)
+      (bridgeLeaf δ (δ / 200 - (δ / 200 - bridgeWidth δ M) *
+          smoothTransition ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2)))
+        (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) (bridgeHeight L δ ℓ₀)) (Ioi δ) := by
+  obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
+  rcases hℓ₁.lt_or_eq with hℓ₁ | rfl
+  · rw [bridgeFamily_def, ite_eq_right hℓ₁.not_ge, ite_eq_left hℓ₂]
+    exact eqOn_refl _ _
+  · -- At `15 δ / 2` the first stage is raised to `t₁`, which hides the cutoff region.
+    rw [bridgeFamily_of_le le_rfl, sub_self, zero_div, smoothTransition.zero, mul_zero, sub_zero,
+      show (15 * δ / 2 - 7 * δ) / (δ / 2) = 1 by field_simp; ring, smoothTransition.one, mul_one,
+      add_sub_cancel]
+    refine bridgeLeaf_sqrtAddLeaf_eqOn_sqrt hL hδ (by positivity) ?_
+    rw [bridgeHeight_def]
+    linarith
+
+/-- The leaves `ℓ ≥ ℓ₀` of the bridge family, for `L ≥ 0`, `δ > 0`, `15 δ / 2 < ℓ₀` and
+`M ≥ 0`, are on `(δ, ∞)` the bridge leaves of the last stage, once `F ℓ₀` is an `i`-convex
+shape at every `r > δ` and the standard leaf `r ↦ √(64 r² + ℓ₀²)` from `ℓ₀ / 4` on. At
+`ℓ = ℓ₀` this is the agreement of the last two stages. -/
+theorem bridgeFamily_eqOn_of_ge {L ℓ₀ M ℓ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) {F : ℝ → ℝ → ℝ}
+    (hFc : ∀ r, δ < r → IsConvexShapeAt (F ℓ₀) r)
+    (hFs : ∀ r, ℓ₀ / 4 ≤ r → F ℓ₀ r = √(64 * r ^ 2 + ℓ₀ ^ 2)) (hℓ : ℓ₀ ≤ ℓ) :
+    EqOn (bridgeFamily L δ ℓ₀ M F ℓ)
+      (bridgeLeaf δ (bridgeWidth δ M) (F ℓ)
+        (bridgeHeight L δ ℓ₀ - (bridgeHeight L δ ℓ₀ - 8 * δ) *
+          smoothTransition ((ℓ - ℓ₀) / ℓ₀))) (Ioi δ) := by
+  have h15 : ¬ℓ ≤ 15 * δ / 2 := by linarith
+  rcases hℓ.lt_or_eq with hℓ | rfl
+  · rw [bridgeFamily_def, ite_eq_right h15, ite_eq_right hℓ.not_ge]
+    exact eqOn_refl _ _
+  · -- At `ℓ₀` the second stage has width `η₁`, and its raised shape at height `t₁` hides where
+    -- `F ℓ₀` differs from the standard leaf.
+    intro r hr
+    rw [bridgeFamily_def, ite_eq_right h15, ite_eq_left le_rfl, sub_self, zero_div,
+      smoothTransition.zero, mul_zero, sub_zero, div_self (by linarith),
+      smoothTransition.one, mul_one, sub_sub_cancel]
+    refine bridgeLeaf_sqrt_eq hδ (bridgeWidth_pos hδ hM) hFc hFs ?_ hr
+    rw [bridgeHeight_def]
+    nlinarith [bridgeWidth_le δ M, mul_nonneg hL hδ.le]
+
+/-- **The bridge family ends at `F ℓ₁`.** For `δ > 0`, `24 δ ≤ ℓ₀` and `M ≥ 0`, the leaf
+`ℓ₁ = 2 ℓ₀` of the bridge family is `F ℓ₁` on `(δ, ∞)`, once `F ℓ₁ ≥ ℓ₁` on `(δ, ∞)` and
+`F ℓ₁` is the standard leaf `r ↦ √(64 r² + ℓ₁²)` from `ℓ₁ / 4` on. -/
+theorem bridgeFamily_two_mul_eqOn (L : ℝ) (hδ : 0 < δ) {ℓ₀ M : ℝ} (hℓ₀ : 24 * δ ≤ ℓ₀)
+    (hM : 0 ≤ M) {F : ℝ → ℝ → ℝ} (hFℓ : ∀ r, δ < r → 2 * ℓ₀ ≤ F (2 * ℓ₀) r)
+    (hFs : ∀ r, 2 * ℓ₀ / 4 ≤ r → F (2 * ℓ₀) r = √(64 * r ^ 2 + (2 * ℓ₀) ^ 2)) :
+    EqOn (bridgeFamily L δ ℓ₀ M F (2 * ℓ₀)) (F (2 * ℓ₀)) (Ioi δ) := by
+  intro r hr
+  have hℓ₀' : 0 < ℓ₀ := by linarith
+  rw [bridgeFamily_def, ite_eq_right (by linarith), ite_eq_right (by linarith),
+    show (2 * ℓ₀ - ℓ₀) / ℓ₀ = 1 by field_simp; ring, smoothTransition.one, mul_one,
+    sub_sub_cancel]
+  exact bridgeLeaf_eq_of_le hδ (by linarith) ⟨bridgeWidth_pos hδ hM,
+    (bridgeWidth_le δ M).trans (by linarith)⟩ le_rfl hFℓ hFs hr
+
+/-- **The leaves of the bridge family are `i`-convex shapes.** Let `δ > 0`, `24 δ ≤ ℓ₀`,
+`ℓ₁ = 2 ℓ₀` and `M ≥ 8`, let `L ≥ 1` be large compared with bounds `A` of `smoothTransition'`,
+`B` of `smoothTransition''` and `N` of `x smoothTransition'' x`, and let every `F ℓ`,
+`ℓ ∈ [ℓ₀, ℓ₁]`, be `C²` on `(δ, ∞)` and an `i`-convex shape at every `r > δ`, a constant plus
+`struweShape δ 4 0` on `(δ, 9 δ / 2]`, at least `ℓ` on `(δ, ∞)`, the standard leaf
+`r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
+`[3 δ, ℓ / 4]`. Then for `ℓ ∈ [7 δ, ℓ₁]` the leaf `ℓ` of the bridge family is an `i`-convex
+shape at every `r > δ`. -/
+theorem isConvexShapeAt_bridgeFamily {A B N L ℓ₀ M ℓ r : ℝ}
+    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hN : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ N)
+    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
+    (hM : 8 ≤ M) {F : ℝ → ℝ → ℝ}
+    (hFc : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
+    (hF2 : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r)
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
+    (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
+    (hℓ : ℓ ∈ Icc (7 * δ) (2 * ℓ₀)) (hr : δ < r) :
+    IsConvexShapeAt (bridgeFamily L δ ℓ₀ M F ℓ) r := by
+  obtain ⟨hℓ₇, hℓ₁⟩ := hℓ
+  have hη₀ := bridgeWidth_pos hδ (by linarith : (0 : ℝ) ≤ M)
+  have hη₁ := bridgeWidth_le δ M
+  rcases le_or_gt ℓ (15 * δ / 2) with h15 | h15
+  · -- The first stage, raised at least to `t₀`.
+    rw [bridgeFamily_of_le h15]
+    refine isConvexShapeAt_bridgeLeaf_sqrtAddLeaf hA hB hN hL₁ hL hδ ⟨hℓ₇, h15⟩ ?_ hr
+    have : 0 ≤ bridgeHeight L δ ℓ₀ - (65 * δ / 8 - struweShape δ 4 0 δ) := by
+      rw [bridgeHeight_def]
+      nlinarith
+    nlinarith [smoothTransition.nonneg ((ℓ - 7 * δ) / (δ / 2))]
+  -- Beyond the first stage, the leaf is that of its stage on `(δ, ∞)`, a neighbourhood of `r`.
+  have hev {f g : ℝ → ℝ} (h : EqOn f g (Ioi δ)) : f =ᶠ[𝓝 r] g :=
+    Filter.eventuallyEq_of_mem (Ioi_mem_nhds hr) h
+  rcases le_or_gt ℓ ℓ₀ with h0 | h0
+  · -- The second stage, of width between `η₁` and `δ / 200`.
+    refine IsConvexShapeAt.congr_of_eventuallyEq ?_
+      (hev (bridgeFamily_eqOn_sqrt (by linarith) hδ (by linarith) M F ⟨h15.le, h0⟩))
+    have hτ₀ := smoothTransition.nonneg ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2))
+    have hτ₁ := smoothTransition.le_one ((ℓ - 15 * δ / 2) / (ℓ₀ - 15 * δ / 2))
+    refine isConvexShapeAt_bridgeLeaf_sqrt hδ (by linarith) ⟨?_, ?_⟩ ?_ hr
+    · nlinarith
+    · nlinarith
+    · rw [bridgeHeight_def]
+      nlinarith
+  · -- The last stage, for the shape `F ℓ`.
+    have hmem : ℓ ∈ Icc ℓ₀ (2 * ℓ₀) := ⟨h0.le, hℓ₁⟩
+    have hmem₀ : ℓ₀ ∈ Icc ℓ₀ (2 * ℓ₀) := ⟨le_rfl, by linarith⟩
+    refine IsConvexShapeAt.congr_of_eventuallyEq ?_
+      (hev (bridgeFamily_eqOn_of_ge (by linarith) hδ (by linarith) (by linarith)
+        (hFc ℓ₀ hmem₀) (hFs ℓ₀ hmem₀) h0.le))
+    obtain ⟨c, hc⟩ := hFS ℓ hmem
+    exact isConvexShapeAt_bridgeLeaf_of_eq_struweShape hδ (by linarith) hM (hFc ℓ hmem)
+      (hF2 ℓ hmem) hc (hFℓ ℓ hmem) (hFs ℓ hmem) (hFd ℓ hmem)
+      ⟨hη₀, bridgeWidth_le_six_mul_div δ M⟩ hr
 
 end SymplecticGeometry
 
