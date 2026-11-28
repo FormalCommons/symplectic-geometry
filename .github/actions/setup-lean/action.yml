@@ -15,6 +15,13 @@ inputs:
       With 'true', only names the saves and lists the imported Tau Ceti
       modules, and installs and restores nothing.
     default: 'false'
+  bucket:
+    description: >-
+      With 'true', a job that finds no save of the dependencies also looks
+      in the bucket of Lake's cache for the Tau Ceti modules, and writes the
+      mappings of all those that its build covered. Only ci.yml asks for
+      this.
+    default: 'false'
 outputs:
   # A save of `.lake/packages` has this name, then a hash of the list of Tau
   # Ceti modules that the library imports.
@@ -35,6 +42,12 @@ outputs:
   build:
     description: The start of the name of the saves of the library's build.
     value: ${{ steps.names.outputs.build }}
+  # With `bucket`, after a build of the Tau Ceti modules that wrote its
+  # mappings: the file tauceti-mappings.jsonl in the runner's temporary
+  # directory. What tauceti-bucket.sh found is in tauceti-bucket there.
+  tauceti-mappings:
+    description: "'true' if the build of the Tau Ceti modules wrote its mappings."
+    value: ${{ steps.tauceti.outputs.mappings }}
 runs:
   using: composite
   steps:
@@ -87,11 +100,41 @@ runs:
     # the cache, the step tries again for 5 minutes before it compiles the
     # modules itself. The script is the one that the agents' jobs run, and
     # on a runner it has no other job to wait for.
+    #
+    # Tau Ceti's cache has builds of some commits only. After the move to
+    # 0aaa80fd it had them for an earlier commit, and each run compiled 2,047
+    # modules, for an hour. So a run of CI (`bucket`) first looks for the
+    # modules in the bucket that the workflow cache-upload fills, where an
+    # earlier run's are: see tauceti-bucket.sh for whose it may read. The
+    # step below then fetches them, compiles only what is still missing, and
+    # writes the mappings of all the Tau Ceti modules that its build
+    # covered, which ci.yml hands to cache-upload with the archives that the
+    # bucket's file does not name. The cache workflows do not ask for this: main's
+    # save of the dependencies comes from Tau Ceti's source and its own
+    # cache alone.
+    - name: look for the Tau Ceti modules in the bucket
+      if: inputs.bucket == 'true' && inputs.names-only != 'true' && steps.restore.outputs.cache-matched-key == ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        OWN_REPO: ${{ github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository }}
+        PR: ${{ github.event.pull_request.number }}
+        QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+      run: .github/tauceti-bucket.sh find "$RUNNER_TEMP/tauceti-bucket"
     - name: take the imported Tau Ceti modules from Tau Ceti's build cache
+      id: tauceti
       if: inputs.names-only != 'true' && steps.restore.outputs.cache-matched-key == ''
       shell: bash
       env:
         LAKE_ARTIFACT_CACHE: 'true'
         LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
         TAUCETI_CACHE_BUILD_LIMIT: 90m
-      run: .github/tauceti-cache.sh
+        TAUCETI_BUCKET_MAPPINGS: ${{ inputs.bucket == 'true' && format('{0}/tauceti-bucket/mappings.jsonl', runner.temp) || '' }}
+        # Not for a pull request from a fork, which hands nothing over.
+        TAUCETI_MAPPINGS_OUT: >-
+          ${{ inputs.bucket == 'true' &&
+          (github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository) &&
+          format('{0}/tauceti-mappings.jsonl', runner.temp) || '' }}
+      run: |
+        .github/tauceti-cache.sh
+        [ ! -s "$TAUCETI_MAPPINGS_OUT" ] || echo "mappings=true" >> "$GITHUB_OUTPUT"

@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.NormSquare
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.Morse.GradientFlow
@@ -151,7 +152,7 @@ theorem IsSemistable.iInf_momentNormSq_smul_eq_zero {hB : B.Nondegenerate} {p : 
 variable {hB : B.Nondegenerate}
 
 omit [ConnectedSpace G] [ContMDiffSMul IC I' ∞ Gc M] in
-/-- Let `g : ℝ → Gc` be a curve with `g 0 = 1` such that `(g t)⁻¹ • p` is the negative gradient
+/-- Let `g : ℝ → Gc` be a curve such that `(g t)⁻¹ • p` is the negative gradient
 flow of `‖μ‖²` from `p` at time `t`, and `t ↦ Φ_p (g t)` has derivative `-2 ‖μ ((g t)⁻¹ • p)‖²`;
 for a complexified action, `exists_mem_orbit_maximalIntegralCurve` gives such a curve. If
 `Φ_p ∘ g` is bounded below on `[0, ∞)`, then `μ` vanishes at the limit `x` of the flow. -/
@@ -162,12 +163,11 @@ theorem moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClos
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) (hBp : B.toQuadraticMap.PosDef)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p x : M}
     (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
-    {g : ℝ → Gc} (hg0 : g 0 = 1)
+    {g : ℝ → Gc}
     (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p)
     (hgd : ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
       (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t)
     (hL : BddBelow ((fun t ↦ kempfNessFunction C μ p (g t)) '' Ici 0)) : μ x = 0 := by
-  obtain ⟨L, hL⟩ := hL
   have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
@@ -178,25 +178,11 @@ theorem moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClos
   have hle (t : ℝ) (ht : 0 ≤ t) : c ≤ momentNormSq B hB μ ((g t)⁻¹ • p) := by
     rw [← hgx]
     exact le_comp_maximalIntegralCurve_neg_mgradient hf hI hx.mapClusterPt ht
-  -- `Φ_p (g t) + 2 c t` is antitone on `[0, ∞)` and vanishes at `0`.
-  have hanti : AntitoneOn (fun t ↦ kempfNessFunction C μ p (g t) + 2 * c * t) (Ici 0) := by
-    refine antitoneOn_of_hasDerivWithinAt_nonpos (convex_Ici 0)
-      (fun t _ ↦ ((hgd t).add ((hasDerivAt_id t).const_mul (2 * c))).continuousAt
-        |>.continuousWithinAt)
-      (fun t _ ↦ ((hgd t).add ((hasDerivAt_id t).const_mul (2 * c))).hasDerivWithinAt)
-      fun t ht ↦ ?_
-    rw [interior_Ici] at ht
-    have := hle t (le_of_lt ht)
-    simp only [mul_one]
-    linarith
+  -- `Φ_p ∘ g` is bounded below on `[0, ∞)` and its derivative there is at most `-2 c`.
   have hc0 : c ≤ 0 := by
-    by_contra! hc
-    have ht : 0 ≤ (|L| + 1) / (2 * c) := by positivity
-    have h1 := hanti (mem_Ici.2 le_rfl) ht ht
-    have h2 := hL ⟨(|L| + 1) / (2 * c), ht, rfl⟩
-    simp only [hg0, kempfNessFunction_one, mul_zero, add_zero] at h1
-    rw [mul_div_cancel₀ _ (by positivity)] at h1
-    linarith [neg_abs_le L]
+    have := nonneg_of_bddBelow_of_hasDerivAt_le hL (fun t _ ↦ hgd t) fun t ht ↦
+      mul_le_mul_of_nonpos_left (hle t ht) (by norm_num : (-2 : ℝ) ≤ 0)
+    linarith
   exact (momentNormSq_eq_zero_iff (hB := hB) hBp.anisotropic).1
     (le_antisymm hc0 (momentNormSq_nonneg hpos))
 
@@ -290,7 +276,7 @@ theorem isSemistable_iff_bddBelow_kempfNessFunction (h : IsComplexifiedAction C 
   -- The flow from `p`, its limit `x`, and the curve `g` in `Gc` along which it runs.
   obtain ⟨-, x, -, hx, -⟩ := tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p
   rw [momentNormSq_neg'] at hx
-  obtain ⟨g, hg0, hg, hgx, hgd⟩ := exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hgm hBs p
+  obtain ⟨g, -, hg, hgx, hgd⟩ := exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hgm hBs p
   constructor
   · intro hss
     have hx0 : μ x = 0 := by
@@ -303,7 +289,7 @@ theorem isSemistable_iff_bddBelow_kempfNessFunction (h : IsComplexifiedAction C 
       hgx hL⟩
   · intro hL
     have hx0 := moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici hσc hσ hσG hμ hBp hBG hx
-      hg0 hgx hgd (hL.mono (by rintro _ ⟨t, -, rfl⟩; exact ⟨g t, rfl⟩))
+      hgx hgd (hL.mono (by rintro _ ⟨t, -, rfl⟩; exact ⟨g t, rfl⟩))
     refine isSemistable_iff.2 ⟨x, mem_closure_of_tendsto hx (Eventually.of_forall fun t ↦ ?_), hx0⟩
     rw [hgx]
     exact MulAction.mem_orbit p (g t)⁻¹

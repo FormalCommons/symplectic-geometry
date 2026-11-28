@@ -988,9 +988,10 @@ containing `ι '' closedBall 0 1`:
     and it crosses `ℓ + d * r` only at `K * δ` (`linear_lt_struweShape`,
     `struweShape_lt_linear`). The line is a convex shape on
     `Icc (K * δ / 2) (2 * K * δ)` by `isConvexShapeAt_linear` (the third
-    hypothesis). `ContDiffOn.exists_contDiff_eqOn_Ici` extends `S` from
-    `Ici (K * δ / 4)`, which lies in `Ioi δ` since `4 < K`, to a smooth
-    function on `ℝ`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
+    hypothesis). Tau Ceti's
+    `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact` gives a smooth
+    function on `ℝ` that is `S` near `Icc (K * δ / 4) (2 * K * δ)`, which
+    lies in `Ioi δ` since `4 < K`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
     `Icc (K * δ / 2) (2 * K * δ)` with `u = 3 * K * δ / 4` and
     `v = 3 * K * δ / 2` joins the two; `G` is `S` left of `K * δ / 2`
     and that join from there on. So no version of the smoothed maximum
@@ -1287,8 +1288,8 @@ containing `ι '' closedBall 0 1`:
        (`Surround/ConvexShape/SmoothedMax.lean`, through the public pointwise step
        `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
        only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
-       and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
-       `Icc r₁ r₂`, whose values and first two `r`-derivatives are
+       and families `M p`, `A p`, `p ∈ K`, of convex shapes that are `C²`
+       at each point of `Icc r₁ r₂`, whose values and first two `r`-derivatives are
        continuous on `K ×ˢ Icc r₁ r₂`, some `δ₀ > 0` makes
        `fun r ↦ smoothedMax δ (M p r) (A p r)` a convex shape on
        `Icc r₁ r₂` for all `δ ∈ Ioc 0 δ₀` and `p ∈ K` at once:
