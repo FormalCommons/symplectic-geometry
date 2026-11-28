@@ -221,29 +221,23 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   have hAx : HasMFDerivAt I' 𝓘(ℝ, E') A x (ContinuousLinearMap.id ℝ E') :=
     hψs.hasMFDerivAt_integral_apply_inv_smul_of_smul_eq (IG := IK) (μ := μ) hσ ψ.open_source
       le_top hfix hxψ (fun k ↦ (hσk k).symm) hψd.mfderiv
-  -- The inverse function theorem makes `A` a chart `e₀` near `x`.
+  -- The inverse function theorem makes `A` a chart `Φ` near `x`.
   have hA : ContMDiffOn I' 𝓘(ℝ, E') ∞ A S :=
     hψs.integral_apply_inv_smul (IG := IK) (μ := μ) hσ ψ.open_source
-  obtain ⟨Φ, hxe₀, he₀S, hAΦ⟩ := (isLocalDiffeomorphAt_of_mfderiv_eq hA hS hxS
+  obtain ⟨Φ, hxΦ, hΦS, hAΦ⟩ := (isLocalDiffeomorphAt_of_mfderiv_eq hA hS hxS
     BoundarylessManifold.isInteriorPoint (by exact_mod_cast le_top)
     (e := ContinuousLinearEquiv.refl ℝ E') hAx.mfderiv.symm).exists_partialDiffeomorph_eqOn hS hxS
-  let e₀ := Φ.toOpenPartialHomeomorph
-  have he₀ : EqOn e₀ A e₀.source := fun y hy ↦ (hAΦ hy).symm
-  have he₀smooth : ContMDiffOn I' 𝓘(ℝ, E') ∞ e₀ e₀.source := Φ.contMDiffOn
-  have he₀symm : ContMDiffOn 𝓘(ℝ, E') I' ∞ e₀.symm e₀.target := Φ.symm.contMDiffOn
-  -- Restrict `e₀` to the largest `K`-invariant open subset of its source.
-  let S' : Set M := {y | ∀ k : K, k • y ∈ e₀.source}
-  have hS' : IsOpen S' := isOpen_setOf_forall_smul_mem e₀.open_source
-  let e := e₀.restrOpen S' hS'
-  have hee₀ : ⇑e = e₀ := e₀.coe_restrOpen hS'
-  have hS'source {y : M} (hy : y ∈ S') : y ∈ e₀.source := by simpa using hy 1
+  have hΦA : EqOn Φ A Φ.source := fun y hy ↦ (hAΦ hy).symm
+  -- Restrict `Φ` to the largest `K`-invariant open subset of its source.
+  let S' : Set M := {y | ∀ k : K, k • y ∈ Φ.source}
+  have hS' : IsOpen S' := isOpen_setOf_forall_smul_mem Φ.open_source
+  let e := Φ.restrOpen S' hS'
+  have heΦ : ⇑e = Φ := Φ.coe_restrOpen hS'
+  have hS'source {y : M} (hy : y ∈ S') : y ∈ Φ.source := by simpa using hy 1
   have hesource {y : M} : y ∈ e.source ↔ y ∈ S' := by
-    simp only [e, OpenPartialHomeomorph.restrOpen_source, mem_inter_iff]
+    simp only [e, PartialDiffeomorph.restrOpen_source, mem_inter_iff]
     exact ⟨And.right, fun h ↦ ⟨hS'source h, h⟩⟩
-  have hetarget : e.target ⊆ e₀.target := by
-    simp only [e, OpenPartialHomeomorph.restrOpen_toPartialEquiv, PartialEquiv.restr_target]
-    exact inter_subset_left
-  have hxS' : x ∈ S' := fun k ↦ by rw [hfix k]; exact hxe₀
+  have hxS' : x ∈ S' := fun k ↦ by rw [hfix k]; exact hxΦ
   have hS'smul {g : G} (hg : g ∈ stabilizer G x) {z : M} (hz : z ∈ S') : g • z ∈ S' := by
     intro k
     have h := hz (k * ⟨g, hg⟩)
@@ -252,24 +246,21 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   -- Near each point of its source, `e` is the average `A`.
   have heA {y : M} (hy : y ∈ e.source) : e =ᶠ[𝓝 y] A := by
     filter_upwards [e.open_source.mem_nhds hy] with z hz
-    rw [hee₀, he₀ (hS'source (hesource.1 hz))]
-  refine ⟨⟨e, hesource.2 hxS', ?_, ?_, ?_, ?_, fun g hg z hz ↦ ?_, fun g hg z hz ↦ ?_⟩,
+    rw [heΦ, hΦA (hS'source (hesource.1 hz))]
+  refine ⟨⟨e, hesource.2 hxS', ?_, ?_, fun g hg z hz ↦ ?_, fun g hg z hz ↦ ?_⟩,
     fun z hz v ↦ ?_⟩
-  · rw [hee₀, he₀ (hS'source hxS')]
+  · rw [heΦ, hΦA (hS'source hxS')]
     simp [A, hfix, hψx]
-  · rw [hee₀]
-    exact he₀smooth.mono fun y hy ↦ hS'source (hesource.1 hy)
-  · rw [e₀.coe_restrOpen_symm hS']
-    exact he₀symm.mono hetarget
   · exact hAx.congr_of_eventuallyEq (heA (hesource.2 hxS'))
   · exact hesource.2 (hS'smul hg (hesource.1 hz))
   · have hz' := hesource.1 hz
-    rw [hee₀, he₀ (hS'source (hS'smul hg hz')), he₀ (hS'source hz'), ← hσk ⟨g, hg⟩]
+    rw [heΦ, hΦA (hS'source (hS'smul hg hz')), hΦA (hS'source hz'), ← hσk ⟨g, hg⟩]
     exact σ.integral_apply_inv_smul_smul μ ψ ⟨g, hg⟩ z
   · -- The derivative of `A` intertwines `J z` with `J x`, as each term of its integral does.
-    rw [(heA hz).mfderiv_eq]
+    rw [← LinearizingChart.toPartialDiffeomorph_source] at hz
+    rw [← LinearizingChart.coe_toPartialDiffeomorph, (heA hz).mfderiv_eq]
     exact hψs.mfderiv_integral_apply_inv_smul_apply_eq (IK := IK) hσ ψ.open_source le_top hψJ
-      hσJ (fun k v ↦ hJG k z v) (he₀S (hS'source (hesource.1 hz))) v
+      hσJ (fun k v ↦ hJG k z v) (hΦS (hS'source (hesource.1 hz))) v
 
 /-! ### Fundamental vector fields in the chart -/
 
@@ -350,8 +341,7 @@ theorem expI_smul_chart_symm {C : LieComplexification I G IC Gc}
       simpa only [ContinuousLinearMap.flow_apply] using
         (T.isMIntegralCurve_flow v).isMIntegralCurveOn _
     refine hlin.map_of_mfderiv_eq (f := e.chart.symm) (fun s hs ↦ ?_) (fun s hs ↦ ?_)
-    · exact ((e.contMDiffOn_symm _ (hv s hs)).contMDiffAt
-        (e.chart.open_target.mem_nhds (hv s hs))).mdifferentiableAt (by simp)
+    · exact e.mdifferentiableAt_chart_symm (hv s hs)
     · have h := fundamentalVectorField_chart_symm hC e hJ 0 ξ (hv s hs)
       -- `simp` does not see `0 : E'` as the zero of the tangent space, so `map_zero` is applied
       -- at the model space.
