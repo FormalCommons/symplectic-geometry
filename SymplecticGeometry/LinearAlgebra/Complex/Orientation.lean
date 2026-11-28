@@ -25,7 +25,8 @@ exactly when the area form tames the complex structure `L⁻¹ ∘ i ∘ L`.
 
 ## Main results
 
-* `Complex.orientation_map_orthonormalBasisOneI_repr`.
+* `Complex.orientation_map_orthonormalBasisOneI_repr`, and its inverse form
+  `Complex.orientation_map_orthonormalBasisOneI_repr_symm`.
 * `Complex.det_pos_iff_forall_im_conj_mul_symm_I_mul_pos`: `0 < det L` exactly when
   `Im (conj v * L⁻¹ (i L v)) > 0` for every `v ≠ 0`.
 -/
@@ -47,6 +48,14 @@ theorem Complex.orientation_map_orthonormalBasisOneI_repr :
   ext i : 1
   rw [← Complex.toBasis_orthonormalBasisOneI, Basis.map_apply, OrthonormalBasis.coe_toBasis]
   fin_cases i <;> ext j <;> fin_cases j <;> simp [Complex.orthonormalBasisOneI_repr_apply]
+
+/-- The inverse identification `Complex.orthonormalBasisOneI.repr.symm : ℝ² ≃ ℂ` carries the
+orientation of the standard basis of `ℝ²` to the standard orientation of `ℂ`. -/
+theorem Complex.orientation_map_orthonormalBasisOneI_repr_symm :
+    (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2)
+      Complex.orthonormalBasisOneI.repr.symm.toLinearEquiv = Complex.orientation := by
+  rw [← Complex.orientation_map_orthonormalBasisOneI_repr,
+    LinearIsometryEquiv.toLinearEquiv_symm, ← Orientation.map_symm, Equiv.symm_apply_apply]
 
 /-- An `ℝ`-linear automorphism `L` of `ℂ` has positive determinant exactly when the area form
 `(a, b) ↦ Im (conj a * b)` tames the conjugate `L⁻¹ ∘ i ∘ L` of multiplication by `i`. -/
