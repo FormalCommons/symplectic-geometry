@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Flow.HittingTime
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import TauCeti.Geometry.Manifold.Flow.ReturnDerivative
 import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
+import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
@@ -27,8 +28,9 @@ are `C^n` near `x`.
 
 No new implicit function argument is needed. The hitting time carries the points near `x` into the
 level (`TauCeti.eventually_flowHittingTime`), and on an orbit that meets the level at most once the
-crossing time is the only time spent on the level (`Flow.apply_flow_levelCrossingTime`). Tau
-Ceti's `TauCeti.contMDiffAt_flowHittingTime` and `TauCeti.contMDiffAt_flowOf_comp` then give the
+crossing time is the only time spent on the level (`Flow.levelCrossingTime_eq_of_subsingleton`,
+from Tau Ceti's `Flow.apply_flow_levelCrossingTime`). Tau Ceti's
+`TauCeti.contMDiffAt_flowHittingTime` and `TauCeti.contMDiffAt_flowOf_comp` then give the
 smoothness. In finite dimension, the same eventual equality identifies the map to the level near `x`
 with Tau Ceti's transition `TauCeti.flowTransition v g T x`, so the kernel of its derivative at `x`
 is the line through `v x`: it contains `v x` by `TauCeti.mfderiv_flowTransition_apply_eq_zero`,
@@ -122,7 +124,7 @@ theorem levelCrossingTime_eventuallyEq_flowHittingTime
   filter_upwards [eventually_flowHittingTime hv (hcomplete.mem_flowDomain T x) hg hgv, huniq]
     with y hy huniq_y
   have hyc : g (Φ (flowHittingTime v g T x y) y) = c := by rw [← hc, ← hΦ, hy.2]
-  exact huniq_y (Flow.apply_flow_levelCrossingTime ⟨_, hyc⟩) hyc
+  exact Flow.levelCrossingTime_eq_of_subsingleton huniq_y hyc
 
 /-- **The kernel of the derivative of the map to the level.** Let `v` be a complete `C¹` field on a
 finite-dimensional manifold, with flow `Φ`, and let the orbits through a neighbourhood of `x` meet
