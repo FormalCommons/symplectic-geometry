@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.LinearAlgebra.FiniteDimensional.Extension
+public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+import TauCeti.LinearAlgebra.FiniteDimensional.Extension
 
 /-!
 # Extending an injective linear map to a linear equivalence
