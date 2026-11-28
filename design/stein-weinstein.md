@@ -1102,7 +1102,7 @@ containing `ι '' closedBall 0 1`:
       `contDiffOn_struweLineShape` (`Ioi δ`),
       `struweShape_le_struweLineShape` and `struweLineShape_le`
       (`≤ max (S r) (2 * r - 8 * δ) + δ / 8`, `smoothedMax_le_max_add`),
-      `deriv_struweLineShape_le` (`≤ 2` on `Ici (7 * δ / 2)`,
+      `deriv_struweLineShape_le` (`≤ 2` on `Ici (2 * δ)`,
       `deriv_smoothedMax_le_max`), and
       `isConvexShapeAt_struweLineShape_add`: for `δ < r` and `t` with
       `2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t` and
@@ -1128,8 +1128,8 @@ containing `ι '' closedBall 0 1`:
       shapes at `δ` differ by constants, so near the cylinder every leaf
       below is a Struwe shape plus a constant.
     - `isConvexShapeAt_bridgeLeaf_sqrtAddLeaf` (first stage,
-      `ℓ ∈ Icc (7 * δ) (15 * δ / 2)`): with the `L₀` of
-      `exists_isConvexShapeAt_sqrtAddLeaf`, for `L ≥ L₀`, `δ > 0`, such
+      `ℓ ∈ Icc (7 * δ) (15 * δ / 2)`): for `L` with the hypotheses on `L`
+      of `isConvexShapeAt_sqrtAddLeaf`, `δ > 0`, such
       `ℓ`, `t₀ ≤ t` and `δ < r`,
       `r ↦ smoothedMax (δ / 200) (sqrtAddLeaf L δ ℓ r) (P t r)` is a
       convex shape at `r`. With `A = sqrtAddLeaf L δ ℓ` and
@@ -1147,13 +1147,13 @@ containing `ι '' closedBall 0 1`:
       `w ≥ δ / 17` and, as for `struweSwitchLeaf`,
       `δ / 200 * (8 * r / w + 2 * √2 * δ / w) ≤ 2 * r`; for
       `2 * δ ≤ r` the slopes are at most `11` and `2`. Also
-      `bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf`: at `ℓ = 7 * δ` and
+      `bridgeLeaf_sqrtAddLeaf_eqOn_struweSwitchLeaf`: at `ℓ = 7 * δ` and
       `t = t₀` the leaf is `struweSwitchLeaf L δ (7 * δ)` on `Ioi δ`
       (`P t₀` is its Struwe shape `T` on `Ioc δ (7 * δ / 2)`; beyond,
       `P t₀ ≤ max (T r) (2 * r + 6 * δ) + δ / 8`, and `T` and
       `2 * r + 6 * δ` are more than `δ / 200 + δ / 8` below `A`, as
-      `A - T ≥ 2 * δ` there), and `bridgeLeaf_sqrtAddLeaf_eq_sqrt`: if
-      `S δ + t ≥ 3 * ℓ' + 8 * (3 + L) * δ` with `ℓ' ≥ ℓ`, `A` may be
+      `A - T ≥ 2 * δ` there), and `bridgeLeaf_sqrtAddLeaf_eqOn_sqrt`: if
+      `S δ + t ≥ 3 * ℓ + 8 * (3 + L) * δ` (and `0 < L`, `0 ≤ ℓ`), `A` may be
       replaced by `√(64 * r ^ 2 + ℓ ^ 2)` (`P t` is above both by more
       than `δ / 200` on `Ioc δ ((2 + L) * δ)`, and they agree beyond).
     - `isConvexShapeAt_bridgeLeaf_sqrt` (second stage): for `δ > 0`,
