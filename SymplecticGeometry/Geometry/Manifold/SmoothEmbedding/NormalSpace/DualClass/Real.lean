@@ -386,11 +386,9 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt
   refine (congrArg _ ?_).trans (singularKronecker_normalSlice_realRelDualClass_relClass f hn hdim
     hf o hr hΦ x m hm σ hU hφσ hφ ho h0)
   -- The inclusion carries the class of `τ` to that of `σ`.
-  rw [← ConcreteCategory.comp_apply]
-  -- `τ` is a simplex of `B`, which is the space of the pair only up to unfolding `ofSubset`.
-  erw [TopPair.relClass_singularHomologyMap]
-  congr 3
-  exact (congrArg (fun F ↦ (TopCat.toSSet.map F).app _ τ) (TopPair.ofSubsetMap_fst _ _)).trans hτ
+  rw [← localHomologyMap_def (j := ContinuousMap.subtypeVal B)
+    (S := {(⟨0, mem_of_mem_nhds hB⟩ : B)}) (T := {0}) _ (fun _ h ↦ Subtype.ext h)]
+  exact TopPair.relClass_localHomologyMap_apply _ _ _ τ _ _ hτ 1
 
 /-- **The value of the real dual class of a codimension-two submanifold on a simplex through a
 transverse disc.** Take the hypotheses of
@@ -440,22 +438,20 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp
   have hσB' : ∀ p, (TopCat.of _).toSSetObjEquiv _ σ.val p ∈ B := fun p ↦ by
     simpa [SmoothSimplex.toContinuousMap_apply] using hσB ((fullSimplexEquivStdSimplex 2).symm p)
   -- The lift `τ` of `σ` to `B`, which `g` carries to `s`.
-  obtain ⟨τ, hτ, hsτ⟩ : ∃ τ : (TopCat.toSSet.obj (TopCat.of B)) _⦋2⦌,
-      (TopCat.toSSet.map (TopCat.ofHom (ContinuousMap.subtypeVal B))).app _ τ = σ.val ∧
-      (TopCat.toSSet.map (TopCat.ofHom ⟨B.domRestrict g, hgB.domRestrict⟩)).app _ τ = s := by
-    refine ⟨((TopCat.of B).toSSetObjEquiv _).symm
-      (((TopCat.of _).toSSetObjEquiv _ σ.val).codRestrict B hσB'), ?_, ?_⟩
-    · refine ((TopCat.of _).toSSetObjEquiv _).injective (ContinuousMap.ext fun p ↦ ?_)
-      rw [TopCat.toSSetObjEquiv_toSSet_map_app, Equiv.apply_symm_apply, ConcreteCategory.hom_ofHom,
-        ContinuousMap.subtypeVal_comp_codRestrict]
-    · refine ((TopCat.of X).toSSetObjEquiv _).injective (ContinuousMap.ext fun p ↦ ?_)
-      rw [TopCat.toSSetObjEquiv_toSSet_map_app, Equiv.apply_symm_apply]
-      have h := hs ((fullSimplexEquivStdSimplex 2).symm p)
-      rw [Homeomorph.apply_symm_apply, SmoothSimplex.toContinuousMap_apply,
-        Homeomorph.apply_symm_apply] at h
-      rw [ConcreteCategory.hom_ofHom, ContinuousMap.comp_apply, ContinuousMap.coe_mk,
-        Set.domRestrict_apply, ContinuousMap.coe_codRestrict_apply]
-      exact h.symm
+  obtain ⟨τ, hτ⟩ := (Topology.IsInducing.mem_range_toSSet_map_app_iff
+    (f := TopCat.ofHom (ContinuousMap.subtypeVal B)) .subtypeVal _ σ.val).2
+    (Set.range_subset_iff.2 fun p ↦ ⟨⟨_, hσB' p⟩, rfl⟩)
+  have hsτ : (TopCat.toSSet.map (TopCat.ofHom ⟨B.domRestrict g, hgB.domRestrict⟩)).app _ τ =
+      s := by
+    refine ((TopCat.of X).toSSetObjEquiv _).injective (ContinuousMap.ext fun p ↦ ?_)
+    have hp := DFunLike.congr_fun (congrArg ((TopCat.of _).toSSetObjEquiv _) hτ) p
+    have h := hs ((fullSimplexEquivStdSimplex 2).symm p)
+    rw [Homeomorph.apply_symm_apply, SmoothSimplex.toContinuousMap_apply,
+      Homeomorph.apply_symm_apply] at h
+    rw [TopCat.toSSetObjEquiv_toSSet_map_app, ConcreteCategory.hom_ofHom,
+      ContinuousMap.comp_apply] at hp ⊢
+    rw [h, ← hp, ContinuousMap.coe_mk, Set.domRestrict_apply,
+      ContinuousMap.subtypeVal_apply]
   have key := singularKronecker_realRelDualClass_relClass_of_hasFDerivAt f hn hdim hf o hr x m hm
     hB hgB hg0 hgf hg hA σ hU hφσ hφ ho h0 τ hτ
   refine (TopPair.singularKronecker_singularCohomologyIntChainsIso_hom_relClass ℝ _
