@@ -13,6 +13,8 @@ public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
 public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.RealImage
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.IntegralChains
 import Mathlib.Geometry.Manifold.PartitionOfUnity
@@ -68,6 +70,11 @@ The proof is local.
   two-form `φ` on a manifold `M` and a smooth `u : C → M`, `∫_C u^* φ = ⟨[φ], u_* [C]⟩`.
 * `evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk`, in the same namespace:
   the class `deRhamHom [φ]`, read through integral chains, evaluates on `[C]` to `∫_C φ`.
+* `deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq`, in the same namespace: for connected
+  `C`, if `∫_C φ` is the value of an integral class `c` on the fundamental class of the homological
+  orientation of `o`, then `deRhamHom [φ]` is minus the real image of `c`. Its proof is the one
+  of `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace`, for an
+  arbitrary integral class in place of an Euler class.
 
 ## References
 
@@ -258,6 +265,33 @@ theorem evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk
     HomologicalOrientation.mapFundamentalClass_id]
   exact (singularKronecker_singularCohomologyIntChainsIso_hom_deRhamHom_mk φ _).trans
     (integralTopForm_eq_closedFormHomologyPeriod hE' o φ).symm
+
+/-- **The de Rham class of a two-form with an integral period.** Let `C` be a closed connected
+surface oriented by `o`, `φ` a closed smooth two-form on `C`, and `c ∈ H²(C; ULift ℤ)` an integral
+class whose value on the fundamental class of the homological orientation of `o` is `∫_C φ`.
+Then the de Rham homomorphism sends `[φ]` to minus the real image of `c`. The sign is that of
+`evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk`, which evaluates
+`deRhamHom [φ]` on the fundamental class of `-o`. -/
+theorem deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq [ConnectedSpace C]
+    (hE' : finrank ℝ E' = 2) (o : Manifold.Orientation 𝓘(ℝ, E') C (Fin 2))
+    (φ : closedForms 𝓘(ℝ, E') C 2)
+    (c : (TopCat.of C).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) 2)
+    (h : integralTopForm o φ.val.val = ((o.toHomologicalOrientation hE').evalFundamentalClass hE'
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id C) c).down) :
+    deRhamHom 𝓘(ℝ, E') C 2 (deRhamCohomology.mk 𝓘(ℝ, E') 2 φ) =
+      -(TopCat.of C).singularCohomologyRealImageAddMonoidHom 2 c := by
+  let e := (TopCat.of C).singularCohomologyIntChainsIso ℝ 2
+  -- Both sides are determined by their value on the fundamental class of `-o`.
+  refine (ConcreteCategory.bijective_of_isIso e.hom).1
+    (((-o).toHomologicalOrientation hE').evalFundamentalClass_id_injective hE'
+      (ModuleCat.of ℤ ℝ) ?_)
+  refine (o.evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk hE' φ).trans ?_
+  rw [← map_neg ((TopCat.of C).singularCohomologyRealImageAddMonoidHom 2),
+    TopCat.singularCohomologyRealImageAddMonoidHom_apply, map_neg, map_neg, map_neg,
+    HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage,
+    toHomologicalOrientation_neg, HomologicalOrientation.evalFundamentalClass_neg,
+    LinearMap.neg_apply, ULift.neg_down, Int.cast_neg, neg_neg, h]
 
 end TauCeti.Manifold.Orientation
 
