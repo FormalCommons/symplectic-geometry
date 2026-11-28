@@ -27,12 +27,18 @@ A diffeotopy restricts to a diffeotopy of every open set that each time slice ma
 of the diffeotopy, in the sense of Tau Ceti's `Diffeomorph.subtype`
 (`TauCeti.Diffeotopy.timeSlice_subtype`, `TauCeti.Diffeotopy.final_subtype`).
 
+A diffeotopy of a product `A × B` of normed spaces for the self-model `𝓘(ℝ, A × B)` is also one
+for the product `𝓘(ℝ, A).prod 𝓘(ℝ, B)` of the self-models, with the same underlying map
+(`TauCeti.Diffeotopy.toProdModel`).
+
 ## Main definitions
 
 * `TauCeti.Diffeotopy.ofFstEq Ψ hΨ`: the diffeotopy `t ↦ Ψ_t ∘ Ψ_0⁻¹` of a time-preserving
   diffeomorphism `Ψ` of `[0, 1] × M`.
 * `TauCeti.Diffeotopy.subtype Φ U hU`: the restriction of `Φ` to an open set `U` that every time
   slice maps onto itself.
+* `TauCeti.Diffeotopy.toProdModel Φ`: a diffeotopy of `A × B` for `𝓘(ℝ, A × B)`, read for
+  `𝓘(ℝ, A).prod 𝓘(ℝ, B)`.
 
 ## Main results
 
@@ -112,6 +118,37 @@ theorem final_ofFstEq : (ofFstEq Ψ hΨ).final = (Ψ.slice hΨ 0).symm.trans (Ψ
   rw [final_def, timeSlice_ofFstEq]
 
 end ofFstEq
+
+section prodModel
+
+variable {A B : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [NormedAddCommGroup B]
+  [NormedSpace ℝ B] (Φ : Diffeotopy 𝓘(ℝ, A × B) n (A × B))
+
+/-- A diffeotopy of a product `A × B` of normed spaces for the self-model `𝓘(ℝ, A × B)`, as a
+diffeotopy for the product `𝓘(ℝ, A).prod 𝓘(ℝ, B)` of the self-models. It has the same underlying
+map (`TauCeti.Diffeotopy.toProdModel_apply`). -/
+def toProdModel : Diffeotopy (𝓘(ℝ, A).prod 𝓘(ℝ, B)) n (A × B) where
+  toDiffeomorph :=
+    ((Diffeomorph.reflProdCongr unitInterval (Diffeomorph.prodModelSelf ℝ A B)).symm.trans
+      Φ.toDiffeomorph).trans (Diffeomorph.reflProdCongr unitInterval
+        (Diffeomorph.prodModelSelf ℝ A B))
+  fst_apply p := by simp
+  snd_apply_zero' x := by simp
+
+/-- The diffeotopy `Φ.toProdModel` has the same underlying map as `Φ`. -/
+@[simp]
+theorem toProdModel_apply (p : unitInterval × A × B) : Φ.toProdModel p = Φ p := by
+  simp [toProdModel, coe_apply]
+
+/-- The time slices of `Φ.toProdModel` are those of `Φ`, read for the product of the
+self-models (`Diffeomorph.prodModelEquiv`). -/
+@[simp]
+theorem timeSlice_toProdModel (t : unitInterval) :
+    Φ.toProdModel.timeSlice t = Diffeomorph.prodModelEquiv (Φ.timeSlice t) :=
+  Diffeomorph.ext fun x ↦ by
+    rw [timeSlice_apply, toProdModel_apply, Diffeomorph.coe_prodModelEquiv, timeSlice_apply]
+
+end prodModel
 
 /-! ### Restriction to an invariant open set -/
 

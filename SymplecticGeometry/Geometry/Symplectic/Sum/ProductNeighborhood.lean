@@ -29,7 +29,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle

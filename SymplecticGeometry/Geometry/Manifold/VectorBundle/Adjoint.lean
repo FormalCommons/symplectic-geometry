@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
-public import TauCeti.Geometry.Manifold.VectorBundle.Hom
+public import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic

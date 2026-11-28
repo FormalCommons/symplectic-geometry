@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Logic.Equiv.Prod
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Topology.FiberBundle.Trivialization
 /-!
 # Smoothness after a change of the model fibre
 

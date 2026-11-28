@@ -37,9 +37,10 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `1 / √(log K)` at `K δ` (`SymplecticGeometry.deriv_struweShape_mul`). It is
   smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
   (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
-  `SymplecticGeometry.strictMonoOn_struweShape`). For `δ ≠ 0` it is the shape of width `1`
-  rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`). The shape of width
-  `1` rises by at most `√2 * √(r ^ 2 - 1)` from `1` to `r ≥ 1`
+  `SymplecticGeometry.strictMonoOn_struweShape`), and smooth jointly in its value at `K δ` and
+  in `r` (`SymplecticGeometry.contDiffOn_uncurry_struweShape`). For `δ ≠ 0` it is the shape of
+  width `1` rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`). The shape
+  of width `1` rises by at most `√2 * √(r ^ 2 - 1)` from `1` to `r ≥ 1`
   (`SymplecticGeometry.struweShape_sub_struweShape_one_mem_Icc`).
 * `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
   `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
@@ -262,6 +263,17 @@ theorem contDiffOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
       (div_pos (hδ.trans hu) hδ).ne').sqrt fun u hu ↦ (hL u hu).ne')
       fun u hu ↦ (sqrt_pos.2 (hL u hu)).ne'
   exact hf.congr fun r hr ↦ deriv_struweShape hδ hK c hr
+
+/-- Struwe's shape is smooth jointly in its value `c` at `K δ` and in `r`, on `ℝ × (δ, ∞)`:
+it is `c` plus the shape with value `0` at `K δ`. -/
+theorem contDiffOn_uncurry_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) :
+    ContDiffOn ℝ ∞ (Function.uncurry (struweShape δ K)) (univ ×ˢ Ioi δ) := by
+  have e : Function.uncurry (struweShape δ K) = fun p ↦ p.1 + struweShape δ K 0 p.2 := by
+    ext p
+    rw [Function.uncurry_apply_pair, ← struweShape_add, add_zero]
+  rw [e]
+  exact contDiffOn_fst.add ((contDiffOn_struweShape hδ hK 0).comp contDiffOn_snd
+    fun p hp ↦ hp.2)
 
 /-- Struwe's shape is continuous on `[δ, ∞)`: its integrand is integrable near `δ`. -/
 theorem continuousOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :

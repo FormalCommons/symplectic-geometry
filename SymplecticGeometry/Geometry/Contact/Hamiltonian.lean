@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Contact.Hamiltonian.Naturality
 public import TauCeti.Geometry.Contact.Rescale
 public import TauCeti.Geometry.Contact.VectorField.Flow
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
-public import TauCeti.Geometry.Manifold.VectorBundle.Hom
+public import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import TauCeti.Geometry.Manifold.VectorBundle.Translate
 public import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
