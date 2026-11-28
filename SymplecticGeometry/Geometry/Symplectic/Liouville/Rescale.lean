@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
@@ -70,23 +71,6 @@ noncomputable section
 
 open Bundle
 open scoped Manifold ContDiff
-
-namespace TauCeti.IsLiouvilleVectorField
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-
-/-- For a closed smooth two-form `σ` and a smooth Liouville vector field `X` of `σ`, the one-form
-`ι_X σ` is a primitive of `σ`: `d(ι_X σ) = σ`, as smooth forms. -/
-theorem mextDerivₗ_interiorₗ {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
-    {X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯} (hX : IsLiouvilleVectorField σ.val X) :
-    mextDerivₗ I 1 (σ.interiorₗ X) = σ :=
-  Subtype.ext <| by
-    rw [mextDerivₗ_apply, SmoothTwoForm.coe_interiorₗ]
-    exact (isLiouvilleVectorField_iff_mextDeriv_interior_eq σ.mdifferentiable
-      (X.contMDiff.mdifferentiable (by simp)) ((SmoothForm.isClosed_def _).1 hσ)).1 hX
-
-end TauCeti.IsLiouvilleVectorField
 
 namespace SymplecticGeometry
 
@@ -164,12 +148,7 @@ theorem rescaledForm_add (σ : SmoothTwoForm I M) (X : Cₛ^∞⟮I; E, TangentS
 theorem rescaledForm_smul (σ : SmoothTwoForm I M) (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
     (c : ℝ) (h : C^∞⟮I, M; ℝ⟯) :
     rescaledForm σ X (c • h) = c • rescaledForm σ X h := by
-  have hc : SmoothForm.funSMulₗ (c • h) (σ.interiorₗ X) =
-      c • SmoothForm.funSMulₗ h (σ.interiorₗ X) :=
-    Subtype.ext <| funext fun x ↦ by
-      simp only [SmoothForm.coe_funSMulₗ, ContMDiffMap.coe_smul, Pi.smul_apply, smul_eq_mul,
-        Submodule.coe_smul, mul_smul]
-  rw [rescaledForm_def, rescaledForm_def, hc, map_smul]
+  simp only [rescaledForm_def, SmoothForm.funSMulₗ_smul, map_smul]
 
 /-- **The rescaled form is affine in the function.** For a Liouville field `X` of a closed form
 `σ`, rescaling by `(1 - t) • 1 + t • h` gives `(1 - t) • σ + t • rescaledForm σ X h`. -/
