@@ -341,7 +341,7 @@ theorem _root_.ContMDiff.exists_contMDiff_real_family_eq {k : unitInterval × un
   -- Run the extension at a parameter `c q` in `(-δ, 1 + δ)` equal to `q` on `[0, 1]`.
   obtain ⟨c, hc, hc_id⟩ := (⟨Ioo (-δ) (1 + δ), isOpen_Ioo⟩ : TopologicalSpace.Opens ℝ)
     |>.exists_contMDiff_eventuallyEq_id (convex_Icc 0 1) isCompact_Icc
-      (nonempty_Icc.2 zero_le_one) fun t ht ↦ ⟨by linarith [ht.1], by linarith [ht.2]⟩
+      (nonempty_Icc.2 zero_le_one) (Icc_subset_Ioo (by linarith) (by linarith))
   refine ⟨⟨V, hV⟩, hAV, fun p ↦ G (c p.1, p.2.1, p.2.2),
     hG.comp_contMDiff (((contMDiff_subtypeVal.comp hc).comp contMDiff_fst).prodMk
       (contMDiff_snd.fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd.snd)))

@@ -347,19 +347,12 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
   obtain ⟨pa, hpa, pb, hpb, hab⟩ := eventually_prod_iff.1 hW
   obtain ⟨δ, hδ, hδa⟩ := Metric.eventually_nhds_iff.1 hpa
   obtain ⟨U, hUb, hU, hxU⟩ := eventually_nhds_iff.1 hpb
-  -- Reparametrize time by a map into `(t₀ - δ, t₀ + δ)`, equal to the identity near `t₀` in
-  -- `[0, 1]`.
-  have ht₀ := p.1.property
-  have hK : Icc (max 0 ((p.1 : ℝ) - δ / 2)) (min 1 ((p.1 : ℝ) + δ / 2)) ⊆
-      Metric.ball (p.1 : ℝ) δ := fun t ht ↦ by
-    have h₁ := le_max_right 0 ((p.1 : ℝ) - δ / 2)
-    have h₂ := min_le_right 1 ((p.1 : ℝ) + δ / 2)
-    rw [Metric.mem_ball, Real.dist_eq, abs_lt]
-    constructor <;> linarith [ht.1, ht.2]
+  -- Reparametrize time by a map into `(t₀ - δ, t₀ + δ)`, equal to the identity near the closed
+  -- ball of radius `δ / 2` around `t₀`.
+  have hK := Metric.closedBall_subset_ball (x := (p.1 : ℝ)) (half_lt_self hδ)
   obtain ⟨g, hg, hgid⟩ := (⟨Metric.ball (p.1 : ℝ) δ, Metric.isOpen_ball⟩ : Opens ℝ)
-    |>.exists_contMDiff_eventuallyEq_id (convex_Icc _ _) isCompact_Icc
-      (nonempty_Icc.2 (le_min (max_le zero_le_one (by linarith [ht₀.2]))
-        (max_le (by linarith [ht₀.1]) (by linarith)))) hK
+    |>.exists_contMDiff_eventuallyEq_id (convex_closedBall _ _) (isCompact_closedBall _ _)
+      (Metric.nonempty_closedBall.2 (half_pos hδ).le) hK
   let c : ℝ → ℝ := fun t ↦ g t
   have hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c := contMDiff_subtypeVal.comp hg
   refine ⟨p.1 - δ / 2, p.1 + δ / 2, ⟨by linarith, by linarith⟩, ⟨U, hU⟩, hxU,
@@ -370,8 +363,8 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
     intro x
     have hct : dist (c t) p.1 < δ := Metric.mem_ball.1 (Opens.mem_mk.1 (g t).property)
     exact (isContactFormAt_mpullback_subtype_val_iff _ x).2 (hab (hδa hct) (hUb x x.property)).2
-  · have htK : t ∈ Icc (max 0 ((p.1 : ℝ) - δ / 2)) (min 1 ((p.1 : ℝ) + δ / 2)) :=
-      ⟨max_le ht.2.1 (by linarith [ht.1.1]), le_min ht.2.2 (by linarith [ht.1.2])⟩
+  · have htK : t ∈ Metric.closedBall (p.1 : ℝ) (δ / 2) := by
+      rw [Real.closedBall_eq_Icc]; exact Ioo_subset_Icc_self ht.1
     have hct : c t = t := (hgid t htK).self_of_nhds
     have hx := ((hab (hδa (Metric.mem_ball.1 (hK htK))) (hUb x x.property)).1
       (⟨t, ht.2⟩, x) rfl).2
