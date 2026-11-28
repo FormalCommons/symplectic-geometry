@@ -131,17 +131,14 @@ theorem Compatible.riemannianBundle_def (hc : σ.Compatible J) :
 product is `⟪u, w⟫ = σ(u, J w)`. -/
 theorem Compatible.inner_riemannianBundle (hc : σ.Compatible J) :
     letI := hc.riemannianBundle
-    ∀ x (u w : TangentSpace I x), ⟪u, w⟫ = σ.eval₂ x u (J x w) := by
-  rw [hc.riemannianBundle_def]
-  exact hc.inner_eq_eval₂
+    ∀ x (u w : TangentSpace I x), ⟪u, w⟫ = σ.eval₂ x u (J x w) :=
+  hc.inner_eq_eval₂
 
 /-- The metric of a compatible pair, installed on the tangent spaces, is smooth. -/
 instance Compatible.isContMDiffRiemannianBundle (hc : σ.Compatible J) :
     letI := hc.riemannianBundle
     IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x) :=
-  letI := hc.riemannianBundle
-  ⟨⟨hc.metric.inner, hc.metric.contMDiff, fun x u w ↦ by
-    rw [hc.inner_riemannianBundle, metric_inner]⟩⟩
+  Bundle.instIsContMDiffRiemannianBundle hc.metric
 
 /-- **The metric of a compatible pair is bounded on a compact set by any continuous metric.** If
 `σ` is compatible with `J` and `TM` carries a continuous Riemannian metric, then on a compact set
