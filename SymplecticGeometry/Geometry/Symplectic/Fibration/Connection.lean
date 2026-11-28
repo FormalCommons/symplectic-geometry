@@ -359,9 +359,8 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, ← ContinuousLinearMap.comp_apply, ← hd]
     exact zero_apply _
   have hw : (fun i ↦ mfderiv IN IM g x (w i)) =
-      ![mfderiv IN IM g x (w 0), mfderiv IN IM g x (w 1)] := by
-    ext i
-    fin_cases i <;> rfl
+      ![mfderiv IN IM g x (w 0), mfderiv IN IM g x (w 1)] :=
+    (FinVec.etaExpand_eq _).symm
   rw [hw]
   have hXt : ContMDiff IM IM.tangent 1 fun y ↦ (⟨y, X t y⟩ : TangentBundle IM M) :=
     hX.comp ((contMDiff_const (c := t)).prodMk contMDiff_id)

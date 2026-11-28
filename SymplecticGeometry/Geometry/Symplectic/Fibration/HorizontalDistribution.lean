@@ -250,9 +250,8 @@ theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
   have h3 : (fun i ↦ mfderiv IF IM (e.fiberInclusionMap hb) v (w i)) =
       ![mfderiv IF IM (e.fiberInclusionMap hb) v (w 0),
         mfderiv IF IM (e.fiberInclusionMap hb) v (w 1),
-        mfderiv IF IM (e.fiberInclusionMap hb) v (w 2)] := by
-    ext i
-    fin_cases i <;> rfl
+        mfderiv IF IM (e.fiberInclusionMap hb) v (w 2)] :=
+    (FinVec.etaExpand_eq _).symm
   rw [h3, isVerticallyClosed_iff.1 h _ _ (hw 0) _ (hw 1), Pi.zero_apply,
     ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
