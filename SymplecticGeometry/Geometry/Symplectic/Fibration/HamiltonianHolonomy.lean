@@ -7,7 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Holonomy
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Curvature
+public import SymplecticGeometry.Geometry.Manifold.ChartDisc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Analysis.Calculus.Deriv.Prod
@@ -75,6 +77,10 @@ curvature of [McDuffSalamon2017] is its negative.
   `TauCeti.IsEhresmannConnection`:
   the variation of holonomy through the curvature, the period of `ι(X_s)σ` along `c` as the
   integral of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` over `[0, 1]²`.
+* `TauCeti.IsEhresmannConnection.curvatureTensor_mfderiv_chartDisc`: on the derivatives of the
+  small disc `SymplecticGeometry.chartDisc` through a point of a chart, the curvature tensor is
+  `2π r² φ(s) φ'(s) (1 - cos (2πt))` times its value on the images of the two vectors spanning
+  the disc, by bilinearity and antisymmetry (`LinearMap.IsAlt.apply_add_smul_add_smul`).
 
 ## References
 
@@ -393,6 +399,61 @@ theorem period_interior_velocity_holonomyDiffeotopy_eq_integral_curvatureTensor
   rw [integral_mpullback_mextDeriv_transportedCylinder_eq_neg hτD hτv hA.contMDiff_proj hfp
     (hA.contMDiffOn_trivAt_symm b) hΔ.contMDiff hc hcp
     ((congrArg (· ∈ (A.trivAt b).baseSet) (hΔ.apply_seam s)).mpr hx), neg_neg]
+
+end IsEhresmannConnection
+
+end TauCeti
+
+namespace TauCeti
+
+namespace IsEhresmannConnection
+
+section ChartDisc
+
+open Real SymplecticGeometry
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I 2 P]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} [IB.Boundaryless]
+  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] [T2Space B] [IsManifold IB ∞ B]
+  {n : ℕ∞ω} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
+  (hD : IsEhresmannConnection I IB n f D)
+
+/-- **The curvature on the derivatives of a small disc in a chart.** Let `Ω` be the curvature
+tensor of `D` at a point `x` of `P`, and let `D_r = chartDisc IB b w₁ w₂ r` be the disc through
+`b` of radius `r` in the plane of `w₁` and `w₂` in the chart at `b`, with `D_r (s, t)` read in the
+target of that chart. With `W₁` and `W₂` the images of `w₁` and `w₂` under the derivative of the
+inverse chart there, `Ω(∂ₛD_r, ∂ₜD_r) = 2π r² φ(s) φ'(s) (1 - cos (2πt)) • Ω(W₁, W₂)`, for the
+profile `φ s = sin (πs/2)`. In the use, `f x = D_r (s, t)`. -/
+theorem curvatureTensor_mfderiv_chartDisc (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I IB 2 f x)
+    {b : B} {w₁ w₂ : EB} {r s t : ℝ}
+    (hz : chartDiscCoord IB b w₁ w₂ r (s, t) ∈ (extChartAt IB b).target) :
+    hD.curvatureTensor hn hf (mfderiv 𝓘(ℝ, ℝ × ℝ) IB (chartDisc IB b w₁ w₂ r) (s, t) (1, 0))
+        (mfderiv 𝓘(ℝ, ℝ × ℝ) IB (chartDisc IB b w₁ w₂ r) (s, t) (0, 1)) =
+      (2 * π * r ^ 2 * (sin (π * s / 2) * (π / 2 * cos (π * s / 2))) *
+          (1 - cos (2 * π * t))) •
+        hD.curvatureTensor hn hf
+          (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ r (s, t)) w₁)
+          (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ r (s, t))
+            w₂) := by
+  set L := mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ r (s, t))
+  -- The images under `L` of the derivatives of the disc in the chart, as combinations of
+  -- `L w₁` and `L w₂`.
+  have hL (α c d : ℝ) : L (α • (c • w₁ + d • w₂)) = (α * c) • L w₁ + (α * d) • L w₂ := by
+    have h := (L.map_smul α (c • w₁ + d • w₂)).trans (congrArg (α • ·)
+      ((L.map_add (c • w₁) (d • w₂)).trans (congrArg₂ (· + ·) (L.map_smul c w₁)
+        (L.map_smul d w₂))))
+    rwa [smul_add, smul_smul, smul_smul] at h
+  rw [mfderiv_chartDisc_apply_fst hz, mfderiv_chartDisc_apply_snd hz, hL, hL]
+  refine (LinearMap.IsAlt.apply_add_smul_add_smul (hD.curvatureTensor_isAlt hn hf) _ _ _ _ _
+    _).trans ?_
+  congr 1
+  linear_combination (2 * π * r ^ 2 * (sin (π * s / 2) * (π / 2 * cos (π * s / 2)))) *
+    sin_sq_add_cos_sq (2 * π * t)
+
+end ChartDisc
 
 end IsEhresmannConnection
 
