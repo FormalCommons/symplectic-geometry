@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Unitary.Basic
 import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
 /-!
 # The Lie algebra of the matrix unitary Lie group
@@ -61,6 +62,13 @@ and `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv` is assembled as
   `unitaryLieAlgebra n`.
 * `TauCeti.Lie.coe_matrixUnitaryLieAlgebraEquiv_apply`: the equivalence is the derivative at `1`
   of the inclusion into the matrices.
+* `TauCeti.Lie.contMDiff_unitarySubgroup_coe_matrix`: the inclusion of the unitary group into the
+  matrices is smooth.
+* `TauCeti.Lie.contMDiff_unitarySubgroup_iff`: a map into the unitary group is smooth if and only
+  if it is smooth into `GL n ℂ`.
+* `TauCeti.Lie.mfderiv_coe_eq_matrixUnitaryLieAlgebraEquiv`: for a homomorphism `φ` into the
+  unitary group, differentiable at `1`, the derivative at `1` of `g ↦ (φ g : Matrix n n ℂ)` is
+  `matrixUnitaryLieAlgebraEquiv` of the Lie algebra map of `φ`.
 * `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv_tangentAd`,
   `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv_adjointRepresentation`: it carries the adjoint
   action to `unitaryAdjointRepresentation`.
@@ -196,6 +204,46 @@ theorem coe_matrixUnitaryLieAlgebraEquiv_apply
   -- The two sides agree up to the definitional identification of the tangent spaces of `GL n ℂ`
   -- with `Matrix n n ℂ`.
   rfl
+
+/-- The inclusion of the unitary group `unitarySubgroup (GL n 𝕜)`, with Tau Ceti's
+closed-subgroup charts, into `Matrix n n 𝕜` is smooth. -/
+theorem contMDiff_unitarySubgroup_coe_matrix {𝕜 : Type*} [RCLike 𝕜] :
+    ContMDiff 𝓘(ℝ, (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n 𝕜))
+        (unitarySubgroup (GL n 𝕜))).toSubmodule) 𝓘(ℝ, Matrix n n 𝕜) ∞
+      (fun k : unitarySubgroup (GL n 𝕜) ↦ ((k : GL n 𝕜) : Matrix n n 𝕜)) :=
+  Units.contMDiff_val.comp
+    (matrixUnitaryEmbeddedLieSubgroupData (n := n) (𝕜 := 𝕜)).contMDiff_subtypeVal
+
+section Maps
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- A map into the matrix unitary Lie group is smooth if and only if it is smooth as a map into
+`GL n ℂ`: the inclusion of the unitary group is a smooth embedding. -/
+theorem contMDiff_unitarySubgroup_iff {φ : M → unitarySubgroup (GL n ℂ)} :
+    ContMDiff I 𝓘(ℝ, 𝔨[n]) ∞ φ ↔
+      ContMDiff I 𝓘(ℝ, Matrix n n ℂ) ∞ (fun x ↦ (φ x : GL n ℂ)) :=
+  𝔡[n].isSmoothEmbedding_subtypeVal.contMDiff_iff_comp
+
+variable {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+
+/-- **The derivative of a unitary representation.** For a homomorphism
+`φ : G →* unitarySubgroup (GL n ℂ)` that is differentiable at `1`, and `ξ` in the Lie algebra of
+`G`, the derivative at `1` of `g ↦ (φ g : Matrix n n ℂ)` at `ξ` is the skew-Hermitian matrix
+`matrixUnitaryLieAlgebraEquiv (dφ ξ)`. -/
+theorem mfderiv_coe_eq_matrixUnitaryLieAlgebraEquiv (φ : G →* unitarySubgroup (GL n ℂ))
+    (hφ : MDifferentiableAt I 𝓘(ℝ, 𝔨[n]) φ 1) (ξ : GroupLieAlgebra I G) :
+    mfderiv I 𝓘(ℝ, Matrix n n ℂ) (fun g ↦ ((φ g : GL n ℂ) : Matrix n n ℂ)) 1 ξ =
+      (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n]) ξ) : Matrix n n ℂ) := by
+  have hincl : MDifferentiableAt 𝓘(ℝ, 𝔨[n]) 𝓘(ℝ, Matrix n n ℂ)
+      (fun k : unitarySubgroup (GL n ℂ) ↦ ((k : GL n ℂ) : Matrix n n ℂ)) 1 :=
+    (contMDiff_unitarySubgroup_coe_matrix (n := n) (𝕜 := ℂ) 1).mdifferentiableAt (by simp)
+  rw [coe_matrixUnitaryLieAlgebraEquiv_apply, MonoidHom.groupLieAlgebraMap_apply]
+  exact mfderiv_comp_apply_of_eq 1 hincl hφ (map_one φ) ξ
+
+end Maps
 
 /-- **The identification intertwines the adjoint actions.** `matrixUnitaryLieAlgebraEquiv`
 carries the adjoint automorphism `Ad_g` of the matrix unitary Lie group to conjugation
