@@ -231,7 +231,7 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
   have h₂ (f : E →L[ℝ] ℝ) : L x (Φ f) = f (momentSharp B hB μ x) := by
     have h (g : Module.Dual ℝ (GroupLieAlgebra I G)) :
         μ x ((B.toDual hB).symm g) = g (momentSharp B hB μ x) := by
-      rw [← apply_momentSharp, hBs.eq, LinearMap.BilinForm.apply_toDual_symm_apply]
+      rw [momentSharp_def, hBs.apply_toDual_symm_comm]
     rw [hΦ]
     exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ x)) _).trans
       (h (f : E →ₗ[ℝ] ℝ))
