@@ -828,23 +828,19 @@ theorem exists_eqOn_struweSwitchLeaf_struweShape {L : ℝ} (hL : 0 ≤ L) (hδ :
     (hℓ : 6 * δ < ℓ) :
     ∃ ε > 0, EqOn (struweSwitchLeaf L δ ℓ) (struweShape δ 1 (2 * ℓ - 47 * δ / 8))
       (Ico δ (δ + ε)) := by
-  set T := struweShape δ 1 (2 * ℓ - 47 * δ / 8)
-  have hc : ContinuousWithinAt (fun r ↦ sqrtAddLeaf L δ ℓ r + (ℓ - 6 * δ) / 200 - T r) (Ici δ) δ :=
-    ((continuous_sqrtAddLeaf L δ ℓ).add continuous_const).continuousWithinAt.sub
-      (continuousOn_struweShape hδ le_rfl _ δ self_mem_Ici)
-  have hT : T δ = 2 * ℓ - 47 * δ / 8 := struweShape_one_apply_self δ _
+  have hT : struweShape δ 1 (2 * ℓ - 47 * δ / 8) δ = 2 * ℓ - 47 * δ / 8 :=
+    struweShape_one_apply_self δ _
   have hA : sqrtAddLeaf L δ ℓ δ = δ / 8 + ℓ := by
     rw [sqrtAddLeaf_of_le hL hδ.le (by linarith)]
     simp
-  have h0 : sqrtAddLeaf L δ ℓ δ + (ℓ - 6 * δ) / 200 - T δ < 0 := by
-    rw [hA, hT]
-    linarith
-  obtain ⟨u, hu, hsub⟩ := mem_nhdsGE_iff_exists_Ico_subset.1 (hc (Iio_mem_nhds h0))
+  obtain ⟨u, hu, h⟩ :=
+    exists_eqOn_smoothedMax_right (div_pos (sub_pos.2 hℓ) (by norm_num : (0 : ℝ) < 200))
+    (continuous_sqrtAddLeaf L δ ℓ).continuousWithinAt
+    (continuousOn_struweShape hδ le_rfl _ δ self_mem_Ici) (by rw [hA, hT]; linarith)
   refine ⟨u - δ, sub_pos.2 hu, fun r hr ↦ ?_⟩
   rw [add_sub_cancel] at hr
-  have hr' : sqrtAddLeaf L δ ℓ r + (ℓ - 6 * δ) / 200 - T r < 0 := hsub hr
   rw [struweSwitchLeaf_of_lt hℓ]
-  exact smoothedMax_eq_right (div_pos (sub_pos.2 hℓ) (by norm_num)) (by linarith)
+  exact h hr
 
 /-- For `δ > 0`, each leaf `struweSwitchLeaf L δ ℓ` is continuous on `[δ, ∞)`. -/
 theorem continuousOn_struweSwitchLeaf (L : ℝ) (hδ : 0 < δ) (ℓ : ℝ) :
@@ -865,10 +861,7 @@ theorem tendsto_deriv_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (
   · rw [struweSwitchLeaf_of_le hℓ]
     exact tendsto_deriv_sqrtAddLeaf hL hδ ℓ
   · obtain ⟨ε, hε, h⟩ := exists_eqOn_struweSwitchLeaf_struweShape hL hδ hℓ
-    refine (tendsto_deriv_struweShape hδ le_rfl (2 * ℓ - 47 * δ / 8)).congr' ?_
-    filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < δ + ε)] with r hr
-    refine (EventuallyEq.deriv_eq ?_).symm
-    filter_upwards [Ioo_mem_nhds hr.1 hr.2] with x hx using h ⟨hx.1.le, hx.2⟩
+    exact tendsto_deriv_of_eqOn_struweShape hδ le_rfl (by linarith) (h.mono Ioo_subset_Ico_self)
 
 /-- The case `δ = 1`, `ℓ ∈ (6, 7]` of `isConvexShapeAt_struweSwitchLeaf`. With
 `A = sqrtAddLeaf L 1 ℓ`, `T` Struwe's shape with value `2 ℓ - 47 / 8` at `1` and the width

@@ -1013,7 +1013,8 @@ proof that needs it as a `Submodule` builds it there.
   orbit, which is at most the infimum, hence `0`, and
   `momentNormSq_eq_zero_iff` makes the minimum point a zero of `μ`.
 - `exists_momentWeight_pos_of_iInf_momentNormSq_pos` (`HilbertMumford.lean`):
-  in the setting of `momentNormSq_limit_eq_iInf`, if
+  in the setting of `exists_mem_orbit_maximalIntegralCurve`, with `B` positive
+  definite and `Ad`-invariant, if
   `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
   some `ξ` with `B ξ ξ = 1` has `0 < momentWeight C μ p ξ`. Proof: take
   the flow curve `g` of `exists_mem_orbit_maximalIntegralCurve`, so

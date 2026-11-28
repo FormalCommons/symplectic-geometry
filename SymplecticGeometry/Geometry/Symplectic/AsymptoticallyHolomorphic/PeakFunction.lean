@@ -83,7 +83,10 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   the germ of `f` at `z`.
 * `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
   for the model `∂̄`, and its form for a product with a complex coordinate;
-  `SymplecticGeometry.modelDel_mul`: the Leibniz rule for the model `∂`.
+  `SymplecticGeometry.modelDel_mul`: the Leibniz rule for the model `∂`;
+  `SymplecticGeometry.modelDel_neg`: it commutes with negation;
+  `SymplecticGeometry.modelDel_congr_of_eventuallyEq`: its value at `z` depends only on the germ
+  of `f` at `z`, and `SymplecticGeometry.modelDel_eventuallyEq` says the same of its germ.
 * `SymplecticGeometry.modelDbar_gaussian`, `SymplecticGeometry.modelDbar_coord_mul_gaussian`: the
   Gaussian `exp (-‖z‖ ^ 2 / 4)` and `z_j` times it have model `∂̄` zero;
   `SymplecticGeometry.modelDel_gaussian`: its model `∂` at `z` is its value times
@@ -547,6 +550,21 @@ theorem modelDel_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differe
   apply ContinuousLinearMap.coe_injective
   rw [coe_modelDel, modelConnection_add hf hg, ContinuousLinearMap.toLinearMap_add,
     complexLinearPart_add, ContinuousLinearMap.toLinearMap_add, coe_modelDel, coe_modelDel]
+
+@[simp]
+theorem modelDel_neg (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel (-f) z = -modelDel f z := by
+  rw [modelDel_def, modelDel_def, modelConnection_neg, map_neg]
+
+/-- The model `∂` at `z` depends only on the germ of `f` at `z`. -/
+theorem modelDel_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[nhds z] g) : modelDel f z = modelDel g z := by
+  rw [modelDel_def, modelDel_def, modelConnection_congr_of_eventuallyEq h]
+
+/-- Near `z`, the model `∂` of `f` depends only on the germ of `f` at `z`. -/
+theorem modelDel_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[nhds z] g) : modelDel f =ᶠ[nhds z] modelDel g :=
+  h.eventually_nhds.mono fun _ hw ↦ modelDel_congr_of_eventuallyEq hw
 
 @[simp]
 theorem modelDel_zero (z : StdSpace ι) : modelDel (0 : StdSpace ι → ℂ) z = 0 := by
