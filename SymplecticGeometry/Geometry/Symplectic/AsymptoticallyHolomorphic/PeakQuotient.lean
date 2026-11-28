@@ -87,8 +87,7 @@ theorem flatDbar_mul_exp_eq_smul_modelDbar {f : StdSpace ι → ℂ} {w : StdSpa
   have hq : DifferentiableAt ℝ (fun y ↦ f y * E y) w :=
     hf.mul ((contDiff_ofReal_exp_norm_sq_div_four (n := 1)).differentiable one_ne_zero w)
   have hG : DifferentiableAt ℝ G w :=
-    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian : ContDiff ℝ 1 G)).differentiable
-      one_ne_zero w
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero w
   have hf' : f = fun y ↦ (f y * E y) * G y := by
     funext y
     rw [mul_assoc, hEG, mul_one]
@@ -129,9 +128,7 @@ theorem complexLinearPart_modelConnection_mul_gaussian {q : StdSpace ι → ℂ}
           (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ) +
         q z • (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ)) := by
   have hG : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
-    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
-      ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
-      one_ne_zero z
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
   rw [modelConnection_mul hq hG, modelConnection_gaussian]
   have hc : IsComplexLinear (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (LinearMap.mulLeft ℝ (q z)) :=
