@@ -257,12 +257,8 @@ theorem IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt_norm_comp
   have hlt : ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
       ‖J.oneZeroPart (powerConnection α k (s k) x)‖ :=
     lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
-  rwa [J.zeroOnePart_eq_toContinuousLinearMap_complexAntilinearPart,
-    J.oneZeroPart_eq_toContinuousLinearMap_complexLinearPart,
-    SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
-    ← Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
-    ← complexAntilinearPartContinuousLinearMap_apply, ← complexLinearPartContinuousLinearMap_apply]
-    at hlt
+  rwa [J.zeroOnePart_eq_complexAntilinearPartContinuousLinearMap,
+    J.oneZeroPart_eq_complexLinearPartContinuousLinearMap] at hlt
 
 omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
