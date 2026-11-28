@@ -41,9 +41,9 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
   line `W` with `A (J v) = i • A v`, `B (J v) = -(i • B v)` and `‖B‖ < ‖A‖`, the sum `A + B` is
   surjective. Pick `v` with `‖B v‖ < ‖A v‖`; then `z ↦ (A + B) (re z • v + im z • J v)` is
   `z ↦ z • A v + conj z • B v`, which is injective, hence bijective from `ℂ` onto `W`. The two
-  surjectivity results below are its special cases, and the file proves surjectivity only here.
-* `TauCeti.AlmostComplexStructure.surjective_of_norm_lt`: `F = A + B` is surjective, for any
-  norm on `V` and with no `ω`.
+  surjectivity results below are its special cases.
+* `TauCeti.IsComplexLinear.surjective_of_norm_lt`: `F = A + B` is surjective, for any norm on
+  `V`, with no `ω`, and with `W` any complex line.
 * `TauCeti.AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt`: a real-linear map
   `F` from a finite-dimensional `V` to a complex normed space `W` of dimension one whose
   complex-antilinear part (`TauCeti.complexAntilinearPart`) has smaller norm than its
@@ -154,20 +154,25 @@ section Surjective
 variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup W]
   [NormedSpace ℝ W] [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W] {J : AlmostComplexStructure V}
 
-namespace AlmostComplexStructure
+namespace IsComplexLinear
 
-/-- **A real-linear form with dominant complex-linear part is surjective.** Let
-`A, B : V →L[ℝ] ℂ` be complex linear and complex antilinear respectively, for `J` and
-multiplication by `i` on `ℂ`, with `‖B‖ < ‖A‖`. Then `A + B` is surjective. -/
-theorem surjective_of_norm_lt {A B : V →L[ℝ] ℂ}
-    (hA : IsComplexLinear J.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (A : V →ₗ[ℝ] ℂ))
+/-- **A real-linear map to a complex line with dominant complex-linear part is surjective.** Let
+`W` be a complex normed space of dimension one, and let `A, B : V →L[ℝ] W` be complex linear and
+complex antilinear respectively, for `J` and multiplication by `i` on `W`, with `‖B‖ < ‖A‖`.
+Then `A + B` is surjective. -/
+theorem surjective_of_norm_lt (hW : finrank ℂ W = 1) {A B : V →L[ℝ] W}
+    (hA : IsComplexLinear J.toLinearMap (AlmostComplexStructure.ofComplexModule W).toLinearMap
+      (A : V →ₗ[ℝ] W))
     (hB : IsComplexAntilinear J.toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
+      (AlmostComplexStructure.ofComplexModule W).toLinearMap (B : V →ₗ[ℝ] W))
     (h : ‖B‖ < ‖A‖) : Function.Surjective (A + B) :=
-  A.surjective_add_of_norm_lt (finrank_self ℂ)
-    (fun v ↦ by simpa [ofComplexModule_apply] using hA.apply v)
-    (fun v ↦ by simpa [ofComplexModule_apply] using hB.apply v) h
+  A.surjective_add_of_norm_lt hW
+    (fun v ↦ by simpa [AlmostComplexStructure.ofComplexModule_apply] using hA.apply v)
+    (fun v ↦ by simpa [AlmostComplexStructure.ofComplexModule_apply] using hB.apply v) h
+
+end IsComplexLinear
+
+namespace AlmostComplexStructure
 
 /-- **A real-linear map to a complex line with dominant complex-linear part is surjective.**
 Let `V` be finite-dimensional, let `W` be a complex normed space of dimension one, and let
@@ -181,15 +186,9 @@ theorem surjective_of_norm_complexAntilinearPart_lt [FiniteDimensional ℝ V]
       ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
     Function.Surjective F := by
-  have hs := ContinuousLinearMap.surjective_add_of_norm_lt hW (J := J)
-    (fun v ↦ by
-      simpa only [LinearMap.coe_toContinuousLinearMap', ofComplexModule_apply] using
-        (isComplexLinear_complexLinearPart J.square_neg
-          (ofComplexModule W).square_neg (F : V →ₗ[ℝ] W)).apply v)
-    (fun v ↦ by
-      simpa only [LinearMap.coe_toContinuousLinearMap', ofComplexModule_apply] using
-        (isComplexAntilinear_complexAntilinearPart J.square_neg
-          (ofComplexModule W).square_neg (F : V →ₗ[ℝ] W)).apply v) h
+  have hs := IsComplexLinear.surjective_of_norm_lt hW
+    (isComplexLinear_complexLinearPart J.square_neg (ofComplexModule W).square_neg _)
+    (isComplexAntilinear_complexAntilinearPart J.square_neg (ofComplexModule W).square_neg _) h
   rwa [← map_add, complexLinearPart_add_complexAntilinearPart,
     LinearMap.coe_toContinuousLinearMap'] at hs
 
@@ -407,7 +406,7 @@ theorem orientation_ker_eq_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ
     (h : ‖B‖ < ‖A‖) {m : ℕ} (hV : finrank ℝ V = m + 2)
     (hm : finrank ℝ (LinearMap.ker ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)) = m) :
     Orientation.kerOfExact (LinearMap.ker ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)).injective_subtype
-        (LinearMap.exact_subtype_ker_map _) (AlmostComplexStructure.surjective_of_norm_lt hA hB h)
+        (LinearMap.exact_subtype_ker_map _) (hA.surjective_of_norm_lt (finrank_self ℂ) hB h)
         (ω.orientation hV) Complex.orientation hm Complex.finrank_real_complex =
       (ω.restrict _ (isSymplectic_ker_of_norm_lt hg hA hB h).nondegenerate_restrict).orientation
         hm := by
