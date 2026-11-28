@@ -359,9 +359,8 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, ← ContinuousLinearMap.comp_apply, ← hd]
     exact zero_apply _
   have hw : (fun i ↦ mfderiv IN IM g x (w i)) =
-      ![mfderiv IN IM g x (w 0), mfderiv IN IM g x (w 1)] := by
-    ext i
-    fin_cases i <;> rfl
+      ![mfderiv IN IM g x (w 0), mfderiv IN IM g x (w 1)] :=
+    (FinVec.etaExpand_eq _).symm
   rw [hw]
   have hXt : ContMDiff IM IM.tangent 1 fun y ↦ (⟨y, X t y⟩ : TangentBundle IM M) :=
     hX.comp ((contMDiff_const (c := t)).prodMk contMDiff_id)
@@ -403,7 +402,7 @@ private theorem IsVerticallyClosed.mpullback_parallelTransportIn_of_mapsTo_baseS
         HasDerivAt (F := EF [⋀^Fin 2]→L[ℝ] ℝ) (fun r ↦ mpullback IF IM (φ r ∘ ι) τ.val v) 0 u := by
       have hproj (y : F) : proj (φ u (ι y)) = γ u := by
         rw [htr u hu ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y)]
-        exact hD.parallelTransport_mem_preimage le_top hf hfp hγ'
+        exact hD.apply_parallelTransport le_top hf hfp hγ'
           ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y) u
       exact h.hasDerivAt_mpullback_comp_zero hA hc (hX.of_le (by simp)) (hXh u) (hι v)
         fun y ↦ by rw [hproj, hproj]
