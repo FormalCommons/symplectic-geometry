@@ -180,8 +180,9 @@ section PreferredChart
 variable [IsManifold 𝓘(ℝ, E) 3 M]
 
 /-- The change of coordinates `τ` from the preferred chart at `x` to the chart of a birth–death
-chart: near `u = extChartAt 𝓘(ℝ, E) x x` it is `C³`, sends `u` to `0` and has invertible derivative,
-and `f` read in the preferred chart is the normal form composed with `τ`. -/
+chart: it is `C³` at `u = extChartAt 𝓘(ℝ, E) x x`, sends `u` to `0` and has invertible derivative
+there, and near `u` the function `f` read in the preferred chart is the normal form composed with
+`τ`. -/
 private theorem exists_coordChange : ∃ τ : E → E,
     ContDiffAt ℝ 3 τ (extChartAt 𝓘(ℝ, E) x x) ∧ τ (extChartAt 𝓘(ℝ, E) x x) = 0 ∧
       (fderiv ℝ τ (extChartAt 𝓘(ℝ, E) x x)).IsInvertible ∧
