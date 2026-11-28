@@ -563,10 +563,8 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   ends `realImage` are chart subspaces `Matrix.lagrangianChart S₀`,
   `lagrangianChart S₁` of symmetric matrices,
   `pathMaslovIndex (δ.map continuous_unitaryFrame) (V₀ ι)` is Tau Ceti's
-  `transverseMaslovIndex` of `realImagePath δ`. Proof: by
-  `Matrix.UnitaryGroup.relativeMaslovIndex_realImagePath` the transverse index is the difference
-  of the Souriau indices of `δ` and of a frame of the chart segment, and the
-  latter vanishes by the zero axiom, the segment staying transverse to `V₀`.
+  `transverseMaslovIndex` of `realImagePath δ`. Proof: `ℒ.pathMaslovIndex_map_unitaryFrame`
+  and Tau Ceti's `TauCeti.TotallyRealPath.transverseMaslovIndex_eq_maslovIndex`.
 - Loops: `ℒ.pathMaslovIndex_eq_maslovIndex (γ : Path Λ Λ) (V) :
   pathMaslovIndex γ V = maslovIndex γ`, for every `V`; and with
   `ℒ.maslovIndex_eq_sub_div_pi` the form of the milestone's loops clause,
