@@ -999,7 +999,7 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
   along `e` turns the action of `M` into that of `reindex e e M`),
   `Analysis/Matrix/EuclideanLin.lean`
-  (`Matrix.coe_toLinearEquiv_toEuclideanCLE`: the linear equivalence of an
+  (`Matrix.toLinearMap_toLinearEquiv_toEuclideanCLE`: the linear equivalence of an
   invertible matrix `A` is `Matrix.toEuclideanLin A` as a linear map),
   `Analysis/Normed/Lp/PiLp.lean`
   (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
