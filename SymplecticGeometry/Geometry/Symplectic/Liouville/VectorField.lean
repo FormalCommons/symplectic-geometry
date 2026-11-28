@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
@@ -16,6 +17,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.LocalPrimitive
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 
@@ -54,6 +56,14 @@ For a closed smooth two-form `σ` and a smooth Liouville field `X`, the contract
 primitive of `σ` as a smooth one-form (`TauCeti.IsLiouvilleVectorField.mextDerivₗ_interiorₗ`),
 by Tau Ceti's `TauCeti.isLiouvilleVectorField_iff_mextDeriv_interior_eq`.
 
+The Lie derivative is additive in the field (Tau Ceti's `TauCeti.mlieDerivForm_add_left`), so
+adding to a Liouville field `X` of `σ` a field `Z` with `L_Z σ = 0` gives again a Liouville field
+of `σ` (`TauCeti.IsLiouvilleVectorField.add_of_mlieDerivForm_eq_zero`). For a closed `σ`, a
+Hamiltonian field `Z` of a `C²` function has `L_Z σ = 0`
+(`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mlieDerivForm_eq_zero`), so `X + t • Z` is a
+Liouville field of `σ` for every real `t`
+(`TauCeti.IsLiouvilleVectorField.add_smul_of_isHamiltonianVectorField`).
+
 Two smooth Liouville fields `X`, `X'` of one closed two-form `σ` differ, near any point, by a
 Hamiltonian field (`TauCeti.IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv`). By
 `TauCeti.IsLiouvilleVectorField.mextDerivₗ_interiorₗ`, both `ι_X σ` and `ι_{X'} σ` are
@@ -77,7 +87,7 @@ apply the first statement there. Where `X'` and `X` agree at `p`, as when both v
   by the linearized flow in the proof of Proposition 11.9 (a). The radial field of
   Example 11.12 (1) and the field of Example 11.18 are linear Liouville fields. The local
   Hamiltonian of the difference of two Liouville fields is the first step of the proof of
-  Lemma 12.9
+  Lemma 12.9, and the fields `X + t • Z`, with `Z` Hamiltonian, are those of its cut-off step
 -/
 
 public section
@@ -186,6 +196,40 @@ theorem mextDerivₗ_interiorₗ {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
     rw [mextDerivₗ_apply, SmoothTwoForm.coe_interiorₗ]
     exact (isLiouvilleVectorField_iff_mextDeriv_interior_eq σ.mdifferentiable
       (X.contMDiff.mdifferentiable (by simp)) ((SmoothForm.isClosed_def _).1 hσ)).1 hX
+
+section AddField
+
+/-! ### Adding a field that preserves the form -/
+
+omit [IsManifold I ∞ M] in
+/-- **Adding a field that preserves the form keeps a Liouville field Liouville.** If `X` is a
+differentiable Liouville vector field of a two-form `σ` and `Z` a differentiable vector field
+with `L_Z σ = 0`, then `X + Z` is a Liouville vector field of `σ`. -/
+theorem add_of_mlieDerivForm_eq_zero [IsManifold I 1 M] {σ : RoughForm I M ℝ 2}
+    {X Z : (x : M) → TangentSpace I x} (hXσ : IsLiouvilleVectorField σ X)
+    (hX : MDifferentiable I I.tangent (fun y ↦ (X y : TangentBundle I M)))
+    (hZ : MDifferentiable I I.tangent (fun y ↦ (Z y : TangentBundle I M)))
+    (hZσ : mlieDerivForm Z σ = 0) :
+    IsLiouvilleVectorField σ (X + Z) := by
+  refine isLiouvilleVectorField_iff.2 (funext fun x ↦ ?_)
+  rw [mlieDerivForm_add_left σ (hX x) (hZ x), hZσ, isLiouvilleVectorField_iff.1 hXσ,
+    Pi.zero_apply, add_zero]
+
+/-- **Adding a Hamiltonian field keeps a Liouville field Liouville.** Let `σ` be a closed smooth
+two-form, `X` a differentiable Liouville vector field of `σ`, and `Z` a differentiable
+Hamiltonian vector field of a `C²` function `G`. Then `X + t • Z` is a Liouville vector field of
+`σ` for every real `t`. -/
+theorem add_smul_of_isHamiltonianVectorField {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
+    {X Z : (x : M) → TangentSpace I x} (hXσ : IsLiouvilleVectorField σ.val X)
+    (hX : MDifferentiable I I.tangent (fun y ↦ (X y : TangentBundle I M)))
+    {G : M → ℝ} (hG : ContMDiff I 𝓘(ℝ) 2 G) (hZG : σ.IsHamiltonianVectorField G Z)
+    (hZ : MDifferentiable I I.tangent (fun y ↦ (Z y : TangentBundle I M))) (t : ℝ) :
+    IsLiouvilleVectorField σ.val (X + t • Z) := by
+  refine hXσ.add_of_mlieDerivForm_eq_zero (Z := t • Z) hX
+    (mdifferentiable_smul_const_section hZ) ?_
+  rw [mlieDerivForm_const_smul_left, hZG.mlieDerivForm_eq_zero hσ hG hZ, smul_zero]
+
+end AddField
 
 section LocalHamiltonian
 
