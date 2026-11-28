@@ -29,14 +29,17 @@ dimension `Ψ` is a local diffeomorphism by Tau Ceti's inverse function theorem
 The hypothesis holds for every multiple `c • τ` with `c ∈ [0, 1]`, since `1 + c dτ(v)` is a convex
 combination of `1` and `1 + dτ(v)`; so each `c • τ` gives a time change that is a diffeomorphism
 too, joining the identity (`c = 0`) to `Ψ` (`c = 1`). A continuous `τ` with compact support is
-bounded, so all of this applies to it.
+bounded, so all of this applies to it. This time change varies the time from point to point;
+it differs from Tau Ceti's `Flow.timeChange`, which multiplies the time by a constant.
 
 ## Main results
 
-* `TauCeti.globalFlow_timeChange_globalFlow`: `Ψ (φ t x) = φ (t + τ (φ t x)) x`.
+* `Flow.surjective_add_apply`: for any flow `φ` of `ℝ` and continuous bounded `τ`, the
+  reparametrization `t ↦ t + τ (φ t x)` of an orbit is onto `ℝ`.
+* `Flow.bijective_apply_self`: for any flow `φ` of `ℝ`, the time change `x ↦ φ (τ x) x` is
+  bijective if each reparametrization `t ↦ t + τ (φ t x)` is.
 * `TauCeti.hasDerivAt_add_apply_globalFlow`: the derivative of `t ↦ t + τ (φ t x)`.
-* `TauCeti.strictMono_add_apply_globalFlow`, `TauCeti.surjective_add_apply_globalFlow`: the
-  reparametrization `t ↦ t + τ (φ t x)` of an orbit is strictly increasing, and onto `ℝ`.
+* `TauCeti.strictMono_add_apply_globalFlow`: the reparametrization is strictly increasing.
 * `TauCeti.bijective_globalFlow_timeChange`: the time change is bijective.
 * `TauCeti.injective_mfderiv_globalFlow_timeChange`: its differential is injective, and
   `TauCeti.isLocalDiffeomorph_globalFlow_timeChange`: it is a local diffeomorphism.
@@ -49,13 +52,51 @@ bounded, so all of this applies to it.
 ## References
 
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
-  §3, Theorem 3.1 (moving sublevels along the flow of a gradient-like field).
+  §3, Theorem 3.1 (moving sublevels along the flow of a rescaled gradient field).
 -/
 
 public section
 
 open Set Function
 open scoped Manifold ContDiff
+
+namespace Flow
+
+variable {M : Type*} [TopologicalSpace M] (ϕ : Flow ℝ M) {τ : M → ℝ}
+
+/-- If `τ` is continuous and bounded, the reparametrization `s ↦ s + τ (ϕ s x)` of the orbit of
+`x` is onto `ℝ`. -/
+theorem surjective_add_apply (hτ : Continuous τ) (hτb : Bornology.IsBounded (range τ)) (x : M) :
+    Surjective (fun s ↦ s + τ (ϕ s x)) := by
+  obtain ⟨C, hC⟩ := hτb.subset_closedBall 0
+  have hle (y : M) : |τ y| ≤ C := by simpa using hC (mem_range_self y)
+  intro r
+  have hcont : Continuous (fun s ↦ s + τ (ϕ s x)) :=
+    continuous_id.add (hτ.comp (ϕ.continuous continuous_id continuous_const))
+  refine intermediate_value_univ (r - C) (r + C) hcont ⟨?_, ?_⟩
+  · linarith [(abs_le.1 (hle (ϕ (r - C) x))).2]
+  · linarith [(abs_le.1 (hle (ϕ (r + C) x))).1]
+
+/-- If the reparametrization `s ↦ s + τ (ϕ s x)` of every orbit is a bijection of `ℝ`, then the
+time change `x ↦ ϕ (τ x) x` is a bijection of `M`. -/
+theorem bijective_apply_self (hinj : ∀ x, Injective (fun s ↦ s + τ (ϕ s x)))
+    (hsurj : ∀ x, Surjective (fun s ↦ s + τ (ϕ s x))) : Bijective (fun x ↦ ϕ (τ x) x) := by
+  refine ⟨fun a b hab ↦ ?_, fun y ↦ ?_⟩
+  · -- `b` lies on the orbit of `a`, at time `s = τ a - τ b`.
+    have hb : b = ϕ (τ a - τ b) a := by
+      rw [sub_eq_neg_add, Flow.map_add, ← show ϕ (τ b) b = ϕ (τ a) a from hab.symm,
+        ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
+    have hs : τ a - τ b = 0 := by
+      refine hinj a ?_
+      simp only [← hb, Flow.map_zero_apply]
+      ring
+    rw [hb, hs, Flow.map_zero_apply]
+  · obtain ⟨t, ht⟩ := hsurj y 0
+    refine ⟨ϕ t y, ?_⟩
+    simp only at ht ⊢
+    rw [← Flow.map_add, add_comm, ht, Flow.map_zero_apply]
+
+end Flow
 
 namespace TauCeti
 
@@ -78,14 +119,6 @@ theorem one_add_mvfderiv_const_smul_pos {y : M} {c : ℝ} (hc : c ∈ Icc 0 1)
 
 include hv hcomplete
 
-/-- Along the orbit of `x`, the time change `Ψ z = φ (τ z) z` is the flow for the reparametrized
-time `t + τ (φ t x)`: `Ψ (φ t x) = φ (t + τ (φ t x)) x`. -/
-theorem globalFlow_timeChange_globalFlow (t : ℝ) (x : M) :
-    globalFlow v hv hcomplete (τ (globalFlow v hv hcomplete t x))
-        (globalFlow v hv hcomplete t x) =
-      globalFlow v hv hcomplete (t + τ (globalFlow v hv hcomplete t x)) x := by
-  rw [add_comm, Flow.map_add]
-
 /-- The reparametrization `t ↦ t + τ (φ t x)` of the orbit of `x` has derivative `1 + dτ(v)` at
 `φ t x`. -/
 theorem hasDerivAt_add_apply_globalFlow (hτ : MDifferentiable I 𝓘(ℝ) τ) (t : ℝ) (x : M) :
@@ -103,41 +136,14 @@ theorem strictMono_add_apply_globalFlow (hτ : MDifferentiable I 𝓘(ℝ) τ)
   strictMono_of_deriv_pos fun t ↦
     (hasDerivAt_add_apply_globalFlow hv hcomplete hτ t x).deriv ▸ hpos _
 
-/-- If `τ` is continuous and bounded, the reparametrization `t ↦ t + τ (φ t x)` of each orbit is
-onto `ℝ`. -/
-theorem surjective_add_apply_globalFlow (hτ : Continuous τ) (hτb : Bornology.IsBounded (range τ))
-    (x : M) : Surjective (fun s ↦ s + τ (globalFlow v hv hcomplete s x)) := by
-  obtain ⟨C, hC⟩ := hτb.subset_closedBall 0
-  have hle (y : M) : |τ y| ≤ C := by simpa using hC (mem_range_self y)
-  intro r
-  have hcont : Continuous (fun s ↦ s + τ (globalFlow v hv hcomplete s x)) :=
-    continuous_id.add (hτ.comp ((globalFlow v hv hcomplete).continuous continuous_id
-      continuous_const))
-  refine intermediate_value_univ (r - C) (r + C) hcont ⟨?_, ?_⟩
-  · linarith [(abs_le.1 (hle (globalFlow v hv hcomplete (r - C) x))).2]
-  · linarith [(abs_le.1 (hle (globalFlow v hv hcomplete (r + C) x))).1]
-
 /-- **The time change along a complete flow is bijective.** If `τ` is differentiable and bounded
 and `1 + dτ(v) > 0` everywhere, then `x ↦ φ (τ x) x` is a bijection of `M`. -/
 theorem bijective_globalFlow_timeChange (hτ : MDifferentiable I 𝓘(ℝ) τ)
     (hτb : Bornology.IsBounded (range τ)) (hpos : ∀ y, 0 < 1 + mvfderiv I τ y (v y)) :
-    Bijective (fun x ↦ globalFlow v hv hcomplete (τ x) x) := by
-  set φ := globalFlow v hv hcomplete
-  refine ⟨fun a b hab ↦ ?_, fun y ↦ ?_⟩
-  · -- `b` lies on the orbit of `a`, at time `s = τ a - τ b`.
-    have hb : b = φ (τ a - τ b) a := by
-      rw [sub_eq_neg_add, Flow.map_add, ← show φ (τ b) b = φ (τ a) a from hab.symm,
-        ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
-    have hs : τ a - τ b = 0 := by
-      refine (strictMono_add_apply_globalFlow hv hcomplete hτ hpos a).injective ?_
-      simp only [φ] at hb
-      simp only [← hb, Flow.map_zero_apply]
-      ring
-    rw [hb, hs, Flow.map_zero_apply]
-  · obtain ⟨t, ht⟩ := surjective_add_apply_globalFlow hv hcomplete hτ.continuous hτb y 0
-    exact ⟨φ t y, by
-      simp only [φ] at ht ⊢
-      rw [globalFlow_timeChange_globalFlow, ht, Flow.map_zero_apply]⟩
+    Bijective (fun x ↦ globalFlow v hv hcomplete (τ x) x) :=
+  (globalFlow v hv hcomplete).bijective_apply_self
+    (fun x ↦ (strictMono_add_apply_globalFlow hv hcomplete hτ hpos x).injective)
+    ((globalFlow v hv hcomplete).surjective_add_apply hτ.continuous hτb)
 
 /-- **The differential of a time change.** If `τ` is differentiable at `x` and
 `1 + dτ(v) ≠ 0` at `x`, the differential at `x` of the time change `z ↦ φ (τ z) z` is
