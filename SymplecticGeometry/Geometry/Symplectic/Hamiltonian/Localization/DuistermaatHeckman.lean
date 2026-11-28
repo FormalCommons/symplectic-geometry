@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Real
-import Mathlib.Analysis.Analytic.IsolatedZeros
+import TauCeti.Analysis.Complex.RealIdentity
 import Mathlib.Analysis.Normed.Module.Connected
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 import SymplecticGeometry.Probability.Moments.ComplexMGF
@@ -36,7 +36,7 @@ measure, the measure of `σⁿ / n!`.
   continuous, hence bounded, and `λ_σ` is finite on the compact space `M`
   (`ProbabilityTheory.analyticOnNhd_complexMGF_of_mem_Icc`); the right side is a finite sum of
   functions analytic on `ℂ ∖ {0}`, which is connected. The two agree on the positive reals, so on
-  `ℂ ∖ {0}` (`AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq`).
+  `ℂ ∖ {0}` (Tau Ceti's `DifferentiableOn.eqOn_of_frequently_ofReal_eq`).
 * `SymplecticGeometry.tendsto_finsum_fixedPoints_liouvilleMeasure`: as `ħ → 0`, `ħ ≠ 0`, the right
   side tends to the total Liouville measure of `M`, the value of the left side at `ħ = 0`; so
   `ħ = 0` is a removable singularity of the sum.
@@ -167,19 +167,12 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints (hσ : σ.IsSymplectic)
     rw [← integral_complex_ofReal] at h'
     push_cast at h'
     exact h'
-  have hfreq : ∃ᶠ z in 𝓝[≠] (1 : ℂ),
-      ∫ x, Complex.exp (-z * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n =
-        ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
-          Complex.exp (-z * μ p circlePeriodOneGenerator) / (z ^ n * ∏ j, (k p j : ℂ)) := by
-    have hmap : Tendsto (fun t : ℝ ↦ (t : ℂ)) (𝓝[≠] 1) (𝓝[≠] 1) :=
-      Complex.continuous_ofReal.continuousWithinAt.tendsto_nhdsWithin fun t ht h ↦
-        ht (by simpa using h)
-    refine hmap.frequently (Eventually.frequently ?_)
-    filter_upwards [nhdsWithin_le_nhds (eventually_gt_nhds one_pos)] with t ht
-    exact hpos t ht
-  exact AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq hL hR
-    (isConnected_compl_singleton_of_one_lt_rank (E := ℂ)
-      (by rw [Complex.rank_real_complex]; norm_num) 0).isPreconnected (by simp) hfreq hħ
+  refine hL.differentiableOn.eqOn_of_frequently_ofReal_eq hR.differentiableOn
+    isOpen_compl_singleton (isConnected_compl_singleton_of_one_lt_rank (E := ℂ)
+      (by rw [Complex.rank_real_complex]; norm_num) 0).isPreconnected (t₀ := 1) (by simp)
+    (Eventually.frequently ?_) hħ
+  filter_upwards [nhdsWithin_le_nhds (eventually_gt_nhds one_pos)] with t ht
+    using hpos t ht
 
 /-- **The value of Duistermaat–Heckman localization at `ħ = 0`.** Under the hypotheses of
 `SymplecticGeometry.integral_cexp_neg_mul_eq_finsum_fixedPoints`, the sum

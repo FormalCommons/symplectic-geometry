@@ -275,7 +275,7 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
   have hlt : f (hW.flow (-T) x) < a := by
     simpa using hT _ (hW.isMIntegralCurve_flow x).comp_neg 0 T (by simp) (by simp)
   have hcont : Continuous fun t ↦ f (hW.flow t x) :=
-    hf.continuous.comp (hW.isMIntegralCurve_flow x).continuous
+    hf.continuous.comp (hW.flow.continuous_eval_const x)
   obtain ⟨t, ht, hta⟩ := intermediate_value_Icc (neg_nonpos.2 hT0) hcont.continuousOn
     ⟨hlt.le, by simpa using hx.1⟩
   exact ⟨t, ht.2, hta⟩
@@ -556,7 +556,7 @@ theorem exists_flow_apply_mem_diff_of_isCompact {p x : M} {K G : Set M} (hK : Is
     ∃ t, hW.flow t x ∈ K \ G := by
   obtain ⟨t₀, ht₀T, ht₀⟩ := hW.exists_le_flow_apply_notMem_of_isCompact hK hKs hx hxp T
   by_contra! h
-  have hφc : Continuous fun t ↦ hW.flow t x := (hW.isMIntegralCurve_flow x).continuous
+  have hφc : Continuous fun t ↦ hW.flow t x := hW.flow.continuous_eval_const x
   -- Otherwise the times outside `K` and those in `G` split `[t₀, T]` into two disjoint open sets.
   obtain ⟨t, -, h₁, h₂⟩ := isPreconnected_Icc (a := t₀) (b := T)
     ((fun t ↦ hW.flow t x) ⁻¹' Kᶜ) ((fun t ↦ hW.flow t x) ⁻¹' G)

@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
 public import TauCeti.Topology.Homotopy.Extension.NDRPair
-import SymplecticGeometry.Topology.Collar.Compact
 import TauCeti.Topology.Algebra.Support
 
 /-!
@@ -23,7 +22,7 @@ the whole collar `c(N × [0, 1))`, deformed onto `f(N)` relative to `f(N)` by sc
 depth, clipped to `[0, 1]`, on the collar, and `1` off it: it vanishes exactly on `f(N)` and is
 less than `1` only on the collar. It is continuous because, `N` being compact, `c(N × [0, 1/2])`
 is compact and so closed in `X`, and the function is `1` off that set
-(`TauCeti.IsCollar.isCompact_image_setOfPred_le`).
+(`TauCeti.IsCollar.isCompact_image_le`).
 
 ## Main results
 
@@ -89,7 +88,7 @@ private lemma continuous_depthControlFun [CompactSpace N] [T2Space X] :
     exact (hc.depthControlFun_of_mem y.property).symm
   · -- The function is `1` off the closed set `c(N × [0, 1/2])`, which lies in the collar.
     refine (TauCeti.mulTSupport_subset_of_forall_notMem_eq_one (fun x hxK ↦ ?_)
-      (hc.isCompact_image_setOfPred_le (t := 1 / 2) (by norm_num)).isClosed).trans ?_
+      (hc.isCompact_image_le (t := 1 / 2) (by norm_num)).isClosed).trans ?_
     · refine hc.depthControlFun_eq_one fun hx' ↦ hxK ?_
       obtain ⟨p, hp, rfl⟩ := mem_collarPart_iff.1 hx'
       exact ⟨p, show (p.2 : ℝ) ≤ 1 / 2 from hp.le, rfl⟩
@@ -102,16 +101,11 @@ private lemma depthControlFun_eq_zero_iff (x : X) :
     hc.depthControlFun x = 0 ↔ x ∈ range f := by
   by_cases h : x ∈ collarPart c 1
   · rw [hc.depthControlFun_of_mem h, projIcc_eq_zero]
-    have hx := hc.apply_collarCoord ⟨x, h⟩
-    set p := hc.collarCoord 1 ⟨x, h⟩
-    refine ⟨fun hp ↦ ⟨p.1, ?_⟩, fun ⟨y, hy⟩ ↦ ?_⟩
-    · rw [← hc.apply_zero]
-      refine Eq.trans ?_ hx
-      exact congrArg c (Prod.ext rfl (Subtype.ext (by linarith [p.2.property.1])))
-    · have hp : p = (y, ⟨0, by norm_num⟩) :=
-        hc.collarCoord_apply _ _ ((hc.apply_zero y).trans hy)
-      rw [hp]
-      simp
+    have hx := hc.apply_mem_range_iff (p := hc.collarCoord 1 ⟨x, h⟩)
+    rw [hc.apply_collarCoord] at hx
+    rw [hx]
+    have := (hc.collarCoord 1 ⟨x, h⟩).2.property.1
+    constructor <;> intro <;> linarith
   · rw [hc.depthControlFun_of_notMem h]
     exact ⟨fun h1 ↦ absurd h1 one_ne_zero,
       fun hx ↦ absurd (hc.range_subset_collarPart one_pos hx) h⟩

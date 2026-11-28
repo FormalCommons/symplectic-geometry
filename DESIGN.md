@@ -984,9 +984,8 @@ it into issues; the overview fixes its folders and its dependencies.
   it: `LinearAlgebra/Matrix/UnitaryGroup/Real.lean`
   (`Matrix.UnitaryGroup.realSubgroup`, the real points
   $\mathrm{O}(n)\subset\mathrm{U}(n)$ as a subgroup of
-  `Matrix.unitaryGroup ι ℂ`: Tau Ceti's subgroup of `GL ι ℂ` from
-  `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`, carried along
-  Mathlib's `unitarySubgroupUnitsEquiv`; it is the stabilizer of $V_0$ and
+  `Matrix.unitaryGroup ι ℂ`: Tau Ceti's `Subgroup.unitaryPart` of
+  `TauCeti.GLOrthogonal ι ℂ`; it is the stabilizer of $V_0$ and
   the fibre of `Fibration.lean`), `LinearAlgebra/Matrix/OfReal.lean` (for
   real $X,Y$, the complex frame $X+iY$: its Gram matrix is real when
   $X^TY=Y^TX$, and its real image is the range of

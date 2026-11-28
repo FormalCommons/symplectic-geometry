@@ -194,7 +194,8 @@ For `StdSpace ι`:
   `isSymplectomorphism_stdConj_trans_of_forall_apply_eq_neg`
   (`(stdConj ι).trans Ψ` is one) and `det_eq_neg_one_pow_of_forall_apply_eq_neg`
   (`LinearMap.det Ψ = (-1) ^ n`, Exercise 2.4.3, first half, from Tau Ceti's
-  `TauCeti.SymplecticForm.IsSymplectomorphism.det_eq_one` and `det_stdConj`).
+  `LinearMap.BilinForm.det_eq_pow_of_isAlt_of_compl₁₂_self_eq_smul` with
+  multiplier `-1`).
 - `TauCeti.SymplecticForm.IsSymplectomorphism.adjoint`: for a
   symplectomorphism `e` of `stdForm ι`, the adjoint
   `ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv` (Tau Ceti's

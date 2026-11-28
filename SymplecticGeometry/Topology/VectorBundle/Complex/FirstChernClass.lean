@@ -13,7 +13,6 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Topology.ContinuousMap.Defs
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-import SymplecticGeometry.Topology.VectorBundle.DetBundle.CongrModel
 
 /-!
 # The first Chern class and the first Chern number
@@ -21,16 +20,14 @@ import SymplecticGeometry.Topology.VectorBundle.DetBundle.CongrModel
 For a complex vector bundle `E → B` with finite-dimensional model `G`, the first Chern class
 `c₁(E) ∈ H²(B; ℤ)` is Tau Ceti's `TauCeti.firstChernClass G E`, the first Chern class of the
 determinant line `TauCeti.DetBundle ℂ G E`. Tau Ceti proves its naturality
-(`TauCeti.firstChernClass_pullback`), its invariance under isomorphisms with the same model
-(`TauCeti.firstChernClass_eq_of_fiberwise`) and its vanishing for a trivial bundle and in rank zero
-(`TauCeti.firstChernClass_trivial`, `TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`). This
-file adds what Tau Ceti does not have, and defines the first Chern number over a compact
+(`TauCeti.firstChernClass_pullback`), its invariance under isomorphisms, also between different
+models (`TauCeti.firstChernClass_eq_of_fiberwise`), and its vanishing for a trivial bundle and in
+rank zero (`TauCeti.firstChernClass_trivial`, `TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`).
+This file adds what Tau Ceti does not have, and defines the first Chern number over a compact
 homologically oriented surface `M`, the integer `⟨c₁(E), [M]⟩`.
 
 ## Main definitions and results
 
-* `firstChernClass_congr`: isomorphic bundles have the same class, even with different models
-  (from `TauCeti.DetBundle.congrModelHomeomorph`);
 * `TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_model`: the class of the
   complex bundle of a continuous complex structure does not depend on the complex model;
 * `firstChernClass_detBundle`: the determinant line has the same class as the bundle
@@ -77,23 +74,6 @@ variable {B : Type} [TopologicalSpace B]
   [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
   [FiberBundle G E] [VectorBundle ℂ G E]
 
-variable {G E} in
-/-- **Isomorphic complex bundles have the same first Chern class.** The isomorphism is a family
-of complex-linear equivalences of the fibres, continuous on total spaces; the two models may
-differ. -/
-theorem firstChernClass_congr
-    {G' : Type*} [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
-    {E' : B → Type} [∀ x, AddCommGroup (E' x)] [∀ x, Module ℂ (E' x)]
-    [∀ x, TopologicalSpace (E' x)] [TopologicalSpace (TotalSpace G' E')]
-    [FiberBundle G' E'] [VectorBundle ℂ G' E'] (Φ : ∀ x, E x ≃L[ℂ] E' x)
-    (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G' (E := E') p.proj (Φ p.proj p.snd)) :
-    firstChernClass G E = firstChernClass G' E' := by
-  rw [firstChernClass_def, firstChernClass_def, lineFirstChernClass_def, lineFirstChernClass_def]
-  exact complexEulerClass_eq_of_fiberwise _ _
-    (φ := DetBundle.congrModelEquiv (F₁ := G) (F' := G') Φ)
-    ((DetBundle.congrModelHomeomorph Φ hΦ).continuous.congr fun p ↦
-      DetBundle.congrModelHomeomorph_apply Φ hΦ p)
-
 /-- **The determinant line has the same first Chern class as the bundle**:
 `c₁(det E) = c₁(E)`, where `det E` is the complex line bundle `TauCeti.DetBundle ℂ G E`. -/
 @[simp]
@@ -132,7 +112,7 @@ theorem _root_.TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_m
   -- The identity of `V` intertwines `J` with itself.
   have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) (J x v) =
       J x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun _ _ ↦ rfl
-  exact (firstChernClass_congr (J.fiberEquivOfCommute J _ hc)
+  exact (firstChernClass_eq_of_fiberwise (φ := J.fiberEquivOfCommute J _ hc)
     (J.continuous_fiberEquivOfCommute J _ hc (continuous_id.congr fun _ ↦ rfl))).symm
 
 /-- **The first Chern class of a line bundle** is the Euler class of the bundle itself, with the
@@ -202,7 +182,7 @@ theorem chernNumber_congr
     [FiberBundle G' E'] [VectorBundle ℂ G' E'] (Φ : ∀ x, E x ≃L[ℂ] E' x)
     (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G' (E := E') p.proj (Φ p.proj p.snd)) :
     chernNumber o hn G E = chernNumber o hn G' E' := by
-  rw [chernNumber_def, chernNumber_def, firstChernClass_congr Φ hΦ]
+  rw [chernNumber_def, chernNumber_def, firstChernClass_eq_of_fiberwise (φ := Φ) hΦ]
 
 /-- **The determinant line has the same first Chern number as the bundle**:
 `⟨c₁(det E), [M]⟩ = ⟨c₁(E), [M]⟩`, where `det E` is `TauCeti.DetBundle ℂ G E`. -/

@@ -193,7 +193,9 @@ the determinant line of prerequisite 1.
 
 The class is Tau Ceti's `TauCeti.firstChernClass G E`, that of the line
 `D`, with `TauCeti.firstChernClass_def`, `TauCeti.firstChernClass_pullback`
-along `f : C(B', B)`, `TauCeti.firstChernClass_trivial` and
+along `f : C(B', B)`, `TauCeti.firstChernClass_eq_of_fiberwise` (invariance under
+fibrewise isomorphisms, also between different models),
+`TauCeti.firstChernClass_trivial` and
 `TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`. The file adds:
 
 - `firstChernClass_pullback_coe (f : K)`, for any
@@ -201,10 +203,6 @@ along `f : C(B', B)`, `TauCeti.firstChernClass_trivial` and
   the class of `E`, from `TauCeti.firstChernClass_pullback` and
   `TauCeti.firstChernClass_eq_of_fiberwise` along the identity of each
   fibre, since the instances on `f *ᵖ E` depend on the type of `f`.
-- `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
-  on total spaces, preserves the class, even between different models.
-  `TauCeti.DetBundle.congrModelHomeomorph` turns it into one of the
-  determinant lines, and `TauCeti.complexEulerClass_eq_of_fiberwise` applies.
 - `firstChernClass_eq_complexEulerClass`: for a line bundle,
   `firstChernClass G E = complexEulerClass G E hG`, through
   `TauCeti.firstChernClass_eq_lineFirstChernClass`.
