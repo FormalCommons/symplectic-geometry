@@ -15,7 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
 import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
 import SymplecticGeometry.Geometry.Manifold.Immersion.Slice
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
 import SymplecticGeometry.Algebra.Order.BigOperators.Ring.Finset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
@@ -92,7 +92,7 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
 * `TauCeti.IsTotallyRealEmbedding.exists_isAdaptedChart_norm_sq_snd`: such charts exist near each
   point of the image of a `C³` totally real embedding. Total reality for `ofComplexManifold E M`
   and for its `C^ℓ` version agree, since both have the same pointwise structures
-  (`TauCeti.SmoothAlmostComplexStructure.almostComplexStructureAt_toContMDiff`).
+  (`TauCeti.SmoothAlmostComplexStructure.toContMDiff_almostComplexStructureAt`).
 
 These adapted charts force the dimension of `N` to be half that of `M`. The global statements
 use instead the squared normal coordinates of slice charts of an embedding
@@ -392,7 +392,7 @@ theorem exists_isAdaptedChart_norm_sq_snd
         𝓝ˢ (ψ.source ∩ range ι) := by
   have h' : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k
       ((ofComplexManifold E M).toContMDiff 2).almostComplexStructureAt ι := by
-    rwa [almostComplexStructureAt_toContMDiff]
+    rwa [toContMDiff_almostComplexStructureAt]
   obtain ⟨ψ, -, -, -, -, hy, -, hψ⟩ := h'.exists_adaptedChart one_le_two hk y
   exact ⟨ψ, hy, hψ, h.setOfPred_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     (le_trans (by norm_num) hk) hψ le_rfl e⟩
