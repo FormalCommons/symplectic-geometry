@@ -585,7 +585,7 @@ and the prerequisites, placed by topic.
   frames in which the connection form is the model, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
   `connectionForm_eq_model`. The existence theorem is
   `exists_rescaledUnitaryCharts`, and
-  `ofReal_mul_riemannianEDist_symm_mem_Icc` compares $d_k$ with
+  `rescaledEDist_symm_mem_Icc` compares $d_k$ with
   chart distances.
 - `Basic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
   `IsUniformlyTransverse`, closure under sums and under products with
