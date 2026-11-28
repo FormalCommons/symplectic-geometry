@@ -406,7 +406,7 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc
   refine eq_of_forall_mpullback_eq ?_ hη fun t ↦ ?_
   · rw [coe_mpullback]
     exact (isSemibasic_fst_timeExtendIcc η).mpullback_prodMap mdifferentiable_id
-      ((contMDiff_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero)
+      mdifferentiable_subtypeVal_Icc
   rw [mpullback_mpullback,
     mpullback_congr (f := Prod.map id Subtype.val ∘ fun x : M ↦ (x, t))
       (g := fun x : M ↦ (x, (t : ℝ))) _ (contMDiff_id.prodMk contMDiff_const)

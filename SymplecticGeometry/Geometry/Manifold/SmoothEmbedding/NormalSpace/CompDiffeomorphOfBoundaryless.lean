@@ -99,9 +99,10 @@ variable {n : ℕ∞ω} [IsManifold I n X] [IsManifold I'' n M']
 /-- Reparametrising an embedding by a diffeomorphism does not move its tangent planes: the
 tangent range of `f.compDiffeomorphOfBoundaryless e h1` at `x` is that of `f` at `e x`. -/
 theorem tangentRange_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (x : M') (hn : n ≠ 0) :
-    (f.compDiffeomorphOfBoundaryless e h1).isImmersion.tangentRange x hn =
-      f.isImmersion.tangentRange (e x) hn := by
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (x : M') :
+    (f.compDiffeomorphOfBoundaryless e h1).isImmersion.tangentRange x
+        (ENat.one_le_iff_ne_zero_withTop.1 h1) =
+      f.isImmersion.tangentRange (e x) (ENat.one_le_iff_ne_zero_withTop.1 h1) := by
   rw [Manifold.IsImmersion.tangentRange_def, Manifold.IsImmersion.tangentRange_def]
   exact range_mfderiv_compDiffeomorphOfBoundaryless f e h1 x
 
@@ -109,13 +110,16 @@ theorem tangentRange_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M
 structure, that maps the tangent planes of `f` into themselves does the same for those of the
 reparametrised embedding `f.compDiffeomorphOfBoundaryless e h1`. -/
 theorem mapsTo_tangentRange_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0)
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n)
     {A : ∀ y : X, TangentSpace I y → TangentSpace I y}
-    (hA : ∀ y, MapsTo (A (f y)) (f.isImmersion.tangentRange y hn)
-      (f.isImmersion.tangentRange y hn)) (x : M') :
+    (hA : ∀ y, MapsTo (A (f y))
+      (f.isImmersion.tangentRange y (ENat.one_le_iff_ne_zero_withTop.1 h1))
+      (f.isImmersion.tangentRange y (ENat.one_le_iff_ne_zero_withTop.1 h1))) (x : M') :
     MapsTo (A (f.compDiffeomorphOfBoundaryless e h1 x))
-      ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.tangentRange x hn)
-      ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.tangentRange x hn) := by
+      ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.tangentRange x
+        (ENat.one_le_iff_ne_zero_withTop.1 h1))
+      ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.tangentRange x
+        (ENat.one_le_iff_ne_zero_withTop.1 h1)) := by
   rw [tangentRange_compDiffeomorphOfBoundaryless, compDiffeomorphOfBoundaryless_apply]
   exact hA (e x)
 
@@ -131,23 +135,26 @@ theorem id_comp_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
 the tangent space of `X` at `f (e x)` by the same subspace, and a class is sent to the class of
 the same tangent vector. -/
 def normalSpaceEquivCompDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M') :
-    (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn ≃L[ℝ]
-      f.isImmersion.NormalSpace (e x) hn :=
-  (f.compDiffeomorphOfBoundaryless e h1).normalSpaceEquiv f hn hn (u := e) (v := _root_.id)
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (x : M') :
+    (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x
+        (ENat.one_le_iff_ne_zero_withTop.1 h1) ≃L[ℝ]
+      f.isImmersion.NormalSpace (e x) (ENat.one_le_iff_ne_zero_withTop.1 h1) :=
+  (f.compDiffeomorphOfBoundaryless e h1).normalSpaceEquiv f (ENat.one_le_iff_ne_zero_withTop.1 h1)
+    (ENat.one_le_iff_ne_zero_withTop.1 h1) (u := e) (v := _root_.id)
     (by rw [mfderiv_id]; exact ContinuousLinearMap.isInvertible_equiv (f := .refl ℝ _))
-    (e.isInvertible_mfderiv hn).surjective
+    (e.isInvertible_mfderiv (ENat.one_le_iff_ne_zero_withTop.1 h1)).surjective
     (EventuallyEq.of_eq (id_comp_compDiffeomorphOfBoundaryless f e h1))
 
 /-- The identification of normal spaces sends the class of a tangent vector `w` of `X` at the
 point `f.compDiffeomorphOfBoundaryless e h1 x = f (e x)` to the class of `w`. -/
 @[simp]
 theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M')
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (x : M')
     (w : TangentSpace I (f.compDiffeomorphOfBoundaryless e h1 x)) :
-    f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x
-        ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass x hn w) =
-      f.isImmersion.normalClass (e x) hn
+    f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x
+        ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass x
+          (ENat.one_le_iff_ne_zero_withTop.1 h1) w) =
+      f.isImmersion.normalClass (e x) (ENat.one_le_iff_ne_zero_withTop.1 h1)
         (tangentSpaceCast I (f.compDiffeomorphOfBoundaryless e h1 x) (f (e x)) w) := by
   rw [normalSpaceEquivCompDiffeomorphOfBoundaryless, normalSpaceEquiv_normalClass, mfderiv_id,
     ContinuousLinearMap.id_apply]
@@ -159,11 +166,12 @@ theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass (f : SmoothEmb
 `f (e x)` to the class of `w` at the point `f.compDiffeomorphOfBoundaryless e h1 x`. -/
 @[simp]
 theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_normalClass
-    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M')
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (x : M')
     (w : TangentSpace I (f (e x))) :
-    (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x).symm
-        (f.isImmersion.normalClass (e x) hn w) =
-      (f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass x hn
+    (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x).symm
+        (f.isImmersion.normalClass (e x) (ENat.one_le_iff_ne_zero_withTop.1 h1) w) =
+      (f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass x
+        (ENat.one_le_iff_ne_zero_withTop.1 h1)
         (tangentSpaceCast I (f (e x)) (f.compDiffeomorphOfBoundaryless e h1 x) w) := by
   rw [ContinuousLinearEquiv.symm_apply_eq,
     normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass,
@@ -174,9 +182,10 @@ theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_normalClass
 `id ∘ (f.compDiffeomorphOfBoundaryless e h1) = f ∘ e`. -/
 theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap
     (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M') :
-    (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x).toContinuousLinearMap =
-      (f.compDiffeomorphOfBoundaryless e h1).normalMap f hn hn
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (x : M') :
+    (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x).toContinuousLinearMap =
+      (f.compDiffeomorphOfBoundaryless e h1).normalMap f (ENat.one_le_iff_ne_zero_withTop.1 h1)
+        (ENat.one_le_iff_ne_zero_withTop.1 h1)
         (EventuallyEq.of_eq (id_comp_compDiffeomorphOfBoundaryless f e h1)) := by
   rw [normalSpaceEquivCompDiffeomorphOfBoundaryless, normalSpaceEquiv_toContinuousLinearMap]
 
@@ -185,15 +194,19 @@ almost complex structure `J` preserving the tangent planes of `f` induces on the
 `f` and of the reparametrised embedding. -/
 theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_normalComplexStructureAt [IsManifold I ∞ X]
     (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ y, MapsTo (J (f y)) (f.isImmersion.tangentRange y hn)
-      (f.isImmersion.tangentRange y hn)) (x : M')
-    (ν : (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) :
-    f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x
-        ((f.compDiffeomorphOfBoundaryless e h1).normalComplexStructureAt hn J x
-          (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 hn (A := (J ·)) hJ x) ν) =
-      f.normalComplexStructureAt hn J (e x) (hJ (e x))
-        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x ν) := by
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (J : SmoothAlmostComplexStructure I X)
+    (hJ : ∀ y, MapsTo (J (f y))
+      (f.isImmersion.tangentRange y (ENat.one_le_iff_ne_zero_withTop.1 h1))
+      (f.isImmersion.tangentRange y (ENat.one_le_iff_ne_zero_withTop.1 h1))) (x : M')
+    (ν : (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x
+      (ENat.one_le_iff_ne_zero_withTop.1 h1)) :
+    f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x
+        ((f.compDiffeomorphOfBoundaryless e h1).normalComplexStructureAt
+          (ENat.one_le_iff_ne_zero_withTop.1 h1) J x
+          (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 (A := (J ·)) hJ x) ν) =
+      f.normalComplexStructureAt (ENat.one_le_iff_ne_zero_withTop.1 h1) J (e x) (hJ (e x))
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x ν) := by
+  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
   obtain ⟨w, rfl⟩ := (f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass_surjective
     x hn ν
   rw [normalComplexStructureAt_normalClass,
@@ -214,11 +227,15 @@ of `f`, over `e`, are continuous on the total spaces of the normal bundles, for 
 fibres. -/
 theorem continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless {K K' : Type*}
     (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) :
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) :
     Continuous fun p : TotalSpace K
-        (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) ↦
-      TotalSpace.mk' K' (E := fun y ↦ f.isImmersion.NormalSpace y hn) (e p.proj)
-        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn p.proj p.snd) := by
+        (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x
+          (ENat.one_le_iff_ne_zero_withTop.1 h1)) ↦
+      TotalSpace.mk' K'
+        (E := fun y ↦ f.isImmersion.NormalSpace y (ENat.one_le_iff_ne_zero_withTop.1 h1))
+        (e p.proj)
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 p.proj p.snd) := by
+  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
   refine ((f.compDiffeomorphOfBoundaryless e h1).continuous_normalBundleMap (K := K) (K' := K')
     f hn hn contMDiff_id (id_comp_compDiffeomorphOfBoundaryless f e h1)).congr fun p ↦ ?_
   rw [normalBundleMap_apply, ← normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap,
@@ -237,19 +254,24 @@ variable {n r : ℕ∞ω} [IsManifold I n X] [IsManifold I'' n M'] [FiniteDimens
 of `f`, over `e`, are `C^r` on the total spaces of the normal bundles with model fibre `P`, when
 `f` and `e` are `C^n` with `r + 1 ≤ n`. -/
 theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
-    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (hr : r + 1 ≤ n)
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hr : r + 1 ≤ n)
     (hP : finrank ℝ P = finrank ℝ E - finrank ℝ E')
     (hP' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') :
     haveI : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
     haveI : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
     haveI : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
-    letI := f.normalSpaceFiberBundle hn hP
-    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
+    letI := f.normalSpaceFiberBundle (ENat.one_le_iff_ne_zero_withTop.1 h1) hP
+    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle
+      (ENat.one_le_iff_ne_zero_withTop.1 h1) hP'
     ContMDiff (I''.prod 𝓘(ℝ, P)) (I'.prod 𝓘(ℝ, P)) r
       fun p : TotalSpace P
-          (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) ↦
-        TotalSpace.mk' P (E := fun y ↦ f.isImmersion.NormalSpace y hn) (e p.proj)
-          (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn p.proj p.snd) := by
+          (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x
+            (ENat.one_le_iff_ne_zero_withTop.1 h1)) ↦
+        TotalSpace.mk' P
+          (E := fun y ↦ f.isImmersion.NormalSpace y (ENat.one_le_iff_ne_zero_withTop.1 h1))
+          (e p.proj)
+          (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 p.proj p.snd) := by
+  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
   have : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
   have : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
   have : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
@@ -268,26 +290,30 @@ of `f`. -/
 theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff
     {EY HY Y : Type*} [NormedAddCommGroup EY] [NormedSpace ℝ EY] [TopologicalSpace HY]
     {L : ModelWithCorners ℝ EY HY} [TopologicalSpace Y] [ChartedSpace HY Y]
-    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0)
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n)
     (hr : r + 1 ≤ n) (hP : finrank ℝ P = finrank ℝ E - finrank ℝ E')
     (hP' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') {k : ℕ∞ω} (hk : k ≤ r) {u : Y → M'}
-    {w : ∀ y, f.isImmersion.NormalSpace (e (u y)) hn} :
+    {w : ∀ y, f.isImmersion.NormalSpace (e (u y)) (ENat.one_le_iff_ne_zero_withTop.1 h1)} :
     haveI : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
     haveI : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
     haveI : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
-    letI := f.normalSpaceFiberBundle hn hP
-    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
+    letI := f.normalSpaceFiberBundle (ENat.one_le_iff_ne_zero_withTop.1 h1) hP
+    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle
+      (ENat.one_le_iff_ne_zero_withTop.1 h1) hP'
     ContMDiff L (I''.prod 𝓘(ℝ, P)) k (fun y ↦ TotalSpace.mk' P
-        (E := fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) (u y)
-        ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn (u y)).symm (w y))) ↔
+        (E := fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x
+          (ENat.one_le_iff_ne_zero_withTop.1 h1)) (u y)
+        ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 (u y)).symm (w y))) ↔
       ContMDiff L (I'.prod 𝓘(ℝ, P)) k (fun y ↦ TotalSpace.mk' P
-        (E := fun x ↦ f.isImmersion.NormalSpace x hn) (e (u y)) (w y)) := by
+        (E := fun x ↦ f.isImmersion.NormalSpace x (ENat.one_le_iff_ne_zero_withTop.1 h1)) (e (u y))
+        (w y)) := by
+  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
   have : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
   have : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
   have : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
   let := f.normalSpaceFiberBundle hn hP
   let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
-  refine ⟨fun h ↦ (((f.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn hr
+  refine ⟨fun h ↦ (((f.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hr
     hP hP').of_le hk).comp h).congr fun y ↦ ?_, fun h ↦ ?_⟩
   · simp only [Function.comp_apply, ContinuousLinearEquiv.apply_symm_apply]
   -- The normal map of the square `id ∘ f = (f ∘ e) ∘ e⁻¹` inverts the identifications.
@@ -316,9 +342,10 @@ variable {n : ℕ∞ω} [IsManifold I ∞ X] [IsManifold I n X] [IsManifold I'' 
 /-- The reparametrised embedding `f.compDiffeomorphOfBoundaryless e h1` has symplectic tangent
 images for a nondegenerate two-form `σ` on `X` exactly when `f` has. -/
 theorem hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff
-    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) :
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) :
     hσ.HasSymplecticTangentImages I'' (f.compDiffeomorphOfBoundaryless e h1) ↔
       hσ.HasSymplecticTangentImages I' f := by
+  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
   rw [coe_compDiffeomorphOfBoundaryless]
   exact hσ.hasSymplecticTangentImages_comp_diffeomorph_iff e hn
 
@@ -326,13 +353,17 @@ theorem hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff
 of `f` carries the normal symplectic form of the first, for a nondegenerate two-form `σ` on `X`,
 to that of the second. -/
 theorem symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless
-    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0)
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n)
     (hf : hσ.HasSymplecticTangentImages I' f)
     (hg : hσ.HasSymplecticTangentImages I'' (f.compDiffeomorphOfBoundaryless e h1)) (x : M')
-    (ν μ : (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) :
-    f.symplecticNormalForm hf (e x) hn (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x ν)
-        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x μ) =
-      (f.compDiffeomorphOfBoundaryless e h1).symplecticNormalForm hg x hn ν μ := by
+    (ν μ : (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x
+      (ENat.one_le_iff_ne_zero_withTop.1 h1)) :
+    f.symplecticNormalForm hf (e x) (ENat.one_le_iff_ne_zero_withTop.1 h1)
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x ν)
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x μ) =
+      (f.compDiffeomorphOfBoundaryless e h1).symplecticNormalForm hg x
+        (ENat.one_le_iff_ne_zero_withTop.1 h1) ν μ := by
+  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
   rw [← ContinuousLinearEquiv.coe_coe,
     normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap]
   refine (f.compDiffeomorphOfBoundaryless e h1).symplecticNormalForm_normalMap f hg hf hn hn _
@@ -374,7 +405,7 @@ theorem complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless
     letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hν'
     letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceVectorBundle hn hν'
     complexEulerClass G ((f.compDiffeomorphOfBoundaryless e h1).normalComplexStructure hn J hν'
-        (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 hn (A := (J ·)) hJ)).Fiber hG =
+        (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 (A := (J ·)) hJ)).Fiber hG =
       TopCat.singularCohomologyMap (TopCat.ofHom (e.toHomeomorph : C(M', M))) (2 * r + 2)
         (complexEulerClass G (f.normalComplexStructure hn J hν hJ).Fiber hG) := by
   let := f.normalSpaceFiberBundle hn hν
@@ -382,17 +413,17 @@ theorem complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless
   let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hν'
   let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceVectorBundle hn hν'
   let Kg := (f.compDiffeomorphOfBoundaryless e h1).normalComplexStructure hn J hν'
-    (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 hn (A := (J ·)) hJ)
+    (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 (A := (J ·)) hJ)
   let Kf := f.normalComplexStructure hn J hν hJ
-  have hΦ : ∀ x ν, f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x (Kg x ν) =
-      Kf (e.toHomeomorph x) (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x ν) :=
+  have hΦ : ∀ x ν, f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x (Kg x ν) =
+      Kf (e.toHomeomorph x) (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 x ν) :=
     fun x ν ↦ (congrArg _ (normalComplexStructure_apply _ hn J hν' _ x ν)).trans
-      ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless_normalComplexStructureAt e h1 hn J hJ x
+      ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless_normalComplexStructureAt e h1 J hJ x
         ν).trans (normalComplexStructure_apply f hn J hν hJ (e x) _).symm)
   exact complexEulerClass_eq_singularCohomologyMap_of_fiberwise hG hG
     (g := (e.toHomeomorph : C(M', M)))
     (Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAlong Kg Kf _ _ hΦ
-      (f.continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn))
+      (f.continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1))
 
 end EulerClass
 
