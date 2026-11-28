@@ -48,11 +48,18 @@ frame coordinates of `s` along `f`. This proof of `continuous_pullbackMapCoord` 
 Tau Ceti's `ContMDiffSection.continuous_map_frameTopology` to sections pulled back along a family
 of maps.
 
+Convergence in the frame topology is local: a family of sections converges if, near each
+compact set of the base, it eventually agrees with a convergent family whose limit agrees there
+with the expected one (`ContMDiffSection.tendsto_frameTopology_of_forall_isCompact`). Each chart
+seminorm of Tau Ceti's frame topology only sees a section near a compact set, by Tau Ceti's
+`Bundle.Trivialization.chartDerivativeSeminorm_eq_zero_of_eventuallyEq_zero`.
+
 ## Main definitions and results
 
 * `ContMDiffSection.toContMDiffMap`, `ContMDiffSection.continuous_toContMDiffMap`
 * `ContMDiffSection.fiberwiseMap`, `ContMDiffSection.continuous_fiberwiseMap`
 * `ContMDiffSection.pullbackMap`, `ContMDiffSection.continuous_pullbackMap`
+* `ContMDiffSection.tendsto_frameTopology_of_forall_isCompact`
 
 ## References
 
@@ -494,6 +501,53 @@ theorem continuous_pullbackMap (hcover : ∀ y, ∃ i, y ∈ U i)
     Bundle.Trivialization.frameCoordinates_apply, pullbackMap_apply]
 
 end PullbackMap
+
+section Locality
+
+variable [∀ x, AddCommGroup (V x)] [∀ x, Module 𝕜 (V x)] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V I] [IsManifold I n M]
+  {ι : Type*} (e : ι → Trivialization F (π F V)) [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+
+/-- **Convergence in the frame topology is local on compact sets.** A family of sections `s`
+converges to `s₀` along `l` in the frame topology if, for each compact `K` of the base, it agrees
+near `K`, eventually along `l`, with a family `g` that converges to a section `g₀` agreeing with
+`s₀` near `K`. -/
+theorem tendsto_frameTopology_of_forall_isCompact {X : Type*} {l : Filter X}
+    {s : X → Cₛ^n⟮I; F, V⟯} {s₀ : Cₛ^n⟮I; F, V⟯}
+    (h : ∀ K : Set M, IsCompact K → ∃ (g : X → Cₛ^n⟮I; F, V⟯) (g₀ : Cₛ^n⟮I; F, V⟯),
+      (let _ := frameTopology (I := I) (n := n) e U hU; Tendsto g l (𝓝 g₀)) ∧
+      (∀ᶠ y in 𝓝ˢ K, s₀ y = g₀ y) ∧ ∀ᶠ p in l, ∀ᶠ y in 𝓝ˢ K, s p y = g p y) :
+    let _ := frameTopology (I := I) (n := n) e U hU
+    Tendsto s l (𝓝 s₀) := by
+  let _ := frameTopology (I := I) (n := n) e U hU
+  refine (tendsto_frameTopology_iff (I := I) (n := n) e U hU).mpr ?_
+  intro i x K m hm
+  -- The points of the base that `K` represents form a compact set.
+  have hK : IsCompact (Subtype.val '' ((extChartAt I x).symm ''
+      (Subtype.val '' (K : Set (extChartAt I x).target)))) :=
+    ((K.isCompact.image continuous_subtypeVal).image_of_continuousOn
+      ((continuousOn_extChartAt_symm x).mono (by
+        rintro _ ⟨z, -, rfl⟩; exact z.property))).image continuous_subtypeVal
+  obtain ⟨g, g₀, hg, hg₀, hsg⟩ := h _ hK
+  have hg' := (tendsto_frameTopology_iff (I := I) (n := n) e U hU).mp hg i x K m hm
+  set q := (e i).chartDerivativeSeminorm (hU i) x K m hm
+  -- The seminorm only sees the sections near that compact set.
+  have hq₀ : q (g₀ - s₀) = 0 :=
+    Bundle.Trivialization.chartDerivativeSeminorm_eq_zero_of_eventuallyEq_zero _ _ _ _ _ _ <|
+      hg₀.mono fun y hy ↦ by simp [hy]
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hg'
+    (Eventually.of_forall fun _ ↦ apply_nonneg _ _) ?_
+  filter_upwards [hsg] with p hp
+  have hqp : q (s p - g p) = 0 :=
+    Bundle.Trivialization.chartDerivativeSeminorm_eq_zero_of_eventuallyEq_zero _ _ _ _ _ _ <|
+      hp.mono fun y hy ↦ by simp [hy]
+  calc q (s p - s₀) = q ((s p - g p) + (g p - g₀) + (g₀ - s₀)) := by abel_nf
+    _ ≤ q (s p - g p) + q (g p - g₀) + q (g₀ - s₀) :=
+      (map_add_le_add q _ _).trans (add_le_add_left (map_add_le_add q _ _) _)
+    _ = q (g p - g₀) := by rw [hqp, hq₀, zero_add, add_zero]
+
+end Locality
 
 end ContMDiffSection
 

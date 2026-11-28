@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
@@ -31,7 +32,8 @@ open subset, is continuous. Near each point of an open subset, the frame coordin
 and of its restriction agree. A smooth family of two-forms is continuous in its parameter, and
 multiplication by a fixed smooth function is continuous. On a normed space, the value of a
 two-form at a point depends continuously on the form and the point together, and so does the
-value of its pull-back along a smooth map from a finite-dimensional normed space.
+value of its pull-back along a smooth map from a finite-dimensional normed space. Finally, the
+infinite concatenation of continuous families of two-forms is continuous.
 
 ## Main results
 
@@ -69,6 +71,10 @@ value of its pull-back along a smooth map from a finite-dimensional normed space
 * `SymplecticGeometry.IsSmoothFamily.continuous_tangentEquiv_symm`: a smooth family `τ` of
   two-forms on `M` over a manifold `N`, both with finite-dimensional models, gives a continuous
   map `t ↦ tangentEquiv.symm (τ t)` into the frame topology of any frame system.
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_infiniteConcat`: the infinite
+  concatenation (`SymplecticGeometry.infiniteConcat`) of families of two-forms over
+  `P × [0, 1]` that are continuous into the frame topology, and that stop moving on the sets of
+  an open cover, with an end that agrees with them there, is continuous into the frame topology.
 
 ## Implementation notes
 
@@ -98,6 +104,14 @@ image in `M` of an open neighbourhood of `x` in `U` on which the two trivializat
 bundles of alternating maps agree, given by
 `TauCeti.Manifold.eventually_trivializationAt_continuousAlternatingMap_tangentSpace_opens_eq`,
 and on which both are defined.
+
+The infinite concatenation is, near each time before `1`, one of its families reparametrized by
+a continuous change of time (`SymplecticGeometry.infiniteConcat_of_mem_Ioo`). At time `1`,
+convergence in the frame topology only sees the forms near compact sets of `M`
+(`ContMDiffSection.tendsto_frameTopology_of_forall_isCompact`), and near a compact set, covered
+by finitely many `V n`, the concatenation at times close to `1` agrees with the start of one
+later family. This follows the proof of smoothness,
+`SymplecticGeometry.IsSmoothFamily.infiniteConcat`.
 
 ## References
 
@@ -443,6 +457,84 @@ theorem continuous_mpullback_val_of_contMDiff {F : Type*} [NormedAddCommGroup F]
     (LinearEquiv.apply_symm_apply _ _)
 
 end ModelSpacePullback
+
+section InfiniteConcat
+
+variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
+  [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M] {ι : Type*}
+  (e : ι → Trivialization (EB [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (EB [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (W : ι → Opens M) (hW : ∀ i, (W i : Set M) ⊆ (e i).baseSet)
+
+open Filter Topology in
+/-- **The infinite concatenation of continuous families of two-forms is continuous.** Let
+`H n : P × [0, 1] → SmoothTwoForm I M` be families of two-forms, continuous into the frame
+topology of a frame system, each starting where the previous one ends,
+`H (n + 1) (p, 0) = H n (p, 1)`, and let `V n` be open sets covering `M` such that the later
+families no longer move on `V n`: `H m (p, t) = H n (p, 1)` on `V n` for `m > n`. Let `ε p` be a
+two-form equal on each `V n` to `H n (p, 1)`. Then the infinite concatenation of the families
+`H n (p, ·)` ending at `ε p` is continuous on `P × [0, 1]` into the frame topology. -/
+theorem continuous_tangentEquiv_symm_infiniteConcat {P : Type*} [TopologicalSpace P]
+    {H : ℕ → P × unitInterval → TauCeti.SmoothTwoForm I M} {V : ℕ → Set M}
+    {ε : P → TauCeti.SmoothTwoForm I M}
+    (hH : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+      ∀ n, Continuous fun q ↦
+        (tangentEquiv.symm (H n q) : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))))
+    (hseam : ∀ n p, H (n + 1) (p, 0) = H n (p, 1))
+    (hVo : ∀ n, IsOpen (V n)) (hV : ∀ x, ∃ n, x ∈ V n)
+    (hHV : ∀ n m, n < m → ∀ q, ∀ x ∈ V n, (H m q).val x = (H n (q.1, 1)).val x)
+    (hε : ∀ n p, ∀ x ∈ V n, (ε p).val x = (H n (p, 1)).val x) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    Continuous fun q : P × unitInterval ↦
+      (tangentEquiv.symm (SymplecticGeometry.infiniteConcat (fun n s ↦ H n (q.1, s)) (ε q.1) q.2) :
+        ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  refine continuous_iff_continuousAt.2 fun ⟨p, t⟩ ↦ ?_
+  rcases lt_or_ge (t : ℝ) 1 with ht | ht
+  · -- Before time `1`, near the stage `n` of `t`, the concatenation is `H n` reparametrized.
+    obtain ⟨n, hn⟩ := exists_mem_Ico_two_sub_two_pow_mul ht
+    have hc : Continuous fun q : P × unitInterval ↦
+        (q.1, TauCeti.collaredSmoothTransitionUnit (2 - 2 ^ (n + 1) * (1 - (q.2 : ℝ)))) :=
+      continuous_fst.prodMk (TauCeti.continuous_collaredSmoothTransitionUnit.comp (by fun_prop))
+    refine ((hH n).comp hc).continuousAt.congr ?_
+    filter_upwards [(continuous_snd.tendsto (p, t)).eventually
+      (unitInterval.eventually_two_sub_two_pow_mul_mem_Ioo (t := t) (k := n)
+        ⟨by linarith [hn.1], by linarith [hn.2]⟩)] with q hq
+    rw [Function.comp_apply, infiniteConcat_of_mem_Ioo (fun m ↦ hseam m q.1) hq]
+  · -- At time `1`, near a compact set covered by `V 0, …, V N`, the concatenation is eventually
+    -- the start of `H (N + 1)`.
+    obtain rfl : t = 1 := Subtype.ext (le_antisymm (unitInterval.le_one t) ht)
+    refine ContMDiffSection.tendsto_frameTopology_of_forall_isCompact e W hW fun K hK ↦ ?_
+    obtain ⟨S, hS⟩ := hK.elim_finite_subcover V hVo fun x _ ↦ Set.mem_iUnion.2 (hV x)
+    set N := S.sup id
+    have hNS : IsOpen (⋃ i ∈ S, V i) := isOpen_biUnion fun i _ ↦ hVo i
+    have hWK : ∀ᶠ y in 𝓝ˢ K, y ∈ ⋃ i ∈ S, V i := hNS.mem_nhdsSet.2 hS
+    -- On `V i` with `i ≤ N`, every late value of the concatenation is `H i (p, 1)` there, as is
+    -- the start of `H (N + 1)`.
+    have hlate : ∀ q : P × unitInterval, 2 ^ (N + 1) * (1 - (q.2 : ℝ)) ≤ 1 →
+        ∀ y ∈ ⋃ i ∈ S, V i, (infiniteConcat (fun n s ↦ H n (q.1, s)) (ε q.1) q.2).val y =
+          (H (N + 1) (q.1, 0)).val y := by
+      intro q hq y hy
+      obtain ⟨i, hi, hy⟩ := Set.mem_iUnion₂.1 hy
+      have hiN : i < N + 1 := Nat.lt_succ_of_le (Finset.le_sup (f := id) hi)
+      have h0 : (H (N + 1) (q.1, 0)).val y = (H i (q.1, 1)).val y := hHV i _ hiN _ y hy
+      rw [h0]
+      exact infiniteConcat_mem_of_le
+        (s := {η : TauCeti.SmoothTwoForm I M | η.val y = (H i (q.1, 1)).val y})
+        (fun m hm s ↦ hHV i m (hiN.trans_le hm) _ y hy) (hε i q.1 y hy) hq
+    have hev : ∀ᶠ q : P × unitInterval in 𝓝 (p, 1), 2 ^ (N + 1) * (1 - (q.2 : ℝ)) < 1 :=
+      (continuous_snd.tendsto (p, 1)).eventually (unitInterval.eventually_two_pow_mul_one_sub_lt N)
+    refine ⟨fun q ↦ tangentEquiv.symm (H (N + 1) (q.1, 0)),
+      tangentEquiv.symm (H (N + 1) (p, 0)),
+      ((hH (N + 1)).comp (continuous_fst.prodMk continuous_const)).continuousAt,
+      hWK.mono fun y hy ↦ ?_, hev.mono fun q hq ↦
+        hWK.mono fun y hy ↦ ?_⟩
+    · simpa only [tangentEquiv_symm_apply] using hlate (p, 1) (by simp) y hy
+    · simpa only [tangentEquiv_symm_apply] using hlate q hq.le y hy
+
+end InfiniteConcat
 
 end Bundle.ContMDiffTwoForm
 
