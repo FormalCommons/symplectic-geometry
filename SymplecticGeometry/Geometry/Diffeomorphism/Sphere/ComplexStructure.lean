@@ -179,6 +179,7 @@ noncomputable def complexStructureContraction {ι : Type*}
 
 /-- At time `t`, the contraction of `𝒥` onto `i` sends `J` to the Cayley path from `i` to `J` at
 time `1 - t`. -/
+@[simp]
 theorem complexStructureContraction_apply {ι : Type*}
     (e : ι → Bundle.Trivialization (ℂ →L[ℝ] ℂ) (Bundle.TotalSpace.proj (F := ℂ →L[ℝ] ℂ)
       (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
