@@ -39,8 +39,9 @@ least `7` and the second derivative at least `-(20 + 1 / 128) / r`, against `343
 (`SymplecticGeometry.deriv_le_of_cutoff_bounds`). The predicate
 `SymplecticGeometry.IsCutoffScale L` says that `L ≥ 1` and that the bounds on `p` and `q` hold
 at every point; every large enough `L` is such a cutoff scale
-(`SymplecticGeometry.eventually_isCutoffScale`), by bounds on `smoothTransition'`,
-`smoothTransition''` and `x smoothTransition'' x` (`Real.smoothTransition.abs_deriv_sub_div_le`).
+(`SymplecticGeometry.eventually_isCutoffScale`), by the eventual bound on the derivatives of
+the cutoffs `x ↦ smoothTransition ((x - a) / L)`
+(`Real.smoothTransition.eventually_abs_deriv_sub_div_le`).
 The first two derivatives of the leaf `cutoffLeaf L 1 b c` are
 `SymplecticGeometry.deriv_cutoffLeaf_one` and `SymplecticGeometry.iteratedDeriv_two_cutoffLeaf_one`;
 with the bounds on `p` and `q` they give the case `r ≥ 2` of
@@ -443,14 +444,9 @@ structure IsCutoffScale (L : ℝ) : Prop where
 
 /-- Every large enough `L` is a cutoff scale. -/
 theorem eventually_isCutoffScale : ∀ᶠ L in atTop, IsCutoffScale L := by
-  obtain ⟨A, hA⟩ := smoothTransition.exists_forall_norm_deriv_le
-  obtain ⟨B, hB⟩ := smoothTransition.exists_forall_norm_deriv_deriv_le
-  obtain ⟨M, hM⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
-  simp only [Real.norm_eq_abs] at hA hB hM
-  filter_upwards [eventually_ge_atTop 1, eventually_ge_atTop (1024 * (A + 2 * B + M))]
-    with L hL₁ hL
-  have h := smoothTransition.abs_deriv_sub_div_le hA hB hM zero_le_two hL₁ (ε := 1 / 1024)
-    (by linarith)
+  filter_upwards [eventually_ge_atTop 1,
+    smoothTransition.eventually_abs_deriv_sub_div_le zero_le_two (ε := 1 / 1024) (by norm_num)]
+    with L hL₁ h
   exact ⟨hL₁, fun x ↦ (h x).1, fun x ↦ (h x).2⟩
 
 /-- The cutoff leaf with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²`, for `δ > 0`, is an `i`-convex shape
@@ -572,10 +568,9 @@ every `r > δ`. -/
 theorem exists_isConvexShapeAt_sqrtAddLeaf :
     ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (15 * δ / 2), ∀ r, δ < r →
       IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r := by
-  obtain ⟨L₀, hL₀, h⟩ := exists_isConvexShapeAt_cutoffLeaf
-  refine ⟨L₀, hL₀, fun L hL δ hδ ℓ ⟨hℓ₀, hℓ₁⟩ r hr ↦ ?_⟩
-  -- The coefficients are `δ / 8 + ℓ ≤ 61 δ / 8` and `64 δ² + ℓ² ≤ 121 δ²`.
-  exact h L hL δ hδ _ ⟨by positivity, by linarith⟩ _ ⟨by positivity, by nlinarith⟩ r hr
+  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
+  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ ℓ hℓ r hr ↦
+    isConvexShapeAt_sqrtAddLeaf (h L (le_of_max_le_right hL)) hδ hℓ hr⟩
 
 /-- The slope of the leaf `sqrtAddLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, is at most
 `11` from `2 δ` on when `L` is a cutoff scale. -/
