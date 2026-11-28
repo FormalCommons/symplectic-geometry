@@ -51,8 +51,10 @@ and `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv` is assembled as
 
 ## Main definitions and results
 
-* The scope `TauCeti.Lie.MatrixUnitary`: the instances on matrices under which
-  `unitarySubgroup (GL n ℂ)` is a Lie group, and the notation `𝔨[n]` for its model space.
+* The scope `TauCeti.Lie.MatrixUnitary`: Tau Ceti's instances for the matrix unitary Lie group
+  (the seminormed parent of `NormedAddCommGroup`, the operator-norm topology on matrices and the
+  continuity of `star`), the Lie group instance `LieGroup.minSmoothness_of_isRCLikeNormedField`,
+  and the notation `𝔨[n]` for the model space of `unitarySubgroup (GL n ℂ)`.
 * `TauCeti.Lie.unitsLieAlgebraLieEquiv_map_lieSubalgebraOfSubgroup_unitarySubgroup`: in algebra
   coordinates, the Lie algebra of `unitarySubgroup (GL n ℂ)` is `unitaryLieAlgebra n`.
 * `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv`: the Lie algebra of the matrix unitary Lie group is
@@ -82,19 +84,23 @@ namespace TauCeti.Lie
 
 /-! ### The setting of the matrix unitary Lie group
 
-The scope `TauCeti.Lie.MatrixUnitary` holds the setting in which Tau Ceti builds the Lie group
-`matrixUnitaryLieGroup` on `unitarySubgroup (GL n 𝕜)`, for any `RCLike 𝕜`: the operator-norm
-topology on matrices, the continuity of `star` for it, and the instance
-`LieGroup.minSmoothness_of_isRCLikeNormedField` on the smoothness of Lie groups. It also holds
-the notation `𝔨[n]` for the model vector space of the unitary group over `ℂ`.
+The scope `TauCeti.Lie.MatrixUnitary` holds three things. First, the instances under which Tau
+Ceti builds the Lie group `matrixUnitaryLieGroup` on `unitarySubgroup (GL n 𝕜)`, for any
+`RCLike 𝕜`: the seminormed additive group underlying a normed one
+(`NormedAddCommGroup.toSeminormedAddCommGroup`), the operator-norm topology on matrices, and the
+continuity of `star` for it. Second, the general Lie group instance
+`LieGroup.minSmoothness_of_isRCLikeNormedField`, which Tau Ceti does not use there but which this
+library's statements about the group need. Third, the notation `𝔨[n]` for the model vector space
+of the unitary group over `ℂ`.
 -/
 
 namespace MatrixUnitary
 
--- The operator-norm topology on matrices, continuity of `star`, and the Lie group
--- `minSmoothness` instance.
+-- Tau Ceti's setting for `matrixUnitaryLieGroup`: the seminormed parent of
+-- `NormedAddCommGroup`, the operator-norm topology on matrices and the continuity of `star`.
 attribute [scoped instance] NormedAddCommGroup.toSeminormedAddCommGroup
 attribute [scoped instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
+-- The general Lie group instance that this library's statements about the group use.
 attribute [scoped instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 /-- The model vector space of the matrix unitary Lie group `unitarySubgroup (GL n ℂ)`: its Lie
