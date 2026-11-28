@@ -30,7 +30,7 @@ small. The size of the perturbation is `δ` and the lower bound is `δ / (log (1
   `A` and `n`. It is the milestone for `A⁻¹ f` with the parameter `δ / A`.
 * `SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le`: the estimate with a `C¹` bound
   `A ≥ 1` for functions on `StdSpace ι`, with the flat `∂̄` `SymplecticGeometry.flatDbar`, the
-  complex-linear part for `J₀` of the differential, and the complex coordinates of
+  flat `∂` `SymplecticGeometry.flatDel`, and the complex coordinates of
   `SymplecticGeometry.peakFunction_mul`. It is the previous estimate for `f ∘ e`, for the
   isometry `e = TauCeti.complexToRealEuclideanIsometry ι`.
 
@@ -438,7 +438,7 @@ theorem exists_norm_le_max_ge_of_dbar_le_of_one_le {A : ℝ} (hA : 1 ≤ A) :
 
 Read through the real isometry `e = complexToRealEuclideanIsometry ι`, the estimate holds for
 functions on `StdSpace ι`, with the flat `∂̄` in place of the conjugate Wirtinger derivative, the
-complex-linear part for `J₀` of the differential in place of the Wirtinger derivative, and the
+flat `∂` in place of the Wirtinger derivative, and the
 complex coordinates `(complexToRealEuclidean ι).symm z j` of `SymplecticGeometry.peakFunction_mul`.
 -/
 
@@ -463,8 +463,7 @@ ball of radius `11 / 10`, with `|f| ≤ A` and `‖Df‖ ≤ A` there, and with 
 some `w = (w₀, w₁, …, wₙ) ∈ ℂⁿ⁺¹`, indexed by `Option ι` with `w₀ = w none`, has `‖w‖ ≤ δ` and,
 for `f_w = f - w₀ - Σ_j w_j z_j` with `z_j = (complexToRealEuclidean ι).symm z j`, satisfies
 `ε ≤ max |f_w z| ‖∂f_w(z)‖` at every point `z` of the closed unit ball, for `∂f_w(z)` the
-complex-linear part, for `J₀ = stdComplexStructure ι` and multiplication by `i`, of the
-differential of `f_w` at `z`. -/
+flat `∂` `SymplecticGeometry.flatDel` of `f_w` at `z`. -/
 theorem exists_norm_le_max_ge_of_flatDbar_le {A : ℝ} (hA : 1 ≤ A) :
     ∃ p : ℕ, 0 < p ∧ ∃ δ₀ > 0, ∀ δ, 0 < δ → δ < δ₀ →
       ∀ f : StdSpace ι → ℂ,
@@ -475,12 +474,8 @@ theorem exists_norm_le_max_ge_of_flatDbar_le {A : ℝ} (hA : 1 ≤ A) :
         ∃ w : EuclideanSpace ℂ (Option ι), ‖w‖ ≤ δ ∧ ∀ z ∈ closedBall 0 1,
           δ / Real.log (1 / δ) ^ p ≤
             max ‖f z - w none - ∑ j, w (some j) * (complexToRealEuclidean ι).symm z j‖
-              ‖LinearMap.toContinuousLinearMap (complexLinearPart
-                (stdComplexStructure ι).toLinearMap
-                (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-                (fderiv ℝ (fun y ↦ f y - w none -
-                  ∑ j, w (some j) * (complexToRealEuclidean ι).symm y j) z :
-                    StdSpace ι →ₗ[ℝ] ℂ))‖ := by
+              ‖flatDel (fun y ↦ f y - w none -
+                ∑ j, w (some j) * (complexToRealEuclidean ι).symm y j) z‖ := by
   obtain ⟨p, hp, δ₀, hδ₀, H⟩ := exists_norm_le_max_ge_of_dbar_le_of_one_le (σ := ι) hA
   refine ⟨p, hp, δ₀, hδ₀, fun δ hδ hδδ₀ f hf hfA hdbar ↦ ?_⟩
   set e := complexToRealEuclideanIsometry ι

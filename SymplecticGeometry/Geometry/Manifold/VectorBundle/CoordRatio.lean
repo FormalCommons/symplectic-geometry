@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.LocalFrame
-public import Mathlib.Geometry.Manifold.Algebra.Monoid
 import Mathlib.Geometry.Manifold.VectorBundle.MDifferentiable
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import SymplecticGeometry.Geometry.Manifold.Algebra.Inv
+import SymplecticGeometry.Geometry.Manifold.Algebra.Structures
 import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
@@ -23,9 +23,9 @@ over `e.baseSet` the quotient of the coordinates of `τ p` and `σ p` in `e`, as
 `Bundle.Trivialization.coordRatio_eq_div_of_mem` states. This file shows that this function is
 differentiable over `𝕜`, or `C^n` over `𝕜`, at every point of `e.baseSet` at which `σ` and `τ`
 are and `σ` does not vanish: near such a point it is the quotient of the coordinate functions of
-`τ` and `σ`. The `C^n` case divides with Mathlib's `ContMDiffAt.div₀`, which needs multiplication
-in `𝕜'` to be `C^n` over `𝕜` (Tau Ceti's `TauCeti.realComplexContMDiffRing` for `ℂ` over `ℝ`)
-and inversion too (the instance of
+`τ` and `σ`. The `C^n` case divides with Mathlib's `ContMDiffAt.div₀`, using that multiplication
+and inversion in `𝕜'` are `C^n` over `𝕜` (the instances of
+`SymplecticGeometry.Geometry.Manifold.Algebra.Structures` and
 `SymplecticGeometry.Geometry.Manifold.Algebra.Inv`).
 
 The proofs follow the differentiability step of Tau Ceti's
@@ -102,13 +102,13 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] {n : ℕ∞ω}
   {L : B → Type*} [TopologicalSpace (TotalSpace 𝕜' L)] [∀ x, TopologicalSpace (L x)]
   [∀ x, AddCommMonoid (L x)] [∀ x, Module 𝕜 (L x)] [∀ x, Module 𝕜' (L x)] [FiberBundle 𝕜' L]
-  [VectorBundle 𝕜 𝕜' L] [ContMDiffVectorBundle n 𝕜' L IB] [ContMDiffMul 𝓘(𝕜, 𝕜') n 𝕜']
+  [VectorBundle 𝕜 𝕜' L] [ContMDiffVectorBundle n 𝕜' L IB]
   (e : Trivialization 𝕜' (π 𝕜' L)) [e.IsLinear 𝕜'] [MemTrivializationAtlas e]
 
 /-- Let `e` be a trivialization of a bundle `L` with model fibre `𝕜'`, linear over `𝕜'`, and
 let `σ` and `τ` be sections of `L` that are `C^n` over `𝕜` at a point `x` of `e.baseSet`, with
-`σ x ≠ 0`. If multiplication in `𝕜'` is `C^n` over `𝕜`, then the ratio
-`p ↦ e.coordRatio (σ p) (τ p)` of `τ` to `σ`, read in `e`, is `C^n` over `𝕜` at `x`. -/
+`σ x ≠ 0`. Then the ratio `p ↦ e.coordRatio (σ p) (τ p)` of `τ` to `σ`, read in `e`, is `C^n`
+over `𝕜` at `x`. -/
 theorem contMDiffAt_coordRatio {σ τ : Π x, L x} {x : B} (hx : x ∈ e.baseSet)
     (hσ : ContMDiffAt IB (IB.prod 𝓘(𝕜, 𝕜')) n (fun p ↦ TotalSpace.mk' 𝕜' p (σ p)) x)
     (hτ : ContMDiffAt IB (IB.prod 𝓘(𝕜, 𝕜')) n (fun p ↦ TotalSpace.mk' 𝕜' p (τ p)) x)
