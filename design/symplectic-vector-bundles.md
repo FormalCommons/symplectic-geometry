@@ -312,8 +312,7 @@ name, so that the $TM$ statements are special cases:
   `Φₛ`, given by `contMDiff_hom_bundle_symm` (this library's
   `Geometry/Manifold/VectorBundle/Hom.lean`, namespace `SymplecticGeometry`, shared with the
   two-form `pushforward`); its proof applies Tau Ceti's
-  `ContMDiff.clm_bundle_inverse` to `Φₛ` and rewrites with Mathlib's
-  `ContinuousLinearMap.inverse_equiv`.
+  `ContMDiff.clm_bundle_equiv_symm` to `Φₛ`.
   So `F₂` may have any dimension, as for the two-form `pushforward`; nothing
   about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
