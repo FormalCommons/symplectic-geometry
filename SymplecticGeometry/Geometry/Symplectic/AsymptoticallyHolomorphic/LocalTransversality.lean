@@ -9,7 +9,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Analysis.Complex.Avoidance
-public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.FlatDbar
 import Mathlib.Analysis.Calculus.ContDiff.WithLp
 import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 
