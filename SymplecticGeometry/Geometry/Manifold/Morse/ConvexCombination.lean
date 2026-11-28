@@ -17,7 +17,8 @@ with a metric and a constant of its own. If `p` is a nondegenerate critical poin
 critical point of `g`, with `g` of class `C²` in the chart at `p`, then `p` is a nondegenerate
 critical point of every function `(1 - s) • f + s • g` with `s ∈ [0, 1]`
 (`TauCeti.IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul`), and so of every function
-equal to one of them near `p` (`TauCeti.IsManifoldNondegenerateCriticalPoint.congr_of_eventuallyEq`).
+equal to one of them near `p`, by Tau Ceti's
+`TauCeti.IsManifoldNondegenerateCriticalPoint.congr_of_eventuallyEq`.
 
 This is the nondegenerate case of the statement that the type of a critical point is kept along
 such a segment, used for the homotopies of functions with a fixed Weinstein field.

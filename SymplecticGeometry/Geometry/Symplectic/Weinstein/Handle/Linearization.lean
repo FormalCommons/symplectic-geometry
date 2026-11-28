@@ -14,10 +14,10 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import TauCeti.Geometry.Manifold.Riemannian.Basic
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
-import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.ODE.Linear
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
@@ -54,6 +54,11 @@ manifold.
 
 ## Main results
 
+* `TauCeti.exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv`: at any critical point `p` of a
+  function `f` that is `C²` in the chart, if `X` is differentiable at `p` and satisfies the
+  gradient-like inequality near `p`, there is `c > 0` with
+  `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`, where `B` is the second derivative of
+  `f` in the chart.
 * `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: there is `c > 0` with
   `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`.
 * `TauCeti.IsGradientLike.exists_projection_exponential_bounds`: the flow of `A` has an
@@ -76,12 +81,15 @@ which carry no norm.
 
 ## Implementation notes
 
-The metric `g` and the function `δ` of the gradient-like condition are only continuous in the
-chart, so they are compared with their values at `p`. For a fixed vector `e` of the chart, the
-Cauchy–Schwarz inequality `(df e) ^ 2 ≤ ‖grad f‖ ^ 2 * g(e, e)` gives near `p` an inequality
-`κ * (df_u e) ^ 2 ≤ df_u (X u)` in the chart, with `κ > 0` independent of `e` for `‖e‖ ≤ 1`. It
-passes to second order by `HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`, and the
-invertibility of the Hessian makes the resulting bound uniform in `v`.
+The metric `g` of the gradient-like condition is only continuous in the chart, so it is compared
+with its value at `p`. For a fixed vector `e` of the chart, the Cauchy–Schwarz inequality
+`(df e) ^ 2 ≤ ‖grad f‖ ^ 2 * g(e, e)`, together with a bound on the differential of the chart for
+the norm of `g` (Mathlib's `eventually_norm_mfderiv_extChartAt_lt`), gives near `p` an inequality
+`κ * (‖X u‖ ^ 2 + (df_u e) ^ 2) ≤ df_u (X u)` in the chart, with `κ > 0` independent of `e` for
+`‖e‖ ≤ 1`. It passes to second order by `HasFDerivAt.mul_norm_sq_le_apply_apply_of_eventually`
+and `HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`, and a choice of `e` at which `B v`
+is close to its norm makes the bound uniform in `v`. Nondegeneracy is not needed for this; at a
+nondegenerate critical point, the invertibility of the Hessian then bounds `‖v‖` by `‖H v‖`.
 
 The Hessian `H` is then a symmetric bilinear Lyapunov form for `A`, and the dichotomy and the
 index come from `ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply` and
