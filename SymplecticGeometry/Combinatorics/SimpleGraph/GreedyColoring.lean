@@ -25,9 +25,10 @@ most `k`, as `SimpleGraph.colorable_succ_of_forall_exists_card_le`. The result h
 finiteness of the vertex type. Its proof follows that of Tau Ceti's
 `SimpleGraph.colorable_maxDegree_add_one`.
 
-As an application, a finite set `S` with a symmetric real function `d` can be coloured so
-that distinct points of `S` with one colour are at `d`-distance at least `R`: colour the graph
-on `S` joining distinct points at distance less than `R`. If at most `C * (1 + r) ^ m` points
+As an application, a finite set `S` with a symmetric function `d`, with values in a linear
+order, can be coloured so that distinct points of `S` with one colour are at `d`-distance at
+least `R`: colour the graph on `S` joining distinct points at distance less than `R`. For real
+`d`, if at most `C * (1 + r) ^ m` points
 of `S` lie within distance `r` of each point of `S`, then for `R ≥ 1` this takes at most
 `(2 ^ m * C + 1) * R ^ m` colours. Donaldson [Donaldson1996] colours the centres of a cover
 by balls in this way.
@@ -68,14 +69,15 @@ end SimpleGraph
 
 namespace Finset
 
-variable {α : Type*} {d : α → α → ℝ}
+variable {α : Type*}
 
-/-- Let `d` be a symmetric real function on `α`, and `S` a finite set in which each point has
-at most `K` other points at `d`-distance less than `R`. Then there is a colouring of `α` with
-`K + 1` colours in which any two distinct points of `S` with the same colour are at distance
-at least `R`. -/
-theorem exists_coloring_le_of_card_lt_le [DecidableEq α] (hd : ∀ x y, d x y = d y x)
-    (S : Finset α) {R : ℝ} {K : ℕ} (hK : ∀ y ∈ S, #{x ∈ S | x ≠ y ∧ d x y < R} ≤ K) :
+/-- Let `d` be a symmetric function on `α` with values in a linear order, and `S` a finite set
+in which each point has at most `K` other points at `d`-distance less than `R`. Then there is a
+colouring of `α` with `K + 1` colours in which any two distinct points of `S` with the same
+colour are at distance at least `R`. -/
+theorem exists_coloring_le_of_card_lt_le {β : Type*} [LinearOrder β] [DecidableEq α]
+    {d : α → α → β} (hd : ∀ x y, d x y = d y x) (S : Finset α) {R : β} {K : ℕ}
+    (hK : ∀ y ∈ S, #{x ∈ S | x ≠ y ∧ d x y < R} ≤ K) :
     ∃ c : α → Fin (K + 1), ∀ x ∈ S, ∀ x' ∈ S, x ≠ x' → c x = c x' → R ≤ d x x' := by
   classical
   let G : SimpleGraph S :=
@@ -100,8 +102,8 @@ theorem exists_coloring_le_of_card_lt_le [DecidableEq α] (hd : ∀ x y, d x y =
 `#{x ∈ S | d x y ≤ r} ≤ C * (1 + r) ^ m` for all `y ∈ S` and `r ≥ 0`. Then for every `R ≥ 1`
 there is a colouring of `α` with `N ≤ (2 ^ m * C + 1) * R ^ m` colours in which any two
 distinct points of `S` with the same colour are at distance at least `R`. -/
-theorem exists_coloring_le_of_card_le_mul_pow (hd : ∀ x y, d x y = d y x) (S : Finset α)
-    {C : ℝ} (hC : 0 ≤ C) {m : ℕ}
+theorem exists_coloring_le_of_card_le_mul_pow {d : α → α → ℝ} (hd : ∀ x y, d x y = d y x)
+    (S : Finset α) {C : ℝ} (hC : 0 ≤ C) {m : ℕ}
     (hS : ∀ y ∈ S, ∀ r, 0 ≤ r → (#{x ∈ S | d x y ≤ r} : ℝ) ≤ C * (1 + r) ^ m)
     {R : ℝ} (hR : 1 ≤ R) :
     ∃ N : ℕ, (N : ℝ) ≤ (2 ^ m * C + 1) * R ^ m ∧
