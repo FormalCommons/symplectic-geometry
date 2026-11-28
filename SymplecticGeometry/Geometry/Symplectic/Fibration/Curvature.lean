@@ -9,10 +9,16 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistrib
 public import SymplecticGeometry.Geometry.Manifold.Submersion.Curvature
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
+public import SymplecticGeometry.Geometry.Symplectic.Fibration.LocalForm
 import SymplecticGeometry.Geometry.Manifold.Submersion.VerticalProjection
 import TauCeti.Geometry.Manifold.Distribution.Kernel
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.MixedPartial
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # The curvature of the connection of a two-form
@@ -64,6 +70,21 @@ vector field of the function `τ(v₁♯, v₂♯)` read on the fibre through th
 This is the curvature condition of McDuff–Salamon [McDuffSalamon2017], Exercise 6.4.9, and of
 [GuilleminLermanSternberg1996], §1.4.
 
+Last, the file computes the curvature in a product chart, in the setting of `LocalForm.lean`: a
+two-form `τ` on `EB × F` with fibre components `σ(x)`, mixed components `αᵢ(x)` and the fields
+`Xᵢ(x)` with `ι(Xᵢ(x)) σ(x) = αᵢ(x)`, so that the horizontal lift of the constant field `bs i`
+is `(bs i, Xᵢ(x))`. If `σ(x)` is nondegenerate and `τ` is vertically closed at `(x, y)`, the
+curvature `V` of `bs i, bs j` at `(x, y)` is vertical and
+`σ(x)(V, ·) = ∂ᵢαⱼ(x) - ∂ⱼαᵢ(x) - d(σ(x)(Xᵢ(x), Xⱼ(x)))` at `y`. This is the formula of the
+hint to [McDuffSalamon2017], Exercise 6.4.9, with the curvature of Mathlib's bracket, which has
+the opposite sign to the book's (see the note on signs above). The proof needs no bracket of
+the lifts: it evaluates the curvature identity on `(0, w)`. On the fibre over `x`, the lifts
+`Lᵢ`, `Lⱼ` have `τ(Lᵢ, Lⱼ) = τ((bs i, 0), (bs j, 0)) - σ(x)(Xᵢ, Xⱼ)`; vertical
+closedness reduces `dτ(Lᵢ, Lⱼ, (0, w))` to
+`dτ((bs i, 0), (bs j, 0), (0, w))`, which Tau Ceti's
+`TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv` expands into derivatives
+of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F`.
+
 ## Main definitions
 
 * `TauCeti.IsEhresmannConnection.curvatureIn`: the curvature on the fibre over a point, read in
@@ -84,6 +105,8 @@ This is the curvature condition of McDuff–Salamon [McDuffSalamon2017], Exercis
   coordinate changes preserve `σ`, Hamiltonian curvature can be checked in one chart per point.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_of_curvature_eq_zero`: a connection with
   vanishing curvature has Hamiltonian curvature.
+* `TauCeti.IsEhresmannConnection.curvatureIn_local`: the curvature of two constant fields in a
+  product chart, through the components of the local form.
 * `TauCeti.IsEhresmannConnection.isHamiltonianVectorField_curvatureIn_of_isClosed`: for a closed
   two-form that restricts to `σ` on the fibres, the curvature read in a chart is a Hamiltonian
   vector field of `τ(v₁♯, v₂♯)` read on the fibre.
@@ -463,5 +486,192 @@ theorem hasHamiltonianCurvature_of_isClosed
       ((hv₁ b).of_le (by simp)) ((hv₂ b).of_le (by simp))⟩
 
 end Closed
+
+end TauCeti.IsEhresmannConnection
+
+/-! ### The curvature in a product chart -/
+
+namespace TauCeti.IsEhresmannConnection
+
+section Local
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpace EB]
+  {EF HF F : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [CompleteSpace EF]
+  [FiniteDimensional ℝ EF] [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
+  [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {ι : Type*} {τ : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F)} {n : ℕ∞ω}
+  (hD : IsEhresmannConnection (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) n Prod.fst
+    (SmoothTwoForm.horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ))
+  (bs : Module.Basis ι ℝ EB) {x : EB} (hσ : (τ.smoothFiberComponent x).IsNondegenerate)
+
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
+
+include hσ
+
+omit [CompleteSpace EB] [CompleteSpace EF] in
+/-- The horizontal lift of the constant field `bs k` at `(x, y')`, split as `(bs k, 0)` plus the
+vertical vector `(0, Xₖ(x)(y'))`. -/
+private theorem horizontalLiftField_const_eq_add (k : ι) (y' : F) :
+    hD.horizontalLiftField (fun _ ↦ bs k : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y') =
+      ((bs k, 0) : EB × EF) + (((0 : EB), τ.mixedVectorField bs k x y') : EB × EF) := by
+  refine (((hD.horizontalLiftField_apply _ (x, y')).trans
+    (τ.horizontalLift_local bs hD hσ k y')).trans
+    (Manifold.tangentSpaceProdEquiv_symm_apply _ _)).trans ?_
+  exact Prod.ext (add_zero _).symm (zero_add _).symm
+
+omit [CompleteSpace EB] [CompleteSpace EF] in
+/-- On the fibre over `x`, `τ(∂ᵢ, ∂ⱼ) - τ(Lᵢ, Lⱼ) = σ(x)(Xᵢ, Xⱼ)`, where `Lₖ` is the horizontal
+lift of the constant field `bs k`. -/
+private theorem sub_val_horizontalLiftField_const (i j : ι) (y' : F) :
+    τ.val (x, y') ![(bs i, 0), (bs j, 0)] -
+        τ.val (x, y') ![hD.horizontalLiftField
+            (fun _ ↦ bs i : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y'),
+          hD.horizontalLiftField (fun _ ↦ bs j : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y')] =
+      SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
+        (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y') := by
+  rw [horizontalLiftField_const_eq_add hD bs hσ i y',
+    horizontalLiftField_const_eq_add hD bs hσ j y']
+  set Xᵢ := τ.mixedVectorField bs i x y'
+  set Xⱼ := τ.mixedVectorField bs j x y'
+  -- The values of `τ` at `(x, y')`, on vectors of `EB × EF`.
+  set T : (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ := τ.val (x, y')
+  have e₁ : SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y' Xᵢ Xⱼ =
+      T ![(((0 : EB), Xⱼ) : EB × EF), (bs i, 0)] := by
+    have h := τ.eval₂_mixedVectorField bs hσ i y' Xⱼ
+    rw [RoughForm.mixedComponent_apply] at h
+    exact h
+  have e₂ : SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y' Xⱼ Xᵢ =
+      T ![(((0 : EB), Xᵢ) : EB × EF), (bs j, 0)] := by
+    have h := τ.eval₂_mixedVectorField bs hσ j y' Xᵢ
+    rw [RoughForm.mixedComponent_apply] at h
+    exact h
+  have e₃ : SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y' Xᵢ Xⱼ =
+      T ![(((0 : EB), Xᵢ) : EB × EF), ((0 : EB), Xⱼ)] :=
+    τ.eval₂_smoothFiberComponent x y' Xᵢ Xⱼ
+  have e₄ := SmoothBundleForm.eval₂_swap (τ.smoothFiberComponent x) y' Xⱼ Xᵢ
+  have e₅ := T.apply_vecCons_swap (((0 : EB), Xⱼ) : EB × EF) ((bs i, 0) : EB × EF)
+  have hexp (A a B b : EB × EF) : T ![A, B] - T ![A + a, B + b] =
+      -(T ![A, b] + T ![a, B] + T ![a, b]) := by
+    rw [T.vecCons_add, T.apply_vecCons_add_right, T.apply_vecCons_add_right]
+    ring
+  refine (hexp _ _ _ _).trans ?_
+  linear_combination -e₅ - e₁ + e₂ - e₄ + e₃
+
+omit [CompleteSpace EB] [CompleteSpace EF] in
+/-- Where `τ` is vertically closed, `dτ(Lᵢ, Lⱼ, (0, w)) = dτ((bs i, 0), (bs j, 0), (0, w))`: the
+lifts differ from the constant fields by vertical vectors, and `dτ` vanishes on two of them. -/
+private theorem mextDeriv_horizontalLiftField_const {y : F}
+    (hτ : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst τ.val {(x, y)}) (i j : ι)
+    (w : TangentSpace IF y) :
+    mextDeriv τ.val (x, y)
+        ![hD.horizontalLiftField (fun _ ↦ bs i : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y),
+          hD.horizontalLiftField (fun _ ↦ bs j : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y),
+          ((0 : EB), w)] =
+      mextDeriv τ.val (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] := by
+  set f : (EB × EF) [⋀^Fin 3]→L[ℝ] ℝ := mextDeriv τ.val (x, y)
+  have hV (a b c : EB × EF) (ha : a.1 = 0) (hb : b.1 = 0) : f ![a, b, c] = 0 :=
+    RoughForm.isVerticallyClosedOn_iff.1 hτ (x, y) rfl a (mem_ker_mfderiv_fst_iff.2 ha) b
+      (mem_ker_mfderiv_fst_iff.2 hb) c
+  have hsplit (A a B b c : EB × EF) (ha : a.1 = 0) (hb : b.1 = 0) (hc : c.1 = 0) :
+      f ![A + a, B + b, c] = f ![A, B, c] := by
+    rw [f.vecCons_add, f.map_vecCons_rotate a, f.map_vecCons_rotate A, f.vecCons_add,
+      f.vecCons_add, hV b c A hb hc, hV b c a hb hc, f.map_vecCons_rotate B c a, hV c a B hc ha,
+      f.map_vecCons_rotate B c A, f.map_vecCons_rotate c A B]
+    simp
+  rw [horizontalLiftField_const_eq_add hD bs hσ i y, horizontalLiftField_const_eq_add hD bs hσ j y]
+  exact hsplit _ _ _ _ _ rfl rfl rfl
+
+omit hσ [CompleteSpace EB] [CompleteSpace EF] [FiniteDimensional ℝ EF] in
+/-- The function `τ((bs i, 0), (bs j, 0))` on `EB × F` is differentiable. -/
+private theorem mdifferentiableAt_val_const (i j : ι) (y : F) :
+    MDifferentiableAt (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, ℝ)
+      (fun z ↦ τ.val z ![(bs i, 0), (bs j, 0)]) (x, y) := by
+  set A : ι → Π z : EB × F, TangentSpace (𝓘(ℝ, EB).prod IF) z := fun k ↦
+    Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
+      (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) (0 : (y : F) → TangentSpace IF y)
+  have hA (k : ι) : MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
+      (fun z ↦ (A k z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
+    Manifold.mdifferentiableAt_prodVectorField
+      ((contMDiff_tangentBundle_mk_const (n := 1) _).mdifferentiableAt one_ne_zero)
+      ((contMDiff_zeroSection ℝ (TangentSpace IF)).mdifferentiableAt one_ne_zero)
+  have hAv (k : ι) (z : EB × F) : A k z = ((bs k, 0) : EB × EF) :=
+    Manifold.prodVectorField_apply _ _ z
+  simpa only [hAv] using τ.mdifferentiableAt_apply_two (hA i) (hA j)
+
+/-- **The curvature in a product chart.** Let `τ` be a smooth two-form on `EB × F` whose
+`τ`-orthogonals of the vertical spaces of `Prod.fst` form a `C^n` Ehresmann connection `hD`,
+`1 ≤ n`, and `bs` a basis of `EB`. Suppose that the fibre component `σ(x)` of `τ` over `x` is
+nondegenerate and that `τ` is vertically closed at `(x, y)`. Then the curvature of the constant
+fields `bs i`, `bs j` at `(x, y)` is vertical, and its component `V` along `F` satisfies, for every
+tangent vector `w` of `F` at `y`,
+
+`σ(x)(V, w) = ∂ᵢαⱼ(x)(w) - ∂ⱼαᵢ(x)(w) - d(σ(x)(Xᵢ(x), Xⱼ(x)))(w)`,
+
+where `αₖ(x)` is the mixed component of `τ`, `∂ᵢ` differentiates in `x` along `bs i`, and
+`Xₖ(x)` is the vector field on `F` with `ι(Xₖ(x)) σ(x) = αₖ(x)`. -/
+theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
+    (hτ : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst τ.val {(x, y)}) (i j : ι) :
+    (hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)).1 = 0 ∧
+      ∀ w : TangentSpace IF y,
+        SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y
+            (hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)).2 w =
+          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
+            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) -
+            mvfderiv IF (fun y' ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
+              (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y')) y w := by
+  have hc (k : ι) : ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent 1
+      (fun b ↦ (⟨b, bs k⟩ : TangentBundle 𝓘(ℝ, EB) EB)) x :=
+    (contMDiff_tangentBundle_mk_const _).contMDiffAt
+  have hproj : ContMDiff (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) 2 (Prod.fst : EB × F → EB) := contMDiff_fst
+  have hver := hD.curvature_mem_ker hn (hproj (x, y)) (hc i) (hc j)
+  rw [mem_ker_mfderiv_fst_iff] at hver
+  refine ⟨hver, fun w ↦ ?_⟩
+  set Ω := hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)
+  set Lᵢ := hD.horizontalLiftField (fun _ ↦ bs i : Π b : EB, TangentSpace 𝓘(ℝ, EB) b)
+  set Lⱼ := hD.horizontalLiftField (fun _ ↦ bs j : Π b : EB, TangentSpace 𝓘(ℝ, EB) b)
+  -- The curvature identity along the vertical vector `(0, w)`.
+  have hη : (((0 : EB), w) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) ∈
+      (mfderiv (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) Prod.fst (x, y)).ker :=
+    mem_ker_mfderiv_fst_iff.2 rfl
+  have hid := apply_curvature_eq_mvfderiv_sub_mextDeriv hD hn hproj (hc i) (hc j) hη
+  -- Its left side: the curvature is vertical, so `τ` pairs it with `(0, w)` through `σ(x)`.
+  have hlhs : τ.val (x, y) ![Ω, ((0 : EB), w)] =
+      SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y Ω.2 w := by
+    refine (congrArg (fun v ↦ τ.val (x, y) ![v, ((0 : EB), w)]) (Prod.ext hver rfl :
+      Ω = ((0 : EB), Ω.2))).trans ?_
+    exact (τ.eval₂_smoothFiberComponent x y _ w).symm
+  -- `dτ` on the constant fields and `(0, w)`, by Tau Ceti's formula on a parameter product.
+  have hdτ := mextDeriv_horizontalLiftField_const hD bs hσ hτ i j w
+  have hfAB := SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv τ x y (bs i) (bs j) w
+  have ha (k : ι) (v : EB) : fderiv ℝ (fun q ↦ τ.val (q, y) ![(bs k, 0), ((0 : EB), w)]) x v =
+      -fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs k x' y ![w]) x v := by
+    have hα : (fun q ↦ τ.val (q, y) ![(bs k, 0), ((0 : EB), w)]) =
+        fun q ↦ -RoughForm.mixedComponent τ.val bs k q y ![w] :=
+      funext fun q ↦ by
+        rw [RoughForm.mixedComponent_apply]
+        exact (τ.val (q, y)).apply_vecCons_swap _ _
+    have h := congrArg (fun φ ↦ fderiv ℝ φ x v) hα
+    simp only [fderiv_fun_neg] at h
+    exact h
+  -- The derivative along `(0, w)` of `τ(Lᵢ, Lⱼ)` is read on the fibre over `x`.
+  have hfd := mdifferentiableAt_val_const (τ := τ) bs (x := x) i j y
+  have hL (k : ι) := hD.mdifferentiableAt_horizontalLiftField hn (hproj (x, y))
+    (V := (fun _ ↦ bs k : Π b : EB, TangentSpace 𝓘(ℝ, EB) b)) (hc k)
+  have hg := τ.mdifferentiableAt_apply_two (hL i) (hL j)
+  have hS : mvfderiv IF (fun y' ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
+        (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y')) y w =
+      mvfderiv IF (fun y' ↦ τ.val (x, y') ![(bs i, 0), (bs j, 0)]) y w -
+        mvfderiv (𝓘(ℝ, EB).prod IF) (fun z ↦ τ.val z ![Lᵢ z, Lⱼ z]) (x, y) ((0 : EB), w) := by
+    have hmk : MDifferentiableAt IF (𝓘(ℝ, EB).prod IF) (fun y' : F ↦ (x, y')) y :=
+      mdifferentiableAt_const.prodMk mdifferentiableAt_id
+    have h := congrArg (fun L ↦ L w) (mvfderiv_fun_sub (hfd.comp y hmk) (hg.comp y hmk))
+    simp only [sub_apply] at h
+    rw [hg.mvfderiv_prod_eq_apply_of_fst_eq_zero
+      (v := (((0 : EB), w) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y))) rfl]
+    exact (congrArg (fun φ ↦ mvfderiv IF φ y w)
+      (funext fun y' ↦ (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
+  linear_combination -hlhs + hid - hdτ - hfAB - ha j (bs i) + ha i (bs j) + hS
+
+end Local
 
 end TauCeti.IsEhresmannConnection

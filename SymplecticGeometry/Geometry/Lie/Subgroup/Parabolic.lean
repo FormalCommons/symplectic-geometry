@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.Complexification
+public import SymplecticGeometry.Geometry.Lie.Complexification.Polar
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Formula
 import SymplecticGeometry.Geometry.Lie.Adjoint.Eigenvector
 import TauCeti.Analysis.InnerProductSpace.Spectral.Relative

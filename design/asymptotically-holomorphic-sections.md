@@ -621,7 +621,7 @@ and the prerequisites, placed by topic.
   (at critical points of $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
   `IsUniformlyTransverse.isComplexNegativeAt_log_norm_sq`,
   `IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`, and the milestone
-  `exists_relCWComplex_homotopyEquiv_zeroSet`: for nonempty $Z_k$ and large
+  `IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_zeroSet`: for large
   $k$, $M$ has the homotopy type of a CW complex relative to $Z_k$ whose
   cells all have dimension $n$ or more. In the form of Tau Ceti's
   `IsMorse.exists_relCWComplex_homotopyEquiv_sublevel`, there are a
@@ -629,7 +629,8 @@ and the prerequisites, placed by topic.
   `RelCWComplex (univ : Set X) (range j)` with no cell of dimension less
   than $n$, and `h : X ≃ₕ M` with `h (j z) = z`. It is assembled from the
   Morse–Bott attachment near $Z_k$ and the Morse CW models away from it.
-  Its corollary `isNConnected_zeroSet_inclusion` ($Z_k\hookrightarrow M$ is
+  Its corollary `IsUniformlyTransverse.isNConnected_zeroSet_inclusion` (for
+  nonempty $Z_k$, $Z_k\hookrightarrow M$ is
   $(n-1)$-connected) follows through `TauCeti.isNConnected_inclusion_skeletonLT`
   and the homotopy equivalence.
 - `Hypersurface.lean`: the milestone `exists_symplecticHypersurface`: for
