@@ -83,23 +83,11 @@ theorem IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul {p : M}
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
   set B' := fderiv ℝ (fderiv ℝ (g ∘ φ.symm)) (φ p)
   -- At the critical point `p` of `f`, the inequality for `f` forces `X p = 0`.
-  have hX₀ : X p = 0 := by
-    obtain ⟨U, hU, G, c, hc, hG⟩ := hXf
-    let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨G.toRiemannianMetric⟩
-    have h := hG p (mem_of_mem_nhds hU)
-    rw [TauCeti.mem_criticalPoints.1 hf.mem_criticalPoints, zero_apply] at h
-    by_contra hne
-    have := G.pos p (X p) hne
-    nlinarith [sq_nonneg ‖mgradient 𝓘(ℝ, E) f p‖]
+  have hX₀ : X p = 0 :=
+    (IsGradientLikeAt.eq_zero_iff ((isGradientLikeAt_def f X p).2 hXf)).2 hf.mem_criticalPoints
   -- Then the inequality for `g` at `p` makes `p` a critical point of `g`.
-  have hgp : p ∈ criticalPoints 𝓘(ℝ, E) g := by
-    obtain ⟨U, hU, G, c, hc, hG⟩ := hXg
-    let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨G.toRiemannianMetric⟩
-    have h := hG p (mem_of_mem_nhds hU)
-    simp only [hX₀, map_zero, zero_add] at h
-    rw [TauCeti.mem_criticalPoints, ← mgradient_eq_zero_iff]
-    exact norm_eq_zero.1 <| pow_eq_zero_iff (n := 2) two_ne_zero |>.1 <|
-      le_antisymm (nonpos_of_mul_nonpos_right h hc) (sq_nonneg _)
+  have hgp : p ∈ criticalPoints 𝓘(ℝ, E) g :=
+    (IsGradientLikeAt.eq_zero_iff ((isGradientLikeAt_def g X p).2 hXg)).1 hX₀
   obtain ⟨c, hc, hcB⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hXf
     hf.mem_criticalPoints hf'.contDiffAt hXp (A := A) rfl
   obtain ⟨c', hc', hcB'⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hXg hgp hg hXp
