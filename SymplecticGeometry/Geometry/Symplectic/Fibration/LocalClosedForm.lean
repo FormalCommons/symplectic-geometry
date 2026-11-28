@@ -143,8 +143,8 @@ theorem mpullback_fst_wedge_coordOneForm_apply {E : Type*} [NormedAddCommGroup E
       (TauCeti.SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val z ![v, w] =
       bs.coord i v.1 * bs.coord j w.1 - bs.coord i w.1 * bs.coord j v.1 := by
   rw [TauCeti.SmoothForm.mpullback_wedge, TauCeti.SmoothForm.wedge_apply_one_one]
-  simp
-  rfl
+  simp only [TauCeti.SmoothForm.coe_mpullback, mpullback_fst_coordOneForm_apply,
+    Matrix.cons_val_zero]
 
 end Module.Basis
 
@@ -236,6 +236,52 @@ theorem exists_contMDiffOn_mvfderiv_eq_mixedCurl {U : Set EB} (hU : IsOpen U) {i
       ((hfx x).mdifferentiableAt (by simp)) (hh.mdifferentiableAt (by simp)), sub_apply, hd, hη,
     mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv]
 
+
+/-- A step of `exists_isClosed_local`: a rough two-form `φ` that agrees with `τ` on pairs ending
+with a vertical vector, and whose base component along `bs i, bs j` has the curl of the mixed
+components of `τ` as fibre differential at `(x, y)`, has `dφ` zero there on
+`(bs i, 0), (bs j, 0), (0, w)`. -/
+private theorem mextDeriv_apply_basis_basis_vertical_eq_zero
+    {φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2} {x : EB} {y : F}
+    (hφ : MDifferentiableAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (x, y))
+    (hsnoc : ∀ (z : EB × F) (u : Fin 1 → TangentSpace (𝓘(ℝ, EB).prod IF) z)
+      (w : TangentSpace IF z.2), φ z (Fin.snoc u (((0 : EB), w) : EB × EF)) =
+        τ.val z (Fin.snoc u (((0 : EB), w) : EB × EF)))
+    {i j : ι} (w : TangentSpace IF y)
+    (hd : mvfderiv IF (fun y' ↦ φ (x, y') fun k ↦ (![bs i, bs j] k, (0 : EF))) y w =
+      RoughForm.mixedCurl τ.val bs i j x y w) :
+    mextDeriv φ (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] = 0 := by
+  have e : (![(bs i, 0), (bs j, 0), ((0 : EB), w)] :
+      Fin 3 → TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) =
+      Fin.snoc (fun k ↦ (![bs i, bs j] k, 0)) ((0 : EB), w) :=
+    funext fun k ↦ by fin_cases k <;> rfl
+  have hτb : (fun y' ↦ τ.val (x, y') fun k ↦ (![bs i, bs j] k, (0 : EF))) =
+      RoughForm.baseComponent τ.val bs i j x := by
+    funext y'
+    rw [RoughForm.baseComponent_def]
+    exact congrArg _ (funext fun k ↦ by fin_cases k <;> rfl)
+  have h₁ := RoughForm.mextDeriv_prod_apply_snoc_inr hφ ![bs i, bs j] w
+  have h₂ := RoughForm.mextDeriv_prod_apply_snoc_inr
+    ((τ.contMDiff (x, y)).mdifferentiableAt (by simp)) ![bs i, bs j] w
+  rw [hd] at h₁
+  rw [hτb] at h₂
+  have h₃ := mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv τ bs i j x y w
+  have h₄ := h₃.trans (congrArg (_ - ·) ((congrArg (mextDeriv τ.val (x, y)) e).trans h₂))
+  rw [e]
+  refine h₁.trans ?_
+  rw [h₄]
+  have key {R V : Type _} [Ring R] [AddCommGroup V] [Module R V] {A B D : V} (c : R)
+      (hc : c = 1) (hAB : A = B) : A + c • (D - (B + c • D)) = 0 := by
+    rw [hc, hAB, one_smul, one_smul]
+    abel
+  refine key _ ?_ ?_
+  · norm_num
+  · refine Finset.sum_congr rfl fun k _ ↦ ?_
+    congr 3
+    funext q
+    exact hsnoc (q, y) _ w
 
 /-- **A closed form over a patch with the fibre and mixed components of `τ`.** Let `τ` be a
 smooth two-form on `EB × F`, with `F` connected, and `U` an open set of `EB` over which `τ` is
@@ -356,41 +402,15 @@ theorem exists_isClosed_local [FiniteDimensional ℝ EB] [Finite ι] [LinearOrde
   have hbbf₀ {x : EB} {y : F} (hz : (x, y) ∈ U ×ˢ univ) (w : TangentSpace IF y) {i j : ι}
       (hij : i < j) :
       mextDeriv φ (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] = 0 := by
-    have e : (![(bs i, 0), (bs j, 0), ((0 : EB), w)] :
-        Fin 3 → TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) =
-        Fin.snoc (fun k ↦ (![bs i, bs j] k, 0)) ((0 : EB), w) :=
-      funext fun k ↦ by fin_cases k <;> rfl
     have hφb : (fun y' ↦ φ (x, y') fun k ↦ (![bs i, bs j] k, (0 : EF))) =
         fun y' ↦ f i j (x, y') := by
       funext y'
       rw [← hbase (x, y') hij]
       exact congrArg _ (funext fun k ↦ by fin_cases k <;> rfl)
-    have hτb : (fun y' ↦ τ.val (x, y') fun k ↦ (![bs i, bs j] k, (0 : EF))) =
-        RoughForm.baseComponent τ.val bs i j x := by
-      funext y'
-      rw [RoughForm.baseComponent_def]
-      exact congrArg _ (funext fun k ↦ by fin_cases k <;> rfl)
-    have h₁ := RoughForm.mextDeriv_prod_apply_snoc_inr
-      ((hsmAt hz).mdifferentiableAt (by simp)) ![bs i, bs j] w
-    have h₂ := RoughForm.mextDeriv_prod_apply_snoc_inr
-      ((τ.contMDiff (x, y)).mdifferentiableAt (by simp)) ![bs i, bs j] w
-    rw [hφb, hfd i j x hz.1] at h₁
-    rw [hτb] at h₂
-    have h₃ := mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv τ bs i j x y w
-    have h₄ := h₃.trans (congrArg (_ - ·) ((congrArg (mextDeriv τ.val (x, y)) e).trans h₂))
-    rw [e]
-    refine h₁.trans ?_
-    rw [h₄]
-    have key {R V : Type _} [Ring R] [AddCommGroup V] [Module R V] {A B D : V} (c : R)
-        (hc : c = 1) (hAB : A = B) : A + c • (D - (B + c • D)) = 0 := by
-      rw [hc, hAB, one_smul, one_smul]
-      abel
-    refine key _ ?_ ?_
-    · norm_num
-    · refine Finset.sum_congr rfl fun k _ ↦ ?_
-      congr 3
-      funext q
-      exact hsnoc (q, y) _ w
+    refine mextDeriv_apply_basis_basis_vertical_eq_zero τ bs
+      ((hsmAt hz).mdifferentiableAt (by simp)) hsnoc w ?_
+    rw [hφb]
+    exact hfd i j x hz.1 y w
   have hbbf {x : EB} {y : F} (hz : (x, y) ∈ U ×ˢ univ) (a b : EB) (w : TangentSpace IF y) :
       mextDeriv φ (x, y) ![(a, 0), (b, 0), ((0 : EB), w)] = 0 :=
     (mextDeriv φ (x, y)).apply_vecCons_inl_inl_inr_eq_zero_of_basis bs w
