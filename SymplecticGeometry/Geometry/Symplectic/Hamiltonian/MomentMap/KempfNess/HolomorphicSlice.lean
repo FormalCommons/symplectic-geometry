@@ -11,8 +11,12 @@ public import Mathlib.Analysis.InnerProductSpace.Orthogonal
 public import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.RepresentationTheory.Continuous.Unitary.Basic
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import Mathlib.Analysis.InnerProductSpace.Projection.Basic
 import TauCeti.RepresentationTheory.Continuous.InvariantComplement
+import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.GroupAction.TangentRepresentation.AlmostComplex
 
 /-!
@@ -69,6 +73,24 @@ linearizing chart `e`, since `X_{i ξ} = J X_ξ`; this is the linear part of Ste
 Theorem 12.5 of [GeorgoulasRobbinSalamon2021]. Injectivity uses that `W` is totally real and
 that `T` meets `S` only in `0`; surjectivity, that `K` maps onto `W`.
 
+The last section proves this for the **slice map** above, and inverts it. To be a model space,
+`K × K × S` needs a norm, so `K` is taken there as a subspace of the model space `E` of `G`, which
+is its Lie algebra by definition and carries the norm of `E`. The derivative at `0` of
+`(α, β) ↦ C.expI α * C.toHom (exp β)` is `(α, β) ↦ C.cplx (C.lieMap α) + C.lieMap β`
+(`SymplecticGeometry.LieComplexification.hasMFDerivAt_expI_mul_toHom_mulInvariantExp_zero`), and
+that of `(g, v) ↦ g • e.symm v` at `(1, 0)` is `(ζ, v) ↦ X_ζ x + v` (Tau Ceti's
+`TauCeti.mfderiv_smul_slice_apply`), so the slice map has derivative
+`SymplecticGeometry.complexOrbitSliceMap` at `0`
+(`SymplecticGeometry.hasMFDerivAt_expI_mul_smul_chart_symm`). At a zero of the moment map and for
+a complement `K` of the isotropy algebra, it follows that, read in `e`, the slice map has
+`SymplecticGeometry.complexOrbitSliceEquiv` as its strict derivative at `0`
+(`SymplecticGeometry.hasStrictFDerivAt_chart_expI_mul_smul_chart_symm`). That is the hypothesis
+of `HasStrictFDerivAt.toOpenPartialHomeomorph`. The slice map is also a smooth local
+diffeomorphism at `0` (`SymplecticGeometry.isLocalDiffeomorphAt_expI_mul_smul_chart_symm`), by
+Tau Ceti's inverse function theorem on manifolds, `TauCeti.isLocalDiffeomorphAt_of_mfderiv_eq`.
+This is the inverse function step in Step 3 of the proof of Theorem 12.5 of
+[GeorgoulasRobbinSalamon2021].
+
 ## Main definitions
 
 * `SymplecticGeometry.complexOrbitTangent I G J x`: the subspace `W + J x W` of `T_x M`.
@@ -95,6 +117,14 @@ that `T` meets `S` only in `0`; surjectivity, that `K` maps onto `W`.
 * `SymplecticGeometry.bijective_complexOrbitSliceMap`: at a zero of the moment map, the map
   `(α, β, v) ↦ J x (X_α x) + X_β x + v` is bijective for every complement `K` of the isotropy
   algebra.
+* `SymplecticGeometry.hasMFDerivAt_expI_mul_smul_chart_symm`: for a complexified action, the
+  slice map `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` has derivative
+  `(α, β, v) ↦ J x (X_α x) + X_β x + v` at `0`.
+* `SymplecticGeometry.hasStrictFDerivAt_chart_expI_mul_smul_chart_symm`: at a zero of the moment
+  map, the slice map read in `e` has the linear equivalence
+  `SymplecticGeometry.complexOrbitSliceEquiv` as its strict derivative at `0`.
+* `SymplecticGeometry.isLocalDiffeomorphAt_expI_mul_smul_chart_symm`: at a zero of the moment
+  map, the slice map is a local diffeomorphism at `0`.
 
 ## References
 
@@ -502,6 +532,204 @@ theorem complexOrbitSliceEquiv_apply {σ : SmoothTwoForm I' M}
     (a : K × K × complexOrbitNormal I G J x) :
     complexOrbitSliceEquiv hμ hg hx hK a = complexOrbitSliceMap I G J x K a :=
   LinearEquiv.ofBijective_apply _ a
+
+
+/-! ### The slice map is a local diffeomorphism at `0` -/
+
+section SliceMap
+
+variable {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [MulAction Gc M] [ContMDiffSMul IC I' ∞ Gc M] [FiniteDimensional ℝ E']
+  [T2Space G]
+
+omit [FiniteDimensional ℝ E'] in
+/-- **The slice map is smooth.** For a complexification `C` of `G` acting on `M`, a linearizing
+chart `e` at `x` and a subspace `K` of the Lie algebra `E` of `G`, the slice map
+`(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on `K × K × S`, where `S` is the complex
+orbit normal space at `x`, is smooth where `v` lies in the target of `e`. -/
+theorem contMDiffOn_expI_mul_smul_chart_symm (C : LieComplexification I G IC Gc)
+    (J : SmoothAlmostComplexStructure I' M) {x : M} (e : LinearizingChart G I' x)
+    (K : Submodule ℝ E) :
+    ContMDiffOn 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' ∞
+      (fun p : K × K × complexOrbitNormal I G J x ↦
+        (C.expI ((p.1 : E) : GroupLieAlgebra I G) *
+          C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
+            e.chart.symm (p.2.2 : TangentSpace I' x))
+      {p | (p.2.2 : TangentSpace I' x) ∈ e.chart.target} := by
+  have := C.finiteDimensional
+  set S := complexOrbitNormal I G J x
+  let L₁ : K × K × S →L[ℝ] E := K.subtypeL.comp (ContinuousLinearMap.fst ℝ K (K × S))
+  let L₂ : K × K × S →L[ℝ] E :=
+    K.subtypeL.comp ((ContinuousLinearMap.fst ℝ K S).comp (ContinuousLinearMap.snd ℝ K (K × S)))
+  let P : K × K × S →L[ℝ] E' := S.subtypeL.comp
+    ((ContinuousLinearMap.snd ℝ K S).comp (ContinuousLinearMap.snd ℝ K (K × S)))
+  have ha : ContMDiff 𝓘(ℝ, K × K × S) IC ∞ fun p ↦ C.expI (L₁ p : GroupLieAlgebra I G) :=
+    C.contMDiff_expI.comp L₁.contMDiff
+  have hb : ContMDiff 𝓘(ℝ, K × K × S) IC ∞ fun p ↦
+      C.toHom (mulInvariantExp (I := I) (G := G) (L₂ p : GroupLieAlgebra I G)) :=
+    C.toHom.contMDiff_toFun.comp (contMDiff_mulInvariantExp.comp L₂.contMDiff)
+  have hσ : ContMDiffOn 𝓘(ℝ, K × K × S) I' ∞ (fun p ↦ e.chart.symm (P p))
+      {p | (p.2.2 : TangentSpace I' x) ∈ e.chart.target} :=
+    e.contMDiffOn_chart_symm.comp P.contMDiff.contMDiffOn fun _ hp ↦ hp
+  exact (ha.mul hb).contMDiffOn.smul hσ
+
+/-- **The derivative of the slice map at `0`.** For a complexified action of `Gc`, a linearizing
+chart `e` at `x` and a subspace `K` of the Lie algebra `E` of `G`, the slice map
+`(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on `K × K × S`, where `S` is the complex
+orbit normal space at `x`, has derivative `(α, β, v) ↦ J x (X_α x) + X_β x + v` at `0`
+(`SymplecticGeometry.complexOrbitSliceMap`): the derivative of `(α, β) ↦ C.expI α * C.toHom (exp β)`
+at `0` is `(α, β) ↦ C.cplx (C.lieMap α) + C.lieMap β`, whose fundamental vector field at `x` is
+`J x (X_α x) + X_β x`. -/
+theorem hasMFDerivAt_expI_mul_smul_chart_symm {C : LieComplexification I G IC Gc}
+    {J : SmoothAlmostComplexStructure I' M} (h : IsComplexifiedAction C J) {x : M}
+    (e : LinearizingChart G I' x) (K : Submodule ℝ E) :
+    HasMFDerivAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I'
+      (fun p : K × K × complexOrbitNormal I G J x ↦
+        (C.expI ((p.1 : E) : GroupLieAlgebra I G) *
+          C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
+            e.chart.symm (p.2.2 : TangentSpace I' x)) 0
+      (LinearMap.toContinuousLinearMap (complexOrbitSliceMap I G J x K)) := by
+  set S := complexOrbitNormal I G J x
+  let Q : K × K × S →L[ℝ] E × E := (K.subtypeL.comp (ContinuousLinearMap.fst ℝ K (K × S))).prod
+    (K.subtypeL.comp ((ContinuousLinearMap.fst ℝ K S).comp (ContinuousLinearMap.snd ℝ K (K × S))))
+  let P : K × K × S →L[ℝ] S :=
+    (ContinuousLinearMap.snd ℝ K S).comp (ContinuousLinearMap.snd ℝ K (K × S))
+  let ι : S →L[ℝ] E' := S.subtypeL
+  -- The derivative of `p ↦ C.expI α * C.toHom (exp β)`.
+  have hγ := C.hasMFDerivAt_expI_mul_toHom_mulInvariantExp_zero
+  rw [← map_zero Q] at hγ
+  -- The derivative of `(g, v) ↦ g • e.symm v` at `(1, 0)`.
+  have hσ : HasMFDerivAt 𝓘(ℝ, S) I' (fun s : S ↦ e.chart.symm (s : TangentSpace I' x)) 0 ι := by
+    have h := e.hasMFDerivAt_chart_symm
+    rw [← map_zero ι] at h
+    exact (h.comp 0 ι.hasMFDerivAt).congr_mfderiv (ContinuousLinearMap.id_comp _)
+  have h1 : C.expI ((Q 0).1 : GroupLieAlgebra I G) *
+      C.toHom (mulInvariantExp (I := I) ((Q 0).2 : GroupLieAlgebra I G)) = 1 := by
+    rw [map_zero]
+    -- The zeros of `E × E`, read in the Lie algebra.
+    show C.expI 0 * C.toHom (mulInvariantExp (0 : GroupLieAlgebra I G)) = 1
+    rw [C.expI_zero, mulInvariantExp_zero, map_one, one_mul]
+  have hF : HasMFDerivAt (IC.prod 𝓘(ℝ, S)) I'
+      (fun q : Gc × S ↦ q.1 • e.chart.symm (q.2 : TangentSpace I' x))
+      (C.expI ((Q 0).1 : GroupLieAlgebra I G) *
+        C.toHom (mulInvariantExp (I := I) ((Q 0).2 : GroupLieAlgebra I G)), P 0)
+      (mfderiv (IC.prod 𝓘(ℝ, S)) I'
+        (fun q : Gc × S ↦ q.1 • e.chart.symm (q.2 : TangentSpace I' x)) (1, 0)) := by
+    rw [h1, map_zero]
+    exact (mdifferentiableAt_smul_slice hσ.mdifferentiableAt 1).hasMFDerivAt
+  have hA (ζ : GroupLieAlgebra IC Gc) (v : S) :
+      mfderiv (IC.prod 𝓘(ℝ, S)) I'
+        (fun q : Gc × S ↦ q.1 • e.chart.symm (q.2 : TangentSpace I' x)) (1, 0) (ζ, v) =
+        fundamentalVectorField I' ζ x + (v : TangentSpace I' x) := by
+    refine (mfderiv_smul_slice_apply hσ.mdifferentiableAt ζ v).trans ?_
+    have hx0 : e.chart.symm (0 : TangentSpace I' x) = x := e.symm_zero
+    simp only [hσ.mfderiv, ZeroMemClass.coe_zero]
+    rw [hx0]
+    exact congrArg (fundamentalVectorField I' ζ x + ·) (S.subtypeL_apply v)
+  refine (hF.comp (0 : K × K × S) ((hγ.comp 0 Q.hasMFDerivAt).prodMk P.hasMFDerivAt)).congr_mfderiv
+    (ContinuousLinearMap.ext fun (p : K × K × S) ↦ ?_)
+  -- The composite of the derivatives, evaluated at `p`.
+  change mfderiv (IC.prod 𝓘(ℝ, S)) I'
+    (fun q : Gc × S ↦ q.1 • e.chart.symm (q.2 : TangentSpace I' x)) (1, 0)
+      (C.cplx (C.lieMap ((p.1 : E) : GroupLieAlgebra I G)) +
+        C.lieMap ((p.2.1 : E) : GroupLieAlgebra I G), P p) = _
+  refine (hA _ _).trans ?_
+  refine (congrArg (· + ((P p : S) : TangentSpace I' x))
+    ((congrFun (fundamentalVectorField_add _ _) x).trans (congrArg₂ (· + ·)
+      (h.fundamentalVectorField_cplx_lieMap _ x)
+      (congrFun (h.fundamentalVectorField_lieMap _) x)))).trans ?_
+  exact (complexOrbitSliceMap_apply J x K p).symm
+
+/-- **The strict derivative of the slice map in the chart.** Let `Gc` act as a complexified
+action, let `-μ` be an equivariant moment map for `σ`, let the metric be `g(u, w) = σ(u, J w)`,
+let `μ x = 0`, let `e` be a linearizing chart at `x`, and let `K` be a complement of the isotropy
+algebra of `x`. Then the slice map `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on
+`K × K × S`, read in `e`, has at `0` the strict derivative
+`(α, β, v) ↦ J x (X_α x) + X_β x + v`, a linear equivalence onto `T_x M`
+(`SymplecticGeometry.complexOrbitSliceEquiv`). -/
+theorem hasStrictFDerivAt_chart_expI_mul_smul_chart_symm {C : LieComplexification I G IC Gc}
+    {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (e : LinearizingChart G I' x) {K : Submodule ℝ E}
+    (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
+    HasStrictFDerivAt
+      (fun p : K × K × complexOrbitNormal I G J x ↦ e.chart
+        ((C.expI ((p.1 : E) : GroupLieAlgebra I G) *
+          C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
+            e.chart.symm (p.2.2 : TangentSpace I' x)))
+      (((complexOrbitSliceEquiv hμ hg hx hK).toContinuousLinearEquiv :
+        (K × K × complexOrbitNormal I G J x) ≃L[ℝ] E') :
+          (K × K × complexOrbitNormal I G J x) →L[ℝ] E') 0 := by
+  set S := complexOrbitNormal I G J x
+  set Φ := fun p : K × K × S ↦ (C.expI ((p.1 : E) : GroupLieAlgebra I G) *
+    C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
+      e.chart.symm (p.2.2 : TangentSpace I' x) with hΦ_def
+  have hΦ0 : Φ 0 = x := by
+    simp only [hΦ_def, Prod.fst_zero, Prod.snd_zero, ZeroMemClass.coe_zero]
+    -- The zeros are those of `E` and of `T_x M`, read in the Lie algebra and in `E'`.
+    show (C.expI 0 * C.toHom (mulInvariantExp (0 : GroupLieAlgebra I G))) •
+      e.chart.symm (0 : E') = x
+    rw [C.expI_zero, mulInvariantExp_zero, map_one, one_mul, one_smul, e.symm_zero]
+  have hopen : IsOpen {p : K × K × S | (p.2.2 : TangentSpace I' x) ∈ e.chart.target} :=
+    e.chart.open_target.preimage (by fun_prop)
+  have hc : HasMFDerivAt I' 𝓘(ℝ, E') e.chart (Φ 0) (ContinuousLinearMap.id ℝ E') := by
+    rw [hΦ0]
+    exact e.hasMFDerivAt_chart
+  have hfd : HasFDerivAt (fun p ↦ e.chart (Φ p))
+      (((complexOrbitSliceEquiv hμ hg hx hK).toContinuousLinearEquiv :
+        (K × K × S) ≃L[ℝ] E') : (K × K × S) →L[ℝ] E') 0 :=
+    hasMFDerivAt_iff_hasFDerivAt.1
+      ((hc.comp 0 (hasMFDerivAt_expI_mul_smul_chart_symm h e K)).congr_mfderiv
+        (ContinuousLinearMap.ext fun p ↦ (complexOrbitSliceEquiv_apply hμ hg hx hK p).symm))
+  have hcd : ContDiffAt ℝ ∞ (fun p ↦ e.chart (Φ p)) 0 := by
+    refine contMDiffAt_iff_contDiffAt.1 ?_
+    refine (e.contMDiffOn_chart.contMDiffAt (e.chart.open_source.mem_nhds ?_)).comp 0
+      ((contMDiffOn_expI_mul_smul_chart_symm C J e K).contMDiffAt
+        (hopen.mem_nhds e.zero_mem_target))
+    rw [hΦ0]
+    exact e.mem_chart_source
+  exact hcd.hasStrictFDerivAt hfd (by simp)
+
+/-- **The slice map is a local diffeomorphism at `0`.** Let `Gc` act as a complexified action,
+let `-μ` be an equivariant moment map for `σ`, let the metric be `g(u, w) = σ(u, J w)`, let
+`μ x = 0`, let `e` be a linearizing chart at `x`, and let `K` be a complement of the isotropy
+algebra of `x`. Then the slice map `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` from
+`K × K × S` to `M`, where `S` is the complex orbit normal space at `x`, is a smooth local
+diffeomorphism at `0`: its derivative there is the linear equivalence
+`SymplecticGeometry.complexOrbitSliceEquiv`. -/
+theorem isLocalDiffeomorphAt_expI_mul_smul_chart_symm {C : LieComplexification I G IC Gc}
+    {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (e : LinearizingChart G I' x) {K : Submodule ℝ E}
+    (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' ∞
+      (fun p : K × K × complexOrbitNormal I G J x ↦
+        (C.expI ((p.1 : E) : GroupLieAlgebra I G) *
+          C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
+            e.chart.symm (p.2.2 : TangentSpace I' x)) 0 := by
+  have hopen : IsOpen {p : K × K × complexOrbitNormal I G J x |
+      (p.2.2 : TangentSpace I' x) ∈ e.chart.target} :=
+    e.chart.open_target.preimage (by fun_prop)
+  have hd : HasMFDerivAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I'
+      (fun p : K × K × complexOrbitNormal I G J x ↦
+        (C.expI ((p.1 : E) : GroupLieAlgebra I G) *
+          C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
+            e.chart.symm (p.2.2 : TangentSpace I' x)) 0
+      (((complexOrbitSliceEquiv hμ hg hx hK).toContinuousLinearEquiv :
+        (K × K × complexOrbitNormal I G J x) ≃L[ℝ] E') :
+          (K × K × complexOrbitNormal I G J x) →L[ℝ] E') :=
+    (hasMFDerivAt_expI_mul_smul_chart_symm h e K).congr_mfderiv (ContinuousLinearMap.ext fun p ↦
+      (complexOrbitSliceEquiv_apply hμ hg hx hK p).symm)
+  exact isLocalDiffeomorphAt_of_mfderiv_eq (contMDiffOn_expI_mul_smul_chart_symm C J e K) hopen
+    e.zero_mem_target BoundarylessManifold.isInteriorPoint (by simp) hd.mfderiv.symm
+
+end SliceMap
 
 end SymplecticGeometry
 
