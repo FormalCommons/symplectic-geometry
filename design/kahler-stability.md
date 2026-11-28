@@ -1006,17 +1006,15 @@ proof that needs it as a `Submodule` builds it there.
   of the closed subgroup inside `𝔤` and its exponential, which this route
   does not.
 - `isSemistable_of_iInf_momentNormSq_smul_eq_zero` (`KempfNess/Stability.lean`,
-  the converse of `IsSemistable.iInf_momentNormSq_smul_eq_zero`): in the
-  setting of `momentNormSq_limit_eq_iInf`, if
-  `⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0` then `p` is semistable: the
-  limit of the flow (`tendsto_maximalIntegralCurve_momentNormSq`) lies in
-  the closure of the orbit (`exists_mem_orbit_maximalIntegralCurve`), and
-  `momentNormSq_limit_eq_iInf` and `momentNormSq_eq_zero_iff` make it a
-  zero of `μ`. The proof of
-  `isSemistable_iff_bddBelow_kempfNessFunction` has this step inline; the
-  building issue moves it here.
+  the converse of `IsSemistable.iInf_momentNormSq_smul_eq_zero`): for `B`
+  positive definite and `momentNormSq μ (B.toDual hB).symm` continuous, if
+  `⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0` then `p` is semistable:
+  `M` is compact, so `momentNormSq` attains a minimum on the closure of the
+  orbit, which is at most the infimum, hence `0`, and
+  `momentNormSq_eq_zero_iff` makes the minimum point a zero of `μ`.
 - `exists_momentWeight_pos_of_iInf_momentNormSq_pos` (`HilbertMumford.lean`):
-  in that setting, if `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
+  in the setting of `momentNormSq_limit_eq_iInf`, if
+  `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
   some `ξ` with `B ξ ξ = 1` has `0 < momentWeight C μ p ξ`. Proof: take
   the flow curve `g` of `exists_mem_orbit_maximalIntegralCurve`, so
   `Φ_p (g t) ≤ -2 * m² * t` for `t ≥ 0` (`Φ_p 1 = 0` by
