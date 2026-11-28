@@ -35,7 +35,11 @@ raised by a constant `t`: `SymplecticGeometry.struweLineShape δ`, the smoothed 
   quantities of `isConvexShapeAt_struweShape_of_lt` by `2 δ` where `r ≤ 9 δ / 2`, and
   `r < 8 (t - 8 δ)` where `r ≥ 7 δ / 2`. On `[7 δ / 2, 9 δ / 2]` both pieces are `i`-convex
   shapes and `isConvexShapeAt_smoothedMax` applies; elsewhere the shape is one of the pieces
-  near `r`.
+  near `r`. `SymplecticGeometry.isConvexShapeAt_struweLineShape_add_of_le` replaces the first two
+  conditions by a height of `22 δ`, since `√(log (r / δ)) ≤ 13 / 10` up to `9 δ / 2`.
+* The standard leaf `√(64 r² + ℓ²)` is at least `8 r`
+  (`SymplecticGeometry.eight_mul_le_sqrt_sixtyFour_mul_sq_add`) and has slope at most `8`
+  (`SymplecticGeometry.deriv_sqrt_sixtyFour_mul_sq_add_le`).
 
 Every bridge leaf is `SymplecticGeometry.bridgeLeaf δ η G t`, the smoothed maximum of width `η` of
 a shape `G` and `r ↦ struweLineShape δ r + t`; it is `G` or the raised shape where one of them is
@@ -341,6 +345,38 @@ theorem isConvexShapeAt_struweLineShape_add (hδ : 0 < δ) {t r : ℝ} (hr : δ 
   rw [hdl]
   nlinarith
 
+/-- **A raised Struwe/line shape of height `22 δ` is an `i`-convex shape.** Let `δ > 0`, `r > δ`
+and `t` be such that `struweLineShape δ r + t ≥ 22 δ` if `r ≤ 9 δ / 2`, and
+`r < 8 (t - 8 δ)` if `7 δ / 2 ≤ r`. Then `r ↦ struweLineShape δ r + t` is an `i`-convex shape
+at `r`. -/
+theorem isConvexShapeAt_struweLineShape_add_of_le (hδ : 0 < δ) {t r : ℝ} (hr : δ < r)
+    (h : r ≤ 9 * δ / 2 → 22 * δ ≤ struweLineShape δ r + t)
+    (h₃ : 7 * δ / 2 ≤ r → r < 8 * (t - 8 * δ)) :
+    IsConvexShapeAt (fun r ↦ struweLineShape δ r + t) r := by
+  -- Up to `9 δ / 2`, `√(log (r / δ)) ≤ 13 / 10` and `9 (13 / 10)³ + 2 < 22`.
+  have hlog : r ≤ 9 * δ / 2 → √(log (r / δ)) ≤ 13 / 10 := sqrt_log_le_of_le hδ hr
+  refine isConvexShapeAt_struweLineShape_add hδ hr (fun hr₉ ↦ ?_) (fun hr₉ ↦ ?_) h₃
+  · have : r * √(log (r / δ)) ≤ 9 * δ / 2 * (13 / 10) :=
+      mul_le_mul hr₉ (hlog hr₉) (sqrt_nonneg _) (by positivity)
+    linarith [h hr₉]
+  · have h3 : √(log (r / δ)) ^ 3 ≤ (13 / 10) ^ 3 :=
+      pow_le_pow_left₀ (sqrt_nonneg _) (hlog hr₉) 3
+    have : 2 * r * √(log (r / δ)) ^ 3 ≤ 2 * (9 * δ / 2) * (13 / 10) ^ 3 :=
+      mul_le_mul (by linarith) h3 (by positivity) (by positivity)
+    linarith [h hr₉]
+
+/-! ### The standard leaf -/
+
+/-- The standard leaf `√(64 r² + ℓ²)` is at least `8 r`. -/
+theorem eight_mul_le_sqrt_sixtyFour_mul_sq_add (ℓ r : ℝ) : 8 * r ≤ √(64 * r ^ 2 + ℓ ^ 2) :=
+  le_sqrt_of_sq_le (by nlinarith [sq_nonneg ℓ])
+
+/-- The slope of the standard leaf `r ↦ √(64 r² + ℓ²)` is at most `8`. -/
+theorem deriv_sqrt_sixtyFour_mul_sq_add_le (ℓ r : ℝ) :
+    deriv (fun x ↦ √(64 * x ^ 2 + ℓ ^ 2)) r ≤ 8 :=
+  (deriv_sqrt_mul_sq_add_le (by norm_num) (sq_nonneg ℓ)).trans_eq
+    (by rw [show (64 : ℝ) = 8 ^ 2 by norm_num]; exact sqrt_sq (by norm_num))
+
 /-! ### The bridge leaves -/
 
 /-- **The bridge leaf** over the cylinder of radius `δ`: the smoothed maximum, of width `η`, of a
@@ -506,12 +542,10 @@ theorem isConvexShapeAt_bridgeLeaf_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} (hℓ 
   have hPc : ContDiffAt ℝ 2 (fun x ↦ struweLineShape δ x + t) r :=
     hS2.add contDiffAt_const
   -- The standard leaf lies between `8 r` and `8 r + ℓ`, with slope at most `8`.
-  have hQ8 : 8 * r ≤ √(64 * r ^ 2 + ℓ ^ 2) := le_sqrt_of_sq_le (by nlinarith [sq_nonneg ℓ])
+  have hQ8 := eight_mul_le_sqrt_sixtyFour_mul_sq_add ℓ r
   have hQle : √(64 * r ^ 2 + ℓ ^ 2) ≤ 8 * r + ℓ :=
     (sqrt_le_left (by positivity)).2 (by nlinarith)
-  have hdQ : deriv (fun x ↦ √(64 * x ^ 2 + ℓ ^ 2)) r ≤ 8 :=
-    (deriv_sqrt_mul_sq_add_le (by norm_num) (sq_nonneg ℓ) (by linarith)).trans_eq
-      (by rw [show (64 : ℝ) = 8 ^ 2 by norm_num]; exact sqrt_sq (by norm_num))
+  have hdQ := deriv_sqrt_sixtyFour_mul_sq_add_le ℓ r
   -- The raised Struwe/line shape lies between `3 ℓ + 30 δ` and `2 r + δ / 8 + t`.
   have hSδ := (struweShape_four_zero_self_mem_Icc hδ).2
   have hSr := (strictMonoOn_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0).monotoneOn
@@ -527,17 +561,8 @@ theorem isConvexShapeAt_bridgeLeaf_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} (hℓ 
       funext fun x ↦ by rw [add_comm]]
     exact isConvexShapeAt_sqrt (by norm_num) hr₀
   · -- Where the raised Struwe/line shape is used, it is high enough to be an `i`-convex shape.
-    have hlog : r ≤ 9 * δ / 2 → √(log (r / δ)) ≤ 13 / 10 := sqrt_log_le_of_le hδ hr
-    refine isConvexShapeAt_struweLineShape_add hδ hr (fun hr₉ ↦ ?_) (fun hr₉ ↦ ?_) (fun _ ↦ ?_)
-    · have : r * √(log (r / δ)) ≤ 9 * δ / 2 * (13 / 10) :=
-        mul_le_mul hr₉ (hlog hr₉) (sqrt_nonneg _) (by positivity)
-      linarith
-    · have h3 : √(log (r / δ)) ^ 3 ≤ (13 / 10) ^ 3 :=
-        pow_le_pow_left₀ (sqrt_nonneg _) (hlog hr₉) 3
-      have : 2 * r * √(log (r / δ)) ^ 3 ≤ 2 * (9 * δ / 2) * (13 / 10) ^ 3 :=
-        mul_le_mul (by linarith) h3 (by positivity) (by positivity)
-      linarith
-    · linarith
+    exact isConvexShapeAt_struweLineShape_add_of_le hδ hr (fun _ ↦ by linarith)
+      (fun _ ↦ by linarith)
   · -- The two pieces are within `η` of each other only beyond `7 δ / 2`, where their slopes are
     -- at most `8` and `2`.
     have h' := (abs_le.1 h).1
@@ -637,40 +662,27 @@ theorem isConvexShapeAt_bridgeLeaf_of_eq_struweShape (hδ : 0 < δ) {ℓ M c₀ 
     (((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)).add
       contDiffAt_const
   -- Beyond `ℓ / 4`, `G` is the standard leaf: at least `8 r`, with slope at most `8`.
-  have hG8 : ℓ / 4 ≤ r → 8 * r ≤ G r := fun h ↦ by
-    rw [hGs r h]
-    exact le_sqrt_of_sq_le (by nlinarith [sq_nonneg ℓ])
+  have hG8 : ℓ / 4 ≤ r → 8 * r ≤ G r := fun h ↦
+    (hGs r h).symm ▸ eight_mul_le_sqrt_sixtyFour_mul_sq_add ℓ r
   have hdG : deriv G r ≤ M := by
     rcases le_or_gt r (ℓ / 4) with h | h
     · exact (le_abs_self _).trans (hGd r ⟨by linarith, h⟩)
     · have e : G =ᶠ[𝓝 r] fun x ↦ √(64 * x ^ 2 + ℓ ^ 2) := by
         filter_upwards [Ioi_mem_nhds h] with x hx using hGs x hx.le
       rw [e.deriv_eq]
-      refine (deriv_sqrt_mul_sq_add_le (by norm_num) (sq_nonneg ℓ)
-        (by nlinarith [sq_nonneg ℓ])).trans ?_
-      rw [show (64 : ℝ) = 8 ^ 2 by norm_num, sqrt_sq (by norm_num)]
-      exact hM
+      exact (deriv_sqrt_sixtyFour_mul_sq_add_le ℓ r).trans hM
   have hP := struweLineShape_le_two_mul_add hδ hr.le
   rw [show bridgeLeaf δ η G t = _ from funext (bridgeLeaf_def δ η G t)]
   refine isConvexShapeAt_smoothedMax_of_imp hG2r hPc hη₀ (fun _ ↦ hGc r hr) (fun h ↦ ?_)
     (fun _ ↦ ?_)
-  · -- Where the raised Struwe/line shape is used, it is at least `ℓ - η`, which gives the
-    -- conditions of `isConvexShapeAt_struweLineShape_add`.
+  · -- Where the raised Struwe/line shape is used, it is at least `ℓ - η ≥ 22 δ`, which gives the
+    -- conditions of `isConvexShapeAt_struweLineShape_add_of_le`.
     have hGr := hGℓ r hr
-    have hlog : r ≤ 9 * δ / 2 → √(log (r / δ)) ≤ 13 / 10 := sqrt_log_le_of_le hδ hr
-    refine isConvexShapeAt_struweLineShape_add hδ hr (fun hr₉ ↦ ?_) (fun hr₉ ↦ ?_) (fun _ ↦ ?_)
-    · have : r * √(log (r / δ)) ≤ 9 * δ / 2 * (13 / 10) :=
-        mul_le_mul hr₉ (hlog hr₉) (sqrt_nonneg _) (by positivity)
-      linarith
-    · have h3 : √(log (r / δ)) ^ 3 ≤ (13 / 10) ^ 3 :=
-        pow_le_pow_left₀ (sqrt_nonneg _) (hlog hr₉) 3
-      have : 2 * r * √(log (r / δ)) ^ 3 ≤ 2 * (9 * δ / 2) * (13 / 10) ^ 3 :=
-        mul_le_mul (by linarith) h3 (by positivity) (by positivity)
-      linarith
-    · -- Below `ℓ / 4`, `G ≥ ℓ ≥ 4 r`; beyond, `G ≥ 8 r`.
-      rcases le_or_gt r (ℓ / 4) with h4 | h4
-      · linarith
-      · linarith [hG8 h4.le]
+    refine isConvexShapeAt_struweLineShape_add_of_le hδ hr (fun _ ↦ by linarith) (fun _ ↦ ?_)
+    -- Below `ℓ / 4`, `G ≥ ℓ ≥ 4 r`; beyond, `G ≥ 8 r`.
+    rcases le_or_gt r (ℓ / 4) with h4 | h4
+    · linarith
+    · linarith [hG8 h4.le]
   · -- Where the two pieces are within `η`, `r ≥ 7 δ / 2` and the slopes are at most `M` and `2`.
     have hdP : deriv (fun x ↦ struweLineShape δ x + t) r ≤ 2 := by
       rw [deriv_add_const]
@@ -692,19 +704,15 @@ theorem bridgeLeaf_eq_of_le (hδ : 0 < δ) {ℓ η t r : ℝ} {G : ℝ → ℝ} 
   refine bridgeLeaf_eq_left hη.1 ?_
   rcases le_or_gt r (ℓ / 4) with h4 | h4
   · linarith [hGℓ r hr, hη.2]
-  · have : 8 * r ≤ G r := by
-      rw [hGs r h4.le]
-      exact le_sqrt_of_sq_le (by nlinarith [sq_nonneg ℓ])
-    linarith [hη.2]
+  · linarith [hη.2, (hGs r h4.le).symm ▸ eight_mul_le_sqrt_sixtyFour_mul_sq_add ℓ r]
 
 /-- **A high enough raised shape hides where `G` differs from the standard leaf.** Let `δ, η > 0`,
-let `G` be continuous on `(δ, ∞)` and an `i`-convex shape at every `r > δ`, with
+let `G` be an `i`-convex shape at every `r > δ`, with
 `G r = √(64 r² + ℓ²)` for `r ≥ ℓ / 4`, and let `3 ℓ + η ≤ S δ + t`, where
 `S = struweShape δ 4 0`. Then at every `r > δ` the bridge leaves of width `η` of the standard
 leaf `r ↦ √(64 r² + ℓ²)` and of `G`, with the Struwe/line shape raised by `t`, agree. -/
 theorem bridgeLeaf_sqrt_eq (hδ : 0 < δ) {ℓ η t r : ℝ} {G : ℝ → ℝ} (hη : 0 < η)
-    (hGc : ∀ r, δ < r → IsConvexShapeAt G r) (hG : ContinuousOn G (Ioi δ))
-    (hGs : ∀ r, ℓ / 4 ≤ r → G r = √(64 * r ^ 2 + ℓ ^ 2))
+    (hGc : ∀ r, δ < r → IsConvexShapeAt G r) (hGs : ∀ r, ℓ / 4 ≤ r → G r = √(64 * r ^ 2 + ℓ ^ 2))
     (ht : 3 * ℓ + η ≤ struweShape δ 4 0 δ + t) (hr : δ < r) :
     bridgeLeaf δ η (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) t r = bridgeLeaf δ η G t r := by
   rcases le_or_gt (ℓ / 4) r with h4 | h4
@@ -714,11 +722,13 @@ theorem bridgeLeaf_sqrt_eq (hδ : 0 < δ) {ℓ η t r : ℝ} {G : ℝ → ℝ} (
   have hℓ : 0 ≤ ℓ := by linarith
   have h5 : √(64 * (ℓ / 4) ^ 2 + ℓ ^ 2) ≤ 3 * ℓ :=
     (sqrt_le_left (by positivity)).2 (by nlinarith)
-  have hmono : StrictMonoOn G (Ioi δ) :=
-    strictMonoOn_of_deriv_pos (convex_Ioi δ) hG fun x hx ↦
-      (hGc x (by rwa [interior_Ioi] at hx)).deriv_pos
+  -- `G` is differentiable, hence continuous, on `(δ, ∞)`, since its slope there is positive.
+  have hG : ContinuousOn G (Ici r) := fun x hx ↦
+    (differentiableAt_of_deriv_ne_zero (hGc x (hr.trans_le hx)).deriv_pos.ne').continuousAt
+      |>.continuousWithinAt
   have hGr : G r ≤ 3 * ℓ := by
-    have := (hmono.monotoneOn hr (mem_Ioi.2 (hr.trans h4)) h4.le)
+    have := (strictMonoOn_Ici_of_isConvexShapeAt hG fun x hx ↦ hGc x (hr.trans hx)).monotoneOn
+      self_mem_Ici (mem_Ici.2 h4.le) h4.le
     rw [hGs _ le_rfl] at this
     linarith
   have hQr : √(64 * r ^ 2 + ℓ ^ 2) ≤ 3 * ℓ :=
