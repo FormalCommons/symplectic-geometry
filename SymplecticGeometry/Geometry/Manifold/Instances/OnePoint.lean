@@ -38,6 +38,10 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   real-analytic;
 * `OnePoint.equivProjectivization_apply_coe_eq_affineParam`: under that identification, the
   inclusion is Tau Ceti's affine coordinate `t ↦ [t : 1]` of the projective line;
+* `OnePoint.equivProjectivization_symm_mk_of_ne_zero` and
+  `OnePoint.equivProjectivization_symm_mk_eq_invChart_symm`: the point `[a : b]` is `a / b` when
+  `b ≠ 0`, and the inverse of Tau Ceti's inverted chart `OnePoint.invChart` at `b / a` when
+  `a ≠ 0`;
 * `OnePoint.ofTopForm_fubiniStudyForm`: the orientation of Tau Ceti's `OnePoint.fubiniStudyForm`
   is the canonical orientation `SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ)` of the
   Riemann sphere as a complex manifold;
@@ -110,6 +114,24 @@ theorem equivProjectivization_apply_coe_eq_affineParam (t : ℂ) :
   congr 1
   ext k
   fin_cases k <;> simp
+
+/-- Under Mathlib's identification of `OnePoint K` with `ℙ K (Fin 2 → K)`, the point `[a : b]`
+with `b ≠ 0` is the finite point `a / b`. -/
+theorem equivProjectivization_symm_mk_of_ne_zero {K : Type*} [Field K] [DecidableEq K]
+    {a b : K} (h : ![a, b] ≠ 0) (hb : b ≠ 0) :
+    (equivProjectivization K).symm (Projectivization.mk K ![a, b] h) =
+      ((a / b : K) : OnePoint K) := by
+  simp [hb, div_eq_inv_mul]
+
+/-- Under Mathlib's identification of `OnePoint K` with `ℙ K (Fin 2 → K)`, the point `[a : b]`
+with `a ≠ 0` is the value at `b / a` of the inverse of Tau Ceti's inverted chart
+`OnePoint.invChart`. -/
+theorem equivProjectivization_symm_mk_eq_invChart_symm {K : Type*} [NontriviallyNormedField K]
+    [ProperSpace K] [DecidableEq K] {a b : K} (h : ![a, b] ≠ 0) (ha : a ≠ 0) :
+    (equivProjectivization K).symm (Projectivization.mk K ![a, b] h) = invChart.symm (b / a) := by
+  by_cases hb : b = 0
+  · simp [hb]
+  · simp [ha, hb, div_eq_inv_mul]
 
 /-! ### Orientations -/
 

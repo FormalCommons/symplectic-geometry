@@ -281,16 +281,7 @@ lemma relClass_localHomologyRestriction {M : Type w} [TopologicalSpace M] {S T :
       (ofSubset (Sᶜ : Set (TopCat.of M))).relClass R σ fun i ↦
         (hσ i).trans (range_map_ofSubset_compl_subset h) := by
   rw [TauCeti.localHomologyRestriction_def]
-  have := relClass_singularHomologyMap (P := ofSubset (Tᶜ : Set (TopCat.of M))) R σ hσ
-    (ofSubsetMap (𝟙 (TopCat.of M)) (Set.compl_subset_compl.2 h))
-  refine this.trans ?_
-  congr 1
-  -- `ofSubsetMap_fst` cannot be rewritten in place: the `MapsTo` proof depends on the map.
-  have e : TopCat.toSSet.map (Hom.fst (ofSubsetMap (𝟙 (TopCat.of M))
-      (Set.compl_subset_compl.2 h))) = 𝟙 _ :=
-    (congrArg TopCat.toSSet.map (ofSubsetMap_fst _ _)).trans (CategoryTheory.Functor.map_id _ _)
-  rw [e, NatTrans.id_app]
-  exact ConcreteCategory.id_apply _
+  exact relClass_singularHomologyMap_ofSubsetMap_id R (Set.compl_subset_compl.2 h) σ hσ
 
 /-- For a continuous map `j : M → N` and `S ⊆ j ⁻¹' T`, a singular simplex of `M` whose image
 under `j` has its faces in `N ∖ T` has its faces in `M ∖ S`. -/
