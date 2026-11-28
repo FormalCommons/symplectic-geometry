@@ -262,7 +262,9 @@ About 500 lines.
   the field $V_{ij}$ on `F` with
   $\iota(V_{ij})\sigma=\partial_i\alpha_j-\partial_j\alpha_i-d\big(\sigma(X_i,X_j)\big)$,
   the formula of the page's corrected hint to Exercise 6.4.9. Then
-  `hasHamiltonianCurvature_iff_local`: the curvature is Hamiltonian exactly
+  `hasHamiltonianCurvature_iff_local`, in `Fibration/HamiltonianCurvature.lean`
+  (it uses `PatchForm.lean`, which imports this file): the curvature is
+  Hamiltonian exactly
   when, in every symplectic chart over a coordinate patch,
   every $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive on `F`, at
   every `x` (the page's 2 ⇔ 3).
