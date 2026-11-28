@@ -404,7 +404,7 @@ theorem covectorCLM_apply (p : A × V) (ξ : GroupLieAlgebra I G) :
   (rfl)
 
 @[simp]
-theorem coe_covectorCLM (p : A × V) : (D.covectorCLM p : E →ₗ[ℝ] ℝ) = D.covector p :=
+theorem toLinearMap_covectorCLM (p : A × V) : (D.covectorCLM p : E →ₗ[ℝ] ℝ) = D.covector p :=
   (rfl)
 
 /-- The covectors of the local model, read as continuous linear forms on `𝔤`, form a smooth map

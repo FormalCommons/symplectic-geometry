@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Domain
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
-import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.Maps.Proper.Basic
 
@@ -64,10 +63,10 @@ end `(-2δ, ∞) × ∂W`, where `dF(Ŷ) > 0`, so it is an interior point of `W`
 `f`, read through the local diffeomorphism from the interior of `W` (Tau Ceti's charted
 interior) to `Ŵ`. There `F` is generalized Morse by
 `TauCeti.isGeneralizedMorse_of_forall_exists_comp_eventuallyEq`. The gradient-like condition is
-local (`TauCeti.isGradientLike_of_forall_exists_nhds`, on `Ŵ`, which is σ-compact as the domain
+local (`TauCeti.isGradientLike_of_forall_isGradientLikeAt`, on `Ŵ`, which is σ-compact as the domain
 of the proper map `F`): near the end it holds for any metric since `dF(Ŷ) > 0`
-(`TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`), and near the other points it is carried
-from the interior of `W` (`TauCeti.IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`).
+(`TauCeti.isGradientLikeAt_of_mvfderiv_apply_pos`), and near the other points it is carried
+from the interior of `W` (`TauCeti.IsGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt`).
 
 ## References
 
@@ -479,17 +478,12 @@ theorem isWeinsteinStructure_completion [CompactSpace W] (hW : IsWeinsteinDomain
     obtain ⟨p, rfl, hp⟩ := hint hz'
     exact ⟨p, rfl, hΦ p, hp⟩
   · -- Where `dF(Ŷ) > 0` any metric does; elsewhere, the field is that of the interior of `W`.
-    refine isGradientLike_of_forall_exists_nhds fun z ↦ ?_
+    refine isGradientLike_of_forall_isGradientLikeAt fun z ↦ ?_
     by_cases hz : z ∈ h.completionEnd '' (Ioi (-(2 * δ)) ×ˢ univ)
-    · obtain ⟨g⟩ : Nonempty (ContMDiffRiemannianMetric (𝓡 (n + 1)) ∞
-          (EuclideanSpace ℝ (Fin (n + 1))) fun z : h.Completion ↦ TangentSpace (𝓡 (n + 1)) z) :=
-        nonempty_contMDiffRiemannianMetric
-      obtain ⟨U, hU, a, ha, haU⟩ := exists_nhds_mul_le_of_mvfderiv_apply_pos g
-        (hF.contMDiffAt.of_le (by simp)) (h.contMDiff_completionField.contMDiffAt.of_le (by simp))
-        (hFpos z hz)
-      exact ⟨U, hU, g, a, ha, haU⟩
+    · exact isGradientLikeAt_of_mvfderiv_apply_pos (hF.contMDiffAt.of_le (by simp))
+        (h.contMDiff_completionField.contMDiffAt.of_le (by simp)) (hFpos z hz)
     · obtain ⟨p, rfl, hp⟩ := hint hz
-      refine hW.isGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt (hΦ p) hp
+      refine hW.isGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt (hΦ p) hp
         (Filter.Eventually.of_forall fun p' ↦ ?_)
       rw [ModelWithCorners.mfderiv_comp_subtypeVal_interior p'
         (h.contMDiff_toCompletion.mdifferentiableAt (by simp))]

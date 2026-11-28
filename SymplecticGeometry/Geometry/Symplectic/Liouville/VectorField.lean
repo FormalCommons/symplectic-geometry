@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
@@ -39,16 +41,22 @@ of the field involves only the derivative of the field (`TauCeti.mlieDerivForm_a
 so no regularity of `Z` or `σ` is needed.
 
 On a finite-dimensional real normed space `V`, with a linear symplectic form `σ` seen as a
-constant form, a linear vector field `x ↦ A x` is Liouville as soon as
-`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`
-(`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth`). Since the form is constant, its
-Lie derivative along the field involves only the derivative `A` of the field. For linear fields
+constant form, a vector field `Z` is Liouville as soon as its derivative satisfies
+`σ (DZ_x u) v + σ u (DZ_x v) = σ u v` at every point
+(`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth_of_fderiv`): since the form is
+constant, its Lie derivative along the field involves only the derivative of the field. For a
+linear field `x ↦ A x` the condition reads `σ (A u) v + σ u (A v) = σ u v`
+(`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth`). For linear fields
 this is the converse of `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`, read at
 the zero `0`.
 
+For a closed smooth two-form `σ` and a smooth Liouville field `X`, the contraction `ι_X σ` is a
+primitive of `σ` as a smooth one-form (`TauCeti.IsLiouvilleVectorField.mextDerivₗ_interiorₗ`),
+by Tau Ceti's `TauCeti.isLiouvilleVectorField_iff_mextDeriv_interior_eq`.
+
 Two smooth Liouville fields `X`, `X'` of one closed two-form `σ` differ, near any point, by a
 Hamiltonian field (`TauCeti.IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv`). By
-`TauCeti.isLiouvilleVectorField_iff_mextDeriv_interior_eq`, both `ι_X σ` and `ι_{X'} σ` are
+`TauCeti.IsLiouvilleVectorField.mextDerivₗ_interiorₗ`, both `ι_X σ` and `ι_{X'} σ` are
 primitives of `σ`, so `ι_{X' - X} σ` is closed, and Tau Ceti's local primitives of closed
 `1`-forms, `TauCeti.exists_contMDiff_isPrimitiveOn`, write it near `p` as `dg`; the function
 `K` is `g - g p`. In the convention of `TauCeti.SmoothTwoForm.IsHamiltonianVectorField`,
@@ -128,13 +136,13 @@ section Linear
 
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
 
-/-- **Linear Liouville fields.** Let `σ` be a linear symplectic form and `A` an operator with
-`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`. Then the linear vector field `x ↦ A x` is a
-Liouville vector field of the constant form `σ`. -/
-theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V)
-    {A : V →L[ℝ] V} (hA : ∀ u v, σ (A u) v + σ u (A v) = σ u v) :
+/-- **Liouville fields of a constant form.** Let `σ` be a linear symplectic form and `Z` a vector
+field whose derivative at every point satisfies `σ (DZ_x u) v + σ u (DZ_x v) = σ u v`. Then `Z`
+is a Liouville vector field of the constant form `σ`. -/
+theorem SymplecticForm.isLiouvilleVectorField_constSmooth_of_fderiv (σ : SymplecticForm V)
+    {Z : V → V} (hZ : ∀ x u v, σ (fderiv ℝ Z x u) v + σ u (fderiv ℝ Z x v) = σ u v) :
     IsLiouvilleVectorField σ.constSmooth.val
-      (fun x ↦ A x : (x : V) → TangentSpace 𝓘(ℝ, V) x) := by
+      (fun x ↦ Z x : (x : V) → TangentSpace 𝓘(ℝ, V) x) := by
   refine isLiouvilleVectorField_iff.2 (funext fun x ↦ ?_)
   refine (mlieDerivForm_eq_lieDerivForm _ _ x).trans ?_
   ext v
@@ -148,10 +156,36 @@ theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V
     exact (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (σ.constSmooth_apply y (u 0) (u 1))
   have hc : W = fun _ ↦ W x := funext fun y ↦ by ext u; rw [h, h]
   rw [hc]
-  simp only [fderiv_fun_const, Pi.zero_apply, zero_apply, h, A.fderiv]
-  simpa using hA (v 0) (v 1)
+  simp only [fderiv_fun_const, Pi.zero_apply, zero_apply, h]
+  simpa using hZ x (v 0) (v 1)
+
+/-- **Linear Liouville fields.** Let `σ` be a linear symplectic form and `A` an operator with
+`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`. Then the linear vector field `x ↦ A x` is a
+Liouville vector field of the constant form `σ`. -/
+theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V)
+    {A : V →L[ℝ] V} (hA : ∀ u v, σ (A u) v + σ u (A v) = σ u v) :
+    IsLiouvilleVectorField σ.constSmooth.val
+      (fun x ↦ A x : (x : V) → TangentSpace 𝓘(ℝ, V) x) :=
+  σ.isLiouvilleVectorField_constSmooth_of_fderiv fun _ u v ↦ by simpa only [A.fderiv] using hA u v
 
 end Linear
+
+end TauCeti
+
+namespace TauCeti.IsLiouvilleVectorField
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+
+/-- For a closed smooth two-form `σ` and a smooth Liouville vector field `X` of `σ`, the one-form
+`ι_X σ` is a primitive of `σ`: `d(ι_X σ) = σ`, as smooth forms. -/
+theorem mextDerivₗ_interiorₗ {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
+    {X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯} (hX : IsLiouvilleVectorField σ.val X) :
+    mextDerivₗ I 1 (σ.interiorₗ X) = σ :=
+  Subtype.ext <| by
+    rw [mextDerivₗ_apply, SmoothTwoForm.coe_interiorₗ]
+    exact (isLiouvilleVectorField_iff_mextDeriv_interior_eq σ.mdifferentiable
+      (X.contMDiff.mdifferentiable (by simp)) ((SmoothForm.isClosed_def _).1 hσ)).1 hX
 
 section LocalHamiltonian
 
@@ -167,7 +201,7 @@ two-form on `N`, and `X`, `X'` two smooth Liouville fields of `σ` on `N`. Then 
 there are an open `V ∋ p` and a smooth function `K : N → ℝ` with `K p = 0` and
 `σ (X' - X, v) = dK (v)` on `V`: on `V`, `X' - X` is the Hamiltonian field of `K` in the
 convention of `SmoothTwoForm.IsHamiltonianVectorField`. -/
-theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv {σ : SmoothTwoForm I N}
+theorem exists_eval₂_sub_eq_mvfderiv {σ : SmoothTwoForm I N}
     (hσ : σ.IsClosed) {X X' : (x : N) → TangentSpace I x} (hX : ContMDiff I I.tangent ∞ (T% X))
     (hXσ : IsLiouvilleVectorField σ.val X) (hX' : ContMDiff I I.tangent ∞ (T% X'))
     (hX'σ : IsLiouvilleVectorField σ.val X') (p : N) :
@@ -175,21 +209,12 @@ theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv {σ : SmoothTwoFor
       ∀ x ∈ V, ∀ v : TangentSpace I x,
         SmoothBundleForm.eval₂ σ x (X' x) v - SmoothBundleForm.eval₂ σ x (X x) v =
           mvfderiv I K x v := by
-  have hdσ := (SmoothForm.isClosed_def σ).1 hσ
   -- Both `ι_X σ` and `ι_{X'} σ` are primitives of `σ`, so their difference is closed.
-  set β : SmoothForm I N ℝ 1 :=
-    ⟨RoughForm.interior X σ.val, (σ.isSmoothForm.interior hX).mem_smoothBundleForms⟩
-  set β' : SmoothForm I N ℝ 1 :=
-    ⟨RoughForm.interior X' σ.val, (σ.isSmoothForm.interior hX').mem_smoothBundleForms⟩
-  have hβ : mextDeriv β.val = σ.val :=
-    (isLiouvilleVectorField_iff_mextDeriv_interior_eq σ.mdifferentiable
-      (hX.mdifferentiable (by simp)) hdσ).1 hXσ
-  have hβ' : mextDeriv β'.val = σ.val :=
-    (isLiouvilleVectorField_iff_mextDeriv_interior_eq σ.mdifferentiable
-      (hX'.mdifferentiable (by simp)) hdσ).1 hX'σ
+  set β := σ.interiorₗ ⟨X, hX⟩
+  set β' := σ.interiorₗ ⟨X', hX'⟩
   have hcl : mextDeriv (β' - β).val = 0 := by
-    rw [← mextDerivₗ_apply, map_sub, Submodule.coe_sub, mextDerivₗ_apply, mextDerivₗ_apply, hβ,
-      hβ', sub_self]
+    rw [← mextDerivₗ_apply, map_sub, mextDerivₗ_interiorₗ hσ hX'σ, mextDerivₗ_interiorₗ hσ hXσ,
+      sub_self, ZeroMemClass.coe_zero]
   obtain ⟨g, hg, V, hpV, hgV⟩ := exists_contMDiff_isPrimitiveOn le_top (β' - β).isSmoothForm hcl p
   have hK := hgV.add_const (-g p)
   refine ⟨V, hK.isOpen, hpV, fun y ↦ g y + -g p, hg.add contMDiff_const, add_neg_cancel _,
@@ -203,7 +228,7 @@ field, on an open set `U` seen as a manifold, of the restriction of `σ` to `U`.
 `p ∈ U` there are an open `V` with `p ∈ V ⊆ U` and a function `K : N → ℝ`, smooth on `U`, with
 `K p = 0` and `σ (X' - X, v) = dK (v)` on `V`: on `V`, `X' - X` is the Hamiltonian field of `K` in
 the convention of `SmoothTwoForm.IsHamiltonianVectorField`. -/
-theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens {σ : SmoothTwoForm I N}
+theorem exists_eval₂_sub_eq_mvfderiv_opens {σ : SmoothTwoForm I N}
     (hσ : σ.IsClosed) {X : (x : N) → TangentSpace I x} (hX : ContMDiff I I.tangent ∞ (T% X))
     (hXσ : IsLiouvilleVectorField σ.val X) {U : Opens N} {X' : (x : U) → TangentSpace I x}
     (hX' : ContMDiff I I.tangent ∞ (T% X'))
@@ -242,7 +267,7 @@ theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens {σ : Smooth
 /-- If moreover `X'` and `X` agree at `p`, for instance when both vanish there, the function `K`
 of `TauCeti.IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens` also has `dK p = 0`: `p`
 is a critical point of `K`. -/
-theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens_of_eq {σ : SmoothTwoForm I N}
+theorem exists_eval₂_sub_eq_mvfderiv_opens_of_eq {σ : SmoothTwoForm I N}
     (hσ : σ.IsClosed) {X : (x : N) → TangentSpace I x} (hX : ContMDiff I I.tangent ∞ (T% X))
     (hXσ : IsLiouvilleVectorField σ.val X) {U : Opens N} {X' : (x : U) → TangentSpace I x}
     (hX' : ContMDiff I I.tangent ∞ (T% X'))
@@ -260,6 +285,6 @@ theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens_of_eq {σ : 
 
 end LocalHamiltonian
 
-end TauCeti
+end TauCeti.IsLiouvilleVectorField
 
 end

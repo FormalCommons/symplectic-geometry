@@ -36,6 +36,7 @@ import SymplecticGeometry.Geometry.Symplectic.Blowup.SimplyConnected
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
+public import SymplecticGeometry.Data.ENat.Basic
 
 /-!
 # The rational elliptic surface
@@ -645,8 +646,8 @@ theorem mapsTo_ofComplexManifold_tangentRange_fibreEmbedding
     (x : SmoothProjectiveHypersurface.fermat 1 3) :
     MapsTo (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
         (fibreEmbedding x))
-      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
-      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :=
+      (fibreEmbedding.isImmersion.tangentRange x ENat.coe_top_ne_zero)
+      (fibreEmbedding.isImmersion.tangentRange x ENat.coe_top_ne_zero) :=
   fibreEmbedding_def ▸ SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars
     analyticFibreEmbedding le_top (by simp) _ x
 

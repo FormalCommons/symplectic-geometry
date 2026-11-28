@@ -134,17 +134,23 @@ isometry (`SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_chart_apply_se
 `(2π k)^(-1/2) ‖∂ s(x)‖` is the operator norm of that model `∂`
 (`SymplecticGeometry.RescaledUnitaryCharts.rpow_mul_norm_oneZeroPart_powerConnection_eq`). The
 model `∂` is additive, and its norm is at most that of the model connection, which at `0` is the
-derivative of the reading. Hence adding a section `t` to `s` changes the quantity
-`max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` by at most `D.jetNorm k 1 t y`
-(`SymplecticGeometry.RescaledUnitaryCharts.abs_max_norm_add_sub_max_norm_le_jetNorm`).
+derivative of the reading. Hence adding a section `t` to `s` changes the transversality
+quantity `SymplecticGeometry.transversalityQuantity J α k s y`, which is
+`max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)`, by at most `D.jetNorm k 1 t y`
+(`SymplecticGeometry.RescaledUnitaryCharts.abs_transversalityQuantity_add_sub_le_jetNorm`).
 
 A sequence
 is uniformly transverse with constant `η`
-(`SymplecticGeometry.IsUniformlyTransverse`) when, for large `k` and every `x`, either `‖s k x‖`
+(`SymplecticGeometry.IsUniformlyTransverse`) when, for large `k` and every `x`, its
+transversality quantity is at least `η`: either `‖s k x‖`
 or `(2π k)^(-1/2)` times the norm of the `(1,0)`-part of `powerConnection α k (s k) x` is at
 least `η`, the norm of the tangent space being that of a Riemannian metric on `M`. A sequence
 whose norm is at least `η` everywhere is uniformly transverse
 (`SymplecticGeometry.IsUniformlyTransverse.of_le_norm`), and the notion is monotone in `η`.
+Adding to a uniformly transverse sequence one whose `1`-jet norms are at most `ε`, both with
+readings differentiable at the centres of the charts, keeps it
+uniformly transverse, with `η - ε` in place of `η`
+(`SymplecticGeometry.IsUniformlyTransverse.add_of_jetNorm_le`).
 
 ## References
 
@@ -161,6 +167,66 @@ open TauCeti Bundle Metric
 open scoped Topology
 
 namespace SymplecticGeometry
+
+/-! ### The transversality quantity -/
+
+section TransversalityQuantity
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+  {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
+  [FiberBundle Circle P] [∀ x, Nonempty (P x)] [∀ x, MulAction Circleᵐᵒᵖ (P x)]
+  [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+/-- The **transversality quantity** of a section `s` of `PowerBundle P k` at `x`, for the almost
+complex structure `J` and the connection form `α`: `max ‖s x‖ ((2π k)^(-1/2) ‖∂ s(x)‖)`, where
+`∂ s(x)` is the `(1,0)`-part `J.oneZeroPart` of the covariant derivative `powerConnection α k s x`,
+and its norm is the operator norm for the Riemannian metric on `M` and the norm of the fibre. -/
+noncomputable def transversalityQuantity (J : SmoothAlmostComplexStructure I M)
+    (α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1) (k : ℕ)
+    (s : Π y, PowerBundle P k y) (x : M) : ℝ :=
+  max ‖s x‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖)
+
+variable {J : SmoothAlmostComplexStructure I M}
+  {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
+
+theorem transversalityQuantity_def (k : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
+    transversalityQuantity J α k s x =
+      max ‖s x‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖) :=
+  (rfl)
+
+/-- The norm of a section at `x` is at most its transversality quantity there. -/
+theorem norm_le_transversalityQuantity (k : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
+    ‖s x‖ ≤ transversalityQuantity J α k s x := by
+  rw [transversalityQuantity_def]
+  exact le_max_left _ _
+
+/-- `(2π k)^(-1/2)` times the norm of the `(1,0)`-part of `D_k s` at `x` is at most the
+transversality quantity there. -/
+theorem rpow_mul_norm_oneZeroPart_le_transversalityQuantity (k : ℕ) (s : Π y, PowerBundle P k y)
+    (x : M) :
+    (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖ ≤
+      transversalityQuantity J α k s x := by
+  rw [transversalityQuantity_def]
+  exact le_max_right _ _
+
+theorem transversalityQuantity_nonneg (k : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
+    0 ≤ transversalityQuantity J α k s x :=
+  (norm_nonneg _).trans (norm_le_transversalityQuantity k s x)
+
+/-- A real number `a` is at most the transversality quantity of `s` at `x` exactly when it is
+at most `‖s x‖` or at most `(2π k)^(-1/2)` times the norm of the `(1,0)`-part of `D_k s` at
+`x`. -/
+theorem le_transversalityQuantity_iff {a : ℝ} (k : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
+    a ≤ transversalityQuantity J α k s x ↔
+      a ≤ ‖s x‖ ∨
+        a ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖ := by
+  rw [transversalityQuantity_def]
+  exact le_max_iff
+
+end TransversalityQuantity
 
 namespace RescaledUnitaryCharts
 
@@ -987,7 +1053,7 @@ theorem norm_oneZeroPart_powerConnection_apply [∀ y, Nonempty (P y)]
   rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x, hJ,
     LinearMap.coe_toContinuousLinearMap] at h
   rw [h, modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
-    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
+    LinearMap.coe_toContinuousLinearMap, Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
     connectionReading_def]
 
 /-! ### The `(1,0)`-part of the connection away from the centre of a chart -/
@@ -1025,7 +1091,7 @@ theorem norm_modelDel_reading_le [∀ y, Nonempty (P y)]
     exact le_max_left _ _
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
   rw [modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
-    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
+    LinearMap.coe_toContinuousLinearMap, Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
     ← connectionReading_def]
   -- For the structure `J_z` of the chart, the complex-linear part is `∂ s` read in the chart.
   have h1 : ‖complexLinearPart (Jz : StdSpace ι →ₗ[ℝ] StdSpace ι)
@@ -1199,22 +1265,20 @@ theorem rpow_mul_norm_oneZeroPart_powerConnection_eq
 /-- **Stability of the transversality quantity.** Let the metric of `M` be
 `g(u, w) = σ(u, J w)`, let `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, and let `s` and `t` be sections of
 `PowerBundle P k` whose readings in the chart centred at `y` are differentiable at `0`. Then the
-quantity `max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` of `SymplecticGeometry.IsUniformlyTransverse`, with
-`∂ s(y)` the `(1,0)`-part `J.oneZeroPart` of `D_k s` at `y`, changes by at most the `1`-jet norm
-`D.jetNorm k 1 t y` when `t` is added to `s`. -/
-theorem abs_max_norm_add_sub_max_norm_le_jetNorm
+transversality quantity `SymplecticGeometry.transversalityQuantity J α k` at `y` changes by at
+most the `1`-jet norm `D.jetNorm k 1 t y` when `t` is added to `s`. -/
+theorem abs_transversalityQuantity_add_sub_le_jetNorm
     (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
     (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {k : ℕ} (hk : k₀ ≤ k) (hk0 : k ≠ 0) {y : M}
     {s t : Π y, PowerBundle P k y} (hs : DifferentiableAt ℝ (D.reading k y s) 0)
     (ht : DifferentiableAt ℝ (D.reading k y t) 0) :
-    |max ‖(s + t) y‖
-        ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k (s + t) y)‖) -
-      max ‖s y‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s y)‖)| ≤
+    |transversalityQuantity J α k (s + t) y - transversalityQuantity J α k s y| ≤
       D.jetNorm k 1 t y := by
   have hst : DifferentiableAt ℝ (D.reading k y (s + t)) 0 := by
     rw [reading_add]
     exact hs.add ht
-  rw [D.rpow_mul_norm_oneZeroPart_powerConnection_eq hg hα hρ₀ hk hk0 hst,
+  rw [transversalityQuantity_def, transversalityQuantity_def,
+    D.rpow_mul_norm_oneZeroPart_powerConnection_eq hg hα hρ₀ hk hk0 hst,
     D.rpow_mul_norm_oneZeroPart_powerConnection_eq hg hα hρ₀ hk hk0 hs, reading_add,
     modelDel_add hs ht]
   refine (abs_max_sub_max_le_max _ _ _ _).trans (max_le ?_ ?_)
@@ -1246,33 +1310,54 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 /-- A sequence `s` of sections, `s k` of `PowerBundle P k`, is **uniformly transverse** with
 constant `η` for the almost complex structure `J` and the connection form `α` when, for `k` large
-and every point `x`, `η ≤ max ‖s k x‖ ((2π k)^(-1/2) ‖∂ (s k) x‖)`, where `∂ (s k) x` is the
-`(1,0)`-part `J.oneZeroPart` of the covariant derivative `powerConnection α k (s k) x`, and its
-norm is the operator norm for the Riemannian metric on `M` and the norm of the fibre. -/
+and every point `x`, `η` is at most the transversality quantity
+`SymplecticGeometry.transversalityQuantity J α k (s k) x`, that is,
+`η ≤ max ‖s k x‖ ((2π k)^(-1/2) ‖∂ (s k) x‖)` with `∂ (s k) x` the `(1,0)`-part of
+`powerConnection α k (s k) x`. -/
 def IsUniformlyTransverse (J : SmoothAlmostComplexStructure I M)
     (α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1) (η : ℝ)
     (s : ∀ k : ℕ, Π y, PowerBundle P k y) : Prop :=
-  ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ max ‖s k x‖
-    ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k (s k) x)‖)
+  ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ transversalityQuantity J α k (s k) x
 
 variable {J : SmoothAlmostComplexStructure I M}
   {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
 
 theorem isUniformlyTransverse_def {η : ℝ} {s : ∀ k : ℕ, Π y, PowerBundle P k y} :
-    IsUniformlyTransverse J α η s ↔ ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ max ‖s k x‖
-      ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k (s k) x)‖) :=
+    IsUniformlyTransverse J α η s ↔
+      ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ transversalityQuantity J α k (s k) x :=
   Iff.rfl
 
 /-- A sequence whose norm is at least `η` everywhere, for `k` large, is uniformly transverse with
 constant `η`. -/
 theorem IsUniformlyTransverse.of_le_norm {η : ℝ} {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ ‖s k x‖) : IsUniformlyTransverse J α η s :=
-  hs.mono fun _ hk x ↦ le_max_of_le_left (hk x)
+  hs.mono fun k hk x ↦ (hk x).trans (norm_le_transversalityQuantity k (s k) x)
 
 /-- Uniform transversality with a constant `η` gives it with every smaller constant. -/
 theorem IsUniformlyTransverse.mono {η η' : ℝ} {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : IsUniformlyTransverse J α η s) (hη : η' ≤ η) : IsUniformlyTransverse J α η' s :=
   Filter.Eventually.mono hs fun _ hk x ↦ hη.trans (hk x)
+
+/-- **Adding a small section keeps uniform transversality.** Let the metric of `M` be
+`g(u, w) = σ(u, J w)`, `α` a connection form and `D` rescaled unitary charts of radius `ρ₀ > 0`.
+If `s` is uniformly transverse with constant `η`, and, for `k` large and every `x`, the readings
+of `s k` and `t k` in the chart centred at `x` are differentiable at `0` and the `1`-jet norm
+`D.jetNorm k 1 (t k) x` is at most `ε`, then `s + t` is uniformly transverse with constant
+`η - ε`. -/
+theorem IsUniformlyTransverse.add_of_jetNorm_le {σ : SmoothTwoForm I M} {ι : Type*} [Fintype ι]
+    {k₀ : ℕ} {ρ₀ : ℝ} (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η ε : ℝ}
+    {s t : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : IsUniformlyTransverse J α η s)
+    (hsd : ∀ᶠ k in Filter.atTop, ∀ x : M, DifferentiableAt ℝ (D.reading k x (s k)) 0)
+    (htd : ∀ᶠ k in Filter.atTop, ∀ x : M, DifferentiableAt ℝ (D.reading k x (t k)) 0)
+    (hε : ∀ᶠ k in Filter.atTop, ∀ x : M, D.jetNorm k 1 (t k) x ≤ ε) :
+    IsUniformlyTransverse J α (η - ε) (s + t) := by
+  filter_upwards [hs, hsd, htd, hε, Filter.eventually_ge_atTop k₀,
+    Filter.eventually_ne_atTop 0] with k hk hsk htk hεk hk₀ hk0 x
+  have h := D.abs_transversalityQuantity_add_sub_le_jetNorm hg hα hρ₀ hk₀ hk0 (hsk x) (htk x)
+  rw [Pi.add_apply]
+  linarith [(abs_le.1 h).1, hk x, hεk x]
 
 end Transverse
 

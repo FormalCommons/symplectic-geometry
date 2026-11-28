@@ -114,7 +114,7 @@ theorem balancedProductInducedMomentMap_mk_zero (g : G) :
         (BalancedProduct.mk K (K.toRightTranslation g) ((0 : A), (0 : V))) =
       coadjointRepresentation ℝ I G g D.τ := by
   let := D.fiberDistribMulAction
-  rw [balancedProductInducedMomentMap_mk, coe_covectorCLM, ← Prod.zero_eq_mk, covector_zero]
+  rw [balancedProductInducedMomentMap_mk, toLinearMap_covectorCLM, ← Prod.zero_eq_mk, covector_zero]
 
 end LocalModelData
 
