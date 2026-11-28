@@ -125,7 +125,16 @@ time that varies from orbit to orbit and with critical points inside `{g < 0}`.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Section 11.1
+  Proposition 9.19 (smooth surroundings in a flow box), and §11.4, the discussion after
+  Lemma 11.13 (regular sublevels of a Weinstein manifold give a handle decomposition). The book
+  states no numbered result of the form proved here. Proposition 9.19 is the nearest: there a
+  diffeotopy that preserves the trajectories of a gradient-like field, and is the identity near
+  the boundary and the skeleton, carries a regular sublevel into a given neighbourhood of the
+  lower boundary and the skeleton. Here the inverse of `Ψ`, which also moves points along the
+  orbits and fixes `{f ≤ a}`, carries `{f ≤ b}` onto a domain `{g ≤ 0}` given in advance, and
+  `Ψ` is a diffeomorphism of the whole manifold, not of the cobordism. The theorem does not
+  state that `τ` vanishes on the stable sets, the counterpart of the book's identity near the
+  skeleton, although the `τ` built in its proof does.
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
   §3, Theorem 3.1 (moving sublevels along the flow of a rescaled gradient field).
 -/
