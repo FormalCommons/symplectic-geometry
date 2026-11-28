@@ -14,6 +14,7 @@ import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.Order.Piecewise
+import TauCeti.Analysis.Calculus.ContDiff.Prod
 
 /-!
 # Families of special `i`-convex shapes
@@ -561,14 +562,16 @@ theorem continuous_sqrtSubLeaf (L δ ℓ : ℝ) : Continuous (sqrtSubLeaf L δ �
   rw [sqrtSubLeaf_eq_cutoffLeaf]
   exact continuous_cutoffLeaf _ _ _ _
 
-/-- For `0 ≤ δ` and `|ℓ| ≤ 8 δ`, the leaf `sqrtSubLeaf L δ ℓ` is smooth on `(δ, ∞)`. -/
-theorem contDiffOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {ℓ : ℝ} (hℓ : |ℓ| ≤ 8 * δ) :
-    ContDiffOn ℝ ∞ (sqrtSubLeaf L δ ℓ) (Ioi δ) := by
-  have h := (contDiffOn_uncurry_sqrtSubLeaf L hδ).comp
-    (contDiff_const.prodMk contDiff_id).contDiffOn
-    (fun r hr ↦ ⟨hr, by dsimp only; linarith [mem_Ioi.1 hr]⟩ :
-      MapsTo (fun r ↦ (ℓ, r)) (Ioi δ) {p | δ < p.2 ∧ |p.1| < 8 * p.2})
-  exact h.congr fun r _ ↦ by simp
+/-- For `0 ≤ δ` and `|ℓ| ≤ 8 δ`, the leaf `sqrtSubLeaf L δ ℓ` is `Cⁿ` on `(δ, ∞)`. -/
+theorem contDiffOn_sqrtSubLeaf {n : ℕ∞} (L : ℝ) (hδ : 0 ≤ δ) {ℓ : ℝ} (hℓ : |ℓ| ≤ 8 * δ) :
+    ContDiffOn ℝ n (sqrtSubLeaf L δ ℓ) (Ioi δ) := fun r hr ↦ by
+  have hU : IsOpen {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
+    (isOpen_lt continuous_const continuous_snd).inter
+      (isOpen_lt continuous_fst.abs (continuous_const.mul continuous_snd))
+  have hq : (ℓ, r) ∈ {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
+    ⟨hr, by dsimp only; linarith [mem_Ioi.1 hr]⟩
+  exact (((contDiffOn_uncurry_sqrtSubLeaf L hδ).contDiffAt (hU.mem_nhds hq)).uncurry_left.of_le
+    (by exact_mod_cast le_top)).contDiffWithinAt
 
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtSubLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
@@ -761,8 +764,7 @@ theorem contDiffOn_surroundFamily {n : ℕ∞} {ℓₜ : ℝ} (hL : 0 ≤ L) (h�
   obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
   rcases le_or_gt ℓ 0 with h0 | h0
   · rw [surroundFamily_of_nonpos h0]
-    exact (contDiffOn_sqrtSubLeaf L hδ.le (by rw [abs_of_nonpos h0]; linarith)).of_le
-      (by exact_mod_cast le_top)
+    exact contDiffOn_sqrtSubLeaf L hδ.le (by rw [abs_of_nonpos h0]; linarith)
   rcases le_or_gt ℓ (7 * δ) with h7 | h7
   · rw [surroundFamily_of_pos_of_le h0 h7]
     exact contDiffOn_struweSwitchLeaf hL hδ ℓ
