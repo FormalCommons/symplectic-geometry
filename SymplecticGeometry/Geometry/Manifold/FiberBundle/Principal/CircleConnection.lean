@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
-public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
@@ -108,7 +107,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
-open scoped Manifold ContDiff Topology GroupLieAlgebra
+open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
 
@@ -158,6 +157,13 @@ variable {α}
 
 /-! ### As Lie-algebra-valued connection forms -/
 
+/-- The map `r ↦ r ξ₀` from `ℝ` to the model space `𝓡 1` of `Circle`, with
+`ξ₀ = circleLieGenerator`, sends `r` to the multiple `r • ξ₀` in the Lie algebra of `Circle`. -/
+theorem toSpanSingleton_circleLieGenerator_apply (r : ℝ) :
+    ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator r =
+      r • circleLieGenerator :=
+  ContinuousLinearMap.toSpanSingleton_apply _ _ _
+
 /-- **Circle connection forms are connection forms.** For a real one-form `α` on the total space
 of a principal `Circle`-bundle, the `𝔤`-valued form `α ξ₀`, with `ξ₀ = circleLieGenerator`, is a
 connection form exactly when `α` is a circle connection form. -/
@@ -166,15 +172,13 @@ theorem isConnectionForm_mapCoeff_iff :
         (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator)
         α) ↔
       IsCircleConnectionForm α := by
-  -- The values of `α ξ₀`, read in the Lie algebra.
-  have hL (r : ℝ) : ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
-      circleLieGenerator r = r • circleLieGenerator :=
-    ContinuousLinearMap.toSpanSingleton_apply _ _ _
   have hinj := SmoothForm.mapCoeff_injective (I := IB.prod (𝓡 1))
     (M := ManifoldTotalSpace Circle P) (k := 1)
     (L := ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
       circleLieGenerator) fun a b h ↦
-      smul_left_injective ℝ circleLieGenerator_ne_zero ((hL a).symm.trans (h.trans (hL b)))
+      smul_left_injective ℝ circleLieGenerator_ne_zero
+        ((toSpanSingleton_circleLieGenerator_apply a).symm.trans
+          (h.trans (toSpanSingleton_circleLieGenerator_apply b)))
   have hpull (z : Circle) :
       (SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
         (contMDiff_const_smul (op z)) (SmoothForm.mapCoeff
@@ -193,7 +197,7 @@ theorem isConnectionForm_mapCoeff_iff :
         ![rightFundamentalVectorField (IB.prod (𝓡 1)) ξ x] =
         α.val x ![rightFundamentalVectorField (IB.prod (𝓡 1)) ξ x] • circleLieGenerator := by
     rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
-    exact hL _
+    exact toSpanSingleton_circleLieGenerator_apply _
   refine ⟨fun hA ↦ ⟨fun z ↦ (hpull z).mp (hA.mpullback_op_smul z), fun x ↦ ?_⟩,
     fun hα ↦ ⟨fun g ↦ (hpull g).mpr (hα.mpullback_op_smul g), fun x ξ ↦ ?_⟩⟩
   · refine smul_left_injective ℝ circleLieGenerator_ne_zero ?_
@@ -223,9 +227,9 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
       rw [gaugeCurvature_mapCoeff_toSpanSingleton (GroupLieAlgebra.bracketL (𝓡 1) Circle)
           (ξ := circleLieGenerator) (GroupLieAlgebra.bracketL_self _), SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply] at h
-      -- `h` reads `α ξ₀` in the model space; `toSpanSingleton_apply` turns it into `c • ξ₀`.
-      exact (smul_eq_zero.mp (((ContinuousLinearMap.toSpanSingleton_apply _ _ _).symm.trans h :)
-        :)).resolve_right circleLieGenerator_ne_zero)
+      -- `h` reads `α ξ₀` in the model space; turn it into `c • ξ₀` in the Lie algebra.
+      exact (smul_eq_zero.mp ((toSpanSingleton_circleLieGenerator_apply _).symm.trans h))
+        |>.resolve_right circleLieGenerator_ne_zero)
 
 /-- The **curvature** of a connection form `α` on a principal `Circle`-bundle over `B`: the unique
 smooth `2`-form on `B` whose pull-back along the projection is `d α`

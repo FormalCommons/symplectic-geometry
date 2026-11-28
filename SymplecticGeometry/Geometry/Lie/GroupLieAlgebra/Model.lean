@@ -65,6 +65,25 @@ theorem adjointL_apply (g : G) (v : E) :
     adjointL I g v = adjointContinuousLinearMap (I := I) g v :=
   (rfl)
 
+/-- The adjoint action of the identity is the identity. -/
+@[simp]
+theorem adjointL_one : adjointL I (1 : G) = ContinuousLinearMap.id ℝ E :=
+  adjointContinuousLinearMap_one (I := I)
+
+/-- The adjoint action is multiplicative: `Ad_{gh} = Ad_g ∘ Ad_h`. -/
+theorem adjointL_mul (g h : G) : adjointL I (g * h) = (adjointL I g).comp (adjointL I h) :=
+  adjointContinuousLinearMap_mul (I := I) g h
+
+/-- The adjoint action of `g` undoes that of `g⁻¹`: `Ad_g (Ad_{g⁻¹} v) = v`. -/
+@[simp]
+theorem adjointL_adjointL_inv (g : G) (v : E) : adjointL I g (adjointL I g⁻¹ v) = v :=
+  adjointContinuousLinearMap_adjointContinuousLinearMap_inv (I := I) g v
+
+/-- The adjoint action of `g⁻¹` undoes that of `g`: `Ad_{g⁻¹} (Ad_g v) = v`. -/
+@[simp]
+theorem adjointL_inv_adjointL (g : G) (v : E) : adjointL I g⁻¹ (adjointL I g v) = v :=
+  adjointContinuousLinearMap_inv_adjointContinuousLinearMap (I := I) g v
+
 /-- The adjoint action of a commutative Lie group on the model space is trivial. -/
 @[simp]
 theorem adjointL_eq_id [IsMulCommutative G] (g : G) :

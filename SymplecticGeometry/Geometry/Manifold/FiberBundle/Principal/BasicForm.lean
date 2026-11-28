@@ -13,7 +13,6 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
@@ -233,7 +232,6 @@ section LieAlgebraValued
 
 variable [FiniteDimensional ℝ EG]
 
-open scoped GroupLieAlgebra
 
 /-- **Equivariant Lie-algebra-valued forms along fundamental vector fields.** On a smooth principal
 bundle whose base and structure group are modelled without boundary, let `β` be a smooth form with
@@ -253,6 +251,8 @@ theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
   -- The flow of the field is `x ↦ x • exp (t ξ)`, along which `β` changes by
   -- `Ad(exp (-t ξ))`.
   have h := hasDerivAt_mpullback_op_mulInvariantExp_smul ξ (β.mdifferentiable x)
+  -- `Lie.tangentAd` takes its values in `GroupLieAlgebra IG G`, which carries no norm here, so the
+  -- `show` reads them in the model space `EG`, where `HasDerivAt` makes sense.
   have hv : HasDerivAt
       (fun t : ℝ ↦ show EG from Lie.tangentAd (I := IG) (mulInvariantExp (t • -ξ)) (β.val x v))
       (mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v) 0 := by
