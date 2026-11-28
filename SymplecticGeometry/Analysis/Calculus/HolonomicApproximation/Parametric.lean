@@ -107,8 +107,8 @@ those of `D`; those outside `J` record the parameter.
   derivative is `SymplecticGeometry.norm_fderiv_comp_familyCubeEquiv_sub_le`.
 * `SymplecticGeometry.contDiff_add_smul_fderiv_sub`: for a smooth cutoff `χ` on `L × E`, the
   blend `G + χ • (∂ₓf - G)` of a datum is smooth, holonomic where `χ = 1`, equal to `G` where the
-  datum is holonomic, and differs from `G` by `‖χ‖ * ‖∂ₓf - G‖`. Both cutoffs below are made of
-  it.
+  datum is holonomic, and differs from `G` by `‖χ‖ * ‖∂ₓf - G‖`. The two smooth cutoffs below
+  are made of it.
 * `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod`: a datum on `L × E`
   that is holonomic on `K ×ˢ W`, for a set `K` of parameters and an open `W` containing a
   closed `S`, becomes holonomic on an open set containing `univ ×ˢ S` when `G` is replaced by
@@ -123,6 +123,12 @@ those of `D`; those outside `J` record the parameter.
   `G + χ • (∂ₓf - G)`, with `χ` a smooth cutoff on `L` equal to `1` near `P₀` and to `0` off the
   open set of parameters over which `∂ₓf` is uniformly `ε`-close to `G` on a compact `T`
   (`IsCompact.isOpen_setOfPred_forall_norm_sub_lt`); so `G` changes by less than `ε` on `T`.
+* `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_param_of_continuous`: the same
+  cutoff for a family over a normal space `P`, smooth in space and jointly continuous with its
+  space derivative, as `exists_holonomic_approximation_continuous_family` takes it. The cutoff
+  `χ : P → [0, 1]` is continuous (Mathlib's `exists_continuous_zero_one_of_isClosed`), and equal
+  to `1` on the closure of an open `O ⊇ P₀` inside the open set of `ε`-close parameters
+  (`normal_exists_closure_subset`), so that the new datum is holonomic over `O`.
 * `SymplecticGeometry.exists_holonomic_approximation_continuous_family`: the same theorem for a
   family over a compact Hausdorff space `P`, continuous in the parameter together with the first
   space derivatives. The result is stated through a continuous `σ : P → Fin n → ℝ` and a smooth
@@ -803,6 +809,53 @@ theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_param [FiniteDimensional ℝ L
       _ < ε := by rw [one_mul]; exact hpW p.2 hp
   · rw [hχ0.self_of_nhdsSet p.1 hpW, norm_zero, zero_mul]
     exact hε
+
+omit [FiniteDimensional ℝ E] in
+/-- A cutoff in the parameter for a family over a normal space `P` that is only continuous in the
+parameter: the counterpart of `exists_contDiff_fderiv_eq_of_fderiv_eq_on_param`. Let
+`f : P → E → F` and `G : P → E → E →L[ℝ] F` be such that each `f l` is `Cᵐ` and each `G l` is
+`Cⁿ`, with `n + 1 ≤ m`, the maps `(l, x) ↦ fderiv ℝ (f l) x` and `(l, x) ↦ G l x` are
+continuous, and `fderiv ℝ (f l) x = G l x` for every `l` in a closed `P₀` and every `x`. Then for
+a compact `T ⊆ E` and `ε > 0` there are `G'`, with each `G' l` of class `Cⁿ` and
+`(l, x) ↦ G' l x` continuous, and an open set `O` containing `P₀`, such that
+`fderiv ℝ (f l) x = G' l x` for every `l ∈ O` and every `x`, `G' l x = G l x` wherever
+`fderiv ℝ (f l) x = G l x`, and `‖G' l x - G l x‖ < ε` for every `l` and every `x ∈ T`.
+
+The map is `G' l x = G l x + χ l • (fderiv ℝ (f l) x - G l x)`, the blend of
+`contDiff_add_smul_fderiv_sub` taken for each `l`, for a continuous `χ : P → [0, 1]` from Mathlib's
+`exists_continuous_zero_one_of_isClosed`, equal to `1` on the closure of `O` and to `0` off the
+open set of parameters over which the datum is `ε`-close to holonomic on `T`. With
+`U := (univ ×ˢ W) ∪ (O ×ˢ univ)` for an open `W` on which the datum is holonomic, the output fits
+the hypotheses `hP₀U` and `hUf` of `exists_holonomic_approximation_continuous_family`. -/
+theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_param_of_continuous {P : Type*}
+    [TopologicalSpace P] [NormalSpace P] {m n : WithTop ℕ∞} {f : P → E → F}
+    {G : P → E → E →L[ℝ] F} (hf : ∀ l, ContDiff ℝ m (f l)) (hG : ∀ l, ContDiff ℝ n (G l))
+    (hnm : n + 1 ≤ m) (hdf : Continuous fun p : P × E ↦ fderiv ℝ (f p.1) p.2)
+    (hcG : Continuous fun p : P × E ↦ G p.1 p.2) {P₀ : Set P} (hP₀ : IsClosed P₀)
+    (hP₀f : ∀ l ∈ P₀, ∀ x, fderiv ℝ (f l) x = G l x) {T : Set E} (hT : IsCompact T) {ε : ℝ}
+    (hε : 0 < ε) :
+    ∃ G' : P → E → E →L[ℝ] F, (∀ l, ContDiff ℝ n (G' l)) ∧
+      (Continuous fun p : P × E ↦ G' p.1 p.2) ∧
+      (∃ O : Set P, IsOpen O ∧ P₀ ⊆ O ∧ ∀ l ∈ O, ∀ x, fderiv ℝ (f l) x = G' l x) ∧
+      (∀ l x, fderiv ℝ (f l) x = G l x → G' l x = G l x) ∧
+      ∀ l, ∀ x ∈ T, ‖G' l x - G l x‖ < ε := by
+  -- the open set `W` of parameters over which the datum is `ε`-close to holonomic on `T`
+  set W : Set P := {l | ∀ x ∈ T, ‖fderiv ℝ (f l) x - G l x‖ < ε}
+  have hW : IsOpen W := hT.isOpen_setOfPred_forall_norm_sub_lt hdf hcG ε
+  have hP₀W : P₀ ⊆ W := fun l hl x _ ↦ by simpa [hP₀f l hl x] using hε
+  -- an open `O ⊇ P₀` whose closure lies in `W`, and a cutoff `χ`, one on it and zero off `W`
+  obtain ⟨O, hO, hP₀O, hOW⟩ := normal_exists_closure_subset hP₀ hW hP₀W
+  obtain ⟨χ, hχ0, hχ1, hχI⟩ := exists_continuous_zero_one_of_isClosed hW.isClosed_compl
+    isClosed_closure (disjoint_compl_left_iff_subset.2 hOW)
+  refine ⟨fun l x ↦ G l x + χ l • (fderiv ℝ (f l) x - G l x), fun l ↦ ?_, ?_,
+    ⟨O, hO, hP₀O, fun l hl x ↦ ?_⟩, fun l x h ↦ by simp [h], fun l x hx ↦ ?_⟩
+  · exact (hG l).add ((((hf l).fderiv_right hnm).sub (hG l)).const_smul (χ l))
+  · exact hcG.add ((χ.continuous.comp continuous_fst).smul (hdf.sub hcG))
+  · simp [hχ1 (subset_closure hl)]
+  · rw [add_sub_cancel_left, norm_smul, Real.norm_eq_abs, abs_of_nonneg (hχI l).1]
+    by_cases hl : l ∈ W
+    · exact (mul_le_of_le_one_left (norm_nonneg _) (hχI l).2).trans_lt (hl x hx)
+    · simpa [hχ0 hl] using hε
 
 end Cutoff
 
