@@ -16,6 +16,7 @@ import SymplecticGeometry.Analysis.SpecialFunctions.Log.Bounds
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
+import TauCeti.Analysis.Real.Sqrt
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
@@ -70,9 +71,10 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
 
 * `SymplecticGeometry.sqrtAddLeaf L δ ℓ`: the cutoff leaf with `b = δ / 8 + ℓ` and
   `c = 64 δ² + ℓ²`. It is `√(64 r² - 64 δ²) + δ / 8 + ℓ` up to `2 δ`
-  (`SymplecticGeometry.sqrtAddLeaf_of_le`) and the standard shape `√(64 r² + ℓ²)` from `(2 + L) δ`
-  on (`SymplecticGeometry.sqrtAddLeaf_of_ge`); the leaves for `δ` are those for `δ = 1` rescaled
-  (`SymplecticGeometry.sqrtAddLeaf_eq_mul_sqrtAddLeaf_one`).
+  (`SymplecticGeometry.sqrtAddLeaf_of_le`; for `δ = 1` it is `8 √(r² - 1) + 1 / 8 + ℓ` up to `2`,
+  `SymplecticGeometry.sqrtAddLeaf_one_of_le`) and the standard shape `√(64 r² + ℓ²)` from
+  `(2 + L) δ` on (`SymplecticGeometry.sqrtAddLeaf_of_ge`); the leaves for `δ` are those for
+  `δ = 1` rescaled (`SymplecticGeometry.sqrtAddLeaf_eq_mul_sqrtAddLeaf_one`).
 * `SymplecticGeometry.exists_isConvexShapeAt_sqrtAddLeaf`: for `L` large enough, every leaf with
   `ℓ ∈ [0, 15 δ / 2]` is an `i`-convex shape at every `r > δ`, as then `b ≤ 61 δ / 8` and
   `c ≤ 121 δ²`.
@@ -522,6 +524,13 @@ theorem sqrtAddLeaf_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : 
     sqrtAddLeaf L δ ℓ r = √(64 * r ^ 2 - 64 * δ ^ 2) + (δ / 8 + ℓ) := by
   rw [sqrtAddLeaf_eq_cutoffLeaf, cutoffLeaf_of_le hL hδ hr]
 
+/-- For `δ = 1` and `0 ≤ L`, up to `2` the leaf `ℓ` is `8 √(r² - 1) + (1 / 8 + ℓ)`. -/
+theorem sqrtAddLeaf_one_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hr : r ≤ 2) :
+    sqrtAddLeaf L 1 ℓ r = 8 * √(r ^ 2 - 1) + (1 / 8 + ℓ) := by
+  rw [sqrtAddLeaf_of_le hL zero_le_one (by linarith),
+    show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_sq_mul,
+    abs_of_pos (by norm_num)]
+
 /-- From `(2 + L) δ` on, the leaf `ℓ` is the standard shape `√(64 r² + ℓ²)`. -/
 theorem sqrtAddLeaf_of_ge {L ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 + L) * δ ≤ r) :
     sqrtAddLeaf L δ ℓ r = √(64 * r ^ 2 + ℓ ^ 2) := by
@@ -572,7 +581,7 @@ theorem eight_mul_sqrt_le_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) {ℓ : ℝ} (h�
   have hH₀ : 0 ≤ H := smoothTransition.nonneg _
   have hH₁ : H ≤ 1 := smoothTransition.le_one _
   have h8 : 8 * √(r ^ 2 - δ ^ 2) = √(64 * (r ^ 2 - δ ^ 2)) := by
-    rw [sqrt_mul (by norm_num), show (64 : ℝ) = 8 ^ 2 by norm_num, sqrt_sq (by norm_num)]
+    rw [show (64 : ℝ) = 8 ^ 2 by norm_num, sqrt_sq_mul, abs_of_pos (by norm_num)]
   rw [sqrtAddLeaf_def, h8]
   have h₁ : 0 ≤ (δ / 8 + ℓ) * (1 - H) := mul_nonneg (by positivity) (by linarith)
   have h₂ : √(64 * (r ^ 2 - δ ^ 2)) ≤ √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 + ℓ ^ 2) * H) :=
@@ -708,13 +717,8 @@ theorem sqrtAddLeaf_sub_struweShape_mem_Icc {L : ℝ} (hL : 0 ≤ L) (ℓ : ℝ)
     sqrtAddLeaf L 1 ℓ r - struweShape 1 1 (2 * ℓ - 47 / 8) r ∈
       Icc (-(ℓ - 6) + (8 - √2) * √(r ^ 2 - 1)) (-(ℓ - 6) + 8 * √(r ^ 2 - 1)) := by
   have hT := struweShape_sub_struweShape_one_mem_Icc le_rfl (2 * ℓ - 47 / 8) hr.1
-  have h1 : struweShape 1 1 (2 * ℓ - 47 / 8) 1 = 2 * ℓ - 47 / 8 := by
-    simpa using struweShape_apply_mul 1 1 (2 * ℓ - 47 / 8)
-  have h8 : √(64 * r ^ 2 - 64 * 1 ^ 2) = 8 * √(r ^ 2 - 1) := by
-    rw [show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_mul (by norm_num),
-      sqrt_sq (by norm_num)]
-  rw [sqrtAddLeaf_of_le hL zero_le_one (by linarith [hr.2]), h8]
-  rw [h1] at hT
+  rw [sqrtAddLeaf_one_of_le hL hr.2]
+  rw [struweShape_one_apply_self] at hT
   obtain ⟨hT₀, hT₁⟩ := hT
   constructor <;> nlinarith
 
@@ -728,8 +732,7 @@ theorem two_le_sqrtAddLeaf_sub_struweShape (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ �
   have hT₂ : T 2 ≤ 11 := by
     have h := (struweShape_sub_struweShape_one_mem_Icc le_rfl (2 * ℓ - 47 / 8)
       one_le_two).2
-    have h1 : T 1 = 2 * ℓ - 47 / 8 := by
-      simpa using struweShape_apply_mul 1 1 (2 * ℓ - 47 / 8)
+    have h1 : T 1 = 2 * ℓ - 47 / 8 := struweShape_one_apply_self 1 _
     have h6 : √2 * √(2 ^ 2 - 1) < 5 / 2 := by
       rw [← sqrt_mul zero_le_two, sqrt_lt' (by norm_num)]
       norm_num
@@ -745,8 +748,8 @@ theorem two_le_sqrtAddLeaf_sub_struweShape (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ �
   -- The leaf is at least `8 √(r² - 1) ≥ 8 r - 3`.
   have hA := eight_mul_sqrt_le_sqrtAddLeaf L zero_le_one hℓ.1 r
   have hs : 8 * r - 3 ≤ 8 * √(r ^ 2 - 1 ^ 2) := by
-    rw [show 8 * √(r ^ 2 - 1 ^ 2) = √(64 * (r ^ 2 - 1 ^ 2)) by
-      rw [sqrt_mul (by norm_num), show (64 : ℝ) = 8 ^ 2 by norm_num, sqrt_sq (by norm_num)]]
+    rw [show 8 * √(r ^ 2 - 1 ^ 2) = √(8 ^ 2 * (r ^ 2 - 1 ^ 2)) by
+      rw [sqrt_sq_mul, abs_of_pos (by norm_num)]]
     exact le_sqrt_of_sq_le (by nlinarith)
   linarith
 
@@ -821,8 +824,7 @@ theorem exists_eqOn_struweSwitchLeaf_struweShape {L : ℝ} (hL : 0 ≤ L) (hδ :
   have hc : ContinuousWithinAt (fun r ↦ sqrtAddLeaf L δ ℓ r + (ℓ - 6 * δ) / 200 - T r) (Ici δ) δ :=
     ((continuous_sqrtAddLeaf L δ ℓ).add continuous_const).continuousWithinAt.sub
       (continuousOn_struweShape hδ le_rfl _ δ self_mem_Ici)
-  have hT : T δ = 2 * ℓ - 47 * δ / 8 := by
-    simpa using struweShape_apply_mul δ 1 (2 * ℓ - 47 * δ / 8)
+  have hT : T δ = 2 * ℓ - 47 * δ / 8 := struweShape_one_apply_self δ _
   have hA : sqrtAddLeaf L δ ℓ δ = δ / 8 + ℓ := by
     rw [sqrtAddLeaf_of_le hL hδ.le (by linarith)]
     simp
@@ -887,10 +889,9 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
   rcases lt_or_ge η (A r - T r) with h₁ | h₁
   · -- The leaf is `A` near `r`.
     refine hA.congr_of_eventuallyEq ?_
-    filter_upwards [(hTc.continuousAt.add continuousAt_const).eventually_lt hAc.continuousAt
-      (by linarith : T r + η < A r)] with x hx
     rw [hχ]
-    exact smoothedMax_eq_left hη₀ hx.le
+    exact smoothedMax_eventuallyEq_left_of_continuousAt hη₀ hAc.continuousAt hTc.continuousAt
+      (by linarith)
   -- From `2` on, `A - T ≥ 2 > η`.
   have hr₂ : r < 2 := by
     by_contra! h
@@ -898,29 +899,26 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
     linarith
   -- Struwe's shape is an `i`-convex shape on `(1, 2]`.
   have hT : IsConvexShapeAt T r := by
-    have hT₁ : struweShape 1 1 (2 * ℓ - 47 / 8) 1 = 2 * ℓ - 47 / 8 := by
-      simpa using struweShape_apply_mul 1 1 (2 * ℓ - 47 / 8)
     have hs : √(log (2 / 1)) ≤ 1 :=
       sqrt_le_one.2 (by rw [div_one]; linarith [log_two_lt_d9])
     have hs₀ : 0 ≤ √(log (2 / 1)) := sqrt_nonneg _
     refine isConvexShapeAt_struweShape_of_le_of_mem_Ioc (m := 6) one_pos le_rfl
-      (by rw [hT₁]; linarith) (by linarith) ?_ ⟨hr, hr₂.le⟩
+      (by rw [struweShape_one_apply_self]; linarith) (by linarith) ?_ ⟨hr, hr₂.le⟩
     nlinarith [pow_le_one₀ hs₀ hs (n := 3)]
   rcases lt_or_ge (A r - T r) (-η) with h₂ | h₂
   · -- The leaf is `T` near `r`.
     refine hT.congr_of_eventuallyEq ?_
-    filter_upwards [(hAc.continuousAt.add continuousAt_const).eventually_lt hTc.continuousAt
-      (by linarith : A r + η < T r)] with x hx
     rw [hχ]
-    exact smoothedMax_eq_right hη₀ hx.le
+    exact smoothedMax_eventuallyEq_right_of_continuousAt hη₀ hAc.continuousAt hTc.continuousAt
+      (by linarith)
   -- Where `|A r - T r| ≤ η`, the width condition of `isConvexShapeAt_smoothedMax`.
   rw [hχ]
   refine isConvexShapeAt_smoothedMax hAc hTc hη₀ hA hT ?_
   set w := √(r ^ 2 - 1)
   have hw₀ : 0 < w := sqrt_pos.2 (by nlinarith)
   have h8 : √(64 * r ^ 2 - 64 * 1 ^ 2) = 8 * w := by
-    rw [show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_mul (by norm_num),
-      sqrt_sq (by norm_num)]
+    rw [show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_sq_mul,
+      abs_of_pos (by norm_num)]
   have hdA : deriv A r = 8 * r / w := by
     rw [deriv_sqrtAddLeaf_of_lt hL zero_le_one hr (by linarith), h8]
     field_simp
