@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Symplectic.Finrank
-public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
 import SymplecticGeometry.Geometry.Symplectic.QuadraticForm
 
 /-!
@@ -29,8 +28,6 @@ lower-bound counterpart of Tau Ceti's
 
 * `TauCeti.AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg`:
   the manifold Morse index is at least the complex dimension.
-* `TauCeti.SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex`: for a smooth
-  almost complex structure on `M`, the same bound, stated as half the real dimension of `E`.
 
 ## References
 
@@ -59,30 +56,3 @@ theorem complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg
   exact QuadraticForm.complexFinrank_le_sigNeg_of_add_comp_neg _ J h
 
 end TauCeti.AlmostComplexStructure
-
-open scoped ContDiff
-
-namespace TauCeti.SmoothAlmostComplexStructure
-
-variable {E H M : Type*}
-variable [NormedAddCommGroup E] [NormedSpace ℝ E]
-variable [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-variable [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-
-/-- If `Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v` at `x`, for a
-smooth almost complex structure `J`, then the Morse index of `f` at `x` is at least half the
-dimension of the model space. -/
-theorem finrank_div_two_le_manifoldMorseIndex
-    (J : SmoothAlmostComplexStructure I M) (f : M → ℝ) (x : M)
-    (h : ∀ v : TangentSpace I x, v ≠ 0 →
-      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0) :
-    Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I f x := by
-  have hE : Module.finrank ℝ E = 2 * (J.almostComplexStructureAt x).complexFinrank :=
-    (J.almostComplexStructureAt x).finrank_real_eq_two_mul_complexFinrank
-  rw [hE, Nat.mul_div_cancel_left _ two_pos]
-  refine AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg
-    (J.almostComplexStructureAt x) (I := I) f x fun v hv ↦ ?_
-  rw [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap]
-  exact h v hv
-
-end TauCeti.SmoothAlmostComplexStructure
