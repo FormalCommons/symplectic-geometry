@@ -306,12 +306,8 @@ theorem isOrientationPreservingAt_congrLeftHomeomorph [T2Space N] (φ : M ≃ₜ
     rw [this]
     refine (isOrientationPreservingAt_inl h₁' h₂ d₁' d₂ he₁' he₂'
       (isOrientationPreservingAt_restrict o₁' _ _)).comp
-      ((isOrientationPreservingAt_restrict o₁' _ _).of_comp ?_ ?_)
-    · rw [subtypeVal_comp_punctureMap]
-      exact (hφo x).comp (isOrientationPreservingAt_restrict o₁ _ x)
-    · exact ((ContMDiff.subtypeVal_comp_iff _ _).1 (by
-        rw [subtypeVal_comp_punctureMap]; exact hφs.comp contMDiff_subtypeVal)).mdifferentiableAt
-          one_ne_zero
+      ((isOrientationPreservingAt_restrict_iff_of_comp_eq (subtypeVal_comp_punctureMap _ _) o₁ o₁'
+        x).2 (hφo x))
   · refine (isOrientationPreservingAt_inr h₁' h₂ d₁' d₂ he₁' he₂'
       (isOrientationPreservingAt_restrict o₂ _ y)).congr_of_eventuallyEq ?_
     filter_upwards [(hK.isOpen_compl.preimage continuous_subtypeVal).mem_nhds hy] with y' hy'

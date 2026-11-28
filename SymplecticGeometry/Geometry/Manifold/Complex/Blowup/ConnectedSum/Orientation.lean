@@ -10,7 +10,6 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPreserving
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import Mathlib.LinearAlgebra.Complex.Determinant
-import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import TauCeti.Analysis.Calculus.FDeriv.Pi.Basic
 import TauCeti.Analysis.InnerProductSpace.Calculus
@@ -397,7 +396,7 @@ theorem isOrientationPreservingAt_connectedSumInr
     rw [complexManifoldOrientationOfFinrank_opens_eq_restrict (M := BlowupModel n),
       ← Manifold.Orientation.isOrientationPreservingAt_neg_right,
       ← Manifold.Orientation.restrict_neg,
-      Manifold.Orientation.isOrientationPreservingAt_restrict_iff,
+      Manifold.Orientation.isOrientationPreservingAt_restrict_iff_subtype_val_comp,
       Manifold.Orientation.isOrientationPreservingAt_neg_right, val_comp_connectedSumInrModel]
     exact (BlowupModel.isOrientationPreservingAt_radialRescale c.ballRadius_pos _).comp_reversing
       ((isOrientationReversingAt_projectiveBlowupModelDiffeomorph _).comp_preserving

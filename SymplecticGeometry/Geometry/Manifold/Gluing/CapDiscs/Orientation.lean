@@ -16,7 +16,6 @@ import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Topology
 import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
-import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
@@ -186,8 +185,8 @@ private theorem isOrientationPreservingAt_ballDiffeomorph (z : ball) :
       discOrientation ballDiffeomorph z := by
   have he : Subtype.val ∘ ballDiffeomorph = orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ) :=
     funext coe_ballDiffeomorph
-  rw [discOrientation, isOrientationPreservingAt_restrict_iff, he]
-  exact Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_comp_subtypeVal ball z
+  rw [discOrientation, isOrientationPreservingAt_restrict_iff_of_comp_eq he]
+  exact Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _
 
 /-- The inverse of the coordinates preserves orientation. -/
 private theorem isOrientationPreservingAt_ballDiffeomorph_symm (v : discOpens) :
@@ -265,7 +264,7 @@ private theorem isOrientationPreservingAt_collarPoint (i : ι) (u : annulusParam
     rw [val_comp_collarPoint, ← isOrientationReversingAt_neg_right, annulusOrientation,
       isOrientationReversingAt_neg_left]
     exact (hc.comp hprod).comp (isOrientationPreservingAt_restrict _ _ u)
-  exact isOrientationPreservingAt_restrict_iff.2 h
+  exact (isOrientationPreservingAt_restrict_iff_subtype_val_comp _ _ _ _).2 h
 
 /-- In the parameters, the polar parametrization reverses orientation. -/
 private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
@@ -293,7 +292,7 @@ private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
     exact (hpol.comp_preserving
       ((isOrientationPreservingAt_id _ u.val.1).prodMap (hd _))).comp_preserving
       (isOrientationPreservingAt_restrict _ _ u)
-  exact isOrientationPreservingAt_restrict_iff.2 h
+  exact (isOrientationPreservingAt_restrict_iff_subtype_val_comp _ _ _ _).2 h
 
 include hrev in
 /-- On the annuli, the interior piece and the `i`-th disc carry their orientations to the same
