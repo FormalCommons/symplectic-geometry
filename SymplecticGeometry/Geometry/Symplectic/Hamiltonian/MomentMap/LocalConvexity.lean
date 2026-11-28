@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
+import TauCeti.Analysis.Normed.Module.Dual.Adjoint
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
@@ -583,8 +584,8 @@ theorem exists_isConvexChart
     ContinuousLinearMap.precomp ℝ P₂
   have hR (u : StrongDual ℝ 𝔮) (ξ : 𝔮) : R u ξ = u ξ := by
     simp [R, P₂, Submodule.projectionOnto_apply_left]
-  have hRi : Function.Injective R := fun u v huv ↦
-    ContinuousLinearMap.ext fun ξ ↦ by rw [← hR, huv, hR]
+  have hRi : Function.Injective R := ContinuousLinearMap.injective_precomp_of_denseRange
+    (Submodule.projectionOnto_surjective _).denseRange
   set A := LinearMap.range (R : StrongDual ℝ 𝔮 →ₗ[ℝ] StrongDual ℝ (GroupLieAlgebra I G))
   let T : StrongDual ℝ 𝔮 ≃L[ℝ] A :=
     LinearEquiv.toContinuousLinearEquiv (E := StrongDual ℝ 𝔮) (F := A)
@@ -593,20 +594,18 @@ theorem exists_isConvexChart
     rw [LinearEquiv.coe_toContinuousLinearEquiv', LinearEquiv.ofInjective_apply,
       ContinuousLinearMap.coe_coe, ContinuousLinearMap.precomp_apply]
   -- The span of the weights vanishes on `𝔮`, and `A` on `𝔤ₓ`, so they meet only in `0`.
-  have hspan : ∀ ψ ∈ Submodule.span ℝ (Set.range α), ∀ ξ : 𝔮, ψ ξ = 0 := by
-    intro ψ hψ ξ
-    induction hψ using Submodule.span_induction with
-    | mem _ hψ =>
-      obtain ⟨k, rfl⟩ := hψ
-      simp [α, P₁, Submodule.projectionOnto_apply_right]
-    | zero => rfl
-    | add _ _ _ _ h₁ h₂ => rw [add_apply, h₁, h₂, add_zero]
-    | smul _ _ _ h => rw [smul_apply, h, smul_zero]
+  have hspan : Submodule.span ℝ (Set.range α) ≤
+      (ContinuousLinearMap.precomp ℝ 𝔮.subtypeL :
+        StrongDual ℝ (GroupLieAlgebra I G) →L[ℝ] StrongDual ℝ 𝔮).ker :=
+    Submodule.span_le.2 <| Set.range_subset_iff.2 fun k ↦ ContinuousLinearMap.ext fun ξ ↦ by
+      simp [α, P₁]
   have hA : Disjoint A (Submodule.span ℝ (Set.range α)) := by
     rw [Submodule.disjoint_def]
     rintro _ ⟨u, rfl⟩ hu
     rw [ContinuousLinearMap.coe_coe] at hu ⊢
-    have hu0 : u = 0 := ContinuousLinearMap.ext fun ξ ↦ by rw [← hR, hspan _ hu ξ, zero_apply]
+    have hu0 : u = 0 := ContinuousLinearMap.ext fun ξ ↦ by
+      rw [← hR, zero_apply]
+      exact congr($(hspan hu) ξ)
     rw [hu0, map_zero]
   -- The coordinates `Θ`, reordered as `(w, T u, z)`.
   let Φ : (StrongDual ℝ 𝔮 × W × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι)) ≃ₜ

@@ -227,10 +227,10 @@ unless Mathlib or Tau Ceti has it:
 4. the change of the weight-zero coordinates by the implicit function theorem
    (`HasStrictFDerivAt.implicitToOpenPartialHomeomorph`), and the product form of
    $\mu$;
-5. a convexity chart of the product form, from Tau Ceti's
+5. a convexity chart of the slice model, from Tau Ceti's
    `exists_isConvexChart_of_eqOn_add_weightMomentMap`.
 
-If step 4 or 5 grows, the product form can go first, as a separate lemma about
+If step 4 grows, the product form can go first, as a separate lemma about
 a map $(u,w,z_+)\mapsto(\Phi(z_+),u)$ with no moment map in it. The file cites
 [BjorndahlKarshon2010], Proposition 29, and [Atiyah1982], §2, and credits Tau
 Ceti's `exists_weightModelChart` and
