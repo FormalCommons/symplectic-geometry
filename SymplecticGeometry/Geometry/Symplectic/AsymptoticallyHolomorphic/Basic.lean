@@ -664,6 +664,13 @@ theorem dbarFun_zero (k : ℕ) (x : M) (z : StdSpace ι) :
     D.dbarFun k x (0 : StdSpace ι → ℂ) z = 0 :=
   flatDbarWith_zero z
 
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- The `∂̄` of a constant function on the chart vanishes. -/
+@[simp]
+theorem dbarFun_const (k : ℕ) (x : M) (c : ℂ) (z : StdSpace ι) :
+    D.dbarFun k x (fun _ ↦ c) z = 0 :=
+  flatDbarWith_const c z
+
 /-- The reading of the product of a section `s` with a function `g : M → ℂ` is the product of
 the reading of `s` with `g` read in the chart. -/
 @[simp]
