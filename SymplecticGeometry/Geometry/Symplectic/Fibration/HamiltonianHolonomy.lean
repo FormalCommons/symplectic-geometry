@@ -11,6 +11,9 @@ public import SymplecticGeometry.Geometry.Manifold.ChartDisc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.VectorField.Chart.Basic
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
+import TauCeti.Geometry.Symplectic.Manifold.Flat
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
@@ -90,6 +93,15 @@ curvature of [McDuffSalamon2017] is its negative.
   integral of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` over `[0, 1]²`.
 * `TauCeti.IsEhresmannConnection.integral_val_curvatureTensor_transportedCylinder_eq_zero`: for
   Hamiltonian curvature, the integral over `θ ∈ [0, 1]` of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` is zero.
+* `exists_pos_continuousOn_val_curvatureTensor_transportedCylinder_chartDisc`, in the namespace
+  `TauCeti.IsEhresmannConnection`: for the small discs
+  `D_r = SymplecticGeometry.chartDisc IB b w₁ w₂ r` and their transported cylinders `C_r`, the
+  integrand `τ(Ω(W₁, W₂), ∂_θC_r)` at `(s₀, t, θ)` is continuous in `(r, t, θ)` for `|r|` small.
+  Near `b`, the images `W₁ W₂` of `w₁ w₂` under the derivative of the inverse chart are the values
+  of Tau Ceti's smooth fields `TauCeti.bumpChartField`, so the integrand is the pull-back along
+  `(r, s, t, θ) ↦ C_r (s, t, θ)` (smooth by `contMDiffOn_transportedCylinder_param`) of the
+  smooth one-form `ι_K τ`, with `K` the curvature of those fields (smooth by
+  `contMDiff_curvature`).
 * `TauCeti.IsEhresmannConnection.curvatureTensor_mfderiv_chartDisc`: on the derivatives of the
   small disc `SymplecticGeometry.chartDisc` through a point of a chart, the curvature tensor is
   `2π r² φ(s) φ'(s) (1 - cos (2πt))` times its value on the images of the two vectors spanning
@@ -519,6 +531,140 @@ theorem HasHamiltonianDiscHolonomy.pathIntegral_interiorₗ_velocity_holonomyDif
         c 0 1 = 0 :=
   (hH.isHamiltonian_holonomyDiffeotopy hσ hfp hA hΔ hx).pathIntegral_interiorₗ_velocity_eq_zero s
     hc hc₀₁
+
+end IsEhresmannConnection
+
+end TauCeti
+
+namespace TauCeti
+
+namespace IsEhresmannConnection
+
+section ChartDiscContinuity
+
+open SymplecticGeometry
+
+variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  {HM : Type*} [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M] [IM.Boundaryless]
+  [T2Space M]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B] [IB.Boundaryless]
+  [T2Space B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF]
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
+  {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  {proj : M → B} {D : Π x : M, Submodule ℝ (TangentSpace IM x)}
+  {hD : IsEhresmannConnection IM IB ∞ proj D} {e : Trivialization F proj} {c : ℝ → F}
+
+/-- **The curvature integrand over small discs is continuous in the radius.** Let `D` be a smooth
+Ehresmann connection on a proper smooth map `proj`, `τ` a two-form on `M`, `e` a trivialization
+with a smooth inverse whose base set contains `b`, `c : ℝ → F` smooth, and `s₀ : ℝ`. For the
+small disc `D_r = chartDisc IB b w₁ w₂ r` and its transported cylinder `C_r`, let `W₁ W₂` be the
+images of `w₁ w₂` under the derivative of the inverse chart at `D_r (s₀, t)`, and `Ω` the
+curvature tensor of `D` at `C_r (s₀, t, θ)`. Then there is `ε > 0` such that
+`(r, t, θ) ↦ τ(Ω(W₁, W₂), ∂_θC_r (s₀, t, θ))` is continuous on `{|r| < ε} × ℝ × ℝ`. -/
+theorem exists_pos_continuousOn_val_curvatureTensor_transportedCylinder_chartDisc
+    (τ : SmoothTwoForm IM M) (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) {b : B} (hb : b ∈ e.baseSet) (w₁ w₂ : EB) (s₀ : ℝ) :
+    ∃ ε > 0, ContinuousOn (fun p : ℝ × ℝ × ℝ ↦
+        τ.val (hD.transportedCylinder e (chartDisc IB b w₁ w₂ p.1) c (s₀, p.2.1, p.2.2))
+          ![hD.curvatureTensor (by simp) ((hf _).of_le (by simp))
+              (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm
+                (chartDiscCoord IB b w₁ w₂ p.1 (s₀, p.2.1)) w₁)
+              (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm
+                (chartDiscCoord IB b w₁ w₂ p.1 (s₀, p.2.1)) w₂),
+            mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e (chartDisc IB b w₁ w₂ p.1) c)
+              (s₀, p.2.1, p.2.2) (0, 0, 1)])
+      (Metric.ball 0 ε ×ˢ univ) := by
+  -- Smooth fields `V₁ V₂` on `B` whose values near `b` are the images of `w₁ w₂` under the
+  -- derivative of the inverse chart at `b`.
+  obtain ⟨δ, hδ, hball⟩ := Metric.mem_nhds_iff.1 (extChartAt_target_mem_nhds (I := IB) b)
+  let ρ : ContDiffBump (extChartAt IB b b) := ⟨δ / 4, δ / 2, by positivity, by linarith⟩
+  have hρ : Metric.closedBall (extChartAt IB b b) ρ.rOut ⊆ (extChartAt IB b).target :=
+    (Metric.closedBall_subset_ball (by simp [ρ]; linarith)).trans hball
+  set V₁ := bumpChartField b ρ w₁
+  set V₂ := bumpChartField b ρ w₂
+  have hV₁ : CMDiff ∞ (T% V₁) := contMDiff_bumpChartField (n := ∞) (m := ⊤) w₁ (by simp) hρ
+  have hV₂ : CMDiff ∞ (T% V₂) := contMDiff_bumpChartField (n := ∞) (m := ⊤) w₂ (by simp) hρ
+  -- Small discs stay where the fields are the images of `w₁ w₂`.
+  have hU : (extChartAt IB b).source ∩ extChartAt IB b ⁻¹' Metric.ball (extChartAt IB b b) ρ.rIn
+      ∈ 𝓝 b :=
+    Filter.inter_mem (extChartAt_source_mem_nhds b)
+      ((continuousAt_extChartAt b).preimage_mem_nhds (Metric.ball_mem_nhds _ ρ.rIn_pos))
+  obtain ⟨ε, hε, hdisc⟩ := exists_pos_forall_chartDiscCoord_mem (I := IB) b w₁ w₂ hU
+  refine ⟨ε, hε, ?_⟩
+  have hr {r : ℝ} (hr : r ∈ Metric.ball (0 : ℝ) ε) : |r| < ε := by
+    rwa [Metric.mem_ball, dist_zero_right, Real.norm_eq_abs] at hr
+  have hseam (r s : ℝ) : chartDisc IB b w₁ w₂ r (s, 0) ∈ e.baseSet := by
+    rw [chartDisc_zero_right]
+    exact hb
+  -- The family of discs is smooth for `|r| < ε`, and so is `(r, s, t, θ) ↦ C_r (s, t, θ)`.
+  have hcoord : ContDiff ℝ ∞ (fun p : ℝ × ℝ × ℝ ↦ chartDiscCoord IB b w₁ w₂ p.1 p.2) := by
+    simp only [chartDiscCoord_def]
+    fun_prop
+  have hΔ : ContMDiffOn (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ × ℝ)) IB ∞
+      (fun p : ℝ × ℝ × ℝ ↦ chartDisc IB b w₁ w₂ p.1 p.2) (Metric.ball 0 ε ×ˢ univ) := by
+    refine contMDiffOn_prod_modelWithCornersSelf_iff.2 fun p hp ↦ ?_
+    simp only [chartDisc_def]
+    exact (((contMDiffOn_extChartAt_symm b).contMDiffAt ((isOpen_extChartAt_target b).mem_nhds
+      (hdisc _ (hr hp.1) _).1)).comp p (hcoord.contMDiff p)).contMDiffWithinAt
+  set G : ℝ × ℝ × ℝ × ℝ → M := fun q ↦ hD.transportedCylinder e (chartDisc IB b w₁ w₂ q.1) c q.2
+  have hS : IsOpen (Metric.ball (0 : ℝ) ε ×ˢ (univ : Set (ℝ × ℝ × ℝ))) :=
+    Metric.isOpen_ball.prod isOpen_univ
+  have hG : ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ × ℝ) IM ∞ G (Metric.ball 0 ε ×ˢ univ) := by
+    have h := hD.contMDiffOn_transportedCylinder_param (IN := 𝓘(ℝ, ℝ)) hf hfp he_symm
+      Metric.isOpen_ball hΔ hc
+    exact (contMDiffOn_prod_modelWithCornersSelf_iff.1 h).mono fun q hq ↦ ⟨hq.1, hseam _ _⟩
+  -- The smooth one-form `ι_K τ`, for the curvature `K` of `V₁ V₂`.
+  have hK : CMDiff ∞ (T% (hD.curvature V₁ V₂)) :=
+    hD.contMDiff_curvature (k := ⊤) (m := ⊤) le_rfl (by simp) (hf.of_le (by simp)) hV₁ hV₂
+  set β := τ.interiorₗ ⟨hD.curvature V₁ V₂, hK⟩
+  have hβ := β.contDiffOn_mpullback hS hG
+  have hl : Continuous fun p : ℝ × ℝ × ℝ ↦ ((p.1, s₀, p.2.1, p.2.2) : ℝ × ℝ × ℝ × ℝ) := by
+    fun_prop
+  have hcont : ContinuousOn (fun p : ℝ × ℝ × ℝ ↦ mpullback 𝓘(ℝ, ℝ × ℝ × ℝ × ℝ) IM G β.val
+      (p.1, s₀, p.2.1, p.2.2) ![(0, 0, 0, 1)]) (Metric.ball 0 ε ×ˢ univ) :=
+    (((ContinuousAlternatingMap.apply ℝ (ℝ × ℝ × ℝ × ℝ) ℝ ![(0, 0, 0, 1)]).continuous
+    |>.comp_continuousOn hβ.continuousOn).comp hl.continuousOn
+    fun p (hp : p ∈ Metric.ball (0 : ℝ) ε ×ˢ univ) ↦ ⟨hp.1, mem_univ _⟩)
+  refine hcont.congr fun p hp ↦ ?_
+  obtain ⟨r, t, θ⟩ := p
+  have hrε : |r| < ε := hr hp.1
+  -- The images of `w₁ w₂` under the derivative of the inverse chart are the values of `V₁ V₂`.
+  have hW (w : EB) : mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm
+      (chartDiscCoord IB b w₁ w₂ r (s₀, t)) w =
+        bumpChartField b ρ w (chartDisc IB b w₁ w₂ r (s₀, t)) := by
+    obtain ⟨hz, hzU⟩ := hdisc r hrε (s₀, t)
+    rw [chartDisc_def, bumpChartField_extChartAt_symm_of_mem_ball w hρ
+      (by rw [← extChartAt_chartDisc hz]; exact hzU.2), IB.range_eq_univ, mfderivWithin_univ]
+  have hproj : proj (G (r, s₀, t, θ)) = chartDisc IB b w₁ w₂ r (s₀, t) :=
+    hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp
+      ((contMDiff_chartDisc fun z ↦ (hdisc r hrε z).1).of_le (by simp)) (hseam r s₀) _ _
+  -- The curvature tensor on the values of `V₁ V₂` is the curvature of `V₁ V₂`.
+  have key : ∀ x y, proj x = y → ∀ hfx : ContMDiffAt IM IB 2 proj x,
+      hD.curvatureTensor (by simp) hfx (V₁ y) (V₂ y) = hD.curvature V₁ V₂ x := by
+    rintro x _ rfl hfx
+    exact hD.curvatureTensor_apply _ hfx hV₁ hV₂
+  -- The derivative of `C_r` in `θ` is that of `G` in the direction of `θ`.
+  have hmf : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e (chartDisc IB b w₁ w₂ r) c)
+      (s₀, t, θ) (0, 0, 1) = mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ × ℝ) IM G (r, s₀, t, θ) (0, 0, 0, 1) := by
+    have hGd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ × ℝ) IM G (r, s₀, t, θ) :=
+      (hG.contMDiffAt (hS.mem_nhds ⟨hp.1, mem_univ _⟩)).mdifferentiableAt (by simp)
+    have h := (hGd.hasMFDerivAt.comp (s₀, t, θ)
+      (hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_right r (s₀, t, θ)))).mfderiv
+    exact congrArg (· (0, 0, 1)) h
+  dsimp only
+  rw [mpullback_apply, SmoothTwoForm.coe_interiorₗ, RoughForm.interior_apply, hW, hW,
+    key _ _ hproj, hmf, ContMDiffSection.coeFn_mk]
+  -- The two lists of vectors agree entry by entry.
+  congr 1
+  ext i
+  fin_cases i <;> rfl
+
+end ChartDiscContinuity
 
 end IsEhresmannConnection
 
