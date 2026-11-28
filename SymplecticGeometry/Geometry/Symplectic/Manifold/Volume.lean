@@ -9,15 +9,23 @@ public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.Surface
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Positivity
+import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ZeroDim
 
 /-!
-# The symplectic orientation: negated forms, surfaces, and symplectomorphisms
+# The symplectic orientation and volume: negated forms, surfaces, and symplectomorphisms
 
 Let `σ` be a fiberwise nondegenerate smooth two-form on a manifold modelled on a real vector space
-of dimension `2 * n`. Then `-σ` is nondegenerate too, and its volume form `(-σ)ⁿ / n!` is
+of dimension `2 * n`. The volume form `σⁿ / n!` is positive for the symplectic orientation, so on
+a nonempty compact manifold its integral, the symplectic volume, is positive: by Tau Ceti's
+`TauCeti.integralTopForm_pos` when `n > 0`, and by summing over the finitely many points
+(`TauCeti.integralTopForm_finite_zeroDim`) when `n = 0`.
+
+The form `-σ` is nondegenerate too, and its volume form `(-σ)ⁿ / n!` is
 `(-1)ⁿ` times the volume form `σⁿ / n!` of `σ`. So when `n` is odd, the symplectic orientation of
 `-σ` is the opposite of that of `σ`. (When `n` is even the two orientations agree.)
 
@@ -34,6 +42,8 @@ fibre bundle atlas whose coordinate changes are symplectic is oriented for it.
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isPositive_volumeForm`: the volume form `σⁿ / n!` is
   positive for the symplectic orientation of `σ`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`: on a nonempty compact
+  manifold, the integral of `σⁿ / n!` against the symplectic orientation is positive.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg`: for odd `n`, the symplectic
   orientation of `-σ` is the negative of that of `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_orientation`: in every dimension,
@@ -83,6 +93,39 @@ theorem IsNondegenerate.isPositive_volumeForm [NeZero (2 * n)] (h : σ.IsNondege
     (h.volumeOrientation hn).IsPositive (σ.volumeForm n).val :=
   Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun _ c hc ↦
     (h.orientation_eq_orientationAt_volumeOrientation_iff hn c).1 hc
+
+/-- **The symplectic volume is positive.** On a nonempty compact manifold modelled on a space of
+dimension `2 * n`, the integral of the volume form `σⁿ / n!` of a fiberwise nondegenerate
+two-form `σ` against its symplectic orientation is positive. This includes `n = 0`, where the
+manifold is a nonempty finite set of points. -/
+theorem IsNondegenerate.integralTopForm_volumeForm_pos [CompactSpace M] [Nonempty M]
+    (h : σ.IsNondegenerate) (hn : finrank ℝ E = 2 * n) :
+    0 < integralTopForm (h.volumeOrientation hn) (σ.volumeForm n).val := by
+  rcases n with - | n
+  · have hcard : finrank ℝ E = 0 := hn
+    have : Subsingleton E := finrank_zero_iff.mp hcard
+    have : DiscreteTopology M := I.discreteTopology M
+    have : Finite M := finite_of_compact_of_discrete
+    let : Fintype M := Fintype.ofFinite M
+    let b := finBasisOfFinrankEq ℝ E hcard
+    rw [integralTopForm_finite_zeroDim _ b]
+    refine Finset.sum_pos (fun x _ ↦ ?_) Finset.univ_nonempty
+    have hv (v) : (σ.volumeForm 0).val x v = 1 := by
+      simp [volumeForm_apply, ContinuousAlternatingMap.wedgePow_zero_apply]
+    have hb : b.orientation = (h.volumeOrientation hn).orientationAt x := by
+      refine (h.orientation_eq_orientationAt_volumeOrientation_iff hn b).2 ?_
+      rw [hv]
+      exact one_pos
+    rw [← hb, hv, mul_one]
+    have hs : ((b.orientation.signBasis b : ℤ) : ℝ) = 1 := by
+      rw [Orientation.signBasis_orientation, Units.val_one, Int.cast_one]
+    convert zero_lt_one (α := ℝ)
+    -- The goal and `hs` agree up to unfolding `Fin (2 * 0)` to `Fin 0` and `TangentSpace I x`
+    -- to `E`.
+    exact hs
+  · have : NeZero (2 * (n + 1)) := ⟨by omega⟩
+    exact (h.isPositive_volumeForm hn).integralTopForm_pos
+      ((σ.volumeForm _).isSmoothForm.of_le bot_le) (isClosed_tsupport _).isCompact
 
 /-- **The symplectic orientation of a negated two-form.** On a manifold modelled on a space of
 dimension `2 * n` with `n` odd, the symplectic orientation of `-σ` is the opposite of the

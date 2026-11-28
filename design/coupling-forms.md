@@ -310,7 +310,8 @@ turn.
   `Fin.append u w` (cast along `2 * (k + 1) = 2 + 2 * k`) is
   `(k + 1) * φ u * φ.wedgePow k w`. Only the shuffles that give both `u i`
   to one factor survive.
-- `TauCeti.IsEhresmannConnection.fiberMean hD A σ τ b w₁ w₂`, for
+- `TauCeti.IsEhresmannConnection.fiberMean hD A hσ hk τ b w₁ w₂`, for
+  `hσ : σ.IsNondegenerate`, `hk : finrank ℝ EF = 2 * k` and
   `w₁ w₂ : TangentSpace IB b`: the integral over `F` of
   $\tau(w_1^\sharp,w_2^\sharp)$ read through the chart `A.trivAt b`,
   against `σ.volumeForm k` and the orientation `o`; with `fiberMean_def`,
