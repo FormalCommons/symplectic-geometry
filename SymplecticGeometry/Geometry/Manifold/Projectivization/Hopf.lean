@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Split
 public import TauCeti.Geometry.Sphere.LinearIsometry
 public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 public import SymplecticGeometry.Geometry.Manifold.Instances.ComplexProjectiveSpace.Projectivization
+public import SymplecticGeometry.Geometry.Manifold.Instances.PuncturedSpace
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Topology.Algebra.GroupAction.InvariantCore
 import Mathlib.Analysis.Calculus.Deriv.Inv
@@ -47,7 +48,10 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   `TauCeti.puncturedSpace V` by restriction, through
   `TopologicalSpace.Opens.mulActionOfForallSMulMem` (`TauCeti.puncturedSpace.instMulAction`,
   `coe_smul`); when it acts
-  `𝕜`-linearly on `𝕜ⁿ⁺¹`, `mkNonzero` is equivariant (`mkNonzero_smul`).
+  `𝕜`-linearly on `𝕜ⁿ⁺¹`, `mkNonzero` is equivariant (`mkNonzero_smul`). It carries the map
+  `TauCeti.puncturedSpace.map g` of an injective continuous linear map `g` to the map
+  `Projectivization.map f` of an injective semilinear map `f` with the same underlying function
+  (`mkNonzero_puncturedSpace_map`, `mkNonzero_comp_puncturedSpace_map`).
 * `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
   the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
   (`mkNonzero_comp_affineLift`). It is holomorphic over `𝕜` (`contMDiff_affineLift_self`), smooth
@@ -63,7 +67,8 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   `sphereToPuncturedSpace n` of the sphere into `ℂⁿ⁺¹ ∖ 0`.
 * `SymplecticGeometry.radialProjection n` is the projection `z ↦ ẑ / ‖ẑ‖` of `ℂⁿ⁺¹ ∖ 0` onto
   the sphere, the sphere component of Tau Ceti's polar coordinates
-  `TauCeti.sphereProdRealDiffeomorph`. Since `sphereHopf n ∘ radialProjection n = mkNonzero ℂ n`
+  `TauCeti.sphereProdRealDiffeomorph` after the map `TauCeti.puncturedSpace.map` of
+  `complexToRealEuclidean`. Since `sphereHopf n ∘ radialProjection n = mkNonzero ℂ n`
   (`sphereHopf_comp_radialProjection`), the Hopf map is surjective (`surjective_sphereHopf`) and
   a submersion (`isSubmersion_sphereHopf`, by Tau Ceti's `Manifold.IsSubmersion.of_comp`). Read
   in `StdSpace (Fin (n + 1))`, the derivative of
@@ -160,6 +165,29 @@ variable (𝕜 n) in
 /-- Every point of projective space is the line through a nonzero vector. -/
 theorem surjective_mkNonzero : Surjective (mkNonzero 𝕜 n) := fun x ↦
   ⟨⟨x.rep, TauCeti.mem_puncturedSpace.2 x.rep_ne_zero⟩, mk_rep x⟩
+
+/-- `mkNonzero` intertwines the map of punctured spaces induced by an injective continuous linear
+map `g` with the map of projective spaces induced by a semilinear map `f` with the same
+underlying function, which is then injective too: `[g v] = f [v]`. The scalars `R` of `g` may
+differ from those of `f`. -/
+theorem mkNonzero_puncturedSpace_map {𝕜' R : Type*} [NontriviallyNormedField 𝕜'] [Semiring R]
+    {m : ℕ} [Module R (Fin (m + 1) → 𝕜)] [Module R (Fin (n + 1) → 𝕜')] {σ : 𝕜 →+* 𝕜'}
+    (f : (Fin (m + 1) → 𝕜) →ₛₗ[σ] (Fin (n + 1) → 𝕜'))
+    (g : (Fin (m + 1) → 𝕜) →L[R] (Fin (n + 1) → 𝕜')) (hg : Injective g) (hgf : ⇑g = ⇑f)
+    (v : TauCeti.puncturedSpace (Fin (m + 1) → 𝕜)) :
+    mkNonzero 𝕜' n (TauCeti.puncturedSpace.map g hg v) =
+      map f (hgf ▸ hg) (mkNonzero 𝕜 m v) := by
+  simp only [mkNonzero_apply, map_mk, TauCeti.puncturedSpace.coe_map, hgf]
+
+/-- `mkNonzero` intertwines the map of punctured spaces induced by an injective continuous linear
+map `g` with the map of projective spaces induced by a semilinear map `f` with the same
+underlying function, which is then injective too. -/
+theorem mkNonzero_comp_puncturedSpace_map {𝕜' R : Type*} [NontriviallyNormedField 𝕜']
+    [Semiring R] {m : ℕ} [Module R (Fin (m + 1) → 𝕜)] [Module R (Fin (n + 1) → 𝕜')]
+    {σ : 𝕜 →+* 𝕜'} (f : (Fin (m + 1) → 𝕜) →ₛₗ[σ] (Fin (n + 1) → 𝕜'))
+    (g : (Fin (m + 1) → 𝕜) →L[R] (Fin (n + 1) → 𝕜')) (hg : Injective g) (hgf : ⇑g = ⇑f) :
+    mkNonzero 𝕜' n ∘ TauCeti.puncturedSpace.map g hg = map f (hgf ▸ hg) ∘ mkNonzero 𝕜 m :=
+  funext (mkNonzero_puncturedSpace_map f g hg hgf)
 
 /-- Over `𝕜` itself, `mkNonzero` is `C^r` for every `r`; over `ℂ` it is holomorphic. -/
 theorem contMDiff_mkNonzero_self (r : ℕ∞ω) :
@@ -428,34 +456,39 @@ polar coordinates `TauCeti.sphereProdRealDiffeomorph`. -/
 noncomputable def radialProjection (z : puncturedSpace (Fin (n + 1) → ℂ)) :
     sphere (0 : StdSpace (Fin (n + 1))) 1 :=
   ((sphereProdRealDiffeomorph (V := StdSpace (Fin (n + 1))) (n := 2 * n + 1)).symm
-    ⟨complexToRealEuclidean (Fin (n + 1)) z, mem_puncturedSpace.2 <| by
-      simpa using mem_puncturedSpace.1 z.property⟩).1
+    (puncturedSpace.map (complexToRealEuclidean (Fin (n + 1)) :
+      (Fin (n + 1) → ℂ) →L[ℝ] StdSpace (Fin (n + 1)))
+      (by rw [ContinuousLinearEquiv.coe_coe]; exact (complexToRealEuclidean _).injective) z)).1
 
 variable {n} in
 /-- The radial projection of `z` is `ẑ / ‖ẑ‖`, with `ẑ = complexToRealEuclidean _ z`. -/
 @[simp]
 theorem radialProjection_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
     (radialProjection n z : StdSpace (Fin (n + 1))) =
-      ‖complexToRealEuclidean (Fin (n + 1)) z‖⁻¹ • complexToRealEuclidean (Fin (n + 1)) z :=
-  coe_sphereProdRealDiffeomorph_symm_apply_fst _
+      ‖complexToRealEuclidean (Fin (n + 1)) z‖⁻¹ • complexToRealEuclidean (Fin (n + 1)) z := by
+  rw [radialProjection, coe_sphereProdRealDiffeomorph_symm_apply_fst, puncturedSpace.coe_map,
+    ContinuousLinearEquiv.coe_coe]
 
 /-- The radial projection onto the unit sphere is `C^r` for every `r`. -/
 theorem contMDiff_radialProjection (r : ℕ∞ω) :
     ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓡 (2 * n + 1)) r (radialProjection n) := by
   -- `contMDiff_normalize_sphere` is stated on the open set `{0}ᶜ` itself rather than on
   -- `puncturedSpace`; matching the two by unification times out, so `g` lands in `{0}ᶜ`.
+  let e : (Fin (n + 1) → ℂ) →L[ℝ] StdSpace (Fin (n + 1)) := complexToRealEuclidean (Fin (n + 1))
+  have he : Injective e := by
+    rw [ContinuousLinearEquiv.coe_coe]; exact (complexToRealEuclidean _).injective
   let g : puncturedSpace (Fin (n + 1) → ℂ) →
       (⟨{0}ᶜ, isOpen_compl_singleton⟩ : Opens (StdSpace (Fin (n + 1)))) := fun z ↦
-    ⟨complexToRealEuclidean (Fin (n + 1)) z, by simpa using mem_puncturedSpace.1 z.property⟩
+    ⟨puncturedSpace.map e he z, mem_puncturedSpace.1 (puncturedSpace.map e he z).property⟩
   have hg : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, StdSpace (Fin (n + 1))) r g :=
     (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
-      (((complexToRealEuclidean (Fin (n + 1))) :
-        (Fin (n + 1) → ℂ) →L[ℝ] StdSpace (Fin (n + 1))).contMDiff.comp contMDiff_subtypeVal)
+      (contMDiff_subtypeVal.comp (puncturedSpace.contMDiff_map e he r) :
+        ContMDiff _ _ r (Subtype.val ∘ puncturedSpace.map e he))
   have hr : radialProjection n = (fun x : (⟨{0}ᶜ, isOpen_compl_singleton⟩ :
       Opens (StdSpace (Fin (n + 1)))) ↦ (⟨NormedSpace.normalize (x : StdSpace (Fin (n + 1))),
         mem_sphere_zero_iff_norm.2 (NormedSpace.norm_normalize_eq_one_iff.2 x.property)⟩ :
           sphere (0 : StdSpace (Fin (n + 1))) 1)) ∘ g :=
-    funext fun z ↦ Subtype.ext (by simp [g, NormedSpace.normalize])
+    funext fun z ↦ Subtype.ext (by simp [g, e, NormedSpace.normalize])
   rw [hr]
   exact contMDiff_normalize_sphere.comp hg
 

@@ -36,16 +36,17 @@ an `i`-convex shape at `r` for `0 ≤ b ≤ 8`, `0 ≤ c ≤ 128`, `|p| ≤ 1 / 
 `|r q| ≤ 1 / 1024`: then `6 r ≤ S ≤ 9 r`, `|c p| ≤ 1 / 8` and `|b p| ≤ 1 / 128`, so the slope is at
 least `7` and the second derivative at least `-(20 + 1 / 128) / r`, against `343 / r` and
 `1 / χ ≤ 1 / (6 r)`. Also the slope is at most `11`
-(`SymplecticGeometry.deriv_le_of_cutoff_bounds`). The bounds on `p` and `q` hold once `L` is
-large compared with bounds on `smoothTransition'`, `smoothTransition''` and
-`x smoothTransition'' x` (`Real.smoothTransition.abs_deriv_sub_div_le`). The first two
-derivatives of the leaf `cutoffLeaf L 1 b c` are `SymplecticGeometry.deriv_cutoffLeaf_one` and
-`SymplecticGeometry.iteratedDeriv_two_cutoffLeaf_one`; with the bounds on `p` and `q` they give the
-case `r ≥ 2` of `SymplecticGeometry.isConvexShapeAt_cutoffLeaf` and
-`SymplecticGeometry.deriv_cutoffLeaf_le` below, for `δ = 1`.
-`SymplecticGeometry.exists_smoothTransition_bounds` chooses the three bounds together with a
-cutoff parameter `L` for which these estimates hold; the proofs here and in
-`Surround/ShapeFamily.lean` that need such an `L` take it from there.
+(`SymplecticGeometry.deriv_le_of_cutoff_bounds`). The predicate
+`SymplecticGeometry.IsCutoffScale L` says that `L ≥ 1` and that the bounds on `p` and `q` hold
+at every point; every large enough `L` is such a cutoff scale
+(`SymplecticGeometry.eventually_isCutoffScale`), by bounds on `smoothTransition'`,
+`smoothTransition''` and `x smoothTransition'' x` (`Real.smoothTransition.abs_deriv_sub_div_le`).
+The first two derivatives of the leaf `cutoffLeaf L 1 b c` are
+`SymplecticGeometry.deriv_cutoffLeaf_one` and `SymplecticGeometry.iteratedDeriv_two_cutoffLeaf_one`;
+with the bounds on `p` and `q` they give the case `r ≥ 2` of
+`SymplecticGeometry.isConvexShapeAt_cutoffLeaf` and `SymplecticGeometry.deriv_cutoffLeaf_le`
+below, for `δ = 1`. These estimates, and those of `Surround/BridgeLeaf.lean` and
+`Surround/ShapeFamily.lean` built on them, take the one hypothesis `IsCutoffScale L`.
 
 ## The cutoff leaf
 
@@ -428,29 +429,34 @@ theorem cutoffLeaf_lt_cutoffLeaf {L b₁ b₂ c₁ c₂ r : ℝ} (hb : b₁ < b�
   · simp only [hH, sub_self, mul_zero, zero_add, mul_one]
     exact sqrt_lt_sqrt (by nlinarith) (by linarith)
 
-/-- There are bounds `A` of `|smoothTransition'|`, `B` of `|smoothTransition''|` and `M` of
-`|x smoothTransition'' x|`, and a cutoff parameter `L ≥ 1` with `1024 (A + 2 B + M) ≤ L`: the
-hypotheses on `L` of the estimates on cutoff leaves below. -/
-theorem exists_smoothTransition_bounds :
-    ∃ A B M L : ℝ, (∀ x, |deriv smoothTransition x| ≤ A) ∧
-      (∀ x, |deriv (deriv smoothTransition) x| ≤ B) ∧
-      (∀ x, |x * deriv (deriv smoothTransition) x| ≤ M) ∧
-      1 ≤ L ∧ 1024 * (A + 2 * B + M) ≤ L := by
+/-- `L` is a cutoff scale for the estimates on cutoff leaves: `L ≥ 1`, and the first derivative
+`p x = smoothTransition' ((x - 2) / L) / L` of the cutoff `x ↦ smoothTransition ((x - 2) / L)`
+and its second derivative `q x = smoothTransition'' ((x - 2) / L) / L²` satisfy `|p x| ≤ 1 / 1024`
+and `|x q x| ≤ 1 / 1024` for every `x`. These are the bounds that
+`SymplecticGeometry.isConvexShapeAt_of_cutoff_bounds` and
+`SymplecticGeometry.deriv_le_of_cutoff_bounds` need. -/
+structure IsCutoffScale (L : ℝ) : Prop where
+  one_le : 1 ≤ L
+  abs_deriv_le (x : ℝ) : |deriv smoothTransition ((x - 2) / L) / L| ≤ 1 / 1024
+  abs_mul_deriv_deriv_le (x : ℝ) :
+    |x * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2)| ≤ 1 / 1024
+
+/-- Every large enough `L` is a cutoff scale. -/
+theorem eventually_isCutoffScale : ∀ᶠ L in atTop, IsCutoffScale L := by
   obtain ⟨A, hA⟩ := smoothTransition.exists_forall_norm_deriv_le
   obtain ⟨B, hB⟩ := smoothTransition.exists_forall_norm_deriv_deriv_le
   obtain ⟨M, hM⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
   simp only [Real.norm_eq_abs] at hA hB hM
-  exact ⟨A, B, M, max 1 (1024 * (A + 2 * B + M)), hA, hB, hM, le_max_left _ _,
-    le_max_right _ _⟩
+  filter_upwards [eventually_ge_atTop 1, eventually_ge_atTop (1024 * (A + 2 * B + M))]
+    with L hL₁ hL
+  have h := smoothTransition.abs_deriv_sub_div_le hA hB hM zero_le_two hL₁ (ε := 1 / 1024)
+    (by linarith)
+  exact ⟨hL₁, fun x ↦ (h x).1, fun x ↦ (h x).2⟩
 
 /-- The cutoff leaf with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²`, for `δ > 0`, is an `i`-convex shape
-at every `r > δ`, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`, `B` of
-`smoothTransition''` and `M` of `x smoothTransition'' x`. -/
-theorem isConvexShapeAt_cutoffLeaf {A B M L b c r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
+at every `r > δ` when `L` is a cutoff scale. -/
+theorem isConvexShapeAt_cutoffLeaf {L b c r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
     (hb : b ≤ 8 * δ) (hc₀ : 0 ≤ c) (hc : c ≤ 128 * δ ^ 2) (hr : δ < r) :
     IsConvexShapeAt (cutoffLeaf L δ b c) r := by
   have hb₀' : 0 ≤ b / δ := div_nonneg hb₀ hδ.le
@@ -464,12 +470,11 @@ theorem isConvexShapeAt_cutoffLeaf {A B M L b c r : ℝ}
     · refine ((isConvexShapeAt_sqrt_sub (a := 64) (c := 64 * 1 ^ 2) (by norm_num)
         (by linarith) (by nlinarith)).add_const hb₀').congr_of_eventuallyEq ?_
       filter_upwards [gt_mem_nhds h] with x hx
-      exact cutoffLeaf_of_le (by linarith) zero_le_one (by linarith)
+      exact cutoffLeaf_of_le (by linarith [hL.one_le]) zero_le_one (by linarith)
     · -- From `2` on, the shared estimate.
-      obtain ⟨hp, hq⟩ := smoothTransition.abs_deriv_sub_div_le hA hB hM zero_le_two hL₁
-        (ε := 1 / 1024) (by linarith) (r / δ)
       exact isConvexShapeAt_of_cutoff_bounds hb₀' hb' hc₀' hc' (smoothTransition.nonneg _)
-        (smoothTransition.le_one _) hp hq h (sqrt_nonneg _)
+        (smoothTransition.le_one _) (hL.abs_deriv_le _) (hL.abs_mul_deriv_deriv_le _) h
+        (sqrt_nonneg _)
         (sq_sqrt (by nlinarith [mul_nonneg hc₀' (smoothTransition.nonneg ((r / δ - 2) / L))]))
         (by rw [cutoffLeaf_one]) (deriv_cutoffLeaf_one hc₀' hr')
         (iteratedDeriv_two_cutoffLeaf_one hc₀' hr')
@@ -482,27 +487,22 @@ theorem isConvexShapeAt_cutoffLeaf {A B M L b c r : ℝ}
 theorem exists_isConvexShapeAt_cutoffLeaf :
     ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ b ∈ Icc 0 (8 * δ), ∀ c ∈ Icc 0 (128 * δ ^ 2),
       ∀ r, δ < r → IsConvexShapeAt (cutoffLeaf L δ b c) r := by
-  obtain ⟨A, B, M, L₀, hA, hB, hM, hL₁, hL⟩ := exists_smoothTransition_bounds
-  exact ⟨L₀, hL₁, fun L hL' δ hδ b hb c hc r hr ↦ isConvexShapeAt_cutoffLeaf hA hB hM
-    (hL₁.trans hL') (hL.trans hL') hδ hb.1 hb.2 hc.1 hc.2 hr⟩
+  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
+  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ b hb c hc r hr ↦
+    isConvexShapeAt_cutoffLeaf (h L (le_of_max_le_right hL)) hδ hb.1 hb.2 hc.1 hc.2 hr⟩
 
 /-- The slope of the cutoff leaf with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²`, for `δ > 0`, is at
-most `11` from `2 δ` on, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`,
-`B` of `smoothTransition''` and `M` of `x smoothTransition'' x`. -/
-theorem deriv_cutoffLeaf_le {A B M L b c r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
+most `11` from `2 δ` on when `L` is a cutoff scale. -/
+theorem deriv_cutoffLeaf_le {L b c r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
     (hb : b ≤ 8 * δ) (hc₀ : 0 ≤ c) (hc : c ≤ 128 * δ ^ 2) (hr : 2 * δ ≤ r) :
     deriv (cutoffLeaf L δ b c) r ≤ 11 := by
   have hc₀' : 0 ≤ c / δ ^ 2 := div_nonneg hc₀ (sq_nonneg δ)
   have hr' : 2 ≤ r / δ := (le_div_iff₀ hδ).2 (by linarith)
   rw [cutoffLeaf_eq_mul_cutoffLeaf_one hδ, deriv_const_mul_comp_div_const hδ.ne']
-  obtain ⟨hp, -⟩ := smoothTransition.abs_deriv_sub_div_le hA hB hM zero_le_two hL₁
-    (ε := 1 / 1024) (by linarith) (r / δ)
   exact deriv_le_of_cutoff_bounds (div_nonneg hb₀ hδ.le) ((div_le_iff₀ hδ).2 hb) hc₀'
-    ((div_le_iff₀ (by positivity)).2 hc) (smoothTransition.nonneg _) hp hr' (sqrt_nonneg _)
+    ((div_le_iff₀ (by positivity)).2 hc) (smoothTransition.nonneg _) (hL.abs_deriv_le _) hr'
+    (sqrt_nonneg _)
     (sq_sqrt (by nlinarith [mul_nonneg hc₀' (smoothTransition.nonneg ((r / δ - 2) / L))]))
     (deriv_cutoffLeaf_one hc₀' (by linarith))
 
@@ -558,16 +558,12 @@ theorem sqrtAddLeaf_of_ge {L ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 +
   ring_nf
 
 /-- The leaves `sqrtAddLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, are `i`-convex shapes at
-every `r > δ`, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`, `B` of
-`smoothTransition''` and `M` of `x smoothTransition'' x`. -/
-theorem isConvexShapeAt_sqrtAddLeaf {A B M L ℓ r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (15 * δ / 2))
+every `r > δ` when `L` is a cutoff scale. -/
+theorem isConvexShapeAt_sqrtAddLeaf {L ℓ r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (15 * δ / 2))
     (hr : δ < r) : IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r := by
   obtain ⟨hℓ₀, hℓ₁⟩ := hℓ
-  exact isConvexShapeAt_cutoffLeaf hA hB hM hL₁ hL hδ (by positivity) (by linarith)
+  exact isConvexShapeAt_cutoffLeaf hL hδ (by positivity) (by linarith)
     (by positivity) (by nlinarith) hr
 
 /-- **The leaves `sqrtAddLeaf` are `i`-convex shapes.** There is `L₀ ≥ 1` such that for every
@@ -582,16 +578,12 @@ theorem exists_isConvexShapeAt_sqrtAddLeaf :
   exact h L hL δ hδ _ ⟨by positivity, by linarith⟩ _ ⟨by positivity, by nlinarith⟩ r hr
 
 /-- The slope of the leaf `sqrtAddLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, is at most
-`11` from `2 δ` on, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`, `B`
-of `smoothTransition''` and `M` of `x smoothTransition'' x`. -/
-theorem deriv_sqrtAddLeaf_le {A B M L ℓ r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (15 * δ / 2))
+`11` from `2 δ` on when `L` is a cutoff scale. -/
+theorem deriv_sqrtAddLeaf_le {L ℓ r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (15 * δ / 2))
     (hr : 2 * δ ≤ r) : deriv (sqrtAddLeaf L δ ℓ) r ≤ 11 := by
   obtain ⟨hℓ₀, hℓ₁⟩ := hℓ
-  exact deriv_cutoffLeaf_le hA hB hM hL₁ hL hδ (by positivity) (by linarith) (by positivity)
+  exact deriv_cutoffLeaf_le hL hδ (by positivity) (by linarith) (by positivity)
     (by nlinarith) hr
 
 /-- The leaf `ℓ ≥ 0` is at least `8 √(r² - δ²)`, for `0 ≤ δ`. -/
@@ -946,25 +938,21 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
     _ ≤ 2 * r := by rw [div_le_iff₀ hw₀]; exact key
 
 /-- **The leaves `struweSwitchLeaf` are `i`-convex shapes.** For `δ > 0` and `ℓ ∈ [0, 7 δ]`, the
-leaf `struweSwitchLeaf L δ ℓ` is an `i`-convex shape at every `r > δ`, once `L ≥ 1` is large
-compared with bounds `A` of `smoothTransition'`, `B` of `smoothTransition''` and `M` of
-`x smoothTransition'' x`. -/
-theorem isConvexShapeAt_struweSwitchLeaf {A B M L ℓ r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (7 * δ))
+leaf `struweSwitchLeaf L δ ℓ` is an `i`-convex shape at every `r > δ` when `L` is a cutoff
+scale. -/
+theorem isConvexShapeAt_struweSwitchLeaf {L ℓ r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (7 * δ))
     (hr : δ < r) : IsConvexShapeAt (struweSwitchLeaf L δ ℓ) r := by
   obtain ⟨hℓ₀, hℓ₇⟩ := hℓ
   rcases le_or_gt ℓ (6 * δ) with hℓ | hℓ
   · rw [struweSwitchLeaf_of_le hℓ]
-    exact isConvexShapeAt_sqrtAddLeaf hA hB hM hL₁ hL hδ ⟨hℓ₀, by linarith⟩ hr
+    exact isConvexShapeAt_sqrtAddLeaf hL hδ ⟨hℓ₀, by linarith⟩ hr
   -- For `ℓ > 6 δ`, rescale the leaf `ℓ / δ` for the radius `1`.
   have hℓ' : ℓ / δ ∈ Ioc 6 7 :=
     ⟨by rw [lt_div_iff₀ hδ]; exact hℓ, by rw [div_le_iff₀ hδ]; exact hℓ₇⟩
   have hr' : 1 < r / δ := (one_lt_div hδ).2 hr
-  have hc := (isConvexShapeAt_struweSwitchLeaf_one (by linarith) hℓ' hr'
-    (isConvexShapeAt_sqrtAddLeaf hA hB hM hL₁ hL one_pos
+  have hc := (isConvexShapeAt_struweSwitchLeaf_one (by linarith [hL.one_le]) hℓ' hr'
+    (isConvexShapeAt_sqrtAddLeaf hL one_pos
       ⟨by linarith [hℓ'.1], by linarith [hℓ'.2]⟩ hr')).rescale hδ
   rwa [mul_div_cancel₀ r hδ.ne', ← struweSwitchLeaf_eq_mul_struweSwitchLeaf_one hδ] at hc
 
@@ -974,9 +962,9 @@ every `r > δ`. -/
 theorem exists_forall_isConvexShapeAt_struweSwitchLeaf :
     ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (7 * δ), ∀ r, δ < r →
       IsConvexShapeAt (struweSwitchLeaf L δ ℓ) r := by
-  obtain ⟨A, B, M, L₀, hA, hB, hM, hL₁, hL⟩ := exists_smoothTransition_bounds
-  exact ⟨L₀, hL₁, fun L hL' δ hδ ℓ hℓ r hr ↦ isConvexShapeAt_struweSwitchLeaf hA hB hM
-    (hL₁.trans hL') (hL.trans hL') hδ hℓ hr⟩
+  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
+  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ ℓ hℓ r hr ↦
+    isConvexShapeAt_struweSwitchLeaf (h L (le_of_max_le_right hL)) hδ hℓ hr⟩
 
 /-- At `ℓ = 6 δ`, Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ` lies strictly below
 `sqrtAddLeaf L δ ℓ` at every `r > δ`, for `0 ≤ L` and `0 < δ`. -/
