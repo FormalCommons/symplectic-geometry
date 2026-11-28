@@ -620,14 +620,9 @@ theorem mfderiv_transportedCylinder_apply_mem (hn : 1 ≤ n) (hf : ContMDiff IM 
     mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 1, 0) ∈
       D (hD.transportedCylinder e Δ c p) := by
   obtain ⟨s, t, θ⟩ := p
-  refine IsHorizontalMap.mfderiv_apply_mem_of_line (w := ((0 : ℝ), (1 : ℝ), (0 : ℝ))) ?_
-  have h : (fun r : ℝ ↦ hD.transportedCylinder e Δ c ((s, t, θ) + r • ((0 : ℝ), (1 : ℝ), (0 : ℝ))))
-      = fun r ↦ hD.transportedCylinder e Δ c (s, r + t, θ) := by
-    funext r
-    congr 1
-    ext <;> simp [add_comm]
-  rw [h]
-  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).comp_add_right t
+  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).mfderiv_apply_mem_of_hasDerivAt
+    (g := fun r : ℝ ↦ (s, r, θ))
+    ((hasDerivAt_const t s).prodMk ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ)))
 
 /-- **The derivative of the transported cylinder in `θ` is vertical.** For a `C^n` connection,
 `1 ≤ n`, on a proper `C^(n+1)` map and a `C^(n+1)` family `Δ`, the derivative of the transported
@@ -681,16 +676,9 @@ theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
   obtain ⟨t, θ⟩ := q
   refine SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (IB := IB)
     (proj := proj) ?_ ?_
-  · refine IsHorizontalMap.mfderiv_apply_mem_of_line
-      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (z := (t, θ))
-      (w := ((1 : ℝ), (0 : ℝ))) ?_
-    have h : (fun r : ℝ ↦ hD.transportedCylinder e Δ c (s, (t, θ) + r • ((1 : ℝ), (0 : ℝ))))
-        = fun r ↦ hD.transportedCylinder e Δ c (s, r + t, θ) := by
-      funext r
-      congr 2
-      ext <;> simp [add_comm]
-    rw [h]
-    exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).comp_add_right t
+  · exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_apply_mem_of_hasDerivAt
+      (f := fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (g := fun r : ℝ ↦ (r, θ))
+      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ))
   · -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
     -- constant.
     refine mfderiv_apply_mem_ker_of_const_line
