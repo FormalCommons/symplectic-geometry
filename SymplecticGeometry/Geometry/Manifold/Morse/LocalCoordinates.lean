@@ -29,6 +29,8 @@ in a Morse or a birth–death chart, use the gradient-like condition.
 ## Main results
 
 * `TauCeti.IsGradientLikeAt.exists_mul_le_fderiv_comp_symm`: the inequality in a chart.
+* `TauCeti.IsGradientLikeAt.exists_pos_eventually_mul_le`: on a normed space, the case of the
+  identity chart, with the norm of the space near the point.
 
 ## Implementation notes
 
@@ -207,5 +209,24 @@ theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
   rw [← g.norm_sq, ← inner_mgradient] at hH
   exact mul_le_apply_of_forall_mul_norm_sq_le (T := T.toContinuousLinearMap) ha (le_max_right C 0)
     hc hAB hBA hL hK' hlow' hup' (fun u ↦ (hD u).trans (inner_mgradient _).symm) hH
+
+/-- **The gradient-like inequality on a normed space.** If `X` is gradient-like for `f` near `x`
+on a finite-dimensional real normed space `E`, then `c * (‖X y‖ ^ 2 + ‖df_y‖ ^ 2) ≤ df_y (X y)`
+for some `c > 0` and every `y` near `x`, for the norm of `E` and the operator norm. The converse
+is `TauCeti.isGradientLikeAt_of_eventually_mul_le`. -/
+theorem IsGradientLikeAt.exists_pos_eventually_mul_le {f : E → ℝ} {X : E → E} {x : E}
+    (hX : IsGradientLikeAt f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) x) :
+    ∃ c > 0, ∀ᶠ y in 𝓝 x, c * (‖X y‖ ^ 2 + ‖fderiv ℝ f y‖ ^ 2) ≤ fderiv ℝ f y (X y) := by
+  obtain ⟨r₀, hr₀, c, hc, -, h⟩ := hX.exists_mul_le_fderiv_comp_symm
+    (IsManifold.chart_mem_maximalAtlas (I := 𝓘(ℝ, E)) x) (mem_chart_source E x)
+  refine ⟨c, hc, Filter.mem_of_superset (Metric.ball_mem_nhds _ hr₀) fun y hy ↦ ?_⟩
+  have hA (z v : E) : mvfderiv 𝓘(ℝ, E) (chartAt E x) z v = v := by
+    refine (mvfderiv_eq_fderiv_apply (𝕜 := ℝ) _ z v).trans ?_
+    rw [chartAt_self_eq, OpenPartialHomeomorph.refl_apply, fderiv_id,
+      ContinuousLinearMap.id_apply]
+  have h := h y hy
+  rw [hA] at h
+  simpa only [chartAt_self_eq, OpenPartialHomeomorph.refl_symm, OpenPartialHomeomorph.refl_apply,
+    Function.comp_id, id_eq, Set.mem_ofPred_eq] using h
 
 end TauCeti

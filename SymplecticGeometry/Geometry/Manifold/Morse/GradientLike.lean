@@ -87,7 +87,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   `toEuclidean`.
 * `TauCeti.IsGradientLikeAt f X x`: `X` is gradient-like for `f` near `x`, that is, the inequality
   holds on a neighbourhood of `x` for some metric and some constant `c > 0`; with
-  `TauCeti.isGradientLikeAt_def`.
+  `TauCeti.isGradientLikeAt_def`. These points form an open set
+  (`TauCeti.isOpen_setOf_isGradientLikeAt`). On a normed space, a constant `c > 0` with
+  `c (‖X‖² + ‖df‖²) ≤ df(X)` near `x` suffices (`TauCeti.isGradientLikeAt_of_eventually_mul_le`).
 * `TauCeti.isGradientLike_of_forall_isGradientLikeAt` and
   `TauCeti.IsGradientLike.isGradientLikeAt`: on a σ-compact Hausdorff manifold the condition is
   local, `TauCeti.isGradientLike_iff_forall_isGradientLikeAt`.
@@ -407,12 +409,15 @@ theorem isGradientLike_mgradient
   rw [← g.norm_sq, mvfderiv_apply_mgradient, real_inner_self_eq_norm_sq]
   exact le_of_eq (by ring)
 
-/-- **A global criterion on a normed space.** On a finite-dimensional real normed space `E`, a
-field `X` is gradient-like for `f` if `c * (‖X x‖ ^ 2 + ‖df_x‖ ^ 2) ≤ df_x (X x)` for a constant
-`c > 0` and every `x`, the norms being those of `E` and the operator norm. -/
-theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0 < c)
-    (h : ∀ x, c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) ≤ fderiv ℝ f x (X x)) :
-    IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
+/-- On a finite-dimensional real normed space `E`, there are a smooth Riemannian metric `g` and a
+constant `C > 0` with `g (v, v) + ‖grad f x‖ ^ 2 ≤ C * (‖v‖ ^ 2 + ‖df_x‖ ^ 2)` for every function
+`f`, point `x` and vector `v`, the gradient and its norm being those of `g`. -/
+theorem exists_contMDiffRiemannianMetric_inner_add_le_mul :
+    ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x),
+      ∃ C : ℝ, 0 < C ∧
+        letI : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+        ∀ (f : E → ℝ) (x v : E), g.inner x v v + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 ≤
+          C * (‖v‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) := by
   -- The metric is the Euclidean one carried over by `toEuclidean`.
   set e := toEuclidean (E := E)
   have he : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) (∞ + 1) e :=
@@ -431,8 +436,7 @@ theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0
     ⟨_, e.toContinuousLinearMap.le_opNorm⟩
   obtain ⟨K, hK0, hK⟩ : ∃ K, 0 ≤ K ∧ ∀ v, ‖v‖ ≤ K * ‖e v‖ :=
     ⟨_, norm_nonneg _, fun v ↦ by simpa using e.symm.toContinuousLinearMap.le_opNorm (e v)⟩
-  refine ⟨g, fun _ ↦ c / (L ^ 2 + K ^ 2 + 1), continuous_const, fun _ ↦ by positivity,
-    fun x ↦ ?_⟩
+  refine ⟨g, L ^ 2 + K ^ 2 + 1, by positivity, fun f x v ↦ ?_⟩
   let : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
   set G := mgradient 𝓘(ℝ, E) f x
   set D := fderiv ℝ f x
@@ -456,16 +460,25 @@ theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0
     have := norm_nonneg (e v)
     nlinarith
   have hG : ‖e G‖ ^ 2 ≤ K ^ 2 * ‖D‖ ^ 2 := hbound G (hGG.symm.trans hGD)
-  have hX : g.inner x (X x) (X x) ≤ L ^ 2 * ‖X x‖ ^ 2 := by
-    rw [hg x (X x) (X x), real_inner_self_eq_norm_sq, ← mul_pow]
+  have hX : g.inner x v v ≤ L ^ 2 * ‖v‖ ^ 2 := by
+    rw [hg x v v, real_inner_self_eq_norm_sq, ← mul_pow]
     exact pow_le_pow_left₀ (norm_nonneg _) (hL _) 2
-  rw [hGG, hD]
-  calc c / (L ^ 2 + K ^ 2 + 1) * (g.inner x (X x) (X x) + ‖e G‖ ^ 2)
-      ≤ c / (L ^ 2 + K ^ 2 + 1) * ((L ^ 2 + K ^ 2 + 1) * (‖X x‖ ^ 2 + ‖D‖ ^ 2)) := by
-        gcongr
-        nlinarith [sq_nonneg ‖X x‖, sq_nonneg ‖D‖, sq_nonneg L, sq_nonneg K]
-    _ = c * (‖X x‖ ^ 2 + ‖D‖ ^ 2) := by field_simp
-    _ ≤ D (X x) := h x
+  rw [hGG]
+  nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖D‖, sq_nonneg L, sq_nonneg K]
+
+/-- **A global criterion on a normed space.** On a finite-dimensional real normed space `E`, a
+field `X` is gradient-like for `f` if `c * (‖X x‖ ^ 2 + ‖df_x‖ ^ 2) ≤ df_x (X x)` for a constant
+`c > 0` and every `x`, the norms being those of `E` and the operator norm. -/
+theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0 < c)
+    (h : ∀ x, c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) ≤ fderiv ℝ f x (X x)) :
+    IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
+  obtain ⟨g, C, hC, hg⟩ := exists_contMDiffRiemannianMetric_inner_add_le_mul (E := E)
+  refine ⟨g, fun _ ↦ c / C, continuous_const, fun _ ↦ by positivity, fun x ↦ ?_⟩
+  let : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  refine le_trans ?_ ((h x).trans_eq (mvfderiv_eq_fderiv_apply f x (X x)).symm)
+  calc c / C * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)
+      ≤ c / C * (C * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2)) := by gcongr; exact hg f x (X x)
+    _ = c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) := by field_simp
 
 section Local
 
@@ -491,6 +504,28 @@ theorem isGradientLikeAt_def (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(
         ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
           mvfderiv 𝓘(ℝ, E) f y (X y) :=
   Iff.rfl
+
+/-- **A local criterion on a normed space.** On a finite-dimensional real normed space `E`, a
+field `X` is gradient-like for `f` near `x` if `c * (‖X y‖ ^ 2 + ‖df_y‖ ^ 2) ≤ df_y (X y)` for a
+constant `c > 0` and every `y` near `x`, the norms being those of `E` and the operator norm. -/
+theorem isGradientLikeAt_of_eventually_mul_le {f : E → ℝ} {X : E → E} {x : E} {c : ℝ}
+    (hc : 0 < c)
+    (h : ∀ᶠ y in 𝓝 x, c * (‖X y‖ ^ 2 + ‖fderiv ℝ f y‖ ^ 2) ≤ fderiv ℝ f y (X y)) :
+    IsGradientLikeAt f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) x := by
+  obtain ⟨g, C, hC, hg⟩ := exists_contMDiffRiemannianMetric_inner_add_le_mul (E := E)
+  refine (isGradientLikeAt_def _ _ x).2 ⟨_, h, g, c / C, by positivity, fun y hy ↦ ?_⟩
+  let : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  refine le_trans ?_ ((hy).trans_eq (mvfderiv_eq_fderiv_apply f y (X y)).symm)
+  calc c / C * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2)
+      ≤ c / C * (C * (‖X y‖ ^ 2 + ‖fderiv ℝ f y‖ ^ 2)) := by gcongr; exact hg f y (X y)
+    _ = c * (‖X y‖ ^ 2 + ‖fderiv ℝ f y‖ ^ 2) := by field_simp
+
+/-- The points near which `X` is gradient-like for `f` form an open set. -/
+theorem isOpen_setOf_isGradientLikeAt : IsOpen {x | IsGradientLikeAt f X x} := by
+  refine isOpen_iff_mem_nhds.2 fun x hx ↦ ?_
+  obtain ⟨U, hU, g, c, hc, h⟩ := (isGradientLikeAt_def f X x).1 hx
+  filter_upwards [eventually_mem_nhds_iff.2 hU] with y hy
+  exact (isGradientLikeAt_def f X y).2 ⟨U, hy, g, c, hc, h⟩
 
 /-- If `X` is gradient-like for `f` near `x`, then `X x = 0` exactly when `x` is a critical point
 of `f`. -/
