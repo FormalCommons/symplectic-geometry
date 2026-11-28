@@ -26,10 +26,9 @@ one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` is the differential of a smoot
 
 ## Main definitions
 
-* `TauCeti.MapFiber.Atlas.mixedCurl`: the one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F`, read in a chart
-  of `A` over a chart of `B`.
-* `TauCeti.MapFiber.Atlas.HasExactMixedCurl`: every such one-form, at every point of every
-  patch, is the differential of a smooth function on `F`.
+* `TauCeti.MapFiber.Atlas.HasExactMixedCurl`: at every point of every patch, each one-form
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` (`TauCeti.RoughForm.mixedCurl` of `ψ^* τ`) is the differential of
+  a smooth function on `F`.
 
 ## Main results
 
@@ -82,44 +81,26 @@ namespace MapFiber.Atlas
 
 variable (A) (IB IF) {ι : Type*}
 
-/-- For a chart `e = A.trivAt b'` of `A` and the extended chart `φ` of `B` at `b₀`, let `αₖ(x)`
-be the mixed component, for the basis `bs` of `EB`, of the pull-back of `τ` by the map
-`ψ q = e⁻¹ (φ⁻¹ q.1, q.2)`. This is the value at `w ∈ T_y F` of the one-form
-`∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F`, where `∂ₖ` differentiates in `x` along `bs k`. -/
-def mixedCurl (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) (b' b₀ : B) (i j : ι) (x : EB)
-    (y : F) (w : TangentSpace IF y) : ℝ :=
-  fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs j x' y ![w]) x (bs i) -
-    fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i x' y ![w]) x (bs j)
-
-theorem mixedCurl_def (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) (b' b₀ : B) (i j : ι)
-    (x : EB) (y : F) (w : TangentSpace IF y) :
-    A.mixedCurl IB IF τ bs b' b₀ i j x y w =
-      fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-          (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-            ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs j x' y ![w]) x (bs i) -
-        fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-          (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-            ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i x' y ![w]) x (bs j) :=
-  (rfl)
-
 /-- The local form of Hamiltonian curvature: for every chart `e = A.trivAt b'` of `A`, every
 extended chart `φ` of `B` at a point `b₀`, every `b` in the base set of `e` and in the source of
-the chart at `b₀`, and all `i j`, the one-form `∂ᵢαⱼ(φ b) - ∂ⱼαᵢ(φ b)` on `F` (`mixedCurl`) is
-the differential of a smooth function `g : F → ℝ`. -/
+the chart at `b₀`, and all `i j`, the one-form `∂ᵢαⱼ(φ b) - ∂ⱼαᵢ(φ b)` on `F` is the
+differential of a smooth function `g : F → ℝ`. Here `αₖ` are the mixed components, for `bs`, of
+the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)`, and their curl is
+`TauCeti.RoughForm.mixedCurl`. -/
 def HasExactMixedCurl (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) : Prop :=
   ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
     ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-      mvfderiv IF g y w = A.mixedCurl IB IF τ bs b' b₀ i j (extChartAt IB b₀ b) y w
+      mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
+        (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+          ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w
 
 theorem hasExactMixedCurl_def (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) :
     A.HasExactMixedCurl IB IF τ bs ↔
       ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-          mvfderiv IF g y w = A.mixedCurl IB IF τ bs b' b₀ i j (extChartAt IB b₀ b) y w :=
+          mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
+            (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+              ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w :=
   Iff.rfl
 
 end MapFiber.Atlas
@@ -150,7 +131,9 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
       ∀ i j, (∃ f : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ f ∧ σ.IsHamiltonianVectorField f
           fun y ↦ (hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b₀ b, y)).2) ↔
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-          mvfderiv IF g y w = A.mixedCurl IB IF τ bs b' b₀ i j (extChartAt IB b₀ b) y w := by
+          mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
+            (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+              ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w := by
   obtain ⟨U, hU, hbU, τ', hfib, hτ'c, hτ'ψ, hτ'τ⟩ :=
     hA.exists_isVerticallyClosed_eq_mpullback_symm_extChartAt_symm hτ hτσ hb
   have hnd : SmoothTwoForm.IsVerticallyNondegenerate 𝓘(ℝ, EB) Prod.fst τ' :=
@@ -173,7 +156,8 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
   rw [hfib] at h
   refine h.trans (exists_congr fun g ↦ and_congr_right fun _ ↦
     forall_congr' fun y ↦ forall_congr' fun w ↦ ?_)
-  rw [MapFiber.Atlas.mixedCurl_def, (hmix j y w).fderiv_eq, (hmix i y w).fderiv_eq]
+  rw [RoughForm.mixedCurl_def, RoughForm.mixedCurl_def, (hmix j y w).fderiv_eq,
+    (hmix i y w).fderiv_eq]
 
 /-- **Hamiltonian curvature in local coordinates.** Let `A` be a smooth atlas of `proj : M → B`
 with fibre `F`, over a Hausdorff base without boundary modelled on a finite-dimensional space
