@@ -14,7 +14,7 @@ public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CoordRatio
-import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 
 /-!
 # The line bundles `𝒪(k)` on the Riemann sphere as real vector bundles
@@ -48,8 +48,8 @@ degree `k`:
 `Bundle.Trivialization.mdifferentiableAt_coordRatio`: near the point, the quotient is the ratio
 of the two sections read in the trivialization `(twistCore k).localTriv x`. For
 `OnePoint.mvfderiv_div_twistCore_of_eq_zero`, near `x` the quotient is the coordinate of the
-numerator times the inverse of that of the denominator, a factor continuous at `x`, so Tau Ceti's
-`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply` applies.
+numerator times the inverse of that of the denominator, a factor continuous at `x`, so
+`TauCeti.mvfderiv_eq_smul_of_eventuallyEq_smul` applies.
 
 Files using the real structure `open scoped VectorBundle.ComplexToReal`.
 -/
@@ -172,18 +172,13 @@ theorem mvfderiv_div_twistCore_of_eq_zero (k : ℤ) {s t : OnePoint ℂ → ℂ}
   have hS0 : ((twistCore (𝕜 := ℂ) k).localTriv x ⟨x, s x⟩).2 = 0 := by
     rw [twistCore_localTriv_apply, hsx, mul_zero]
   -- Near `x`, the quotient is the coordinate of `s` times the inverse of that of `t`.
-  rw [TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply (c := fun p ↦
-    (((twistCore (𝕜 := ℂ) k).localTriv x ⟨p, t p⟩).2)⁻¹ • ContinuousLinearMap.id ℝ ℂ) ?_
-    ((ht.inv₀ hTx).smul continuousAt_const) hs hS0]
-  · ext v
-    simp only [twistCore_localTriv_apply, twistTransition_self, one_mul,
-      ContinuousLinearMap.comp_apply, smul_apply,
-      ContinuousLinearMap.id_apply]
+  rw [TauCeti.mvfderiv_eq_smul_of_eventuallyEq_smul (g := fun p ↦
+    (((twistCore (𝕜 := ℂ) k).localTriv x ⟨p, t p⟩).2)⁻¹) ?_ (ht.inv₀ hTx) hs hS0,
+    twistCore_localTriv_apply, twistTransition_self, one_mul]
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
   have hg := twistTransition_ne_zero k (mem_chart_source ℂ p) hp
-  rw [smul_apply, ContinuousLinearMap.id_apply, twistCore_localTriv_apply,
-    twistCore_localTriv_apply, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left₀ hg,
-    div_eq_inv_mul]
+  rw [twistCore_localTriv_apply, twistCore_localTriv_apply, smul_eq_mul, mul_inv_rev, mul_assoc,
+    inv_mul_cancel_left₀ hg, div_eq_inv_mul]
 
 open scoped TauCeti.ComplexManifold in
 /-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section
