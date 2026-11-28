@@ -52,6 +52,8 @@ structure and no finite dimension, `TauCeti.complexLinearPartContinuousLinearMap
 real-linear operators `F ↦ ½ (F ∓ J' ∘L F ∘L J)` on the continuous real-linear maps. They add up
 to the identity
 (`TauCeti.complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap`).
+When `J` and `J'` do not increase norms, the complex-linear part does not increase operator norms
+(`TauCeti.norm_complexLinearPartContinuousLinearMap_le`).
 For fields of endomorphisms and of operators that are `C^n` at a point, the
 field of their complex-antilinear parts is `C^n` there
 (`ContDiffAt.complexAntilinearPartContinuousLinearMap`). Changing the endomorphism of the source
@@ -356,6 +358,17 @@ theorem complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuous
   rw [← add_apply,
     complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap,
     one_apply_eq_self]
+
+/-- When `J` and `J'` do not increase norms, the continuous complex-linear part
+`TauCeti.complexLinearPartContinuousLinearMap J J' F` has operator norm at most `‖F‖`. -/
+theorem norm_complexLinearPartContinuousLinearMap_le {J : V →L[ℝ] V} {J' : W →L[ℝ] W}
+    (hJ : ∀ v, ‖J v‖ ≤ ‖v‖) (hJ' : ∀ w, ‖J' w‖ ≤ ‖w‖) (F : V →L[ℝ] W) :
+    ‖complexLinearPartContinuousLinearMap J J' F‖ ≤ ‖F‖ := by
+  refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg F) fun v ↦ ?_
+  rw [complexLinearPartContinuousLinearMap_apply_apply, complexLinearPart_apply, sub_eq_add_neg]
+  refine norm_two_inv_smul_add_le (F.le_opNorm v) ?_
+  rw [norm_neg]
+  exact (hJ' _).trans ((F.le_opNorm _).trans (by gcongr; exact hJ v))
 
 /-- For a field `J` of continuous endomorphisms of `V` and a field `F` of operators `V →L[ℝ] W`,
 both `C^n` at `x`, the field of complex-antilinear parts

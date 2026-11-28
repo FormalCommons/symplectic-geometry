@@ -130,7 +130,8 @@ At the centre `x` itself the pushed-forward structure is `J₀`, so the norm of
 `J.oneZeroPart (powerConnection α k s x) v` is that of the model `∂` of the reading at `0` on the
 image of `v` (`SymplecticGeometry.RescaledUnitaryCharts.norm_oneZeroPart_powerConnection_apply`).
 For the metric `σ(·, J ·)`, the derivative of the chart at its centre is `√(2π k)` times an
-isometry, so `(2π k)^(-1/2) ‖∂ s(x)‖` is the operator norm of that model `∂`
+isometry (`SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_chart_apply_self`), so
+`(2π k)^(-1/2) ‖∂ s(x)‖` is the operator norm of that model `∂`
 (`SymplecticGeometry.RescaledUnitaryCharts.rpow_mul_norm_oneZeroPart_powerConnection_eq`). The
 model `∂` is additive, and its norm is at most that of the model connection, which at `0` is the
 derivative of the reading. Hence adding a section `t` to `s` changes the quantity
@@ -907,12 +908,7 @@ theorem norm_zeroOnePart_powerConnection_apply [∀ y, Nonempty (P y)]
     mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
   have h := D.zeroOnePart_powerConnection_chart_symm_apply hα hk hz hs
     (mvfderiv I (D.chart k x) x v)
-  have hv : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chart k x x)
-      (mvfderiv I (D.chart k x) x v) = v := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact (D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) (D.mem_source hk x) v
-  rw [D.apply_self hk x] at hv
-  rw [hv, D.chart_symm_zero hk x] at h
+  rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x] at h
   rw [h, ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), LinearIsometryEquiv.norm_map,
     LinearIsometryEquiv.norm_map]
 
@@ -931,16 +927,12 @@ theorem norm_oneZeroPart_powerConnection_apply [∀ y, Nonempty (P y)]
     mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
   have h := D.norm_oneZeroPart_powerConnection_chart_symm_apply hα hk hz hs
     (mvfderiv I (D.chart k x) x v)
-  have hv : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chart k x x)
-      (mvfderiv I (D.chart k x) x v) = v := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact (D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) (D.mem_source hk x) v
-  rw [D.apply_self hk x] at hv
   -- At the centre, the structure pushed forward by the chart is `J₀`.
   have hJ : J.chartPushforward (D.chart k x).toOpenPartialHomeomorph 0 =
       LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap :=
     ContinuousLinearMap.ext (D.chartPushforward_zero hk x)
-  rw [hv, D.chart_symm_zero hk x, hJ, LinearMap.coe_toContinuousLinearMap] at h
+  rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x, hJ,
+    LinearMap.coe_toContinuousLinearMap] at h
   rw [h, modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
     LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
     connectionReading_def]
@@ -1105,7 +1097,20 @@ theorem norm_modelDel_reading_le_of_inner_eq
 
 section Riemannian
 
-variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [∀ y, Nonempty (P y)]
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- **The derivative of a chart at its centre, for the metric of `(σ, J)`.** Let the metric of
+`M` be `g(u, w) = σ(u, J w)`. For `k₀ ≤ k`, the derivative at `x` of the chart centred at `x`
+multiplies the norm of every tangent vector by `√(2π k)`. -/
+theorem norm_mvfderiv_chart_apply_self
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w)) {k : ℕ}
+    (hk : k₀ ≤ k) (x : M) (v : TangentSpace I x) :
+    ‖mvfderiv I (D.chart k x) x v‖ = √(2 * Real.pi * k) * ‖v‖ := by
+  rw [← Real.sqrt_sq (norm_nonneg _), ← D.eval₂_apply_self_eq_norm_sq hk x v, ← hg,
+    real_inner_self_eq_norm_sq, Real.sqrt_mul (by positivity), Real.sqrt_sq (norm_nonneg _)]
+
+variable [∀ y, Nonempty (P y)]
 
 /-- **The rescaled `∂ s` at the centre of a chart, for the metric of `(σ, J)`.** Let the metric
 of `M` be `g(u, w) = σ(u, J w)`. For `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, if the reading of `s` in
@@ -1125,35 +1130,18 @@ theorem rpow_mul_norm_oneZeroPart_powerConnection_eq
   have hp : (2 * Real.pi * k) ^ (-1 / 2 : ℝ) = (√(2 * Real.pi * k))⁻¹ := by
     rw [Real.sqrt_eq_rpow, ← Real.rpow_neg hkpos.le]
     norm_num
-  set c := √(2 * Real.pi * k)
-  have hc : 0 < c := Real.sqrt_pos.2 hkpos
-  -- The derivative of the chart at its centre multiplies norms by `c`.
-  have hu (v : TangentSpace I x) : ‖mvfderiv I (D.chart k x) x v‖ = c * ‖v‖ := by
-    rw [← Real.sqrt_sq (norm_nonneg _), ← D.eval₂_apply_self_eq_norm_sq hk x v, ← hg,
-      real_inner_self_eq_norm_sq, Real.sqrt_mul hkpos.le, Real.sqrt_sq (norm_nonneg _)]
-  rw [hp, inv_mul_eq_iff_eq_mul₀ hc.ne']
   refine le_antisymm ?_ ?_
-  · refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+  · rw [hp, inv_mul_le_iff₀ (Real.sqrt_pos.2 hkpos)]
+    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
     rw [D.norm_oneZeroPart_powerConnection_apply hα hρ₀ hk hk0 hs]
     calc _ ≤ ‖modelDel (D.reading k x s) 0‖ * ‖mvfderiv I (D.chart k x) x v‖ :=
           ContinuousLinearMap.le_opNorm _ _
-      _ = _ := by rw [hu]; ring
-  · rw [← le_div_iff₀' hc]
-    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-    -- Every vector of `StdSpace ι` is the image of a tangent vector at `x`.
-    set v : TangentSpace I x := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm 0 u
-    have hvu : mvfderiv I (D.chart k x) x v = u := by
-      have h0 := (D.chart k x).mfderiv_apply_mfderiv_symm_apply (by simp)
-        (D.zero_mem_chart_target hk x) u
-      rw [D.chart_symm_zero hk x] at h0
-      rw [mvfderiv_apply_eq_mfderiv_apply]
-      exact h0
-    have hv := D.norm_oneZeroPart_powerConnection_apply hα hρ₀ hk hk0 hs v
-    rw [hvu] at hv
-    calc _ = ‖J.oneZeroPart (powerConnection α k s x) v‖ := hv.symm
-      _ ≤ ‖J.oneZeroPart (powerConnection α k s x)‖ * ‖v‖ := ContinuousLinearMap.le_opNorm _ _
-      _ = ‖J.oneZeroPart (powerConnection α k s x)‖ / c * (c * ‖v‖) := by field_simp
-      _ = _ := by rw [← hu, hvu]
+      _ = _ := by rw [D.norm_mvfderiv_chart_apply_self hg hk]; ring
+  · have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
+      mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+    have h := D.norm_modelDel_reading_le_of_inner_eq hg hα hk hz hs
+    rwa [D.chart_symm_zero hk x, norm_zero, mul_zero, zero_div, add_zero, one_mul, mul_zero,
+      zero_mul, add_zero] at h
 
 /-- **Stability of the transversality quantity.** Let the metric of `M` be
 `g(u, w) = σ(u, J w)`, let `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, and let `s` and `t` be sections of
