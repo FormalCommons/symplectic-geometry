@@ -106,8 +106,7 @@ theorem mpullback_map_fubiniStudyForm :
     ((toLin' A).restrictScalars ℝ).toContinuousLinearMap
   have hL : Injective L := toLin'_injective_of_mul_eq_one hA
   have hL_apply (z : Fin (m + 1) → ℂ) : L z = A *ᵥ z := by simp [L]
-  have hcomp := mkNonzero_comp_puncturedSpace_map (toLin' A)
-    (toLin'_injective_of_mul_eq_one hA) L hL (by simp [L])
+  have hcomp := mkNonzero_comp_puncturedSpace_map (toLin' A) L hL (by simp [L])
   refine SmoothForm.mpullback_injective_of_surjective (contMDiff_mkNonzero ℂ m ∞)
     (surjective_mkNonzero ℂ m) ((isSubmersion_mkNonzero ℂ m).surjective_mfderiv (by simp)) ?_
   rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ (puncturedSpace.contMDiff_map L hL ∞)

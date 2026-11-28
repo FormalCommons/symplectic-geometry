@@ -167,25 +167,27 @@ theorem surjective_mkNonzero : Surjective (mkNonzero 𝕜 n) := fun x ↦
   ⟨⟨x.rep, TauCeti.mem_puncturedSpace.2 x.rep_ne_zero⟩, mk_rep x⟩
 
 /-- `mkNonzero` intertwines the map of punctured spaces induced by an injective continuous linear
-map `g` with the map of projective spaces induced by an injective semilinear map `f` with the same
-underlying function: `[g v] = f [v]`. The scalars `R` of `g` may differ from those of `f`. -/
+map `g` with the map of projective spaces induced by a semilinear map `f` with the same
+underlying function, which is then injective too: `[g v] = f [v]`. The scalars `R` of `g` may
+differ from those of `f`. -/
 theorem mkNonzero_puncturedSpace_map {𝕜' R : Type*} [NontriviallyNormedField 𝕜'] [Semiring R]
     {m : ℕ} [Module R (Fin (m + 1) → 𝕜)] [Module R (Fin (n + 1) → 𝕜')] {σ : 𝕜 →+* 𝕜'}
-    (f : (Fin (m + 1) → 𝕜) →ₛₗ[σ] (Fin (n + 1) → 𝕜')) (hf : Injective f)
+    (f : (Fin (m + 1) → 𝕜) →ₛₗ[σ] (Fin (n + 1) → 𝕜'))
     (g : (Fin (m + 1) → 𝕜) →L[R] (Fin (n + 1) → 𝕜')) (hg : Injective g) (hgf : ⇑g = ⇑f)
     (v : TauCeti.puncturedSpace (Fin (m + 1) → 𝕜)) :
-    mkNonzero 𝕜' n (TauCeti.puncturedSpace.map g hg v) = map f hf (mkNonzero 𝕜 m v) := by
+    mkNonzero 𝕜' n (TauCeti.puncturedSpace.map g hg v) =
+      map f (hgf ▸ hg) (mkNonzero 𝕜 m v) := by
   simp only [mkNonzero_apply, map_mk, TauCeti.puncturedSpace.coe_map, hgf]
 
 /-- `mkNonzero` intertwines the map of punctured spaces induced by an injective continuous linear
-map `g` with the map of projective spaces induced by an injective semilinear map `f` with the same
-underlying function. -/
+map `g` with the map of projective spaces induced by a semilinear map `f` with the same
+underlying function, which is then injective too. -/
 theorem mkNonzero_comp_puncturedSpace_map {𝕜' R : Type*} [NontriviallyNormedField 𝕜']
     [Semiring R] {m : ℕ} [Module R (Fin (m + 1) → 𝕜)] [Module R (Fin (n + 1) → 𝕜')]
-    {σ : 𝕜 →+* 𝕜'} (f : (Fin (m + 1) → 𝕜) →ₛₗ[σ] (Fin (n + 1) → 𝕜')) (hf : Injective f)
+    {σ : 𝕜 →+* 𝕜'} (f : (Fin (m + 1) → 𝕜) →ₛₗ[σ] (Fin (n + 1) → 𝕜'))
     (g : (Fin (m + 1) → 𝕜) →L[R] (Fin (n + 1) → 𝕜')) (hg : Injective g) (hgf : ⇑g = ⇑f) :
-    mkNonzero 𝕜' n ∘ TauCeti.puncturedSpace.map g hg = map f hf ∘ mkNonzero 𝕜 m :=
-  funext (mkNonzero_puncturedSpace_map f hf g hg hgf)
+    mkNonzero 𝕜' n ∘ TauCeti.puncturedSpace.map g hg = map f (hgf ▸ hg) ∘ mkNonzero 𝕜 m :=
+  funext (mkNonzero_puncturedSpace_map f g hg hgf)
 
 /-- Over `𝕜` itself, `mkNonzero` is `C^r` for every `r`; over `ℂ` it is holomorphic. -/
 theorem contMDiff_mkNonzero_self (r : ℕ∞ω) :
