@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Slice
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CubeCoordinates
@@ -56,6 +57,14 @@ For now it contains these steps, shared by the smooth and the continuous form.
   `W i` with pairwise disjoint images, the other corrections vanish on `c.chart i '' W i`, so
   there the reading of the new family in the chart of cube `i` is that of `B` plus `corr i`
   (`TauCeti.mpullback_symm_extendByZeroAlong`).
+* At the points of the open set `U ⊆ Λ × M` of `exists_stagePath`, the segments from `τ l` to
+  `α l + d (B' (s l))` must stay nondegenerate (`BandCore.exists_isOpen_nondegenerate_of_cubes`).
+  The set `U` is the union of `univ ×ˢ N₁`, where the segment is constantly `τ l`, and of the
+  images under `id × c.chart i` of open sets on which the segment's reading in the chart is
+  nondegenerate. That reading is computed from the reading of `B'` above, with
+  `TauCeti.mpullback_symm_mextDerivₗ` for the exterior derivative, and nondegeneracy carries back
+  to `M` by `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`, since
+  the chart is a local diffeomorphism (`BandCore.isLocalDiffeomorph_chart`).
 
 ## Main declarations
 
@@ -68,6 +77,9 @@ For now it contains these steps, shared by the smooth and the continuous form.
   `M`, over `S × [0, 1]`, obtained from one diffeotopy of `S × D i` per cube.
 * `SymplecticGeometry.BandCore.exists_oneForm_of_cubes`: the smooth family of one-forms on `M`
   obtained from a smooth family `B` and one correction on `S × D i` per cube.
+* `SymplecticGeometry.BandCore.exists_isOpen_nondegenerate_of_cubes`: the open set `U` of
+  parameters and points at which the segments of two-forms towards the corrected forms stay
+  nondegenerate.
 
 ## References
 
@@ -296,6 +308,152 @@ theorem exists_oneForm_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
       have hz : (fun z ↦ corr i (q, z)) = 0 := funext (hq i)
       simp only [ext, hz, TauCeti.SmoothForm.extendByZeroAlong_zero]
     simp only [h0, Finset.sum_const_zero, add_zero]
+
+omit [T2Space M] in
+open TauCeti in
+/-- **The open set where the segments of two-forms stay nondegenerate.** Let `c` be a band core in
+a manifold `M`, `s : Λ → S`, `τ α : Λ → SmoothTwoForm I M` with `τ l` nondegenerate for `l ∈ K`,
+and `B B'` families over `S` of one-forms on `M`. Write `T` for the open `δ'`-thickening of the
+unit cube in the domain `D i` of `c.chart i`. Suppose that
+
+* on a set `N`, `τ l = α l + d (B (s l))` for every `l`;
+* on an open `N₁ ⊆ N`, `B' q = B q` for every `q`;
+* on `T`, the reading of `B' q` in the chart of cube `i` is the reading of `B q` plus
+  `corr i (q, ·)`, a smooth correction (as `BandCore.exists_oneForm_of_cubes` gives);
+* `V i ⊆ Λ × D i` is open, and at its points `(l, z)` with `l ∈ K` and `z ∈ T ∩ ball 0 2`, for
+  every `r ∈ [0, 1]`, the reading at `z` of `τ l + r • (α l + d (B (s l)) - τ l)` plus
+  `r • d (corr i (s l, ·)) z` is nondegenerate.
+
+Let `U` be the union of `univ ×ˢ N₁` and of the images of `V i ∩ (univ ×ˢ (T ∩ ball 0 2))` under
+`id × c.chart i`. Then `U` is open, contains `K ×ˢ N₁` and each `(l, c.chart i z)` with
+`(l, z) ∈ V i` and `z ∈ T ∩ ball 0 2`, and at each of its points `(l, y)` with `l ∈ K` every
+`τ l + r • (α l + d (B' (s l)) - τ l)`, `r ∈ [0, 1]`, is nondegenerate at `y`. On `univ ×ˢ N₁`
+the segment is constantly `τ l`; on the image of `V i` its reading is the one of the hypothesis,
+and nondegeneracy carries back along the chart, a local diffeomorphism. -/
+theorem exists_isOpen_nondegenerate_of_cubes (c : BandCore I g a₀ a b) {Λ S : Type*}
+    [TopologicalSpace Λ] [NormedAddCommGroup S] [NormedSpace ℝ S] {K : Set Λ} {s : Λ → S}
+    {τ α : Λ → SmoothTwoForm I M} (hnd : ∀ l ∈ K, (τ l).IsNondegenerate)
+    {B B' : S → SmoothForm I M ℝ 1} {N N₁ : Set M}
+    (hτN : ∀ l, ∀ x ∈ N, (τ l).val x = (α l + mextDerivₗ I 1 (B (s l))).val x)
+    (hN₁ : IsOpen N₁) (hN₁N : N₁ ⊆ N) (hB'N₁ : ∀ q, ∀ x ∈ N₁, (B' q).val x = (B q).val x)
+    {δ' : ℝ}
+    {corr : ∀ i, S × ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) →
+      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ}
+    (hcorr : ∀ i, ContDiff ℝ ∞ (corr i))
+    (hB' : ∀ i q, ∀ z ∈ thickening δ' (closedBall 0 1 ×ˢ {0}),
+      (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+          (c.chart i) (B' q).val z -
+        mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+          (c.chart i) (B q).val z :
+        ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ) =
+        corr i (q, z))
+    {V : ∀ i, Set (Λ × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))}
+    (hV : ∀ i, IsOpen (V i))
+    (hVnd : ∀ i, ∀ p ∈ V i, p.1 ∈ K →
+      p.2 ∈ thickening δ' (closedBall 0 1 ×ˢ {0}) ∩ ball 0 2 → ∀ r ∈ Icc (0 : ℝ) 1,
+      (MultilinearMap.toBilinMap (@HAdd.hAdd
+        (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ)
+        (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) _ _
+        (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+          (c.chart i) (τ p.1 + r • (α p.1 + mextDerivₗ I 1 (B (s p.1)) - τ p.1)).val p.2)
+        (r • extDeriv (fun z ↦ corr i (s p.1, z)) p.2)).toMultilinearMap).Nondegenerate) :
+    ∃ U : Set (Λ × M),
+      U = univ ×ˢ N₁ ∪ ⋃ i, Prod.map id (c.chart i) ''
+        (V i ∩ univ ×ˢ (thickening δ' (closedBall 0 1 ×ˢ {0}) ∩ ball 0 2)) ∧
+      IsOpen U ∧ K ×ˢ N₁ ⊆ U ∧
+      (∀ i, ∀ p ∈ V i, p.2 ∈ thickening δ' (closedBall 0 1 ×ˢ {0}) ∩ ball 0 2 →
+        (p.1, c.chart i p.2) ∈ U) ∧
+      ∀ p ∈ U, p.1 ∈ K → ∀ r ∈ Icc (0 : ℝ) 1,
+        ((τ p.1 + r • (α p.1 + mextDerivₗ I 1 (B' (s p.1)) - τ p.1)).bilinFormAt
+          p.2).Nondegenerate := by
+  have hT (i : c.ι) : IsOpen (thickening δ' (closedBall 0 1 ×ˢ {0}) ∩ ball
+      (0 : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) 2) :=
+    isOpen_thickening.inter isOpen_ball
+  refine ⟨_, rfl, (isOpen_univ.prod hN₁).union (isOpen_iUnion fun i ↦
+      (IsOpenMap.id.prodMap (c.isOpenEmbedding_chart i).isOpenMap) _
+        ((hV i).inter (isOpen_univ.prod (hT i)))),
+    fun p hp ↦ .inl ⟨mem_univ _, hp.2⟩,
+    fun i p hp hz ↦ .inr (mem_iUnion.2 ⟨i, p, ⟨hp, mem_univ _, hz⟩, rfl⟩), ?_⟩
+  rintro ⟨l, y⟩ hp hl r hr
+  rcases hp with ⟨-, hy⟩ | hp
+  · -- On `N₁`, `d (B' (s l)) = d (B (s l))`, so the segment is constantly `τ l`.
+    have hd : (mextDerivₗ I 1 (B' (s l))).val y = (mextDerivₗ I 1 (B (s l))).val y := by
+      rw [mextDerivₗ_apply, mextDerivₗ_apply]
+      exact mextDeriv_congr_of_eventuallyEq
+        (Filter.eventually_of_mem (hN₁.mem_nhds hy) fun x hx ↦ hB'N₁ _ x hx)
+    have hval : (τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)).val y = (τ l).val y := by
+      have h := hτN l y (hN₁N hy)
+      simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply,
+        SmoothBundleForm.smul_apply] at h ⊢
+      rw [hd, ← h, sub_self, smul_zero, add_zero]
+    have hbil : (τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)).bilinFormAt y =
+        (τ l).bilinFormAt y := by
+      refine LinearMap.ext₂ fun v w ↦ ?_
+      rw [SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
+        SmoothBundleForm.eval₂_apply, hval]
+    rw [hbil]
+    exact (hnd l hl).nondegenerate_bilinFormAt y
+  · obtain ⟨i, ⟨l, z⟩, ⟨hV', -, hz⟩, he⟩ := mem_iUnion.1 hp
+    simp only [Prod.map_apply, id_eq, Prod.mk.injEq] at he
+    obtain ⟨rfl, rfl⟩ := he
+    -- The readings of `B q` and `B' q` in the chart, as functions on its domain.
+    let ρ (B₀ : S → SmoothForm I M ℝ 1) (q : S) :
+        (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
+          ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
+      mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+        (c.chart i) (B₀ q).val
+    -- The reading of `d (B₀ q)` in the chart is the exterior derivative of the reading of `B₀ q`.
+    have hd (B₀ : S → SmoothForm I M ℝ 1) (q : S) :
+        (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+          (c.chart i) (mextDerivₗ I 1 (B₀ q)).val z :
+          ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) =
+        extDeriv (ρ B₀ q) z := by
+      have h := mpullback_symm_mextDerivₗ (c.chartPartialDiffeomorph i) (B₀ q) (y := z) (by simp)
+      rwa [chartPartialDiffeomorph_symm_apply] at h
+    -- Near `z`, the reading of `B' (s l)` is that of `B (s l)` plus the correction.
+    have hev : ρ B' (s l) =ᶠ[𝓝 z] ρ B (s l) + fun w ↦ corr i (s l, w) :=
+      Filter.eventually_of_mem (isOpen_thickening.mem_nhds hz.1) fun w hw ↦ by
+        rw [Pi.add_apply, ← hB' i (s l) w hw]
+        exact (add_sub_cancel _ _).symm
+    have hdiff : DifferentiableAt ℝ (ρ B (s l)) z := by
+      have h := ((c.contDiff_mpullback_chart i (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) (B (s l)))).comp
+        ((contDiff_const (c := (0 : ℝ))).prodMk contDiff_id)).differentiable (by simp) z
+      simp only [id, SmoothForm.coe_mpullback] at h
+      -- `h` is the same statement, with the instances of the model space of the chart.
+      exact h
+    have hdiffc : DifferentiableAt ℝ (fun w ↦ corr i (s l, w)) z :=
+      ((hcorr i).comp (contDiff_const.prodMk contDiff_id)).differentiable (by simp) z
+    have hform : τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l) =
+        τ l + r • (α l + mextDerivₗ I 1 (B (s l)) - τ l) +
+          r • (mextDerivₗ I 1 (B' (s l)) - mextDerivₗ I 1 (B (s l))) := by
+      module
+    -- The readings at `z` of two-forms on `M`.
+    let θ (φ : SmoothForm I M ℝ 2) :
+        ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ :=
+      mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+        (c.chart i) φ.val z
+    have hkey : θ (τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)) =
+        θ (τ l + r • (α l + mextDerivₗ I 1 (B (s l)) - τ l)) +
+          r • extDeriv (fun w ↦ corr i (s l, w)) z := by
+      rw [hform]
+      simp only [θ, Submodule.coe_add, Submodule.coe_smul, Submodule.coe_sub, mpullback_add,
+        mpullback_smul, mpullback_sub, Pi.add_apply, Pi.smul_apply, Pi.sub_apply]
+      rw [hd, hd, hev.extDeriv_eq, extDeriv_add hdiff hdiffc]
+      exact congrArg (_ + r • ·) (add_sub_cancel_left _ _)
+    -- Along the chart, nondegeneracy at `c.chart i z` is that of the reading at `z`.
+    have hbil (φ : SmoothForm I M ℝ 2) :
+        (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff φ).bilinFormAt z =
+          MultilinearMap.toBilinMap (θ φ).toMultilinearMap :=
+      LinearMap.ext₂ fun v w ↦ by
+        rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, SmoothForm.coe_mpullback]
+        -- `θ φ` is the reading at `z`, an alternating map on the model space of the chart.
+        exact (MultilinearMap.toBilinMap_apply _ v w).symm
+    refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+      ((c.isLocalDiffeomorph_chart i z).isInvertible_mfderiv (by simp))
+      (η := SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff _)
+      (by rw [SmoothForm.coe_mpullback])).2 ?_
+    rw [hbil, hkey]
+    exact hVnd i (l, z) hV' hl hz r hr
 
 end BandCore
 
