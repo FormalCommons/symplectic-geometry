@@ -511,8 +511,8 @@ notation of the file):
   ω.compatibleSpaceComplexStructure` and
   `isKahler_compatibleSpaceForm : ω.compatibleSpaceForm.IsKahler
   ω.compatibleSpaceComplexStructure`.
-- `ω.compatibleSpaceMetric := compatible_compatibleSpaceForm.metric`, the
-  `instance : RiemannianBundle (fun J : 𝒥 ω ↦ TangentSpace 𝓘 J)` from it,
+- the `instance : RiemannianBundle (fun J : 𝒥 ω ↦ TangentSpace 𝓘 J)`,
+  `compatible_compatibleSpaceForm.riemannianBundle`,
   with its `IsContMDiffRiemannianBundle` and `IsContinuousRiemannianBundle`
   instances, and `inner_compatibleSpace (a b : TangentSpace 𝓘 J) :
   ⟪a, b⟫ = 2⁻¹ * trace ↑(D J a * D J b)`.
