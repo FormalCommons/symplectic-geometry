@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
+public import SymplecticGeometry.Geometry.Lie.Subgroup.Restrict
 public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Topology.Connected.Basic
@@ -28,6 +29,13 @@ stabilizer in `Gc`. With the Lie group structures that `H₀` and `Gc₀` get as
 this restriction is a diffeomorphism from the product of the Lie algebra of `H₀` and `H₀` onto
 `Gc₀`: a polar decomposition of `Gc₀`.
 
+The isotropy algebra of `x` in the Lie algebra of `Gc` is `C.lieMap 𝔥 ⊔ C.cplx (C.lieMap 𝔥)`, `𝔥`
+that of `x` in the Lie algebra of `G`, so it is stable under `C.cplx`. As it is the image of the
+Lie algebra of `Gc₀`, `C.cplx` gives that Lie algebra a complex structure which commutes with
+brackets, and for which the Lie algebra of `H₀`, mapped by the restriction `H₀ → Gc₀` of
+`C.toHom`, is maximal totally real. These are the complex structure and the maximal totally real
+image of a complexification of `H₀` by `Gc₀`.
+
 ## Main results
 
 * `SymplecticGeometry.IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`: if `μ x = 0`,
@@ -40,6 +48,16 @@ this restriction is a diffeomorphism from the product of the Lie algebra of `H�
 * `SymplecticGeometry.IsComplexifiedAction.stabilizerPolar`: the restriction of `C.polar`, as a
   diffeomorphism from the product of the Lie algebra of `H₀` and `H₀` onto `Gc₀`, and
   `SymplecticGeometry.IsComplexifiedAction.coe_stabilizerPolar_apply`, its value.
+* `SymplecticGeometry.IsComplexifiedAction.isotropy_eq_map_lieMap_sup_of_moment_eq_zero` and
+  `SymplecticGeometry.IsComplexifiedAction.range_groupLieAlgebraMap_subtype_stabilizer_eq_sup`:
+  the isotropy algebra of `x` in `Gc`, which is the image of the Lie algebra of `Gc₀`, is
+  `C.lieMap 𝔥 ⊔ C.cplx (C.lieMap 𝔥)`.
+* `SymplecticGeometry.IsComplexifiedAction.stabilizerCplx`: the complex structure of the Lie
+  algebra of `Gc₀` that the inclusion intertwines with `C.cplx`
+  (`SymplecticGeometry.IsComplexifiedAction.groupLieAlgebraMap_subtype_stabilizerCplx`); it
+  commutes with brackets (`SymplecticGeometry.IsComplexifiedAction.stabilizerCplx_lie`).
+* `SymplecticGeometry.IsComplexifiedAction.isMaximalTotallyReal_range_restrict`: the image of the
+  Lie algebra of `H₀` under the restriction of `C.toHom` is maximal totally real for it.
 
 ## Implementation notes
 
@@ -59,6 +77,18 @@ directions because its composites with the inclusions of the closed subgroups ar
 of `G` through the differential at `1` of the inclusion `H₀ → G`, whose range is the isotropy
 algebra (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`); a linear left
 inverse of that differential makes the inverse map smooth in it.
+
+The isotropy algebra in `Gc` is read off from
+`IsComplexifiedAction.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero`: the fundamental
+vector field of `ζ` vanishes at `x` exactly when those of `C.re ζ` and `C.im ζ` do. The structures
+on `Gc₀` and `H₀` are taken for any embedded Lie subgroup structures, those of
+`TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` being one choice. The complex structure is
+`C.cplx` carried through `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy` by
+`TauCeti.AlmostComplexStructure.transport`; its
+compatibility with brackets, and maximal total reality, are tested after the injective
+differential of the inclusion `Gc₀ → Gc`, which preserves brackets
+(`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraLieHom_subtypeVal`), using the commuting
+square of `ContMDiffMonoidMorphism.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict`.
 
 ## References
 
@@ -277,5 +307,198 @@ theorem IsComplexifiedAction.coe_stabilizerPolar_apply (h : IsComplexifiedAction
     (EmbeddedLieSubgroupData.coe_groupLieAlgebraEquivIsotropy (I' := I') _ ξ))
 
 end StabilizerPolar
+
+/-! ### The complex structure of the Lie algebra of the identity component of `Gc_x` -/
+
+section StabilizerCplx
+
+open Lie
+
+attribute [local instance] ContMDiffMul.boundarylessManifold
+
+variable [FiniteDimensional ℝ E]
+
+/-- **The isotropy algebra in `Gc` of a zero of the moment map.** In the setting of
+`IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, the isotropy algebra of `x` for the
+action of `Gc` is `C.lieMap 𝔥 ⊔ C.cplx (C.lieMap 𝔥)`, where `𝔥` is the isotropy algebra of `x`
+for the action of `G`. -/
+theorem IsComplexifiedAction.isotropy_eq_map_lieMap_sup_of_moment_eq_zero
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    ((InfinitesimalAction.fundamental IC Gc I' M).isotropy x).toSubmodule =
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule.map
+          C.lieMap.toLinearMap ⊔
+        (((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule.map
+          C.lieMap.toLinearMap).map C.cplx.toLinearMap := by
+  ext ζ
+  simp only [LieSubalgebra.mem_toSubmodule, InfinitesimalAction.mem_isotropy_iff,
+    InfinitesimalAction.fundamental_apply, Submodule.mem_sup, Submodule.mem_map,
+    LieHom.coe_toLinearMap]
+  rw [h.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero hμ hg hx]
+  constructor
+  · rintro ⟨hre, him⟩
+    exact ⟨_, ⟨C.re ζ, hre, rfl⟩, _, ⟨C.lieMap (C.im ζ), ⟨C.im ζ, him, rfl⟩, rfl⟩,
+      C.lieMap_re_add_cplx_lieMap_im ζ⟩
+  · rintro ⟨_, ⟨a, ha, rfl⟩, _, ⟨_, ⟨b, hb, rfl⟩, rfl⟩, rfl⟩
+    rw [map_add, map_add, C.re_lieMap, C.im_lieMap, C.re_cplx_lieMap, C.im_cplx_lieMap, add_zero,
+      zero_add]
+    exact ⟨ha, hb⟩
+
+/-- In the setting of `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, the isotropy
+algebra of `x` for the action of `Gc` is stable under `C.cplx`. -/
+theorem IsComplexifiedAction.cplx_mem_isotropy_of_moment_eq_zero (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    {ζ : GroupLieAlgebra IC Gc} (hζ : ζ ∈ (InfinitesimalAction.fundamental IC Gc I' M).isotropy x) :
+    C.cplx ζ ∈ (InfinitesimalAction.fundamental IC Gc I' M).isotropy x := by
+  rw [InfinitesimalAction.mem_isotropy_iff, InfinitesimalAction.fundamental_apply,
+    h.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero hμ hg hx] at hζ ⊢
+  rw [C.re_cplx, C.im_cplx, ← InfinitesimalAction.fundamental_apply, map_neg,
+    InfinitesimalAction.fundamental_apply, Pi.neg_apply, neg_eq_zero]
+  exact hζ.symm
+
+variable [T2Space M] [BoundarylessManifold I' M] [IsTopologicalGroup Gc] [FiniteDimensional ℝ EC]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+
+/-- **The tangent space at `1` of the identity component of `Gc_x`.** In the setting of
+`IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, for any embedded Lie subgroup
+structure on the identity component `Gc₀` of the stabilizer of `x` in `Gc`, the differential at
+`1` of the inclusion `Gc₀ → Gc` has range `C.lieMap 𝔥 ⊔ C.cplx (C.lieMap 𝔥)`, where `𝔥` is the
+isotropy algebra of `x` for the action of `G`. -/
+theorem IsComplexifiedAction.range_groupLieAlgebraMap_subtype_stabilizer_eq_sup
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (d : EmbeddedLieSubgroupData IC (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne F) :
+    let _ := d.chartedSpace
+    LinearMap.range
+        ((MulAction.stabilizer Gc x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+          𝓘(ℝ, F) IC).toLinearMap =
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule.map
+          C.lieMap.toLinearMap ⊔
+        (((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule.map
+          C.lieMap.toLinearMap).map C.cplx.toLinearMap :=
+  (d.range_groupLieAlgebraMap_subtype_stabilizer (I' := I')).trans
+    (h.isotropy_eq_map_lieMap_sup_of_moment_eq_zero hμ hg hx)
+
+/-- **The complex structure of the Lie algebra of the identity component of `Gc_x`.** In the
+setting of `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, let `Gc₀` be the identity
+component of the stabilizer of `x` in `Gc`, with an embedded Lie subgroup structure `d`. The
+differential at `1` of the inclusion `Gc₀ → Gc` identifies the tangent space of `Gc₀` at `1` with
+the isotropy algebra of `x` in the Lie algebra of `Gc`, which `C.cplx` preserves; this is `C.cplx`
+read through that identification
+(`IsComplexifiedAction.groupLieAlgebraMap_subtype_stabilizerCplx`). -/
+noncomputable def IsComplexifiedAction.stabilizerCplx (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (d : EmbeddedLieSubgroupData IC (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne F) :
+    let _ := d.chartedSpace
+    AlmostComplexStructure
+      (GroupLieAlgebra 𝓘(ℝ, F) (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne) :=
+  let _ := d.chartedSpace
+  (C.cplx.restrict _ fun _ hζ ↦ h.cplx_mem_isotropy_of_moment_eq_zero hμ hg hx hζ).transport
+    (d.groupLieAlgebraEquivIsotropy (I' := I')).symm
+
+/-- The inclusion of the identity component `Gc₀` of `Gc_x` intertwines
+`IsComplexifiedAction.stabilizerCplx` with `C.cplx`: the differential at `1` of `Gc₀ → Gc` sends
+`stabilizerCplx ζ` to `C.cplx` of the image of `ζ`. -/
+theorem IsComplexifiedAction.groupLieAlgebraMap_subtype_stabilizerCplx
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (d : EmbeddedLieSubgroupData IC (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne F) :
+    let _ := d.chartedSpace
+    ∀ ζ, (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+        𝓘(ℝ, F) IC (h.stabilizerCplx hμ hg hx d ζ) =
+      C.cplx ((MulAction.stabilizer Gc x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+        𝓘(ℝ, F) IC ζ) := by
+  let _ := d.chartedSpace
+  dsimp only
+  intro ζ
+  rw [← d.coe_groupLieAlgebraEquivIsotropy (I' := I'),
+    ← d.coe_groupLieAlgebraEquivIsotropy (I' := I')]
+  simp only [stabilizerCplx, AlmostComplexStructure.transport_apply, LinearEquiv.symm_symm,
+    LinearEquiv.apply_symm_apply, AlmostComplexStructure.coe_restrict_apply]
+
+/-- `IsComplexifiedAction.stabilizerCplx` commutes with brackets:
+`stabilizerCplx ⁅ζ, ζ'⁆ = ⁅ζ, stabilizerCplx ζ'⁆`, as `C.cplx` does
+(`LieComplexification.cplx_lie`). -/
+theorem IsComplexifiedAction.stabilizerCplx_lie (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (d : EmbeddedLieSubgroupData IC (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne F) :
+    let _ := d.chartedSpace
+    let _ := d.lieGroup
+    ∀ ζ ζ' : GroupLieAlgebra 𝓘(ℝ, F) (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne,
+      h.stabilizerCplx hμ hg hx d ⁅ζ, ζ'⁆ = ⁅ζ, h.stabilizerCplx hμ hg hx d ζ'⁆ := by
+  let _ := d.chartedSpace
+  let _ := d.lieGroup
+  dsimp only
+  intro ζ ζ'
+  have hι := d.groupLieAlgebraLieHom_subtypeVal
+  apply d.injective_groupLieAlgebraMap_subtype
+  rw [h.groupLieAlgebraMap_subtype_stabilizerCplx, ← hι, ← hι, LieHom.map_lie, LieHom.map_lie,
+    hι, hι, hι, h.groupLieAlgebraMap_subtype_stabilizerCplx, C.cplx_lie]
+
+variable [T2Space G] [IsTopologicalGroup G] [IC.Boundaryless]
+  {F₀ : Type*} [NormedAddCommGroup F₀] [NormedSpace ℝ F₀] [FiniteDimensional ℝ F₀]
+
+/-- **The Lie algebra of `H₀` is maximal totally real in that of `Gc₀`.** In the setting of
+`IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, let `H₀` and `Gc₀` be the identity
+components of the stabilizers of `x` in `G` and in `Gc`, with embedded Lie subgroup structures `dH`
+and `d`, and let `C.toHom` map `H₀` into `Gc₀`. Then the range of the Lie algebra map of the
+restriction `H₀ → Gc₀` of `C.toHom` is maximal totally real for
+`IsComplexifiedAction.stabilizerCplx`. -/
+theorem IsComplexifiedAction.isMaximalTotallyReal_range_restrict (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (dH : EmbeddedLieSubgroupData I (MulAction.stabilizer G x).ambientConnectedComponentOfOne F₀)
+    (d : EmbeddedLieSubgroupData IC (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne F)
+    (hmaps : Set.MapsTo C.toHom (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+      (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne) :
+    let _ := dH.chartedSpace
+    let _ := d.chartedSpace
+    let _ := dH.lieGroup
+    let _ := d.lieGroup
+    IsMaximalTotallyReal (h.stabilizerCplx hμ hg hx d).toLinearMap
+      (LinearMap.range (C.toHom.restrict dH d hmaps).groupLieAlgebraLieHom.toLinearMap) := by
+  let _ := dH.chartedSpace
+  let _ := d.chartedSpace
+  let _ := dH.lieGroup
+  let _ := d.lieGroup
+  dsimp only
+  set 𝔥 := ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+  set R := LinearMap.range (C.toHom.restrict dH d hmaps).groupLieAlgebraLieHom.toLinearMap
+  set ι := ((MulAction.stabilizer Gc x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+    𝓘(ℝ, F) IC).toLinearMap
+  have hι : Function.Injective ι := d.injective_groupLieAlgebraMap_subtype
+  -- Through the inclusion, `R` is `C.lieMap 𝔥`, by the commuting square of the restriction.
+  have hR : R.map ι = 𝔥.map C.lieMap.toLinearMap := by
+    have hsq : ι ∘ₗ (C.toHom.restrict dH d hmaps).groupLieAlgebraLieHom.toLinearMap =
+        C.lieMap.toLinearMap ∘ₗ
+          ((MulAction.stabilizer G x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+            𝓘(ℝ, F₀) I).toLinearMap :=
+      LinearMap.ext fun ζ ↦
+        (C.toHom.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict dH d hmaps ζ).trans
+          (by
+            simp only [C.lieMap_def, ContMDiffMonoidMorphism.toLinearMap_groupLieAlgebraLieHom,
+              ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, LinearMap.coe_comp,
+              ContinuousLinearMap.coe_coe, Function.comp_apply])
+    rw [← LinearMap.range_comp, hsq, LinearMap.range_comp,
+      dH.range_groupLieAlgebraMap_subtype_stabilizer (I' := I')]
+  have hJ : ι ∘ₗ (h.stabilizerCplx hμ hg hx d).toLinearMap = C.cplx.toLinearMap ∘ₗ ι :=
+    LinearMap.ext (h.groupLieAlgebraMap_subtype_stabilizerCplx hμ hg hx d)
+  have hRJ : (R.map (h.stabilizerCplx hμ hg hx d).toLinearMap).map ι =
+      (𝔥.map C.lieMap.toLinearMap).map C.cplx.toLinearMap := by
+    rw [← Submodule.map_comp, hJ, Submodule.map_comp, hR]
+  have hle : 𝔥.map C.lieMap.toLinearMap ≤ LinearMap.range C.lieMap.toLinearMap :=
+    LinearMap.map_le_range
+  refine (isMaximalTotallyReal_iff _ _).2
+    ⟨disjoint_iff.2 (Submodule.map_injective_of_injective hι ?_),
+      codisjoint_iff.2 (Submodule.map_injective_of_injective hι ?_)⟩
+  · rw [Submodule.map_inf _ hι, hR, hRJ, Submodule.map_bot]
+    exact (C.isMaximalTotallyReal_range_lieMap.disjoint.mono hle (Submodule.map_mono hle)).eq_bot
+  · rw [Submodule.map_sup, hR, hRJ, Submodule.map_top,
+      h.range_groupLieAlgebraMap_subtype_stabilizer_eq_sup hμ hg hx d]
+
+end StabilizerCplx
 
 end SymplecticGeometry
