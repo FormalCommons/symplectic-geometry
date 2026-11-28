@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
+public import SymplecticGeometry.Geometry.Lie.Exponential.Periods
 public import SymplecticGeometry.Geometry.Lie.Subgroup.Parabolic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
@@ -70,6 +71,14 @@ a bounded amount, since the conjugates of `q⁻¹` converge and so have bounded 
 (`abs_kempfNessFunction_expI_mul_toHom_le`, `exists_eventually_abs_kempfNessFunction_le`); so
 `w_μ(q x, ξ) = w_μ(x, ξ)` (`momentWeight_smul_of_mem_parabolic`).
 
+With these transformation rules one proves steps 6 and 7 of the sufficiency half of the
+polystability criterion in [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 12.5). Suppose
+`exp (i t ζ) y` tends to a zero `x` of `μ` outside the orbit of `p`, for a period `ζ` and
+`p = g y`. Write `g = u q` with `u : G` and `q` in `C.parabolic ζ`. Then `ξ = Ad u ζ` has
+`w_μ(p, ξ) = w_μ(y, ζ) = μ x ζ = 0`, and `p⁺_ξ = u q₊ x`, where `q₊` is `C.parabolicLimit ζ q`.
+That point is in the orbit of `x`, hence not in the orbit of `p`
+(`exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`).
+
 ## Main definitions
 
 * `SymplecticGeometry.momentWeight C μ p ξ`: the limit of `μ (C.expI (t • ξ) • p) ξ` as
@@ -107,6 +116,9 @@ a bounded amount, since the conjugates of `q⁻¹` converge and so have bounded 
   `Gc`, `Φ_p` is eventually bounded, uniformly in `p`.
 * `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
   is nonpositive.
+* `SymplecticGeometry.exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`: a period `ζ` along
+  which a point of the orbit of `p` flows to a zero of `μ` outside that orbit gives a period
+  `ξ` with `w_μ(p, ξ) = 0` and `p⁺_ξ` outside the orbit.
 
 ## References
 
@@ -609,6 +621,63 @@ theorem IsSemistable.momentWeight_nonpos (h : IsComplexifiedAction C J)
     ((isSemistable_iff_bddBelow_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG p).1 hp)
 
 end Semistable
+
+/-! ### A weight-zero direction whose limit point leaves the orbit -/
+
+section Polystable
+
+open _root_.Bundle
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [CompactSpace G] [T2Space G] [ConnectedSpace G] [BoundarylessManifold I G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E' M] [IsManifold 𝓘(ℝ, E') ∞ M] [T2Space M]
+  [CompactSpace M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I 𝓘(ℝ, E') ∞ G M]
+  [ContMDiffSMul IC 𝓘(ℝ, E') ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x)]
+  [IsContMDiffRiemannianBundle 𝓘(ℝ, E') 1 E' (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x)]
+  {σ : SmoothTwoForm 𝓘(ℝ, E') M} {J : SmoothAlmostComplexStructure 𝓘(ℝ, E') M}
+  {C : LieComplexification I G IC Gc} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **A weight-zero direction whose limit point leaves the orbit.** Under the hypotheses of
+`tendsto_limitPoint`, with `-μ` equivariant and `G` connected, suppose that some `y` in the
+`Gc`-orbit of `p` and some `ζ ∈ nonzeroPeriods I G` have `C.expI (t • ζ) • y → x` as `t → ∞`,
+where `μ x = 0` and `x` is not in the orbit of `p`. Then some `ξ ∈ nonzeroPeriods I G` has
+`w_μ(p, ξ) = 0` and its limit point `p⁺_ξ` is not in the orbit of `p`. -/
+theorem exists_momentWeight_eq_zero_limitPoint_not_mem_orbit (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {p x y : M} (hy : y ∈ MulAction.orbit Gc p) {ζ : GroupLieAlgebra I G}
+    (hζ : ζ ∈ nonzeroPeriods I G) (hlim : Tendsto (fun t : ℝ ↦ C.expI (t • ζ) • y) atTop (𝓝 x))
+    (hx : μ x = 0) (hxp : x ∉ MulAction.orbit Gc p) :
+    ∃ ξ ∈ nonzeroPeriods I G,
+      momentWeight C μ p ξ = 0 ∧ limitPoint C p ξ ∉ MulAction.orbit Gc p := by
+  obtain ⟨g, hgy⟩ := MulAction.mem_orbit_iff.1 hy
+  -- Write `g⁻¹ = C.toHom u * q` with `q` in the parabolic subgroup of `ζ`, so `p = u q y`.
+  obtain ⟨u, q, hq, hgq⟩ := C.exists_toHom_mul_mem_parabolic ζ g⁻¹
+  have hp : p = C.toHom u • ((⟨q, hq⟩ : C.parabolic ζ) : Gc) • y := by
+    rw [smul_smul, ← hgq, ← hgy, inv_smul_smul]
+  have hxy : limitPoint C y ζ = x := limitPoint_eq_of_tendsto hlim
+  refine ⟨Lie.tangentAd (I := I) u ζ, tangentAd_mem_nonzeroPeriods hζ u, ?_, ?_⟩
+  · rw [hp, momentWeight_toHom_smul h hμ, momentWeight_smul_of_mem_parabolic h hμ hg,
+      momentWeight_eq_moment_limitPoint h hμ.toIsMomentMap hg, hxy, hx, LinearMap.zero_apply]
+  · -- The limit point lies in the orbit of `x`, which is disjoint from that of `p`.
+    have hpx : limitPoint C p (Lie.tangentAd (I := I) u ζ) =
+        (C.toHom u * C.parabolicLimit ζ ⟨q, hq⟩) • x := by
+      rw [hp, limitPoint_toHom_smul h hμ.toIsMomentMap hg,
+        limitPoint_smul_of_mem_parabolic h hμ.toIsMomentMap hg, hxy, mul_smul]
+    rw [hpx, ← MulAction.orbit_eq_iff, MulAction.orbit_smul, MulAction.orbit_eq_iff]
+    exact hxp
+
+end Polystable
 
 end SymplecticGeometry
 
