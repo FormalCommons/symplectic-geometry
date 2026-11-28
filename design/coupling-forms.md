@@ -254,7 +254,7 @@ About 500 lines.
 - `hasHamiltonianCurvature_of_isClosed`: for a closed `τ` that restricts to
   `σ` and defines `hD`, the curvature is Hamiltonian, with Hamiltonian the
   restriction of $\tau(v_1^\sharp,v_2^\sharp)$ to the fibre (from the
-  identity with $d\tau=0$, and `curvature_congr` for the pointwise values).
+  identity with $d\tau=0$).
   This is the page's equation (1.12) of [GuilleminLermanSternberg1996].
 - `curvatureIn_local` (the local formula): in the setting of
   `LocalForm.lean`, with $X_i$ the fields of `horizontalLift_local`, the
