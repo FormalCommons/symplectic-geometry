@@ -27,17 +27,17 @@ smoothly in `x`, where `∂ᵢ` differentiates along `bs i`. If, at every `x` of
 set `U`, the curl is the differential of a smooth function on `F`, then there is a function `f`
 on `EB × F`, smooth on `U ×ˢ univ` and vanishing on `U × {y₀}`, whose restriction to each fibre
 over `x ∈ U` is such a primitive
-(`TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub`).
+(`TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_mixedCurl`).
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub`: jointly
-  smooth primitives of the curls over an open patch, normalized at a point `y₀` of `F`.
+* `TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_mixedCurl`: jointly smooth
+  primitives of the mixed curls over an open patch, normalized at a point `y₀` of `F`.
 
 ## Implementation notes
 
 By the formula for the curl in `Fibration/LocalForm.lean`
-(`TauCeti.SmoothTwoForm.fderiv_mixedComponent_sub_fderiv_mixedComponent`), the curl at `x` is
+(`TauCeti.SmoothTwoForm.mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv`), the curl at `x` is
 `d_F f_{ij}(x)` minus the slice over `x` of the smooth one-form `η = ι(∂ⱼ, 0) ι(∂ᵢ, 0) dτ` on
 `EB × F`. If the curl at `x` is exact, then so is that slice.
 The slices of `η` over the patch, the subtype of `U` as an open subset of `EB`, form a smooth
@@ -90,18 +90,13 @@ variable [CompleteSpace EB] [CompleteSpace EF]
 for every `y₀ : F` there is a function `f` on `EB × F`, smooth on `U ×ˢ univ`, with
 `f (x, y₀) = 0` for `x ∈ U`, whose restriction to the fibre over each `x ∈ U` has differential
 `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)`. Here `∂ₖ` differentiates in `x` along `bs k`. -/
-theorem exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub {U : Set EB} (hU : IsOpen U)
-    {i j : ι}
+theorem exists_contMDiffOn_mvfderiv_eq_mixedCurl {U : Set EB} (hU : IsOpen U) {i j : ι}
     (h : ∀ x ∈ U, ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-      mvfderiv IF g y w =
-        fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
-          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j))
+      mvfderiv IF g y w = RoughForm.mixedCurl τ.val bs i j x y w)
     (y₀ : F) :
     ∃ f : EB × F → ℝ, ContMDiffOn (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞ f (U ×ˢ univ) ∧
       (∀ x ∈ U, f (x, y₀) = 0) ∧ ∀ x ∈ U, ∀ (y : F) (w : TangentSpace IF y),
-        mvfderiv IF (fun y ↦ f (x, y)) y w =
-          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) := by
+        mvfderiv IF (fun y ↦ f (x, y)) y w = RoughForm.mixedCurl τ.val bs i j x y w := by
   classical
   let V : TopologicalSpace.Opens EB := ⟨U, hU⟩
   obtain ⟨η, hη⟩ := exists_mpullback_prodMk_apply_eq_mextDeriv τ bs i j
@@ -126,7 +121,7 @@ theorem exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub {U : Set EB} (h
     rw [ContinuousAlternatingMap.ofSubsingleton_apply_apply, show v = ![v 0] from
       funext fun k ↦ by fin_cases k; rfl, hη, mvfderiv_fun_sub
       ((hfx t).mdifferentiableAt (by simp)) (hg.mdifferentiableAt (by simp)), sub_apply, hdg,
-      fderiv_mixedComponent_sub_fderiv_mixedComponent]
+      mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv]
     abel
   obtain ⟨h₀, hh₀, hdh₀⟩ :=
     SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms hα hex
@@ -151,7 +146,7 @@ theorem exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub {U : Set EB} (h
   rw [he, mvfderiv_fun_sub (((hfx x).sub hh).mdifferentiableAt (by simp))
       mdifferentiableAt_const, mvfderiv_const, sub_zero, mvfderiv_fun_sub
       ((hfx x).mdifferentiableAt (by simp)) (hh.mdifferentiableAt (by simp)), sub_apply, hd, hη,
-    fderiv_mixedComponent_sub_fderiv_mixedComponent]
+    mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv]
 
 end TauCeti.SmoothTwoForm
 
