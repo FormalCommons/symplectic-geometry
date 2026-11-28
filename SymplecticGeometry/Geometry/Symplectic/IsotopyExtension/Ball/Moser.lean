@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Symplectic.Manifold.Opens
@@ -252,9 +252,10 @@ theorem exists_isSymplecticBallFamily_eqOn_of_mpullback_eq
     SmoothTwoForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
       ((SymplecticForm.isClosed_constSmooth _).mpullback _ _) _ β hβ hβ₀ hKc
       (fun t x hx ↦ (hβK t x hx).1)
-      fun t x hx s _ ↦ SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq (hβK t x hx).2
-        (((SymplecticForm.isNondegenerate_constSmooth _).mpullback_subtype_val B
-          ).nondegenerate_bilinFormAt x) s
+      fun t x hx s _ ↦
+        SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq (sub_eq_zero.mp (hβK t x hx).2) s ▸
+          ((SymplecticForm.isNondegenerate_constSmooth _).mpullback_subtype_val B
+            ).nondegenerate_bilinFormAt x
   obtain ⟨O, hOo, hKO, hO⟩ := eventually_nhdsSet_iff_exists.1 hχ
   obtain ⟨r, hr, k', hk', hk'K, hk'id⟩ := exists_isSymplecticBallFamily_of_diffeotopy (σ := σ) hKB
     (hk.mono (prod_mono subset_rfl hBU)) hinj χ hχK hOo hKO fun t x hx ↦ by

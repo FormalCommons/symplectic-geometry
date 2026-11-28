@@ -11,6 +11,7 @@ import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -93,19 +94,14 @@ theorem range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source [IsMan
   exact LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.mpr L.surjective)
 
 /-- On a boundaryless model, let `h` map a normed space `F` into the target of the extended chart
-at `x`. If `h` is differentiable at `z` with injective derivative, then the map
-`w ↦ (extChartAt I x).symm (h w)` into `M` has injective differential at `z`. -/
+at `x`. If `h` has injective derivative at `z`, then the map `w ↦ (extChartAt I x).symm (h w)`
+into `M` has injective differential at `z`. -/
 theorem injective_mfderiv_extChartAt_symm_comp [I.Boundaryless] [IsManifold I 1 M] {h : F → E}
-    {z : F} (hz : h z ∈ (extChartAt I x).target) (hh : DifferentiableAt 𝕜 h z)
-    (hinj : Function.Injective (fderiv 𝕜 h z)) :
-    Function.Injective (mfderiv 𝓘(𝕜, F) I (fun w ↦ (extChartAt I x).symm (h w)) z) := by
-  obtain ⟨L, hL⟩ := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) hz
-  -- `show` puts the map in the form `(extChartAt I x).symm ∘ h`, the composite for which
-  -- `mfderiv_comp` is stated.
-  rw [show (fun w ↦ (extChartAt I x).symm (h w)) = (extChartAt I x).symm ∘ h from rfl,
-    mfderiv_comp z (mdifferentiableAt_of_isInvertible_mfderiv ⟨L, hL⟩) hh.mdifferentiableAt,
-    mfderiv_eq_fderiv, ← hL]
-  exact L.injective.comp hinj
+    {z : F} (hz : h z ∈ (extChartAt I x).target) (hinj : Function.Injective (fderiv 𝕜 h z)) :
+    Function.Injective (mfderiv 𝓘(𝕜, F) I (fun w ↦ (extChartAt I x).symm (h w)) z) :=
+  TauCeti.injective_mfderiv_comp (f := h)
+    (TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) hz).injective
+    (by rwa [mfderiv_eq_fderiv])
 
 end SymplecticGeometry
 

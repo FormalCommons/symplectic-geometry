@@ -196,7 +196,7 @@ theorem range_torusEmbedding :
 theorem mpullback_torusEmbedding_symplecticForm :
     SmoothForm.mpullback (torusEmbedding e p) (torusEmbedding e p).contMDiff
       (symplecticForm e p) = torusSymplecticForm p := by
-  rw [torusEmbedding_def, SmoothEmbedding.mpullback_transDiffeomorphOfBoundaryless _ _ _
+  rw [torusEmbedding_def, SmoothEmbedding.mpullback_transDiffeomorphOfBoundaryless _ _
     (mpullback_diffeomorph_symplecticForm e p), ← mpullback_fibreEmbedding_comp_torusDiffeomorph p]
   exact SmoothForm.mpullback_congr _ _ (SmoothEmbedding.coe_compDiffeomorphOfBoundaryless _ _ _) _
 
@@ -206,7 +206,7 @@ theorem hasSymplecticTangentImages_torusEmbedding :
       (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (torusEmbedding e p) := by
   rw [torusEmbedding_def]
   exact (SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff _
-    (diffeomorph e) _ (mpullback_diffeomorph_symplecticForm e p)).2
+    (diffeomorph e) (mpullback_diffeomorph_symplecticForm e p)).2
     (hasSymplecticTangentImages_fibreEmbedding_compDiffeomorph_torusDiffeomorph p)
 
 /-- **The symplectic framing of the embedded torus.** The framing `fibreFraming` of the fibre over

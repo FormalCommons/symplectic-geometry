@@ -601,7 +601,7 @@ parallel transport, principal connections and fibre integrals of parts
 | Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `TauCeti.MapFiber.Atlas` with `IsContMDiff`; structure groups `TauCeti.MapFiber.Atlas.HasStructureGroup`, symplectic atlases, `TauCeti.MapFiber.Atlas.RestrictsTo` (see *Fibrations, connections and diffeomorphism groups*) | Tau Ceti, *Symplectic fibrations* |
 | Connection on a fibration, horizontal lift | `TauCeti.IsEhresmannConnection`, `horizontalLift` | Tau Ceti |
 | Parallel transport, holonomy, curvature of a connection | `TauCeti.IsEhresmannConnection.parallelTransport`, `curvature` | *Parallel transport* |
-| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `TauCeti.gaugeCurvature` | *Principal connections* |
+| Connection 1-form on a principal bundle, its curvature | `TauCeti.PrincipalBundle.IsConnectionForm`, `TauCeti.gaugeCurvature` | *Principal connections* |
 | Flux, flux group, endpoint flux | `TauCeti.Diffeotopy.flux`, `TauCeti.fluxGroup`, `TauCeti.endpointFlux` | Tau Ceti |
 | Integration over the fibre | `TauCeti.MapFiber.Atlas.fiberIntegral` | *Integration over the fibre* |
 | Diffeomorphism group with the $C^\infty$ topology | `TauCeti.Diff` with `Diffeomorph.weakWhitneyTopology` | Tau Ceti |
@@ -2469,9 +2469,7 @@ complete target and a function on the whole half-space.
   boundaryless re-modelling `TauCeti.BoundarylessModel`), the
   library's `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (the interior of a manifold with boundary as a
-  boundaryless manifold), which is merged, the library's
-  `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* (openness of
-  nondegeneracy, for `StableHamiltonian.lean`), which is merged,
+  boundaryless manifold), which is merged,
   `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
   `StableHamiltonian.lean`), and *Smooth families*: its
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which is merged, for
@@ -3401,12 +3399,13 @@ Differential topology and complex analysis only; it waits for no part of
 
 - **Files:** in `Geometry/Manifold/FiberBundle/Principal/`, beside the
   merged `CircleConnection.lean` and `BasicForm.lean`: `Connection/`
-  (`Basic.lean`, `Existence.lean` and `Curvature.lean`: connection
+  (`Basic.lean` and `Curvature.lean`: connection
   one-forms with values in the model space of `G`, which is
   `GroupLieAlgebra I G`,
-  `SymplecticGeometry.IsConnectionForm`: $A(p\xi)=\xi$ and
+  `TauCeti.PrincipalBundle.IsConnectionForm`: $A(p\xi)=\xi$ and
   $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$; their horizontal spaces; existence
-  over a paracompact base and the affine structure over
+  over a paracompact base (Tau Ceti's
+  `TauCeti.PrincipalBundle.exists_isConnectionForm`) and the affine structure over
   $\Omega^1(B,\mathrm{ad}P)$; the curvature $F_A=dA+\tfrac12[A\wedge A]$,
   horizontal and equivariant, with $F_A(X,Y)=-A([X,Y])$ on horizontal
   $X,Y$; and the comparison with `IsCircleConnectionForm` for
@@ -4020,7 +4019,7 @@ behind.
 | 0 | *Linear Moser* | — (it imports `Topology/Algebra/Module/BilinearForm.lean` of *Compatible complex structures*, which imports only Mathlib and Tau Ceti and is merged) |
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
-| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`, which is merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
+| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`, which is merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which is merged) |
 | 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 0 | *Lie group actions* | — |

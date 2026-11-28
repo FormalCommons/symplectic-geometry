@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 
 /-!
 # The stable set of a critical point in the lower level of a cobordism
@@ -419,34 +420,29 @@ theorem injective_comp_smul_coe_sphere {π : N → F} (hπ : ∀ z ∈ ball (0 :
     hπ _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL v))] at h'
   exact Subtype.ext (hL (smul_right_injective F hs.ne' h'))
 
-/-- **A scaled sphere in a disc is immersed.** If `ι` is differentiable with injective
-differential at every point of the ball of radius `ρ`, `L` is injective, and `0 < s` with
-`s * ‖L‖ < ρ`, then `u ↦ ι (s • L u)` has injective differential at every point of the unit
-sphere of `V`. -/
+/-- **A scaled sphere in a disc is immersed.** If `ι` has injective differential at every point
+of the ball of radius `ρ`, `L` is injective, and `0 < s` with `s * ‖L‖ < ρ`, then
+`u ↦ ι (s • L u)` has injective differential at every point of the unit sphere of `V`. -/
 theorem injective_mfderiv_comp_smul_coe_sphere [TopologicalSpace N] [ChartedSpace HN N]
     [Fact (finrank ℝ V = n + 1)]
-    (hι : ∀ z ∈ ball (0 : F) ρ, MDifferentiableAt 𝓘(ℝ, F) I ι z ∧
-      Injective (mfderiv 𝓘(ℝ, F) I ι z))
+    (hι : ∀ z ∈ ball (0 : F) ρ, Injective (mfderiv 𝓘(ℝ, F) I ι z))
     (hs : 0 < s) (hsL : s * ‖L‖ < ρ) (hL : Injective L) (u : sphere (0 : V) 1) :
     Injective (mfderiv (𝓡 n) I (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) u) := by
-  obtain ⟨hιd, hιi⟩ := hι _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u))
-  have hc : MDifferentiableAt (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u :=
-    (contMDiff_coe_sphere u).mdifferentiableAt one_ne_zero
-  have hg : MDifferentiableAt 𝓘(ℝ, V) 𝓘(ℝ, F) (s • L) (u : V) := (s • L).mdifferentiableAt
-  -- The map is `ι ∘ (s • L) ∘ (↑)` by definition; `mfderiv_comp` needs it written as that
-  -- composite to match.
-  rw [show (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) = ι ∘ (s • L) ∘ (↑) from rfl,
-    mfderiv_comp u hιd (hg.comp u hc), mfderiv_comp u hg hc, ContinuousLinearMap.mfderiv_eq]
   -- `mvfderiv` of the inclusion is its `mfderiv` followed by the identification of the tangent
   -- spaces of `V` with `V`.
   have h1 : Injective (mfderiv (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u) := by
     have h := injective_mvfderiv_subtypeVal_sphere (n := n) u
     rw [mvfderiv, ContinuousLinearMap.coe_comp] at h
     exact h.of_comp
-  have h2 : Injective (s • L) := fun a b h ↦ hL (smul_right_injective F hs.ne' h)
-  -- The tangent spaces of `V` and `F` are `V` and `F`, so the composition of the differentials is
-  -- that of the underlying maps.
-  exact hιi.comp (h2.comp h1)
+  have h2 : Injective (mfderiv 𝓘(ℝ, V) 𝓘(ℝ, F) (s • L) u) := by
+    rw [ContinuousLinearMap.mfderiv_eq]
+    exact fun a b h ↦ hL (smul_right_injective F hs.ne' h)
+  -- The map is `ι ∘ (s • L) ∘ (↑)` by definition; `TauCeti.injective_mfderiv_comp` needs it
+  -- written as that composite to match.
+  rw [show (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) = ι ∘ (s • L) ∘ (↑) from rfl]
+  exact TauCeti.injective_mfderiv_comp
+    (hι _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u)))
+    (TauCeti.injective_mfderiv_comp h2 h1)
 
 /-- **A scaled sphere misses the centre of the disc.** If `ι 0 = p`, `ι` has a left inverse `π`
 on the ball of radius `ρ`, `L` is injective, and `0 < s` with `s * ‖L‖ < ρ`, then
@@ -657,7 +653,7 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   refine ⟨σ, contMDiff_comp_smul_coe_sphere (fun z hz ↦ (hιs z hz).1) hs.le hsLρ,
     injective_comp_smul_coe_sphere hπι hs hsLρ L.injective,
     injective_mfderiv_comp_smul_coe_sphere
-      (fun z hz ↦ ⟨(hιs z hz).1.mdifferentiableAt (by simp), (hιs z hz).2⟩) hs hsLρ L.injective,
+      (fun z hz ↦ (hιs z hz).2) hs hsLρ L.injective,
     fun y hy ↦ ?_, ?_, ?_⟩
   · -- The sphere lies above the level `a` by the choice of `δ`.
     obtain ⟨⟨hys, hyp⟩, hyc⟩ := hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ

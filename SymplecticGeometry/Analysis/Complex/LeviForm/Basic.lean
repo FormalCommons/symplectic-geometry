@@ -15,7 +15,8 @@ rule `TauCeti.leviForm_add` and the rule `TauCeti.leviForm_neg` for negation. Th
 rule for a difference, `L(f - g) = L f - L g` at a point where `f` and `g` are of class `C²`
 (`TauCeti.leviForm_sub`), the analogue for functions of Tau Ceti's
 `LinearMap.BilinForm.leviForm_sub` for bilinear forms, and the invariance of the Levi form under
-adding a constant, `L(c + f) = L f`, which needs no smoothness (`TauCeti.leviForm_const_add`).
+adding a constant on either side, `L(c + f) = L(f + c) = L f`, which needs no smoothness
+(`TauCeti.leviForm_const_add`, `TauCeti.leviForm_add_const`).
 -/
 
 public section
@@ -37,6 +38,13 @@ theorem leviForm_sub (hf : ContDiffAt ℝ 2 f x) (hg : ContDiffAt ℝ 2 g x) :
 theorem leviForm_const_add (c : ℝ) (f : V → ℝ) (x : V) :
     leviForm (fun y ↦ c + f y) x = leviForm f x := by
   have h : fderiv ℝ (fun y ↦ c + f y) = fderiv ℝ f := funext fun _ ↦ fderiv_const_add c
+  rw [leviForm_def, leviForm_def, h]
+
+/-- Adding a constant on the right to a function does not change its Levi form. -/
+@[simp]
+theorem leviForm_add_const (f : V → ℝ) (c : ℝ) (x : V) :
+    leviForm (fun y ↦ f y + c) x = leviForm f x := by
+  have h : fderiv ℝ (fun y ↦ f y + c) = fderiv ℝ f := funext fun _ ↦ fderiv_add_const c
   rw [leviForm_def, leviForm_def, h]
 
 end TauCeti
