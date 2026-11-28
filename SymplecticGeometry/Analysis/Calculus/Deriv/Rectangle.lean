@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Topology.Order.Compact
@@ -27,7 +28,10 @@ partial derivatives into estimates that hold uniformly on the rectangle:
   Lipschitz in `ℓ`, with one constant for all `r ∈ K`;
 * `IsCompact.exists_pos_abs_sub_lt_of_continuousOn`: a function continuous on the rectangle is
   uniformly continuous in `ℓ`, uniformly in `r ∈ K` (Heine–Cantor,
-  `IsCompact.uniformContinuousOn_of_continuous`).
+  `IsCompact.uniformContinuousOn_of_continuous`);
+* `IsCompact.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn`: the same for the first `n`
+  derivatives in `r` of a family whose derivatives of order at most `n` are continuous on the
+  rectangle, with one step in `ℓ` for all of them.
 
 The first two come from the continuity of the partial derivatives `∂f/∂ℓ` and `∂²f/∂ℓ∂r` on `U`,
 which attain a positive minimum, respectively a bound, on the rectangle, and from the mean value
@@ -110,3 +114,19 @@ theorem IsCompact.exists_pos_abs_sub_lt_of_continuousOn {g : ℝ × ℝ → ℝ}
     rw [Prod.dist_eq, dist_self, Real.dist_eq, max_eq_left (abs_nonneg _)]
     linarith)
   rwa [Real.dist_eq] at h
+
+/-- Let `f : ℝ → ℝ → ℝ` be a family whose derivatives `∂ᵏf/∂rᵏ` of order `k ≤ n` are continuous
+on the compact rectangle `[a, b] × K`. Then they are uniformly continuous in `ℓ`, with one step
+for all of them: for every `ε > 0` there is `w > 0` such that moving `ℓ ∈ [a, b]` by at most `w`
+changes each of them at `(ℓ, r)` by less than `ε`, for every `r ∈ K`. -/
+theorem IsCompact.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn {n : ℕ} (hK : IsCompact K)
+    (hf : ∀ k ≤ n, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (f x.1) x.2) (Icc a b ×ˢ K))
+    {ε : ℝ} (hε : 0 < ε) :
+    ∃ w > 0, ∀ k ≤ n, ∀ r ∈ K, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b, |ℓ' - ℓ| ≤ w →
+      |iteratedDeriv k (f ℓ') r - iteratedDeriv k (f ℓ) r| < ε := by
+  choose! w hw hu using fun k (hk : k ≤ n) ↦ hK.exists_pos_abs_sub_lt_of_continuousOn (hf k hk) hε
+  have hmem : ∀ {k}, k ≤ n → k ∈ Finset.range (n + 1) := fun hk ↦
+    Finset.mem_range.2 (Nat.lt_succ_of_le hk)
+  refine ⟨(Finset.range (n + 1)).inf' ⟨0, hmem n.zero_le⟩ w,
+    (Finset.lt_inf'_iff _).2 fun k hk ↦ hw k (Nat.le_of_lt_succ (Finset.mem_range.1 hk)),
+    fun k hk r hr ℓ hℓ ℓ' hℓ' hl ↦ hu k hk r hr ℓ hℓ ℓ' hℓ' (hl.trans (Finset.inf'_le _ (hmem hk)))⟩

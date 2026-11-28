@@ -78,6 +78,7 @@ lemma relClass_cycle :
 include ht in
 /-- The alternating sum of the faces of a simplex, read in the subcomplex, is carried to the
 boundary of the simplex by the inclusion of chains. -/
+@[elementwise]
 lemma sum_ιChainComplex_comp_chainComplexMap_f :
     (∑ i, (-1 : ℤ) ^ i.val • Q.left.ιChainComplex (R := R) (t i)) ≫
         (SSet.chainComplexMap Q.hom R).f n =
