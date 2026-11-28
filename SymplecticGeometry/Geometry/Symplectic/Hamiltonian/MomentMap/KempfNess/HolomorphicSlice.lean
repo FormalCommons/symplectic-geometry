@@ -127,7 +127,7 @@ This is the inverse function step in Step 3 of the proof of Theorem 12.5 of
   `(α, β, v) ↦ J x (X_α x) + X_β x + v` on `K × K × S`.
 * `SymplecticGeometry.complexOrbitSliceEquiv`: the same map as a linear equivalence, at a zero of
   the moment map and for a complement `K` of the isotropy algebra.
-* `SymplecticGeometry.complexSliceMap I C J e K`: the complex slice map
+* `SymplecticGeometry.complexSliceMap C J e K`: the complex slice map
   `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on `K × K × S`.
 
 ## Main results
@@ -821,8 +821,6 @@ variable {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpac
   [T2Space Gc] [MulAction Gc M] [ContMDiffSMul IC I' ∞ Gc M] [FiniteDimensional ℝ E']
   [T2Space G]
 
-
-variable (I) in
 omit [FiniteDimensional ℝ E] [ContMDiffSMul IC I' ∞ Gc M] [FiniteDimensional ℝ E'] in
 /-- **The complex slice map** `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on
 `K × K × S`, for a complexification `C` of `G` whose group `Gc` acts on `M`, a linearizing chart
@@ -839,7 +837,7 @@ omit [FiniteDimensional ℝ E] [ContMDiffSMul IC I' ∞ Gc M] [FiniteDimensional
 theorem complexSliceMap_def (C : LieComplexification I G IC Gc)
     (J : SmoothAlmostComplexStructure I' M) {x : M} (e : LinearizingChart G I' x)
     (K : Submodule ℝ E) (p : K × K × complexOrbitNormal I G J x) :
-    complexSliceMap I C J e K p =
+    complexSliceMap C J e K p =
       (C.expI ((p.1 : E) : GroupLieAlgebra I G) *
         C.toHom (mulInvariantExp (I := I) ((p.2.1 : E) : GroupLieAlgebra I G))) •
           e.chart.symm (p.2.2 : TangentSpace I' x) :=
@@ -850,7 +848,7 @@ omit [FiniteDimensional ℝ E] [ContMDiffSMul IC I' ∞ Gc M] [FiniteDimensional
 @[simp]
 theorem complexSliceMap_zero (C : LieComplexification I G IC Gc)
     (J : SmoothAlmostComplexStructure I' M) {x : M} (e : LinearizingChart G I' x)
-    (K : Submodule ℝ E) : complexSliceMap I C J e K 0 = x := by
+    (K : Submodule ℝ E) : complexSliceMap C J e K 0 = x := by
   rw [complexSliceMap_def, Prod.fst_zero, Prod.snd_zero, Prod.fst_zero, Prod.snd_zero,
     ZeroMemClass.coe_zero]
   -- `GroupLieAlgebra I G` is `E` and `TangentSpace I' x` is `E'` by definition, so the zeros of
@@ -878,7 +876,7 @@ in the target of `e`. -/
 theorem contMDiffOn_complexSliceMap (C : LieComplexification I G IC Gc)
     (J : SmoothAlmostComplexStructure I' M) {x : M} (e : LinearizingChart G I' x)
     (K : Submodule ℝ E) :
-    ContMDiffOn 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' ∞ (complexSliceMap I C J e K)
+    ContMDiffOn 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' ∞ (complexSliceMap C J e K)
       {p | (p.2.2 : TangentSpace I' x) ∈ e.chart.target} := by
   have := C.finiteDimensional
   set S := complexOrbitNormal I G J x
@@ -906,7 +904,7 @@ whose fundamental vector field at `x` is `J x (X_α x) + X_β x`. -/
 theorem hasMFDerivAt_complexSliceMap {C : LieComplexification I G IC Gc}
     {J : SmoothAlmostComplexStructure I' M} (h : IsComplexifiedAction C J) {x : M}
     (e : LinearizingChart G I' x) (K : Submodule ℝ E) :
-    HasMFDerivAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' (complexSliceMap I C J e K) 0
+    HasMFDerivAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' (complexSliceMap C J e K) 0
       (LinearMap.toContinuousLinearMap (complexOrbitSliceMap I G J x K)) := by
   set S := complexOrbitNormal I G J x
   let Q : K × K × S →L[ℝ] E × E := (K.subtypeL.comp (ContinuousLinearMap.fst ℝ K (K × S))).prod
@@ -972,7 +970,7 @@ theorem hasMFDerivAt_complexSliceMap_complexOrbitSliceEquiv {C : LieComplexifica
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
     (e : LinearizingChart G I' x) {K : Submodule ℝ E}
     (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
-    HasMFDerivAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' (complexSliceMap I C J e K) 0
+    HasMFDerivAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' (complexSliceMap C J e K) 0
       (((complexOrbitSliceEquiv hμ hg hx hK).toContinuousLinearEquiv :
         (K × K × complexOrbitNormal I G J x) ≃L[ℝ] E') :
           (K × K × complexOrbitNormal I G J x) →L[ℝ] E') :=
@@ -992,18 +990,18 @@ theorem hasStrictFDerivAt_chart_complexSliceMap {C : LieComplexification I G IC 
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
     (e : LinearizingChart G I' x) {K : Submodule ℝ E}
     (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
-    HasStrictFDerivAt (fun p ↦ e.chart (complexSliceMap I C J e K p))
+    HasStrictFDerivAt (fun p ↦ e.chart (complexSliceMap C J e K p))
       (((complexOrbitSliceEquiv hμ hg hx hK).toContinuousLinearEquiv :
         (K × K × complexOrbitNormal I G J x) ≃L[ℝ] E') :
           (K × K × complexOrbitNormal I G J x) →L[ℝ] E') 0 := by
-  have hc : HasMFDerivAt I' 𝓘(ℝ, E') e.chart (complexSliceMap I C J e K 0)
+  have hc : HasMFDerivAt I' 𝓘(ℝ, E') e.chart (complexSliceMap C J e K 0)
       (ContinuousLinearMap.id ℝ E') := by
     rw [complexSliceMap_zero]
     exact e.hasMFDerivAt_chart
   have hfd := hasMFDerivAt_iff_hasFDerivAt.1
     ((hc.comp 0 (hasMFDerivAt_complexSliceMap_complexOrbitSliceEquiv h hμ hg hx e hK)).congr_mfderiv
       (ContinuousLinearMap.id_comp _))
-  have hcd : ContDiffAt ℝ ∞ (fun p ↦ e.chart (complexSliceMap I C J e K p)) 0 := by
+  have hcd : ContDiffAt ℝ ∞ (fun p ↦ e.chart (complexSliceMap C J e K p)) 0 := by
     refine contMDiffAt_iff_contDiffAt.1 ?_
     refine (e.contMDiffOn_chart.contMDiffAt (e.chart.open_source.mem_nhds ?_)).comp 0
       ((contMDiffOn_complexSliceMap C J e K).contMDiffAt
@@ -1026,7 +1024,7 @@ theorem isLocalDiffeomorphAt_complexSliceMap {C : LieComplexification I G IC Gc}
     (e : LinearizingChart G I' x) {K : Submodule ℝ E}
     (hK : IsCompl ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule K) :
     IsLocalDiffeomorphAt 𝓘(ℝ, K × K × complexOrbitNormal I G J x) I' ∞
-      (complexSliceMap I C J e K) 0 :=
+      (complexSliceMap C J e K) 0 :=
   isLocalDiffeomorphAt_of_mfderiv_eq (contMDiffOn_complexSliceMap C J e K)
     (isOpen_setOf_mem_chart_target J e K) e.zero_mem_target BoundarylessManifold.isInteriorPoint
     (by simp) (hasMFDerivAt_complexSliceMap_complexOrbitSliceEquiv h hμ hg hx e hK).mfderiv.symm
