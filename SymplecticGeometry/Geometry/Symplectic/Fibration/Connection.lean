@@ -277,11 +277,9 @@ theorem mlieDerivForm_apply_eq_mextDeriv_apply (hA : A.IsContMDiff ∞ IB IF IM)
   have hsb : RoughForm.IsSemibasic IB proj (RoughForm.interior X τ.val) := by
     refine RoughForm.isSemibasic_iff.2 fun y v i hv ↦ ?_
     obtain rfl : i = 0 := Subsingleton.elim _ _
-    have hy := (SmoothForm.isAlt_bilinFormAt τ y).isRefl _ _
-      (mem_horizontalDistribution_iff.1 (hXh y) (v 0) hv)
-    rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply] at hy
-    rw [RoughForm.interior_apply]
-    rwa [show v = ![v 0] from funext fun i ↦ by rw [Subsingleton.elim i 0, Matrix.cons_val_zero]]
+    rw [RoughForm.interior_apply,
+      show v = ![v 0] from funext fun i ↦ by rw [Subsingleton.elim i 0, Matrix.cons_val_zero]]
+    exact val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (hXh y) hv
   have hsm : IsSmoothBundleForm (I := IM) (F := ℝ) (V := Trivial M ℝ) 1
       (RoughForm.interior X τ.val) :=
     (isSmoothBundleForm_def 1 _).2 ((τ.isSmoothForm.of_le (by simp)).interior hX).contMDiff

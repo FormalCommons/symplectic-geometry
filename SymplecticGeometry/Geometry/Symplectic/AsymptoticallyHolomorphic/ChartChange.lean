@@ -32,7 +32,7 @@ are gathered in
 `RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le`.
 At `w = 0`, where `‖Dτ(0)‖ ≤ √2` and `τ 0 = z`, they are polynomials in `‖z‖`, and
 `‖z‖ ≤ √2 * d_k(x, y)`
-(`RescaledUnitaryCharts.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm`) turns the
+(`RescaledUnitaryCharts.norm_le_sqrt_two_mul_rescaledDist_symm`) turns the
 bound into a polynomial in `d_k(x, y)`. The bounds at `0` that both results below use, on the
 jets of `e`, of `dτ` and of a map composed with `τ`, are gathered in
 `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le`.
@@ -256,7 +256,8 @@ of frame between them. Then `0` lies in `D.chartTransitionDomain k x y`, `τ 0 =
 at `0`, the `r`-jet norm of `e` at `0` is at most `C * (1 + ‖z‖) ^ r`, that of `dτ` at `0` is at
 most `C`, that of `g ∘ τ` at `0` is at most `C * (1 + ‖z‖) ^ r` times that of `g` at `z` for every
 `g` that is `C^r` at `z`, and `(1 + ‖z‖) ^ (2 * r) ≤ 2 ^ r * (1 + d_k(x, y)) ^ (2 * r)`, for
-`d_k(x, y) = √(2π k) · d_g(x, y)` the rescaled Riemannian distance. -/
+`d_k(x, y) = √(2π k) · d_g(x, y)` the rescaled Riemannian distance
+`rescaledDist I k x y`. -/
 theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
@@ -272,8 +273,8 @@ theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
           ContDiffAt ℝ r g z →
           jetNormAt ℝ r (g ∘ D.chartTransition k x ((D.chart k x).symm z)) 0 ≤
             C * jetNormAt ℝ r g z * (1 + ‖z‖) ^ r) ∧
-        (1 + ‖z‖) ^ (2 * r) ≤ 2 ^ r * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-          Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ (2 * r) := by
+        (1 + ‖z‖) ^ (2 * r) ≤
+          2 ^ r * (1 + rescaledDist I k x ((D.chart k x).symm z)) ^ (2 * r) := by
   obtain ⟨ρ₁, hρ₁, -, hT⟩ := D.exists_forall_norm_fderiv_chartTransition_zero_le hρ₀
   obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   refine ⟨min ρ₁ ρ₃, lt_min hρ₁ hρ₃, (min_le_right _ _).trans hρ₃₀, fun r ↦ ?_⟩
@@ -285,7 +286,7 @@ theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
   have hz₃ := hball (min_le_right _ _)
   have hz₀ := hball ((min_le_right _ _).trans hρ₃₀)
   set y := (D.chart k x).symm z
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
   have hτ0 : D.chartTransition k x y 0 = z :=
     D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀)
   have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
@@ -296,7 +297,7 @@ theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
   -- The rescaled distance bounds `‖z‖`: `1 + ‖z‖ ≤ √2 * (1 + d)`.
   have hz0 : 0 ≤ 1 + ‖z‖ := by positivity
   have hd : 1 + ‖z‖ ≤ √2 * (1 + d) := by
-    have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₃₀ hk x
+    have h := D.norm_le_sqrt_two_mul_rescaledDist_symm hg hρ₃₀ hk x
       (hcmp hk x) hz₃
     nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
   have hd2 : (1 + ‖z‖) ^ 2 ≤ 2 * (1 + d) ^ 2 :=
@@ -315,7 +316,7 @@ with the following property. For all `k ≥ k₀`, all points `x`, all `z` in th
 `C^r` at `z`, the `r`-jet norm of `s` at `y = (D.chart k x)⁻¹ z` is at most
 `C * (1 + d_k(x, y)) ^ (2 * r)` times the `r`-jet norm at `z` of the reading of `s` in the chart
 centred at `x`. Here `d_k(x, y)` is the real number `√(2π k) · d_g(x, y)`, the rescaled
-Riemannian distance. -/
+Riemannian distance `rescaledDist I k x y`. -/
 theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
@@ -324,8 +325,7 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
       ∀ z ∈ ball (0 : StdSpace ι) (ρ * √k), ∀ {s : Π y, PowerBundle P k y},
         ContDiffAt ℝ r (D.reading k x s) z →
         D.jetNorm k r s ((D.chart k x).symm z) ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ (2 * r) *
+          C * (1 + rescaledDist I k x ((D.chart k x).symm z)) ^ (2 * r) *
             jetNormAt ℝ r (D.reading k x s) z := by
   obtain ⟨ρ, hρ, hρρ₀, hB⟩ := D.exists_forall_jetNormAt_chartChange_le hg hJ hα hρ₀
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
@@ -334,7 +334,7 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   obtain ⟨h0W, hτ0, -, he, -, hcomp, hd⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
   set f := D.reading k x s
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
   have hjf := jetNormAt_nonneg (𝕜 := ℝ) r f z
   calc D.jetNorm k r s y ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k x y) 0 *
         jetNormAt ℝ r (f ∘ D.chartTransition k x y) 0 := by
@@ -358,7 +358,7 @@ For all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ * √k`,
 `∂̄` reading in that chart is `C^r` at `z`, the `r`-jet norm of the `∂̄` reading of `s` at
 `y = (D.chart k x)⁻¹ z` is at most `C * (1 + d_k(x, y)) ^ (2 * r)` times the `r`-jet norm at `z`
 of the `∂̄` reading of `s` in the chart centred at `x`. Here `d_k(x, y)` is the real number
-`√(2π k) · d_g(x, y)`, the rescaled Riemannian distance. -/
+`√(2π k) · d_g(x, y)`, the rescaled Riemannian distance `rescaledDist I k x y`. -/
 theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
@@ -368,8 +368,7 @@ theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
         (∀ᶠ w in 𝓝 z, DifferentiableAt ℝ (D.reading k x s) w) →
         ContDiffAt ℝ r (D.dbarReading k x s) z →
         D.dbarJetNorm k r s ((D.chart k x).symm z) ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ (2 * r) *
+          C * (1 + rescaledDist I k x ((D.chart k x).symm z)) ^ (2 * r) *
             jetNormAt ℝ r (D.dbarReading k x s) z := by
   obtain ⟨ρ, hρ, hρρ₀, hB⟩ := D.exists_forall_jetNormAt_chartChange_le hg hJ hα hρ₀
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
@@ -378,7 +377,7 @@ theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   obtain ⟨h0W, hτ0, -, he, hjdτ, hcomp, hd⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
   set g := D.dbarReading k x s
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
   have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g z
   have hjgτ := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ D.chartTransition k x y) 0
   have hjdτ0 := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ (D.chartTransition k x y)) 0
@@ -408,7 +407,7 @@ following property. Let `k ≥ k₀`, `x` a point, `z` in the ball of radius `ρ
 `τ z = 0`, the `r`-jet norm of `e` at `z` is at most `C * (1 + d_k(x, y)) ^ r`, that of `dτ` at
 `z` is at most `C`, and that of `g ∘ τ` at `z` is at most `C` times that of `g` at `0` for every
 `g` that is `C^r` at `0`. Here `d_k(x, y) = √(2π k) · d_g(x, y)` is the rescaled Riemannian
-distance. -/
+distance `rescaledDist I k x y`. -/
 theorem exists_forall_jetNormAt_chartChange_chart_symm_le [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
@@ -418,8 +417,7 @@ theorem exists_forall_jetNormAt_chartChange_chart_symm_le [T2Space M] [I.Boundar
         z ∈ D.chartTransitionDomain k ((D.chart k x).symm z) x ∧
         D.chartTransition k ((D.chart k x).symm z) x z = 0 ∧
         jetNormAt ℝ r (D.frameChange k ((D.chart k x).symm z) x) z ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ r ∧
+          C * (1 + rescaledDist I k x ((D.chart k x).symm z)) ^ r ∧
         jetNormAt ℝ r (fderiv ℝ (D.chartTransition k ((D.chart k x).symm z) x)) z ≤ C ∧
         (∀ {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {g : StdSpace ι → F},
           ContDiffAt ℝ r g 0 →
@@ -432,7 +430,7 @@ theorem exists_forall_jetNormAt_chartChange_chart_symm_le [T2Space M] [I.Boundar
   refine ⟨2 ^ r * C, by positivity, fun {k} hk x z hz ↦ ?_⟩
   have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
   set y := (D.chart k x).symm z
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
   have hτz : D.chartTransition k y x z = 0 := D.chartTransition_chart_symm_apply_self hk x z
   have hzW := D.mem_chartTransitionDomain_chart_symm hk x hz₀
   obtain ⟨he, hdτ, hcomp⟩ := hB hk hzW (D.norm_fderiv_chartTransition_chart_symm_le hk
@@ -445,12 +443,12 @@ theorem exists_forall_jetNormAt_chartChange_chart_symm_le [T2Space M] [I.Boundar
       exact mul_le_mul_of_nonneg_right h2C (jetNormAt_nonneg _ _ _))⟩
   -- The change of frame, with `1 + ‖z‖ ≤ √2 * (1 + d) ≤ 2 * (1 + d)`.
   have hd : 1 + ‖z‖ ≤ 2 * (1 + d) := by
-    have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₁₀ hk x
+    have h := D.norm_le_sqrt_two_mul_rescaledDist_symm hg hρ₁₀ hk x
       (hcmp hk x) hz
     have h2 : √2 ≤ 2 := by
       rw [Real.sqrt_le_left (by norm_num)]
       norm_num
-    have hd0 : 0 ≤ d := ENNReal.toReal_nonneg
+    have hd0 : 0 ≤ d := rescaledDist_nonneg I k x y
     nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
   calc jetNormAt ℝ r (D.frameChange k y x) z ≤ C * (1 + ‖z‖) ^ r := he
     _ ≤ C * (2 * (1 + d)) ^ r := by gcongr
@@ -504,7 +502,7 @@ For all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ * √k`,
 `PowerBundle P k` whose reading in the chart centred at `y = (D.chart k x)⁻¹ z` is `C^r` at `0`,
 the `r`-jet norm at `z` of the reading of `s` in the chart centred at `x` is at most
 `C * (1 + d_k(x, y)) ^ r` times the `r`-jet norm of `s` at `y`. Here `d_k(x, y)` is the real
-number `√(2π k) · d_g(x, y)`, the rescaled Riemannian distance. -/
+number `√(2π k) · d_g(x, y)`, the rescaled Riemannian distance `rescaledDist I k x y`. -/
 theorem jetNormAt_reading_le_of_chart_change [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
@@ -513,8 +511,7 @@ theorem jetNormAt_reading_le_of_chart_change [T2Space M] [I.Boundaryless]
       ∀ z ∈ ball (0 : StdSpace ι) (ρ * √k), ∀ {s : Π y, PowerBundle P k y},
         ContDiffAt ℝ r (D.reading k ((D.chart k x).symm z) s) 0 →
         jetNormAt ℝ r (D.reading k x s) z ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ r *
+          C * (1 + rescaledDist I k x ((D.chart k x).symm z)) ^ r *
             D.jetNorm k r s ((D.chart k x).symm z) := by
   obtain ⟨ρ, hρ, hρρ₀, hB⟩ := D.exists_forall_jetNormAt_chartChange_chart_symm_le hg hJ hα hρ₀
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
@@ -523,7 +520,8 @@ theorem jetNormAt_reading_le_of_chart_change [T2Space M] [I.Boundaryless]
   obtain ⟨hzW, hτz, he, -, hcomp⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
   set f := D.reading k y s
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
+  have hd0 : 0 ≤ d := rescaledDist_nonneg I k x y
   calc jetNormAt ℝ r (D.reading k x s) z ≤ 2 ^ r * jetNormAt ℝ r (D.frameChange k y x) z *
         jetNormAt ℝ r (f ∘ D.chartTransition k y x) z :=
         D.jetNormAt_reading_le_frameChange_mul hk hzW (by rwa [hτz])
@@ -540,7 +538,7 @@ For all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ * √k`,
 near `0` and whose `∂̄` reading in that chart is `C^r` at `0`, the `r`-jet norm at `z` of the `∂̄`
 reading of `s` in the chart centred at `x` is at most `C * (1 + d_k(x, y)) ^ r` times the `r`-jet
 norm of `∂̄ s` at `y`. Here `d_k(x, y)` is the real number `√(2π k) · d_g(x, y)`, the rescaled
-Riemannian distance. -/
+Riemannian distance `rescaledDist I k x y`. -/
 theorem jetNormAt_dbarReading_le_of_chart_change [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
@@ -550,8 +548,7 @@ theorem jetNormAt_dbarReading_le_of_chart_change [T2Space M] [I.Boundaryless]
         (∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k ((D.chart k x).symm z) s) w) →
         ContDiffAt ℝ r (D.dbarReading k ((D.chart k x).symm z) s) 0 →
         jetNormAt ℝ r (D.dbarReading k x s) z ≤
-          C * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ r *
+          C * (1 + rescaledDist I k x ((D.chart k x).symm z)) ^ r *
             D.dbarJetNorm k r s ((D.chart k x).symm z) := by
   obtain ⟨ρ, hρ, hρρ₀, hB⟩ := D.exists_forall_jetNormAt_chartChange_chart_symm_le hg hJ hα hρ₀
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
@@ -560,7 +557,8 @@ theorem jetNormAt_dbarReading_le_of_chart_change [T2Space M] [I.Boundaryless]
   obtain ⟨hzW, hτz, he, hjdτ, hcomp⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
   set g := D.dbarReading k y s
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
+  have hd0 : 0 ≤ d := rescaledDist_nonneg I k x y
   have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g 0
   have hjgτ := jetNormAt_nonneg (𝕜 := ℝ) r (g ∘ D.chartTransition k y x) z
   have hjdτ0 := jetNormAt_nonneg (𝕜 := ℝ) r (fderiv ℝ (D.chartTransition k y x)) z
@@ -615,10 +613,10 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Bo
   have hz₃ := hball ((min_le_right _ _).trans (min_le_right _ _))
   have hz₀ := hball ((min_le_right _ _).trans ((min_le_right _ _).trans hρ₃₀))
   set y := (D.chart k x).symm z
-  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
+  set d := rescaledDist I k x y
+  have hd0 : 0 ≤ d := rescaledDist_nonneg I k x y
   have hdQ : (1 + d) ^ r ≤ Q := by
-    have h := ENNReal.toReal_le_of_le_ofReal (by positivity)
-      (D.ofReal_mul_riemannianEDist_symm_le hg hρ₃₀ hk x (hcmp hk x) hz₃)
+    have h := D.rescaledDist_symm_le hg hρ₃₀ hk x (hcmp hk x) hz₃
     refine pow_le_pow_left₀ (by positivity) ?_ r
     have : √(3 / 2) * ‖z‖ ≤ √(3 / 2) * |R| := by gcongr
     linarith

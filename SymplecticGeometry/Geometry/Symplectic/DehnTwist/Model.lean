@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Geodesic
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
@@ -845,7 +845,7 @@ theorem mpullback_modelTwist_liouvilleForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : 
         cotangentCoord_geodesicTwist hC hS (by rw [hR.two_pi_mul_deriv_zero, cos_pi])]
   have hK : twistPrimitive (n := n) R = fun z ↦ k (cotangentNorm z ^ 2) :=
     funext fun z ↦ by rw [twistPrimitive_def, hk]
-  refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun z v ↦ ?_
   have hdq : mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
       (cotangentCoord ∘ modelTwist hR) z v =
       fderiv ℝ (twistCoord C S) (cotangentCoord z)

@@ -557,14 +557,14 @@ theorem kempfNessFunction_add_moment_le [FiniteDimensional ℝ E']
 /-- **The lower bound from convexity, with norms.** In the setting of
 `kempfNessFunction_add_moment_le`, for a symmetric nonnegative form `B` on the Lie algebra,
 `Φ_p g - √(‖μ (g⁻¹ • p)‖²) * √(B η η) ≤ Φ_p (g * C.expI η * C.toHom u)`, where `‖μ x‖²` is
-`momentNormSq B hB μ x`. -/
+`momentNormSq μ (B.toDual hB).symm x`. -/
 theorem kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le [FiniteDimensional ℝ E']
     (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate} (hBs : B.IsSymm)
     (hpos : B.IsNonneg) (g : Gc) (η : GroupLieAlgebra I G) (u : G) :
-    kempfNessFunction C μ p g - √(momentNormSq B hB μ (g⁻¹ • p)) * √(B η η) ≤
+    kempfNessFunction C μ p g - √(momentNormSq μ (B.toDual hB).symm (g⁻¹ • p)) * √(B η η) ≤
       kempfNessFunction C μ p (g * C.expI η * C.toHom u) := by
   have hCS := neg_abs_le (μ (g⁻¹ • p) η) |>.trans' <| neg_le_neg <|
     abs_apply_le_sqrt_momentNormSq_mul_sqrt (hB := hB) hBs hpos η

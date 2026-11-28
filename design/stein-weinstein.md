@@ -873,7 +873,8 @@ containing `ι '' closedBall 0 1`:
       - `IsConvexShapeAt (χ ℓ) r` for `ℓ ∈ Icc 0 (7 * δ)` and `δ < r`;
       - `ContinuousOn (χ ℓ) (Ici δ)` and
         `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop` for `ℓ ∈ Icc 0 (7 * δ)`;
-      - `χ 0 = sqrtSubLeaf L δ 0`;
+      - `χ 0 = sqrtAddLeaf L δ 0`, which is `sqrtSubLeaf L δ 0` by
+        `sqrtAddLeaf_zero`;
       - `χ ℓ r = sqrtAddLeaf L δ ℓ r` for `ℓ ∈ Icc 0 (7 * δ)` and
         `2 * δ ≤ r`, so `χ ℓ r = √(64 * r ^ 2 + ℓ ^ 2)` for
         `(2 + L) * δ ≤ r`;
@@ -2353,8 +2354,8 @@ birth–death points are allowed.
   `Geometry/Manifold/IntegralCurve/Monotone.lean` if it fits there.
   (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
   it reaches `{f ≤ a}`, or it stays in the compact region, where its
-  limit set consists of critical points (Tau Ceti's
-  `Dynamics/Flow/OmegaLimit.lean`, and `IsGradientLike.strictMono_comp`),
+  limit set consists of critical points
+  (`IsGradientLike.exists_flow_apply_le_or_mapClusterPt_atBot`),
   which lie in the open set `{g < 0}`.
   (3) The forward orbit of every point of `g ⁻¹' {0}` reaches
   `f ⁻¹' {b}`. Otherwise it would tend to a critical point `q`, of which
