@@ -34,12 +34,15 @@ coefficients `ModuleCat.of ℤ (ULift ℤ)`. This is the counterpart for pairs o
   (`TopPair.singularCohomologyπ_singularCohomologyIntChainsIso_hom`). On the class of a cocycle it
   is the class of the compared cocycle (`TopPair.map_homologyπ_singularCohomologyIntChainsIso_hom`,
   `TopPair.mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles`).
-* `TopPair.singularKronecker_singularCohomologyIntChainsIso_hom_relClass`: a class over `k`, read
-  through integral chains, evaluates on the integral class `TopPair.relClass` of a singular
-  simplex whose faces lie in the subspace as the class itself evaluates on the class of that
-  simplex over `k`: both pairings evaluate a cocycle on the simplex
-  (`TopPair.relClass_comp_singularKronecker_homologyπ`), and the comparison of cochains casts the
-  coefficient `1` to `k`.
+* `TopPair.singularKronecker_singularCohomologyIntChainsIso_hom`: a class over `k`, read through
+  integral chains, pairs with an integral relative class as the class itself pairs with that
+  class cast to `k` by `SSetPair.intCastHomologyMap`
+  (`SimplicialSet/Homology/Relative/RestrictScalars.lean`): on classes of cycles both pairings
+  evaluate the cocycle on the cycle cast to `k`.
+* `TopPair.relClass_intCastHomologyMap`: that cast sends the integral class `TopPair.relClass` of
+  a singular simplex whose faces lie in the subspace to its class over `k`. With it,
+  `TopPair.singularKronecker_singularCohomologyIntChainsIso_hom_relClass` is the case of the
+  pairing on such a class.
 
 The cochain comparison follows Tau Ceti's `TopCat.restrictScalarsCochainMap`, with the relative
 chain map in place of `TopCat.restrictScalarsChainMap`, and the cohomology comparison and its
@@ -60,6 +63,29 @@ noncomputable section
 open CategoryTheory Limits Simplicial TauCeti
 
 namespace TopPair
+
+section RelClass
+
+variable {k : Type} [Ring k] (P : TopPair.{0})
+
+/-- Casting integral relative homology to `k` (`SSetPair.intCastHomologyMap`) sends the integral
+class of a singular `(p + 1)`-simplex `s` whose faces lie in the subspace to the class of `s`
+over `k`, through the cast of integers to `k` on coefficients. -/
+@[reassoc]
+theorem relClass_intCastHomologyMap {p : ℕ} (s : (TopCat.toSSet.obj P.fst) _⦋p + 1⦌)
+    (h : ∀ i, Set.range (P.fst.toSSetObjEquiv _ ((TopCat.toSSet.obj P.fst).δ i s)) ⊆
+      Set.range P.map) :
+    P.relClass (ModuleCat.of ℤ (ULift.{0} ℤ)) s h ≫
+        SSetPair.intCastHomologyMap k (toSSetPair.obj P) (p + 1) =
+      ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+          (P.relClass (ModuleCat.of k k) s h) := by
+  rw [relClass_def, relClass_def]
+  -- `s` is a simplex of `(toSSetPair.obj P).right`, which is `TopCat.toSSet.obj P.fst` only up to
+  -- unfolding `toSSetPair`, so the lemma for pairs of simplicial sets is applied as a term.
+  exact SSetPair.relClass_intCastHomologyMap (P := toSSetPair.obj P) s _ _
+
+end RelClass
 
 variable (k : Type) [CommRing k] (P : TopPair.{0})
 
@@ -334,6 +360,50 @@ theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles (p
         (P.singularCochainComplexIntChainsHom k).f p := by
   rw [HomologicalComplex.cyclesMap_i, Functor.mapCyclesIso_inv_comp_iCycles_assoc]
 
+/-! ### Pairings with integral relative classes -/
+
+/-- **Integral and `k`-linear pairings agree**: a class
+`c ∈ Hᵖ(X, A; k)`, read through integral chains (`TopPair.singularCohomologyIntChainsIso`),
+evaluates on an integral relative class `x ∈ Hₚ(X, A; ℤ)` to what `c` evaluates to on `x` cast
+to `k` (`SSetPair.intCastHomologyMap`). -/
+theorem singularKronecker_singularCohomologyIntChainsIso_hom (p : ℕ)
+    (c : P.singularCohomology (ModuleCat.of k k) k (ModuleCat.of k k) p) :
+    P.singularKronecker ℤ p ((P.singularCohomologyIntChainsIso k p).hom c) =
+      SSetPair.intCastHomologyMap k (toSSetPair.obj P) p ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map (P.singularKronecker k p c) ≫
+          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
+  -- A cocycle `ψ` representing `c`, taken in the restricted cycles.
+  obtain ⟨ψ, rfl⟩ : ∃ ψ, (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+      ((P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).homologyπ p) ψ = c :=
+    HomologicalComplex.moduleCat_homologyπ_surjective _ p c
+  rw [map_homologyπ_singularCohomologyIntChainsIso_hom_apply]
+  refine (cancel_epi ((P.singularChainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ p)).1 ?_
+  rw [singularKronecker_homologyπ,
+    mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles_apply]
+  refine (congrArg (HomologicalComplex.iCycles _ p ≫ ·)
+    (singularCochainComplexIntChainsHom_f_apply k P p _)).trans ?_
+  rw [SSetPair.homologyπ_intCastHomologyMap_assoc, ← Functor.map_comp_assoc]
+  -- The class over `k` is the restriction of scalars of the class map applied to `ψ`, the class of
+  -- `ψ` only up to unfolding the restriction of scalars of a morphism, which `rw` does not see.
+  erw [singularKronecker_homologyπ]
+  -- Both sides cast a relative cycle to `k` and evaluate the cocycle on it; the cocycle appears
+  -- read in the restricted cochains on one side and in the cochains on the other, the same
+  -- morphism up to unfolding, so the comparison is stated for any morphism and applied as a term.
+  have key (φ : (P.singularChainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
+      (P.singularChainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles p ≫
+          (SSetPair.intCastChainMap k (toSSetPair.obj P)).f p ≫
+            (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map φ ≫
+              (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom =
+        HomologicalComplex.cyclesMap (SSetPair.intCastChainMap k (toSSetPair.obj P)) p ≫
+          (((P.singularChainComplex (ModuleCat.of k k)).sc p).mapCyclesIso
+            (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).hom ≫
+            (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+              ((P.singularChainComplex (ModuleCat.of k k)).iCycles p ≫ φ) ≫
+                (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
+    rw [Functor.map_comp_assoc, Functor.mapCyclesIso_hom_comp_map_iCycles_assoc,
+      HomologicalComplex.cyclesMap_i_assoc]
+  exact key _
+
 /-! ### Pairings with the class of a singular simplex -/
 
 /-- **Integral and `k`-linear pairings on the class of a singular simplex.** For a class
@@ -348,34 +418,14 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom_relClass {p : ℕ}
     (P.singularKronecker ℤ (p + 1) ((P.singularCohomologyIntChainsIso k (p + 1)).hom c)).hom
         ((P.relClass (ModuleCat.of ℤ (ULift.{0} ℤ)) s h).hom 1) =
       (P.singularKronecker k (p + 1) c).hom ((P.relClass (ModuleCat.of k k) s h).hom 1) := by
-  -- A cocycle `ψ` representing `c`, taken in the restricted cycles.
-  obtain ⟨ψ, rfl⟩ : ∃ ψ, (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-      ((P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).homologyπ (p + 1)) ψ =
-        c :=
-    HomologicalComplex.moduleCat_homologyπ_surjective _ (p + 1) c
-  rw [map_homologyπ_singularCohomologyIntChainsIso_hom_apply]
-  -- Both pairings are cocycles evaluated on the relative chain of `s`.
-  have hℤ := ConcreteCategory.congr_hom (P.relClass_comp_singularKronecker_homologyπ
-    (ModuleCat.of ℤ (ULift.{0} ℤ)) s h ℤ (HomologicalComplex.cyclesMap
-      (P.singularCochainComplexIntChainsHom k) (p + 1)
-        ((((P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc
-          (p + 1)).mapCyclesIso (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).inv ψ))) 1
-  have hk := ConcreteCategory.congr_hom
-    (P.relClass_comp_singularKronecker_homologyπ (ModuleCat.of k k) s h k ψ) 1
-  rw [ConcreteCategory.comp_apply] at hℤ hk
-  rw [hℤ]
-  refine Eq.trans ?_ hk.symm
-  rw [mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles_apply]
-  -- On ambient chains the comparison is that of `X`, which casts the coefficient `1` to `k`.
-  have h₁ := ConcreteCategory.congr_hom
-    (P.singularChainComplexπ_f_comp_singularCochainComplexIntChainsHom_f k (p + 1)
-      ((P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).iCycles (p + 1) ψ))
-    ((TopCat.toSSet.obj P.fst).ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) s 1)
-  have h₂ := TopCat.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex k P.fst s
-    ((P.singularChainComplexπ (ModuleCat.of k k)).f (p + 1) ≫
-      (P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).iCycles (p + 1) ψ) 1
-  rw [ULift.one_down, Int.cast_one, one_mul] at h₂
-  exact h₁.trans h₂
+  rw [singularKronecker_singularCohomologyIntChainsIso_hom, ← ConcreteCategory.comp_apply,
+    relClass_intCastHomologyMap_assoc, ← Functor.map_comp_assoc, ModuleCat.comp_apply,
+    ModuleCat.comp_apply]
+  -- The identification of `k` with the restricted `k`-module `k`, and the restriction of scalars
+  -- of a morphism, are the identity on elements, but their evaluation lemmas are stated for the
+  -- underlying types, which `rw` does not identify with the carriers here.
+  erw [ModuleCat.restrictScalarsAlgebraMapIso_hom_apply, ModuleCat.restrictScalars.map_apply]
+  rw [ModuleCat.uliftUnitToRestrictScalars_apply, ULift.one_down, map_one, ModuleCat.comp_apply]
 
 end TopPair
 
