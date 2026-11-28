@@ -5,10 +5,12 @@
 #   cache-upload.sh DIR ARTIFACTS MAPPINGS [KNOWN]
 #
 # DIR is what a run of CI staged with `lake cache stage`: the build archives,
-# each named `<hash>.ltar`, and `outputs.jsonl`, the mappings. ARTIFACTS is
+# each named `<hash>.ltar`, and `outputs.jsonl`, the mappings. For the Tau
+# Ceti modules (tauceti-bucket.sh) it holds only the archives that the run
+# did not find in the bucket. ARTIFACTS is
 # the address under which the archives go, as `<hash>.art`. MAPPINGS is the
 # whole address of the mappings file. KNOWN, if given, is a mappings file that
-# the bucket holds under `r/queue/`. The key comes on standard input, as the
+# the bucket holds under `r/`. The key comes on standard input, as the
 # line `user = "<access key>:<secret>"` of a curl config, so that it is in no
 # argument list.
 #

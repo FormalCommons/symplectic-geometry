@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
 /-!
@@ -29,6 +31,15 @@ For `ξ ∈ 𝔤` the curve `t ↦ exp (i t ξ) p` is the negative gradient traj
 rests on Tau Ceti's Morse–Bott theorem for the components of a moment map). That theorem is
 stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limit points.
 
+The Kempf–Ness function `Φ_p` has derivative `-⟨μ (exp (i t ξ) p), ξ⟩` along
+`t ↦ exp (-i t ξ)` (`hasDerivAt_kempfNessFunction_expI_neg_smul`), so this derivative tends
+to `-w_μ(p, ξ)` (`tendsto_deriv_kempfNessFunction`). Since the moment weight is also a lower
+bound for `⟨μ (exp (i t ξ) p), ξ⟩`, a positive weight bounds that derivative above by
+`-w_μ(p, ξ) < 0`, so `Φ_p` is not bounded below (`nonneg_of_bddBelow_of_hasDerivAt_le`). By
+`isSemistable_iff_bddBelow_kempfNessFunction`, the weights of a semistable point are therefore
+nonpositive (`IsSemistable.momentWeight_nonpos`), which is one half of the
+numerical criterion for semistability in [GeorgoulasRobbinSalamon2021].
+
 ## Main definitions
 
 * `SymplecticGeometry.momentWeight C μ p ξ`: the limit of `μ (C.expI (t • ξ) • p) ξ` as
@@ -47,6 +58,12 @@ stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limi
 * `SymplecticGeometry.limitPoint_mem_criticalPoints`: the limit point is a critical point of
   `x ↦ ⟨μ x, ξ⟩`.
 * `SymplecticGeometry.momentWeight_eq_moment_limitPoint`: `w_μ(p, ξ) = ⟨μ (p⁺_ξ), ξ⟩`.
+* `SymplecticGeometry.tendsto_deriv_kempfNessFunction`: the slope identity, the derivative of
+  `t ↦ Φ_p (C.expI (-(t • ξ)))` tends to `-w_μ(p, ξ)` as `t → ∞`.
+* `SymplecticGeometry.not_bddBelow_kempfNessFunction_of_momentWeight_pos`: a positive weight
+  makes `Φ_p` unbounded below.
+* `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
+  is nonpositive.
 
 ## References
 
@@ -257,6 +274,106 @@ theorem momentWeight_eq_moment_limitPoint (h : IsComplexifiedAction C J)
     ((hc.tendsto _).comp (tendsto_limitPoint h hμ hg p ξ))
 
 end LimitPoint
+
+/-! ### The slope identity and the obstruction to semistability -/
+
+section Slope
+
+open _root_.Bundle
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+open scoped RealInnerProductSpace
+
+/-- **The slope identity.** For a complexified action on a compact manifold, with `-μ` an
+equivariant moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, the derivative of
+`t ↦ Φ_p (C.expI (-(t • ξ)))`, the Kempf–Ness function along `exp (-i t ξ)`, tends to
+`-w_μ(p, ξ)` as `t → ∞`, for every `ξ`. -/
+theorem tendsto_deriv_kempfNessFunction (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) (ξ : GroupLieAlgebra I G) :
+    Tendsto (deriv fun t : ℝ ↦ kempfNessFunction C μ p (C.expI (-(t • ξ)))) atTop
+      (𝓝 (-momentWeight C μ p ξ)) := by
+  have hd : (deriv fun t : ℝ ↦ kempfNessFunction C μ p (C.expI (-(t • ξ)))) =
+      fun t ↦ -μ (C.expI (t • ξ) • p) ξ :=
+    funext fun t ↦ (hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ t).deriv
+  rw [hd]
+  exact (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
+
+/-- If the moment weight `w_μ(p, ξ)` is positive, then the Kempf–Ness function `Φ_p` is not
+bounded below, under the hypotheses of `tendsto_deriv_kempfNessFunction`: along
+`t ↦ C.expI (-(t • ξ))` it decreases with slope at least `w_μ(p, ξ)`. -/
+theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {p : M} {ξ : GroupLieAlgebra I G} (hw : 0 < momentWeight C μ p ξ) :
+    ¬BddBelow (Set.range (kempfNessFunction C μ p)) :=
+  fun hb ↦ (neg_neg_of_pos hw).not_ge <| nonneg_of_bddBelow_of_hasDerivAt_le (a := 0)
+    (f := fun t : ℝ ↦ kempfNessFunction C μ p (C.expI (-(t • ξ))))
+    (hb.mono (by rintro _ ⟨t, -, rfl⟩; exact ⟨_, rfl⟩))
+    (fun t _ ↦ hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ t)
+    fun t _ ↦ neg_le_neg (momentWeight_le_moment_expI_smul h hμ.toIsMomentMap hg p ξ t)
+
+end Slope
+
+section Semistable
+
+open _root_.Bundle
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [CompactSpace G] [T2Space G] [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
+  [T2Space M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+open scoped RealInnerProductSpace
+
+/-- **Semistable points have nonpositive weights.** In the Kähler setting of
+`isSemistable_iff_bddBelow_kempfNessFunction`, if `p` is semistable then `w_μ(p, ξ) ≤ 0` for
+every `ξ` in the Lie algebra of `G`, in particular for every `ξ ∈ nonzeroPeriods I G`. -/
+theorem IsSemistable.momentWeight_nonpos (h : IsComplexifiedAction C J)
+    (hσc : σ.IsClosed) (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p : M}
+    (hp : IsSemistable C μ p) (ξ : GroupLieAlgebra I G) :
+    momentWeight C μ p ξ ≤ 0 :=
+  not_lt.1 fun hw ↦ not_bddBelow_kempfNessFunction_of_momentWeight_pos h hμ hgm hw
+    ((isSemistable_iff_bddBelow_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG p).1 hp)
+
+end Semistable
 
 end SymplecticGeometry
 

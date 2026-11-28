@@ -125,7 +125,7 @@ theorem firstChernClass_ofComplexManifold (n : ℕ∞)
     [Fact (finrank ℝ E = 2 * finrank ℂ G)] :
     firstChernClass G ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.Fiber =
       firstChernClass E (TangentSpace 𝓘(ℂ, E) : M → Type) :=
-  SymplecticGeometry.Bundle.firstChernClass_congr (ofComplexManifoldTangentEquiv n)
+  TauCeti.firstChernClass_eq_of_fiberwise (φ := ofComplexManifoldTangentEquiv n)
     (continuous_ofComplexManifoldTangentEquiv G n)
 
 end TauCeti.SmoothAlmostComplexStructure
