@@ -6,12 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Connection
+public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Analysis.Complex.Circle
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
+import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.InnerProductSpace.Calculus
 
@@ -90,6 +93,14 @@ transport in a family of curves and in its final time
 * `TauCeti.IsEhresmannConnection.transportedCylinder_zero_of_isSmoothDisc`,
   `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_zero_apply`: for a smooth disc and
   `s ∈ [0, 1]`, the cylinder starts at `e.symm (x, c θ)` and does not move in `s` at `t = 0`.
+* `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_apply_mem`,
+  `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_apply_mem_ker`: the derivative of the
+  cylinder in `t` is horizontal, since its curves in `t` are horizontal lifts, and its derivative
+  in `θ` is vertical, since its curves in `θ` stay in one fibre.
+* `TauCeti.IsEhresmannConnection.val_mfderiv_transportedCylinder_eq_zero`,
+  `TauCeti.IsEhresmannConnection.val_mfderiv_transportedCylinder_slice_eq_zero`: hence a two-form
+  whose horizontal spaces are `D` vanishes on these two derivatives, and the integrand of the
+  area of each slice `(t, θ) ↦ C (s, t, θ)` for that form is zero.
 
 ## References
 
@@ -553,6 +564,123 @@ theorem contMDiffAt_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ pr
     (IsOpen.mem_nhds (e.open_baseSet.preimage ?_) ?_)
   · exact hΔ.contMDiff.continuous.comp (by fun_prop)
   · exact (congrArg (· ∈ e.baseSet) (hΔ.apply_seam ⟨p.1, hp⟩)).mpr hx
+
+/-! ### Horizontal and vertical derivatives -/
+
+/-- For a `C^n` connection, `1 ≤ n`, on a proper `C^(n+1)` map, a `C^(n+1)` family `Δ` and an `s`
+with `Δ (s, 0)` in the base set of `e`, each curve `t ↦ C (s, t, θ)` of the transported cylinder
+is horizontal, as the transport of `e.symm (Δ (s, 0), c θ)` along `t ↦ Δ (s, t)`. -/
+theorem isHorizontalMap_transportedCylinder (hn : 1 ≤ n) (hf : ContMDiff IM IB (n + 1) proj)
+    (hfp : IsProperMap proj) (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {s : ℝ}
+    (hs : Δ (s, 0) ∈ e.baseSet) (θ : ℝ) :
+    IsHorizontalMap 𝓘(ℝ, ℝ) D fun t ↦ hD.transportedCylinder e Δ c (s, t, θ) := by
+  simp only [transportedCylinder_def]
+  exact hD.isHorizontalMap_parallelTransport hn hf hfp
+    (hΔ.comp (contDiff_const.prodMk contDiff_id).contMDiff) (e.proj_symm_apply' hs)
+
+/-- For a `C^n` connection, `1 ≤ n`, on a proper `C^(n+1)` map and a `C^(n+1)` family `Δ`, the
+transported cylinder at `(s, t, θ)` lies over `Δ (s, t)` when `Δ (s, 0)` is in the base set of
+`e`. -/
+theorem proj_transportedCylinder (hn : 1 ≤ n) (hf : ContMDiff IM IB (n + 1) proj)
+    (hfp : IsProperMap proj) (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {s : ℝ}
+    (hs : Δ (s, 0) ∈ e.baseSet) (t θ : ℝ) :
+    proj (hD.transportedCylinder e Δ c (s, t, θ)) = Δ (s, t) := by
+  rw [transportedCylinder_def]
+  exact hD.apply_parallelTransport hn hf hfp (hΔ.comp (contDiff_const.prodMk contDiff_id).contMDiff)
+    (e.proj_symm_apply' hs) t
+
+/-- **The derivative of the transported cylinder in `t` is horizontal.** For a `C^n` connection
+`D`, `1 ≤ n`, on a proper `C^(n+1)` map and a `C^(n+1)` family `Δ`, the derivative of the
+transported cylinder at `p` in the direction of `t` lies in `D` at `C p`, when `Δ (p.1, 0)` is in
+the base set of `e`. -/
+theorem mfderiv_transportedCylinder_apply_mem (hn : 1 ≤ n) (hf : ContMDiff IM IB (n + 1) proj)
+    (hfp : IsProperMap proj) (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {p : ℝ × ℝ × ℝ}
+    (hp : Δ (p.1, 0) ∈ e.baseSet) :
+    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 1, 0) ∈
+      D (hD.transportedCylinder e Δ c p) := by
+  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
+    exact (D _).zero_mem
+  obtain ⟨s, t, θ⟩ := p
+  rw [← hC.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ (s, r, θ))
+    (HasDerivAt.prodMk (hasDerivAt_const t s)
+      (HasDerivAt.prodMk (hasDerivAt_id t) (hasDerivAt_const t θ))),
+    Manifold.curveVelocity_apply]
+  exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hp θ).mfderiv_mem t 1
+
+/-- **The derivative of the transported cylinder in `θ` is vertical.** For a `C^n` connection,
+`1 ≤ n`, on a proper `C^(n+1)` map and a `C^(n+1)` family `Δ`, the derivative of the transported
+cylinder at `p` in the direction of `θ` is in the kernel of the derivative of `proj`, when
+`Δ (p.1, 0)` is in the base set of `e`: the curve `θ ↦ C (s, t, θ)` stays in the fibre over
+`Δ (s, t)`. -/
+theorem mfderiv_transportedCylinder_apply_mem_ker (hn : 1 ≤ n)
+    (hf : ContMDiff IM IB (n + 1) proj) (hfp : IsProperMap proj)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {p : ℝ × ℝ × ℝ} (hp : Δ (p.1, 0) ∈ e.baseSet) :
+    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 0, 1) ∈
+      (mfderiv IM IB proj (hD.transportedCylinder e Δ c p)).ker := by
+  obtain ⟨s, t, θ⟩ := p
+  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ)
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
+    exact (LinearMap.ker _).zero_mem
+  have hproj : MDifferentiableAt IM IB proj (hD.transportedCylinder e Δ c (s, t, θ)) :=
+    (hf.mdifferentiable (by simp)).mdifferentiableAt
+  -- Along the line through `(s, t, θ)` in the direction of `θ`, the projection of the cylinder
+  -- is constant.
+  have h := mfderiv_apply_eq_zero_of_const_line (I := IB)
+    (f := proj ∘ hD.transportedCylinder e Δ c)
+    (z := (s, t, θ)) (w := (0, 0, 1)) fun r ↦ by
+      have hr : (s, t, θ) + r • ((0 : ℝ), (0 : ℝ), (1 : ℝ)) = (s, t, θ + r) := by
+        ext <;> simp
+      rw [hr, comp_apply, comp_apply, hD.proj_transportedCylinder hn hf hfp hΔ hp,
+        hD.proj_transportedCylinder hn hf hfp hΔ hp]
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+  -- `h` applies the derivative to `(0, 0, 1)` as a vector of `ℝ × ℝ × ℝ`, and the chain rule to a
+  -- tangent vector, so `rw` does not match them.
+  exact (mfderiv_comp_apply (s, t, θ) hproj hC _).symm.trans h
+
+/-- **A two-form defining the connection vanishes on the derivatives of the transported cylinder
+in `t` and in `θ`.** Let `τ` be a two-form on `M` whose horizontal spaces form the connection
+`D` of a proper `C^(n+1)` map, `1 ≤ n`, and `Δ` a `C^(n+1)` family. At every `p` with
+`Δ (p.1, 0)` in the base set of `e`, `τ` pairs the derivative of the transported cylinder in `t`
+with its derivative in `θ` to zero. -/
+theorem val_mfderiv_transportedCylinder_eq_zero {τ : SmoothTwoForm IM M}
+    (hτ : SmoothTwoForm.horizontalDistribution IB proj τ = D) (hn : 1 ≤ n)
+    (hf : ContMDiff IM IB (n + 1) proj) (hfp : IsProperMap proj)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {p : ℝ × ℝ × ℝ} (hp : Δ (p.1, 0) ∈ e.baseSet) :
+    τ.val (hD.transportedCylinder e Δ c p)
+      ![mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 1, 0),
+        mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) p (0, 0, 1)] = 0 :=
+  SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
+    (hτ ▸ hD.mfderiv_transportedCylinder_apply_mem hn hf hfp hΔ hp)
+    (hD.mfderiv_transportedCylinder_apply_mem_ker hn hf hfp hΔ hp)
+
+/-- **The area integrand of each slice of the transported cylinder vanishes.** Let `τ` be a
+two-form on `M` whose horizontal spaces form the connection `D` of a proper `C^(n+1)` map,
+`1 ≤ n`, and `Δ` a `C^(n+1)` family with `Δ (s, 0)` in the base set of `e`. For the slice
+`u (t, θ) = C (s, t, θ)` of the transported cylinder, the integrand
+`τ (u q) (∂₁u q, ∂₂u q)` of its `τ`-area vanishes at every `q` where `C` is differentiable at
+`(s, q)`. -/
+theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
+    (hτ : SmoothTwoForm.horizontalDistribution IB proj τ = D) (hn : 1 ≤ n)
+    (hf : ContMDiff IM IB (n + 1) proj) (hfp : IsProperMap proj)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {s : ℝ} (hs : Δ (s, 0) ∈ e.baseSet)
+    {q : ℝ × ℝ}
+    (hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, q)) :
+    τ.val (hD.transportedCylinder e Δ c (s, q))
+      ![mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (1, 0),
+        mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (0, 1)] = 0 := by
+  have hι : HasMFDerivAt 𝓘(ℝ, ℝ × ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun q' : ℝ × ℝ ↦ (s, q')) q
+      (ContinuousLinearMap.inr ℝ ℝ (ℝ × ℝ)) :=
+    hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_right s q)
+  have hcomp := (hC.hasMFDerivAt.comp q hι).mfderiv
+  simp only [comp_def] at hcomp
+  rw [hcomp]
+  -- The derivatives are now `dC ∘ inr` at `(1, 0)` and `(0, 1)`, that is `dC` at `(0, 1, 0)` and
+  -- `(0, 0, 1)`; `ContinuousLinearMap.comp_apply` misses them, as the arguments are typed as
+  -- tangent vectors.
+  exact hD.val_mfderiv_transportedCylinder_eq_zero hτ hn hf hfp hΔ (p := (s, q)) hs
 
 end TransportedCylinder
 
