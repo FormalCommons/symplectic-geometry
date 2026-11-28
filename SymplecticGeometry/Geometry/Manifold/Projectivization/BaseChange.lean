@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
+public import SymplecticGeometry.Geometry.Manifold.Instances.PuncturedSpace
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.LinearAlgebra.Projectivization.BaseChange
 import TauCeti.Geometry.Manifold.Submersion.Descent
@@ -20,7 +21,8 @@ the points with a real representative. This file shows that this map is a smooth
 the underlying real manifolds.
 
 * `Projectivization.puncturedSpaceOfReal n` is the inclusion `x ↦ (xᵢ : ℂ)ᵢ` of the nonzero
-  real vectors into the nonzero complex vectors. It is smooth
+  real vectors into the nonzero complex vectors, the map `TauCeti.puncturedSpace.map` of the
+  real linear inclusion `ℝⁿ⁺¹ → ℂⁿ⁺¹`. It is smooth
   (`contMDiff_puncturedSpaceOfReal`), its derivative is again the inclusion of real vectors
   (`mfderiv_puncturedSpaceOfReal_apply`), and it lifts the change of field:
   `ofRealHom.mapProjective (mkNonzero ℝ n x) = mkNonzero ℂ n (puncturedSpaceOfReal n x)`
@@ -69,35 +71,34 @@ namespace Projectivization
 
 variable (n : ℕ)
 
-/-- The inclusion `x ↦ (xᵢ : ℂ)ᵢ` of the nonzero vectors of `ℝⁿ⁺¹` into those of `ℂⁿ⁺¹`. -/
-noncomputable def puncturedSpaceOfReal (x : puncturedSpace (Fin (n + 1) → ℝ)) :
-    puncturedSpace (Fin (n + 1) → ℂ) :=
-  ⟨fun i ↦ ((x : Fin (n + 1) → ℝ) i : ℂ), mem_puncturedSpace.2 fun h ↦
-    mem_puncturedSpace.1 x.property <| funext fun i ↦ by
-      simpa using congrFun h i⟩
+/-- The inclusion `x ↦ (xᵢ : ℂ)ᵢ` of the nonzero vectors of `ℝⁿ⁺¹` into those of `ℂⁿ⁺¹`: the
+map of punctured spaces induced by the injective real linear map `x ↦ (xᵢ : ℂ)ᵢ`. -/
+noncomputable def puncturedSpaceOfReal :
+    puncturedSpace (Fin (n + 1) → ℝ) → puncturedSpace (Fin (n + 1) → ℂ) :=
+  puncturedSpace.map (ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM)
+    (by exact Injective.piMap fun _ ↦ Complex.ofReal_injective)
+
+theorem puncturedSpaceOfReal_def :
+    puncturedSpaceOfReal n =
+      puncturedSpace.map (ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM)
+        (by exact Injective.piMap fun _ ↦ Complex.ofReal_injective) :=
+  (rfl)
 
 variable {n}
 
 /-- `puncturedSpaceOfReal n x` is the vector `x` with its coordinates read in `ℂ`. -/
 @[simp]
 theorem coe_puncturedSpaceOfReal (x : puncturedSpace (Fin (n + 1) → ℝ)) :
-    (puncturedSpaceOfReal n x : Fin (n + 1) → ℂ) = fun i ↦ ((x : Fin (n + 1) → ℝ) i : ℂ) :=
-  (rfl)
-
-/-- The inclusion of real nonzero vectors is the restriction of the inclusion of real vectors. -/
-theorem subtypeVal_comp_puncturedSpaceOfReal :
-    Subtype.val ∘ puncturedSpaceOfReal n =
-      (ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM) ∘ Subtype.val :=
-  (rfl)
+    (puncturedSpaceOfReal n x : Fin (n + 1) → ℂ) = fun i ↦ ((x : Fin (n + 1) → ℝ) i : ℂ) := by
+  ext i
+  simp [puncturedSpaceOfReal_def]
 
 variable (n) in
 /-- The inclusion of real nonzero vectors into complex ones is smooth of every order. -/
 theorem contMDiff_puncturedSpaceOfReal (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℝ) 𝓘(ℝ, Fin (n + 1) → ℂ) r (puncturedSpaceOfReal n) :=
-  (TauCeti.ContMDiff.subtypeVal_comp_iff (n := r) _ _).1 <| by
-    rw [subtypeVal_comp_puncturedSpaceOfReal]
-    exact (ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM).contMDiff.comp
-      contMDiff_subtypeVal
+    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℝ) 𝓘(ℝ, Fin (n + 1) → ℂ) r (puncturedSpaceOfReal n) := by
+  rw [puncturedSpaceOfReal_def]
+  exact puncturedSpace.contMDiff_map _ _ r
 
 /-- The derivative of the inclusion of real nonzero vectors into complex ones is the inclusion of
 real vectors into complex ones. -/
@@ -105,14 +106,16 @@ theorem mfderiv_puncturedSpaceOfReal_apply (x : puncturedSpace (Fin (n + 1) → 
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℝ) x) :
     mfderiv 𝓘(ℝ, Fin (n + 1) → ℝ) 𝓘(ℝ, Fin (n + 1) → ℂ) (puncturedSpaceOfReal n) x v =
       (ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM) v := by
-  have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, Fin (n + 1) → ℝ))
-    (I' := 𝓘(ℝ, Fin (n + 1) → ℂ)) subtypeVal_comp_puncturedSpaceOfReal v
-  rwa [mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h
+  rw [puncturedSpaceOfReal_def, puncturedSpace.mfderiv_map_apply]
 
 /-- Changing the field of the line through a real vector `x` gives the complex line through `x`. -/
 theorem mapProjective_ofReal_mkNonzero (x : puncturedSpace (Fin (n + 1) → ℝ)) :
     Complex.ofRealHom.mapProjective (mkNonzero ℝ n x) = mkNonzero ℂ n (puncturedSpaceOfReal n x) :=
-  by rw [mkNonzero_apply, mkNonzero_apply, RingHom.mapProjective_mk]; rfl
+  by
+  rw [mkNonzero_apply, mkNonzero_apply, RingHom.mapProjective_mk]
+  congr 1
+  ext i
+  simp
 
 /-- The change of field, read on `ℝⁿ⁺¹ ∖ 0`: it sends the real line through `x` to the complex
 line through `x`. -/
@@ -147,7 +150,7 @@ theorem isSmoothEmbedding_mapProjective_ofReal :
         mfderiv_puncturedSpaceOfReal_apply]
       -- Membership in `restrictScalars ℝ` is membership in the complex line, and the tangent
       -- spaces are the model spaces.
-      exact h
+      rwa [coe_puncturedSpaceOfReal] at h
   exact ⟨himm, (himm.contMDiff.continuous.isClosedEmbedding
     (RingHom.mapProjective_injective _)).isEmbedding⟩
 
