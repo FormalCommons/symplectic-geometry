@@ -19,7 +19,9 @@ Let `D : E → F →L[ℝ] ℝ` (typically the derivative of a function, read on
 derivatives `B` and `A`. Both sides of an inequality `K * (D u e) ^ 2 ≤ D u (Y u)`, for `u`
 near `x₀`, vanish to second order at `x₀`; dividing by `s ^ 2` along `u = x₀ + s • v` and
 letting `s → 0` gives `K * (B v e) ^ 2 ≤ B v (A v)`
-(`HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`).
+(`HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`). In the same way
+`K * ‖Y u‖ ^ 2 ≤ D u (Y u)` near `x₀` gives `K * ‖A v‖ ^ 2 ≤ B v (A v)`
+(`HasFDerivAt.mul_norm_sq_le_apply_apply_of_eventually`).
 
 This is the step by which a gradient-like inequality at a nondegenerate critical point passes to
 the linearizations of the function and of the field there. The proof differentiates along the
@@ -63,6 +65,36 @@ theorem HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually {D : E → F →L[
     rwa [hℓ₀] at this
   filter_upwards [hℓt.eventually h] with t ht
   simp only [smul_apply, smul_eq_mul, map_smul]
+  nlinarith [mul_le_mul_of_nonneg_left ht (sq_nonneg t⁻¹)]
+
+/-- **A lower bound by the norm of a vanishing map, at second order.** Let `D : E → F →L[ℝ] ℝ`
+and `Y : E → F` vanish at `x₀`, with derivatives `B` and `A` there. If
+`K * ‖Y u‖ ^ 2 ≤ D u (Y u)` for every `u` near `x₀`, then `K * ‖A v‖ ^ 2 ≤ B v (A v)` for every
+`v`. -/
+theorem HasFDerivAt.mul_norm_sq_le_apply_apply_of_eventually {D : E → F →L[ℝ] ℝ} {Y : E → F}
+    {x₀ : E} {B : E →L[ℝ] F →L[ℝ] ℝ} {A : E →L[ℝ] F} (hD : HasFDerivAt D B x₀) (hD₀ : D x₀ = 0)
+    (hY : HasFDerivAt Y A x₀) (hY₀ : Y x₀ = 0) {K : ℝ}
+    (h : ∀ᶠ u in 𝓝 x₀, K * ‖Y u‖ ^ 2 ≤ D u (Y u)) (v : E) :
+    K * ‖A v‖ ^ 2 ≤ B v (A v) := by
+  have hℓ : HasDerivAt (fun s : ℝ ↦ x₀ + s • v) v 0 := by
+    simpa using ((hasDerivAt_id (0 : ℝ)).smul_const v).const_add x₀
+  have hℓ₀ : x₀ + (0 : ℝ) • v = x₀ := by simp
+  -- The slopes `s⁻¹ • D (x₀ + s • v)` and `s⁻¹ • Y (x₀ + s • v)` tend to `B v` and `A v`.
+  have hDℓ := (hD.comp_hasDerivAt_of_eq 0 hℓ hℓ₀.symm).tendsto_slope_zero
+  have hYℓ := (hY.comp_hasDerivAt_of_eq 0 hℓ hℓ₀.symm).tendsto_slope_zero
+  simp only [Function.comp_apply, zero_add, hℓ₀, hD₀, hY₀, sub_zero] at hDℓ hYℓ
+  have hlim₁ : Tendsto (fun t : ℝ ↦ K * ‖t⁻¹ • Y (x₀ + t • v)‖ ^ 2) (𝓝[≠] 0)
+      (𝓝 (K * ‖A v‖ ^ 2)) :=
+    (hYℓ.norm.pow 2).const_mul K
+  have hlim₂ : Tendsto (fun t : ℝ ↦ (t⁻¹ • D (x₀ + t • v)) (t⁻¹ • Y (x₀ + t • v))) (𝓝[≠] 0)
+      (𝓝 (B v (A v))) :=
+    (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hDℓ.prodMk_nhds hYℓ)
+  refine le_of_tendsto_of_tendsto hlim₁ hlim₂ ?_
+  have hℓt : Tendsto (fun s : ℝ ↦ x₀ + s • v) (𝓝[≠] 0) (𝓝 x₀) := by
+    have := hℓ.continuousAt.tendsto.mono_left (nhdsWithin_le_nhds (s := {0}ᶜ))
+    rwa [hℓ₀] at this
+  filter_upwards [hℓt.eventually h] with t ht
+  simp only [smul_apply, smul_eq_mul, map_smul, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs]
   nlinarith [mul_le_mul_of_nonneg_left ht (sq_nonneg t⁻¹)]
 
 end
