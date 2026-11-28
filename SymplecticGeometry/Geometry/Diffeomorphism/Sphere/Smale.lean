@@ -264,6 +264,7 @@ noncomputable def diffPlusPolarRetraction : C(diffPlus, diffPlus) where
 
 /-- The retraction of `Diff⁺(S²)` sends `φ` to the polar retraction of the Möbius
 transformation `φ σ(φ^* i)⁻¹`. -/
+@[simp]
 theorem coe_diffPlusPolarRetraction_apply (φ : diffPlus) :
     (diffPlusPolarRetraction φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) =
       mobiusPolarRetraction ⟨φ * (uniformizingDiffeomorph (complexStructureMap φ))⁻¹,
@@ -345,6 +346,7 @@ noncomputable def diffPlusPolarHomotopy :
 /-- At time `t`, the deformation of `Diff⁺(S²)` sends `φ` to `m_t(φ σ(φ^* i)⁻¹) σ(J_t)`, where `m`
 is the polar homotopy of the Möbius group and `J_t` the Cayley path from `i` to `φ^* i` at time
 `1 - t`. -/
+@[simp]
 theorem coe_diffPlusPolarHomotopy_apply (t : unitInterval) (φ : diffPlus) :
     (diffPlusPolarHomotopy (t, φ) : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) =
       mobiusPolarHomotopy (t, ⟨φ * (uniformizingDiffeomorph (complexStructureMap φ))⁻¹,
@@ -408,6 +410,7 @@ noncomputable def roundDiffPlusPolarRetraction : C(roundDiffPlus, roundDiffPlus)
 
 /-- The retraction of `roundDiffPlus` is the conjugate, by `roundSphereDiffeomorph`, of the
 retraction of `diffPlus` applied to the conjugate of `φ` on the Riemann sphere. -/
+@[simp]
 theorem coe_roundDiffPlusPolarRetraction_apply (φ : roundDiffPlus) :
     (roundDiffPlusPolarRetraction φ :
       TauCeti.Diff (𝓡 2) (sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) ∞) =
