@@ -25,9 +25,8 @@ its iterated derivatives at `(z, v)` by those of `g` at `z` of one order more, w
   of unique differentiability and `z ∈ s`, the `j`-th derivative of `(z, v) ↦ Dg(z) v` within
   `s ×ˢ univ` at `(z, v)` has norm at most
   `(1 + ‖v‖) * ∑ i ∈ range (j + 1), j.choose i * ‖D^{i+1} g(z)‖`.
-* `norm_iteratedFDerivWithin_comp_fst_sub_le`,
-  `norm_iteratedFDerivWithin_fderivWithin_apply_sub_le`: the same bounds for the difference of
-  two such maps, by the differences of the derivatives of `f₁` and `f₂`, or of `g₁` and `g₂`.
+* `norm_iteratedFDerivWithin_fderivWithin_apply_sub_le`: the same bound for the difference of
+  two such maps, by the differences of the derivatives of `g₁` and `g₂`.
 
 The proof writes the map as `q ↦ (Dg ∘ Prod.fst) q (Prod.snd q)` and applies Mathlib's Leibniz
 bound `norm_iteratedFDerivWithin_clm_apply`; the derivatives of `Prod.snd` are bounded by Tau
@@ -43,7 +42,6 @@ namespace SymplecticGeometry
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
 
 /-- The iterated derivatives of `(z, v) ↦ Dg(z) v` within `s ×ˢ univ` at `(z, v)`, for `g` of
 class `C^{j+1}` on a set `s` of unique differentiability and `z ∈ s`, are bounded by those of `g`
@@ -83,24 +81,6 @@ theorem norm_iteratedFDerivWithin_fderivWithin_apply_le {g : E → F} {s : Set E
         · exact hAi i hi
         · exact hBk _
     _ = _ := by ring
-
-/-- The iterated derivatives of `f₁ ∘ Prod.fst - f₂ ∘ Prod.fst` within `s ×ˢ univ` at `p`, for
-`f₁` and `f₂` of class `C^n` on a set `s` of unique differentiability and `p.1 ∈ s`, are bounded,
-up to order `n`, by those of `f₁ - f₂` within `s` at `p.1`. -/
-theorem norm_iteratedFDerivWithin_comp_fst_sub_le {f₁ f₂ : E → F} {s : Set E} {n : WithTop ℕ∞}
-    (hf₁ : ContDiffOn 𝕜 n f₁ s) (hf₂ : ContDiffOn 𝕜 n f₂ s) (hs : UniqueDiffOn 𝕜 s) {i : ℕ}
-    (hi : i ≤ n) {p : E × G} (hp : p.1 ∈ s) :
-    ‖iteratedFDerivWithin 𝕜 i (f₁ ∘ Prod.fst) (s ×ˢ univ) p -
-        iteratedFDerivWithin 𝕜 i (f₂ ∘ Prod.fst) (s ×ˢ univ) p‖ ≤
-      ‖iteratedFDerivWithin 𝕜 i f₁ s p.1 - iteratedFDerivWithin 𝕜 i f₂ s p.1‖ := by
-  have hS : UniqueDiffOn 𝕜 (s ×ˢ (univ : Set G)) := hs.prod uniqueDiffOn_univ
-  have hpS : p ∈ s ×ˢ (univ : Set G) := ⟨hp, mem_univ _⟩
-  have hc (f : E → F) (hf : ContDiffOn 𝕜 n f s) :
-      ContDiffWithinAt 𝕜 i (f ∘ Prod.fst) (s ×ˢ (univ : Set G)) p :=
-    ((hf.comp contDiffOn_fst fun (q : E × G) (hq : q ∈ s ×ˢ univ) ↦ hq.1).of_le hi) p hpS
-  rw [← iteratedFDerivWithin_sub_apply (hc f₁ hf₁) (hc f₂ hf₂) hS hpS,
-    ← iteratedFDerivWithin_sub_apply ((hf₁.of_le hi) _ hp) ((hf₂.of_le hi) _ hp) hs hp]
-  exact (Prod.norm_iteratedFDerivWithin_comp_fst (hf₁.sub hf₂) hs hi hp).le
 
 /-- The iterated derivatives of the difference of `(z, v) ↦ Dg₁(z) v` and `(z, v) ↦ Dg₂(z) v`
 within `s ×ˢ univ` at `(z, v)`, for `g₁` and `g₂` of class `C^{j+1}` on a set `s` of unique
