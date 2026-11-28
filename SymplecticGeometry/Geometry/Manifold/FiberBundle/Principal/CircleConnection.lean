@@ -185,13 +185,19 @@ theorem isConnectionForm_mapCoeff_iff :
         (contMDiff_const_smul (op z)) (SmoothForm.mapCoeff
           (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
             circleLieGenerator) α) =
-        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL (𝓡 1) z⁻¹) (SmoothForm.mapCoeff
+        SmoothForm.mapCoeff (F := EuclideanSpace ℝ (Fin 1)) (G := EuclideanSpace ℝ (Fin 1))
+          (adjointContinuousLinearMap (I := 𝓡 1) z⁻¹) (SmoothForm.mapCoeff
           (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
             circleLieGenerator) α)) ↔
       SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
         (contMDiff_const_smul (op z)) α = α := by
-    rw [SmoothForm.mpullback_mapCoeff, GroupLieAlgebra.adjointL_eq_id, SmoothForm.mapCoeff_id,
-      LinearMap.id_apply, hinj.eq_iff]
+    -- Tau Ceti states the triviality of `Ad` as the identity of `GroupLieAlgebra (𝓡 1) Circle`; the
+    -- `show` reads it as the identity of the model space.
+    rw [SmoothForm.mpullback_mapCoeff, show (adjointContinuousLinearMap (I := 𝓡 1) z⁻¹ :
+        EuclideanSpace ℝ (Fin 1) →L[ℝ] EuclideanSpace ℝ (Fin 1)) =
+        ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin 1)) from
+          adjointContinuousLinearMap_eq_id z⁻¹,
+      SmoothForm.mapCoeff_id, LinearMap.id_apply, hinj.eq_iff]
   have hval (x : ManifoldTotalSpace Circle P) (ξ : GroupLieAlgebra (𝓡 1) Circle) :
       (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ
           (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator) α).val x
