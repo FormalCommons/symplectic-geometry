@@ -209,6 +209,12 @@ theorem modelDisc_apply_fst_apply (x : EuclideanSpace ℝ (Fin k)) (j : Fin k) :
 theorem modelDisc_apply_snd (x : EuclideanSpace ℝ (Fin k)) : (modelDisc k m x).2 = 0 := by
   simp [modelDisc_apply]
 
+/-- In the real coordinates `(x, y)` of `ℂᵏ`, the first component of `ι₀ x` is `(x, 0)`. -/
+@[simp]
+theorem complexEuclideanEquivRealProd_modelDisc_fst (x : EuclideanSpace ℝ (Fin k)) :
+    complexEuclideanEquivRealProd (Fin k) (modelDisc k m x).1 = (x, 0) := by
+  simp [modelDisc]
+
 variable (k m) in
 /-- The projection `π₀ : ℂᵏ × ℂᵐ → ℝᵏ`, `(z, w) ↦ Re z`, onto the core: the real part of the first
 factor, as a real continuous linear map. It is a left inverse of the model disc
@@ -225,6 +231,13 @@ theorem modelDiscProj_apply (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace �
     modelDiscProj k m p = WithLp.toLp 2 fun j ↦ (p.1 j).re := by
   ext j
   simp [modelDiscProj]
+
+/-- The projection `π₀` sends `(z, w)` to the first component of `z` in the real coordinates
+`(x, y)` of `ℂᵏ`. -/
+theorem modelDiscProj_apply_eq_complexEuclideanEquivRealProd
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    modelDiscProj k m p = (complexEuclideanEquivRealProd (Fin k) p.1).1 :=
+  (rfl)
 
 /-- The projection `π₀` is a left inverse of the model disc: `π₀ (ι₀ x) = x`. -/
 theorem leftInverse_modelDiscProj : Function.LeftInverse (modelDiscProj k m) (modelDisc k m) :=

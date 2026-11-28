@@ -16,6 +16,7 @@ import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Noncompact
 import SymplecticGeometry.Topology.VectorBundle.Basic
+public import SymplecticGeometry.Data.ENat.Basic
 
 /-!
 # A smooth injective map of the whole normal bundle
@@ -70,15 +71,15 @@ injective on the whole bundle and equal to `f` on the zero section, whose normal
 `f.normalFiberDeriv hn hdim T x` sends `v` to `c x • v`, where `c x > 0`. -/
 theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) :
-    letI := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
-    letI := f.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
+    letI := f.normalSpaceFiberBundle ENat.coe_top_ne_zero hdim
+    letI := f.normalSpaceVectorBundle ENat.coe_top_ne_zero hdim
     ∃ T : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x
-        (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) → N,
+        ENat.coe_top_ne_zero) → N,
       ContMDiff (I.prod 𝓘(ℝ, P)) J ∞ T ∧ Injective T ∧
       (∀ x, T (zeroSection P _ x) = f x) ∧
       ∃ c : M → ℝ, (∀ x, 0 < c x) ∧
-        ∀ x (v : f.isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)),
-        f.normalFiberDeriv (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim T x v = c x • v := by
+        ∀ x (v : f.isImmersion.NormalSpace x ENat.coe_top_ne_zero),
+        f.normalFiberDeriv ENat.coe_top_ne_zero hdim T x v = c x • v := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim

@@ -99,7 +99,12 @@ the blowdown.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift_of_mem_openNbhd`,
   `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift_of_blowdown_ne_zero`: the two
   descriptions of the lift.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.of_one_sub_mul_add_mul`: a normalized ball
+  embedding stays normalized along the segment of weights and widths from `(l, ε)` to an
+  admissible `(l', ε')`.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.blowdown_ballLift`: the lift lies over `ψ`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.ballLiftPartialDiffeomorph_eqOn`: two normalized
+  ball embeddings that agree on `B(a)` have lifts that agree on `openNbhd n a`.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isOpenEmbedding_ballLift`: the lift is an open
   embedding.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isLocalDiffeomorph_ballLift`,
@@ -109,6 +114,9 @@ the blowdown.
   `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_on_compl`: the two
   descriptions of `ω̃_{ψ,l,ε}`; by
   `SymplecticGeometry.IsNormalizedBallEmbedding.eq_normalizedBlowupForm`, they determine it.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_of_eqOn`: two normalized
+  ball embeddings with the same weight `l` and width `ε` that agree on a ball `B(a)` with
+  `l + ε < a` give the same form on the blowup.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_one_sub_smul_add_smul`:
   along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles, `ω̃_{ψ,l,ε}` is
   the segment between their forms.
@@ -419,6 +427,28 @@ theorem of_width_le {l' ε' : ℝ} (hl' : 0 < l') (hε' : 0 < ε') (hε'ε : ε'
     hε'ε.trans_lt hψ.width_lt_one, hr, hε'ε.trans_lt hψ.width_lt,
     hψ.eqOn.mono (closedBall_subset_closedBall hε'ε)⟩
 
+/-- A normalized ball embedding of weight `l` and width `ε` stays normalized, with the same
+radius, for the weight `(1 - s) * l + s * l'` and the width `(1 - s) * ε + s * ε'`, for
+`s ∈ [0, 1]` and any positive `l'`, `ε'` with `ε' ≤ ε` and `l' + ε' < r`. -/
+theorem of_one_sub_mul_add_mul {l' ε' : ℝ} (hl' : 0 < l') (hε' : 0 < ε') (hε'ε : ε' ≤ ε)
+    (hr : l' + ε' < r) {s : ℝ} (hs₀ : 0 ≤ s) (hs₁ : s ≤ 1) :
+    IsNormalizedBallEmbedding hN ψ r ((1 - s) * l + s * l') ((1 - s) * ε + s * ε') := by
+  have hl := hψ.weight_pos
+  have hε := hψ.width_pos
+  have hlr := hψ.weight_add_width_lt
+  have h₂ : 0 ≤ 1 - s := sub_nonneg.2 hs₁
+  refine hψ.of_width_le ?_ ?_ ?_ ?_
+  · rcases hs₀.eq_or_lt with rfl | hs
+    · simpa using hl
+    · nlinarith [mul_nonneg h₂ hl.le, mul_pos hs hl']
+  · rcases hs₀.eq_or_lt with rfl | hs
+    · simpa using hε
+    · nlinarith [mul_nonneg h₂ hε.le, mul_pos hs hε']
+  · nlinarith [mul_nonneg h₂ hε.le]
+  · rcases hs₀.eq_or_lt with rfl | hs
+    · simpa using hlr
+    · nlinarith [mul_le_mul_of_nonneg_left hlr.le h₂, mul_lt_mul_of_pos_left hr hs]
+
 /-- A normalized ball embedding for a normalization at `p₀` sends the origin to `p₀`. -/
 theorem map_zero : ψ 0 = p₀ :=
   (hψ.eqOn (mem_closedBall_self hψ.width_pos.le)).trans hN.map_zero
@@ -618,6 +648,23 @@ theorem ballLiftPartialDiffeomorph_apply (y : openNbhd n r) :
     hψ.ballLiftPartialDiffeomorph y = hψ.ballLift y := by
   rw [ballLiftPartialDiffeomorph, IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn,
     hψ.ballLiftExt_of_mem y.property]
+
+/-- Two normalized ball embeddings for the same normalization that agree on the ball `B(a)`,
+with `a` at most both radii, have lifts that agree on `openNbhd n a`. -/
+theorem ballLiftPartialDiffeomorph_eqOn {ψ' : StdSpace (Fin (n + 1)) → M} {r' l' ε' : ℝ}
+    (hψ' : IsNormalizedBallEmbedding hN ψ' r' l' ε') {a : ℝ} (h : EqOn ψ ψ' (ball 0 a))
+    (ha : a ≤ r) (ha' : a ≤ r') :
+    EqOn hψ.ballLiftPartialDiffeomorph hψ'.ballLiftPartialDiffeomorph (openNbhd n a) := by
+  intro y hy
+  rw [hψ.ballLiftPartialDiffeomorph_apply ⟨y, openNbhd_mono ha hy⟩,
+    hψ'.ballLiftPartialDiffeomorph_apply ⟨y, openNbhd_mono ha' hy⟩]
+  by_cases h0 : y.blowdown = 0
+  · have hyD : y ∈ exceptionalDivisor n := mem_exceptionalDivisor_iff.2 h0
+    rw [hψ.ballLift_of_mem_openNbhd _ (exceptionalDivisor_subset_openNbhd hψ.width_pos hyD),
+      hψ'.ballLift_of_mem_openNbhd _ (exceptionalDivisor_subset_openNbhd hψ'.width_pos hyD)]
+  · rw [hψ.ballLift_of_blowdown_ne_zero _ h0, hψ'.ballLift_of_blowdown_ne_zero _ h0]
+    congr 2
+    exact h (mem_ball_zero_iff.2 (mem_openNbhd_iff.1 hy))
 
 /-- On `openNbhd n ε`, the partial diffeomorphism is the inclusion `inr` of the model piece. -/
 theorem ballLiftPartialDiffeomorph_of_mem_openNbhd {y : BlowupModel n} (hy : y ∈ openNbhd n ε) :
@@ -882,6 +929,48 @@ theorem eq_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h)
   · have hK : x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := fun hK ↦
       hx (hψ.image_closedNbhd_subset_target hK)
     exact (hα' x hK).trans (hψ.normalizedBlowupForm_eq_on_compl x hK).symm
+
+/-- Two normalized ball embeddings for the same normalization, with the same weight `l` and width
+`ε`, that agree on a ball `B(a)` with `l + ε < a`, give the same form `ω̃_{ψ,l,ε}` on the blowup,
+for every `k`. -/
+theorem normalizedBlowupForm_eq_of_eqOn {ψ' : StdSpace (Fin (n + 1)) → M} {r' : ℝ}
+    (hψ' : IsNormalizedBallEmbedding hN ψ' r' l ε) {a : ℝ} (h : EqOn ψ ψ' (ball 0 a))
+    (ha : l + ε < a) (k : ℝ → ℝ) :
+    hψ.normalizedBlowupForm k = hψ'.normalizedBlowupForm k := by
+  by_cases hk : IsBlowupProfile l ε k
+  swap
+  · rw [hψ.normalizedBlowupForm_of_not hk, hψ'.normalizedBlowupForm_of_not hk]
+  set b := min a (min r r')
+  have hb : l + ε < b := lt_min ha (lt_min hψ.weight_add_width_lt hψ'.weight_add_width_lt)
+  have hEq := hψ.ballLiftPartialDiffeomorph_eqOn hψ' (h.mono (ball_subset_ball (min_le_left _ _)))
+    ((min_le_right _ _).trans (min_le_left _ _)) ((min_le_right _ _).trans (min_le_right _ _))
+  have hK := closedNbhd_subset_openNbhd (n := n) hb
+  have himage : hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) =
+      hψ'.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) :=
+    (hEq.mono hK).image_eq
+  refine hψ'.eq_normalizedBlowupForm hk (fun y hy ↦ ?_) fun x hx ↦
+    hψ.normalizedBlowupForm_eq_on_compl x (himage ▸ hx)
+  by_cases hyb : y ∈ openNbhd n b
+  · -- Near `y`, the two lifts agree.
+    have hev : (hψ'.ballLiftPartialDiffeomorph : BlowupModel n → Blowup hN.blowupChart) =ᶠ[𝓝 y]
+        hψ.ballLiftPartialDiffeomorph :=
+      Filter.eventuallyEq_of_mem ((isOpen_openNbhd b).mem_nhds hyb) fun z hz ↦ (hEq hz).symm
+    rw [hev.mpullback_eq]
+    exact hψ.normalizedBlowupForm_eq_on_ballLift hk y
+      (openNbhd_mono ((min_le_right _ _).trans (min_le_left _ _)) hyb)
+  · -- Off `openNbhd n b`, the lift of `ψ'` avoids the image of `L(l + ε)` under that of `ψ`.
+    have hyK : y ∉ closedNbhd n (l + ε) := fun hyK ↦ hyb (hK hyK)
+    have hx : hψ'.ballLiftPartialDiffeomorph y ∉
+        hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := by
+      rw [himage]
+      rintro ⟨z, hz, hzy⟩
+      have hz' : z ∈ openNbhd n r' :=
+        openNbhd_mono ((min_le_right _ _).trans (min_le_right _ _)) (hK hz)
+      refine hyK ((hψ'.ballLiftPartialDiffeomorph.injOn (by simpa using hz')
+        (by simpa using hy) hzy) ▸ hz)
+    rw [mpullback_apply_congr (hψ.normalizedBlowupForm_eq_on_compl _ hx),
+      hψ'.mpullback_ballLiftPartialDiffeomorph_mpullback_blowdown hy,
+      profileForm_eq_on_compl n hk y hyK]
 
 /-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup
 of weight `l` with collar `ε`, the form `ω̃_{ψ,l,ε}` is the segment between those of `h₀` and
