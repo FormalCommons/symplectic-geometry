@@ -51,7 +51,10 @@ the lift pulls classes back as the restriction to the fibre over `x`, carried to
 along `e` and pulled back along the inclusion of `O`. This follows the
 linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`, which
-compares a map with its derivative on a small ball around a zero.
+compares a map with its derivative on a small ball around a zero. Precomposing with a linear
+isomorphism gives the same comparison for a map on any space `Q` whose derivative at `0` is read
+through a linear isomorphism `m : Q ≃ ν_x` instead of `e`
+(`singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`).
 
 For `u` in the degree `r` of the rank, with coefficients `R, M : ModuleCat k` and `R` projective
 over `k`, the class does not depend on the normalized tube. For two normalized tubes `Φ`
@@ -116,6 +119,9 @@ is the pull-back along `φ` of the dual class of `f` with `o` (`relDualClass_tra
   restrictions of `u`.
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`: the local-degree
   lemma: a map with the derivative of a normal slice at `0` pulls classes back as the slice does.
+* `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`: the same for
+  a map on any space `Q` whose derivative at `0`, followed by the quotient onto the normal space,
+  is a given linear isomorphism `m : Q ≃ ν_x`; the slice is then read through `m`.
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_eq_of_isNormalizedTube`: the normal
   slices of two normalized tubes at a point pull classes back alike.
 * `TauCeti.SmoothEmbedding.relDualClassOf_eq_of_isNormalizedTube`,
@@ -473,6 +479,101 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
   · exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
   · congr 1
     exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
+
+/-- **The local-degree lemma through any linear isomorphism.** Let `Φ` be a normalized tube of
+`f`, `x : Z`, and `m : Q ≃ ν_x` a linear isomorphism from a real normed space `Q`. Let `B ⊆ Q` be
+a neighbourhood of `0` and `g : Q → X` a map continuous on `B`, with `g 0 = f x`, sending no other
+point of `B` into `f(Z)`, and differentiable at `0` with a derivative `A` such that the normal
+class of each `A w` is `m w`. Then `g`, as a map of pairs `(B, B ∖ {0}) ⟶ (X, X ∖ f(Z))`, pulls
+every class back as the normal slice of `Φ` at `x` does after `m`: the inclusion
+`(B, B ∖ {0}) ⟶ (Q, Q ∖ {0})` followed by the pair isomorphism of `m`.
+
+This is `singularCohomologyMap_slice_eq_of_hasFDerivAt` for the map `g ∘ m⁻¹ ∘ e⁻¹` on `P`, `e`
+the preferred trivialization at `x`. -/
+theorem singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv {f : SmoothEmbedding I J ∞ Z X}
+    {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
+    {W : TopologicalSpace.Opens X}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (x : Z) {Q : Type w} [NormedAddCommGroup Q]
+    [NormedSpace ℝ Q] (m : Q ≃L[ℝ] f.isImmersion.NormalSpace x hn) {B : Set Q} (hB : B ∈ 𝓝 0)
+    {g : Q → X} (hgB : ContinuousOn g B) (hg0 : g 0 = f x)
+    (hgf : ∀ w ∈ B, g w ∈ range f → w = 0) {A : Q →L[ℝ] V} (hg : HasMFDerivAt 𝓘(ℝ, Q) J g 0 A)
+    (hA : ∀ w : Q, f.isImmersion.normalClassL x hn (A w) = m w)
+    {n : ℕ} (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n) :
+    TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of X)
+          (TopCat.ofHom ⟨B.domRestrict g, hgB.domRestrict⟩)
+          (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ) (B' := (range f)ᶜ)
+          fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))) n c =
+      TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of Q)
+          (TopCat.ofHom (ContinuousMap.subtypeVal B)) (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ)
+          (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+          m.complZeroPairIso.hom) n
+        (TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
+  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
+  set ℓ := e.continuousLinearEquivAt ℝ x hx
+  -- Read `g` on `P` through `L = m⁻¹ ∘ ℓ⁻¹`, so that the preferred trivialization appears.
+  set L : P ≃L[ℝ] Q := ℓ.symm.trans m.symm
+  have hB' : L ⁻¹' B ∈ 𝓝 (0 : P) :=
+    L.continuous.continuousAt.preimage_mem_nhds (by rwa [map_zero])
+  have hgB' : ContinuousOn (g ∘ L) (L ⁻¹' B) :=
+    hgB.comp L.continuous.continuousOn (mapsTo_preimage _ _)
+  have hg0' : (g ∘ L) 0 = f x := by simp [hg0]
+  have hgf' (w : P) (hw : w ∈ L ⁻¹' B) (h : (g ∘ L) w ∈ range f) : w = 0 :=
+    L.map_eq_zero_iff.1 (hgf _ hw h)
+  have hgL : HasMFDerivAt 𝓘(ℝ, Q) J g (L 0) A := by rwa [map_zero]
+  have hg' : HasMFDerivAt 𝓘(ℝ, P) J (g ∘ L) 0 (A.comp (L : P →L[ℝ] Q)) :=
+    hgL.comp 0 L.hasFDerivAt.hasMFDerivAt
+  have hA' (w : P) : f.isImmersion.normalClassL x hn (A.comp (L : P →L[ℝ] Q) w) =
+      e.symmL ℝ x w := by
+    rw [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, hA]
+    simp only [L, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply]
+    rw [← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
+  have h := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x hB' hgB' hg0' hgf' hg' hA' c
+  -- The map of pairs `(B, B ∖ {0}) ⟶ (L⁻¹ B, L⁻¹ B ∖ {0})`, `w ↦ L⁻¹ w`.
+  let φ := TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of (L ⁻¹' B))
+    (TopCat.ofHom ⟨fun w ↦ ⟨L.symm w, by simp [w.property]⟩, by fun_prop⟩)
+    (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ) (B' := {⟨0, mem_of_mem_nhds hB'⟩}ᶜ)
+    fun w hw h ↦ hw (Subtype.ext (by simpa using congrArg Subtype.val h))
+  have h1 : φ ≫ TopPair.ofSubsetMap (X := TopCat.of (L ⁻¹' B)) (Y := TopCat.of X)
+        (TopCat.ofHom ⟨(L ⁻¹' B).domRestrict (g ∘ L), hgB'.domRestrict⟩)
+        (B := {⟨0, mem_of_mem_nhds hB'⟩}ᶜ) (B' := (range f)ᶜ)
+        (fun w hw h ↦ hw (Subtype.ext (hgf' w w.property h))) =
+      TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of X)
+          (TopCat.ofHom ⟨B.domRestrict g, hgB.domRestrict⟩)
+          (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ) (B' := (range f)ᶜ)
+          fun w hw h ↦ hw (Subtype.ext (hgf w w.property h)) := by
+    refine TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ ?_
+    ext w
+    simp
+  have h2 : φ ≫ TopPair.ofSubsetMap (X := TopCat.of (L ⁻¹' B)) (Y := TopCat.of P)
+          (TopCat.ofHom (ContinuousMap.subtypeVal (L ⁻¹' B)))
+          (B := {⟨0, mem_of_mem_nhds hB'⟩}ᶜ) (B' := {0}ᶜ)
+          (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+          ℓ.symm.complZeroPairIso.hom =
+      TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of Q)
+          (TopCat.ofHom (ContinuousMap.subtypeVal B)) (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ)
+          (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+          m.complZeroPairIso.hom := by
+    rw [ContinuousLinearEquiv.complZeroPairIso_hom, ContinuousLinearEquiv.complZeroPairIso_hom]
+    refine TopPair.hom_ext_of_fst _ ?_
+    simp only [φ, TopPair.Hom.fst_comp]
+    ext w
+    simp only [TopCat.hom_comp, ContinuousMap.comp_apply]
+    -- The points of the pairs are those of `B`, `L⁻¹ B`, `P` and `Q` only up to unfolding
+    -- `ofSubset`.
+    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
+      TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+    -- What is left is `m w = m w`, the second `w` as a point of the pair.
+    simp [L]
+    rfl
+  rw [← h1, TopPair.singularCohomologyMap_comp_apply, h,
+    ← TopPair.singularCohomologyMap_comp_apply, ← h2]
 
 /-- **The normal slices of two normalized tubes agree in cohomology.** For normalized tubes `Φ`
 and `Φ'` of `f` and a point `x : Z`, the normal slices of `Φ` and of `Φ'` at `x` pull every class

@@ -83,8 +83,15 @@ and the triple is a Weinstein structure.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11 (Weinstein structures and the standard handle); Proposition 11.9 (a) for the
-  isotropy of the stable set of a Liouville field
+  §12.3: on `T^*L × ℂ^ℓ` a vector field `Y` on `L` extends to the Liouville field
+  `p ∂_p + z ∂_z / 2 + X_H`, `H = ⟨p, Y(q)⟩`, given in coordinates in the proof of Lemma 12.8 (i).
+  These `q`, `p` and `z` are the book's coordinates on `T^*L × ℂ^ℓ`, not the point `p` above.
+  For `L = ℝᵏ` and `Y = -q` the field is `-q ∂_q + 2 p ∂_p + z ∂_z / 2`. Under the dictionary
+  `q = x`, `p = y`, `z = w` and `ℓ = m`, it is `modelHandleField k m`, and the function
+  `ψ(q) + |p|² + |z|²` of that section, for `ψ = -|q|²`, is `modelHandle k m 1 1`. The book
+  takes `dp ∧ dq` on `T^*ℝᵏ`, the opposite of the form here, which does not change the Liouville
+  condition. Definition 11.10 for Weinstein structures; Proposition 11.9 (a) for the isotropy of
+  the stable subspace of the linearization of a Liouville field at a zero.
 -/
 
 public section

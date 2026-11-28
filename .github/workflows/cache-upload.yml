@@ -84,8 +84,9 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.event == 'merge_group' || github.event.workflow_run.event == 'pull_request')
     runs-on: ubuntu-latest
-    # Each of the two uploads has its own limit, below.
-    timeout-minutes: 30
+    # Each of the two uploads has its own limit, below; with the other
+    # steps' they come to about 48 minutes.
+    timeout-minutes: 50
     environment: lake-cache
     steps:
       # The default branch's `.github`, and nothing of the commit that was
@@ -203,15 +204,15 @@ jobs:
           set -euo pipefail
           [ -n "$LAKE_CACHE_KEY" ] || { echo "::error::the environment lake-cache has no secret LAKE_CACHE_KEY"; exit 1; }
           # main's latest mappings that the bucket has, for cache-upload.sh to
-          # know which archives are there without asking; see there. Without
-          # them it asks about all. The search looks back 100 commits, as
-          # CI's fetch step does, and gives up after two minutes.
+          # know which archives are there already; see there. Without them
+          # it sends all. The search looks back 100 commits, as CI's fetch
+          # step does, and gives up after two minutes.
           known=$RUNNER_TEMP/known.jsonl
           if [ -n "$QUEUE" ] &&
             commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&per_page=100" --jq '.[].sha'); then
             SECONDS=0
             for c in $commits; do
-              [ "$SECONDS" -lt 120 ] || { echo "the search for main's mappings took too long; the upload asks about every archive"; break; }
+              [ "$SECONDS" -lt 120 ] || { echo "the search for main's mappings took too long; the upload sends every staged archive"; break; }
               [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
               if curl -q -sf --connect-timeout 5 --max-time 15 -o "$known" "$QUEUE/$c.jsonl"; then
                 echo "main's mappings at $c name the archives that are taken to be in the bucket"
@@ -229,8 +230,10 @@ jobs:
       # line is not trusted and need not be: it only chooses which mappings
       # file is fetched from the bucket, here, as the one whose archives are
       # taken to be there, and that holds for every mappings file the bucket
-      # has. Without it the upload asks about every archive. This upload
-      # does not wait for the library's to pass.
+      # has. Without it the upload sends every staged archive. This upload
+      # does not wait for the library's to pass. The first upload after a
+      # move sends some thousands of archives, which a runner did not manage
+      # in ten minutes; hence the longer limit.
       - name: upload the Tau Ceti modules
         if: ${{ !cancelled() && steps.tauceti.outputs.found == 'true' && steps.at.outcome == 'success' }}
         env:
@@ -255,4 +258,4 @@ jobs:
             fi
           fi
           printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
-            timeout 10m .github/cache-upload.sh "$dir/staged" "$ARTIFACTS" "$MAPPINGS.tauceti.jsonl" "$known"
+            timeout 25m .github/cache-upload.sh "$dir/staged" "$ARTIFACTS" "$MAPPINGS.tauceti.jsonl" "$known"

@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -64,9 +65,15 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
   `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`: the derivative of a fibre inclusion is
   injective, and its range is the kernel of the derivative of `proj`.
+* `Bundle.Trivialization.mfderiv_snd_apply_of_mfderiv_proj_eq_zero`: on vertical vectors, the
+  derivatives of the fibre coordinates of two trivializations differ by the derivative of their
+  coordinate change.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
+* `TauCeti.MapFiber.Atlas.apply_eq_of_mfderiv_eq_zero_of_proj_eq`: over a preconnected model
+  fibre, a real function whose derivative vanishes on vertical vectors at every point of a fibre
+  takes the same value at any two points of that fibre.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_eq_add` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`: for nonempty finite-dimensional
   `M`, a smooth atlas has `dim M = dim B + dim F`, so its fibre has dimension `dim M - dim B`.
@@ -321,6 +328,43 @@ theorem mfderiv_proj_mfderiv_symm_apply
   rw [← e.fiberInclusionMap_apply hb, mfderiv_proj_apply hv (he.mdifferentiableAt hv)]
   exact congrArg Prod.fst h
 
+variable {e'} in
+/-- **Vertical vectors under a change of trivialization.** Let `e` and `e'` be trivializations
+of `proj` that are differentiable with differentiable inverses, and `b` a point of both base
+sets. On a vertical vector `u` at `e⁻¹ (b, v)`, the derivative of the fibre coordinate of `e'` is
+the derivative at `v` of the coordinate change from `e` to `e'` over `b`, applied to the image of
+`u` under the derivative of the fibre coordinate of `e`. -/
+theorem mfderiv_snd_apply_of_mfderiv_proj_eq_zero
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF))
+    (he' : e'.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (hb' : b ∈ e'.baseSet) (v : F) {u : TangentSpace IM (e.fiberInclusionMap hb v)}
+    (hu : mfderiv IM IB proj (e.fiberInclusionMap hb v) u = 0) :
+    mfderiv IM IF (fun x ↦ (e' x).2) (e.fiberInclusionMap hb v) u =
+      mfderiv IF IF (e.coordChange e' b) v
+        (mfderiv IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) u) := by
+  have hu' : u ∈ (mfderiv IF IM (e.fiberInclusionMap hb) v).range := by
+    rw [range_mfderiv_fiberInclusionMap he hb v]
+    exact hu
+  obtain ⟨w, rfl⟩ := hu'
+  have hι := mdifferentiable_fiberInclusionMap he hb v
+  have hsnd {e₀ : Trivialization F proj}
+      (he₀ : e₀.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb₀ : b ∈ e₀.baseSet) :
+      MDifferentiableAt IM IF (fun x ↦ (e₀ x).2) (e.fiberInclusionMap hb v) :=
+    mdifferentiableAt_snd.comp _ (he₀.mdifferentiableAt
+      (e₀.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb₀)))
+  have hc : (fun x ↦ (e' x).2) ∘ e.fiberInclusionMap hb = e.coordChange e' b := by
+    rw [e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb', ← comp_assoc,
+      (e'.leftInverse_snd_fiberInclusionMap hb').comp_eq_id, id_comp]
+  rw [ContinuousLinearMap.coe_coe]
+  have h₁ := mfderiv_comp_apply v (hsnd he' hb') hι w
+  have h₂ := mfderiv_comp_apply v (hsnd he hb) hι w
+  rw [hc] at h₁
+  rw [(e.leftInverse_snd_fiberInclusionMap hb).comp_eq_id, mfderiv_id,
+    ContinuousLinearMap.id_apply] at h₂
+  -- `h₂` identifies `w` with its image under the two derivatives; the tangent spaces of `F` at
+  -- `v` and at `(e (e.fiberInclusionMap hb v)).2` agree only by definition.
+  exact h₁.symm.trans (congrArg _ h₂)
+
 /-! ### Coordinate changes -/
 
 variable (e)
@@ -482,6 +526,48 @@ theorem IsContMDiff.contMDiffAt_snd_trivAt (hA : A.IsContMDiff n IB IF IM) {b : 
     ContMDiffAt IM IF n (fun y ↦ (A.trivAt b y).2) x :=
   (hA.contMDiffOn_snd_trivAt b).contMDiffAt
     ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).mem_source.2 hx))
+
+end TauCeti.MapFiber.Atlas
+
+/-! ### Functions constant along fibres -/
+
+namespace TauCeti.MapFiber.Atlas
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
+  [ChartedSpace HB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*} [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  {proj : M → B} {A : Atlas F proj} {n : ℕ∞ω}
+
+/-- **Functions constant along a fibre.** Let `A` be a `C^n` atlas of `proj`, `n ≠ 0`, with
+preconnected model fibre `F`, and let `g : M → ℝ` be differentiable at every point over `proj x`,
+with derivative zero there on every vertical vector. Then `g x = g y` whenever
+`proj x = proj y`. -/
+theorem apply_eq_of_mfderiv_eq_zero_of_proj_eq [IsManifold IF 1 F] [PreconnectedSpace F]
+    (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) {g : M → ℝ} {x y : M} (hxy : proj x = proj y)
+    (hg : ∀ z, proj z = proj x → MDifferentiableAt IM 𝓘(ℝ, ℝ) g z)
+    (h0 : ∀ z, proj z = proj x → ∀ η : TangentSpace IM z, mfderiv IM IB proj z η = 0 →
+      mfderiv IM 𝓘(ℝ, ℝ) g z η = 0) :
+    g x = g y := by
+  let e := A.trivAt (proj x)
+  have hb : proj x ∈ e.baseSet := A.mem_baseSet_trivAt (proj x)
+  have hι := e.mdifferentiable_fiberInclusionMap (hA.mdifferentiable_trivAt hn (proj x)) hb
+  have hgι : MDifferentiable IF 𝓘(ℝ, ℝ) (g ∘ e.fiberInclusionMap hb) := fun p ↦
+    (hg _ (e.proj_fiberInclusionMap hb p)).comp p (hι p)
+  have hzero (p : F) : mfderiv IF 𝓘(ℝ, ℝ) (g ∘ e.fiberInclusionMap hb) p = 0 := by
+    ext ε
+    rw [mfderiv_comp p (hg _ (e.proj_fiberInclusionMap hb p)) (hι p),
+      ContinuousLinearMap.comp_apply, zero_apply]
+    exact h0 _ (e.proj_fiberInclusionMap hb p) _
+      (e.mfderiv_proj_mfderiv_fiberInclusionMap_apply hb p ε)
+  have hxι : e.fiberInclusionMap hb (e x).2 = x := e.fiberInclusionMap_snd_apply hb
+  have hyι : e.fiberInclusionMap hb (e y).2 = y := by
+    rw [e.fiberInclusionMap_apply, hxy, e.symm_apply_mk_proj (e.mem_source.2 (hxy ▸ hb))]
+  have h := hgι.apply_eq_of_mfderiv_eq_zero hzero (e x).2 (e y).2
+  rwa [Function.comp_apply, Function.comp_apply, hxι, hyι] at h
 
 end TauCeti.MapFiber.Atlas
 

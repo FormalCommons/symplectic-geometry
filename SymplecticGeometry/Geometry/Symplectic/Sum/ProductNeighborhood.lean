@@ -573,7 +573,7 @@ def transDiffeomorph (Φ : SymplecticFraming hι hP) (ψ : M ≃ₘ⟮I, I'⟯ M
     (hσ' : σ'.IsNondegenerate) (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ)
     (hP' : finrank ℝ ℂ = finrank ℝ E' - finrank ℝ EQ) :
     SymplecticFraming (hσ := hσ') (ι := ι.transDiffeomorphOfBoundaryless ψ (by simp))
-      ((ι.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff ψ (by simp) hψ).2 hι)
+      ((ι.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff ψ hψ).2 hι)
       hP' :=
   Φ.transLocalDiffeomorph ψ.isLocalDiffeomorph hψ
     (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm
