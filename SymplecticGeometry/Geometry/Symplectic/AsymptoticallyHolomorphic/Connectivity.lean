@@ -24,6 +24,7 @@ import TauCeti.Geometry.Manifold.Morse.Deformation.Cofibration
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.ContMDiff.Log
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # Critical points of `log |s_k|²` for uniformly transverse sequences
@@ -78,11 +79,13 @@ The Morse theory of this perturbation gives a relative CW model of `W = {s k ≠
 `A = {0 < ‖s k‖² ≤ ε}` with cells only in dimensions at least `dim M / 2`, together with the
 homotopy extension property of `A` in `W`
 (`SymplecticGeometry.IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_nonzeroOpens`).
-Tau Ceti's `TauCeti.IsMorse.exists_relCWComplex_homotopyEquiv_sublevel` models the full sublevel
-over the sublevel at `log ε`, with one cell for each critical point between them, and
+Here `A` is the sublevel set `{g ≤ log ε}` and `W` the sublevel set `{g ≤ b}`. Starting from `A`
+as a CW complex over itself, Tau Ceti's
+`TauCeti.IsMorse.exists_relCWComplex_extension_homotopyEquiv_sublevel` adds one cell for each
+critical point between the two levels, as Tau Ceti's own
+`TauCeti.IsMorse.exists_relCWComplex_homotopyEquiv_sublevel` does with base the sublevel set, and
 `TauCeti.hasHomotopyExtensionProperty_sublevel_of_isRegularValue` gives the homotopy extension
-property. Both are carried to `A` and `W`, as sets of `M`, along the identifications of the two
-sublevels with them; this is the form that
+property. This is the form, with `A` and `W` as sets of `M`, that
 `SymplecticGeometry.exists_relCWComplex_homotopyEquiv_of_isPushout` takes.
 
 These are the first steps of the Morse theory of `log |s_k|²` away from the zero set.
@@ -427,54 +430,43 @@ theorem IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_nonzeroOpens [I.
   set A : Set M := {x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε}
   obtain ⟨g, hgM, -, hgle, -, hgi, hreg, hgK, b, hεb, hb, hgb⟩ := hk ε hε hcrit
   have hpos (x : U) : 0 < ‖s k x‖ ^ 2 := pow_pos (norm_pos_iff.2 (mem_nonzeroOpens.1 x.property)) 2
-  have hAU (x : M) (hx : x ∈ A) : x ∈ U :=
-    mem_nonzeroOpens.2 fun h ↦ by simp [A, h] at hx
+  have hAU : A ⊆ (U : Set M) := fun x hx ↦ mem_nonzeroOpens.2 fun h ↦ by simp [A, h] at hx
   -- `A` is the sublevel set `{g ≤ log ε}`, read in `M`.
-  have hrange (hAW : A ⊆ (U : Set M)) :
-      Set.range (ContinuousMap.inclusion hAW) = {x : U | g x ≤ Real.log ε} := by
+  have hset : {x : U | g x ≤ Real.log ε} = Subtype.val ⁻¹' A := by
     ext x
-    refine ⟨?_, fun hx ↦ ⟨⟨x, hpos x, (hgle x).1 hx⟩, rfl⟩⟩
-    rintro ⟨a, rfl⟩
-    exact (hgle _).2 a.property.2
+    exact (hgle x).trans ⟨fun hx ↦ ⟨hpos x, hx⟩, And.right⟩
   let eA : A ≃ₜ {x : U | g x ≤ Real.log ε} :=
-    { toFun := fun x ↦ ⟨⟨x, hAU x x.property⟩, (hgle _).2 x.property.2⟩
-      invFun := fun x ↦ ⟨x.val, hpos x.val, (hgle x.val).1 x.property⟩
-      left_inv := fun _ ↦ rfl
-      right_inv := fun _ ↦ rfl
-      continuous_toFun := by fun_prop
-      continuous_invFun := by fun_prop }
+    (Homeomorph.Set.preimageVal hAU).symm.trans (Homeomorph.setCongr hset.symm)
   let eW : {x : U | g x ≤ b} ≃ₜ (U : Set M) :=
     (Homeomorph.setCongr hgb).trans (Homeomorph.Set.univ U)
-  have heA (a : A) : ((eA a : U) : M) = a := rfl
+  have heA (a : A) : ((eA a : U) : M) = a := by
+    simp only [eA, Homeomorph.trans_apply, Homeomorph.Set.preimageVal_symm_apply,
+      Homeomorph.setCongr_apply]
   have heW (y : {x : U | g x ≤ b}) : (eW y : M) = (y : U) := rfl
   refine ⟨fun hAW ↦ ?_, ?_⟩
-  · -- The subtype of `U` as a set of `M` is the subtype of `U` itself.
-    have hA := hasHomotopyExtensionProperty_sublevel_of_isRegularValue g.contMDiff hεb (hgK b) hreg
-    rw [hrange hAW]
+  · have hA := hasHomotopyExtensionProperty_sublevel_of_isRegularValue g.contMDiff hεb (hgK b) hreg
+    -- Mathlib states no coercion lemma for `ContinuousMap.inclusion`, whose underlying map is
+    -- `Set.inclusion` by definition.
+    have hr : Set.range (ContinuousMap.inclusion hAW) = {x : U | g x ≤ Real.log ε} :=
+      (Set.range_inclusion hAW).trans hset.symm
+    -- The subtype of `U` as a set of `M` is the subtype of `U` itself.
+    rw [hr]
     exact hA
-  obtain ⟨X, _, _, j, _, h, hj, hh, ⟨e⟩⟩ :=
-    hgM.exists_relCWComplex_homotopyEquiv_sublevel hεb.le (hgK b) hreg hb
-  -- The cells are indexed by critical points, of index at least `dim M / 2`.
-  have hcell (m : ℕ) (hm : m < Module.finrank ℝ E / 2) :
-      IsEmpty (RelCWComplex.cell (Set.univ : Set X) m) :=
-    have : IsEmpty {x ∈ criticalPoints I g ∩ g ⁻¹' Set.Ioc (Real.log ε) b |
-        manifoldMorseIndex I g x = m} :=
-      ⟨fun ⟨x, ⟨hx, _⟩, hxm⟩ ↦ absurd (hgi x hx) (by omega)⟩
-    (e m).isEmpty
-  clear e
-  -- Precomposing `j` with the homeomorphism `A ≃ₜ {g ≤ log ε}` does not change its range.
-  have hr : Set.range (j.comp (eA : C(A, {x : U | g x ≤ Real.log ε}))) = Set.range j := by
-    rw [ContinuousMap.coe_comp, ContinuousMap.coe_ofClass]
-    exact eA.surjective.range_comp _
-  clear_value eA eW
-  revert hcell ‹RelCWComplex (Set.univ : Set X) (Set.range j)›
-  rw [← hr]
-  intro _ hcell
-  refine ⟨X, _, ‹_›, _, ‹_›, h.trans eW.toHomotopyEquiv, ?_, fun a ↦ ?_, hcell⟩
-  · rw [ContinuousMap.coe_comp, ContinuousMap.coe_ofClass]
-    exact hj.comp eA.isClosedEmbedding
-  · rw [ContinuousMap.HomotopyEquiv.trans_apply, Homeomorph.coe_toHomotopyEquiv, heW,
-      ContinuousMap.comp_apply, ContinuousMap.coe_ofClass, hh, heA]
+  -- Start from `A`, a CW complex relative to itself with no cells.
+  let := relCWComplexSelf (Set.univ : Set A) isClosed_univ
+  obtain ⟨X, _, _, j, D', _, h, hD', hj, -, hh, e, -⟩ :=
+    hgM.exists_relCWComplex_extension_homotopyEquiv_sublevel hεb.le (hgK b) hreg hb A Set.univ
+      eA.toHomotopyEquiv
+  rw [Set.image_univ] at hD'
+  subst hD'
+  refine ⟨X, _, ‹_›, j, ‹_›, h.trans eW.toHomotopyEquiv, hj, fun a ↦ ?_, fun m hm ↦ ?_⟩
+  · rw [ContinuousMap.HomotopyEquiv.trans_apply, Homeomorph.coe_toHomotopyEquiv, heW, hh,
+      Homeomorph.coe_toHomotopyEquiv, heA]
+  -- The new cells are indexed by critical points, of index at least `dim M / 2`.
+  have : IsEmpty {x ∈ criticalPoints I g ∩ g ⁻¹' Set.Ioc (Real.log ε) b |
+      manifoldMorseIndex I g x = m} :=
+    ⟨fun ⟨x, ⟨hx, _⟩, hxm⟩ ↦ absurd (hgi x hx) (by omega)⟩
+  exact (e m).isEmpty
 
 end SymplecticGeometry
 
