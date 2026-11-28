@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Holonomy
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Curvature
 public import SymplecticGeometry.Geometry.Manifold.ChartDisc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Curve
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Analysis.Calculus.Deriv.Prod
@@ -639,10 +640,11 @@ theorem val_curvatureTensor_transportedCylinder_chartDisc_zero {σ : SmoothTwoFo
     rintro x rfl hfx
     rw [← h₁, ← h₂]
     exact hD.curvatureTensor_apply _ hfx hV₁ hV₂
-  have hγ : MDifferentiableAt 𝓘(ℝ, ℝ) IM γ θ :=
-    (((hA.contMDiffOn_trivAt_symm b).contMDiffAt
-      ((A.trivAt b).open_target.mem_nhds ((A.trivAt b).mem_target.2 hb))).mdifferentiableAt
-      (by simp)).comp θ (mdifferentiableAt_const.prodMk hc)
+  have hγ : MDifferentiableAt 𝓘(ℝ, ℝ) IM γ θ := by
+    rw [show γ = (A.trivAt b).fiberInclusionMap hb ∘ c by
+      rw [(A.trivAt b).coe_fiberInclusionMap hb, hγ_def, comp_def]]
+    exact ((A.trivAt b).mdifferentiable_fiberInclusionMap (hA.mdifferentiable_trivAt (by simp) b)
+      hb (c θ)).comp θ hc
   -- The derivative of the cylinder in `θ` is the velocity of `γ`.
   have hΘ : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (fun p : ℝ × ℝ × ℝ ↦ γ p.2.2) (s, t, θ) (0, 0, 1) =
       Manifold.curveVelocity IM γ θ := by
@@ -654,18 +656,15 @@ theorem val_curvatureTensor_transportedCylinder_chartDisc_zero {σ : SmoothTwoFo
   have hp : proj (γ θ) = b := (A.trivAt b).proj_symm_apply' hb
   -- `∂_θC` is vertical: `proj ∘ γ` is constant.
   have hv : Manifold.curveVelocity IM γ θ ∈ (mfderiv IM IB proj (γ θ)).ker := by
-    have h := Manifold.curveVelocityWithin_map ((hf _).mdifferentiableAt (by simp))
-      uniqueDiffWithinAt_univ hγ.mdifferentiableWithinAt
-    rw [Manifold.curveVelocityWithin_univ, Manifold.curveVelocityWithin_univ,
-      show proj ∘ γ = fun _ ↦ b from funext fun θ' ↦ (A.trivAt b).proj_symm_apply' hb,
-      Manifold.curveVelocity_const] at h
-    exact h.symm
+    simpa [Manifold.curveVelocityWithin_univ] using
+      Manifold.mfderiv_curveVelocityWithin_eq_zero_of_eqOn (I := IM) (J := IB) (f := proj)
+        (s := univ) (y := b) (fun θ' _ ↦ (A.trivAt b).proj_symm_apply' hb) (mem_univ θ)
   -- The fibre coordinate of `e` sends `∂_θC` to the velocity of `c`.
   have hsnd : mfderiv IM IF (fun z ↦ (A.trivAt b z).2) (γ θ) (Manifold.curveVelocity IM γ θ) =
       Manifold.curveVelocity IF c θ := by
-    have h := Manifold.curveVelocityWithin_map (((hA.contMDiffOn_snd_trivAt b).contMDiffAt
-      ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).map_target
-        ((A.trivAt b).mem_target.2 hb)))).mdifferentiableAt (by simp))
+    have h := Manifold.curveVelocityWithin_map
+      ((hA.contMDiffAt_snd_trivAt (b := b) (x := γ θ) (by rw [hp]; exact hb)).mdifferentiableAt
+        (by simp))
       uniqueDiffWithinAt_univ hγ.mdifferentiableWithinAt
     rw [Manifold.curveVelocityWithin_univ, Manifold.curveVelocityWithin_univ,
       show (fun z ↦ (A.trivAt b z).2) ∘ γ = c from
