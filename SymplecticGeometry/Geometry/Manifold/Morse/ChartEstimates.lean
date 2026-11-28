@@ -152,13 +152,8 @@ theorem IsGradientLikeAt.exists_abs_sub_le_mul_norm_mul_norm_fderiv_comp_symm
     rw [fderiv_sub ((hdf' w hw).differentiableAt (isOpen_ball.mem_nhds hw))
       ((hdf w hw).differentiableAt (isOpen_ball.mem_nhds hw))]
     exact ContinuousLinearMap.norm_sub_le_of_mul_le_apply hc (hle₁ w hw) (hle₂ w hw)
-  have hrad : ∀ s ∈ Icc (0 : ℝ) 1,
-      ‖fderiv ℝ (f ∘ e.symm) (s • z)‖ ≤ K * ‖fderiv ℝ (f ∘ e.symm) z‖ := fun s hs ↦ by
-    have hsz : s • z ∈ ball (0 : E) r₀ :=
-      (convex_ball (0 : E) r₀).smul_mem_of_zero_mem (mem_ball_self (pos_of_mem_ball hz)) hz hs
-    rw [(hfF' (hst hsz)).fderiv_eq, (hfF' (hst hz)).fderiv_eq]
-    exact hK z s hs
-  have := SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le hz hrad
+  have := SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le hz
+    (SymplecticGeometry.norm_fderiv_smul_le_mul_of_eqOn e.open_target hst hfF hK hz)
     (hdf'.sub hdf) hH0 hDH
   simpa [Real.norm_eq_abs] using this
 
@@ -210,19 +205,17 @@ theorem IsLiouvilleVectorField.exists_abs_comp_symm_le_mul_norm_mul_norm_fderiv
     hXσ.exists_ball_mvfderiv_sub_eq_inverseFlatInChart hσ hσn hX hXf hp hX' hX'σ hYX' hYf he hpe
   rw [hep] at hst hsU h
   refine ⟨r₀, hr₀, c, hc, max C 0 * max K 0, by positivity, B, H, hH, hHp, hst, hsU,
-    fun z hz ↦ ⟨(h z hz).1, (h z hz).2.1, (h z hz).2.2.1, (h z hz).2.2.2.1, ?_⟩⟩
+    fun z hz ↦ ?_⟩
+  obtain ⟨hXz, hYz, hYXz, hJz, -, -⟩ := h z hz
+  refine ⟨hXz, hYz, hYXz, hJz, ?_⟩
   -- The primitive estimate for `H̃`, whose derivative is controlled by that of `f̃`.
   have hH0 : (H ∘ e.symm) 0 = 0 := by
     rw [Function.comp_apply, ← hep, e.left_inv hpe, hHp]
-  have hrad : ∀ s ∈ Icc (0 : ℝ) 1,
-      ‖fderiv ℝ (f ∘ e.symm) (s • z)‖ ≤ max K 0 * ‖fderiv ℝ (f ∘ e.symm) z‖ := fun s hs ↦ by
-    have hsz : s • z ∈ ball (0 : E) r₀ :=
-      (convex_ball (0 : E) r₀).smul_mem_of_zero_mem (mem_ball_self (pos_of_mem_ball hz)) hz hs
-    rw [(eventuallyEq_of_mem (e.open_target.mem_nhds (hst hsz)) hfF).fderiv_eq,
-      (eventuallyEq_of_mem (e.open_target.mem_nhds (hst hz)) hfF).fderiv_eq]
-    exact (hK z s hs).trans (by gcongr; exact le_max_left _ _)
+  have hK' (w : E) : ∀ s ∈ Icc (0 : ℝ) 1, ‖fderiv ℝ F (s • w)‖ ≤ max K 0 * ‖fderiv ℝ F w‖ :=
+    fun s hs ↦ (hK w s hs).trans (by gcongr; exact le_max_left _ _)
   have := SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le (C := max C 0) hz
-    hrad (fun w hw ↦ (h w hw).2.2.2.2.1.differentiableWithinAt) hH0
+    (SymplecticGeometry.norm_fderiv_smul_le_mul_of_eqOn e.open_target hst hfF hK' hz)
+    (fun w hw ↦ (h w hw).2.2.2.2.1.differentiableWithinAt) hH0
     (fun w hw ↦ (h w hw).2.2.2.2.2.trans (by gcongr; exact le_max_left _ _))
   rwa [Real.norm_eq_abs, Function.comp_apply] at this
 

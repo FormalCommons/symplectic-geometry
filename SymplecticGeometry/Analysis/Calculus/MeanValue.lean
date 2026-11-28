@@ -46,6 +46,8 @@ of holonomic approximation in [EliashbergMishachev2002], Chapter 3.
 * `SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le`: by the mean value
   inequality along the segment from `0`, a map `h` vanishing at `0` with `‖D h‖ ≤ C ‖D g‖` on a
   ball is bounded by `C K ‖z‖ ‖D g (z)‖` there, when `‖D g (s z)‖ ≤ K ‖D g (z)‖` for `s ∈ [0, 1]`.
+* `SymplecticGeometry.norm_fderiv_smul_le_mul_of_eqOn`: that radial control of `D g` holds on a
+  ball when `g` agrees, on an open set containing it, with a function that has it everywhere.
 
 ## References
 
@@ -139,6 +141,22 @@ theorem norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le {G : Type*} [NormedAd
     rw [hDg, mul_zero]
     refine (hmvt 0 fun w hw ↦ (hhg w (hseg hw)).trans ?_).trans_eq (zero_mul _)
     nlinarith [norm_nonneg (fderiv ℝ g w)]
+
+/-- **Radial control passes to a function that agrees with the model near the ball.** Let `g`
+agree with `F` on an open set `S` containing the ball `B(0, r)`, and let `F` satisfy
+`‖D F (s z)‖ ≤ K ‖D F (z)‖` for all `z` and `s ∈ [0, 1]`. Then `‖D g (s z)‖ ≤ K ‖D g (z)‖` for
+every `z` in the ball and `s ∈ [0, 1]`. -/
+theorem norm_fderiv_smul_le_mul_of_eqOn {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {g F : E → G} {S : Set E} (hS : IsOpen S) {r K : ℝ} (hrS : Metric.ball 0 r ⊆ S)
+    (hgF : Set.EqOn g F S)
+    (hK : ∀ z : E, ∀ s ∈ Set.Icc (0 : ℝ) 1, ‖fderiv ℝ F (s • z)‖ ≤ K * ‖fderiv ℝ F z‖) {z : E}
+    (hz : z ∈ Metric.ball 0 r) :
+    ∀ s ∈ Set.Icc (0 : ℝ) 1, ‖fderiv ℝ g (s • z)‖ ≤ K * ‖fderiv ℝ g z‖ := fun s hs ↦ by
+  have hsz : s • z ∈ Metric.ball (0 : E) r := (convex_ball (0 : E) r).smul_mem_of_zero_mem
+    (Metric.mem_ball_self (Metric.pos_of_mem_ball hz)) hz hs
+  rw [(Filter.eventuallyEq_of_mem (hS.mem_nhds (hrS hsz)) hgF).fderiv_eq,
+    (Filter.eventuallyEq_of_mem (hS.mem_nhds (hrS hz)) hgF).fderiv_eq]
+  exact hK z s hs
 
 end SymplecticGeometry
 

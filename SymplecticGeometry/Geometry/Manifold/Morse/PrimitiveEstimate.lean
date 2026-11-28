@@ -37,7 +37,7 @@ in the proof of Proposition 9.23 (a), and of Lemma 12.9, of [CieliebakEliashberg
 The same radial estimate gives the hypotheses of the cut-off step for two Liouville fields that
 are gradient-like for `f` near `p`, in Lemma 12.9 of [CieliebakEliashberg2012]: the Hamiltonian
 `H` of their difference, which vanishes at `p`, has `|H (e.symm z)| ≤ A ‖z‖ ‖Df̃ (z)‖` in a
-Morse–Bott chart. This is the case `F = Q`, `K = 1` of
+Morse–Bott chart. This is the case `F = φ.quadratic`, `K = 1` of
 `TauCeti.IsLiouvilleVectorField.exists_abs_comp_symm_le_mul_norm_mul_norm_fderiv`.
 
 ## Main results
