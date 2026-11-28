@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Path
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
@@ -61,6 +62,9 @@ also shows that a diffeotopy has a Hamiltonian as soon as every `ι_{X_t} σ` is
   makes the choice jointly smooth.
 * `TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: a diffeotopy
   whose slices preserve `σ` is Hamiltonian exactly when every `ι_{X_t} σ` is exact.
+* `TauCeti.Diffeotopy.IsHamiltonian.interiorₗ_velocity_mem_exactForms`,
+  `TauCeti.Diffeotopy.IsHamiltonian.pathIntegral_interiorₗ_velocity_eq_zero`: for a Hamiltonian
+  diffeotopy every `ι_{X_t} σ` is exact, so its line integral along a closed `C¹` curve vanishes.
 * `TauCeti.Diffeotopy.flux_congr`: equal diffeotopies have equal fluxes, whatever proofs that
   their final maps preserve the closed form are given.
 
@@ -296,6 +300,20 @@ theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
     Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1 := by
   rw [isHamiltonian_iff, ← exists_hasHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms]
   exact and_iff_right hΦ
+
+/-- For a Hamiltonian diffeotopy `φ_t` of `σ`, the contraction `ι_{X_t} σ` of `σ` with the
+velocity `X_t` is exact for every `t`. -/
+theorem IsHamiltonian.interiorₗ_velocity_mem_exactForms (hΦ : Φ.IsHamiltonian σ)
+    (t : unitInterval) : σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1 :=
+  (isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
+    hΦ.timeSlice_mem_diffeomorphStabilizer).1 hΦ t
+
+/-- For a Hamiltonian diffeotopy `φ_t` of `σ` and every time `t`, the line integral from `0` to
+`1` of `ι_{X_t} σ` along a `C¹` curve `c` with `c 0 = c 1` vanishes. -/
+theorem IsHamiltonian.pathIntegral_interiorₗ_velocity_eq_zero (hΦ : Φ.IsHamiltonian σ)
+    (t : unitInterval) {c : ℝ → M} (hc : ContMDiff 𝓘(ℝ, ℝ) J 1 c) (hc₀₁ : c 0 = c 1) :
+    pathIntegral (σ.interiorₗ (Φ.smoothVelocity t)).val c 0 1 = 0 :=
+  pathIntegral_eq_zero_of_mem_exactForms (hΦ.interiorₗ_velocity_mem_exactForms t) hc hc₀₁
 
 /-- The flux of a diffeotopy depends only on the diffeotopy: equal diffeotopies have equal fluxes,
 whichever proofs that their final maps preserve `τ` are given. -/
