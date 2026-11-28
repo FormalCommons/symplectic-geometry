@@ -14,7 +14,9 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 A map `f : M → N` is `C^n` on an open subset `U` of `M` exactly when its restriction to `U`, read
 as a manifold, is `C^n` (`contMDiff_subtype_iff`). A map into `N` that is `C^n` at a point `x`
 and sends `x` into an open subset `W` of `N` lifts, near `x`, to a map into `W` that is `C^n` at
-`x` (`ContMDiffAt.exists_subtypeVal_comp_eventuallyEq`).
+`x` (`ContMDiffAt.exists_subtypeVal_comp_eventuallyEq`). Let `U` be an open subset of `M`. A
+map `g : U → W` that agrees, read in `N`, with a `C^n` map `f : M → N` is `C^n`
+(`ContMDiff.restrict_opens`).
 
 Let `U` be an open subset of a manifold `M` and `n` a smoothness order. Let `g : P × U → N`
 be a map that is `C^n` at `(p, x)`, and `f : P × M → N` a map that agrees with it on `P × U`.
@@ -36,6 +38,7 @@ As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → 
   subset is `C^n`.
 * `ContMDiffAt.exists_subtypeVal_comp_eventuallyEq`: a map that is `C^n` at a point and sends it
   into an open subset lifts, near that point, to a map into that subset that is `C^n` there.
+* `ContMDiff.restrict_opens`: a map between open subsets that agrees with a `C^n` map is `C^n`.
 * `ContMDiffAt.prod_opens_of_eq`: a map that agrees on `P × U` with a map on `P × U` that is
   `C^n` at a point is `C^n` at that point.
 * `ContMDiffAt.opens_prod_of_eq`: the same on `U × P`.
@@ -79,6 +82,13 @@ theorem ContMDiffAt.exists_subtypeVal_comp_eventuallyEq {n : WithTop ℕ∞} {f 
     mem_of_superset (hf.continuousAt.preimage_mem_nhds (W.isOpen.mem_nhds hx)) fun y hy ↦ by
       simp [g, dite_eq_left (show f y ∈ W from hy)]
   exact ⟨g, (TauCeti.ContMDiffAt.subtypeVal_comp_iff W g x).1 (hf.congr_of_eventuallyEq hg), hg⟩
+
+/-- Let `U` and `W` be open subsets of `M` and `N`, and `f : M → N` a `C^n` map. A map
+`g : U → W` with `g x = f x` in `N` for every `x ∈ U` is `C^n`. -/
+theorem ContMDiff.restrict_opens {n : WithTop ℕ∞} {f : M → N} (hf : ContMDiff I I' n f)
+    {U : Opens M} {W : Opens N} {g : U → W} (hfg : ∀ x, (g x : N) = f x) :
+    ContMDiff I I' n g :=
+  (TauCeti.ContMDiff.subtypeVal_comp_iff W g).1 ((hf.comp contMDiff_subtypeVal).congr hfg)
 
 end Restrict
 
