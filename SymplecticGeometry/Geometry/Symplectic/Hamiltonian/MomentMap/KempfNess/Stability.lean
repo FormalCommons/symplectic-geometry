@@ -77,6 +77,11 @@ of [GeorgoulasRobbinSalamon2021], Theorem 7.3 (with Theorem 4.3 there for the cr
   when its Kempf–Ness function is bounded below.
 * `SymplecticGeometry.IsSemistable.iInf_momentNormSq_smul_eq_zero`: at a semistable point, the
   infimum of `‖μ‖²` over the orbit is `0`.
+* `SymplecticGeometry.isSemistable_of_iInf_momentNormSq_smul_eq_zero`: conversely, for `B`
+  positive definite, a point at which that infimum is `0` is semistable, since `‖μ‖²` attains its
+  minimum on the compact closure of the orbit, and that minimum is `0`.
+* `SymplecticGeometry.isSemistable_iff_iInf_momentNormSq_smul_eq_zero`: the two directions
+  together.
 * `SymplecticGeometry.moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici`: if `Φ_p` is
   bounded below along the flow curve `g`, then the limit of the flow is a zero of `μ`.
 * `SymplecticGeometry.mem_lowerBounds_range_kempfNessFunction`: if the flow converges to a zero
@@ -152,6 +157,31 @@ theorem IsSemistable.iInf_momentNormSq_smul_eq_zero {hB : B.Nondegenerate} {p : 
   simpa [momentNormSq_apply, hy0] using hsub hy
 
 variable {hB : B.Nondegenerate}
+
+omit [I.Boundaryless] [CompactSpace G] [T2Space G] [ConnectedSpace G] [T2Space M]
+  [MulAction G M] in
+/-- Conversely to `IsSemistable.iInf_momentNormSq_smul_eq_zero`, for a positive definite form `B`
+and a continuous `‖μ‖²`, if the infimum of `‖μ‖²` over the `Gc`-orbit of `p` is `0`, then `p` is
+semistable. -/
+theorem isSemistable_of_iInf_momentNormSq_smul_eq_zero (hBp : B.toQuadraticMap.PosDef)
+    (hf : Continuous (momentNormSq μ (B.toDual hB).symm)) {p : M}
+    (h0 : ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0) : IsSemistable C μ p := by
+  obtain ⟨x, hxK, hxmin⟩ := isClosed_closure.isCompact.exists_isMinOn
+    ⟨p, subset_closure (MulAction.mem_orbit_self (M := Gc) p)⟩ hf.continuousOn
+  refine isSemistable_iff.2 ⟨x, hxK, (momentNormSq_eq_zero_iff (hB := hB) hBp.anisotropic).1 ?_⟩
+  refine le_antisymm ?_ (momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg))
+  rw [← h0]
+  exact le_ciInf fun g ↦ hxmin (subset_closure (MulAction.mem_orbit p g))
+
+omit [I.Boundaryless] [CompactSpace G] [T2Space G] [ConnectedSpace G] [T2Space M]
+  [MulAction G M] in
+/-- For a positive definite form `B` and a continuous `‖μ‖²`, a point `p` is semistable exactly
+when the infimum of `‖μ‖²` over its `Gc`-orbit is `0`. -/
+theorem isSemistable_iff_iInf_momentNormSq_smul_eq_zero (hBp : B.toQuadraticMap.PosDef)
+    (hf : Continuous (momentNormSq μ (B.toDual hB).symm)) (p : M) :
+    IsSemistable C μ p ↔ ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0 :=
+  ⟨fun hp ↦ hp.iInf_momentNormSq_smul_eq_zero (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hf,
+    isSemistable_of_iInf_momentNormSq_smul_eq_zero hBp hf⟩
 
 omit [ConnectedSpace G] [ContMDiffSMul IC I' ∞ Gc M] in
 /-- Let `g : ℝ → Gc` be a curve such that `(g t)⁻¹ • p` is the negative gradient
