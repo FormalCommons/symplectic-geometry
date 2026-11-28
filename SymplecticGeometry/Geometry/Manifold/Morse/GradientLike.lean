@@ -206,16 +206,15 @@ theorem isGradientLike_def (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(�
 
 variable {f : M → ℝ} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
 
-/-- If `c * (g (X p) (X p) + ‖grad f p‖ ^ 2) ≤ df_p (X p)` at a point `p`, for a smooth metric `g`
-and a constant `c > 0`, the gradient and its norm being those of `g`, then `X p = 0` exactly when
-`p` is a critical point of `f`. -/
+/-- If `c * (g (X p) (X p) + ‖grad f p‖ ^ 2) ≤ df_p (X p)` at a point `p`, for a Riemannian metric
+`g` and a constant `c > 0`, the gradient and its norm being those of `g`, then `X p = 0` exactly
+when `p` is a critical point of `f`. -/
 theorem eq_zero_iff_mem_criticalPoints_of_mul_le
-    (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {c : ℝ}
-    (hc : 0 < c) {p : M}
-    (h : letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+    (g : RiemannianMetric (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {c : ℝ} (hc : 0 < c) {p : M}
+    (h : letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g⟩
       c * (g.inner p (X p) (X p) + ‖mgradient 𝓘(ℝ, E) f p‖ ^ 2) ≤ mvfderiv 𝓘(ℝ, E) f p (X p)) :
     X p = 0 ↔ p ∈ criticalPoints 𝓘(ℝ, E) f := by
-  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g⟩
   rw [mem_criticalPoints]
   constructor
   · intro h0
@@ -274,7 +273,8 @@ theorem mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
 theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :
     X x = 0 ↔ mvfderiv 𝓘(ℝ, E) f x = 0 := by
   obtain ⟨g, δ, -, hδ, h⟩ := hX
-  rw [eq_zero_iff_mem_criticalPoints_of_mul_le g (hδ x) (h x), mem_criticalPoints]
+  rw [eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric (hδ x) (h x),
+    mem_criticalPoints]
 
 /-- Along an integral curve of a gradient-like field on a convex set `s` of times that meets no
 critical point of `f`, the function `f` is strictly increasing on `s`. -/
@@ -495,7 +495,8 @@ of `f`. -/
 theorem IsGradientLikeAt.eq_zero_iff {x : M} (h : IsGradientLikeAt f X x) :
     X x = 0 ↔ x ∈ criticalPoints 𝓘(ℝ, E) f := by
   obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X x).1 h
-  exact eq_zero_iff_mem_criticalPoints_of_mul_le g hc (hg x (mem_of_mem_nhds hU))
+  exact eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric hc
+    (hg x (mem_of_mem_nhds hU))
 
 /-- The inequality of `TauCeti.IsGradientLike` at `y`, with the constant `δ` and with a bilinear
 form `s` on `T_y M` in place of the metric, put in a form that is convex in `s`: the bound

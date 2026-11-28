@@ -241,7 +241,8 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
   -- At the critical point `p`, the inequality forces `X p = 0`.
   have hX₀ : X p = 0 :=
-    (eq_zero_iff_mem_criticalPoints_of_mul_le g hc (hg p (mem_of_mem_nhds hU))).2 hp
+    (eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric hc
+      (hg p (mem_of_mem_nhds hU))).2 hp
   have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
     hf.eventually_differentiableAt (by simp)
   obtain ⟨κ, hκ, hev⟩ :=
