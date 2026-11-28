@@ -43,6 +43,9 @@ and the analysis of its stable discs build on these results.
   function `f` that is `C²` in the chart, if `X` is differentiable at `p` and satisfies the
   gradient-like inequality near `p`, there is `c > 0` with
   `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`.
+* `TauCeti.exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero`: at such a point, if
+  `f` is `C⁴` and `X` is `C³`, and `B e = 0`, the inequality read along the parabolas
+  `t ↦ t • e + t ^ 2 • w` at order `t ^ 4`.
 * `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: for `X` gradient-like and `p`
   nondegenerate, there is `c > 0` with `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`, where `H` is the
   bilinear form of the Hessian in the chart.
@@ -234,6 +237,65 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
     gcongr
     nlinarith [norm_nonneg (B v), abs_nonneg (B v e), sq_abs (B v e)]
   nlinarith [sq_nonneg ‖A v‖, sq_nonneg ‖B v‖]
+
+/-- **The gradient-like inequality at fourth order, along the kernel of the Hessian.** Let `X` be
+gradient-like for `f` near a critical point `p` of `f` (`TauCeti.IsGradientLikeAt`), let `f` be
+`C⁴` in the chart at `p`, with derivatives `B = D²F` and `D³F` there, and let `X` be `C³` at `p`,
+with `Y` its expression in the chart. Let `B e = 0`. Then there is `c > 0` such that, for every
+`w` and every `e'` with `‖e'‖ ≤ 1`, with `α = B w + D³F e e / 2` and `β = DY w + D²Y e e / 2`,
+`c * (‖β‖ ^ 2 + α e' ^ 2) ≤ α β`. This is the inequality read along the parabolas
+`t ↦ t • e + t ^ 2 • w` of the chart, at order `t ^ 4`. -/
+theorem exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero {p : M}
+    (hX : IsGradientLikeAt f X p) (hp : p ∈ criticalPoints 𝓘(ℝ, E) f)
+    (hf : ContDiffAt ℝ 4 (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) (extChartAt 𝓘(ℝ, E) p p))
+    (hXp : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 3
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p) {e : E}
+    (he : fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) e = 0) :
+    ∃ c > 0, ∀ w e' : E, ‖e'‖ ≤ 1 →
+      c * (‖fderiv ℝ (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X)
+            (extChartAt 𝓘(ℝ, E) p p) w + (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ
+            (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X))
+            (extChartAt 𝓘(ℝ, E) p p) e e‖ ^ 2 +
+        (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) w +
+          (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)))
+            (extChartAt 𝓘(ℝ, E) p p) e e) e' ^ 2) ≤
+      (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) w +
+          (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)))
+            (extChartAt 𝓘(ℝ, E) p p) e e)
+        (fderiv ℝ (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X)
+            (extChartAt 𝓘(ℝ, E) p p) w + (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ
+            (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X))
+            (extChartAt 𝓘(ℝ, E) p p) e e) := by
+  have hX₀ : X p = 0 := hX.eq_zero_iff.2 hp
+  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X p).1 hX
+  set φ := extChartAt 𝓘(ℝ, E) p
+  set Y : E → E := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X
+  have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
+    hf.eventually_differentiableAt (by simp)
+  obtain ⟨κ, hκ, hev⟩ :=
+    exists_eventually_mul_norm_sq_add_sq_le g hc (Filter.mem_of_superset hU hg) hF (Y := Y) rfl
+  have hXd := hXp.mdifferentiableAt (by norm_num)
+  have hY : ContDiffAt ℝ 3 Y (φ p) := hXp.contDiffAt_mpullback_extChartAt_symm
+  have hY₀ : Y (φ p) = 0 := (VectorField.mpullback_extChartAt_symm_self X p).trans hX₀
+  have hD₀ : fderiv ℝ (f ∘ φ.symm) (φ p) = 0 :=
+    fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hp
+  -- The linearization of `X` vanishes on `e`, by the inequality at second order.
+  have hYe : fderiv ℝ Y (φ p) e = 0 := by
+    set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p
+    have hA : HasFDerivAt Y A (φ p) := hXd.hasFDerivAt_mpullback_extChartAt_symm
+    have hf₂ : ContDiffAt ℝ 2 (f ∘ φ.symm) (φ p) := hf.of_le (by norm_num)
+    obtain ⟨c₂, hc₂, h₂⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hX hp
+      hf₂ hXd (A := A) rfl
+    have h := h₂ e
+    rw [he] at h
+    simp at h
+    rw [hA.fderiv]
+    have : ‖A e‖ ^ 2 ≤ 0 := by nlinarith [sq_nonneg ‖A e‖]
+    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (le_antisymm this (sq_nonneg _)))
+  exact ⟨κ, hκ, fun w e' he' ↦
+    (hf.fderiv_right (m := 3) (by norm_num))
+      |>.mul_norm_sq_add_sq_le_of_eventually_of_fderiv_apply_eq_zero
+      hD₀ he hY hY₀ hYe (hev e' he') w⟩
 
 /-- **The gradient-like inequality at second order.** Let `X` be gradient-like for `f`, let `p` be
 a nondegenerate critical point of `f`, and let `X` be differentiable at `p`. Write `H` for the

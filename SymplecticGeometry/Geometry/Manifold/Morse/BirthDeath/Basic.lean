@@ -349,6 +349,13 @@ theorem contMDiffOn : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) ∞ f φ.toMorseBottCha
   (φ.contDiff_normalForm.contMDiff.comp_contMDiffOn
     (contMDiffOn_of_mem_maximalAtlas φ.toMorseBottChart.mem_maximalAtlas)).congr φ.eqOn_normalForm
 
+include φ in
+/-- A function with a birth–death chart at `x` is smooth near `x`. -/
+theorem eventually_contMDiffAt : ∀ᶠ y in 𝓝 x, ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) ∞ f y :=
+  Filter.eventually_of_mem
+    (φ.toMorseBottChart.toChart.open_source.mem_nhds φ.toMorseBottChart.mem_source)
+    fun _ hy ↦ φ.contMDiffOn.contMDiffAt (φ.toMorseBottChart.toChart.open_source.mem_nhds hy)
+
 
 section Comp
 

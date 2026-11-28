@@ -11,6 +11,7 @@ public import TauCeti.LinearAlgebra.BilinearForm.Basic
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
+import Mathlib.Analysis.Normed.Module.HahnBanach
 
 /-!
 # Continuous bilinear forms
@@ -99,6 +100,10 @@ applied to a single form, so its sublevel sets `{x | B x x ≤ c}` are compact.
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 * `LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply`: for nondegenerate `B` in finite
   dimension, `B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f`.
+* `ContinuousLinearMap.ker_eq_ker_of_mul_norm_sq_add_norm_sq_le`: a form `B` and an operator `A`
+  with `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` have the same kernel.
+* `ContinuousLinearMap.exists_apply_eq_of_ker_eq_span_singleton`: in finite dimension, a
+  symmetric form whose kernel is a line `ℝ ∙ e` takes every value that vanishes on `e`.
 * `LinearMap.BilinForm.isCompact_setOfPred_apply_self_le`: on a finite-dimensional real normed
   space, the sublevel sets of a positive definite form are compact.
 -/
@@ -425,5 +430,53 @@ theorem isCompact_setOfPred_apply_self_le {E : Type*} [NormedAddCommGroup E] [No
   simpa using (hle () rfl x).trans hx
 
 end LinearMap.BilinForm
+
+namespace ContinuousLinearMap
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- If `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`, with `c > 0`, then the continuous
+bilinear form `B` and the operator `A` have the same kernel. -/
+theorem ker_eq_ker_of_mul_norm_sq_add_norm_sq_le {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {A : E →L[ℝ] F} {B : E →L[ℝ] F →L[ℝ] ℝ} {c : ℝ} (hc : 0 < c)
+    (h : ∀ v, c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)) : B.ker = A.ker := by
+  ext v
+  simp only [LinearMap.mem_ker, coe_coe]
+  constructor <;> intro hv <;> have h := h v
+  · rw [hv, zero_apply, norm_zero] at h
+    have : ‖A v‖ ^ 2 ≤ 0 := by nlinarith [sq_nonneg ‖A v‖]
+    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (le_antisymm this (sq_nonneg _)))
+  · rw [hv, map_zero, norm_zero] at h
+    have : ‖B v‖ ^ 2 ≤ 0 := by nlinarith [sq_nonneg ‖B v‖]
+    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (le_antisymm this (sq_nonneg _)))
+
+/-- In finite dimension, a symmetric continuous bilinear form `B` whose kernel is the line
+`ℝ ∙ e`, with `e ≠ 0`, takes as values `B w` every continuous linear form that vanishes on
+`e`. -/
+theorem exists_apply_eq_of_ker_eq_span_singleton [FiniteDimensional ℝ E] {B : E →L[ℝ] E →L[ℝ] ℝ}
+    (hB : ∀ v w, B v w = B w v) {e : E} (he : e ≠ 0) (hker : B.ker = ℝ ∙ e)
+    {ℓ : E →L[ℝ] ℝ} (hℓ : ℓ e = 0) : ∃ w, B w = ℓ := by
+  set S : Submodule ℝ (E →L[ℝ] ℝ) := LinearMap.ker (apply ℝ ℝ e).toLinearMap
+  -- The range of `B` lies in the forms that vanish on `e`, and has the same dimension.
+  have hle : LinearMap.range B.toLinearMap ≤ S := by
+    rintro _ ⟨w, rfl⟩
+    have : B e = 0 := LinearMap.mem_ker.1 (hker ▸ Submodule.mem_span_singleton_self e)
+    simp [S, hB w e, this]
+  have hsurj : Function.Surjective (apply ℝ ℝ e : (E →L[ℝ] ℝ) →L[ℝ] ℝ) := by
+    obtain ⟨g, -, hg⟩ := exists_dual_vector ℝ e (norm_ne_zero_iff.2 he)
+    refine fun r ↦ ⟨(r / ‖e‖) • g, ?_⟩
+    have : ‖e‖ ≠ 0 := norm_ne_zero_iff.2 he
+    simp [hg, this]
+  have h₁ := LinearMap.finrank_range_add_finrank_ker B.toLinearMap
+  have h₂ := LinearMap.finrank_range_add_finrank_ker (apply ℝ ℝ e : (E →L[ℝ] ℝ) →L[ℝ] ℝ).toLinearMap
+  rw [LinearMap.range_eq_top.2 hsurj, finrank_top, Module.finrank_self] at h₂
+  have h₃ : Module.finrank ℝ (E →L[ℝ] ℝ) = Module.finrank ℝ E :=
+    LinearMap.toContinuousLinearMap.symm.finrank_eq.trans Subspace.dual_finrank_eq
+  have h₄ : Module.finrank ℝ B.ker = 1 := by rw [hker]; exact finrank_span_singleton he
+  have heq := Submodule.eq_of_le_of_finrank_eq hle (by simp only [S] at *; omega)
+  obtain ⟨w, hw⟩ := heq ▸ (show ℓ ∈ S by simp [S, hℓ])
+  exact ⟨w, hw⟩
+
+end ContinuousLinearMap
 
 end
