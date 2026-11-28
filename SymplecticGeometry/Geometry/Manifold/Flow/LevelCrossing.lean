@@ -42,7 +42,8 @@ once (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos`), and t
 orbits meet it form an open set: just before and just after its crossing an orbit lies on either
 side of the level, so the nearby orbits do too, and they cross it in between by the intermediate
 value theorem. For a `C^n` function `g`, the crossing time and the crossing point of such a level
-are then `C^n` on that open set.
+are then `C^n` on that open set, and in finite dimension the kernel of the derivative of the
+map to the level at each of its points is the line through the field.
 
 ## Main results
 
@@ -54,6 +55,8 @@ are then `C^n` on that open set.
   time is `C^n` where the crossing is transverse.
 * `TauCeti.contMDiffAt_flow_levelCrossingTime`, `TauCeti.contMDiffOn_flow_levelCrossingTime`: so
   is the map that flows each point to the point where its orbit crosses the level.
+* `TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos`: each orbit meets a level crossed
+  upwards at most once.
 * `TauCeti.isOpen_setOf_exists_flow_apply_eq`: the points whose orbits meet a level crossed
   upwards form an open set.
 * `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`,
@@ -62,6 +65,8 @@ are then `C^n` on that open set.
   `TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`: for a `C^n` function, the crossing
   time and the crossing point of a level crossed upwards are `C^n` at each point of that open
   set, and on it.
+* `TauCeti.ker_mfderiv_flow_levelCrossingTime_of_mvfderiv_pos`: in finite dimension, the
+  derivative of the map to a level crossed upwards has kernel the line through the field.
 
 ## References
 
@@ -169,6 +174,34 @@ theorem ker_mfderiv_flow_levelCrossingTime [FiniteDimensional ℝ E]
     rw [map_smul, mfderiv_flowTransition_apply_eq_zero hv hT hg hgv, smul_zero]
     rfl
 
+/-- **Orbits cross an upward level at most once.** Let `v` be a complete `C¹` field with flow
+`Φ`, and let `g` be `C¹` with `dg (v) > 0` at each point of the level `{g = c}`. Then the orbit of
+each point `y` meets that level at most once. -/
+theorem subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
+    (hv : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
+    (hΦ : flowOf v = ⇑Φ) (hg : ContMDiff I 𝓘(ℝ) 1 g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) (y : M) :
+    {t | g (Φ t y) = c}.Subsingleton := by
+  have hcurve : IsMIntegralCurve (fun t ↦ Φ t y) v := by
+    have h := isMIntegralCurve_globalFlow hv hcomplete y
+    rwa [← flowOf_eq_globalFlow hv hcomplete, hΦ] at h
+  exact hcurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos (f := g)
+    (hg.continuous.comp hcurve.continuous) fun _ hz ↦
+      ⟨(hg _).mdifferentiableAt one_ne_zero, hgv _ hz⟩
+
+/-- **The kernel of the derivative of the map to an upward level.** Let `v` be a complete `C¹`
+field on a finite-dimensional manifold, with flow `Φ`, and let `g` be `C¹` with `dg (v) > 0` at
+each point of the level `{g = c}`. If the orbit of `x` meets the level, then the derivative at `x`
+of `y ↦ Φ (Flow.levelCrossingTime Φ g c y) y` has kernel the line spanned by `v x`. -/
+theorem ker_mfderiv_flow_levelCrossingTime_of_mvfderiv_pos [FiniteDimensional ℝ E]
+    (hv : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
+    (hΦ : flowOf v = ⇑Φ) (hg : ContMDiff I 𝓘(ℝ) 1 g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) (hx : ∃ t, g (Φ t x) = c) :
+    (mfderiv I I (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) x).ker = ℝ ∙ v x :=
+  ker_mfderiv_flow_levelCrossingTime hv hcomplete hΦ
+    (Eventually.of_forall (subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos hv hcomplete hΦ hg hgv))
+    hx (hg _) (hgv _ (Flow.apply_flow_levelCrossingTime hx)).ne'
+
 variable {n : ℕ∞} (hn : 1 ≤ n) [IsManifold I n M]
   (hv : CMDiff n (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
   (hΦ : flowOf v = ⇑Φ)
@@ -242,15 +275,9 @@ theorem contMDiffAt_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ
     (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) (hx : ∃ t, g (Φ t x) = c) :
     ContMDiffAt I 𝓘(ℝ) n (Flow.levelCrossingTime Φ g c) x := by
   have hn' : ((1 : ℕ∞) : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
-  have hcurve (y : M) : IsMIntegralCurve (fun t ↦ Φ t y) v := by
-    have h := isMIntegralCurve_globalFlow (hv.of_le hn') hcomplete y
-    rwa [← flowOf_eq_globalFlow (hv.of_le hn') hcomplete, hΦ] at h
-  have hgv' (y : M) (hy : g y = c) : MDifferentiableAt I 𝓘(ℝ) g y ∧ 0 < mvfderiv I g y (v y) :=
-    ⟨(hg y).mdifferentiableAt (zero_lt_one.trans_le hn').ne', hgv y hy⟩
   exact contMDiffAt_levelCrossingTime hn hv hcomplete hΦ
-    (eventually_of_mem ((isOpen_setOf_exists_flow_apply_eq hcurve hg.continuous hgv').mem_nhds hx)
-      fun y _ ↦ (hcurve y).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos (f := g)
-        (hg.continuous.comp (hcurve y).continuous) fun _ ↦ hgv' _)
+    (Eventually.of_forall (subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos (hv.of_le hn')
+      hcomplete hΦ (hg.of_le hn') hgv))
     hx (hg _) (hgv _ (Flow.apply_flow_levelCrossingTime hx)).ne'
 
 /-- **The crossing time of an upward level is `C^n` where the level is met.** Under the
