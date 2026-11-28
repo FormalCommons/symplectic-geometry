@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
-import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Cohomological.Primitive
 
 /-!
 # Line integrals of closed one-forms along loops moved by a diffeotopy

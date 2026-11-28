@@ -40,8 +40,6 @@ periods (`TauCeti.homologyPeriodHom`) on the image of `H₁(Q; ℤ)`.
   Every class of `H₁(V; ℤ)` is carried into `U` by a class of `Q`
   (`TauCeti.NDRPair.exists_isOpen_range_singularHomologyMap_le`), and a closed one-form with
   vanishing periods is exact (`TauCeti.mem_exactForms_one_iff_homologyPeriodHom_eq_zero`).
-* `TauCeti.SmoothIsotopy.homologyPeriodHom_mpullback_eq`: the slices of a smooth isotopy are
-  homotopic to its start, so they pull a closed one-form back to forms with the same periods.
 * `SymplecticGeometry.exists_contMDiff_primitive_of_periods`: for a smooth isotopy `φ_t` of `U`
   starting at the inclusion, and families `α_t` on `U`, `β_t` on `M` with the same periods on
   `H₁(Q; ℤ)`, the forms `α_t - φ_t^* β_t` restricted to such a `V` have a primitive that is
@@ -49,7 +47,7 @@ periods (`TauCeti.homologyPeriodHom`) on the image of `H₁(Q; ℤ)`.
   (`SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`). With the
   velocity forms of a symplectic isotopy as `α_t`, this gives the Hamiltonians of the extension.
 
-Neither of the last three results needs `M` to be compact.
+Neither of the last two results needs `M` to be compact.
 
 ## References
 
@@ -96,31 +94,6 @@ theorem NDRPair.exists_forall_exact {Q : Set M} (hN : NDRPair Q) {U : Opens M}
     (ContinuousMap.singularHomologyMap ℤ 1 (ContinuousMap.inclusion hVU) c) = 0
   rw [← hz]
   exact DFunLike.congr_fun hper z
-
-variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
-  {P : Type} [TopologicalSpace P] [ChartedSpace H' P] [IsManifold J ∞ P] [T2Space P]
-  {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [CompleteSpace G]
-
-/-- **The slices of a smooth isotopy pull closed one-forms back to forms with the same periods.**
-For a smooth isotopy `F` starting at `f₀` and a closed `C¹` one-form `θ`, the periods on
-`H₁(P; ℤ)` of `F (t, ·)^* θ` are those of `f₀^* θ`, since the slice is homotopic to `f₀`. -/
-theorem SmoothIsotopy.homologyPeriodHom_mpullback_eq {f₀ f₁ : C^∞⟮J, P; I, M⟯}
-    (F : SmoothIsotopy f₀ f₁) {θ : RoughForm I M G 1} (hθ : IsSmoothForm I 1 θ)
-    (hcl : mextDeriv θ = 0) (t : unitInterval) :
-    homologyPeriodHom (mpullback J I (fun x ↦ F (t, x)) θ) =
-      homologyPeriodHom (mpullback J I f₀ θ) := by
-  have hFt : ContMDiff J I ∞ fun x ↦ F (t, x) :=
-    F.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)
-  -- The homotopy `(s, x) ↦ F (s t, x)` from `f₀` to the slice at `t`.
-  let K : _root_.ContinuousMap.Homotopy (⟨f₀, f₀.contMDiff.continuous⟩ : C(P, M))
-      ⟨fun x ↦ F (t, x), hFt.continuous⟩ :=
-    { toFun := fun p ↦ F (p.1 * t, p.2)
-      continuous_toFun := F.contMDiff.continuous.comp (by fun_prop)
-      map_zero_left := fun x ↦ by simp [F.apply_zero]
-      map_one_left := fun x ↦ by simp }
-  exact (homologyPeriodHom_mpullback_eq_of_homotopic (f₀.contMDiff.of_le (by simp))
-    (hFt.of_le (by simp)) ⟨K⟩ hθ hcl).symm
 
 end TauCeti
 
