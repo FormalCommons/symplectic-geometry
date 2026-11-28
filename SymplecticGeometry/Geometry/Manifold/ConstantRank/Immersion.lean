@@ -13,6 +13,8 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.Immersion.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
 import SymplecticGeometry.Topology.Sets.Opens.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -110,9 +112,9 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
       fun ⟨i, u⟩ ↦ ?_, ?_, ?_⟩
   · rw [hι]
     exact contMDiff_subtype_iff.2 (hg (e i)) u
-  · rw [mfderiv_sigma, hι, mfderiv_comp u (hgd (e i) u.property)
-      mdifferentiableAt_subtypeVal, mfderiv_subtype_val]
-    exact (hgi (e i) u u.property).comp (tangentSpaceOpenEquiv u).injective
+  · rw [mfderiv_sigma, hι]
+    exact TauCeti.injective_mfderiv_comp (hgi (e i) u u.property)
+      (TauCeti.bijective_mfderiv_subtype_val u).injective
   · ext z
     constructor
     · rintro ⟨⟨i, u⟩, rfl⟩
