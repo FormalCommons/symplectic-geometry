@@ -216,6 +216,16 @@ theorem transversalityQuantity_nonneg (k : ℕ) (s : Π y, PowerBundle P k y) (x
     0 ≤ transversalityQuantity J α k s x :=
   (norm_nonneg _).trans (norm_le_transversalityQuantity k s x)
 
+/-- A real number `a` is at most the transversality quantity of `s` at `x` exactly when it is
+at most `‖s x‖` or at most `(2π k)^(-1/2)` times the norm of the `(1,0)`-part of `D_k s` at
+`x`. -/
+theorem le_transversalityQuantity_iff {a : ℝ} (k : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
+    a ≤ transversalityQuantity J α k s x ↔
+      a ≤ ‖s x‖ ∨
+        a ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖ := by
+  rw [transversalityQuantity_def]
+  exact le_max_iff
+
 end TransversalityQuantity
 
 namespace RescaledUnitaryCharts

@@ -180,7 +180,7 @@ theorem IsUniformlyTransverse.le_norm_of_mem_criticalPoints
       η := by
     rw [heq]
     exact (hCk x).trans_lt hsk
-  rcases le_max_iff.1 ((hk x).trans_eq (transversalityQuantity_def k (s k) x)) with h | h
+  rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
   · exact h
   · exact absurd h hlt.not_ge
 
@@ -203,7 +203,7 @@ theorem IsUniformlyTransverse.eventually_surjective_sectionLinearization
   filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hdiff hx
   have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
       ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
-    rcases le_max_iff.1 ((hk x).trans_eq (transversalityQuantity_def k (s k) x)) with h | h
+    rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
     · rw [hx, norm_zero] at h
       exact absurd h hη.not_ge
     · exact h
