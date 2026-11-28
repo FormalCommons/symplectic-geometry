@@ -83,10 +83,15 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   smoothed maximum.
 * The smoothed minimum `-smoothedMax δ (-a) (-b)` lies in `[min a b - δ / 2, min a b]`
   (`SymplecticGeometry.min_sub_le_neg_smoothedMax_neg`,
-  `SymplecticGeometry.neg_smoothedMax_neg_le_min`); its first derivative is again a weighted
-  average (`SymplecticGeometry.deriv_neg_smoothedMax_neg_weighted`), and its second derivative
-  (`SymplecticGeometry.iteratedDeriv_two_neg_smoothedMax_neg`) loses the curvature term that the
-  smoothed maximum gains.
+  `SymplecticGeometry.neg_smoothedMax_neg_le_min`). So it is at least `c / 2` for a common lower
+  bound `c ≥ δ` of `a` and `b` (`SymplecticGeometry.div_two_le_neg_smoothedMax_neg`), and for
+  `δ ≤ a, b` its reciprocal is at least `1 / a` and `1 / b`
+  (`SymplecticGeometry.one_div_le_one_div_neg_smoothedMax_neg_left`,
+  `SymplecticGeometry.one_div_le_one_div_neg_smoothedMax_neg_right`). Its first derivative is
+  again a weighted average (`SymplecticGeometry.deriv_neg_smoothedMax_neg_weighted`), and its
+  second derivative (`SymplecticGeometry.iteratedDeriv_two_neg_smoothedMax_neg_weighted`) is the
+  same average of the second derivatives, minus the curvature term that the smoothed maximum
+  gains.
 * `SymplecticGeometry.smoothedMaxChain δ A`: the chain whose first member is `A 0` and whose
   `(i + 1)`-th member is the smoothed maximum of the `i`-th one and `A (i + 1)`. Its members are
   as smooth as the `A j`, globally or at a point (`contDiff_smoothedMaxChain`,
@@ -795,6 +800,26 @@ theorem min_sub_le_neg_smoothedMax_neg (hδ : 0 < δ) (a b : ℝ) :
   rw [max_neg_neg] at h
   linarith
 
+/-- For `δ > 0` and a common lower bound `c ≥ δ` of `a` and `b`, the smoothed minimum
+`-smoothedMax δ (-a) (-b)` is at least `c / 2`. -/
+theorem div_two_le_neg_smoothedMax_neg (hδ : 0 < δ) {a b c : ℝ} (hc : δ ≤ c) (ha : c ≤ a)
+    (hb : c ≤ b) : c / 2 ≤ -smoothedMax δ (-a) (-b) := by
+  linarith [min_sub_le_neg_smoothedMax_neg hδ a b, le_min ha hb]
+
+/-- For `δ > 0` with `δ ≤ a` and `δ ≤ b`, the reciprocal of the smoothed minimum
+`-smoothedMax δ (-a) (-b)` is at least `1 / a`. -/
+theorem one_div_le_one_div_neg_smoothedMax_neg_left (hδ : 0 < δ) {a b : ℝ} (ha : δ ≤ a)
+    (hb : δ ≤ b) : 1 / a ≤ 1 / -smoothedMax δ (-a) (-b) :=
+  one_div_le_one_div_of_le (by linarith [div_two_le_neg_smoothedMax_neg hδ le_rfl ha hb])
+    ((neg_smoothedMax_neg_le_min hδ a b).trans (min_le_left _ _))
+
+/-- For `δ > 0` with `δ ≤ a` and `δ ≤ b`, the reciprocal of the smoothed minimum
+`-smoothedMax δ (-a) (-b)` is at least `1 / b`. -/
+theorem one_div_le_one_div_neg_smoothedMax_neg_right (hδ : 0 < δ) {a b : ℝ} (ha : δ ≤ a)
+    (hb : δ ≤ b) : 1 / b ≤ 1 / -smoothedMax δ (-a) (-b) :=
+  one_div_le_one_div_of_le (by linarith [div_two_le_neg_smoothedMax_neg hδ le_rfl ha hb])
+    ((neg_smoothedMax_neg_le_min hδ a b).trans (min_le_right _ _))
+
 /-- The derivative of the smoothed minimum `x ↦ -smoothedMax δ (-f x) (-g x)` of two functions
 differentiable at `x`, as a weighted average: with `w = (1 + smoothedSign δ (g x - f x)) / 2`,
 which lies in `[0, 1]` (`one_add_smoothedSign_div_two_mem_Icc`), it is
@@ -809,14 +834,16 @@ theorem deriv_neg_smoothedMax_neg_weighted {f g : ℝ → ℝ} {x : ℝ}
   ring
 
 /-- The second derivative of the smoothed minimum `x ↦ -smoothedMax δ (-f x) (-g x)` of two
-functions `C²` at `x`: the term with `(smoothedAbs δ)''` of `iteratedDeriv_two_smoothedMax` now
-comes with a minus sign. -/
-theorem iteratedDeriv_two_neg_smoothedMax_neg {f g : ℝ → ℝ} {x : ℝ} (hf : ContDiffAt ℝ 2 f x)
-    (hg : ContDiffAt ℝ 2 g x) :
+functions `C²` at `x`: with the weight `w = (1 + smoothedSign δ (g x - f x)) / 2` of
+`deriv_neg_smoothedMax_neg_weighted`, it is `w * f''(x) + (1 - w) * g''(x)` minus the term
+`(smoothedAbs δ)'' (g x - f x) * (f'(x) - g'(x))² / 2`, which `iteratedDeriv_two_smoothedMax`
+adds for the smoothed maximum. -/
+theorem iteratedDeriv_two_neg_smoothedMax_neg_weighted {f g : ℝ → ℝ} {x : ℝ}
+    (hf : ContDiffAt ℝ 2 f x) (hg : ContDiffAt ℝ 2 g x) :
     iteratedDeriv 2 (fun x ↦ -smoothedMax δ (-f x) (-g x)) x =
-      (iteratedDeriv 2 f x + iteratedDeriv 2 g x +
-        smoothedSign δ (g x - f x) * (iteratedDeriv 2 f x - iteratedDeriv 2 g x) -
-        iteratedDeriv 2 (smoothedAbs δ) (g x - f x) * (deriv f x - deriv g x) ^ 2) / 2 := by
+      (1 + smoothedSign δ (g x - f x)) / 2 * iteratedDeriv 2 f x +
+        (1 - (1 + smoothedSign δ (g x - f x)) / 2) * iteratedDeriv 2 g x -
+        iteratedDeriv 2 (smoothedAbs δ) (g x - f x) * (deriv f x - deriv g x) ^ 2 / 2 := by
   rw [iteratedDeriv_fun_neg, iteratedDeriv_two_smoothedMax hf.neg hg.neg, iteratedDeriv_fun_neg,
     iteratedDeriv_fun_neg]
   simp only [deriv.fun_neg, neg_sub_neg]

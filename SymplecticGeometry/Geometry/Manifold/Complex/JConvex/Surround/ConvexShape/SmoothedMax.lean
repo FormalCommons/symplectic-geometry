@@ -501,12 +501,8 @@ theorem min_le_one_div_smoothedMin_sub_deriv_div {ρ₁ ρ₂ : ℝ → ℝ} {δ
     min (1 / ρ₁ R - deriv ρ₁ R / R) (1 / ρ₂ R - deriv ρ₂ R / R) ≤
       1 / -smoothedMax δ (-ρ₁ R) (-ρ₂ R) -
         deriv (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R / R := by
-  have hv := min_sub_le_neg_smoothedMax_neg hδ (ρ₁ R) (ρ₂ R)
-  have hv₁ := (neg_smoothedMax_neg_le_min hδ (ρ₁ R) (ρ₂ R)).trans (min_le_left _ _)
-  have hv₂ := (neg_smoothedMax_neg_le_min hδ (ρ₁ R) (ρ₂ R)).trans (min_le_right _ _)
-  have hv₀ : 0 < -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by linarith [le_min hδ₁ hδ₂]
-  have hk₁ := one_div_le_one_div_of_le hv₀ hv₁
-  have hk₂ := one_div_le_one_div_of_le hv₀ hv₂
+  have hk₁ := one_div_le_one_div_neg_smoothedMax_neg_left hδ hδ₁ hδ₂
+  have hk₂ := one_div_le_one_div_neg_smoothedMax_neg_right hδ hδ₁ hδ₂
   rw [deriv_neg_smoothedMax_neg_weighted h₁ h₂]
   obtain ⟨hw₀, hw₁⟩ := one_add_smoothedSign_div_two_mem_Icc δ (ρ₂ R - ρ₁ R)
   set w := (1 + smoothedSign δ (ρ₂ R - ρ₁ R)) / 2
@@ -539,14 +535,10 @@ theorem le_one_div_smoothedMin_sub_deriv_pow_three_div_sub_iteratedDeriv_two {ρ
       1 / -smoothedMax δ (-ρ₁ R) (-ρ₂ R) -
         deriv (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R ^ 3 / R -
         iteratedDeriv 2 (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R := by
-  have hv := min_sub_le_neg_smoothedMax_neg hδ (ρ₁ R) (ρ₂ R)
-  have hv₁ := (neg_smoothedMax_neg_le_min hδ (ρ₁ R) (ρ₂ R)).trans (min_le_left _ _)
-  have hv₂ := (neg_smoothedMax_neg_le_min hδ (ρ₁ R) (ρ₂ R)).trans (min_le_right _ _)
-  have hv₀ : 0 < -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by linarith [le_min hδ₁ hδ₂]
-  have hk₁ := one_div_le_one_div_of_le hv₀ hv₁
-  have hk₂ := one_div_le_one_div_of_le hv₀ hv₂
+  have hk₁ := one_div_le_one_div_neg_smoothedMax_neg_left hδ hδ₁ hδ₂
+  have hk₂ := one_div_le_one_div_neg_smoothedMax_neg_right hδ hδ₁ hδ₂
   rw [deriv_neg_smoothedMax_neg_weighted (h₁.differentiableAt two_ne_zero)
-    (h₂.differentiableAt two_ne_zero), iteratedDeriv_two_neg_smoothedMax_neg h₁ h₂]
+    (h₂.differentiableAt two_ne_zero), iteratedDeriv_two_neg_smoothedMax_neg_weighted h₁ h₂]
   obtain ⟨hw₀, hw₁⟩ := one_add_smoothedSign_div_two_mem_Icc δ (ρ₂ R - ρ₁ R)
   set x := deriv ρ₁ R
   set y := deriv ρ₂ R
@@ -562,11 +554,6 @@ theorem le_one_div_smoothedMin_sub_deriv_pow_three_div_sub_iteratedDeriv_two {ρ
   have e : 2 * (w * (1 - w)) * ((x - y) ^ 2 * (|x| + |y|)) / R =
       (1 - s ^ 2) / 2 * ((x - y) ^ 2 * ((|x| + |y|) / R)) := by rw [hw]; ring
   rw [e] at hE
-  have he : (iteratedDeriv 2 ρ₁ R + iteratedDeriv 2 ρ₂ R + s * (iteratedDeriv 2 ρ₁ R -
-      iteratedDeriv 2 ρ₂ R) - p * (x - y) ^ 2) / 2 =
-      w * iteratedDeriv 2 ρ₁ R + (1 - w) * iteratedDeriv 2 ρ₂ R - p * (x - y) ^ 2 / 2 := by
-    rw [hw]; ring
-  rw [he]
   have h₃ := mul_le_mul_of_nonneg_left hk₁ hw₀
   have h₄ := mul_le_mul_of_nonneg_left hk₂ (sub_nonneg.2 hw₁)
   simp only [div_eq_mul_inv] at hE h₃ h₄ ⊢
@@ -591,12 +578,12 @@ theorem le_one_add_sq_div_smoothedMin_sub_iteratedDeriv_two {ρ₁ ρ₂ : ℝ �
       (1 + deriv (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R ^ 2) /
           -smoothedMax δ (-ρ₁ R) (-ρ₂ R) -
         iteratedDeriv 2 (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R := by
-  have hv := min_sub_le_neg_smoothedMax_neg hδ (ρ₁ R) (ρ₂ R)
-  have hv₁ := (neg_smoothedMax_neg_le_min hδ (ρ₁ R) (ρ₂ R)).trans (min_le_left _ _)
-  have hv₂ := (neg_smoothedMax_neg_le_min hδ (ρ₁ R) (ρ₂ R)).trans (min_le_right _ _)
-  have hv₀ : 0 < -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by linarith [le_min hδ₁ hδ₂]
+  have hv₀ : 0 < -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by
+    linarith [div_two_le_neg_smoothedMax_neg hδ le_rfl hδ₁ hδ₂]
+  have hk₁ := one_div_le_one_div_neg_smoothedMax_neg_left hδ hδ₁ hδ₂
+  have hk₂ := one_div_le_one_div_neg_smoothedMax_neg_right hδ hδ₁ hδ₂
   rw [deriv_neg_smoothedMax_neg_weighted (h₁.differentiableAt two_ne_zero)
-    (h₂.differentiableAt two_ne_zero), iteratedDeriv_two_neg_smoothedMax_neg h₁ h₂]
+    (h₂.differentiableAt two_ne_zero), iteratedDeriv_two_neg_smoothedMax_neg_weighted h₁ h₂]
   obtain ⟨hw₀, hw₁⟩ := one_add_smoothedSign_div_two_mem_Icc δ (ρ₂ R - ρ₁ R)
   set x := deriv ρ₁ R
   set y := deriv ρ₂ R
@@ -610,15 +597,12 @@ theorem le_one_add_sq_div_smoothedMin_sub_iteratedDeriv_two {ρ₁ ρ₂ : ℝ �
   have e : (1 + (w * x + (1 - w) * y) ^ 2) / v = w * ((1 + x ^ 2) / v) +
       (1 - w) * ((1 + y ^ 2) / v) - (1 - s ^ 2) / 2 * ((x - y) ^ 2 * (1 / (2 * v))) := by
     rw [hw]; field_simp; ring
-  have he : (iteratedDeriv 2 ρ₁ R + iteratedDeriv 2 ρ₂ R + s * (iteratedDeriv 2 ρ₁ R -
-      iteratedDeriv 2 ρ₂ R) - p * (x - y) ^ 2) / 2 =
-      w * iteratedDeriv 2 ρ₁ R + (1 - w) * iteratedDeriv 2 ρ₂ R - p * (x - y) ^ 2 / 2 := by
-    rw [hw]; ring
-  rw [e, he]
+  rw [e]
   have h₃ := mul_le_mul_of_nonneg_left
-    (div_le_div_of_nonneg_left (by positivity : 0 ≤ 1 + x ^ 2) hv₀ hv₁) hw₀
+    (mul_le_mul_of_nonneg_left hk₁ (by positivity : 0 ≤ 1 + x ^ 2)) hw₀
   have h₄ := mul_le_mul_of_nonneg_left
-    (div_le_div_of_nonneg_left (by positivity : 0 ≤ 1 + y ^ 2) hv₀ hv₂) (sub_nonneg.2 hw₁)
+    (mul_le_mul_of_nonneg_left hk₂ (by positivity : 0 ≤ 1 + y ^ 2)) (sub_nonneg.2 hw₁)
+  simp only [mul_one_div] at h₃ h₄
   linarith
 
 /-- **The smoothed minimum keeps the smaller margin in the second inequality over `R`.** Let
@@ -664,8 +648,8 @@ theorem min_le_one_add_sq_div_smoothedMin_sub_iteratedDeriv_two {ρ₁ ρ₂ : �
         iteratedDeriv 2 (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R := by
   have h := le_one_add_sq_div_smoothedMin_sub_iteratedDeriv_two h₁ h₂ hδ hδ₁ hδ₂
   -- The smoothed minimum is at least `δ / 2`, so `1 / (2 v) ≤ 1 / δ ≤ 2 / δ`.
-  have hv : δ / 2 ≤ -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by
-    linarith [min_sub_le_neg_smoothedMax_neg hδ (ρ₁ R) (ρ₂ R), le_min hδ₁ hδ₂]
+  have hv : δ / 2 ≤ -smoothedMax δ (-ρ₁ R) (-ρ₂ R) :=
+    div_two_le_neg_smoothedMax_neg hδ le_rfl hδ₁ hδ₂
   have hT : 1 / (2 * -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) ≤ 2 / δ := by
     rw [div_le_div_iff₀ (by linarith) hδ]
     linarith
@@ -697,7 +681,7 @@ theorem isConvexShapeOverRAt_smoothedMin_iff {ρ₁ ρ₂ : ℝ → ℝ} {δ : �
   have h := min_le_one_div_smoothedMin_sub_deriv_div h₁ h₂ hδ hδ₁ hδ₂
   have hm := lt_min (sub_pos.2 hc₁.deriv_div_lt_one_div) (sub_pos.2 hc₂.deriv_div_lt_one_div)
   have hv₀ : 0 < -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by
-    linarith [min_sub_le_neg_smoothedMax_neg hδ (ρ₁ R) (ρ₂ R), le_min hδ₁ hδ₂]
+    linarith [div_two_le_neg_smoothedMax_neg hδ le_rfl hδ₁ hδ₂]
   rw [isConvexShapeOverRAt_iff]
   exact ⟨fun h ↦ h.2.2.2, fun h' ↦ ⟨hc₁.pos, hv₀, by linarith, h'⟩⟩
 
@@ -746,8 +730,8 @@ private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → �
     hδ₁ hδ₂
   have h' := le_one_add_sq_div_smoothedMin_sub_iteratedDeriv_two h₁ h₂ hδ hδ₁ hδ₂
   -- The smoothed minimum is at least `μ / 2`, so `1 / (2 v) ≤ 1 / μ`.
-  have hv : μ / 2 ≤ -smoothedMax δ (-ρ₁ R) (-ρ₂ R) := by
-    linarith [min_sub_le_neg_smoothedMax_neg hδ (ρ₁ R) (ρ₂ R), le_min hμ₁ hμ₂]
+  have hv : μ / 2 ≤ -smoothedMax δ (-ρ₁ R) (-ρ₂ R) :=
+    div_two_le_neg_smoothedMax_neg hδ hδμ hμ₁ hμ₂
   have hvμ : 1 / (2 * -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) ≤ 1 / μ :=
     one_div_le_one_div_of_le hμ (by linarith)
   set x := deriv ρ₁ R
