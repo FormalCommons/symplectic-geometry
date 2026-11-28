@@ -558,11 +558,12 @@ and the prerequisites, placed by topic.
   `oneZeroPart` and that lemma are in
   `Geometry/Manifold/VectorBundle/CauchyRiemann/OneZeroPart.lean`.
 - `ZeroSet.lean`: for any covariant derivative $D$ on a bundle of normed
-  complex lines over a manifold with compatible $J$:
-  `isTransverse_of_norm_dbar_lt` (surjective
+  complex lines: `isTransverse_of_norm_dbar_lt`, for any metric on
+  $TM$ (surjective
   `TauCeti.sectionLinearization` at the zeros, so the zero set is a
-  submanifold by Tau Ceti's `exists_isManifold_sectionZero_of_contMDiff`)
-  and `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`; for any
+  submanifold by Tau Ceti's `exists_isManifold_sectionZero_of_contMDiff`),
+  and, over a manifold with compatible $J$,
+  `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`; for any
   Hermitian line bundle with a complex-linear metric connection $D$ on a
   closed manifold with compatible $J$, the milestone `dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`:
   with the symplectic orientations of $M$ and of the zero set $Z$, $Z$ has

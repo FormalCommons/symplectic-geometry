@@ -35,7 +35,8 @@ multiplication by `i` on `L_x` (Tau Ceti's `TauCeti.complexLinearPart` and
 taken for `g_J` and the norm of `L_x`, then
 
 * `s` is transverse to the zero section: its intrinsic linearization
-  `TauCeti.sectionLinearization` is onto at every zero (`isTransverse_of_norm_dbar_lt`);
+  `TauCeti.sectionLinearization` is onto at every zero (`isTransverse_of_norm_dbar_lt`, which
+  holds for operator norms taken for any Riemannian metric on `M`, with no `σ`);
 * its zero set, with the atlas of `SymplecticGeometry.transverseZeroSetChartedSpace`, is a
   symplectic submanifold: the inclusion `TauCeti.SmoothEmbedding.ofTransverseSection` is a
   symplectic submanifold embedding for `σ`
@@ -129,17 +130,17 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [FiberBundle F L] [VectorBundle ℝ F L] [ContMDiffVectorBundle ∞ F L I]
   {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} {s : Π x, L x}
 
-/-- **Sections with dominant holomorphic derivative are transverse.** Let `σ` be compatible with
-`J`, let the fibres of `L` be complex lines, and let `D` be a covariant derivative on `L`. If a
-section `s`, differentiable at each of its zeros `x`, has there a complex-antilinear part of
-`D s(x)` of smaller operator norm than its complex-linear part, for the metric `σ(·, J ·)` on
-`T_x M`, then the intrinsic linearization of `s` is onto at each zero. -/
-theorem isTransverse_of_norm_dbar_lt (hc : σ.Compatible J) (hL : ∀ x, finrank ℂ (L x) = 1)
-    (D : CovariantDerivative I F L)
+/-- **Sections with dominant holomorphic derivative are transverse.** Let the fibres of `L` be
+complex lines, and let `D` be a covariant derivative on `L`. If a section `s`, differentiable at
+each of its zeros `x`, has there a complex-antilinear part of `D s(x)` of smaller operator norm
+than its complex-linear part, for the norm of `L_x` and that of a Riemannian metric `g` on
+`T_x M`, then the intrinsic linearization of `s` is onto at each zero. The metric `g` need not
+be related to `J`. -/
+theorem isTransverse_of_norm_dbar_lt [g : RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    (hL : ∀ x, finrank ℂ (L x) = 1) (D : CovariantDerivative I F L)
     (hs : ∀ x, s x = 0 →
       MDifferentiableAt I (I.prod 𝓘(ℝ, F)) (fun x ↦ TotalSpace.mk' F x (s x)) x)
     (hdom : ∀ x, s x = 0 →
-      letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
       ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
           (J.almostComplexStructureAt x).toLinearMap
           (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
@@ -150,7 +151,6 @@ theorem isTransverse_of_norm_dbar_lt (hc : σ.Compatible J) (hL : ∀ x, finrank
           (D s x : TangentSpace I x →ₗ[ℝ] L x))‖) :
     ∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x) := by
   intro x hx
-  let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
   rw [← D.apply_eq_sectionLinearization (hs x hx) hx]
   exact AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt
     (J := J.almostComplexStructureAt x) (hL x) (hdom x hx)
@@ -178,22 +178,22 @@ theorem isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt [I.Boundaryless
           (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc hL D
-        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     hc.tames.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, E')
       (SmoothEmbedding.ofTransverseSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc hL D
-          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE) := by
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE) := by
   let := transverseZeroSetChartedSpace (by simp) hs
-    (isTransverse_of_norm_dbar_lt hc hL D
-      (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+      hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
   refine (SmoothTwoForm.IsNondegenerate.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
     (SmoothEmbedding.isSmoothEmbedding _)).2
     (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_iff_forall.2 fun z ↦ ?_)
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
   have hrange := range_mfderiv_coe_transverseZeroSet (by simp) hs
-    (isTransverse_of_norm_dbar_lt hc hL D
-      (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE z
+    (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+      hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE z
   rw [← D.apply_eq_sectionLinearization ((hs z).mdifferentiableAt (by simp)) z.property] at hrange
   have hk := SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt
     («ω» := hc.tames.isNondegenerate.symplecticFormAt z) (J := J.almostComplexStructureAt z)
@@ -232,21 +232,26 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
           (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI := isManifold_transverseZeroSet (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceFiberBundle (P := F)
       (by simp) (Nat.eq_sub_of_add_eq' hE)
     letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceVectorBundle (P := F)
       (by simp) (Nat.eq_sub_of_add_eq' hE)
     (SmoothEmbedding.ofTransverseSection (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalOrientation (by simp)
         (Nat.eq_sub_of_add_eq' hE)
         ((hc.tames.isNondegenerate.volumeOrientation (n := k + 1)
@@ -256,14 +261,15 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
           (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
             hE).isNondegenerate_mpullback.volumeOrientation hk) =
       normalOrientationOfSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE (Fintype.card_fin _)
         (VectorBundleOrientation.reindex
           (finCongr (finrank_real_eq_two_mul_finrank_complex (V := F)).symm)
           (VectorBundleOrientation.complex F L)) := by
   have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
-  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
-    hdom
+  have hT := isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+    hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom
   have hm : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := transverseZeroSetChartedSpace hm hs hT hE
   have := isManifold_transverseZeroSet hm hs hT hE
@@ -348,30 +354,37 @@ theorem dualClass_zeroSet_of_norm_dbar_lt (hc : σ.Compatible J) (hF : finrank �
           (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI := isManifold_transverseZeroSet (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceFiberBundle (P := F)
       (by simp) (Nat.eq_sub_of_add_eq' hE)
     letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceVectorBundle (P := F)
       (by simp) (Nat.eq_sub_of_add_eq' hE)
     (SmoothEmbedding.ofTransverseSection (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).dualClass (by simp)
         (Nat.eq_sub_of_add_eq' hE)
         (SmoothEmbedding.isClosed_range_ofTransverseSection (by simp) hs
-          (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+            (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
             (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE)
         (VectorBundleOrientation.reindex
           (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]))
           ((SmoothEmbedding.ofTransverseSection (by simp) hs
-            (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF)
+            (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+              (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF)
               D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalOrientation
             (by simp) (Nat.eq_sub_of_add_eq' hE)
             ((hc.tames.isNondegenerate.volumeOrientation (n := k + 1)
@@ -383,8 +396,8 @@ theorem dualClass_zeroSet_of_norm_dbar_lt (hc : σ.Compatible J) (hF : finrank �
         (by rw [finrank_real_eq_two_mul_finrank_complex, hF]) =
       complexEulerClass F L (r := 0) hF := by
   have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
-  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
-    hdom
+  have hT := isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+    hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom
   rw [normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt hc hF D hs hdom hE
     hk, ← normalOrientationOfSection_reindex, ← VectorBundleOrientation.reindex_trans]
   exact SmoothEmbedding.dualClass_ofTransverseSection_eq_complexEulerClass (by simp) hs hT hE hF
@@ -426,10 +439,12 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt [CompactS
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {j : ℕ}
     (hk : finrank ℝ E' = 2 * (j + 1)) :
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI := isManifold_transverseZeroSet (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI : CompactSpace ↥{x : M | s x = 0} :=
       (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
@@ -447,8 +462,8 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt [CompactS
           (n := 2 * j + 1) (by omega)).mapFundamentalClass (by omega)
         ⟨Subtype.val, continuous_subtypeVal⟩ := by
   have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
-  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
-    hdom
+  have hT := isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+    hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom
   have hm : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := transverseZeroSetChartedSpace hm hs hT hE
   have := isManifold_transverseZeroSet hm hs hT hE
@@ -491,10 +506,12 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finran
           (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) (hk : finrank ℝ E' = 0) :
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI := isManifold_transverseZeroSet (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI : CompactSpace ↥{x : M | s x = 0} :=
       (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
@@ -512,8 +529,8 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finran
           hk).toHomologicalOrientationOfZeroDim.mapFundamentalClass hk
         ⟨Subtype.val, continuous_subtypeVal⟩ := by
   have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
-  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
-    hdom
+  have hT := isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+    hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom
   have hm : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := transverseZeroSetChartedSpace hm hs hT hE
   have := isManifold_transverseZeroSet hm hs hT hE
@@ -576,38 +593,47 @@ theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     (∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x)) ∧
     (letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     hc.tames.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, E')
       (SmoothEmbedding.ofTransverseSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE)) ∧
     (∀ {k : ℕ} (hk : finrank ℝ E' = 2 * k),
       letI := transverseZeroSetChartedSpace (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
       haveI := isManifold_transverseZeroSet (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
       letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceFiberBundle (P := F)
         (by simp) (Nat.eq_sub_of_add_eq' hE)
       letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceVectorBundle (P := F)
         (by simp) (Nat.eq_sub_of_add_eq' hE)
       (SmoothEmbedding.ofTransverseSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).dualClass (by simp)
           (Nat.eq_sub_of_add_eq' hE)
           (SmoothEmbedding.isClosed_range_ofTransverseSection (by simp) hs
-            (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+            (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+              (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
               (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE)
           (VectorBundleOrientation.reindex
             (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]))
             ((SmoothEmbedding.ofTransverseSection (by simp) hs
-              (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF)
+              (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+                (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF)
                 D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalOrientation
               (by simp) (Nat.eq_sub_of_add_eq' hE)
               ((hc.tames.isNondegenerate.volumeOrientation (n := k + 1)
@@ -620,10 +646,12 @@ theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
         complexEulerClass F L (r := 0) hF) ∧
     (∀ {j : ℕ} (hk : finrank ℝ E' = 2 * (j + 1)),
       letI := transverseZeroSetChartedSpace (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
       haveI := isManifold_transverseZeroSet (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
           (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
       haveI : CompactSpace ↥{x : M | s x = 0} :=
         (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
@@ -642,10 +670,12 @@ theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
           ⟨Subtype.val, continuous_subtypeVal⟩) ∧
     ∀ hk : finrank ℝ E' = 0,
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI := isManifold_transverseZeroSet (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+        (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
         (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     haveI : CompactSpace ↥{x : M | s x = 0} :=
       (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
@@ -662,7 +692,8 @@ theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
             hE).isNondegenerate_mpullback.volumeOrientation (n := 0)
           hk).toHomologicalOrientationOfZeroDim.mapFundamentalClass hk
         ⟨Subtype.val, continuous_subtypeVal⟩ :=
-  ⟨isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+  ⟨isTransverse_of_norm_dbar_lt (g := ⟨hc.metric.toRiemannianMetric⟩)
+    (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
       (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom,
     isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
       (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom hE,
