@@ -53,6 +53,15 @@ the two starting points agree. Smoothness in the time `t` comes from the smoothn
 transport in a family of curves and in its final time
 (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`).
 
+At `t = 1`, the cylinder is read through the holonomy diffeotopy `Φ`: for `s ∈ [0, 1]`,
+`C (s, 1, θ) = e⁻¹ (x, Φ (s, c θ))`. Its derivative in `s` is an ordinary one, while the velocity
+`X_s` of `Φ` is a derivative on `[0, 1]`, one-sided at the ends. The two are compared through the
+fibre coordinate `r ↦ (e (C (r, 1, θ))).2`, a curve on `ℝ` that extends `r ↦ Φ (r, c θ)` and is
+differentiable at every `s ∈ [0, 1]`, so that its derivative there is `X_s`
+(`TauCeti.Diffeotopy.velocity_apply_eq_mfderiv`); two maps differentiable at `s` that agree on
+`[0, 1]` have the same derivative there, as in the proof that the cylinder does not move in `s` at
+`t = 0`.
+
 ## Main definitions
 
 * `SymplecticGeometry.BoundsSmoothDisc IB γ`: the loop `γ` bounds a smooth disc.
@@ -90,6 +99,17 @@ transport in a family of curves and in its final time
 * `TauCeti.IsEhresmannConnection.transportedCylinder_zero_of_isSmoothDisc`,
   `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_zero_apply`: for a smooth disc and
   `s ∈ [0, 1]`, the cylinder starts at `e.symm (x, c θ)` and does not move in `s` at `t = 0`.
+* `TauCeti.IsEhresmannConnection.transportedCylinder_one_of_isSmoothDisc`,
+  `TauCeti.IsEhresmannConnection.apply_transportedCylinder_one`: for `s ∈ [0, 1]`, the cylinder
+  ends at the point with coordinates `(x, Φ (s, c θ))` in `e`, where `Φ` is the holonomy
+  diffeotopy.
+* `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_one_apply`: at `t = 1` the
+  derivative of the cylinder in `s` is the image under `d(e⁻¹)` of `(0, X_s)`, with `X_s` the
+  velocity of `Φ`, for every `s ∈ [0, 1]`, ends included.
+* `TauCeti.IsEhresmannConnection.restrictsTo_apply_mfderiv_transportedCylinder_one`: for a form
+  `τ` that restricts to `σ` along an atlas containing `e`, its value at `t = 1` on the derivatives
+  of the cylinder in `s` and `θ` is `σ (X_s, ∂_θ Φ (s, c θ))`, the integrand of the line
+  integral of `ι_{X_s} σ` along the curve `θ ↦ Φ (s, c θ)`.
 
 ## References
 
@@ -555,6 +575,168 @@ theorem contMDiffAt_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ pr
   · exact (congrArg (· ∈ e.baseSet) (hΔ.apply_seam ⟨p.1, hp⟩)).mpr hx
 
 end TransportedCylinder
+
+section HolonomyCylinder
+
+variable [CompleteSpace EF] [BoundarylessManifold IF F]
+  {e : Trivialization F proj} {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B} {c : ℝ → F}
+  {hD : IsEhresmannConnection IM IB ∞ proj D}
+
+/-- **The transported cylinder at `t = 1`.** For a smooth disc `Δ` with centre `x`, a
+trivialization `e` whose base set contains `x`, and `s ∈ [0, 1]`, the transported cylinder at
+`(s, 1, θ)` is the point with coordinates `(x, Φ (s, c θ))` in `e`, where `Φ` is the holonomy
+diffeotopy of `Δ` read in `e`. -/
+theorem transportedCylinder_one_of_isSmoothDisc (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj) (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) (s : unitInterval) (θ : ℝ) :
+    hD.transportedCylinder e Δ c (s, 1, θ) = e.toOpenPartialHomeomorph.symm
+      (x, hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ)) := by
+  have h₀ : Δ ((s : ℝ), 0) ∈ e.baseSet := (hΔ.apply_seam s).symm ▸ hx
+  have h₁ : Δ ((s : ℝ), 1) ∈ e.baseSet := (hΔ.apply_seam_one s).symm ▸ hx
+  have h := hD.fiberInclusionMap_parallelTransportIn le_top (hf.of_le (by simp)) hfp
+    ((hΔ.contMDiff_slice s).of_le (by simp)) h₀ h₁ (c θ)
+  rw [holonomyDiffeotopy_apply, transportedCylinder_def, ← e.fiberInclusionMap_apply h₀, ← h,
+    e.fiberInclusionMap_apply, hΔ.apply_seam_one]
+
+/-- For a smooth disc `Δ` with centre `x` and `s ∈ [0, 1]`, the trivialization `e` sends the
+transported cylinder at `(s, 1, θ)` to `(x, Φ (s, c θ))`, where `Φ` is the holonomy diffeotopy
+of `Δ` read in `e`. -/
+theorem apply_transportedCylinder_one (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj) (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) (s : unitInterval) (θ : ℝ) :
+    e (hD.transportedCylinder e Δ c (s, 1, θ)) =
+      (x, hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ)) := by
+  rw [transportedCylinder_one_of_isSmoothDisc hf hfp he he_symm hΔ hx, e.apply_symm_apply' hx]
+
+/-- **The derivative in `s` of the transported cylinder at `t = 1`.** Let `Δ` be a smooth disc
+with centre `x`, `e` a trivialization, smooth with a smooth inverse, whose base set contains `x`,
+`c` a smooth map, and `Φ` the holonomy diffeotopy of `Δ` read in `e`. For `s ∈ [0, 1]`, ends
+included, the derivative of the transported cylinder at `(s, 1, θ)` in the direction of `s` is the
+image, under the derivative of `e⁻¹` at `(x, Φ (s, c θ))`, of `(0, X_s (Φ (s, c θ)))`, where
+`X_s` is the velocity of `Φ`. -/
+theorem mfderiv_transportedCylinder_one_apply (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj) (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet)
+    (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) (s : unitInterval) (θ : ℝ) :
+    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) ((s : ℝ), 1, θ) (1, 0, 0) =
+      mfderiv (IB.prod IF) IM e.toOpenPartialHomeomorph.symm
+        (x, hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ))
+        ((0 : EB), (hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx).velocity s
+          (hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ))) := by
+  set Φ := hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx
+  -- On `[0, 1]`, the slice `t = 1` of the cylinder is `r ↦ e⁻¹ (x, Φ (r, c θ))`.
+  have hC1 (r : unitInterval) : hD.transportedCylinder e Δ c ((r : ℝ), 1, θ) =
+      e.toOpenPartialHomeomorph.symm (x, Φ (r, c θ)) :=
+    transportedCylinder_one_of_isSmoothDisc hf hfp he he_symm hΔ hx r θ
+  obtain ⟨C, hC⟩ : ∃ C, C = hD.transportedCylinder e Δ c := ⟨_, rfl⟩
+  rw [← hC]
+  rw [← hC] at hC1
+  have hCd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) :=
+    hC ▸ (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc s.property).mdifferentiableAt
+      (by simp)
+  have hmem : C ((s : ℝ), 1, θ) ∈ e.source := by
+    rw [hC1]
+    exact e.toOpenPartialHomeomorph.map_target (e.mem_target.2 hx)
+  have hed : MDifferentiableAt IM (IB.prod IF) e (C ((s : ℝ), 1, θ)) :=
+    (he.contMDiffAt (e.open_source.mem_nhds hmem)).mdifferentiableAt (by simp)
+  -- The line `r ↦ (r, 1, θ)` and its derivative.
+  have hι : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun r : ℝ ↦ (r, (1 : ℝ), θ)) s
+      (ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)) :=
+    hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left (s : ℝ) ((1 : ℝ), θ))
+  -- The fibre coordinate of the cylinder along the line extends `r ↦ Φ (r, c θ)` past `[0, 1]`.
+  obtain ⟨g, hgdef⟩ : ∃ g : ℝ → F, g = fun r ↦ (e (C (r, 1, θ))).2 := ⟨_, rfl⟩
+  have hg : MDifferentiableAt 𝓘(ℝ, ℝ) IF g s := hgdef ▸
+    mdifferentiableAt_snd.comp (s : ℝ) (hed.comp (s : ℝ) (hCd.comp (s : ℝ) hι.mdifferentiableAt))
+  have hgΦ (r : unitInterval) : g r = Φ (r, c θ) := by
+    rw [hgdef]; dsimp only; rw [hC1 r, e.apply_symm_apply' hx]
+  have hX := Φ.velocity_apply_eq_mfderiv (by simp) hgΦ hg
+  have hesd : MDifferentiableAt (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s) :=
+    (he_symm.contMDiffAt (e.open_target.mem_nhds (e.mem_target.2 hx))).mdifferentiableAt
+      (by simp)
+  have h₁ := hCd.hasMFDerivAt.comp (s : ℝ) hι
+  have h₂ : HasMFDerivWithinAt 𝓘(ℝ, ℝ) IM (C ∘ fun r : ℝ ↦ (r, (1 : ℝ), θ)) (Icc 0 1) s
+      ((mfderiv (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s)).comp
+        ((0 : ℝ →L[ℝ] EB).prod (mfderiv 𝓘(ℝ, ℝ) IF g s))) :=
+    (hesd.hasMFDerivAt.comp (s : ℝ) ((hasMFDerivAt_const x (s : ℝ)).prodMk
+      hg.hasMFDerivAt)).hasMFDerivWithinAt.congr_mono
+      (fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩])
+      (by rw [comp_apply, comp_apply, hC1 s, ← hgΦ s]) subset_rfl
+  have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
+    (uniqueDiffOn_Icc zero_lt_one s s.property)).eq h₁.hasMFDerivWithinAt h₂
+  refine (DFunLike.congr_fun h 1).trans ?_
+  rw [hX, ← hgΦ]
+  -- The tangent space of `B × F` at `(x, g s)` is `EB × EF` only by definition, so the composite
+  -- and the pair are evaluated through `exact`, up to that unfolding.
+  exact congrArg (mfderiv (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s))
+    (ContinuousLinearMap.prod_apply (R := ℝ) 0 (mfderiv 𝓘(ℝ, ℝ) IF g s) 1)
+
+/-- **The coupling integrand on the edge `t = 1`.** Let `Δ` be a smooth disc with centre `x`,
+`c` a smooth map, `e = A.trivAt b` a chart of an atlas `A`, smooth with a smooth inverse, whose
+base set contains `x`, and `Φ` the holonomy diffeotopy of `Δ` read in `e`. If the two-form `τ`
+restricts to `σ` along `A`, then for `s ∈ [0, 1]` the value of `τ` at the point `C (s, 1, θ)` of
+the transported cylinder `C`, on the derivatives of `C` in `s` and in `θ`, is
+`σ (X_s, ∂_θ Φ (s, c θ))` at `Φ (s, c θ)`, where `X_s` is the velocity of `Φ`: the integrand of
+the line integral of the contraction of `σ` with `X_s` along the curve `θ ↦ Φ (s, c θ)`. -/
+theorem restrictsTo_apply_mfderiv_transportedCylinder_one {A : MapFiber.Atlas F proj} {b : B}
+    (hA : A.trivAt b = e) {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
+    (hτ : A.RestrictsTo σ τ) (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj) (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet)
+    (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) (s : unitInterval) (θ : ℝ) :
+    τ.val (hD.transportedCylinder e Δ c ((s : ℝ), 1, θ))
+        ![mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) ((s : ℝ), 1, θ) (1, 0, 0),
+          mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) ((s : ℝ), 1, θ) (0, 0, 1)] =
+      σ.val (hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ))
+        ![(hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx).velocity s
+            (hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ)),
+          Manifold.curveVelocity IF
+            (fun θ ↦ hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx (s, c θ)) θ] := by
+  subst hA
+  set C := hD.transportedCylinder (A.trivAt b) Δ c
+  set Φ := hD.holonomyDiffeotopy hf hfp he he_symm hΔ hx
+  set ι := (A.trivAt b).fiberInclusionMap hx
+  have hesd : MDifferentiableAt (IB.prod IF) IM (A.trivAt b).toOpenPartialHomeomorph.symm
+      (x, Φ (s, c θ)) :=
+    (he_symm.contMDiffAt ((A.trivAt b).open_target.mem_nhds
+      ((A.trivAt b).mem_target.2 hx))).mdifferentiableAt (by simp)
+  -- The loop `θ ↦ Φ (s, c θ)` and the slice `θ ↦ C (s, 1, θ)`, which is its image under `ι`.
+  set φ : ℝ → F := fun θ ↦ Φ (s, c θ)
+  have hφ : MDifferentiableAt 𝓘(ℝ, ℝ) IF φ θ :=
+    ((Φ.contMDiff.comp (contMDiff_const.prodMk hc)).mdifferentiable (by simp)) θ
+  have hCι : (fun θ' : ℝ ↦ C ((s : ℝ), 1, θ')) = ι ∘ φ := funext fun θ' ↦ by
+    simp only [comp_apply, C, ι, φ, Φ, (A.trivAt b).fiberInclusionMap_apply,
+      transportedCylinder_one_of_isSmoothDisc hf hfp he he_symm hΔ hx]
+  have hιd : MDifferentiableAt IF IM ι (φ θ) := by
+    rw [(A.trivAt b).coe_fiberInclusionMap hx]
+    exact hesd.comp _ (mdifferentiableAt_const.prodMk mdifferentiableAt_id)
+  have hCd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) :=
+    (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc s.property).mdifferentiableAt
+      (by simp)
+  have hθ : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun θ' : ℝ ↦ ((s : ℝ), (1 : ℝ), θ')) θ
+      (ContinuousLinearMap.inr ℝ ℝ (ℝ × ℝ) ∘L ContinuousLinearMap.inr ℝ ℝ ℝ) :=
+    hasMFDerivAt_iff_hasFDerivAt.2
+      ((hasFDerivAt_prodMk_right (s : ℝ) ((1 : ℝ), θ)).comp θ
+        (hasFDerivAt_prodMk_right (1 : ℝ) θ))
+  -- The derivative in `θ`.
+  have hdθ : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) (0, 0, 1) =
+      mfderiv IF IM ι (φ θ) (Manifold.curveVelocity IF φ θ) := by
+    have h := (hCd.hasMFDerivAt.comp θ hθ).mfderiv
+    rw [Manifold.curveVelocity_apply]
+    exact (DFunLike.congr_fun h 1).symm.trans
+      ((congrArg (fun f ↦ mfderiv 𝓘(ℝ, ℝ) IM f θ 1) hCι).trans (mfderiv_comp_apply θ hιd hφ 1))
+  -- The derivative in `s`.
+  have hds : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) (1, 0, 0) =
+      mfderiv IF IM ι (φ θ) (Φ.velocity s (Φ (s, c θ))) := by
+    rw [mfderiv_transportedCylinder_one_apply hf hfp he he_symm hΔ hx hc,
+      (A.trivAt b).mfderiv_fiberInclusionMap_apply hx _ hesd]
+  have hp : C ((s : ℝ), 1, θ) = ι (φ θ) := congrFun hCι θ
+  rw [hds, hdθ, hp, ← TauCeti.mpullback_apply_pair, MapFiber.Atlas.restrictsTo_iff.1 hτ b x hx]
+
+end HolonomyCylinder
 
 end IsEhresmannConnection
 
