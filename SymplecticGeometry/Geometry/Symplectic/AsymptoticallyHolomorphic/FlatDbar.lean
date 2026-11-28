@@ -41,9 +41,11 @@ functions.
   `df_z` is complex linear for `J₀`.
 * `SymplecticGeometry.contDiffAt_flatDbar`, `SymplecticGeometry.contDiff_flatDbar`: the flat `∂̄`
   of a `C^(n + 1)` function is `C^n`.
-* `SymplecticGeometry.flatDbar_add`, `SymplecticGeometry.flatDbar_smul`,
-  `SymplecticGeometry.flatDbar_mul`: it is additive, commutes with complex scalars and satisfies
-  the Leibniz rule; `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a
+* `SymplecticGeometry.flatDbar_add`, `SymplecticGeometry.flatDbar_neg`,
+  `SymplecticGeometry.flatDbar_smul`, `SymplecticGeometry.flatDbar_mul`: it is additive, commutes
+  with negation and complex scalars and satisfies the Leibniz rule;
+  `SymplecticGeometry.flatDbar_congr_of_eventuallyEq`: its value at `z` depends only on the germ
+  of `f` at `z`; `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a
   complex coordinate vanishes.
 * `SymplecticGeometry.delFunction_eq_flatDel_comp`,
   `SymplecticGeometry.flatDel_apply_eq_delFunction`: the flat `∂` is Tau Ceti's `∂` on functions,
@@ -67,9 +69,11 @@ functions.
 The flat `∂̄` is defined on `StdSpace ι` itself rather than as Tau Ceti's `dbarFunction`, whose
 values are forms on the tangent spaces `TangentSpace 𝓘(ℝ, StdSpace ι) z`, a family of types
 depending on `z`, so that its jets can be taken with `jetNormAt`. The two agree by
-`dbarFunction_eq_flatDbar_comp`, and the additivity, the commutation with scalars, the Leibniz rule
-and the vanishing criterion of the flat `∂̄` are read off from Tau Ceti's `dbarFunction_add`,
-`dbarFunction_const_smul`, `dbarFunction_smul` and `dbarFunction_eq_zero_iff`. In the same way
+`dbarFunction_eq_flatDbar_comp`, and the vanishing criterion of the flat `∂̄` is read off from Tau
+Ceti's `dbarFunction_eq_zero_iff`. Its additivity, the commutation with negation and scalars, the
+Leibniz rule and the dependence on germs are the constant-`J₀` cases of the lemmas
+`flatDbarWith_add`, `flatDbarWith_neg`, `flatDbarWith_smul`, `flatDbarWith_mul` and
+`flatDbarWith_congr_of_eventuallyEq` for a field of structures. In the same way
 the flat `∂` agrees with Tau Ceti's `delFunction` by `delFunction_eq_flatDel_comp`, and its
 additivity and Leibniz rule come from `delFunction_add` and `delFunction_smul`.
 
@@ -82,6 +86,7 @@ additivity and Leibniz rule come from `delFunction_add` and `delFunction_smul`.
 public section
 
 open TauCeti
+open scoped Topology
 
 namespace SymplecticGeometry
 
@@ -158,32 +163,33 @@ theorem flatDbar_eq_zero_iff (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 /-- The flat `∂̄` is additive on functions differentiable at `z`. -/
 theorem flatDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) : flatDbar (f + g) z = flatDbar f z + flatDbar g z := by
-  ext v
-  simp [flatDbar_apply_eq_dbarFunction, SmoothAlmostComplexStructure.dbarFunction_add _
-    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)]
+  simp only [flatDbar_def, flatDbarWith_add hf hg]
+
+@[simp]
+theorem flatDbar_neg (f : StdSpace ι → ℂ) (z : StdSpace ι) : flatDbar (-f) z = -flatDbar f z := by
+  simp only [flatDbar_def, flatDbarWith_neg]
 
 /-- The flat `∂̄` commutes with complex scalars. -/
 @[simp]
 theorem flatDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDbar (c • f) z = c • flatDbar f z := by
-  ext v
-  simp [flatDbar_apply_eq_dbarFunction]
+  simp only [flatDbar_def, flatDbarWith_smul]
 
 @[simp]
 theorem flatDbar_zero (z : StdSpace ι) : flatDbar (0 : StdSpace ι → ℂ) z = 0 := by
-  ext v
-  simp [flatDbar_apply_eq_dbarFunction]
+  simp only [flatDbar_def, flatDbarWith_zero]
 
 /-- The **Leibniz rule** for the flat `∂̄`: for `f` and `g` differentiable at `z`, the flat `∂̄`
 of `f * g` at `z` is `f z` times the flat `∂̄` of `g` plus `g z` times the flat `∂̄` of `f`. -/
 theorem flatDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) :
     flatDbar (fun y ↦ f y * g y) z = f z • flatDbar g z + g z • flatDbar f z := by
-  have h := (stdComplexStructure ι).constSmooth.dbarFunction_smul
-    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)
-  simp only [smul_eq_mul] at h
-  ext v
-  simp [flatDbar_apply_eq_dbarFunction, ← Pi.mul_def, h, mul_comm]
+  simp only [flatDbar_def, flatDbarWith_mul hf hg]
+
+/-- The flat `∂̄` at `z` depends only on the germ of `f` at `z`. -/
+theorem flatDbar_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : flatDbar f z = flatDbar g z := by
+  simp only [flatDbar_def, flatDbarWith_congr_of_eventuallyEq h]
 
 /-- The flat `∂̄` of the complex coordinate `z_j` vanishes: it is complex linear for `J₀`. -/
 @[simp]

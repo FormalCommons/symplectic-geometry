@@ -219,8 +219,7 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
       fun w ↦ E w • (modelDbarWith J f w + -T w) := by
     have h1 := (div_peakFunction_eventuallyEq k f (hz.trans_lt hk)).eventually_nhds
     filter_upwards [h1, hdiff] with w hw hfw
-    rw [flatDbar_def, flatDbarWith_congr_of_eventuallyEq hw, ← flatDbar_def,
-      flatDbar_mul_exp_eq_smul_modelDbar hfw, modelDbar_def]
+    rw [flatDbar_congr_of_eventuallyEq hw, flatDbar_mul_exp_eq_smul_modelDbar hfw, modelDbar_def]
     simp only [T, E, J₀, neg_sub, add_sub_cancel]
   rw [jetNormAt_congr_of_eventuallyEq r hq]
   have hD : ContDiffAt ℝ r (modelDbarWith J f) z := contDiffAt_modelDbarWith hJ hf1
