@@ -413,18 +413,6 @@ private theorem mextDeriv_apply_prodVectorField (i : ι) {x : EB} {y : F}
       (fun z ↦ (X z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
     Manifold.mdifferentiableAt_prodVectorField hcB
       ((contMDiff_zeroSection ℝ (TangentSpace IF)).mdifferentiableAt one_ne_zero)
-  -- Evaluating `τ` on two fields differentiable at `(x, y)` gives a differentiable function.
-  have happ : ∀ A B : (z : EB × F) → TangentSpace (𝓘(ℝ, EB).prod IF) z,
-      MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
-        (fun z ↦ (A z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) →
-      MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
-        (fun z ↦ (B z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) →
-      MDifferentiableAt (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, ℝ) (fun z ↦ τ z ![A z, B z]) (x, y) := by
-    intro A B hA hB
-    have hev (z : EB × F) : (fun k ↦ ![A, B] k z) = ![A z, B z] :=
-      (FinVec.etaExpand_eq _).symm
-    simpa [hev] using mdifferentiableAt_apply_vectorField (V := ![A, B]) hτ'
-      (fun k ↦ by fin_cases k; exacts [hA, hB])
   -- The values of the frame.
   have hU_apply (z : EB × F) : U z = ((0 : EB), W₁ z.2) := Manifold.prodVectorField_apply _ _ z
   have hV_apply (z : EB × F) : V z = ((0 : EB), W₂ z.2) := Manifold.prodVectorField_apply _ _ z
@@ -445,9 +433,9 @@ private theorem mextDeriv_apply_prodVectorField (i : ι) {x : EB} {y : F}
   have h0 (v : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) : τ (x, y) ![0, v] = 0 :=
     (τ (x, y)).map_coord_zero 0 rfl
   -- Each derivative along the frame is a derivative along `EB` or along `F`.
-  have hdU := (happ V X hV hX).mvfderiv_prod_eq_add_apply (U (x, y))
-  have hdV := (happ U X hU hX).mvfderiv_prod_eq_add_apply (V (x, y))
-  have hdX := (happ U V hU hV).mvfderiv_prod_eq_add_apply (X (x, y))
+  have hdU := (mdifferentiableAt_apply_two hτ' hV hX).mvfderiv_prod_eq_add_apply (U (x, y))
+  have hdV := (mdifferentiableAt_apply_two hτ' hU hX).mvfderiv_prod_eq_add_apply (V (x, y))
+  have hdX := (mdifferentiableAt_apply_two hτ' hU hV).mvfderiv_prod_eq_add_apply (X (x, y))
   have hU1 : (U (x, y)).1 = (0 : TangentSpace 𝓘(ℝ, EB) (x, y).1) :=
     Manifold.prodVectorField_fst _ _ _
   have hV1 : (V (x, y)).1 = (0 : TangentSpace 𝓘(ℝ, EB) (x, y).1) :=
