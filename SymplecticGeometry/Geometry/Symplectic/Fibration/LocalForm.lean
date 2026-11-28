@@ -452,8 +452,7 @@ theorem contMDiffAt_mixedComponent [IsManifold IF 1 F] {n : WithTop ℕ∞} (i :
     (fun x : EB ↦ (bs i : TangentSpace 𝓘(ℝ, EB) x)) (0 : (y : F) → TangentSpace IF y)
   have hX : ContMDiffAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent n
       (fun z ↦ (X z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
-    Manifold.contMDiffAt_prodVectorField (contMDiff_tangentBundle_mk_const _).contMDiffAt
-      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF)).contMDiffAt
+    (Manifold.contMDiff_prodVectorField_const_zero (bs i)).contMDiffAt
   rw [mixedComponent_def]
   exact (ContMDiffAt.mpullback_form (RoughForm.contMDiffAt_interior hX hτ) (f := Prod.mk x)
     (n := ⊤) (contMDiffAt_const.prodMk contMDiffAt_id) le_top).neg_section
@@ -503,8 +502,7 @@ private theorem mextDeriv_apply_prodVectorField (i : ι) {x : EB} {y : F}
     Manifold.mdifferentiableAt_prodVectorField h0B hW₂
   have hX : MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
       (fun z ↦ (X z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
-    Manifold.mdifferentiableAt_prodVectorField hcB
-      ((contMDiff_zeroSection ℝ (TangentSpace IF)).mdifferentiableAt one_ne_zero)
+    (Manifold.contMDiff_prodVectorField_const_zero (bs i)).mdifferentiableAt one_ne_zero
   -- The values of the frame.
   have hU_apply (z : EB × F) : U z = ((0 : EB), W₁ z.2) := Manifold.prodVectorField_apply _ _ z
   have hV_apply (z : EB × F) : V z = ((0 : EB), W₂ z.2) := Manifold.prodVectorField_apply _ _ z
@@ -841,8 +839,7 @@ bundle. -/
 def _root_.SymplecticGeometry.baseField (k : ι) :
     Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
   ⟨Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) 0,
-    Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
-      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
+    Manifold.contMDiff_prodVectorField_const_zero (bs k)⟩
 
 /-- The underlying field of `baseField bs k` is the product field of the constant field `bs k` of
 `EB` and the zero field of `F`. -/

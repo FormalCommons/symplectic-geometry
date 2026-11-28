@@ -70,8 +70,10 @@ and the triple is a Weinstein structure.
   (`SymplecticGeometry.modelHandle_zero_apply`, from `JConvex/Surround/Shape.lean`).
 * `SymplecticGeometry.stableSubspace_modelHandleField`: the stable set of `0` for the handle
   field, Tau Ceti's `ContinuousLinearMap.stableSubspace`, is the core `range (modelDisc k m)`.
-  Read off the flow formula: `e^{-t} x` tends to `0`, while `e^{2t} y` and `e^{t/2} w` do so only
-  when `y = 0` and `w = 0`.
+  In real coordinates the field is `(-1) • id ⊕ 2 • id ⊕ ½ • id`, so this follows from
+  `ContinuousLinearMap.stableSubspace_prodMap`, `ContinuousLinearMap.stableSubspace_smul_id_of_neg`
+  and `ContinuousLinearMap.stableSubspace_smul_id_of_nonneg` (`Analysis/ODE/Linear.lean`), carried
+  through the coordinates by `ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv`.
 * `SymplecticGeometry.prod_imInnerSymplecticForm_eq_zero_of_mem_range_modelDisc`: the core is
   isotropic for the product form, by `ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace`
   (`Analysis/ODE/Linear.lean`) applied to the identity above.
@@ -361,40 +363,29 @@ theorem modelHandleField_flow_modelDisc (t : ℝ) (x : EuclideanSpace ℝ (Fin k
   ext j <;> simp
 
 /-- **The stable set of the handle field is the core**: the points whose orbit under the flow of
-`(x + i y, w) ↦ (-x + 2 i y, w / 2)` tends to `0` are those of `ι₀ (ℝᵏ) = {(x, 0)}`. -/
+`(x + i y, w) ↦ (-x + 2 i y, w / 2)` tends to `0` are those of `ι₀ (ℝᵏ) = {(x, 0)}`. In real
+coordinates the field is `(-1) • id ⊕ 2 • id ⊕ ½ • id`, whose stable subspace is `ℝᵏ × 0 × 0`. -/
 theorem stableSubspace_modelHandleField :
     ((modelHandleField k m).stableSubspace :
         Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))) =
       range (modelDisc k m) := by
-  ext p
-  rw [ContinuousLinearMap.coe_stableSubspace, Flow.mem_stableSet]
-  constructor
-  · intro hp
-    simp only [modelHandleField_flow_apply] at hp
-    -- If `e^{l t} c` tends to `0` for some `0 ≤ l`, then `c = 0`.
-    have key {c l : ℝ} (hl : 0 ≤ l) (hg : Tendsto (fun t ↦ Real.exp (l * t) * c) atTop (𝓝 0)) :
-        c = 0 := by
-      refine abs_nonpos_iff.1 (ge_of_tendsto (f := fun t ↦ |Real.exp (l * t) * c|)
-        (by simpa using hg.abs) (eventually_atTop.2 ⟨0, fun t ht ↦ ?_⟩))
-      rw [abs_mul, Real.abs_exp]
-      exact le_mul_of_one_le_left (abs_nonneg _) (Real.one_le_exp (by positivity))
-    have him (j : Fin k) : (p.1 j).im = 0 := by
-      have hj := (continuous_im.comp ((PiLp.continuous_apply 2 _ j).comp continuous_fst)).tendsto
-        (0 : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      exact key zero_le_two (by simpa [Function.comp_def, -Complex.ofReal_exp] using hj.comp hp)
-    have h2 : p.2 = 0 := by
-      refine norm_eq_zero.1 (key (l := 2⁻¹) (by norm_num) ?_)
-      simpa [Function.comp_def, norm_smul, div_eq_inv_mul] using
-        ((continuous_norm.comp continuous_snd).tendsto 0).comp hp
-    refine ⟨modelDiscProj k m p, ?_⟩
-    ext j
-    · exact Complex.ext (by simp) (by simp [him j])
-    · simp [h2]
-  · rintro ⟨x, rfl⟩
-    simp only [modelHandleField_flow_modelDisc]
-    have h := Real.tendsto_exp_neg_atTop_nhds_zero.smul_const x
-    rw [zero_smul] at h
-    simpa [Function.comp_def] using ((modelDisc k m).continuous.tendsto 0).comp h
+  set e := (complexEuclideanEquivRealProd (Fin k)).prodCongr
+      (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))
+  have h : modelHandleField k m = e.symm.conjContinuousAlgEquiv
+      ((((-1 : ℝ) • ContinuousLinearMap.id ℝ _).prodMap
+          ((2 : ℝ) • ContinuousLinearMap.id ℝ _)).prodMap
+        ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _)) := by
+    ext p j <;> simp [modelHandleField_apply_fst_apply, e]
+  rw [h, ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv,
+    ContinuousLinearMap.stableSubspace_prodMap, ContinuousLinearMap.stableSubspace_prodMap,
+    ContinuousLinearMap.stableSubspace_smul_id_of_neg (by norm_num),
+    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num),
+    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num), ← Submodule.map_inl,
+    ← Submodule.map_inl, ← Submodule.map_comp, ← Submodule.map_comp, Submodule.map_top,
+    LinearMap.coe_range]
+  congr 1
+  funext x
+  refine Prod.ext ((complexEuclideanEquivRealProd (Fin k)).injective ?_) ?_ <;> simp [e]
 
 /-- **The core of the handle is isotropic**: the constant form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`
 vanishes on pairs of vectors of `ι₀ (ℝᵏ)`. The core is the stable subspace of the handle field,
