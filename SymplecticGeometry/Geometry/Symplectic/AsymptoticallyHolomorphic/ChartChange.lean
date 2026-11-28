@@ -87,6 +87,10 @@ sequence the bounds at the centres become bounds on balls of fixed radius.
   `jetNormAt ℝ r (D.reading k x s) z ≤ C * (1 + d_k(x, y)) ^ r * D.jetNorm k r s y`.
 * `SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_dbarReading_le_of_chart_change`: for every
   `r`, `jetNormAt ℝ r (D.dbarReading k x s) z ≤ C * (1 + d_k(x, y)) ^ r * D.dbarJetNorm k r s y`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_le_jetNorm_of_mem_ball`: for a
+  fixed radius `R` and large `k`, smoothness and `r`-jet norms of the readings (and `∂̄` readings)
+  of any section at a point `z` of the ball of radius `R` of the chart at `x` are controlled, up
+  to a constant independent of `k`, `x`, `z` and the section, by those at `(D.chart k x)⁻¹ z`.
 * `SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le`:
   for an asymptotically holomorphic sequence and a fixed radius `R`, there is `C ≥ 0` such that
   for large `k` the readings and `∂̄` readings are smooth on the ball of radius `R` of every
@@ -570,40 +574,49 @@ theorem jetNormAt_dbarReading_le_of_chart_change [T2Space M] [I.Boundaryless]
     _ ≤ 4 ^ r * (C * (1 + d) ^ r) * (C * jetNormAt ℝ r g 0) * C := by gcongr
     _ = 4 ^ r * C ^ 3 * (1 + d) ^ r * D.dbarJetNorm k r s y := by rw [dbarJetNorm_def]; ring
 
-/-- **Asymptotically holomorphic sequences, read on balls of fixed radius.** Let `M` be a
-Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry the metric `g_J`
-of the pair, let `α` be a connection form and `ρ₀ > 0`, and let `s` be an asymptotically
-holomorphic sequence of sections. For every radius `R` and every order `r` there is a constant
-`C ≥ 0` such that, for all large `k`, all points `x` and all `z` in the ball of radius `R`, the
-readings of `s k` and their `∂̄` readings in the chart centred at `x` are smooth at `z`, the
-`r`-jet norm at `z` of the reading is at most `C`, and that of the `∂̄` reading is at most
-`C * k ^ (-1/2)`. -/
-theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Boundaryless]
+/-- **Chart changes on a ball of fixed radius.** Let `M` be a Hausdorff boundaryless manifold, let
+`σ` be compatible with `J`, let `M` carry the metric `g_J` of the pair, let `α` be a connection
+form and `ρ₀ > 0`. For every radius `R` and every order `r` there is a constant `C ≥ 0` such that,
+for all large `k`, all points `x`, all `z` in the ball of radius `R` and every section `s` of
+`PowerBundle P k`, with `y = (D.chart k x)⁻¹ z`:
+* if the reading of `s` in the chart centred at `y` is `C^n` at `0`, then the reading in the chart
+  centred at `x` is `C^n` at `z`, and likewise for the `∂̄` readings when the reading in the chart
+  at `y` is differentiable near `0`;
+* if the reading of `s` in the chart at `y` is `C^r` at `0`, then the `r`-jet norm at `z` of the
+  reading in the chart at `x` is at most `C` times the `r`-jet norm of `s` at `y`;
+* if moreover the reading in the chart at `y` is differentiable near `0` and its `∂̄` reading is
+  `C^r` at `0`, then the same holds for the `∂̄` readings and the `r`-jet norm of `∂̄ s` at `y`. -/
+theorem exists_forall_jetNormAt_le_jetNorm_of_mem_ball [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
-    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀)
-    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) (R : ℝ)
-    (r : ℕ) :
-    ∃ C : ℝ, 0 ≤ C ∧ ∀ᶠ k in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
-      ContDiffAt ℝ ∞ (D.reading k x (s k)) z ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) z ∧
-      jetNormAt ℝ r (D.reading k x (s k)) z ≤ C ∧
-      jetNormAt ℝ r (D.dbarReading k x (s k)) z ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ) := by
-  rw [isAsymptoticallyHolomorphic_def] at hs
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (R : ℝ) (r : ℕ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
+      ∀ (s : Π y, PowerBundle P k y),
+      (∀ {n : ℕ∞}, ContDiffAt ℝ n (D.reading k ((D.chart k x).symm z) s) 0 →
+        ContDiffAt ℝ n (D.reading k x s) z) ∧
+      (∀ {n : ℕ∞}, (∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k ((D.chart k x).symm z) s) w) →
+        ContDiffAt ℝ n (D.dbarReading k ((D.chart k x).symm z) s) 0 →
+        ContDiffAt ℝ n (D.dbarReading k x s) z) ∧
+      (ContDiffAt ℝ r (D.reading k ((D.chart k x).symm z) s) 0 →
+        jetNormAt ℝ r (D.reading k x s) z ≤ C * D.jetNorm k r s ((D.chart k x).symm z)) ∧
+      ((∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k ((D.chart k x).symm z) s) w) →
+        ContDiffAt ℝ r (D.dbarReading k ((D.chart k x).symm z) s) 0 →
+        jetNormAt ℝ r (D.dbarReading k x s) z ≤
+          C * D.dbarJetNorm k r s ((D.chart k x).symm z)) := by
   obtain ⟨ρ₁, hρ₁, -, hJ₁⟩ := D.jetNormAt_reading_le_of_chart_change hg hJ hα hρ₀
   obtain ⟨ρ₂, hρ₂, -, hJ₂⟩ := D.jetNormAt_dbarReading_le_of_chart_change hg hJ hα hρ₀
   obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   obtain ⟨C₁, hC₁0, hC₁⟩ := hJ₁ r
   obtain ⟨C₂, hC₂0, hC₂⟩ := hJ₂ r
-  obtain ⟨Cs, hCs⟩ := hs.2 r
   set ρ := min ρ₁ (min ρ₂ ρ₃)
   have hρ : 0 < ρ := lt_min hρ₁ (lt_min hρ₂ hρ₃)
   -- On the ball of radius `R`, `d_k(x, y) ≤ √(3/2) * |R|`.
   set Q : ℝ := (1 + √(3 / 2) * |R|) ^ r
-  refine ⟨(C₁ + C₂) * Q * |Cs|, by have := add_nonneg hC₁0 hC₂0; positivity, ?_⟩
+  refine ⟨(C₁ + C₂) * Q, by have := add_nonneg hC₁0 hC₂0; positivity, ?_⟩
   have hρk : ∀ᶠ k : ℕ in Filter.atTop, |R| < ρ * √k :=
     ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ).eventually_gt_atTop |R|
-  filter_upwards [hs.1, hCs, hρk, Filter.eventually_ge_atTop k₀] with k hsk hCsk hρk hk x z hz
+  filter_upwards [hρk, Filter.eventually_ge_atTop k₀] with k hρk hk x z hz s
   have hzR : ‖z‖ ≤ |R| := (mem_ball_zero_iff.1 hz).le.trans (le_abs_self R)
   have hball {ρ' : ℝ} (h : ρ ≤ ρ') : z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
     mem_ball_zero_iff.2 (hzR.trans_lt (hρk.trans_le
@@ -620,27 +633,58 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Bo
     refine pow_le_pow_left₀ (by positivity) ?_ r
     have : √(3 / 2) * ‖z‖ ≤ √(3 / 2) * |R| := by gcongr
     linarith
+  refine ⟨fun hry ↦ D.contDiffAt_reading_of_chart_change hk x hz₀ hry,
+    fun hdiff hdry ↦ D.contDiffAt_dbarReading_of_chart_change hα hk x hz₀ hdiff hdry,
+    fun hry ↦ ?_, fun hdiff hdry ↦ ?_⟩
+  · have hJ0 := D.jetNorm_nonneg k r s y
+    calc jetNormAt ℝ r (D.reading k x s) z ≤ C₁ * (1 + d) ^ r * D.jetNorm k r s y :=
+          hC₁ hk x z hz₁ hry
+      _ ≤ (C₁ + C₂) * Q * D.jetNorm k r s y := by
+          gcongr; exact le_add_of_nonneg_right hC₂0
+  · have hDJ0 := D.dbarJetNorm_nonneg k r s y
+    calc jetNormAt ℝ r (D.dbarReading k x s) z ≤ C₂ * (1 + d) ^ r * D.dbarJetNorm k r s y :=
+          hC₂ hk x z hz₂ hdiff hdry
+      _ ≤ (C₁ + C₂) * Q * D.dbarJetNorm k r s y := by
+          gcongr; exact le_add_of_nonneg_left hC₁0
+
+/-- **Asymptotically holomorphic sequences, read on balls of fixed radius.** Let `M` be a
+Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry the metric `g_J`
+of the pair, let `α` be a connection form and `ρ₀ > 0`, and let `s` be an asymptotically
+holomorphic sequence of sections. For every radius `R` and every order `r` there is a constant
+`C ≥ 0` such that, for all large `k`, all points `x` and all `z` in the ball of radius `R`, the
+readings of `s k` and their `∂̄` readings in the chart centred at `x` are smooth at `z`, the
+`r`-jet norm at `z` of the reading is at most `C`, and that of the `∂̄` reading is at most
+`C * k ^ (-1/2)`. -/
+theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Boundaryless]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) (R : ℝ)
+    (r : ℕ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
+      ContDiffAt ℝ ∞ (D.reading k x (s k)) z ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) z ∧
+      jetNormAt ℝ r (D.reading k x (s k)) z ≤ C ∧
+      jetNormAt ℝ r (D.dbarReading k x (s k)) z ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ) := by
+  rw [isAsymptoticallyHolomorphic_def] at hs
+  obtain ⟨C, hC0, hC⟩ := D.exists_forall_jetNormAt_le_jetNorm_of_mem_ball hg hJ hα hρ₀ R r
+  obtain ⟨Cs, hCs⟩ := hs.2 r
+  refine ⟨C * |Cs|, by positivity, ?_⟩
+  filter_upwards [hs.1, hCs, hC] with k hsk hCsk hCk x z hz
+  set y := (D.chart k x).symm z
   obtain ⟨hry, hdry⟩ := hsk y
   have hdiff : ∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k y (s k)) w :=
     hry.eventually_differentiableAt (by exact_mod_cast le_top)
   obtain ⟨hJy, hDJy⟩ := hCsk y
-  have hJ0 := D.jetNorm_nonneg k r (s k) y
-  have hDJ0 := D.dbarJetNorm_nonneg k r (s k) y
-  refine ⟨D.contDiffAt_reading_of_chart_change hk x hz₀ hry,
-    D.contDiffAt_dbarReading_of_chart_change hα hk x hz₀ hdiff hdry, ?_, ?_⟩
-  · calc jetNormAt ℝ r (D.reading k x (s k)) z ≤ C₁ * (1 + d) ^ r * D.jetNorm k r (s k) y :=
-          hC₁ hk x z hz₁ (hry.of_le (by exact_mod_cast le_top))
-      _ ≤ C₁ * Q * |Cs| := by gcongr; exact hJy.trans (le_abs_self _)
-      _ ≤ (C₁ + C₂) * Q * |Cs| := by gcongr; exact le_add_of_nonneg_right hC₂0
-  · calc jetNormAt ℝ r (D.dbarReading k x (s k)) z ≤
-          C₂ * (1 + d) ^ r * D.dbarJetNorm k r (s k) y :=
-          hC₂ hk x z hz₂ hdiff (hdry.of_le (by exact_mod_cast le_top))
-      _ ≤ C₂ * Q * (|Cs| * (k : ℝ) ^ (-1 / 2 : ℝ)) := by
+  obtain ⟨hc, hdc, hb, hdb⟩ := hCk x z hz (s k)
+  refine ⟨hc hry, hdc hdiff hdry, ?_, ?_⟩
+  · calc jetNormAt ℝ r (D.reading k x (s k)) z ≤ C * D.jetNorm k r (s k) y :=
+          hb (hry.of_le (by exact_mod_cast le_top))
+      _ ≤ C * |Cs| := by gcongr; exact hJy.trans (le_abs_self _)
+  · calc jetNormAt ℝ r (D.dbarReading k x (s k)) z ≤ C * D.dbarJetNorm k r (s k) y :=
+          hdb hdiff (hdry.of_le (by exact_mod_cast le_top))
+      _ ≤ C * (|Cs| * (k : ℝ) ^ (-1 / 2 : ℝ)) := by
           gcongr; exact hDJy.trans (by gcongr; exact le_abs_self _)
-      _ ≤ (C₁ + C₂) * Q * |Cs| * (k : ℝ) ^ (-1 / 2 : ℝ) := by
-          rw [← mul_assoc]
-          gcongr
-          exact le_add_of_nonneg_left hC₁0
+      _ = C * |Cs| * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
 
 end RescaledUnitaryCharts
 
