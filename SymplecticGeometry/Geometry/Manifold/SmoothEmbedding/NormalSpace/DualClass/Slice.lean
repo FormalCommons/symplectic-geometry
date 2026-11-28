@@ -380,7 +380,8 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
       ConcreteCategory.comp_apply]
     refine Eq.trans ?_ (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ _ _).symm
-    -- `rw [hψ]` fails here: the right side applies `Φ` to a point of the pair `ψ` maps to.
+    -- No `rw [hψ]`: the right side applies `Φ` to a point typed in the pair of `ψ`, so it
+    -- typechecks only after unfolding `ofSubset`.
     exact (TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (B := {⟨0, hO0⟩}ᶜ) _ _ w).trans
       ((hΦΨ (hOW _ (show O from w).property)).symm.trans (congrArg (fun v ↦ (Φ v : X)) (hψ w).symm))
   rw [hLψ, TopPair.singularCohomologyMap_comp_apply, normalSlice_def,
