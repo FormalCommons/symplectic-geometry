@@ -276,7 +276,7 @@ theorem selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm [T2Space M] [C
     letI := f.normalSpaceVectorBundle hn
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     (f.compDiffeomorphOfBoundaryless e.symm (by simp)).selfIntersectionNumber
-        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) (A := (J ·)) hJ)
         (o.map e hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
         (ContinuousMap.id C)
@@ -319,7 +319,7 @@ theorem selfIntersectionNumber_remodel
     letI := f.normalSpaceVectorBundle hn
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     (f.compDiffeomorphOfBoundaryless (remodelDiffeomorph Φ C).symm (by simp)).selfIntersectionNumber
-        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) (A := (J ·)) hJ)
         (o.map (remodelDiffeomorph Φ C) hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
         (ContinuousMap.id C)
@@ -359,7 +359,7 @@ theorem selfIntersectionNumber_remodel_complexCurveOrientation
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
         (finrank_real_of_finrank_complex_eq_add_one hG))
     (f.compDiffeomorphOfBoundaryless (remodelDiffeomorph Φ C).symm (by simp)).selfIntersectionNumber
-        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) (A := (J ·)) hJ)
         ((complexCurveOrientation G C hG).map (remodelDiffeomorph Φ C) hn
           (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       complexManifoldEvalFundamentalClass G C (r := 0) hG
