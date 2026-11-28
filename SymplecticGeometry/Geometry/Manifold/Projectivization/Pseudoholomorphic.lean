@@ -20,7 +20,8 @@ complex manifold. This file shows that the projection
   pseudoholomorphic exactly when it is holomorphic
   (`TauCeti.SmoothAlmostComplexStructure.isPseudoholomorphic_ofComplexManifold_iff`).
 * `Projectivization.mfderiv_mkNonzero_I_smul`: its real derivative carries multiplication by `i`
-  on `ℂⁿ⁺¹` to `J` on `ℂPⁿ`.
+  on `ℂⁿ⁺¹` to `J` on `ℂPⁿ`, as the real derivative of every holomorphic map does
+  (`MDifferentiableAt.mfderiv_ofComplexManifold_apply`).
 
 ## References
 
@@ -36,8 +37,6 @@ open scoped Manifold LinearAlgebra.Projectivization
 namespace Projectivization
 
 variable {n : ℕ}
-
-open SmoothAlmostComplexStructure
 
 open SmoothAlmostComplexStructure
 
@@ -57,8 +56,9 @@ theorem mfderiv_mkNonzero_I_smul (z : puncturedSpace (Fin (n + 1) → ℂ))
     mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z (Complex.I • v) =
       ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (mkNonzero ℂ n z)
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z v) := by
-  have h := ((isPseudoholomorphic_mkNonzero n).isPseudoholomorphicAt z).mfderiv_apply_commute v
-  rwa [ofComplexManifold_apply] at h
+  simpa [ofComplexManifold_apply] using
+    ((contMDiff_mkNonzero_self 1).mdifferentiableAt (x := z)
+      one_ne_zero).mfderiv_ofComplexManifold_apply v
 
 end Projectivization
 
