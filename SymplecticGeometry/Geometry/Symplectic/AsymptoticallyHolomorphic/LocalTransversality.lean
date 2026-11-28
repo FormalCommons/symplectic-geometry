@@ -7,7 +7,9 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Analysis.Complex.Avoidance
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import Mathlib.Analysis.Calculus.ContDiff.WithLp
 import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 
@@ -23,6 +25,11 @@ small. The size of the perturbation is `δ` and the lower bound is `δ / (log (1
 
 * `SymplecticGeometry.exists_norm_le_max_ge_of_dbar_le`: the estimate, with an exponent `p`
   depending only on `n` and all `δ` small enough.
+* `SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le`: the same estimate for functions on
+  `StdSpace ι` bounded in `C¹` by any `A ≥ 1`, with the flat `∂̄` `SymplecticGeometry.flatDbar`,
+  the complex-linear part for `J₀` of the differential, and the complex coordinates of
+  `SymplecticGeometry.peakFunction_mul`. It is the milestone for `A⁻¹ f ∘ e` with the parameter
+  `δ / A`, for the isometry `e = TauCeti.complexToRealEuclideanIsometry ι`.
 
 ## Implementation notes
 
@@ -338,6 +345,124 @@ theorem exists_norm_le_max_ge_of_dbar_le :
   -- The chain is `(3 n + 2) ε ≤ η ≤ ‖G z - w'‖ ≤ ‖transversalityMap f z - K w'‖ ≤ (n + 2) m`
   -- (`hε`, `h1`, `h4`, `h3`), and `(n + 2) ε ≤ (3 n + 2) ε` since `ε ≥ 0`.
   nlinarith [hn, hm, hε0]
+
+/-! ### The estimate on `StdSpace ι`
+
+Read through the real isometry `e = complexToRealEuclideanIsometry ι`, the estimate holds for
+functions on `StdSpace ι`, with the flat `∂̄` in place of the conjugate Wirtinger derivative, the
+complex-linear part for `J₀` of the differential in place of the Wirtinger derivative, and the
+complex coordinates `(complexToRealEuclidean ι).symm z j` of `SymplecticGeometry.peakFunction_mul`.
+A `C¹` bound `A ≥ 1` replaces the bound one, at the cost of constants that depend on `A`. -/
+
+variable {ι : Type*} [Fintype ι]
+
+/-- **Local quantitative transversality on `StdSpace ι`.** For every `A ≥ 1` there are an
+exponent `p > 0` and `δ₀ > 0`, depending only on `A` and `n = card ι`, such that the following
+holds for `0 < δ < δ₀`, with `ε = δ / (log (1 / δ)) ^ p`. Let `f : StdSpace ι → ℂ` be `C²` on the
+ball of radius `11 / 10`, with `|f| ≤ A` and `‖Df‖ ≤ A` there, and with `‖∂̄f‖ ≤ ε` and
+`‖D(∂̄f(·) b)‖ ≤ ε ‖b‖` for all `b` there, for the flat `∂̄` `SymplecticGeometry.flatDbar`. Then
+some `w = (w₀, w₁, …, wₙ) ∈ ℂⁿ⁺¹`, indexed by `Option ι` with `w₀ = w none`, has `‖w‖ ≤ δ` and,
+for `f_w = f - w₀ - Σ_j w_j z_j` with `z_j = (complexToRealEuclidean ι).symm z j`, satisfies
+`ε ≤ max |f_w z| ‖∂f_w(z)‖` at every point `z` of the closed unit ball, for `∂f_w(z)` the
+complex-linear part, for `J₀ = stdComplexStructure ι` and multiplication by `i`, of the
+differential of `f_w` at `z`. -/
+theorem exists_norm_le_max_ge_of_flatDbar_le {A : ℝ} (hA : 1 ≤ A) :
+    ∃ p : ℕ, 0 < p ∧ ∃ δ₀ > 0, ∀ δ, 0 < δ → δ < δ₀ →
+      ∀ f : StdSpace ι → ℂ,
+        (∀ z ∈ ball 0 (11 / 10), ContDiffAt ℝ 2 f z) →
+        (∀ z ∈ ball 0 (11 / 10), ‖f z‖ ≤ A ∧ ‖fderiv ℝ f z‖ ≤ A) →
+        (∀ z ∈ ball 0 (11 / 10), ‖flatDbar f z‖ ≤ δ / Real.log (1 / δ) ^ p ∧
+          ∀ b, ‖fderiv ℝ (fun y ↦ flatDbar f y b) z‖ ≤ δ / Real.log (1 / δ) ^ p * ‖b‖) →
+        ∃ w : EuclideanSpace ℂ (Option ι), ‖w‖ ≤ δ ∧ ∀ z ∈ closedBall 0 1,
+          δ / Real.log (1 / δ) ^ p ≤
+            max ‖f z - w none - ∑ j, w (some j) * (complexToRealEuclidean ι).symm z j‖
+              ‖LinearMap.toContinuousLinearMap (complexLinearPart
+                (stdComplexStructure ι).toLinearMap
+                (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+                (fderiv ℝ (fun y ↦ f y - w none -
+                  ∑ j, w (some j) * (complexToRealEuclidean ι).symm y j) z :
+                    StdSpace ι →ₗ[ℝ] ℂ))‖ := by
+  obtain ⟨p, -, δ₁, hδ₁, H⟩ := exists_norm_le_max_ge_of_dbar_le (σ := ι)
+  obtain ⟨δ₀, hδ₀, hsmall⟩ :=
+    exists_pos_forall_mul_div_log_pow_le (c := 1) (C := 1) one_pos hδ₁ hA p
+  refine ⟨p + 1, Nat.succ_pos _, δ₀, hδ₀, fun δ hδ hδδ₀ f hf hfA hdbar ↦ ?_⟩
+  obtain ⟨hδA, hL, hε⟩ := hsmall δ hδ hδδ₀
+  simp only [one_mul] at hε
+  set ε := δ / Real.log (1 / δ) ^ (p + 1)
+  set ε' := δ / A / Real.log (1 / (δ / A)) ^ p
+  have hA0 : 0 < A := by linarith
+  set e := complexToRealEuclideanIsometry ι
+  have hε0 : 0 ≤ ε := by positivity
+  have hεA : A⁻¹ * ε ≤ ε' :=
+    (mul_le_of_le_one_left hε0 (inv_le_one_of_one_le₀ hA)).trans hε
+  have hball {r : ℝ} {u : EuclideanSpace ℂ ι} (hu : u ∈ ball 0 r) : e u ∈ ball 0 r := by
+    rwa [mem_ball_zero_iff, LinearIsometryEquiv.norm_map, ← mem_ball_zero_iff]
+  -- The milestone applies to `g ∘ e` for `g = A⁻¹ • f`, with the parameter `δ / A`.
+  set g : StdSpace ι → ℂ := (A⁻¹ : ℝ) • f
+  have : Invertible (A⁻¹ : ℝ) := invertibleOfNonzero (by positivity)
+  have hgz (z : StdSpace ι) : g z = (A⁻¹ : ℝ) • f z := Pi.smul_apply _ _ _
+  have hgc : g = ((A⁻¹ : ℝ) : ℂ) • f := funext fun _ ↦ Complex.coe_smul _ _
+  have hfg (z : StdSpace ι) : fderiv ℝ g z = (A⁻¹ : ℝ) • fderiv ℝ f z :=
+    fderiv_const_smul_of_invertible (f := f) (A⁻¹ : ℝ)
+  obtain ⟨w', hw', hw'z⟩ := H (δ / A) (by positivity) hδA (g ∘ e)
+    (fun u hu ↦ ((hf _ (hball hu)).const_smul (A⁻¹ : ℝ)).comp u e.contDiff.contDiffAt)
+    (fun u hu ↦ by
+      obtain ⟨h0, h1⟩ := hfA _ (hball hu)
+      rw [Function.comp_apply, e.comp_right_fderiv,
+        ContinuousLinearMap.opNorm_comp_linearIsometryEquiv, hfg, hgz, norm_smul,
+        norm_smul, Real.norm_of_nonneg (by positivity)]
+      exact ⟨(mul_le_mul_of_nonneg_left h0 (by positivity)).trans (inv_mul_cancel₀ hA0.ne').le,
+        (mul_le_mul_of_nonneg_left h1 (by positivity)).trans (inv_mul_cancel₀ hA0.ne').le⟩)
+    (fun u hu ↦ by
+      obtain ⟨h0, h1⟩ := hdbar _ (hball hu)
+      refine ⟨?_, fun b ↦ ?_⟩
+      · rw [norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry, hgc, flatDbar_smul,
+          norm_smul, Complex.norm_real, Real.norm_of_nonneg (by positivity)]
+        exact (mul_le_mul_of_nonneg_left h0 (by positivity)).trans hεA
+      · rw [norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+        have : (fun z ↦ flatDbar g z (e b)) = (A⁻¹ : ℝ) • fun z ↦ flatDbar f z (e b) := by
+          ext z
+          rw [hgc, flatDbar_smul, smul_apply, Pi.smul_apply, Complex.coe_smul]
+        rw [this, fderiv_const_smul_of_invertible, norm_smul, Real.norm_of_nonneg (by positivity)]
+        calc A⁻¹ * ‖fderiv ℝ (fun z ↦ flatDbar f z (e b)) (e u)‖ ≤ A⁻¹ * (ε * ‖b‖) := by
+              gcongr
+              simpa using h1 (e b)
+          _ ≤ ε' * ‖b‖ := by rw [← mul_assoc]; gcongr)
+  refine ⟨(A : ℂ) • w', ?_, fun z hz ↦ ?_⟩
+  · rw [norm_smul, Complex.norm_real, Real.norm_of_nonneg hA0.le]
+    calc A * ‖w'‖ ≤ A * (δ / A) := mul_le_mul_of_nonneg_left hw' hA0.le
+      _ = δ := by field_simp
+  set w : EuclideanSpace ℂ (Option ι) := (A : ℂ) • w'
+  set h : StdSpace ι → ℂ := fun y ↦
+    f y - w none - ∑ j, w (some j) * (complexToRealEuclidean ι).symm y j
+  have hcomp : (fun y ↦ (g ∘ e) y - w' none - ∑ j, w' (some j) * y j) =
+      ((A⁻¹ : ℝ) • h) ∘ e := by
+    ext y
+    simp only [Function.comp_apply, Pi.smul_apply, hgz, h, w, e,
+      complexToRealEuclideanIsometry_apply, ContinuousLinearEquiv.symm_apply_apply, PiLp.smul_apply,
+      smul_eq_mul, Complex.real_smul, mul_sub, Finset.mul_sum]
+    have : (A : ℂ) ≠ 0 := by exact_mod_cast hA0.ne'
+    congr 1
+    · congr 1
+      push_cast
+      field_simp
+    · refine Finset.sum_congr rfl fun j _ ↦ ?_
+      push_cast
+      field_simp
+  have hu : e.symm z ∈ closedBall 0 1 := by
+    rwa [mem_closedBall_zero_iff, LinearIsometryEquiv.norm_map, ← mem_closedBall_zero_iff]
+  have key := hw'z _ hu
+  rw [hcomp, norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry,
+    LinearIsometryEquiv.apply_symm_apply, fderiv_const_smul_of_invertible,
+    ContinuousLinearMap.toLinearMap_smul, TauCeti.complexLinearPart_smul, map_smul, norm_smul,
+    Real.norm_of_nonneg (by positivity)] at key
+  have h1 : (g ∘ e) (e.symm z) - w' none - ∑ j, w' (some j) * (e.symm z) j =
+      (A⁻¹ : ℝ) • h z := by
+    simpa using congrFun hcomp (e.symm z)
+  rw [h1, norm_smul, Real.norm_of_nonneg (by positivity), ← mul_max_of_nonneg _ _ (by positivity)]
+    at key
+  exact hε.trans (key.trans (mul_le_of_le_one_left ((norm_nonneg _).trans (le_max_left _ _))
+    (inv_le_one_of_one_le₀ hA)))
 
 end SymplecticGeometry
 
