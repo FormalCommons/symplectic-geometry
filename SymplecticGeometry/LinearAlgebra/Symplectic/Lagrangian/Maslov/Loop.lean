@@ -12,6 +12,7 @@ import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.FundamentalGroup
 import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
 import TauCeti.LinearAlgebra.Matrix.OfReal
+import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 import SymplecticGeometry.Topology.Homotopy.Path
 
@@ -120,14 +121,12 @@ theorem maslovIndex_eq_iff_homotopic {Λ : ℒ ι} {γ γ' : Path Λ Λ} :
     rw [coe_detCircle, ← hOW', det_map_ofReal, ← h] at h₂
     exact_mod_cast h₁.trans h₂.symm
   -- A path of orthogonal matrices from `W` to `W'`, as unitary matrices.
-  let φ : orthogonalGroup ι ℝ → unitaryGroup ι ℂ := fun A ↦
-    ⟨(A : Matrix ι ι ℝ).map ((↑) : ℝ → ℂ), map_ofReal_mem_unitaryGroup A.property⟩
-  have hφ : Continuous φ :=
-    (continuous_subtypeVal.matrix_map Complex.continuous_ofReal).subtype_mk _
+  let φ := TauCeti.orthogonalComplexMatrix (n := ι)
+  have hφ : Continuous φ := TauCeti.continuous_orthogonalComplexMatrix
   let ε : Path (φ ⟨O, hO⟩) (φ ⟨O', hO'⟩) :=
     ((TauCeti.Matrix.joined_orthogonalGroup_iff_det_eq.2 hdet).somePath).map hφ
-  have hε₀ : φ ⟨O, hO⟩ = U⁻¹ * V := Subtype.ext hOW
-  have hε₁ : φ ⟨O', hO'⟩ = U⁻¹ * V' := Subtype.ext hOW'
+  have hε₀ : φ ⟨O, hO⟩ = U⁻¹ * V := Subtype.ext <| by rw [← hOW]; ext; simp [φ]
+  have hε₁ : φ ⟨O', hO'⟩ = U⁻¹ * V' := Subtype.ext <| by rw [← hOW']; ext; simp [φ]
   -- Correct `δ` on the right by `(U⁻¹ V)⁻¹ ε`; it now ends at `V'` and still lifts `γ`.
   let δ₂ : Path U V' := (δ.mul (ε.map (continuous_const_mul (U⁻¹ * V)⁻¹))).cast
     (by rw [hε₀, inv_mul_cancel, mul_one])
@@ -139,7 +138,7 @@ theorem maslovIndex_eq_iff_homotopic {Λ : ℒ ι} {γ γ' : Path Λ Λ} :
     simp only [δ₂, Path.cast_coe, Path.mul_apply, Path.map_coe, Function.comp_apply,
       inv_mul_cancel_left]
     exact mul_mem (inv_mem (hreal δ hδ))
-      (UnitaryGroup.map_ofReal_mem_realSubgroup (Subtype.property _))
+      (UnitaryGroup.orthogonalComplexMatrix_mem_realSubgroup _)
   refine homotopic_of_homotopic_lift hδ₂ hδ' (UnitaryGroup.homotopic_iff_angleChange_eq.2 ?_)
   rw [angleChange_map_detCircle γ δ₂ hδ₂, angleChange_map_detCircle γ' δ' hδ', h]
 

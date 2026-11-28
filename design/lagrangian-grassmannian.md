@@ -174,7 +174,7 @@ which the stabilizer and the fibration need.
   `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real` (Tau Ceti's
   `Matrix.exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one` may
   shorten it); `mem_realSubgroup_iff` (iff
-  `(U : Matrix ι ι ℂ).map Complex.im = 0`); `map_ofReal_mem_realSubgroup`;
+  `(U : Matrix ι ι ℂ).map Complex.im = 0`); `orthogonalComplexMatrix_mem_realSubgroup`;
   `isClosed_realSubgroup`.
 
 ### `LinearAlgebra/Matrix/OfReal.lean`
