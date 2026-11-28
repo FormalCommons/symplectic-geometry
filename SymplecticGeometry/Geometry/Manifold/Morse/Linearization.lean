@@ -17,6 +17,8 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
+import SymplecticGeometry.Analysis.Normed.Operator.Functional
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Analysis.Calculus.Morse.Index
 import TauCeti.Analysis.ODE.ExponentialDichotomy
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
@@ -45,7 +47,8 @@ and the analysis of its stable discs build on these results.
   `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`.
 * `TauCeti.exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero`: at such a point, if
   `f` is `C⁴` and `X` is `C³`, and `B e = 0`, the inequality read along the parabolas
-  `t ↦ t • e + t ^ 2 • w` at order `t ^ 4`.
+  `t ↦ t • e + t ^ 2 • w` at order `t ^ 4`, in the same form
+  `c * (‖β‖ ^ 2 + ‖α‖ ^ 2) ≤ α β`.
 * `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: for `X` gradient-like and `p`
   nondegenerate, there is `c > 0` with `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`, where `H` is the
   bilinear form of the Hessian in the chart.
@@ -74,8 +77,10 @@ the norm of `g` (Mathlib's `eventually_norm_mfderiv_extChartAt_lt`), gives near 
 `κ * (‖X u‖ ^ 2 + (df_u e) ^ 2) ≤ df_u (X u)` in the chart, with `κ > 0` independent of `e` for
 `‖e‖ ≤ 1`. It passes to second order by
 `HasFDerivAt.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually`, and a choice of `e` at which
-`B v` is close to its norm makes the bound uniform in `v`. Nondegeneracy is not needed for this; at
-a nondegenerate critical point, the invertibility of the Hessian then bounds `‖v‖` by `‖B v‖`.
+`B v` is close to its norm makes the bound uniform in `v`
+(`ContinuousLinearMap.div_four_mul_norm_sq_add_opNorm_sq_le`). Nondegeneracy is not needed for
+this; at a nondegenerate critical point, the invertibility of the Hessian then bounds `‖v‖` by
+`‖B v‖`.
 
 With `B` a symmetric bilinear Lyapunov form for `A`, the dichotomy and the index come from
 `ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply` and
@@ -195,6 +200,22 @@ private theorem exists_eventually_mul_norm_sq_add_sq_le {p : M}
     _ = c * (g.inner y (X y) (X y) + ‖G‖ ^ 2) := by field_simp
     _ ≤ _ := hgy
 
+/-- **The gradient-like inequality in the chart.** Let `X` be gradient-like for `f` near `p`
+(`TauCeti.IsGradientLikeAt`), and let `f` read in the chart at `p` as `F`, differentiable near
+the image of `p`, with `Y` the expression of `X` in the chart. Then there is `κ > 0` such that,
+for every `e` with `‖e‖ ≤ 1`, `κ * (‖Y u‖ ^ 2 + DF(u) e ^ 2) ≤ DF(u) (Y u)` for `u` near the
+image of `p`. -/
+theorem IsGradientLikeAt.exists_pos_eventually_mul_norm_sq_add_sq_le {p : M}
+    (hX : IsGradientLikeAt f X p)
+    (hF : ∀ᶠ u in 𝓝 (extChartAt 𝓘(ℝ, E) p p),
+      DifferentiableAt ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) u)
+    {Y : E → E} (hY : Y = VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X) :
+    ∃ κ > 0, ∀ e : E, ‖e‖ ≤ 1 → ∀ᶠ u in 𝓝 (extChartAt 𝓘(ℝ, E) p p),
+      κ * (‖Y u‖ ^ 2 + fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) u e ^ 2) ≤
+        fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) u (Y u) := by
+  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X p).1 hX
+  exact exists_eventually_mul_norm_sq_add_sq_le g hc (Filter.mem_of_superset hU hg) hF hY
+
 /-- **The gradient-like inequality at second order.** Let `X` be gradient-like for `f` near a
 critical point `p` of `f` (`TauCeti.IsGradientLikeAt`). Let `f` be `C²` in the chart
 at `p`, with second derivative `B` there, and let `X` be differentiable at `p`, with linearization
@@ -210,14 +231,12 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
       fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v (A v) := by
   -- At the critical point `p`, the inequality forces `X p = 0`.
   have hX₀ : X p = 0 := hX.eq_zero_iff.2 hp
-  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X p).1 hX
   set φ := extChartAt 𝓘(ℝ, E) p
   set Y : E → E := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
-  have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
-    hf.eventually_differentiableAt (by simp)
   obtain ⟨κ, hκ, hev⟩ :=
-    exists_eventually_mul_norm_sq_add_sq_le g hc (Filter.mem_of_superset hU hg) hF (Y := Y) rfl
+    hX.exists_pos_eventually_mul_norm_sq_add_sq_le (hf.eventually_differentiableAt (by simp))
+      (Y := Y) rfl
   have hB : HasFDerivAt (fderiv ℝ (f ∘ φ.symm)) B (φ p) := hf.hasFDerivAt_fderiv le_rfl
   have hD₀ : fderiv ℝ (f ∘ φ.symm) (φ p) = 0 :=
     fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hp
@@ -226,24 +245,15 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
   -- The inequality at second order, for each `e` with `‖e‖ ≤ 1`.
   have hBe (v e : E) (he : ‖e‖ ≤ 1) : κ * (‖A v‖ ^ 2 + B v e ^ 2) ≤ B v (A v) :=
     hB.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually hD₀ hY hY₀ (hev e he) v
-  refine ⟨κ / 8, by positivity, fun v ↦ ?_⟩
-  -- The norm of `B v` is attained, up to a factor `2`, at a vector of norm at most `1`.
-  have hBv : κ * (‖A v‖ ^ 2 + ‖B v‖ ^ 2 / 4) ≤ B v (A v) := by
-    rcases eq_or_ne (B v) 0 with h0 | h0
-    · simpa [h0] using hBe v 0 (by simp)
-    obtain ⟨e, he, hlt⟩ := (B v).exists_lt_apply_of_lt_opNorm (half_lt_self (norm_pos_iff.2 h0))
-    rw [Real.norm_eq_abs] at hlt
-    refine le_trans ?_ (hBe v e he.le)
-    gcongr
-    nlinarith [norm_nonneg (B v), abs_nonneg (B v e), sq_abs (B v e)]
-  nlinarith [sq_nonneg ‖A v‖, sq_nonneg ‖B v‖]
+  exact ⟨κ / 4, by positivity, fun v ↦
+    (B v).div_four_mul_norm_sq_add_opNorm_sq_le hκ.le (hBe v)⟩
 
 /-- **The gradient-like inequality at fourth order, along the kernel of the Hessian.** Let `X` be
 gradient-like for `f` near a critical point `p` of `f` (`TauCeti.IsGradientLikeAt`), let `f` be
 `C⁴` in the chart at `p`, with derivatives `B = D²F` and `D³F` there, and let `X` be `C³` at `p`,
 with `Y` its expression in the chart. Let `B e = 0`. Then there is `c > 0` such that, for every
-`w` and every `e'` with `‖e'‖ ≤ 1`, with `α = B w + D³F e e / 2` and `β = DY w + D²Y e e / 2`,
-`c * (‖β‖ ^ 2 + α e' ^ 2) ≤ α β`. This is the inequality read along the parabolas
+`w`, with `α = B w + D³F e e / 2` and `β = DY w + D²Y e e / 2`,
+`c * (‖β‖ ^ 2 + ‖α‖ ^ 2) ≤ α β`. This is the inequality read along the parabolas
 `t ↦ t • e + t ^ 2 • w` of the chart, at order `t ^ 4`. -/
 theorem exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero {p : M}
     (hX : IsGradientLikeAt f X p) (hp : p ∈ criticalPoints 𝓘(ℝ, E) f)
@@ -251,14 +261,14 @@ theorem exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero {p : M}
     (hXp : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 3
       (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p) {e : E}
     (he : fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) e = 0) :
-    ∃ c > 0, ∀ w e' : E, ‖e'‖ ≤ 1 →
+    ∃ c > 0, ∀ w : E,
       c * (‖fderiv ℝ (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X)
             (extChartAt 𝓘(ℝ, E) p p) w + (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ
             (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X))
             (extChartAt 𝓘(ℝ, E) p p) e e‖ ^ 2 +
-        (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) w +
+        ‖fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) w +
           (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)))
-            (extChartAt 𝓘(ℝ, E) p p) e e) e' ^ 2) ≤
+            (extChartAt 𝓘(ℝ, E) p p) e e‖ ^ 2) ≤
       (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) w +
           (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)))
             (extChartAt 𝓘(ℝ, E) p p) e e)
@@ -267,33 +277,26 @@ theorem exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero {p : M}
             (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X))
             (extChartAt 𝓘(ℝ, E) p p) e e) := by
   have hX₀ : X p = 0 := hX.eq_zero_iff.2 hp
-  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X p).1 hX
   set φ := extChartAt 𝓘(ℝ, E) p
   set Y : E → E := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X
-  have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
-    hf.eventually_differentiableAt (by simp)
   obtain ⟨κ, hκ, hev⟩ :=
-    exists_eventually_mul_norm_sq_add_sq_le g hc (Filter.mem_of_superset hU hg) hF (Y := Y) rfl
+    hX.exists_pos_eventually_mul_norm_sq_add_sq_le (hf.eventually_differentiableAt (by simp))
+      (Y := Y) rfl
   have hXd := hXp.mdifferentiableAt (by norm_num)
   have hY : ContDiffAt ℝ 3 Y (φ p) := hXp.contDiffAt_mpullback_extChartAt_symm
   have hY₀ : Y (φ p) = 0 := (VectorField.mpullback_extChartAt_symm_self X p).trans hX₀
   have hD₀ : fderiv ℝ (f ∘ φ.symm) (φ p) = 0 :=
     fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hp
-  -- The linearization of `X` vanishes on `e`, by the inequality at second order.
+  -- The linearization of `X` vanishes on `e`: at second order, it has the kernel of `B`.
   have hYe : fderiv ℝ Y (φ p) e = 0 := by
     set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p
-    have hA : HasFDerivAt Y A (φ p) := hXd.hasFDerivAt_mpullback_extChartAt_symm
-    have hf₂ : ContDiffAt ℝ 2 (f ∘ φ.symm) (φ p) := hf.of_le (by norm_num)
     obtain ⟨c₂, hc₂, h₂⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hX hp
-      hf₂ hXd (A := A) rfl
-    have h := h₂ e
-    rw [he] at h
-    simp at h
+      (hf.of_le (by norm_num)) hXd (A := A) rfl
+    have hA : HasFDerivAt Y A (φ p) := hXd.hasFDerivAt_mpullback_extChartAt_symm
     rw [hA.fderiv]
-    have : ‖A e‖ ^ 2 ≤ 0 := by nlinarith [sq_nonneg ‖A e‖]
-    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (le_antisymm this (sq_nonneg _)))
-  exact ⟨κ, hκ, fun w e' he' ↦
-    (hf.fderiv_right (m := 3) (by norm_num))
+    exact (ContinuousLinearMap.ker_eq_ker_of_mul_norm_sq_add_norm_sq_le hc₂ h₂).le he
+  exact ⟨κ / 4, by positivity, fun w ↦ ContinuousLinearMap.div_four_mul_norm_sq_add_opNorm_sq_le
+    hκ.le fun e' he' ↦ (hf.fderiv_right (m := 3) (by norm_num))
       |>.mul_norm_sq_add_sq_le_of_eventually_of_fderiv_apply_eq_zero
       hD₀ he hY hY₀ hYe (hev e' he') w⟩
 

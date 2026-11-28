@@ -21,7 +21,9 @@ Let `D : E → F →L[ℝ] ℝ` (typically the derivative of a function, read on
 derivatives `B` and `A`. Both sides of an inequality `K * (‖Y u‖ ^ 2 + (D u e) ^ 2) ≤ D u (Y u)`,
 for `u` near `x₀`, vanish to second order at `x₀`; dividing by `s ^ 2` along `u = x₀ + s • v`
 and letting `s → 0` gives `K * (‖A v‖ ^ 2 + (B v e) ^ 2) ≤ B v (A v)`
-(`HasFDerivAt.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually`).
+(`HasFDerivAt.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually`). Both this and the fourth
+order below pass to the limit along a rescaled curve in the same way
+(`Filter.Tendsto.mul_norm_sq_add_sq_apply_le_apply_of_tendsto_smul`).
 
 If moreover `D` and `Y` are `C³` at `x₀` and a vector `e₀` lies in the kernels of `B` and `A`, both
 sides vanish to fourth order along the parabola `u = x₀ + s • e₀ + s ^ 2 • w`: there
@@ -45,6 +47,25 @@ open scoped Topology
 variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
   [NormedSpace ℝ F]
 
+/-- **An inequality passes to rescaled limits.** Let `γ` tend to `x₀` along a nontrivial
+filter `l`, and let `r t • D (γ t)` and `r t • Y (γ t)` tend to `α` and `β` along `l`. If
+`K * (‖Y u‖ ^ 2 + D u e ^ 2) ≤ D u (Y u)` for every `u` near `x₀`, then
+`K * (‖β‖ ^ 2 + α e ^ 2) ≤ α β`. -/
+theorem Filter.Tendsto.mul_norm_sq_add_sq_apply_le_apply_of_tendsto_smul {ι P : Type*}
+    [TopologicalSpace P] {l : Filter ι} [l.NeBot] {γ : ι → P} {x₀ : P} (hγ : Tendsto γ l (𝓝 x₀))
+    {r : ι → ℝ} {D : P → F →L[ℝ] ℝ} {Y : P → F} {α : F →L[ℝ] ℝ} {β : F}
+    (hD : Tendsto (fun t ↦ r t • D (γ t)) l (𝓝 α)) (hY : Tendsto (fun t ↦ r t • Y (γ t)) l (𝓝 β))
+    {K : ℝ} {e : F} (h : ∀ᶠ u in 𝓝 x₀, K * (‖Y u‖ ^ 2 + D u e ^ 2) ≤ D u (Y u)) :
+    K * (‖β‖ ^ 2 + α e ^ 2) ≤ α β := by
+  have hlim₁ := ((hY.norm.pow 2).add
+    ((((ContinuousLinearMap.apply ℝ ℝ e).continuous.tendsto _).comp hD).pow 2)).const_mul K
+  have hlim₂ := (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hD.prodMk_nhds hY)
+  refine le_of_tendsto_of_tendsto hlim₁ hlim₂ ?_
+  filter_upwards [hγ.eventually h] with t ht
+  simp only [Function.comp_apply, ContinuousLinearMap.apply_apply, smul_apply, smul_eq_mul,
+    map_smul, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs]
+  nlinarith [mul_le_mul_of_nonneg_left ht (sq_nonneg (r t))]
+
 /-- **An inequality between vanishing derivatives, at second order.** Let `D : E → F →L[ℝ] ℝ` and
 `Y : E → F` vanish at `x₀`, with derivatives `B` and `A` there. If
 `K * (‖Y u‖ ^ 2 + D u e ^ 2) ≤ D u (Y u)` for every `u` near `x₀`, then
@@ -61,21 +82,10 @@ theorem HasFDerivAt.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually {D : E
   have hDℓ := (hD.comp_hasDerivAt_of_eq 0 hℓ hℓ₀.symm).tendsto_slope_zero
   have hYℓ := (hY.comp_hasDerivAt_of_eq 0 hℓ hℓ₀.symm).tendsto_slope_zero
   simp only [Function.comp_apply, zero_add, hℓ₀, hD₀, hY₀, sub_zero] at hDℓ hYℓ
-  have hlim₁ : Tendsto (fun t : ℝ ↦
-      K * (‖t⁻¹ • Y (x₀ + t • v)‖ ^ 2 + (t⁻¹ • D (x₀ + t • v)) e ^ 2)) (𝓝[≠] 0)
-      (𝓝 (K * (‖A v‖ ^ 2 + B v e ^ 2))) :=
-    ((hYℓ.norm.pow 2).add
-      ((((ContinuousLinearMap.apply ℝ ℝ e).continuous.tendsto _).comp hDℓ).pow 2)).const_mul K
-  have hlim₂ : Tendsto (fun t : ℝ ↦ (t⁻¹ • D (x₀ + t • v)) (t⁻¹ • Y (x₀ + t • v))) (𝓝[≠] 0)
-      (𝓝 (B v (A v))) :=
-    (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hDℓ.prodMk_nhds hYℓ)
-  refine le_of_tendsto_of_tendsto hlim₁ hlim₂ ?_
   have hℓt : Tendsto (fun s : ℝ ↦ x₀ + s • v) (𝓝[≠] 0) (𝓝 x₀) := by
     have := hℓ.continuousAt.tendsto.mono_left (nhdsWithin_le_nhds (s := {0}ᶜ))
     rwa [hℓ₀] at this
-  filter_upwards [hℓt.eventually h] with t ht
-  simp only [smul_apply, smul_eq_mul, map_smul, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs]
-  nlinarith [mul_le_mul_of_nonneg_left ht (sq_nonneg t⁻¹)]
+  exact hℓt.mul_norm_sq_add_sq_apply_le_apply_of_tendsto_smul hDℓ hYℓ h
 
 
 /-! ### Fourth order, along a kernel direction -/
@@ -143,19 +153,11 @@ theorem ContDiffAt.mul_norm_sq_add_sq_le_of_eventually_of_fderiv_apply_eq_zero
       (fderiv ℝ D x₀ w + (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ D) x₀ e e) e' ^ 2) ≤
       (fderiv ℝ D x₀ w + (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ D) x₀ e e)
         (fderiv ℝ Y x₀ w + (2⁻¹ : ℝ) • fderiv ℝ (fderiv ℝ Y) x₀ e e) := by
-  have hDt := hD.tendsto_inv_sq_smul_add_smul_add_sq_smul hD₀ hDe w
-  have hYt := hY.tendsto_inv_sq_smul_add_smul_add_sq_smul hY₀ hYe w
-  set γ : ℝ → E := fun t ↦ x₀ + t • e + t ^ 2 • w
-  have hγ : Tendsto γ (𝓝[≠] 0) (𝓝 x₀) := by
-    have : Continuous γ := by fun_prop
-    simpa [γ] using (this.tendsto 0).mono_left nhdsWithin_le_nhds
-  have hlim₁ := ((hYt.norm.pow 2).add
-    ((((ContinuousLinearMap.apply ℝ ℝ e').continuous.tendsto _).comp hDt).pow 2)).const_mul K
-  have hlim₂ := (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hDt.prodMk_nhds hYt)
-  refine le_of_tendsto_of_tendsto hlim₁ hlim₂ ?_
-  filter_upwards [hγ.eventually h] with t ht
-  simp only [Function.comp_apply, ContinuousLinearMap.apply_apply, smul_apply, smul_eq_mul,
-    map_smul, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs]
-  nlinarith [mul_le_mul_of_nonneg_left ht (sq_nonneg (t ^ 2)⁻¹)]
+  have hγ : Tendsto (fun t : ℝ ↦ x₀ + t • e + t ^ 2 • w) (𝓝[≠] 0) (𝓝 x₀) := by
+    have : Continuous fun t : ℝ ↦ x₀ + t • e + t ^ 2 • w := by fun_prop
+    simpa using (this.tendsto 0).mono_left nhdsWithin_le_nhds
+  exact hγ.mul_norm_sq_add_sq_apply_le_apply_of_tendsto_smul
+    (hD.tendsto_inv_sq_smul_add_smul_add_sq_smul hD₀ hDe w)
+    (hY.tendsto_inv_sq_smul_add_smul_add_sq_smul hY₀ hYe w) h
 
 end

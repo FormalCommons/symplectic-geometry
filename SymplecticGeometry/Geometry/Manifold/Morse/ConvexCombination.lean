@@ -52,11 +52,12 @@ In the birth–death case, read `f` and `g` in the chart at `p` as `F` and `G`, 
 `ker B = ker A = ker B'` (`ContinuousLinearMap.ker_eq_ker_of_mul_norm_sq_add_norm_sq_le`), and
 `ker B` is a line `ℝ ∙ e` with `D³F e e e ≠ 0` (`TauCeti.nonempty_birthDeathChart_iff`). Along the
 parabolas `t ↦ t • e + t ^ 2 • w` the inequality holds at order `t ^ 4`
-(`TauCeti.exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero`), between
-`α = B w + D³F e e / 2` and `β = A w + D²Y e e / 2`, and between `α' = B' w + D³G e e / 2` and the
-same `β`. If `D³G e e e` vanished, the form `D³G e e` would vanish on `ker B'`, so
-`α' = 0` for some `w` (`ContinuousLinearMap.exists_apply_eq_of_ker_eq_span_singleton`); then
-`β = 0` by the inequality for `g`, so `α e = 0` by the inequality for `f`, and
+(`TauCeti.exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero`), as
+`κ * (‖β‖ ^ 2 + ‖α‖ ^ 2) ≤ α β` with `α = B w + D³F e e / 2` and `β = A w + D²Y e e / 2`, and in
+the same way between `α' = B' w + D³G e e / 2` and the same `β`. The rest is linear algebra
+(`ContinuousLinearMap.apply_eq_zero_of_apply_eq_zero_of_mul_norm_sq_add_norm_sq_le`): if
+`D³G e e e` vanished, the form `D³G e e` would vanish on `ker B'`, so `α' = 0` for some `w`;
+then `β = 0` by the inequality for `g`, so `α = 0` by the inequality for `f`, and
 `α e = D³F e e e / 2` since `B` is symmetric and `B e = 0`. The converse of the criterion,
 `TauCeti.nonempty_birthDeathChart_of_ker_eq_span_singleton`, then gives the chart of `g`. The
 terms of `dG` and of `Y` across `e` enter only through `w`, so no chart adapted to `f` is used.
@@ -157,7 +158,7 @@ theorem BirthDeathChart.nonempty_of_isGradientLikeAt {p : M} (φ : BirthDeathCha
     (hX : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 3 (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p) :
     Nonempty (BirthDeathChart E g p) := by
   have hf := φ.eventually_contMDiffAt
-  obtain ⟨e, he, -, hkerF, h3F⟩ := (nonempty_birthDeathChart_iff hf).1 ⟨φ⟩
+  obtain ⟨e, -, -, hkerF, h3F⟩ := (nonempty_birthDeathChart_iff hf).1 ⟨φ⟩
   have hfp := φ.mem_criticalPoints
   -- `p` is a critical point of `g`, since `X` vanishes there.
   have hgp : p ∈ criticalPoints 𝓘(ℝ, E) g := hXg.eq_zero_iff.1 (hXf.eq_zero_iff.2 hfp)
@@ -185,37 +186,12 @@ theorem BirthDeathChart.nonempty_of_isGradientLikeAt {p : M} (φ : BirthDeathCha
     exists_pos_mul_norm_sq_add_sq_le_of_fderiv_fderiv_apply_eq_zero hXg hgp hG hX (hmem _ hkerG)
   refine nonempty_birthDeathChart_of_ker_eq_span_singleton hg
     (fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hgp) hkerG fun h3G ↦ h3F ?_
-  set BF := fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
-  set BG := fderiv ℝ (fderiv ℝ (g ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
-  set TG := fderiv ℝ (fderiv ℝ (fderiv ℝ (g ∘ (extChartAt 𝓘(ℝ, E) p).symm)))
-    (extChartAt 𝓘(ℝ, E) p p) e e
-  -- If the cubic term of `g` vanished along `e`, some `w` would make `BG w + TG / 2` vanish.
-  obtain ⟨w, hw⟩ := ContinuousLinearMap.exists_apply_eq_of_ker_eq_span_singleton
-    (fun v w ↦ hG.isSymmSndFDerivAt (by simp; norm_num) v w) he hkerG
-    (ℓ := -((2⁻¹ : ℝ) • TG)) (by simp [show TG e = 0 from h3G])
-  have hαG : BG w + (2⁻¹ : ℝ) • TG = 0 := by rw [hw, neg_add_cancel]
-  -- Then the field term `β` vanishes, by the inequality for `g` ...
-  have hβ := hκG w 0 (by simp)
-  rw [hαG] at hβ
-  simp only [zero_apply, map_zero, zero_pow two_ne_zero, add_zero] at hβ
-  set Y := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X
-  set β := fderiv ℝ Y (extChartAt 𝓘(ℝ, E) p p) w + (2⁻¹ : ℝ) •
-    fderiv ℝ (fderiv ℝ Y) (extChartAt 𝓘(ℝ, E) p p) e e
-  have hβ₀ : β = 0 := norm_eq_zero.1 <| pow_eq_zero_iff two_ne_zero |>.1 <|
-    le_antisymm (nonpos_of_mul_nonpos_right (by simpa using hβ) hκ') (sq_nonneg _)
-  -- ... and then the inequality for `f`, against `e / ‖e‖`, kills the cubic term of `f`.
-  have he' : ‖‖e‖⁻¹ • e‖ ≤ 1 := by rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel₀
-    (norm_ne_zero_iff.2 he)]
-  have hα := hκF w _ he'
-  simp only [β] at hβ₀
-  rw [hβ₀, norm_zero, map_zero, zero_pow two_ne_zero, zero_add] at hα
-  have hα₀ := pow_eq_zero_iff two_ne_zero |>.1 <| le_antisymm
-    (nonpos_of_mul_nonpos_right hα hκ) (sq_nonneg _)
-  have hBF : BF w e = 0 := by
-    rw [hF.isSymmSndFDerivAt (by simp; norm_num) w e, hmem _ hkerF, zero_apply]
-  simp only [map_smul, add_apply, smul_apply, hBF, smul_eq_mul, zero_add] at hα₀
-  have hne : ‖e‖⁻¹ ≠ 0 := inv_ne_zero (norm_ne_zero_iff.2 he)
-  simpa [hne] using hα₀
+  -- The cubic term of `f` along `e` vanishes with that of `g`.
+  have h := ContinuousLinearMap.apply_eq_zero_of_apply_eq_zero_of_mul_norm_sq_add_norm_sq_le
+    (fun v w ↦ hF.isSymmSndFDerivAt (by simp; norm_num) v w)
+    (fun v w ↦ hG.isSymmSndFDerivAt (by simp; norm_num) v w) (hmem _ hkerF) hkerG.le hκ hκ'
+    hκF hκG (by rw [smul_apply, h3G, smul_zero])
+  rwa [smul_apply, smul_eq_mul, mul_eq_zero, or_iff_right (by norm_num)] at h
 
 /-- **The birth–death type along a segment of functions.** Let `X` be `C³` at `p` and
 gradient-like near `p` (`TauCeti.IsGradientLikeAt`) for `f` and for `g`, let `f` have a

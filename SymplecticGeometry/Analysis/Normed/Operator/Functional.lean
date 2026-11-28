@@ -27,6 +27,8 @@ convex combination of two functionals or of two vectors that satisfy it and adds
 
 * `ContinuousLinearMap.mul_norm_le_opNorm_of_mul_le_apply`: `c ‖v‖ ≤ ‖ℓ‖`.
 * `ContinuousLinearMap.mul_opNorm_le_norm_of_mul_le_apply`: `c ‖ℓ‖ ≤ ‖v‖`.
+* `ContinuousLinearMap.div_four_mul_norm_sq_add_opNorm_sq_le`: a bound
+  `κ * (‖a‖² + (ℓ e)²) ≤ r` for every `e` with `‖e‖ ≤ 1` gives `κ / 4 * (‖a‖² + ‖ℓ‖²) ≤ r`.
 * `ContinuousLinearMap.norm_sub_le_of_mul_le_apply`: if `ℓ` and `ℓ'` both satisfy the inequality
   for the same `v` and `c > 0`, then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`.
 * `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`: for a real linear
@@ -111,6 +113,23 @@ theorem mul_opNorm_le_norm_of_mul_le_apply (h : c * (‖v‖ ^ 2 + ‖ℓ‖ ^ 2
   · rw [← h0, mul_zero]; exact norm_nonneg v
   · refine le_of_mul_le_mul_right ?_ h0
     nlinarith [sq_nonneg ‖v‖]
+
+/-- If `κ * (‖a‖² + (ℓ e)²) ≤ r` for every `e` with `‖e‖ ≤ 1`, where `κ ≥ 0`, then
+`κ / 4 * (‖a‖² + ‖ℓ‖²) ≤ r`. -/
+theorem div_four_mul_norm_sq_add_opNorm_sq_le {V F : Type*} [NormedAddCommGroup V]
+    [NormedSpace ℝ V] [SeminormedAddCommGroup F] {ℓ : V →L[ℝ] ℝ} {a : F} {κ r : ℝ} (hκ : 0 ≤ κ)
+    (h : ∀ e : V, ‖e‖ ≤ 1 → κ * (‖a‖ ^ 2 + ℓ e ^ 2) ≤ r) :
+    κ / 4 * (‖a‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ r := by
+  -- The norm of `ℓ` is attained, up to a factor `2`, at a vector of norm at most `1`.
+  have hℓ : κ * (‖a‖ ^ 2 + ‖ℓ‖ ^ 2 / 4) ≤ r := by
+    rcases (norm_nonneg ℓ).eq_or_lt with h0 | h0
+    · simpa [← h0] using h 0 (by simp)
+    obtain ⟨e, he, hlt⟩ := ℓ.exists_lt_apply_of_lt_opNorm (half_lt_self h0)
+    rw [Real.norm_eq_abs] at hlt
+    refine le_trans ?_ (h e he.le)
+    gcongr
+    nlinarith [norm_nonneg ℓ, abs_nonneg (ℓ e), sq_abs (ℓ e)]
+  nlinarith [sq_nonneg ‖a‖, sq_nonneg ‖ℓ‖, mul_nonneg hκ (sq_nonneg ‖a‖)]
 
 /-- If `ℓ` and `ℓ'` both satisfy `c (‖v‖² + ‖·‖²) ≤ · v` for the same vector `v`, with `c > 0`,
 then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`. -/
