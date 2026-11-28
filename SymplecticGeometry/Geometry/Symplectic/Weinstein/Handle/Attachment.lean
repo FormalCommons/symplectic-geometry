@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
-import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
+import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 
 /-!
