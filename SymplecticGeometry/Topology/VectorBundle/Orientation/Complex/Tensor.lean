@@ -114,9 +114,7 @@ private theorem complexEulerClass_tensorProduct_tautological_left (y₀ : ℙ �
           (ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
           (by simp)) := by
   -- `c ↦ c • y₀.rep`, from `ℂ` to the line `y₀`.
-  let e : ℂ ≃ₗ[ℂ] Tautological ℂ W y₀ :=
-    LinearEquiv.toSpanNonzeroSingleton ℂ W y₀.rep y₀.rep_ne_zero ≪≫ₗ
-      LinearEquiv.ofEq _ _ (submodule_eq y₀).symm
+  let e : ℂ ≃ₗ[ℂ] Tautological ℂ W y₀ := toTautological y₀.rep_ne_zero (submodule_eq y₀)
   let φ : ∀ x : ℙ ℂ V, Tautological ℂ V x ≃L[ℂ]
       ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W) (x, y₀) := fun x ↦
     letI : IsModuleTopology ℂ (Tautological ℂ V x) := isModuleTopologyOfFiniteDimensional
@@ -153,9 +151,7 @@ private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ �
           (ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W))
           (by simp)) := by
   -- `c ↦ c • x₀.rep`, from `ℂ` to the line `x₀`.
-  let e : ℂ ≃ₗ[ℂ] Tautological ℂ V x₀ :=
-    LinearEquiv.toSpanNonzeroSingleton ℂ V x₀.rep x₀.rep_ne_zero ≪≫ₗ
-      LinearEquiv.ofEq _ _ (submodule_eq x₀).symm
+  let e : ℂ ≃ₗ[ℂ] Tautological ℂ V x₀ := toTautological x₀.rep_ne_zero (submodule_eq x₀)
   let φ : ∀ y : ℙ ℂ W, Tautological ℂ W y ≃L[ℂ]
       ExternalTensor ℂ (Tautological ℂ V) (Tautological ℂ W) (x₀, y) := fun y ↦
     letI : IsModuleTopology ℂ (Tautological ℂ W y) := isModuleTopologyOfFiniteDimensional
