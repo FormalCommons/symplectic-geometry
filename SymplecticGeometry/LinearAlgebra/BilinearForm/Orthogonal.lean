@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 public import Mathlib.LinearAlgebra.Projection
 public import Mathlib.LinearAlgebra.QuadraticForm.Basic
+import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
 
 /-!
 # Projections along the orthogonal of a subspace for a bilinear form
@@ -99,16 +100,12 @@ variable {K V : Type*} [Field K] [AddCommGroup V] [Module K V] [FiniteDimensiona
 subspace `W` is complementary to its `B`-orthogonal. This applies to a symmetric form whose
 quadratic form is positive definite, through `QuadraticMap.PosDef.anisotropic`. -/
 theorem isCompl_orthogonal_of_anisotropic {B : LinearMap.BilinForm K V}
-    (hBa : B.toQuadraticMap.Anisotropic) (W : Submodule K V) : IsCompl W (B.orthogonal W) := by
-  have hd : Disjoint W (B.orthogonal W) := Submodule.disjoint_def.2 fun v hv hv' ↦ hBa v <| by
-    rw [LinearMap.BilinMap.toQuadraticMap_apply]
-    exact mem_orthogonal_iff.1 hv' v hv
-  refine ⟨hd, codisjoint_iff.2 (Submodule.eq_top_of_finrank_eq ?_)⟩
-  have h₁ := Submodule.finrank_sup_add_finrank_inf_eq W (B.orthogonal W)
-  have h₂ := finrank_add_finrank_orthogonal' (B := B) W
-  have h₃ := Submodule.finrank_le (W ⊔ B.orthogonal W)
-  rw [hd.eq_bot, finrank_bot] at h₁
-  omega
+    (hBa : B.toQuadraticMap.Anisotropic) (W : Submodule K V) : IsCompl W (B.orthogonal W) :=
+  (Submodule.isCompl_iff_disjoint _ _
+      ((finrank_add_finrank_orthogonal' W).symm ▸ le_self_add)).2 <|
+    Submodule.disjoint_def.2 fun v hv hv' ↦ hBa v <| by
+      rw [LinearMap.BilinMap.toQuadraticMap_apply]
+      exact mem_orthogonal_iff.1 hv' v hv
 
 end Field
 
