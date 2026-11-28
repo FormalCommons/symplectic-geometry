@@ -26,6 +26,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.MorseBott
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Tube
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Topology.Category.TopCat.Pushout
 import SymplecticGeometry.Topology.CWComplex.Gluing
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
@@ -107,6 +108,14 @@ has the smaller operator norm, and `ContinuousLinearMap.surjective_add_of_norm_l
 (`CovariantDerivative.apply_eq_sectionLinearization`), so the linearization is surjective
 (`SymplecticGeometry.IsUniformlyTransverse.eventually_surjective_sectionLinearization`), which is
 the transversality hypothesis of the tube and Morse–Bott results on the zero set.
+
+The inequality between the two parts is also stated by itself, with the `(1,0)`- and
+`(0,1)`-parts written as `TauCeti.complexLinearPartContinuousLinearMap` and
+`TauCeti.complexAntilinearPartContinuousLinearMap` for `J` and multiplication by `i`
+(`SymplecticGeometry.IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt`). This is the
+form of the hypothesis of the zero set criterion
+`SymplecticGeometry.dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`, and it needs no
+differentiability of `s k`.
 
 Together these give the milestone: for `k` large, `M` is homotopy equivalent to a relative CW
 complex over the zero set `Z = {s k = 0}` with no cell of dimension below `dim M / 2`
@@ -216,6 +225,44 @@ theorem IsUniformlyTransverse.eventually_surjective_sectionLinearization
     (J.oneZeroPart_apply_almostComplexStructure _)
     (SmoothAlmostComplexStructure.isZeroOneForm_iff.1
       (SmoothAlmostComplexStructure.isZeroOneForm_zeroOnePart _)) hlt
+
+/-- **Uniformly transverse sequences have dominant complex-linear derivative at their zeros.**
+Let `M` be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α` a connection
+form, and `D` rescaled unitary charts of radius `ρ₀ > 0`. If `s` is asymptotically holomorphic for
+`D` and uniformly transverse with constant `η > 0`, then for `k` large, at every zero `x` of `s k`,
+the complex-antilinear part of `∇ s_k(x)`, for `J` on `T_x M` and multiplication by `i` on the
+fibre, has smaller operator norm than its complex-linear part. Here `∇` is the connection
+`powerConnection α k`, and the operator norms are those of the given metric and of the fibre. -/
+theorem IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt
+    (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M, s k x = 0 →
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
+          (Complex.smulIEquiv (PowerBundle P k x) : PowerBundle P k x →L[ℝ] PowerBundle P k x)
+          (powerConnection α k (s k) x)‖ <
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
+          (Complex.smulIEquiv (PowerBundle P k x) : PowerBundle P k x →L[ℝ] PowerBundle P k x)
+          (powerConnection α k (s k) x)‖ := by
+  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
+  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
+  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hx
+  have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
+    rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
+    · rw [hx, norm_zero] at h
+      exact absurd h hη.not_ge
+    · exact h
+  have hlt : ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
+      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ :=
+    lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
+  rwa [J.zeroOnePart_eq_toContinuousLinearMap_complexAntilinearPart,
+    J.oneZeroPart_eq_toContinuousLinearMap_complexLinearPart,
+    SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
+    ← Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
+    ← complexAntilinearPartContinuousLinearMap_apply, ← complexLinearPartContinuousLinearMap_apply]
+    at hlt
 
 omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
