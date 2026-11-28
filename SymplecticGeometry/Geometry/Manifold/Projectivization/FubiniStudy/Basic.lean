@@ -16,7 +16,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
@@ -173,7 +173,7 @@ theorem fubiniStudyPrimitive_eq :
       (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ)
         (puncturedSpace (Fin (n + 1) → ℂ))).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)) := by
-  refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun z v ↦ ?_
   rw [SmoothBundleForm.smul_apply,
     ContinuousAlternatingMap.smul_apply,
     SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec,

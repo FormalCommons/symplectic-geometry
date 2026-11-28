@@ -285,8 +285,8 @@ theorem exists_isClosed_restricts_of_map_eq [IsManifold IB ∞ B] [FiniteDimensi
         rw [SmoothForm.coe_mpullback_subtype_val_apply]
         congr 1
         -- The fibre coordinate on `W b` is `(fun y ↦ (A.trivAt b y).2) ∘ Subtype.val`.
-        exact (SmoothForm.mpullback_comp_subtypeVal_apply (f := fun y ↦ (A.trivAt b y).2) _ σ
-          _ u).trans (TauCeti.mpullback_apply (fun y ↦ (A.trivAt b y).2) σ.val x u).symm
+        exact DFunLike.congr_fun (SmoothForm.coe_mpullback_comp_subtypeVal_apply
+          (f := fun y ↦ (A.trivAt b y).2) _ σ _) u
     rw [hτ, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply, mextDerivₗ_apply,
       ρ.mextDeriv_glueForms_apply_of_mem_ker (hproj.of_le (by simp)) hW
         (fun b ↦ (η b).isSmoothForm.of_le (by simp)) x hu]
