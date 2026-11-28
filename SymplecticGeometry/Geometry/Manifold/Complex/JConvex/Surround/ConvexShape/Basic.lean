@@ -727,6 +727,12 @@ theorem shapeGraphOverR_eq_neg_shapeGraph_swap (ρ : ℝ → ℝ) (q : ℝ × �
     shapeGraphOverR ρ q = -shapeGraph ρ q.swap := by
   rw [shapeGraphOverR_def, shapeGraph_def, Prod.fst_swap, Prod.snd_swap, neg_sub]
 
+/-- `shapeGraphOverR ρ` is minus `shapeGraph ρ` composed with the exchange of the two
+coordinates. -/
+theorem shapeGraphOverR_eq_neg_comp_swap (ρ : ℝ → ℝ) :
+    shapeGraphOverR ρ = -(shapeGraph ρ ∘ Prod.swap) :=
+  funext (shapeGraphOverR_eq_neg_shapeGraph_swap ρ)
+
 /-- `shapeGraphOverR ρ` is a separated sum of the functions `s ↦ -ρ (√s)` and `t ↦ √t`. -/
 theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
     shapeGraphOverR ρ = (-(ρ ∘ fun s ↦ √s)) ∘ Prod.fst + (fun t ↦ √t) ∘ Prod.snd := by
@@ -737,9 +743,7 @@ theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
 theorem contDiffAt_shapeGraphOverR {ρ : ℝ → ℝ} {n : WithTop ℕ∞} {s t : ℝ}
     (hρ : ContDiffAt ℝ n ρ (√s)) (hs : 0 < s) (ht : 0 < t) :
     ContDiffAt ℝ n (shapeGraphOverR ρ) (s, t) := by
-  have h : shapeGraphOverR ρ = fun q ↦ -shapeGraph ρ q.swap :=
-    funext (shapeGraphOverR_eq_neg_shapeGraph_swap ρ)
-  rw [h]
+  rw [shapeGraphOverR_eq_neg_comp_swap]
   exact ((contDiffAt_shapeGraph hρ ht hs).comp (f := Prod.swap) (s, t)
     (contDiff_snd.prodMk contDiff_fst).contDiffAt).neg
 
@@ -749,14 +753,12 @@ theorem fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ : Diffe
     (hs : 0 < s) (ht : 0 < t) (a b : ℝ) :
     fderiv ℝ (shapeGraphOverR ρ) (s, t) (a, b) =
       -a * deriv ρ (√s) / (2 * √s) + b / (2 * √t) := by
-  have h : shapeGraphOverR ρ = -(shapeGraph ρ ∘ ContinuousLinearEquiv.prodComm ℝ ℝ ℝ) :=
-    funext fun q ↦ by
-      rw [shapeGraphOverR_eq_neg_shapeGraph_swap, Pi.neg_apply, Function.comp_apply,
-        ContinuousLinearEquiv.prodComm_apply]
-  rw [h, fderiv_neg, ContinuousLinearEquiv.comp_right_fderiv, neg_apply,
-    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    ContinuousLinearEquiv.prodComm_apply, ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk,
-    Prod.swap_prod_mk, fderiv_shapeGraph_apply hρ ht hs]
+  -- The swap as the continuous linear equivalence `prodComm`, to differentiate through it.
+  have hswap : (Prod.swap : ℝ × ℝ → ℝ × ℝ) = ContinuousLinearEquiv.prodComm ℝ ℝ ℝ :=
+    funext fun q ↦ (ContinuousLinearEquiv.prodComm_apply ℝ ℝ ℝ q).symm
+  rw [shapeGraphOverR_eq_neg_comp_swap, hswap, fderiv_neg,
+    ContinuousLinearEquiv.comp_right_fderiv]
+  simp [fderiv_shapeGraph_apply hρ ht hs]
   ring
 
 /-- The second derivative of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0` is diagonal:
@@ -821,6 +823,7 @@ theorem eventually_eq_of_shapeGraphOverR_eq_zero {ρ : ℝ → ℝ} {φ : ℝ ×
   filter_upwards [hswap.eventually h] with z hz hz₀
   rw [shapeGraphOverR_eq_neg_shapeGraph_swap, neg_eq_zero] at hz₀
   simpa only [Prod.swap_swap] using hz hz₀
+
 /-- The differential of `shapeGraphOverR ρ ∘ shape` at a point `p` over the point `(R ², ρ R ²)`
 of the curve `r = ρ (R)`, for `R > 0`, `ρ R > 0` and `ρ` differentiable at `R`:
 `v ↦ -ds_p v ρ'(R) / (2 R) + dt_p v / (2 ρ R)`. -/
