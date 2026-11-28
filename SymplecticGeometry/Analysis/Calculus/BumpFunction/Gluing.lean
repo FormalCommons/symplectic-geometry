@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Topology.NhdsSet
-import TauCeti.Analysis.Calculus.BumpFunction.FiniteDimension
+import SymplecticGeometry.Analysis.Calculus.BumpFunction.FiniteDimension
 
 /-!
 # Gluing smooth families of functions along two lines `ℓ = a` and `ℓ = b`
@@ -20,8 +20,9 @@ where `a < b` and `K` is compact. Then one `Cⁿ` family agrees with `T₀` near
 
 The family that is `T₀` for `ℓ ≤ a`, `T` for `a < ℓ ≤ b` and `T₁` for `b < ℓ` agrees near each
 point of the three rectangles with the piece of that rectangle, so it is `Cⁿ` on the open set
-where it agrees locally with one of the pieces. Tau Ceti's
-`ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact` then gives a `Cⁿ` family on `ℝ²` that
+where it agrees locally with one of the pieces. The library's
+`ContDiffOn.exists_contDiff_eventuallyEq_nhdsSet`, which rests on Tau Ceti's
+`ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact`, then gives a `Cⁿ` family on `ℝ²` that
 agrees with it near the union of the rectangles.
 -/
 
@@ -121,15 +122,17 @@ theorem exists_contDiff_eventuallyEq_of_eventuallyEq_Icc {n : ℕ∞} {T₀ T T�
     exacts [(hT₀.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt,
       (hT.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt,
       (hT₁.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt]
-  obtain ⟨ψ₀, hψ₀, -, -, -, hψ₀P⟩ := hPW.exists_contDiff_eventuallyEq_on_isCompact
+  obtain ⟨ψ₀, hψ₀, hψ₀P⟩ := hPW.exists_contDiff_eventuallyEq_nhdsSet
     (((isCompact_Icc.prod hK).union (isCompact_Icc.prod hK)).union (isCompact_Icc.prod hK))
-    hWo hQW
+    (hWo.mem_nhdsSet.2 hQW)
   refine ⟨Function.curry ψ₀, ?_, ?_, ?_, ?_⟩ <;> rw [Function.uncurry_curry]
   · exact hψ₀
-  all_goals rw [EventuallyEq, eventually_nhdsSet_iff_forall]
-  · exact fun x hx ↦ (hψ₀P x (Or.inl (Or.inl hx))).trans (h₀ x hx)
-  · exact fun x hx ↦ (hψ₀P x (Or.inl (Or.inr hx))).trans (hm x hx)
-  · exact fun x hx ↦ (hψ₀P x (Or.inr hx)).trans (h₁ x hx)
+  · exact (hψ₀P.filter_mono (nhdsSet_mono (subset_union_left.trans subset_union_left))).trans
+      (eventually_nhdsSet_iff_forall.2 h₀)
+  · exact (hψ₀P.filter_mono (nhdsSet_mono (subset_union_right.trans subset_union_left))).trans
+      (eventually_nhdsSet_iff_forall.2 hm)
+  · exact (hψ₀P.filter_mono (nhdsSet_mono subset_union_right)).trans
+      (eventually_nhdsSet_iff_forall.2 h₁)
 
 end SymplecticGeometry
 

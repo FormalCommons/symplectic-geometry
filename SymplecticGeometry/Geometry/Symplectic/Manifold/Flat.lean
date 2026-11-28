@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 
 /-!
 # Inverse flat maps of covector fields

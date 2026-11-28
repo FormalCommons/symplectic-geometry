@@ -79,7 +79,7 @@ chart `TauCeti.BirthDeathChart.comp` is built as Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.nonempty_morseChart` builds a Morse chart: by
 composing the old chart with a local diffeomorphism of the model given by the inverse function
 theorem. In the chart, `h ∘ f - h (f x)` is the normal form of `f` times a smooth positive
-function `a` (Hadamard's lemma, `ContDiff.exists_contDiff_sub_eq_smul`), and the local
+function `a` (Hadamard's lemma, `ContDiff.exists_contDiff_sub_eq_sub_smul`), and the local
 diffeomorphism rescales the coordinates of weight `±1` by `√a` and the cubic one by `∛a`
 (`SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow`).
 
@@ -383,7 +383,7 @@ private theorem exists_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 
   set c := f x
   -- `h t = h c + (t - c) G t` with `G` smooth and `G c = h' c > 0`.
   obtain ⟨G, hGs, hhG, hGc⟩ :=
-    ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) (f := h) (by simpa using hh) c
+    ContDiff.exists_contDiff_sub_eq_sub_smul (n := ⊤) (f := h) (by simpa using hh) c
   have hhG' : h = fun t ↦ h c + (t - c) * G t := funext fun t ↦ by
     rw [← smul_eq_mul, ← hhG]
     ring

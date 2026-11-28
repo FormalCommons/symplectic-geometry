@@ -7,16 +7,16 @@ module
 
 public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import TauCeti.LinearAlgebra.ExteriorPower.Basic
-import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 
 /-!
-# Continuity of the determinant transport between different models
+# The determinant transport between different models, on frames and in charts
 
 Tau Ceti's `TauCeti.DetBundle.congrModelEquiv e x` transports the fibre over `x` of the
 determinant line `TauCeti.DetBundle 𝕜 F E` to that of `TauCeti.DetBundle 𝕜 F' E'`, for a family
 of continuous linear equivalences `e x : E x ≃L[𝕜] E' x` between vector bundles whose models `F`
-and `F'` may differ. Tau Ceti states no continuity in the base for it; it has the isomorphism of
-total spaces only for one model (`TauCeti.DetBundle.congrHomeomorph`). This file gives it for two:
+and `F'` may differ. Tau Ceti has the isomorphisms of total spaces for one model
+(`TauCeti.DetBundle.congrHomeomorph`) and for two (`TauCeti.DetBundle.congrModelHomeomorph`).
+This file computes the transport on frames and in charts, and compares the two homeomorphisms:
 
 * `TauCeti.DetBundle.congrModelEquiv_ofFrame`: the transport sends the determinant of a frame
   `φ : F ≃ E x` to the determinant of the frame `e x ∘ φ ∘ L` of `E' x`, where `L : F' ≃ F`
@@ -24,14 +24,10 @@ total spaces only for one model (`TauCeti.DetBundle.congrHomeomorph`). This file
 * `TauCeti.DetBundle.chartCoord_congrModelEquiv`: in charts induced by linear trivializations
   `t` of `E` and `t'` of `E'`, the transport is multiplication by the determinant of the
   endomorphism `t' ∘ e ∘ t⁻¹ ∘ L` of `F'`;
-* `TauCeti.DetBundle.congrModelHomeomorph`: when `e` is continuous on total spaces, the
-  homeomorphism of the total spaces of the determinant lines that is `congrModelEquiv e x` on
-  each fibre, which for one model is `TauCeti.DetBundle.congrHomeomorph`
-  (`TauCeti.DetBundle.congrModelHomeomorph_eq_congrHomeomorph`).
+* `TauCeti.DetBundle.congrModelHomeomorph_eq_congrHomeomorph`: for one model, Tau Ceti's
+  `TauCeti.DetBundle.congrModelHomeomorph` is `TauCeti.DetBundle.congrHomeomorph`.
 
-The proof of continuity follows that of Tau Ceti's `TauCeti.DetBundle.congrHomeomorph`
-(through `FiberBundle.continuous_of_forall_trivialization`), with the chart coordinate of the
-transport computed through the determinant sections of frames of
+The chart coordinate of the transport is computed through the determinant sections of frames of
 `SymplecticGeometry/Topology/VectorBundle/DetBundle/Frame.lean`.
 
 ## References
@@ -105,79 +101,13 @@ theorem chartCoord_congrModelEquiv (e : ∀ x, E x ≃L[𝕜] E' x) (h : finrank
 
 variable [CompleteSpace 𝕜]
 
-/-- Read in the charts at `a` of the determinant lines, the transport `congrModelEquiv e` is
-multiplication by a function of the base point that is continuous at `a`. -/
-private theorem continuousAt_chartCoord_congrModelEquiv (e : ∀ x, E x ≃L[𝕜] E' x)
-    (he : Continuous (fun p : TotalSpace F E ↦ TotalSpace.mk' F' p.proj (e p.proj p.snd)))
-    (a : B) :
-    ∃ s : B → 𝕜, ContinuousAt s a ∧ ∀ x (hx : x ∈ (trivializationAt F E a).baseSet)
-      (hx' : x ∈ (trivializationAt F' E' a).baseSet) (v : DetBundle 𝕜 F E x),
-      chartCoord (trivializationAt F' E' a) hx' (congrModelEquiv (F₁ := F) (F' := F') e x v) =
-        s x * chartCoord (trivializationAt F E a) hx v := by
-  set t := trivializationAt F E a
-  set t' := trivializationAt F' E' a
-  have h : finrank 𝕜 F' = finrank 𝕜 F :=
-    (VectorBundle.modelEquiv F F' a (e a)).toLinearEquiv.finrank_eq.symm
-  set L : F' →L[𝕜] F :=
-    ((finBasis 𝕜 F').equiv (finBasis 𝕜 F) (finCongr h) : F' ≃ₗ[𝕜] F).toContinuousLinearMap
-  -- The coordinate expression of `e` is a continuous family of linear maps `F → F'`.
-  have hT : ContinuousOn (fun x ↦ (t'.continuousLinearMapAt 𝕜 x).comp
-      (((e x : E x →L[𝕜] E' x)).comp (t.symmL 𝕜 x))) (t.baseSet ∩ t'.baseSet) :=
-    continuousOn_continuousLinearMapAt_comp_symmL (g := id)
-      (φ := fun x ↦ (e x : E x →L[𝕜] E' x)) he t' t
-  have hTL : ContinuousAt (fun x ↦ ((t'.continuousLinearMapAt 𝕜 x).comp
-      (((e x : E x →L[𝕜] E' x)).comp (t.symmL 𝕜 x))).comp L) a :=
-    (hT.continuousAt ((t.open_baseSet.inter t'.open_baseSet).mem_nhds
-      ⟨mem_baseSet_trivializationAt F E a, mem_baseSet_trivializationAt F' E' a⟩)).clm_comp
-      continuousAt_const
-  refine ⟨fun x ↦ (((t'.continuousLinearMapAt 𝕜 x).comp
-      (((e x : E x →L[𝕜] E' x)).comp (t.symmL 𝕜 x))).comp L).det,
-    ContinuousLinearMap.continuous_det.continuousAt.comp hTL,
-    fun x hx hx' v ↦ chartCoord_congrModelEquiv e h t t' hx hx' v⟩
-
-/-- **Continuity of the determinant transport between different models.** A fibrewise
-continuous linear isomorphism `e` between vector bundles with finite-dimensional models `F` and
-`F'`, continuous as a map of total spaces, induces a homeomorphism of the total spaces of their
-determinant lines, which is `TauCeti.DetBundle.congrModelEquiv e x` on the fibre over `x`. -/
-noncomputable def congrModelHomeomorph (e : ∀ x, E x ≃L[𝕜] E' x)
-    (he : Continuous (fun p : TotalSpace F E ↦ TotalSpace.mk' F' p.proj (e p.proj p.snd))) :
-    TotalSpace 𝕜 (DetBundle 𝕜 F E) ≃ₜ TotalSpace 𝕜 (DetBundle 𝕜 F' E') :=
-  bundleHomeomorph (congrModelEquiv (F₁ := F) (F' := F') e) <| by
-    refine FiberBundle.continuous_of_forall_trivialization _ (fun _ ↦ rfl) fun p ↦ ?_
-    obtain ⟨s, hs, hs'⟩ := continuousAt_chartCoord_congrModelEquiv e he p.proj
-    refine ⟨trivializationAt 𝕜 (DetBundle 𝕜 F E) p.proj,
-      trivializationAt 𝕜 (DetBundle 𝕜 F' E') p.proj, fun x c ↦ s x * c,
-      mem_baseSet_trivializationAt 𝕜 _ p.proj, mem_baseSet_trivializationAt 𝕜 _ p.proj,
-      (hs.comp (FiberBundle.continuous_proj 𝕜 _).continuousAt).mul
-        ((trivializationAt 𝕜 (DetBundle 𝕜 F E) p.proj).continuousOn.continuousAt
-          ((trivializationAt 𝕜 (DetBundle 𝕜 F E) p.proj).open_source.mem_nhds
-            (FiberBundle.mem_trivializationAt_proj_source))).snd, ?_⟩
-    rintro ⟨x, v⟩ hx hx'
-    simp only [trivializationAt_eq, trivialization_baseSet] at hx hx' ⊢
-    rw [trivialization_apply_mk _ hx', trivialization_apply_mk _ hx, hs' x hx hx' v]
-
-@[simp]
-theorem congrModelHomeomorph_apply (e : ∀ x, E x ≃L[𝕜] E' x)
-    (he : Continuous (fun p : TotalSpace F E ↦ TotalSpace.mk' F' p.proj (e p.proj p.snd)))
-    (p : TotalSpace 𝕜 (DetBundle 𝕜 F E)) :
-    congrModelHomeomorph e he p = ⟨p.proj, congrModelEquiv (F₁ := F) (F' := F') e p.proj p.snd⟩ :=
-  bundleHomeomorph_apply _ _ p
-
-@[simp]
-theorem congrModelHomeomorph_symm_apply (e : ∀ x, E x ≃L[𝕜] E' x)
-    (he : Continuous (fun p : TotalSpace F E ↦ TotalSpace.mk' F' p.proj (e p.proj p.snd)))
-    (p : TotalSpace 𝕜 (DetBundle 𝕜 F' E')) :
-    (congrModelHomeomorph e he).symm p =
-      ⟨p.proj, (congrModelEquiv (F₁ := F) (F' := F') e p.proj).symm p.snd⟩ :=
-  bundleHomeomorph_symm_apply _ _ p
-
 section SameModel
 
 variable {E₂ : B → Type*} [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜 (E₂ x)]
   [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace F E₂)]
   [FiberBundle F E₂] [VectorBundle 𝕜 F E₂]
 
-/-- For bundles with the same model, the homeomorphism `congrModelHomeomorph` is Tau Ceti's
+/-- For bundles with the same model, Tau Ceti's homeomorphism `congrModelHomeomorph` is
 `TauCeti.DetBundle.congrHomeomorph`. -/
 @[simp]
 theorem congrModelHomeomorph_eq_congrHomeomorph (e : ∀ x, E x ≃L[𝕜] E₂ x)

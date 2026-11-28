@@ -234,8 +234,9 @@ theorem min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div (
         deriv (smoothedMaxPath δ η M A σ) r ^ 3 / r - 1 / smoothedMaxPath δ η M A σ r := by
   obtain ⟨c, ⟨-, hcη⟩, he⟩ := exists_mem_Icc_smoothedMaxPath_eq (δ := δ) (M := M) (A := A) hη σ
   have hAc : 0 < A r - c := by linarith
-  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hM
-    (hA.sub contDiff_const) hδ hr hM₀ hAc hMd (by rwa [deriv_sub_const]) (by rwa [deriv_sub_const])
+  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hM.contDiffAt
+    (hA.sub contDiff_const).contDiffAt hδ hr hM₀ hAc hMd (by rwa [deriv_sub_const])
+    (by rwa [deriv_sub_const])
   rw [deriv_sub_const, iteratedDeriv_sub_const two_pos] at h
   have hb : 1 / (A r - c) ≤ 1 / (A r - η) := one_div_le_one_div_of_le (by linarith) (by linarith)
   rw [he]
@@ -400,7 +401,7 @@ theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 
     (hG : ∀ i ≤ N, deriv (A i) r ≤ G) (hδG : δ * G ≤ r) (ℓ : ℝ) :
     IsConvexShapeAt (shapeChain δ η a h A N ℓ) r := by
   have hM {j : ℕ} (hj : j ≤ N) : IsConvexShapeAt (smoothedMaxChain δ A j) r :=
-    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ hA i (hi.trans hj))
+    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ (hA i (hi.trans hj)).contDiffAt)
       (fun i hi ↦ hc i (hi.trans hj)) (fun i hi ↦ hG i (hi.trans hj)) hδG
   rcases le_or_gt ℓ a with hℓa | hℓa
   · rw [shapeChain_of_le hh (by linarith)]
@@ -469,7 +470,8 @@ theorem abs_iteratedDeriv_shapeChain_sub_le {C : ℝ} {j : ℕ} (hδ : 0 < δ) (
     simpa only [deriv_sub_const] using abs_deriv_smoothedMax_sub_le hd (hd₁.sub_const c) (φ 1)
   · rw [hloc.iteratedDeriv_eq 2]
     simpa only [deriv_sub_const, iteratedDeriv_sub_const two_pos] using
-      abs_iteratedDeriv_two_smoothedMax_sub_le hAj (hAj₁.sub contDiff_const) hδ.le (hC _) (φ 2)
+      abs_iteratedDeriv_two_smoothedMax_sub_le hAj.contDiffAt (hAj₁.sub contDiff_const).contDiffAt
+        hδ.le (hC _) (φ 2)
 
 end shapeChain
 

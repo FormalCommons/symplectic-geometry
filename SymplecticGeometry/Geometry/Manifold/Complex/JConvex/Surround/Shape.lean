@@ -17,6 +17,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Prod
+import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
@@ -117,7 +118,10 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
   (`SymplecticGeometry.isMorse_modelHandle`), and its Morse index at `0` is `k`
   (`SymplecticGeometry.manifoldMorseIndex_modelHandle`). The last two proofs follow that of Tau
   Ceti's `TauCeti.isMorse_neg_norm_sq_add_norm_sq`, through the change of coordinates
-  `TauCeti.IsNondegenerateCriticalPoint.comp` and `TauCeti.morseIndex_comp`.
+  `TauCeti.IsNondegenerateCriticalPoint.comp` and `TauCeti.morseIndex_comp`. Its differential
+  at `p = (x + i y, w)` is `v ↦ 2 b (∑ⱼ yⱼ Im v₁ⱼ + Re ⟪w, v₂⟫) - 2 a ∑ⱼ xⱼ Re v₁ⱼ`
+  (`SymplecticGeometry.fderiv_modelHandle_apply`), of norm at most `(2 |a| + 4 |b|) ‖p‖`
+  (`SymplecticGeometry.norm_fderiv_modelHandle_le`).
 * `SymplecticGeometry.modelLevel k m`: the model level `φ₀ = 1 - s + 2 t`, which is `1` plus the
   model handle function with `a = 1` and `b = 2` (`SymplecticGeometry.modelLevel_eq`). It is
   strictly plurisubharmonic everywhere
@@ -846,6 +850,75 @@ def modelHandle (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace �
 theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     modelHandle k m a b p = b * (shape p).2 - a * (shape p).1 :=
   (rfl)
+
+open scoped InnerProductSpace in
+/-- The differential of the model handle function `b t - a s` at `p = (x + i y, w)`:
+`v ↦ 2 b (∑ⱼ yⱼ Im v₁ⱼ + Re ⟪w, v₂⟫) - 2 a ∑ⱼ xⱼ Re v₁ⱼ`. -/
+theorem fderiv_modelHandle_apply (a b : ℝ)
+    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (modelHandle k m a b) p v =
+      b * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) -
+        a * (2 * ∑ j, (p.1 j).re * (v.1 j).re) := by
+  have hs : Differentiable ℝ fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (shape q).1 := (contDiff_shape (n := 1)).fst.differentiable one_ne_zero
+  have ht : Differentiable ℝ fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (shape q).2 := (contDiff_shape (n := 1)).snd.differentiable one_ne_zero
+  have he : modelHandle k m a b = fun q ↦ b * (shape q).2 - a * (shape q).1 :=
+    funext (modelHandle_def a b)
+  rw [he, fderiv_fun_sub ((ht p).const_mul b) ((hs p).const_mul a), fderiv_const_mul (ht p),
+    fderiv_const_mul (hs p)]
+  simp only [sub_apply, smul_apply, smul_eq_mul,
+    fderiv_shape_fst_apply, fderiv_shape_snd_apply]
+
+open scoped InnerProductSpace in
+/-- The differential of the model handle function grows linearly:
+`‖d(bt - as)_p‖ ≤ (2 |a| + 4 |b|) ‖p‖`. -/
+theorem norm_fderiv_modelHandle_le (a b : ℝ)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    ‖fderiv ℝ (modelHandle k m a b) p‖ ≤ (2 * |a| + 4 * |b|) * ‖p‖ := by
+  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+  rw [fderiv_modelHandle_apply, Real.norm_eq_abs]
+  set e := complexEuclideanEquivRealProd (Fin k)
+  -- The two coordinate sums are real inner products of the real and imaginary parts.
+  have h₁ : |∑ j, (p.1 j).re * (v.1 j).re| ≤ ‖p.1‖ * ‖v.1‖ := by
+    have hi : ∑ j, (p.1 j).re * (v.1 j).re = ⟪(e p.1).1, (e v.1).1⟫_ℝ := by
+      simp [e, PiLp.inner_apply, mul_comm]
+    rw [hi]
+    exact (abs_real_inner_le_norm _ _).trans
+      (mul_le_mul (norm_complexEuclideanEquivRealProd_fst_le _)
+        (norm_complexEuclideanEquivRealProd_fst_le _) (norm_nonneg _) (norm_nonneg _))
+  have h₂ : |∑ j, (p.1 j).im * (v.1 j).im| ≤ ‖p.1‖ * ‖v.1‖ := by
+    have hi : ∑ j, (p.1 j).im * (v.1 j).im = ⟪(e p.1).2, (e v.1).2⟫_ℝ := by
+      simp [e, PiLp.inner_apply, mul_comm]
+    rw [hi]
+    exact (abs_real_inner_le_norm _ _).trans
+      (mul_le_mul (norm_complexEuclideanEquivRealProd_snd_le _)
+        (norm_complexEuclideanEquivRealProd_snd_le _) (norm_nonneg _) (norm_nonneg _))
+  have h₃ : |(⟪p.2, v.2⟫_ℂ).re| ≤ ‖p.2‖ * ‖v.2‖ :=
+    (Complex.abs_re_le_norm _).trans (norm_inner_le_norm _ _)
+  have hp₁ : ‖p.1‖ ≤ ‖p‖ := norm_fst_le p
+  have hp₂ : ‖p.2‖ ≤ ‖p‖ := norm_snd_le p
+  have hv₁ : ‖v.1‖ ≤ ‖v‖ := norm_fst_le v
+  have hv₂ : ‖v.2‖ ≤ ‖v‖ := norm_snd_le v
+  have hpv₁ : ‖p.1‖ * ‖v.1‖ ≤ ‖p‖ * ‖v‖ :=
+    mul_le_mul hp₁ hv₁ (norm_nonneg _) (norm_nonneg _)
+  have hpv₂ : ‖p.2‖ * ‖v.2‖ ≤ ‖p‖ * ‖v‖ :=
+    mul_le_mul hp₂ hv₂ (norm_nonneg _) (norm_nonneg _)
+  calc |b * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) -
+        a * (2 * ∑ j, (p.1 j).re * (v.1 j).re)|
+      ≤ |b| * (2 * (|∑ j, (p.1 j).im * (v.1 j).im| + |(⟪p.2, v.2⟫_ℂ).re|)) +
+          |a| * (2 * |∑ j, (p.1 j).re * (v.1 j).re|) := by
+        refine (abs_sub _ _).trans (add_le_add ?_ ?_)
+        · rw [abs_mul, abs_mul, abs_two]
+          gcongr
+          exact abs_add_le _ _
+        · rw [abs_mul, abs_mul, abs_two]
+    _ ≤ |b| * (2 * (‖p‖ * ‖v‖ + ‖p‖ * ‖v‖)) + |a| * (2 * (‖p‖ * ‖v‖)) := by
+        gcongr
+        · exact h₂.trans hpv₁
+        · exact h₃.trans hpv₂
+        · exact h₁.trans hpv₁
+    _ = (2 * |a| + 4 * |b|) * ‖p‖ * ‖v‖ := by ring
 
 /-- For `0 < b` and `a < b`, the model handle function `b t - a s` is strictly plurisubharmonic
 at every point of `ℂᵏ × ℂᵐ`. -/
