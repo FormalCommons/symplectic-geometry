@@ -161,6 +161,7 @@ private theorem integral_apply_inv_smul_eventuallyEq_extChartAt (y₀ : M) :
   simp only [Function.comp_apply, (extChartAt I y₀).left_inv hy]
 
 include IG in
+omit [I.Boundaryless] in
 /-- **Smoothness of the equivariant average.** Let a compact Lie group `G` act smoothly on a
 manifold `M` without boundary, `σ` be a continuous representation of `G` on `F`, `μ` a finite
 measure on `G`, and `φ : M → F` be `C^n` on an open set `U`. Then

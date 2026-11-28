@@ -29,8 +29,9 @@ As a consequence, a `2`-form on `M` that reads `k • d(β(‖z‖) dθ)` in suc
 (`SymplecticGeometry.radialAngularForm`) and vanishes outside its image integrates to `2πk`. More
 generally, a form supported in the images of finitely many such discs with pairwise disjoint
 images, reading `k i • d(β(‖z‖) dθ)` in the `i`-th one, integrates to `2π ∑ i, k i`: its pieces in
-the discs, cut out with `Set.indicator`, are smooth (`TauCeti.IsSmoothForm.indicator`), and the
-integral is additive. These are the curvature forms of the connections that the Chern–Weil
+the discs, cut out with `Set.indicator`, are smooth
+(`TauCeti.IsSmoothForm.indicator_of_isClosed`), and the integral is additive.
+These are the curvature forms of the connections that the Chern–Weil
 computation of the first Chern number builds from clutching data.
 
 The change of variables is Tau Ceti's
@@ -214,7 +215,7 @@ theorem integralTopForm_eq_sum_of_mpullback_ofChart_eq {ι : Type*} [Fintype ι]
       K i :=
     tsupport_indicator_subset_of_eqOn (hKc i).isClosed fun x hx ↦ hf0' i x hx.1 hx.2
   have hgs (i : ι) : IsSmoothForm (𝓡 2) 0 (g i) :=
-    IsSmoothForm.indicator (φ i).isOpenEmbedding.isOpen_range (hKc i).isClosed (hKr i)
+    IsSmoothForm.indicator_of_isClosed (φ i).isOpenEmbedding.isOpen_range (hKc i).isClosed (hKr i)
       (fun x _ ↦ hf.contMDiff x) (hf0' i)
   have hsum : f = ∑ i, g i := by
     funext x

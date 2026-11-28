@@ -136,7 +136,7 @@ variable [MeasurableSpace G] [OpensMeasurableSpace G] [CompactSpace G] [T2Space 
 
 section Invariant
 
-variable [I.Boundaryless] [CompleteSpace F] [IsFiniteMeasure μ] [MeasurableMul G]
+variable [CompleteSpace F] [IsFiniteMeasure μ] [MeasurableMul G]
   [μ.IsMulRightInvariant] {k : ℕ}
 
 /-- **Averages are invariant**, for smooth forms. For a right-invariant finite measure `μ` on `G`,

@@ -184,7 +184,7 @@ theorem isLocalDiffeomorph_cover :
     IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) ∞ cover := by
   rw [cover_eq_comp, Diffeomorph.isLocalDiffeomorph_diffeomorph_comp_iff _ le_rfl]
   exact fun t ↦ ((EuclideanSpace.equiv (Fin 2) ℝ).toDiffeomorph.isLocalDiffeomorph t).comp (hg :=
-    AddCircle.isLocalDiffeomorph_coe_pi 1 ∞ _)
+    AddCircle.isLocalDiffeomorph_coe_pi (fun _ ↦ 1) ∞ _)
 
 /-- The covering map is a local homeomorphism. -/
 theorem isLocalHomeomorph_cover : IsLocalHomeomorph cover :=

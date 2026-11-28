@@ -126,6 +126,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   [ChartedSpace H' G] [IsManifold J ∞ G] [MulAction G M] [ContMDiffSMul J I ∞ G M]
 
 include J in
+omit [I.Boundaryless] in
 /-- **A smooth invariant cutoff around a compact set.** For a compact Lie group `G` acting
 smoothly, let `K` be a compact set and `U` an open set with `g • x ∈ U` for every `g : G` and
 `x ∈ K`. Then there is a smooth `G`-invariant function `ρ` with values in `[0, 1]` that is `1`
