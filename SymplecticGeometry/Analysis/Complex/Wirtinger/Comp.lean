@@ -12,6 +12,7 @@ import Mathlib.Analysis.Normed.Group.Bounded
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.ArrowCongr
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # `∂̄ (g ∘ D)` and its derivative after a holomorphic map
@@ -91,7 +92,7 @@ theorem hasFDerivAt_complexAntilinearPartL_fderiv_comp
         ((compL ℝ V W X).flip (complexAntilinearPartL (fderiv ℝ D z))).comp
           ((fderiv ℝ (fderiv ℝ g) (D z)).comp (fderiv ℝ D z))) z := by
   have hD₁ : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ D w :=
-    (hD.eventually (by simp)).mono fun w hw ↦ hw.differentiableAt (by norm_num)
+    hD.eventually_differentiableAt (by norm_num)
   have hdD : DifferentiableAt ℝ (fderiv ℝ D) z :=
     (hD.fderiv_right (m := 1) (by norm_num)).differentiableAt (by norm_num)
   have hdg : DifferentiableAt ℝ (fderiv ℝ g) (D z) :=
@@ -177,7 +178,7 @@ theorem eventually_norm_conjWirtingerDeriv_comp_le (hg : ContDiffAt ℂ 1 g (D z
     ∀ᶠ w in 𝓝 z, ‖conjWirtingerDeriv (g ∘ D) w‖ ≤ (‖fderiv ℂ g (D z)‖ + 1) * b w := by
   have hDc : ContinuousAt D z := hD.self_of_nhds.continuousAt
   have hgd : ∀ᶠ w in 𝓝 z, DifferentiableAt ℂ g (D w) :=
-    hDc.eventually ((hg.eventually (by simp)).mono fun _ hy ↦ hy.differentiableAt one_ne_zero)
+    hDc.eventually (hg.eventually_differentiableAt le_rfl)
   have hgc : ∀ᶠ w in 𝓝 z, ‖fderiv ℂ g (D w)‖ < ‖fderiv ℂ g (D z)‖ + 1 :=
     ((hg.continuousAt_fderiv one_ne_zero).comp hDc).norm.eventually (gt_mem_nhds (lt_add_one _))
   filter_upwards [hgd, hgc, hD, hb] with w hgw hcw hDw hbw

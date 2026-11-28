@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
+import TauCeti.Analysis.Calculus.ContDiff.Prod
 import TauCeti.Analysis.Real.Sqrt
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
@@ -1028,6 +1029,12 @@ theorem contDiffAt_uncurry_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < 
     filter_upwards [(isOpen_lt continuous_const continuous_fst).mem_nhds hℓ]
       with ⟨a, b⟩ (h : 6 * δ < a)
     simp only [A, T, Function.uncurry_apply_pair, struweSwitchLeaf_of_lt h]
+
+/-- For `0 ≤ L` and `0 < δ`, each leaf `struweSwitchLeaf L δ ℓ` is `Cⁿ` on `(δ, ∞)`. -/
+theorem contDiffOn_struweSwitchLeaf {n : ℕ∞} {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
+    ContDiffOn ℝ n (struweSwitchLeaf L δ ℓ) (Ioi δ) := fun r hr ↦
+  ((contDiffAt_uncurry_struweSwitchLeaf hL hδ (q := (ℓ, r)) hr).uncurry_left.of_le
+    (by exact_mod_cast le_top)).contDiffWithinAt
 
 /-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ≥ 0` are strictly increasing in `ℓ`. Both
 `sqrtAddLeaf L δ ℓ r` and Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ` increase strictly
