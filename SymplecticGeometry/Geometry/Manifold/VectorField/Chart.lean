@@ -15,7 +15,7 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 Let `V` be a vector field on a manifold with a boundaryless model `I`, and let `e` be the
 extended chart at `x`. The coordinate field of `V` in `e` is the pullback
 `VectorField.mpullback 𝓘(𝕜, E) I e.symm V`, a vector field on the model space `E`. This file
-gives its first-order data at the chart image `e x` of the centre:
+relates it to `V` near the centre `x`, and gives its first-order data at the chart image `e x`:
 
 * `VectorField.mpullback_extChartAt_symm_self`: its value at `e x` is `V x`;
 * `ContMDiffAt.contDiffAt_mpullback_extChartAt_symm`: it is `C^n` at `e x` when `V`, as a section
@@ -27,12 +27,14 @@ gives its first-order data at the chart image `e x` of the centre:
 
 So at a zero `x` of a `C¹` field, the coordinate field is a field on `E` vanishing at `e x` whose
 linear part there is the linearization of `V`: the setting of the local theory of a rest point
-in a normed space. The three statements are Tau Ceti's
+in a normed space. The first, second and fourth statements are Tau Ceti's
 `VectorField.mpullbackWithin_extChartAt_symm_self`,
 `ContMDiffWithinAt.contDiffWithinAt_mpullbackWithin_extChartAt_symm` and
 `MDifferentiableAt.differentiableAt_mpullbackWithin_extChartAt_symm` on a boundaryless model,
 where the pullback within the model range is the pullback, together with
-`TauCeti.sectionLinearization_eq_vectorFieldChartDerivative`.
+`TauCeti.sectionLinearization_eq_vectorFieldChartDerivative`. The third is Mathlib's
+`VectorField.eventuallyEq_mpullback_mpullbackWithin_extChartAt` on a boundaryless model, read
+through the invertibility of the chart's derivative, `isInvertible_mfderiv_extChartAt`.
 
 Away from the centre, and over any model with corners,
 `HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp_mpullbackWithin` says that a curve moving
