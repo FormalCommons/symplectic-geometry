@@ -278,11 +278,8 @@ theorem mixedComponent_apply (i : ι) (x : EB) (y : F) (w : TangentSpace IF y) :
     τ.mixedComponent bs i x y ![w] = τ (x, y) ![((0 : EB), w), (bs i, 0)] := by
   rw [mixedComponent_def, Pi.neg_apply, ContinuousAlternatingMap.neg_apply, mpullback_apply_one,
     interior_apply, mfderiv_prodMk_right_apply, neg_eq_iff_eq_neg]
-  have hX : Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
-      (fun x ↦ (bs i : TangentSpace 𝓘(ℝ, EB) x))
-      (0 : (y : F) → TangentSpace IF y) (x, y) = ((bs i, 0) : EB × EF) :=
-    Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
-  rw [hX]
+  refine (congrArg (fun v : EB × EF ↦ τ (x, y) ![v, ((0 : EB), w)])
+    (Manifold.prodVectorField_apply _ _ (x, y))).trans ?_
   exact (τ (x, y)).apply_vecCons_swap _ _
 
 /-- The **mixed curl** of a two-form `τ` on `EB × F`, for the basis `bs` of `EB`: the value at
@@ -839,21 +836,36 @@ theorem isVerticallyNondegenerate_fst_iff :
     rw [hu'] at this
     exact this
 
+/-- The constant vector field `(bs k, 0)` on `EB × F`, as a smooth section of the tangent
+bundle. -/
+def _root_.SymplecticGeometry.baseField (k : ι) :
+    Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
+  ⟨Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) 0,
+    Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
+      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
+
+/-- The underlying field of `baseField bs k` is the product field of the constant field `bs k` of
+`EB` and the zero field of `F`. -/
+theorem _root_.SymplecticGeometry.coe_baseField (k : ι) :
+    ⇑(SymplecticGeometry.baseField (IF := IF) (F := F) bs k) =
+      Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x))
+        (0 : (y : F) → TangentSpace IF y) :=
+  (rfl)
+
+@[simp]
+theorem _root_.SymplecticGeometry.baseField_apply (k : ι) (p : EB × F) :
+    SymplecticGeometry.baseField (IF := IF) bs k p = ((bs k, 0) : EB × EF) :=
+  Manifold.prodVectorField_apply _ _ p
+
 /-- The mixed components `αᵢ(x)` are, for all `x` at once, the slices of one smooth one-form on
 `EB × F`, namely minus the contraction of `τ` with the constant field `(bs i, 0)`. -/
 theorem exists_mpullback_prodMk_eq_mixedComponent (i : ι) :
     ∃ α : SmoothForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 1, ∀ x : EB,
       (SmoothForm.mpullback (Prod.mk x) (contMDiff_const.prodMk contMDiff_id) α).val =
         RoughForm.mixedComponent τ.val bs i x := by
-  -- The constant field `(bs i, 0)` on `EB × F`, as a smooth section.
-  let X : Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
-    ⟨Manifold.prodVectorField (fun x ↦ (bs i : TangentSpace 𝓘(ℝ, EB) x)) 0,
-      Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
-        (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
-  refine ⟨-SmoothForm.interiorProduct X τ, fun x ↦ ?_⟩
+  refine ⟨-SmoothForm.interiorProduct (SymplecticGeometry.baseField bs i) τ, fun x ↦ ?_⟩
   rw [map_neg, NegMemClass.coe_neg, SmoothForm.coe_mpullback, SmoothForm.coe_interiorProduct,
-    RoughForm.mixedComponent_def]
-  simp only [X, ContMDiffSection.coeFn_mk]
+    RoughForm.mixedComponent_def, SymplecticGeometry.coe_baseField]
 
 /-- **The vector fields `Xᵢ` are smooth.** If every fibre component `σ(x)` is nondegenerate,
 the vector field `Xᵢ(x)` on `F` with `ι(Xᵢ(x)) σ(x) = αᵢ(x)` is smooth jointly in `x` and the
@@ -888,19 +900,6 @@ theorem contMDiff_eval₂_mixedVectorField [FiniteDimensional ℝ EF] {x : EB}
     (τ.contMDiff_mixedVectorField_of_isNondegenerate bs hσ j)) y
   rw [Bundle.contMDiffAt_totalSpace_iff] at h
   simpa [Bundle.Trivial.fiberBundle_trivializationAt'] using h.2
-
-/-- The constant vector field `(bs k, 0)` on `EB × F`, as a smooth section of the tangent
-bundle. -/
-def _root_.SymplecticGeometry.baseField (k : ι) :
-    Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
-  ⟨Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) 0,
-    Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
-      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
-
-@[simp]
-theorem _root_.SymplecticGeometry.baseField_apply (k : ι) (p : EB × F) :
-    SymplecticGeometry.baseField (IF := IF) bs k p = ((bs k, 0) : EB × EF) :=
-  Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
 
 open SymplecticGeometry in
 /-- The base components `f_{ij}(x)(y) = τ((bs i, 0), (bs j, 0))` of a smooth two-form `τ` on

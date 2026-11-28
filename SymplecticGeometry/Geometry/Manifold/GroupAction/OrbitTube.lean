@@ -195,6 +195,11 @@ theorem mem_chart_source : x ∈ e.chart.source :=
 theorem chart_apply_self : e.chart x = 0 :=
   e.apply_self
 
+/-- A linearizing chart at `x` has derivative the identity at `x`. -/
+theorem hasMFDerivAt_chart :
+    HasMFDerivAt I' 𝓘(ℝ, E') e.chart x (ContinuousLinearMap.id ℝ E') :=
+  e.hasMFDerivAt
+
 /-- The source of a linearizing chart at `x` is invariant under the stabilizer of `x`. -/
 theorem smul_mem_chart_source {g : G} (hg : g ∈ stabilizer G x) {z : M}
     (hz : z ∈ e.chart.source) : g • z ∈ e.chart.source :=
@@ -254,7 +259,8 @@ theorem hasMFDerivAt_symm :
     (ContinuousLinearMap.ext fun w ↦ ?_)
   -- `de_x` is the identity, and it undoes the derivative of `e.symm` at `0`.
   have h := e.toPartialDiffeomorph.mfderiv_apply_mfderiv_symm_apply (by simp) e.zero_mem_target w
-  rwa [coe_toPartialDiffeomorph_symm, e.symm_zero, e.hasMFDerivAt.mfderiv] at h
+  rwa [coe_toPartialDiffeomorph, coe_toPartialDiffeomorph_symm, e.symm_zero,
+    e.hasMFDerivAt_chart.mfderiv] at h
 
 /-- The inverse of a linearizing chart at `x`, restricted to a subspace `V`, has derivative the
 inclusion of `V` at `0`. -/

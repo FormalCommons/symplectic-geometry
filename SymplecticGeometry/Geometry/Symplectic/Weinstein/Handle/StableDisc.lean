@@ -281,7 +281,7 @@ vanishes there. -/
 theorem flow_apply_of_mvfderiv_eq_zero {x : M} (hx : mvfderiv 𝓘(ℝ, E) f x = 0) (t : ℝ) :
     hW.flow t x = x :=
   (forall_globalFlow_eq_self_iff _ hW.isCompleteVectorField x).2
-    (hW.isGradientLike.eq_zero_iff.2 hx) t
+    (hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.2 hx)) t
 
 /-- A critical point of `f` lies in the stable set of itself under the flow of a Weinstein
 structure, since it is a rest point. -/
@@ -451,7 +451,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
     Nonempty (hW.LocalStableDisc p A) := by
   have hXp := hW.mdifferentiableAt_field p
-  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
+  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 hp.mem_criticalPoints
   have hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) :=
     hW.contMDiff_field.of_le (by simp)
   -- The dichotomy of the linearization, and the confinement radius `r₀`.
@@ -814,7 +814,7 @@ theorem exists_forall_flow_strictAntiOn
   set H := fderiv ℝ (fderiv ℝ (f ∘ e.symm)) (e p)
   set κ := centeredExtChartAt 𝓘(ℝ, E) p with hκ
   have hXp := hW.mdifferentiableAt_field p
-  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
+  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 hp.mem_criticalPoints
   obtain ⟨c, hc, hcB⟩ := hW.isGradientLike.exists_pos_mul_norm_sq_le_fderiv_fderiv hp hXp hA
   have hB := ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt.isSymmSndFDerivAt
     (by simp)
