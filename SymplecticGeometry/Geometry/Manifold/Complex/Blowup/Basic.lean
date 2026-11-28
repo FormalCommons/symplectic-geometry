@@ -963,6 +963,13 @@ theorem range_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) �
     range (divisorRealEmbedding c) = exceptionalDivisor c := by
   rw [coe_divisorRealEmbedding, exceptionalDivisor_def]
 
+/-- The real embedding of the divisor has closed range, the exceptional divisor. -/
+theorem isClosed_range_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    IsClosed (range (divisorRealEmbedding c)) := by
+  rw [range_divisorRealEmbedding]
+  exact isClosed_exceptionalDivisor c
+
 open scoped TauCeti.ComplexManifold in
 /-- At each point of the exceptional divisor, `lift c` is a local diffeomorphism of real
 manifolds. -/
