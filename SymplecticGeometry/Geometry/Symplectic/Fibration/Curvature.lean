@@ -272,13 +272,12 @@ theorem curvatureIn_coordChange (hn : 1 ≤ n) (hproj : ContMDiff IM IB 2 proj)
 variable [IsManifold IF ∞ F]
 
 /-- **One chart per point suffices.** Let `A` be a smooth atlas whose coordinate changes preserve
-`σ`, and `hD` a `C^n` Ehresmann connection, `1 ≤ n`, on the `C^2` map `proj`. Then `hD` has
-Hamiltonian curvature exactly when every point `b` of the base lies in the base set of a chart of
-`A` in which the curvature on the fibre over `b` is Hamiltonian for all smooth `v₁ v₂`: the
-coordinate changes carry the curvature read in one chart to the curvature read in another
-(`curvatureIn_coordChange`), and, preserving `σ`, Hamiltonian vector fields to Hamiltonian vector
-fields. -/
-theorem hasHamiltonianCurvature_iff_forall_exists (hn : 1 ≤ n) (hproj : ContMDiff IM IB 2 proj)
+`σ`, and `hD` a `C^n` Ehresmann connection, `1 ≤ n`. Then `hD` has Hamiltonian curvature exactly
+when every point `b` of the base lies in the base set of a chart of `A` in which the curvature on
+the fibre over `b` is Hamiltonian for all smooth `v₁ v₂`: the coordinate changes carry the
+curvature read in one chart to the curvature read in another (`curvatureIn_coordChange`), and,
+preserving `σ`, Hamiltonian vector fields to Hamiltonian vector fields. -/
+theorem hasHamiltonianCurvature_iff_forall_exists (hn : 1 ≤ n)
     {A : MapFiber.Atlas F proj} (hA : A.IsContMDiff ∞ IB IF IM) {σ : SmoothTwoForm IF F}
     (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) :
     hD.HasHamiltonianCurvature A σ ↔
@@ -295,9 +294,9 @@ theorem hasHamiltonianCurvature_iff_forall_exists (hn : 1 ≤ n) (hproj : ContMD
   have hXY (z : F) : mfderiv IF IF ψ z (hD.curvatureIn IF (A.trivAt b'') b v₁ v₂ z) =
       hD.curvatureIn IF (A.trivAt b') b v₁ v₂ (ψ z) := by
     rw [hψ]
-    exact (hD.curvatureIn_coordChange hn hproj (hA.mdifferentiable_trivAt (by simp) b'')
-      (hA.mdifferentiable_trivAt (by simp) b') hb'' hb' ((hv₁ b).of_le (by simp))
-      ((hv₂ b).of_le (by simp)) z).symm
+    exact (hD.curvatureIn_coordChange hn (hA.contMDiff_proj.of_le (by simp))
+      (hA.mdifferentiable_trivAt (by simp) b'') (hA.mdifferentiable_trivAt (by simp) b') hb'' hb'
+      ((hv₁ b).of_le (by simp)) ((hv₂ b).of_le (by simp)) z).symm
   refine ⟨f ∘ ψ, hf.comp ψ.contMDiff, ?_⟩
   have h := hX.mpullback ψ.contMDiff (fun z ↦ (hf (ψ z)).mdifferentiableAt (by simp)) hXY
   rwa [SmoothForm.mem_diffeomorphStabilizer.1 hψH] at h

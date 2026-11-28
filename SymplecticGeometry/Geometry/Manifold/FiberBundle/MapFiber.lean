@@ -348,10 +348,9 @@ theorem mfderiv_snd_apply_of_mfderiv_proj_eq_zero
       MDifferentiableAt IM IF (fun x ↦ (e₀ x).2) (e.fiberInclusionMap hb v) :=
     mdifferentiableAt_snd.comp _ (he₀.mdifferentiableAt
       (e₀.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb₀)))
-  have hc : (fun x ↦ (e' x).2) ∘ e.fiberInclusionMap hb = e.coordChange e' b := funext fun y ↦ by
-    rw [comp_apply, ← e.coordChange_apply_snd e' (p := e.fiberInclusionMap hb y)
-      ((e.proj_fiberInclusionMap hb y).symm ▸ hb), e.proj_fiberInclusionMap hb]
-    exact congrArg _ (e.leftInverse_snd_fiberInclusionMap hb y)
+  have hc : (fun x ↦ (e' x).2) ∘ e.fiberInclusionMap hb = e.coordChange e' b := by
+    rw [e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb', ← comp_assoc,
+      (e'.leftInverse_snd_fiberInclusionMap hb').comp_eq_id, id_comp]
   rw [ContinuousLinearMap.coe_coe]
   have h₁ := mfderiv_comp_apply v (hsnd he' hb') hι w
   have h₂ := mfderiv_comp_apply v (hsnd he hb) hι w
