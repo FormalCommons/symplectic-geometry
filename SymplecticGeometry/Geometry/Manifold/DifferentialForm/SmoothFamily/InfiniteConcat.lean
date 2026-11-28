@@ -12,22 +12,22 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Exhaustion
 /-!
 # Infinite concatenation of smooth families of forms
 
-Let `H n : N × [0, 1] → SmoothForm I M F k`, `n : ℕ`, be smooth families of forms over
-`N × [0, 1]`, each starting where the previous one ends, `H (n + 1) (l, 0) = H n (l, 1)`, and let
+Let `Φ n : N × [0, 1] → SmoothForm I M F k`, `n : ℕ`, be smooth families of forms over
+`N × [0, 1]`, each starting where the previous one ends, `Φ (n + 1) (l, 0) = Φ n (l, 1)`, and let
 `V n` be open sets covering `M` such that the later families no longer move on `V n`:
-`H m (l, t) = H n (l, 1)` on `V n` for `m > n`. Run `H n` on the times `[1 - 2⁻ⁿ, 1 - 2⁻ⁿ⁻¹]`
-and end at a form `E l` equal on each `V n` to `H n (l, 1)`; this is
+`Φ m (l, t) = Φ n (l, 1)` on `V n` for `m > n`. Run `Φ n` on the times `[1 - 2⁻ⁿ, 1 - 2⁻ⁿ⁻¹]`
+and end at a form `ε l` equal on each `V n` to `Φ n (l, 1)`; this is
 `SymplecticGeometry.infiniteConcat` of `Geometry/Manifold/Instances/Icc.lean`. The result is a
 smooth family over `N × [0, 1]` (`SymplecticGeometry.IsSmoothFamily.infiniteConcat`).
 
-Before time `1` the concatenation is, near each time, one of the families `H n` reparametrized
+Before time `1` the concatenation is, near each time, one of the families `Φ n` reparametrized
 by a smooth time step that is constant near the ends of its stage
 (`SymplecticGeometry.infiniteConcat_of_mem_Ioo`), so it is smooth there. Near time `1` and a
-point of `V n` it is constant in time, equal to `H n (l, 1)`
+point of `V n` it is constant in time, equal to `Φ n (l, 1)`
 (`SymplecticGeometry.infiniteConcat_mem_of_le`). Smoothness of a family is local in the point,
 by `SymplecticGeometry.isSmoothFamily_iff_contMDiff`.
 
-The end forms exist, and have there the exterior derivatives of the `H n (l, 1)`, by
+The end forms exist, and have there the exterior derivatives of the `Φ n (l, 1)`, by
 `TauCeti.SmoothForm.exists_eq_limit` (`DifferentialForm/Exhaustion.lean`); together this is
 `SymplecticGeometry.exists_isSmoothFamily_infiniteConcat`.
 
