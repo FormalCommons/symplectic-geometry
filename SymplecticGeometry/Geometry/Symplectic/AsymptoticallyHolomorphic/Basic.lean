@@ -567,9 +567,7 @@ theorem contDiffAt_dbarReading [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M}
     (hs : ContDiffAt ℝ (n + 1) (D.reading k x s) z) :
     ContDiffAt ℝ n (D.dbarReading k x s) z := by
   have hJ : ContDiffAt ℝ n (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
-    ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds hz)).of_le (by exact_mod_cast le_top)
+    (J.contDiffAt_chartPushforward (D.chart k x) hz).of_le (by exact_mod_cast le_top)
   exact contDiffAt_modelDbarWith hJ hs
 
 /-- The connection read in the chart at `z` depends only on the germ at `z` of the reading. -/
