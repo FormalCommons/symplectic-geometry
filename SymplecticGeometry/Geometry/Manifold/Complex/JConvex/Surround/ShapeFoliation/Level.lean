@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
 
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
+import SymplecticGeometry.Analysis.Complex.LeviForm.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 import TauCeti.Analysis.Calculus.ParametricFDeriv
 import TauCeti.Analysis.Normed.Operator.Prod
@@ -326,8 +327,7 @@ private theorem re_leviForm_shapeLevelFun_comp_shape_pos
       ((mvfderiv_eq_fderiv_apply _ _ _).symm.trans hu₂)) v
     ((mvfderiv_eq_fderiv_apply _ _ _).trans (by rw [hdg]; exact hv₁))
     ((mvfderiv_eq_fderiv_apply _ _ _).trans (by rw [hdg]; exact hv₂)) hv
-  rwa [manifoldLeviForm_eq_leviForm, leviForm_add (hHs.of_le (by simp)) contDiffAt_const,
-    leviForm_const, add_zero] at hpos
+  rwa [manifoldLeviForm_eq_leviForm, Pi.add_def, leviForm_add_const] at hpos
 
 /-- **The level function of a foliation by `i`-convex shapes.** Let `χ : ℝ → ℝ → ℝ` be smooth in
 `(ℓ, r)` on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂`, with each `χ ℓ` an `i`-convex shape at each `r` there and
