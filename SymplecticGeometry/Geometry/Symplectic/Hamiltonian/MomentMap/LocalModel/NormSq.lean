@@ -91,7 +91,7 @@ theorem dualForm_balancedProductInducedMomentMap_mk
     (hBG.toDual_symm_dual_apply hB) g (BalancedProduct.mk K (K.toRightTranslation 1) p)
   rw [BalancedProduct.smul_mk_toRightTranslation, mul_one,
     momentNormSq_toDual_symm_eq_dualForm, momentNormSq_toDual_symm_eq_dualForm,
-    balancedProductInducedMomentMap_mk (g := 1), coe_covectorCLM, map_one,
+    balancedProductInducedMomentMap_mk (g := 1), toLinearMap_covectorCLM, map_one,
     one_apply_eq_self] at h
   exact h
 
