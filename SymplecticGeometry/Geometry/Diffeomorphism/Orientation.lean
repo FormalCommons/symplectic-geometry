@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Congr
+public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
+public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.Orientation.Reindex
 
@@ -23,6 +25,10 @@ shows how it depends on `o` and how it behaves under conjugation.
 * `Diffeomorph.map_orientationPreservingSubgroup_diffCongr`: conjugation by a diffeomorphism
   `e : M → N`, Tau Ceti's `Diffeomorph.diffCongr e`, maps the subgroup for `o` onto the subgroup
   for the orientation `o.map e hn hι` carried to `N` along `e`.
+* `TauCeti.range_orthogonalToDiffSphere_specialOrthogonalGroup_le`: the rotations `SO(n + 1)`,
+  restricted to the unit sphere `Sⁿ` by `TauCeti.orthogonalToDiffSphere n m`, preserve the
+  outward-normal orientation `o.sphereOrientation` of every orientation `o` of `ℝⁿ⁺¹`, by Tau
+  Ceti's `Orientation.isOrientationPreservingAt_unitSphereEquiv`.
 
 ## References
 
@@ -59,11 +65,7 @@ theorem orientationPreservingSubgroup_reindex (hn : n ≠ 0) (o : Orientation I 
     {ι' : Type*} [Fintype ι'] (σ : ι ≃ ι') :
     orientationPreservingSubgroup hn (o.reindex σ) = orientationPreservingSubgroup hn o := by
   ext f
-  simp only [mem_orientationPreservingSubgroup_iff]
-  refine ⟨fun h x ↦ ?_, fun h x ↦ (h x).reindex σ⟩
-  have hx := (h x).reindex σ.symm
-  rwa [← TauCeti.Manifold.Orientation.reindex_trans, Equiv.self_trans_symm,
-    TauCeti.Manifold.Orientation.reindex_refl] at hx
+  simp [mem_orientationPreservingSubgroup_iff]
 
 /-- Conjugation by a diffeomorphism `e : M → N`, `φ ↦ e ∘ φ ∘ e⁻¹`, maps the diffeomorphisms of
 `M` preserving an orientation `o` onto the diffeomorphisms of `N` preserving the orientation
@@ -90,5 +92,34 @@ theorem map_orientationPreservingSubgroup_diffCongr (hn : n ≠ 0) (o : Orientat
       ((hψ _).comp (Orientation.isOrientationPreservingAt_map o e hn hι x))
 
 end Diffeomorph
+
+namespace TauCeti
+
+open Metric Matrix
+
+/-- The rotations `SO(n + 1)` of `ℝⁿ⁺¹` restrict to diffeomorphisms of the unit sphere `Sⁿ` that
+preserve the outward-normal orientation `o.sphereOrientation` at every point, for every
+orientation `o` of `ℝⁿ⁺¹`. -/
+theorem range_orthogonalToDiffSphere_specialOrthogonalGroup_le {n : ℕ}
+    [Fact (finrank ℝ (EuclideanSpace ℝ (Fin (n + 1))) = n + 1)] {m : ℕ∞ω} (hm : m ≠ 0)
+    (o : _root_.Orientation ℝ (EuclideanSpace ℝ (Fin (n + 1))) (Fin (n + 1))) :
+    ((orthogonalToDiffSphere n m).comp
+      (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)).range ≤
+      Diffeomorph.orientationPreservingSubgroup hm o.sphereOrientation := by
+  rintro _ ⟨A, rfl⟩
+  rw [Diffeomorph.mem_orientationPreservingSubgroup_iff]
+  intro u
+  rw [MonoidHom.comp_apply, orthogonalToDiffSphere_apply,
+    LinearIsometryEquiv.unitSphereDiffHom_apply, LinearIsometryEquiv.coe_unitSphereDiffeomorph]
+  refine o.isOrientationPreservingAt_unitSphereEquiv ?_ u
+  set e := UnitaryGroup.toLinearIsometryEquiv
+    (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup A)
+  have he : (e.toLinearEquiv : _ →ₗ[ℝ] _) = e.toLinearIsometry.toLinearMap :=
+    LinearMap.ext fun _ ↦ by simp
+  rw [he, UnitaryGroup.det_toLinearIsometryEquiv, Submonoid.coe_inclusion,
+    (mem_specialOrthogonalGroup_iff.1 A.property).2]
+  exact one_pos
+
+end TauCeti
 
 end

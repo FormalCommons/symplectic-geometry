@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Mobius
 import SymplecticGeometry.Geometry.Diffeomorphism.Orientation
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Diffeomorphisms of the round 2-sphere
@@ -37,7 +38,8 @@ sphere `OnePoint ℂ`. This file carries it, and its rotations, to the unit sphe
 * `SymplecticGeometry.map_rotationSubgroup_diffCongr`: so conjugation maps `rotationSubgroup` onto
   the image of `SO(3)` under `TauCeti.orthogonalToDiffSphere 2 ∞`, since `SU2.toSO3` is surjective
   (`TauCeti.SU2.toSO3_surjective`); and that image lies in `roundDiffPlus`
-  (`SymplecticGeometry.range_specialOrthogonalGroup_le_roundDiffPlus`).
+  (`SymplecticGeometry.range_specialOrthogonalGroup_le_roundDiffPlus`, a case of
+  `TauCeti.range_orthogonalToDiffSphere_specialOrthogonalGroup_le`).
 
 ## References
 
@@ -59,25 +61,24 @@ inverse stereographic projection from the north pole `(0, 0, 1)`, read on the pl
 through `z ↦ (Re z, -Im z, 0)`: Tau Ceti's analytic diffeomorphism
 `OnePoint.diffeomorphSphere`, for these choices, as a `C^∞` diffeomorphism. -/
 noncomputable def roundSphereDiffeomorph :
-    OnePoint ℂ ≃ₘ^∞⟮𝓘(ℝ, ℂ), 𝓡 2⟯ sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 where
-  toEquiv :=
-    (OnePoint.diffeomorphSphere (OnePoint.homeomorphSphere OnePoint.infty)
-      OnePoint.sphereCoordsIsometry).toEquiv
-  contMDiff_toFun := (OnePoint.diffeomorphSphere _ _).contMDiff.of_le le_top
-  contMDiff_invFun := (OnePoint.diffeomorphSphere _ _).symm.contMDiff.of_le le_top
+    OnePoint ℂ ≃ₘ^∞⟮𝓘(ℝ, ℂ), 𝓡 2⟯ sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 :=
+  (OnePoint.diffeomorphSphere (OnePoint.homeomorphSphere OnePoint.infty)
+    OnePoint.sphereCoordsIsometry).ofLE le_top
 
 /-- `roundSphereDiffeomorph` is the homeomorphism `OnePoint.homeomorphSphere` given by the round
 sphere coordinates. -/
 @[simp]
 theorem roundSphereDiffeomorph_apply (x : OnePoint ℂ) :
-    roundSphereDiffeomorph x = OnePoint.homeomorphSphere x :=
-  OnePoint.diffeomorphSphere_sphereCoordsIsometry_apply x
+    roundSphereDiffeomorph x = OnePoint.homeomorphSphere x := by
+  rw [roundSphereDiffeomorph, Diffeomorph.coe_ofLE,
+    OnePoint.diffeomorphSphere_sphereCoordsIsometry_apply]
 
 /-- The inverse of `roundSphereDiffeomorph` is the inverse of `OnePoint.homeomorphSphere`. -/
 @[simp]
 theorem roundSphereDiffeomorph_symm_apply (p : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
-    roundSphereDiffeomorph.symm p = OnePoint.homeomorphSphere.symm p :=
-  OnePoint.diffeomorphSphere_sphereCoordsIsometry_symm_apply p
+    roundSphereDiffeomorph.symm p = OnePoint.homeomorphSphere.symm p := by
+  rw [roundSphereDiffeomorph, Diffeomorph.ofLE_symm, Diffeomorph.coe_ofLE,
+    OnePoint.diffeomorphSphere_sphereCoordsIsometry_symm_apply]
 
 /-- The values of `roundSphereDiffeomorph`, read in `ℝ³`, are the round sphere coordinates
 `OnePoint.sphereCoords`. -/
@@ -164,9 +165,8 @@ theorem map_rotationSubgroup_diffCongr :
 sphere. -/
 theorem range_specialOrthogonalGroup_le_roundDiffPlus :
     ((orthogonalToDiffSphere 2 ∞).comp
-      (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)).range ≤ roundDiffPlus := by
-  rw [← map_rotationSubgroup_diffCongr, ← map_diffPlus_diffCongr]
-  exact Subgroup.map_mono (rotationSubgroup_le_mobiusSubgroup.trans mobiusSubgroup_le_diffPlus)
+      (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)).range ≤ roundDiffPlus :=
+  range_orthogonalToDiffSphere_specialOrthogonalGroup_le _ _
 
 end SymplecticGeometry
 
