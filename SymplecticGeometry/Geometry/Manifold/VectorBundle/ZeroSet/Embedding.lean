@@ -94,14 +94,13 @@ variable (hm : m ≠ 0) (hsm : ContMDiff J (J.prod 𝓘(𝕜, F')) m fun x ↦ T
 
 namespace TauCeti
 
-omit [J.Boundaryless] in
+omit [FiniteDimensional 𝕜 F'] [J.Boundaryless] in
 /-- **Transversality bounds the rank.** If the linearization of a section `s` at a point `x` maps
 `T_x X` onto the fibre `E'_x`, then the rank of `E'` is at most the dimension of the model `V`
 of `X`. -/
 theorem finrank_le_of_surjective_sectionLinearization {x : X}
     (h : Surjective (sectionLinearization (F := F') J _root_.id s x)) :
     finrank 𝕜 F' ≤ finrank 𝕜 V := by
-  have := VectorBundle.finiteDimensional 𝕜 F' E' x
   rw [← VectorBundle.finrank_eq 𝕜 F' E' x]
   exact LinearMap.finrank_le_finrank_of_surjective
     (f := (sectionLinearization (F := F') J _root_.id s x).toLinearMap) h
