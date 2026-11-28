@@ -574,6 +574,20 @@ theorem contDiffOn_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) :
   exact (((contDiffAt_fst.add contDiffAt_const).div_const 64).cutoffLeaf
     (contDiffAt_const.sub (contDiffAt_fst.pow 2)) contDiffAt_snd hrad.ne').contDiffWithinAt
 
+/-- The domain `δ < r`, `|ℓ| < 8 r` of `contDiffOn_uncurry_sqrtSubLeaf` is open. -/
+theorem isOpen_setOf_lt_snd_and_abs_fst_lt (δ : ℝ) :
+    IsOpen {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
+  (isOpen_lt continuous_const continuous_snd).inter
+    (isOpen_lt continuous_fst.abs (continuous_const.mul continuous_snd))
+
+/-- The family `(ℓ, r) ↦ sqrtSubLeaf L δ ℓ r` is smooth at every `(ℓ, r)` with `δ < r` and
+`|ℓ| < 8 r`, for `0 ≤ δ`. -/
+theorem contDiffAt_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {q : ℝ × ℝ}
+    (hq : δ < q.2 ∧ |q.1| < 8 * q.2) :
+    ContDiffAt ℝ ∞ (Function.uncurry (sqrtSubLeaf L δ)) q :=
+  (contDiffOn_uncurry_sqrtSubLeaf L hδ).contDiffAt
+    ((isOpen_setOf_lt_snd_and_abs_fst_lt δ).mem_nhds hq)
+
 /-- Each leaf `sqrtSubLeaf L δ ℓ` is continuous. -/
 theorem continuous_sqrtSubLeaf (L δ ℓ : ℝ) : Continuous (sqrtSubLeaf L δ ℓ) := by
   rw [sqrtSubLeaf_eq_cutoffLeaf]
@@ -581,14 +595,10 @@ theorem continuous_sqrtSubLeaf (L δ ℓ : ℝ) : Continuous (sqrtSubLeaf L δ �
 
 /-- For `0 ≤ δ` and `|ℓ| ≤ 8 δ`, the leaf `sqrtSubLeaf L δ ℓ` is `Cⁿ` on `(δ, ∞)`. -/
 theorem contDiffOn_sqrtSubLeaf {n : ℕ∞} (L : ℝ) (hδ : 0 ≤ δ) {ℓ : ℝ} (hℓ : |ℓ| ≤ 8 * δ) :
-    ContDiffOn ℝ n (sqrtSubLeaf L δ ℓ) (Ioi δ) := fun r hr ↦ by
-  have hU : IsOpen {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
-    (isOpen_lt continuous_const continuous_snd).inter
-      (isOpen_lt continuous_fst.abs (continuous_const.mul continuous_snd))
-  have hq : (ℓ, r) ∈ {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
-    ⟨hr, by dsimp only; linarith [mem_Ioi.1 hr]⟩
-  exact (((contDiffOn_uncurry_sqrtSubLeaf L hδ).contDiffAt (hU.mem_nhds hq)).uncurry_left.of_le
-    (by exact_mod_cast le_top)).contDiffWithinAt
+    ContDiffOn ℝ n (sqrtSubLeaf L δ ℓ) (Ioi δ) := fun r hr ↦
+  ((contDiffAt_uncurry_sqrtSubLeaf L hδ (q := (ℓ, r))
+    ⟨hr, by dsimp only; linarith [mem_Ioi.1 hr]⟩).uncurry_left.of_le
+      (by exact_mod_cast le_top)).contDiffWithinAt
 
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtSubLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
@@ -635,9 +645,7 @@ theorem exists_convexShapeFamily_sqrt_sub :
     fun ℓ hℓ r hr ↦ hconv L le_rfl δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
     fun ℓ _ r hr ↦ ?_, fun ℓ _ ↦ tendsto_deriv_sqrtSubLeaf (by linarith) hδ ℓ,
     fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ strictMonoOn_sqrtSubLeaf L hδ.le hr⟩⟩
-  · refine ((isOpen_lt continuous_const continuous_snd).inter
-      (isOpen_lt (by fun_prop : Continuous fun p : ℝ × ℝ ↦ |p.1|)
-        (by fun_prop : Continuous fun p : ℝ × ℝ ↦ 8 * p.2))).mem_nhdsSet.2 ?_
+  · refine (isOpen_setOf_lt_snd_and_abs_fst_lt δ).mem_nhdsSet.2 ?_
     rintro ⟨ℓ, r⟩ ⟨hℓ, hr⟩
     rw [mem_Ioi] at hr
     exact ⟨hr, (abs_of_nonpos hℓ.2).trans_lt (by linarith [hℓ.1])⟩
@@ -904,12 +912,9 @@ theorem continuousOn_iteratedDeriv_surroundFamily {ℓₜ : ℝ} (hL : 0 < L) (h
   have hbridge {ℓ : ℝ} (hℓ₁ : 7 * δ ≤ ℓ) (hℓ₂ : ℓ ≤ 2 * ℓ₀) :=
     surroundFamily_eqOn_bridgeFamily (L := L) (M := M) (F := F) hδ ⟨hℓ₁, hℓ₂⟩
   -- The leaves `ℓ ≤ 0`.
-  have hopen : IsOpen {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
-    (isOpen_lt continuous_const continuous_snd).inter
-      (isOpen_lt (continuous_abs.comp continuous_fst) (continuous_const.mul continuous_snd))
   have h₁ := piece (a := -8 * δ) (b := 0) (Function.uncurry (sqrtSubLeaf L δ))
     (fun ℓ hℓ r _ ↦ by dsimp only; rw [surroundFamily_of_nonpos hℓ.2, Function.uncurry_apply_pair])
-    fun q hq ↦ (contDiffOn_uncurry_sqrtSubLeaf L hδ.le).contDiffAt <| hopen.mem_nhds
+    fun q hq ↦ contDiffAt_uncurry_sqrtSubLeaf L hδ.le
       ⟨hq.2, abs_lt.2 ⟨by linarith [hq.1.1, mem_Ioi.1 hq.2], by linarith [hq.1.2, mem_Ioi.1 hq.2]⟩⟩
   -- The Struwe switch leaves.
   have h₂ := piece (a := 0) (b := 7 * δ) (Function.uncurry (struweSwitchLeaf L δ))

@@ -13,18 +13,13 @@ public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
 import SymplecticGeometry.Topology.VectorBundle.ZeroSet
-import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
-import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
-import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.Instances.Cylinder
-import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
@@ -42,6 +37,11 @@ with `ℙ¹(ℂ)`, it is `s x / t x` where `t x ≠ 0` and `∞` where `t x = 0`
   vanish, `x ↦ [s x : t x]` is the inclusion of `ℂ` applied to the quotient `s / t`.
 * `OnePoint.equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div`: near a point where `s`
   does not vanish, it is the inverse of the inverted chart `OnePoint.invChart` applied to `t / s`.
+* `OnePoint.vec_trivialization_ne_zero_twistCore`: in a trivialization of `𝒪(k)`, the
+  coordinates of two vectors of a fibre over its base set do not both vanish unless the vectors
+  do.
+* `OnePoint.mk_trivialization_twistCore`: in such a trivialization, `[a : b]` is the point given
+  by the coordinates of `a` and `b`.
 * `OnePoint.contMDiff_equivProjectivization_symm_mk_twistCore`: the map `x ↦ [s x : t x]` is
   `C^n`, for sections written as functions `OnePoint ℂ → ℂ`, as Tau Ceti writes them.
 * `OnePoint.ratioMap`: that map, as an element of `C^n⟮𝓘(ℝ, ℂ), OnePoint ℂ; 𝓘(ℝ, ℂ), OnePoint ℂ⟯`,
@@ -59,11 +59,11 @@ The fibres of `𝒪(k)` are `ℂ`, but not reducibly so, so the division of two 
 does not elaborate; the value lemmas of `ratioMap` therefore take the values as complex numbers
 `a` and `b` with `s x = a` and `t x = b`.
 
-The two local forms give smoothness: the quotients are `C^n` by
-`OnePoint.contMDiffAt_div_twistCore`, and the inclusion of `ℂ` and the inverse of the inverted
-chart are smooth (Tau Ceti's `OnePoint.contMDiff_coe_real` and
-`OnePoint.contMDiff_invChart_symm_real`). `SymplecticGeometry.contMDiff_uniformizingMap` is
-derived from these results.
+Smoothness is read in the coordinates of a trivialization of `𝒪(k)`: over its base set, the
+fibre maps are multiplications by nonzero complex numbers, so `[s : t]` is `[a : b]` for the
+coordinates `a` and `b` of `s` and `t`, which are `C^n` complex functions without common zero
+there; `OnePoint.contMDiff_equivProjectivization_symm_mk` then applies.
+`SymplecticGeometry.contMDiff_uniformizingMap` is derived from these results.
 
 For continuity, the weak Whitney topology is local in the source
 (`ContMDiffMap.continuous_of_forall_continuous_restrict_manifold`), so it suffices to work over
@@ -114,6 +114,40 @@ theorem equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div
   filter_upwards [VectorBundle.eventually_ne_zero ℂ (b := id) hs hx] with y hy
   exact equivProjectivization_symm_mk_eq_invChart_symm (hst y) hy
 
+/-- In a trivialization of `𝒪(k)`, over a point of its base set, the coordinates of two vectors
+of the fibre that do not both vanish do not both vanish. -/
+theorem vec_trivialization_ne_zero_twistCore
+    (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) k).Fiber)) [e.IsLinear ℂ]
+    {y : OnePoint ℂ} (hy : y ∈ e.baseSet) {a b : (twistCore (𝕜 := ℂ) k).Fiber y}
+    (h : (![a, b] : Fin 2 → ℂ) ≠ 0) : (![(e ⟨y, a⟩).2, (e ⟨y, b⟩).2] : Fin 2 → ℂ) ≠ 0 :=
+  fun h' ↦ h <| by
+    have h₀ := congrFun h' 0
+    have h₁ := congrFun h' 1
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Pi.zero_apply] at h₀ h₁
+    ext i
+    fin_cases i
+    -- The entries are `a` and `b`, read in `ℂ`, which the fibres are by definition.
+    exacts [(e.snd_apply_eq_zero_iff ℂ (v := ⟨y, a⟩) hy).mp h₀,
+      (e.snd_apply_eq_zero_iff ℂ (v := ⟨y, b⟩) hy).mp h₁]
+
+/-- In a trivialization of `𝒪(k)`, over a point of its base set, the point `[a : b]` of `ℙ¹(ℂ)`
+does not change when `a` and `b` are replaced by their coordinates. -/
+theorem mk_trivialization_twistCore (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) k).Fiber))
+    [e.IsLinear ℂ] {y : OnePoint ℂ} (hy : y ∈ e.baseSet)
+    {a b : (twistCore (𝕜 := ℂ) k).Fiber y} (h : (![a, b] : Fin 2 → ℂ) ≠ 0)
+    (h' : (![(e ⟨y, a⟩).2, (e ⟨y, b⟩).2] : Fin 2 → ℂ) ≠ 0) :
+    Projectivization.mk ℂ _ h' = Projectivization.mk ℂ _ h := by
+  -- The fibre map of `e` at `y`, read as a `ℂ`-linear map of `ℂ`, which each fibre is.
+  let L : ℂ →L[ℂ] ℂ :=
+    (e.continuousLinearEquivAt ℂ y hy : (twistCore (𝕜 := ℂ) k).Fiber y →L[ℂ] ℂ)
+  have hL (v : ℂ) : L 1 * v = L v := by
+    rw [mul_comm, ← smul_eq_mul, ← L.map_smul, smul_eq_mul, mul_one]
+  refine (Projectivization.mk_eq_mk_iff' ℂ _ _ h' h).mpr ⟨L 1, ?_⟩
+  ext i
+  fin_cases i
+  -- The entries are `L a` and `L b`: a fibre of `𝒪(k)` is `ℂ` by definition.
+  exacts [hL a, hL b]
+
 /-- **The map `[s : t]` is smooth.** For `C^n` sections `s` and `t` of `𝒪(k)`, for the real
 structure, without common zero, the map `x ↦ [s x : t x]` of the Riemann sphere, read through
 `OnePoint.equivProjectivization`, is `C^n`. -/
@@ -126,16 +160,25 @@ theorem contMDiff_equivProjectivization_symm_mk_twistCore
     ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) n
       (fun y ↦ (equivProjectivization ℂ).symm (Projectivization.mk ℂ ![s y, t y] (hst y))) := by
   intro x
-  by_cases hx : t x = 0
-  · -- Near `x`, where `s` does not vanish, the map reads through the inverted chart.
-    have hsx : s x ≠ 0 := fun h ↦ hst x (by simp [h, hx])
-    exact (contMDiff_invChart_symm_real.contMDiffAt.comp x
-      (contMDiffAt_div_twistCore k (ht x) (hs x) hsx)).congr_of_eventuallyEq
-      (equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div hst (hs x).continuousAt hsx)
-  · -- Near `x`, where `t` does not vanish, the map reads through the inclusion of `ℂ`.
-    exact (contMDiff_coe_real.contMDiffAt.comp x
-      (contMDiffAt_div_twistCore k (hs x) (ht x) hx)).congr_of_eventuallyEq
-      (equivProjectivization_symm_mk_eventuallyEq_coe_div hst (ht x).continuousAt hx)
+  -- Work on the base set `U` of the trivialization `e` at `x`, in the coordinates of `e`.
+  let e := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x
+  let U : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, e.open_baseSet⟩
+  let c (u : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) :=
+    e.frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U) subset_rfl u
+  have hc (u : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) (y : U) :
+      c u y = (e ⟨y, u y⟩).2 :=
+    Bundle.Trivialization.frameCoordinates_apply _ _ _ _
+  have hne₀ (y : U) : (![(e ⟨y, s y⟩).2, (e ⟨y, t y⟩).2] : Fin 2 → ℂ) ≠ 0 :=
+    vec_trivialization_ne_zero_twistCore e y.property (hst y)
+  have hne (y : U) : (![c ⟨s, hs⟩ y, c ⟨t, ht⟩ y] : Fin 2 → ℂ) ≠ 0 := by
+    rw [hc, hc]
+    exact hne₀ y
+  refine (contMDiffAt_subtype_iff (U := U) (x := ⟨x, mem_baseSet_trivializationAt ℂ _ x⟩)).1 ?_
+  refine (contMDiff_equivProjectivization_symm_mk (c ⟨s, hs⟩).contMDiff (c ⟨t, ht⟩).contMDiff
+    hne _).congr_of_eventuallyEq (Eventually.of_forall fun y ↦ ?_)
+  have h := mk_trivialization_twistCore e y.property (hst y) (hne₀ y)
+  simp only [hc] at h ⊢
+  exact congrArg _ h.symm
 
 variable (p : {p : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ ×
   Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ // ∀ x, (![p.1 x, p.2 x] : Fin 2 → ℂ) ≠ 0})
@@ -185,53 +228,22 @@ section Continuity
 open TopologicalSpace
 open scoped TauCeti.ManifoldWeakWhitney TauCeti.ComplexManifold
 
-/-- A nonzero pair of complex numbers, as a nonzero vector of `ℂ²`. -/
-private def vecOfPair (q : puncturedSpace (ℂ × ℂ)) : puncturedSpace (Fin (1 + 1) → ℂ) :=
-  ⟨![(q : ℂ × ℂ).1, (q : ℂ × ℂ).2], mem_puncturedSpace.2 fun h ↦
-    mem_puncturedSpace.1 q.property (Prod.ext (by simpa using congrFun h 0)
-      (by simpa using congrFun h 1))⟩
-
-private theorem contMDiff_vecOfPair :
-    ContMDiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, Fin (1 + 1) → ℂ) n vecOfPair := by
-  refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_
-  -- The pair `(a, b)`, read in the model `ℂ × ℂ`, followed by the linear map `(a, b) ↦ ![a, b]`.
-  have hL : ContMDiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, Fin 2 → ℂ) n
-      (fun q : ℂ × ℂ ↦ (ContinuousLinearEquiv.finTwoArrow ℝ ℂ).symm (q.1, q.2)) :=
-    (ContinuousLinearEquiv.finTwoArrow ℝ ℂ).symm.contDiff.contMDiff.comp
-      (contMDiff_fst.prodMk_space contMDiff_snd)
-  convert hL.comp contMDiff_subtypeVal using 1
-  funext q
-  ext i
-  fin_cases i <;> simp [vecOfPair]
+/-- The entries of a nonzero pair of complex numbers form a nonzero vector of `ℂ²`. -/
+private theorem vec_ne_zero_of_mem_puncturedSpace (q : puncturedSpace (ℂ × ℂ)) :
+    (![(q : ℂ × ℂ).1, (q : ℂ × ℂ).2] : Fin 2 → ℂ) ≠ 0 := by
+  simpa [Matrix.cons_eq_zero_iff, Prod.ext_iff] using mem_puncturedSpace.1 q.property
 
 /-- The map `(a, b) ↦ [a : b]` from the nonzero pairs to the Riemann sphere, as a `C^n` map. -/
 private def projMk : C^n⟮𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ), puncturedSpace (ℂ × ℂ); 𝓘(ℝ, ℂ), OnePoint ℂ⟯ :=
-  ⟨fun q ↦ (equivProjectivization ℂ).symm (Projectivization.mkNonzero ℂ 1 (vecOfPair q)),
-    ((((contMDiff_equivProjectivization_symm (𝕜 := ℂ)).restrictScalars' ℝ).of_le le_top).comp
-      (Projectivization.contMDiff_mkNonzero ℂ 1 n)).comp contMDiff_vecOfPair⟩
+  ⟨fun q ↦ (equivProjectivization ℂ).symm
+      (Projectivization.mk ℂ _ (vec_ne_zero_of_mem_puncturedSpace q)),
+    contMDiff_equivProjectivization_symm_mk (contMDiff_fst.comp contMDiff_subtypeVal)
+      (contMDiff_snd.comp contMDiff_subtypeVal) vec_ne_zero_of_mem_puncturedSpace⟩
 
 private theorem projMk_apply (q : puncturedSpace (ℂ × ℂ)) :
-    projMk (n := n) q =
-      (equivProjectivization ℂ).symm (Projectivization.mkNonzero ℂ 1 (vecOfPair q)) :=
+    projMk (n := n) q = (equivProjectivization ℂ).symm
+      (Projectivization.mk ℂ _ (vec_ne_zero_of_mem_puncturedSpace q)) :=
   (rfl)
-
-/-- In a trivialization of `𝒪(k)`, over a point of its base set, the point `[a : b]` of `ℙ¹(ℂ)`
-does not change when `a` and `b` are replaced by their coordinates. -/
-private theorem mk_trivialization_eq (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) k).Fiber))
-    [MemTrivializationAtlas e] {y : OnePoint ℂ} (hy : y ∈ e.baseSet)
-    {a b : (twistCore (𝕜 := ℂ) k).Fiber y} (h : (![a, b] : Fin 2 → ℂ) ≠ 0)
-    (h' : (![(e ⟨y, a⟩).2, (e ⟨y, b⟩).2] : Fin 2 → ℂ) ≠ 0) :
-    Projectivization.mk ℂ _ h' = Projectivization.mk ℂ _ h := by
-  -- The fibre map of `e` at `y`, read as a `ℂ`-linear map of `ℂ`, which each fibre is.
-  let L : ℂ →L[ℂ] ℂ :=
-    (e.continuousLinearEquivAt ℂ y hy : (twistCore (𝕜 := ℂ) k).Fiber y →L[ℂ] ℂ)
-  have hL (v : ℂ) : L 1 * v = L v := by
-    rw [mul_comm, ← smul_eq_mul, ← L.map_smul, smul_eq_mul, mul_one]
-  refine (Projectivization.mk_eq_mk_iff' ℂ _ _ h' h).mpr ⟨L 1, ?_⟩
-  ext i
-  fin_cases i
-  -- The entries are `L a` and `L b`: a fibre of `𝒪(k)` is `ℂ` by definition.
-  exacts [hL a, hL b]
 
 /-- **The map `[s : t]` depends continuously on `(s, t)`.** Give the `C^n` sections of `𝒪(k)`
 the topology `ContMDiffSection.frameTopology e U hU` of a frame system whose domains cover the
@@ -266,25 +278,20 @@ theorem continuous_ratioMap {ι : Type*}
       (y : U' x) : (c p.val.1).prodMk (c p.val.2) y ∈ puncturedSpace (ℂ × ℂ) := by
     refine mem_puncturedSpace.2 fun h ↦ ?_
     obtain ⟨h₁, h₂⟩ := Prod.mk_eq_zero.mp h
-    have hy : (y : OnePoint ℂ) ∈ (e' x).baseSet := y.property
-    refine p.property y ?_
     simp only [c, Bundle.Trivialization.frameCoordinates_apply] at h₁ h₂
+    refine vec_trivialization_ne_zero_twistCore (e' x) y.property (p.property y) ?_
     ext i
-    fin_cases i
-    -- The entries of the vector are `s y` and `t y`, read in `ℂ`, which the fibres are by
-    -- definition.
-    exacts [((e' x).snd_apply_eq_zero_iff ℂ (v := ⟨y, _⟩) hy).mp h₁,
-      ((e' x).snd_apply_eq_zero_iff ℂ (v := ⟨y, _⟩) hy).mp h₂]
+    fin_cases i <;> simp [h₁, h₂]
   convert (ContMDiffMap.continuous_postcomp_manifoldWeakWhitney projMk).comp
     (hpair.codRestrict_manifoldWeakWhitney (puncturedSpace (ℂ × ℂ)) hmem) using 1
   funext p
   ext y
   simp only [Function.comp_apply, ContMDiffMap.restrict_apply, ContMDiffMap.comp_apply,
-    ratioMap_apply, projMk_apply, Projectivization.mkNonzero_apply, vecOfPair,
-    ContMDiffMap.coe_codRestrict_apply, ContMDiffMap.prodMk_apply, c,
+    ratioMap_apply, projMk_apply, ContMDiffMap.coe_codRestrict_apply, ContMDiffMap.prodMk_apply,
+    c,
     Bundle.Trivialization.frameCoordinates_apply]
   congr 1
-  exact (mk_trivialization_eq (e' x) y.property _ _).symm
+  exact (mk_trivialization_twistCore (e' x) y.property _ _).symm
 
 end Continuity
 
