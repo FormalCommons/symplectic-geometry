@@ -10,9 +10,8 @@ public import TauCeti.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
-import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.ScalarOneForm
+import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Curvature.Flat
 
 /-!
 # Unit sections of the powers of a principal circle bundle
@@ -40,14 +39,16 @@ section at a point, both terms are smooth near it
 (`SymplecticGeometry.isSmoothForm_real_inner_I_smul_powerConnection`).
 
 The curvature of `D_k` then gives `dβ = k F_α`, for `F_α` the curvature of `α`. On a section
-with `D_k u = (i β) • u`, the Leibniz rule of `D_k` for real functions, applied to the section
-`i u` with `D_k (i u) = i D_k u` (`powerConnection_const_smul`), and the invariant formula
-`dβ(X, Y) = X β(Y) - Y β(X) - β([X, Y])` (Tau Ceti's `TauCeti.SmoothForm.mextDeriv_apply_one`)
-give `R(X, Y) u = (i dβ(X, Y)) • u`; the terms in `β ∧ β` cancel since `β` is scalar. Comparing
-with `curvatureOperator_powerConnection`, where `u` has no zero, gives `dβ = k F_α` on vector
-fields, and so at each point, since Mathlib's `FiberBundle.extend` extends every tangent vector
-to a vector field differentiable at its base point. Hence a smooth section of `PowerBundle P k`
-with no zero makes `k F_α` exact.
+with `D_k u = (i β) • u`, write `D_k = D' + β ⊗ i`, where `D' = D_k + (-β) ⊗ i` is the
+connection twisted by `-β` along multiplication by `i` (Tau Ceti's
+`CovariantDerivative.smulRightOneForm`). Then `u` is parallel for `D'`, so its curvature vanishes
+on `u` (`CovariantDerivative.curvatureOperator_eq_zero_of_eventually_cov_eq_zero`), and Tau Ceti's
+twisting formula `CovariantDerivative.curvatureOperator_addOneForm_smulRightOneForm`, whose
+hypothesis that `i` commutes with `D_k` is `powerConnection_const_smul`, gives
+`R(X, Y) u = (i dβ(X, Y)) • u`. Comparing with `curvatureOperator_powerConnection`, where `u`
+has no zero, gives `dβ = k F_α` on vector fields, and so at each point, since Mathlib's
+`FiberBundle.extend` extends every tangent vector to a vector field differentiable at its base
+point. Hence a smooth section of `PowerBundle P k` with no zero makes `k F_α` exact.
 
 ## Main results
 
@@ -243,31 +244,38 @@ theorem curvatureOperator_powerConnection_of_eq_smul {u : Π y, PowerBundle P k 
     {X Y : Π y : B, TangentSpace IB y} (hX : MDiffAt (T% X) x) (hY : MDiffAt (T% Y) x) :
     (powerConnection α k).curvatureOperator X Y u x =
       (Complex.I * (TauCeti.mextDeriv β.val x ![X x, Y x] : ℂ)) • u x := by
-  -- Along a field `Z`, `D_k u` is the real function `β(Z)` times the section `i u`.
-  have hD (Z : Π y : B, TangentSpace IB y) :
-      (fun y ↦ powerConnection α k u y (Z y)) = (fun y ↦ β.val y ![Z y]) • (Complex.I • u) := by
+  -- Write `D_k = D' + β ⊗ i`, where `D' = D_k - β ⊗ i` makes `u` parallel.
+  set J : Π y : B, PowerBundle P k y →L[ℝ] PowerBundle P k y :=
+    fun _ ↦ ContinuousLinearMap.lsmul ℝ ℂ Complex.I
+  set D' := (powerConnection α k).addOneForm (CovariantDerivative.smulRightOneForm (-β) J)
+  have hJ (y : B) (w : PowerBundle P k y) : J y w = Complex.I • w := rfl
+  have hD : D'.addOneForm (CovariantDerivative.smulRightOneForm β J) = powerConnection α k := by
+    ext σ y v
+    simp [D']
+  have hD'u : D' u = 0 := by
     funext y
-    rw [hβ, Pi.smul_apply', Pi.smul_apply, mul_comm, mul_smul, Complex.coe_smul]
-    -- The values of `β` lie in `Trivial B ℝ y`, whose scalar action is that of `ℝ`.
-    rfl
-  have hout {Z W : Π y : B, TangentSpace IB y} (hW : MDiffAt (T% W) x) :
-      powerConnection α k (fun y ↦ powerConnection α k u y (W y)) x (Z x) =
-        ((β.val x ![W x] : ℝ) : ℂ) • (Complex.I • (Complex.I * (β.val x ![Z x] : ℝ)) • u x) +
-          mvfderiv IB (fun y ↦ β.val y ![W y]) x (Z x) • (Complex.I • u x) := by
-    rw [hD, (powerConnection α k).isCovariantDerivativeOnUniv.leibniz
-      (hu.const_smul_section Complex.I)
-      (β.mdifferentiableAt_apply_one hW),
-      powerConnection_const_smul α k Complex.I hu]
-    simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply, hβ, Pi.smul_apply,
+    ext v
+    rw [CovariantDerivative.addOneForm_smulRightOneForm_apply, hβ, hJ, mul_comm, mul_smul,
       Complex.coe_smul]
-    -- The values of `β` lie in `Trivial B ℝ x`, whose scalar action is that of `ℝ`.
+    rw [Submodule.coe_neg, Pi.neg_apply, ContinuousAlternatingMap.neg_apply, neg_smul]
+    -- The values of `β` lie in `Trivial B ℝ y`, whose scalar action is that of `ℝ`.
+    exact add_neg_cancel _
+  have hdiff (Z : Π y : B, TangentSpace IB y) :
+      MDifferentiableAt IB (IB.prod 𝓘(ℝ, PowerModel k))
+        (fun y ↦ TotalSpace.mk' (PowerModel k) y (D' u y (Z y))) x := by
+    simp only [hD'u, Pi.zero_apply, zero_apply]
+    exact mdifferentiableAt_zeroSection ℝ (PowerBundle P k)
+  rw [← hD, CovariantDerivative.curvatureOperator_addOneForm_smulRightOneForm D' β J hX hY
+    (hdiff X) (hdiff Y) (by simpa only [hJ, Pi.smul_apply] using hu.const_smul_section Complex.I),
+    CovariantDerivative.curvatureOperator_eq_zero_of_eventually_cov_eq_zero D'
+      (Filter.Eventually.of_forall fun y ↦ congrFun hD'u y), zero_add, hJ, mul_comm,
+    mul_smul, Complex.coe_smul]
+  · -- The values of `β` lie in `Trivial B ℝ x`, whose scalar action is that of `ℝ`.
     rfl
-  rw [CovariantDerivative.curvatureOperator_apply, hout hY, hout hX, hβ,
-    SmoothForm.mextDeriv_apply_one hX hY]
-  match_scalars
-  simp only [Complex.coe_algebraMap]
-  ring
-
+  intro v
+  simp only [D', CovariantDerivative.addOneForm_smulRightOneForm_apply, hJ]
+  rw [← Pi.smul_def, powerConnection_const_smul α k Complex.I hu, smul_apply,
+    smul_add, smul_comm Complex.I ((-β).val x ![v])]
 
 /-- **The curvature in a unit frame.** Let `α` be a connection form with curvature `F_α`, and `u`
 a section of `PowerBundle P k` of class `C²` with no zero, on which `D_k u = (i β) • u` for a
