@@ -103,6 +103,12 @@ theorem of_le {m : ℕ∞ω} (hmn : m ≤ n) : IsEhresmannConnection I J m f D :
   ⟨hD.mdifferentiable, hD.isCompl_ker, hD.surjective_mfderiv,
     hD.isContMDiffDistribution.of_le hmn⟩
 
+/-- The horizontal lift at a point does not depend on the smoothness index at which the
+connection is seen. -/
+theorem horizontalLift_of_le {m : ℕ∞ω} (hmn : m ≤ n) (x : P) :
+    (hD.of_le hmn).horizontalLift x = hD.horizontalLift x :=
+  LinearEquiv.ext fun v ↦ hD.eq_horizontalLift_iff.2 ((hD.of_le hmn).mfderiv_horizontalLift x v)
+
 /-- Given an Ehresmann connection `D` on `f : P → B` and a field `V` on the base `B`, the
 **horizontal lift** of `V` is the field on `P` whose value at `x` is the horizontal lift to `D x`
 of `V (f x)`. -/

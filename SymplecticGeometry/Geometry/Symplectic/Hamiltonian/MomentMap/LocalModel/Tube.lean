@@ -47,7 +47,7 @@ at `[1, 0]` (as the differential `T` given by
 `SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint` does), pulls `σ` back
 to `ω` at every point `[g, 0]` of the zero section. At `[1, 0]` this is the hypothesis on the
 differential; at `[g, 0] = g • [1, 0]` it follows from the invariance of `σ` and of `ω`
-(`SymplecticGeometry.LocalModelData.mpullback_smul_descendedForm`) by
+(`TauCeti.CotangentBundle.mpullback_smul_balancedProductInducedForm`) by
 `TauCeti.mpullback_apply_smul_eq_of_apply_eq`. These are the forms that the equivariant relative
 Moser theorem `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_of_eq_along` compares
 along the zero section.
@@ -72,7 +72,7 @@ along the zero section.
 
 public section
 
-open Function MulAction TauCeti TauCeti.Lie TauCeti.Manifold
+open Function MulAction TauCeti TauCeti.Lie TauCeti.Manifold TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -208,13 +208,18 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
           (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
             (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
               ((0 : A), (0 : V))) v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
       ∀ g : G, mpullback 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀ σ.val
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
             ((0 : A), (0 : V))) =
-        D.descendedForm.val
+        (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+            D.mpullback_smul_mpullback_snd_constSmooth
+            D.isMomentMap_mpullback_snd_constSmooth).val
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
             ((0 : A), (0 : V))) := by
   intro σ hσ Ψ₀ hΨ hΨ1 hdiff hT g
@@ -231,15 +236,18 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
       ((stabilizer G x).toRightTranslation g) ((0 : A), (0 : V)) := by
     rw [BalancedProduct.smul_mk_toRightTranslation, mul_one]
   -- At `[1, 0]` this is the hypothesis on the differential.
-  have h₁ : mpullback _ I' Ψ₀ σ.val y₁ = D.descendedForm.val y₁ := by
+  have h₁ : mpullback _ I' Ψ₀ σ.val y₁ =
+      (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+        D.mpullback_smul_mpullback_snd_constSmooth
+        D.isMomentMap_mpullback_snd_constSmooth).val y₁ := by
     refine ContinuousAlternatingMap.ext_fin_two fun u v ↦ ?_
     rw [mpullback_apply_pair, ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
       ← hT, hΨ1]
   -- At `[g, 0] = g • [1, 0]` it follows by the invariance of `σ` and of the descended form.
-  have hk := ContMDiffSMul.contMDiff_const_smul (I := I) (n := ∞)
-    (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
-    (M := BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V)) g
-  have hω := (SmoothForm.mpullback_eq_iff _).1 (D.mpullback_smul_descendedForm g hk)
+  have hω := (SmoothForm.mpullback_eq_iff _).1 (mpullback_smul_balancedProductInducedForm
+    (hf := D.contMDiff_covectorCLM) (hfK := D.covectorCLM_smul)
+    (hσK := D.mpullback_smul_mpullback_snd_constSmooth)
+    (hμ := D.isMomentMap_mpullback_snd_constSmooth) g)
   have hσg := (SmoothForm.mpullback_eq_iff _).1 (hσ g)
   rw [← hmk]
   have := ContMDiffSMul.contMDiffConstSMul I (n := 1) (G := G)
@@ -277,7 +285,10 @@ theorem eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm :
           (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
             (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
               ((0 : A), (0 : V))) v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
       ∀ (g : G) u v,
@@ -290,7 +301,10 @@ theorem eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm :
             (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
               (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
                 ((0 : A), (0 : V))) v) =
-          SmoothBundleForm.eval₂ D.descendedForm
+          SmoothBundleForm.eval₂
+              (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+                D.mpullback_smul_mpullback_snd_constSmooth
+                D.isMomentMap_mpullback_snd_constSmooth)
             (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
               ((0 : A), (0 : V))) u v := by
   intro σ hσ Ψ₀ hΨ hΨ1 hdiff hT g u v
@@ -330,7 +344,10 @@ theorem mpullback_subtypeVal_apply_mk_zero_eq :
           (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
             (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
               ((0 : A), (0 : V))) v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
       ∀ (U : TopologicalSpace.Opens
@@ -340,7 +357,10 @@ theorem mpullback_subtypeVal_apply_mk_zero_eq :
         (hΨU : ContMDiff 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' ∞
           (Ψ₀ ∘ (Subtype.val : U → _))) (g : G),
         (SmoothForm.mpullback _ hΨU σ).val ⟨_, hU g⟩ =
-          (SmoothForm.mpullback (Subtype.val : U → _) contMDiff_subtypeVal D.descendedForm).val
+          (SmoothForm.mpullback (Subtype.val : U → _) contMDiff_subtypeVal
+              (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+                D.mpullback_smul_mpullback_snd_constSmooth
+                D.isMomentMap_mpullback_snd_constSmooth)).val
             ⟨_, hU g⟩ := by
   intro σ hσ Ψ₀ hΨ hΨ1 hT U hU hΨU g
   let := D.fiberDistribMulAction

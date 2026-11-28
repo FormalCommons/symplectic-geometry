@@ -93,7 +93,9 @@ positive definite there by `ContinuousLinearMap.apply_self_neg_of_mem_stableSubs
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11; Proposition 11.9 (a) for the isotropy of the stable subspace and the index bound
+  Lemma 9.9, for the splitting of the linearization and the sign of the Hessian on its parts;
+  Proposition 11.9 (a), for the isotropy of the stable subspace, and the dimension bound stated
+  after its parts
 -/
 
 public section

@@ -18,7 +18,8 @@ a moment map, then has a dual `μ♯ : M → 𝔤`, characterized by
 `B (μ♯ x) ξ = μ x ξ` for all `ξ`, so `μ♯ x = K (μ x)` for the
 inverse `K = (B.toDual hB).symm` of `ξ ↦ B ξ`. The norm square of `μ` is Tau Ceti's
 `TauCeti.momentNormSq μ K`, `x ↦ μ x (K (μ x)) = B (μ♯ x) (μ♯ x)`
-(`TauCeti.momentNormSq_toDual_symm`). Tau Ceti also proves that, for a moment map `μ`, it is
+(`SymplecticGeometry.momentNormSq_toDual_symm_eq_apply_momentSharp`, from Tau Ceti's
+`TauCeti.momentNormSq_toDual_symm`). Tau Ceti also proves that, for a moment map `μ`, it is
 smooth, and computes its derivative and gradient
 (`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq`,
 `TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`,
@@ -37,6 +38,8 @@ only what it uses. Nothing here uses a symplectic form.
 
 ## Main results
 
+* `SymplecticGeometry.momentNormSq_toDual_symm_eq_apply_momentSharp`: the norm square at `x` is
+  `B (μ♯ x) (μ♯ x)`.
 * `SymplecticGeometry.momentNormSq_toDual_symm_eq_dualForm`: the norm square is the value of
   Tau Ceti's form `LinearMap.BilinForm.dualForm` on `𝔤*` at `(μ x, μ x)`.
 * `SymplecticGeometry.momentNormSq_nonneg`, `SymplecticGeometry.momentNormSq_eq_zero_iff`: for a
@@ -99,12 +102,10 @@ theorem momentSharp_eq_zero_iff : momentSharp B hB μ x = 0 ↔ μ x = 0 := by
 theorem momentSharp_neg : momentSharp B hB (fun x ↦ -μ x) x = -momentSharp B hB μ x := by
   simp [momentSharp_def]
 
-end MomentSharp
-
-section NormSq
-
-variable {M 𝔤 : Type*} [AddCommGroup 𝔤] [Module ℝ 𝔤] [FiniteDimensional ℝ 𝔤]
-  {B : LinearMap.BilinForm ℝ 𝔤} {hB : B.Nondegenerate} {μ : M → Module.Dual ℝ 𝔤} {x : M}
+/-- The norm square of `μ x` for the inverse of `ξ ↦ B ξ` is `B (μ♯ x) (μ♯ x)`. -/
+theorem momentNormSq_toDual_symm_eq_apply_momentSharp :
+    momentNormSq μ (B.toDual hB).symm x = B (momentSharp B hB μ x) (momentSharp B hB μ x) := by
+  rw [momentNormSq_toDual_symm, momentSharp_def]
 
 /-- The norm square of `μ x` for the inverse of `ξ ↦ B ξ` is the value at `μ x` of the form
 `B.dualForm hB` that `B` induces on `𝔤*`. -/
@@ -140,7 +141,7 @@ theorem abs_apply_le_sqrt_momentNormSq_mul_sqrt (hBs : B.IsSymm) (hpos : B.IsNon
   rw [← LinearMap.BilinForm.apply_toDual_symm_apply (hB := hB) (μ x) ξ, momentNormSq_toDual_symm]
   exact B.abs_apply_le_sqrt_mul_sqrt hBs hpos _ _
 
-end NormSq
+end MomentSharp
 
 section Neg
 
