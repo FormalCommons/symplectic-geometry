@@ -14,8 +14,8 @@ public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Linear.Int
+import SymplecticGeometry.Algebra.Homology.Additive
 import SymplecticGeometry.AlgebraicTopology.Singular.RestrictScalars
-import TauCeti.Algebra.Homology.HomologicalComplex.Basic
 
 /-!
 # Cohomology over a commutative ring from integral chains
@@ -270,6 +270,7 @@ theorem map_homologyπ_singularCohomologyIntChainsIso_hom (p : ℕ) :
     Iso.trans_hom, asIso_hom, HomologicalComplex.cyclesMap_comp_assoc]
   rfl
 
+open HomologicalComplex in
 /-- The comparison of cohomologies is the comparison of the homology of the restricted complex
 with the restricted homology, followed by the map induced by the comparison of cochains. -/
 theorem singularCohomologyIntChainsIso_hom (p : ℕ) :
@@ -281,21 +282,7 @@ theorem singularCohomologyIntChainsIso_hom (p : ℕ) :
   refine (cancel_epi ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
     ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).homologyπ p))).1 ?_
   rw [map_homologyπ_singularCohomologyIntChainsIso_hom,
-    Functor.map_homologyπ_comp_mapHomologicalComplexCompHomologyFunctorIso_inv_app_assoc,
-    HomologicalComplex.homologyπ_naturality]
-
-/-- On cocycles, the comparison of cohomologies is the comparison of the underlying cochains. -/
-@[reassoc, elementwise nosimp]
-theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles (p : ℕ) :
-    (((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p).mapCyclesIso
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).inv ≫
-      HomologicalComplex.cyclesMap (X.singularCochainComplexIntChainsIso k).hom p ≫
-        (X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-          (ModuleCat.of ℤ k)).iCycles p =
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).iCycles p) ≫
-        (X.singularCochainComplexIntChainsIso k).hom.f p := by
-  rw [HomologicalComplex.cyclesMap_i, Functor.mapCyclesIso_inv_comp_iCycles_assoc]
+    map_homologyπ_comp_mapHomologicalComplexCompHomologyFunctorIso_inv_app_comp_homologyMap]
 
 variable {X} in
 /-- The comparison of cohomologies commutes with the maps induced by a continuous map. -/
