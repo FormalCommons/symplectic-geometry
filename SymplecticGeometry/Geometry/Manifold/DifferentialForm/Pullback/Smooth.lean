@@ -26,7 +26,9 @@ naturality of the exterior derivative, it gives `dθ` at `x` for a smooth form `
 near `x` with a pullback (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`).
 On a basis `c` of the tangent space at `x`, the pullback takes the value of `φ (f x)` on the
 image of `c` under the differential, when that is given as a linear equivalence
-(`TauCeti.mpullback_apply_basis_map`).
+(`TauCeti.mpullback_apply_basis_map`). On three vectors `![u, v, w]`, the pullback of a three-form
+is the form on their images under the differential (`TauCeti.mpullback_apply_triple`), as Tau
+Ceti's `TauCeti.mpullback_apply_pair` says for two-forms.
 With naturality alone, when `f` maps `s` into `t`, a form that is exact on a neighbourhood of `t`
 pulls back to one that is exact on a neighbourhood of `s`
 (`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
@@ -62,7 +64,11 @@ Pulling a smooth form of positive degree back along a constant map gives the zer
 (`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
 `TauCeti.mpullback_const`). So the slice
 `x ↦ (x, p)` of the pullback of such a form along the projection `M × M' → M'` is zero
-(`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`).
+(`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`). In the same way the slice
+`y ↦ (b, y)` of the pullback of such a form along the projection `M × M' → M` is zero
+(`TauCeti.SmoothForm.mpullback_prodMk_mpullback_fst`), so adding such a pullback to a form on
+`M × M'` leaves its slice `y ↦ (b, y)` unchanged
+(`TauCeti.SmoothForm.mpullback_prodMk_add_mpullback_fst`).
 
 For a map `f : M × M₂ → M'`, the slice `z ↦ f (s, z)` is `f` composed with the inclusion
 `z ↦ (s, z)`, whose differential is `w ↦ (0, w)`
@@ -80,6 +86,8 @@ under translation by `c`, so is the pullback along `u` of every form
 
 * `TauCeti.mpullback_apply_eq_compContinuousLinearMap`: the pullback at `x` is
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
+* `TauCeti.mpullback_apply_triple`: the pullback of a three-form at `x` on `![u, v, w]` is the
+  form at `f x` on the images of `u`, `v`, `w` under the differential.
 * `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
   the differential of the map at `x`.
 * `Filter.EventuallyEq.mpullback_apply_eq_self`, and its smooth case
@@ -112,6 +120,11 @@ under translation by `c`, so is the pullback along `u` of every form
   map is `0`.
 * `TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`: the slice `x ↦ (x, p)` of the
   pullback of a smooth `(k + 1)`-form along `Prod.snd` is `0`.
+* `TauCeti.SmoothForm.mpullback_prodMk_mpullback_fst`: the slice `y ↦ (b, y)` of the pullback
+  of a smooth `(k + 1)`-form along `Prod.fst` is `0`.
+* `TauCeti.SmoothForm.mpullback_prodMk_add_mpullback_fst`: adding the pullback of a smooth
+  `(k + 1)`-form along `Prod.fst` to a smooth form on `M × M'` does not change its slice
+  `y ↦ (b, y)`.
 * `TauCeti.mpullback_comp_prodMk_apply`: the pullback along a slice `z ↦ f (s, z)` of a map on a
   product, as the pullback along `f` on the vectors `(0, m i)`.
 * `TauCeti.mpullback_comp_prodMk_apply_modelSpace`: the same, for a map on a product of normed
@@ -145,6 +158,18 @@ theorem mpullback_apply_eq_compContinuousLinearMap (f : M → M') (φ : RoughFor
     (x : M) :
     mpullback I I' f φ x = (φ (f x)).compContinuousLinearMap (mfderiv I I' f x) :=
   ContinuousAlternatingMap.ext fun v ↦ mpullback_apply f φ x v
+
+/-- The pullback of a three-form at `x`, evaluated on three tangent vectors, is the form at `f x`
+evaluated on their images under the differential of `f` at `x`; Tau Ceti's
+`TauCeti.mpullback_apply_pair` is the same statement for two-forms. -/
+theorem mpullback_apply_triple (f : M → M') (φ : RoughForm I' M' F 3) (x : M)
+    (u v w : TangentSpace I x) :
+    mpullback I I' f φ x ![u, v, w] =
+      φ (f x) ![mfderiv I I' f x u, mfderiv I I' f x v, mfderiv I I' f x w] := by
+  rw [mpullback_apply]
+  congr 1
+  funext i
+  fin_cases i <;> rfl
 
 /-- Two maps with the same value and the same differential at `x` pull a form back to the same
 value at `x`. -/
@@ -340,6 +365,25 @@ theorem mpullback_prodMk_left_mpullback_snd (p : M') (β : SmoothForm I' M' F (k
     mpullback (fun x : M ↦ (x, p)) (contMDiff_id.prodMk contMDiff_const)
       (mpullback Prod.snd contMDiff_snd β : SmoothForm (I.prod I') (M × M') F (k + 1)) = 0 := by
   simp [mpullback_mpullback, Function.comp_def]
+
+/-- The slice `y ↦ (b, y)` of the pullback of a smooth `(k + 1)`-form `γ` on `M` along the
+projection `M × M' → M` is zero, since the projection is constant on the slice. -/
+@[simp]
+theorem mpullback_prodMk_mpullback_fst (b : M) (γ : SmoothForm I M F (k + 1)) :
+    mpullback (Prod.mk b : M' → M × M') (contMDiff_const.prodMk contMDiff_id)
+      (mpullback Prod.fst contMDiff_fst γ : SmoothForm (I.prod I') (M × M') F (k + 1)) = 0 := by
+  simp [mpullback_mpullback, Function.comp_def]
+
+/-- Adding the pullback of a smooth `(k + 1)`-form `γ` on `M` along the projection `M × M' → M`
+to a smooth form `τ` on `M × M'` does not change the slice `y ↦ (b, y)` of `τ`. -/
+theorem mpullback_prodMk_add_mpullback_fst (b : M) (τ : SmoothForm (I.prod I') (M × M') F (k + 1))
+    (γ : SmoothForm I M F (k + 1)) :
+    TauCeti.mpullback (F := F) I' (I.prod I') (Prod.mk b)
+        (τ + mpullback Prod.fst contMDiff_fst γ).val =
+      TauCeti.mpullback I' (I.prod I') (Prod.mk b) τ.val := by
+  have h := congrArg Subtype.val (mpullback_prodMk_mpullback_fst (I' := I') (M' := M') b γ)
+  rw [coe_mpullback, ZeroMemClass.coe_zero] at h
+  rw [Submodule.coe_add, TauCeti.mpullback_add, h, add_zero]
 
 /-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth `k`-form `η` at
 `γ y` on the images under `dγ_y` of fixed vectors `v i` gives a smooth function of `y`. -/

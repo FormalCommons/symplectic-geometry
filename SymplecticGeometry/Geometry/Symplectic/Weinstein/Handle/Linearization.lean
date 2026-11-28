@@ -214,20 +214,12 @@ private theorem exists_eventually_mul_norm_sq_add_sq_le {p : M}
     _ = c * (g.inner y (X y) (X y) + ‖G‖ ^ 2) := by field_simp
     _ ≤ _ := hgy
 
-/-- **The gradient-like inequality at second order.** Let `X` satisfy the gradient-like inequality
-for `f` near a critical point `p` of `f`, in the local form of
-`TauCeti.isGradientLike_of_forall_exists_nhds`: a smooth metric `g` and a constant `c > 0` with
-`c * (g (X y) (X y) + ‖grad f y‖ ^ 2) ≤ df_y (X y)` for `y` near `p`. Let `f` be `C²` in the chart
+/-- **The gradient-like inequality at second order.** Let `X` be gradient-like for `f` near a
+critical point `p` of `f` (`TauCeti.IsGradientLikeAt`). Let `f` be `C²` in the chart
 at `p`, with second derivative `B` there, and let `X` be differentiable at `p`, with linearization
 `A`. Then there is `c' > 0` with `c' * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`. -/
 theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
-    (hX : ∃ U ∈ 𝓝 p,
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f y (X y))
-    (hp : p ∈ criticalPoints 𝓘(ℝ, E) f)
+    (hX : IsGradientLikeAt f X p) (hp : p ∈ criticalPoints 𝓘(ℝ, E) f)
     (hf : ContDiffAt ℝ 2 (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) (extChartAt 𝓘(ℝ, E) p p))
     (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
       (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
@@ -235,14 +227,12 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
     ∃ c > 0, ∀ v : E, c * (‖A v‖ ^ 2 +
       ‖fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v‖ ^ 2) ≤
       fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v (A v) := by
-  obtain ⟨U, hU, g, c, hc, hg⟩ := hX
+  -- At the critical point `p`, the inequality forces `X p = 0`.
+  have hX₀ : X p = 0 := hX.eq_zero_iff.2 hp
+  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X p).1 hX
   set φ := extChartAt 𝓘(ℝ, E) p
   set Y : E → E := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
-  -- At the critical point `p`, the inequality forces `X p = 0`.
-  have hX₀ : X p = 0 :=
-    (eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric hc
-      (hg p (mem_of_mem_nhds hU))).2 hp
   have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
     hf.eventually_differentiableAt (by simp)
   obtain ⟨κ, hκ, hev⟩ :=
@@ -282,8 +272,7 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
   set φ := extChartAt 𝓘(ℝ, E) p
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
   obtain ⟨κ, hκ, hκB⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv
-    ((isGradientLikeAt_def f X p).1 (hX.isGradientLikeAt p))
-    hp.mem_criticalPoints hp'.contDiffAt hXp rfl
+    (hX.isGradientLikeAt p) hp.mem_criticalPoints hp'.contDiffAt hXp rfl
   obtain ⟨L, hL⟩ := hp'.isInvertible
   replace hL : (L : E →L[ℝ] E →L[ℝ] ℝ) = B := hL
   set C := ‖(L.symm : (E →L[ℝ] ℝ) →L[ℝ] E)‖
@@ -446,7 +435,7 @@ theorem IsWeinsteinStructure.two_mul_manifoldMorseIndex_le (hW : IsWeinsteinStru
     {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
     2 * manifoldMorseIndex 𝓘(ℝ, E) f p ≤ finrank ℝ E := by
   have hXp := hW.mdifferentiableAt_field p
-  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
+  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 hp.mem_criticalPoints
   rw [← hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl]
   refine LinearMap.BilinForm.two_mul_finrank_le_finrank_of_le_orthogonal
     (hW.isSymplectic.isNondegenerate.nondegenerate_bilinFormAt p) fun w hw ↦
