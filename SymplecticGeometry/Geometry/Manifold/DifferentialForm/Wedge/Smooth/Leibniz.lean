@@ -64,7 +64,7 @@ theorem mextDeriv_wedgeWith_zero_one_apply (μ : F₁ →L[ℝ] F₂ →L[ℝ] F
       (![v, w] ∘ Fin.cast h : Fin (0 + 1 + 1) → TangentSpace I x) = ![v, w] :=
     fun _ ↦ funext fun i ↦ by fin_cases i <;> rfl
   rw [mextDeriv_wedgeWith μ hf hα, hvw, RoughForm.wedgeWith_apply_one_one, pow_zero, one_smul,
-    RoughForm.wedgeWith_apply', ContinuousAlternatingMap.pairedWedge_apply_zero_left, hvw]
+    RoughForm.wedgeWith_apply_zero_left, hvw]
 
 namespace SmoothForm
 

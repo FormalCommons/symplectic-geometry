@@ -170,19 +170,22 @@ Holonomy around loops that bound discs. About 450 lines.
   `ContMDiffOn 𝓘(ℝ, ℂ) IB ∞ w (Metric.closedBall 0 1)` has
   `w (Circle.exp (2 * π * t)) = γ t` for every `t`. With
   `boundsSmoothDisc_const`, and `BoundsSmoothDisc.exists_isSmoothDisc`: for
-  `x = γ 0`, some `D` has `TauCeti.IsSmoothDisc IB γ' D`, where `γ'` is `γ`
-  as a `Path x x`; take
+  `h : BoundsSmoothDisc IB γ`, some `D` has `TauCeti.IsSmoothDisc IB h.path D`,
+  where `h.path` is `γ` as a `Path (γ 0) (γ 0)`; take
   $D(s,t)=w\big((1-\varphi(s))+\varphi(s)e^{2\pi it}\big)$ for a smooth
   $\varphi\colon\mathbb R\to[0,1]$ with $\varphi(0)=0$ and $\varphi(1)=1$.
-  Each loop $D(s,\cdot)$ again bounds a disc ($z\mapsto w((1-\varphi(s))+\varphi(s)z)$),
-  `BoundsSmoothDisc.of_isSmoothDisc_slice`.
+  Each loop $D(s,\cdot)$ of any smooth disc again bounds a disc
+  ($z\mapsto D(s\,\psi(|z|),\arg z/2\pi)$ with $\psi=0$ near $0$ and
+  $\psi(1)=1$), `BoundsSmoothDisc.of_isSmoothDisc_slice`.
 - `TauCeti.IsEhresmannConnection.HasHamiltonianDiscHolonomy hD A σ`: for
   every `γ` with `BoundsSmoothDisc IB γ` and every chart `e = A.trivAt b`
-  with `γ 0 ∈ e.baseSet`, `hD.parallelTransportInDiffeomorph e e γ 0 1 ∈
-  TauCeti.SmoothForm.hamiltonianGroup σ`. With
+  with `γ 0 ∈ e.baseSet`, some `φ ∈ TauCeti.SmoothForm.hamiltonianGroup σ`
+  has `⇑φ = hD.parallelTransportIn e e γ 0 1`; for `π` proper and a smooth
+  atlas, `hasHamiltonianDiscHolonomy_iff` states it as
+  `hD.parallelTransportInDiffeomorph e e γ 0 1 ∈ hamiltonianGroup σ`. With
   `hasHamiltonianDiscHolonomy_iff_forall_exists`: for a symplectic atlas
   one chart per loop suffices, by `parallelTransportIn_coordChange` and Tau
-  Ceti's `TauCeti.SmoothForm.normal_hamiltonianGroup_subgroupOf_diffeomorphStabilizer`.
+  Ceti's `TauCeti.SmoothForm.mul_mul_inv_mem_hamiltonianGroup`.
 - `TauCeti.IsEhresmannConnection.holonomyDiffeotopy hD e D`, for `π` proper,
   a smooth disc `D` with centre `x` and a chart `e` of `A` at `x`: the
   diffeotopy `TauCeti.Diffeotopy IF ∞ F` whose slice at `s` is
@@ -216,9 +219,10 @@ The curvature identity, the local curvature formula and the equivalence.
 About 500 lines.
 
 - `TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_sub_mextDeriv`,
-  the first statement of the milestone: for `τ`
-  vertically nondegenerate with `hD` the connection `τ.horizontalDistribution π`,
-  smooth fields `v₁ v₂` on `B`, a point `x` and a vertical vector `η` at `x`,
+  the first statement of the milestone: for `hD` a `C^n` Ehresmann connection
+  (`1 ≤ n`) on a `C^2` map `π` with spaces `τ.horizontalDistribution π` (as for
+  `τ` vertically nondegenerate, by `IsVerticallyNondegenerate.isEhresmannConnection`),
+  fields `v₁ v₂` on `B` that are `C^1` at `π x`, and a vertical vector `η` at `x`,
   `τ.val x ![hD.curvature v₁ v₂ x, η] =
   mvfderiv IM (fun y ↦ τ.val y ![v₁♯ y, v₂♯ y]) x η - mextDeriv τ.val x ![v₁♯ x, v₂♯ x, η]`,
   with `v♯ = hD.horizontalLiftField v`. This is the page's identity, the

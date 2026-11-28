@@ -172,7 +172,7 @@ theorem eulerNumber_twistCore_one :
     ((complexManifoldHomologicalOrientation ℂ (OnePoint ℂ) (finrank_self ℂ)).evalFundamentalClass
       (Complex.finrank_real_complex) (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id _)
       (((VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber).reindex
-        (finCongr (by simp : 2 * finrank ℂ ℂ = 1 + 1))).eulerClass
+        (finCongr Complex.two_mul_finrank_self)).eulerClass
           Complex.finrank_real_complex)).down = 1 := by
   set s : ∀ x, (twistCore (𝕜 := ℂ) 1).Fiber x := identitySection
   have hs : Continuous fun x ↦ TotalSpace.mk' ℂ x (s x) :=
@@ -229,10 +229,10 @@ private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
     ((mem_twistOneKernel_iff J).1 hs).1.continuous
   have hsum := VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt
     ((VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber).reindex
-      (finCongr (by simp : 2 * finrank ℂ ℂ = 1 + 1))) Complex.finrank_real_complex
+      (finCongr Complex.two_mul_finrank_self)) Complex.finrank_real_complex
     (complexManifoldHomologicalOrientation ℂ (OnePoint ℂ) (finrank_self ℂ)) hcont
     (fun z ↦ (ψ z).toOpenPartialHomeomorph) e
-    (fun _ ↦ Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+    (fun _ ↦ Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self)
       (complexOrientation ℂ)) (fun z _ ↦ hzψ z) hZ (fun z _ ↦ hze z)
     (fun z _ ↦ .of_forall (ho z))
     (fun z _ ↦ hφ₀ z) (fun z _ ↦ hA z)

@@ -16,7 +16,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
@@ -46,7 +46,8 @@ builds the forms upstairs, and carries Tau Ceti's Fubini–Study form over to
   `potentialForm` of `log |z|²` (`fubiniStudyLift_eq_potentialForm`).
 * `SymplecticGeometry.sphereStdForm n` is the restriction `σ` of `ω₀ = stdForm (Fin (n + 1))` to
   the unit sphere of `StdSpace (Fin (n + 1))` (`sphereStdForm_apply`). It is the exterior
-  derivative of `sphereContactForm` (`sphereStdForm_eq_mextDeriv`), hence closed
+  derivative of `sphereContactForm` (Tau Ceti's
+  `TauCeti.SymplecticForm.mpullback_coe_sphere_constSmooth`), hence closed
   (`isClosed_sphereStdForm`), and its pull-back along the radial projection is `ρ`
   (`mpullback_radialProjection_sphereStdForm`), by naturality of `d`.
 * Under the identification of the unit sphere of `StdSpace (Fin (n + 1))` with that of
@@ -172,7 +173,7 @@ theorem fubiniStudyPrimitive_eq :
       (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ)
         (puncturedSpace (Fin (n + 1) → ℂ))).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)) := by
-  refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun z v ↦ ?_
   rw [SmoothBundleForm.smul_apply,
     ContinuousAlternatingMap.smul_apply,
     SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec,
@@ -249,26 +250,17 @@ theorem sphereStdForm_apply (x : sphere (0 : StdSpace (Fin (n + 1))) 1)
   rw [sphereStdForm_def, SmoothForm.eval₂_mpullback,
     SymplecticForm.eval₂_constSmooth_mfderiv_eq]
 
-/-- The form `σ` is the exterior derivative of Tau Ceti's contact form `λ|S` of the sphere, the
-restriction of the radial primitive `λₓ(v) = ω₀(x, v) / 2`. -/
-theorem sphereStdForm_eq_mextDeriv :
-    sphereStdForm n = mextDerivₗ (𝓡 (2 * n + 1)) 1
-      ((stdForm (Fin (n + 1))).sphereContactForm (2 * n + 1)) := by
-  refine SmoothBundleForm.ext_eval₂ fun x v w ↦ ?_
-  rw [sphereStdForm_apply, SmoothBundleForm.eval₂_apply, mextDerivₗ_apply,
-    SymplecticForm.mextDeriv_sphereContactForm_apply]
-
 /-- The restriction `σ` of `ω₀` to the sphere is closed. -/
 theorem isClosed_sphereStdForm : (sphereStdForm n).IsClosed := by
-  rw [sphereStdForm_eq_mextDeriv]
+  rw [sphereStdForm_def, SymplecticForm.mpullback_coe_sphere_constSmooth]
   exact SmoothForm.isClosed_mextDerivₗ _
 
 /-- The pull-back of `σ` along the radial projection `z ↦ ẑ / ‖ẑ‖` is `ρ`. -/
 theorem mpullback_radialProjection_sphereStdForm :
     SmoothForm.mpullback (radialProjection n) (contMDiff_radialProjection n ∞) (sphereStdForm n) =
       fubiniStudyLift n := by
-  rw [sphereStdForm_eq_mextDeriv, ← SmoothForm.mextDerivₗ_mpullback, fubiniStudyLift_def,
-    fubiniStudyPrimitive_def]
+  rw [sphereStdForm_def, SymplecticForm.mpullback_coe_sphere_constSmooth,
+    ← SmoothForm.mextDerivₗ_mpullback, fubiniStudyLift_def, fubiniStudyPrimitive_def]
 
 variable {n} in
 /-- The two-form `ρ = dα` on `ℂⁿ⁺¹ ∖ 0` has the value

@@ -231,12 +231,7 @@ theorem exists_isOpen_criticalPoints_norm_sq_inter_eq (hm2 : 2 ≤ m) :
   · -- The linearization at a zero maps `V` onto a fibre of rank `finrank F'`, so there is none.
     refine ⟨∅, isOpen_empty, ?_⟩
     rw [inter_empty, eq_comm, eq_empty_iff_forall_notMem]
-    intro x hx
-    let e := (trivializationAt F' E' x).continuousLinearEquivAt ℝ x
-      (mem_baseSet_trivializationAt F' E' x)
-    exact hk (LinearMap.finrank_le_finrank_of_surjective
-      (f := (e.toContinuousLinearMap.comp (sectionLinearization J _root_.id s x)).toLinearMap)
-      (e.surjective.comp (hs x hx)))
+    exact fun x hx ↦ hk (finrank_le_of_surjective_sectionLinearization (hs x hx))
 
 include hsm hs in
 /-- **`‖s‖²` has no critical points in a thin tube off the zero set of a transverse section.** For
