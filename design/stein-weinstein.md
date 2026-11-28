@@ -2538,28 +2538,85 @@ agree (forms pulled back by `Subtype.val`).
   subset of `U`, with `p` the only zero of `X t` in `U` and nondegenerate,
   ending equal to `(ω', X', f')` near `p`, with the barriers of *Barriers*;
   if `ω' = ω` on `U` then `ω t = ω`, and if `f' = f` on `U` then
-  `f t = f`. The proof follows the book: Darboux charts for `ω` and
-  `ω'` at `p` (Tau Ceti's `IsSymplectic.exists_standardDarbouxChart`)
-  let the local structure be pulled back so that `ω' = ω` near `p`; a
-  linear symplectic map matches the stable subspaces of the linearizations (15c's `IsGradientLike.exists_projection_exponential_bounds`
-  and the isotropy of `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`);
-  then 18b makes the field equal near `p` and 18c the function. The target
+  `f t = f`. The proof follows the book, with a linear step that 18b
+  and 18c do not give. Darboux charts for `ω` and `ω'` at `p` (Tau Ceti's
+  `IsSymplectic.exists_standardDarbouxChart`) let the local structure be
+  pulled back so that `ω' = ω` is the constant form near `p` in one
+  chart. There let `A` and `A'` be the linearizations of `X` and `X'` at
+  `p`, and `Q` and `Q'` the Hessians of `f` and `f'`. Each of `A`, `A'`
+  is a linear Liouville field of the constant form (`A - ½ I` lies in
+  the symplectic Lie algebra), hyperbolic with a stable subspace of
+  dimension `k` (15c's `IsGradientLike.exists_projection_exponential_bounds`
+  and the isotropy of `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`),
+  and the Hessian is a Lyapunov form of it (`Handle/Linearization.lean`).
+  Two such fields need not have a common Lyapunov form, and 18b keeps
+  the function while 18c keeps the field, so neither applies to
+  `(X, f)` and `(X', f')` at once. The steps:
+  1. 18b replaces `X` near `p` by its linearization `A`, both being
+     gradient-like for `f` near `p`; then 18c replaces `f` by `f p + Q`,
+     for which `A` is gradient-like too. At the end the same two steps,
+     in the other order, go from `(A', f p + Q')` to `(X', f')`.
+  2. A path `A t` from `A` to `A'` of hyperbolic linear Liouville fields
+     of the constant form, each with a stable subspace of dimension `k`.
+     The form `ω` pairs generalized eigenvectors of eigenvalues `λ` and
+     `μ` only if `λ + μ = 1`, so the sums of the generalized eigenspaces
+     of real part below `0`, above `1`, and in `(0, 1)` are isotropic,
+     isotropic and symplectic, the first two paired by `ω` and both
+     `ω`-orthogonal to the third. A path in `Matrix.symplecticGroup`
+     (Tau Ceti's `isPathConnected_symplecticGroup`) conjugates the field
+     to a block form `C ⊕ (I - Cᵀ) ⊕ (½ I + B)`, with `C` of eigenvalues
+     of negative real part and `B` in the symplectic Lie algebra, of
+     eigenvalues of real part in `(-½, ½)`. The segments from `C` to `-I`
+     and from `B` to `0` stay among such fields and end at
+     `modelHandleField k m`, so `A` and `A'` are both joined to it.
+  3. Each `A t` has a Lyapunov form (Tau Ceti's
+     `hasLyapunovForm_iff_forall_eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul`),
+     its negative index is `k`
+     (`ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`),
+     and it serves all fields near `A t`
+     (`HasLyapunovForm.exists_eventually_nhds`). By compactness there
+     are times `0 = t₀ < … < t_N = 1` and forms `R_i` such that `R_i` is
+     a Lyapunov form of `A t` for all `t` in `[t_i, t_{i+1}]`.
+  4. 18c moves the function from `f p + Q` to `f p + R_0` with the field
+     `A` fixed. Then for each `i`, 18b moves the field near `p` from
+     `A t_i` to `A t_{i+1}` with the function `f p + R_i` fixed, and 18c
+     moves the function from `f p + R_i` to `f p + R_{i+1}` with the field
+     `A t_{i+1}` fixed; the last move goes to `f p + Q'`. The homotopies
+     glue by `IsWeinsteinHomotopy.trans` at the barriers of *Barriers*.
+  The linear steps 2 and 3 are lemmas about operators on the model
+  space, stated in the same file. The target
   of 16b is the case `(ω', X', f')` = the constant form, `modelHandleField
   k m` and `f p + modelHandle k m a b` read through the chart: the
   corollary `IsWeinsteinStructure.exists_isWeinsteinHomotopy_eq_modelHandle_nhds`.
   Name of the theorem:
   `IsWeinsteinStructure.exists_isWeinsteinHomotopy_eq_nhds_of_isManifoldNondegenerateCriticalPoint`.
-  Expected size: 400 lines.
+  Expected size: 600 lines.
 - **Issue 18e** (`Handle/Homotopy/IsotropicLift.lean`; Lemma 12.8). In the
   model `ℂᵏ × ℂᵐ` with the constant form of 16b, a smooth field `Y` on
   `ℝᵏ` (the core `range (modelDisc k m)`) extends to the Liouville field
   $\hat Y(x+iy,w)=Y(x)+i\,(y-DY(x)^{T}y)+w/2$, tangent to the core and
-  equal to `Y` there, with the same zeros, nullities and indices; if `Y`
-  is gradient-like for `ψ` and the eigenvalues of `DY` at its zeros have
-  real part below `1`, then $\hat Y$ is gradient-like for
-  $\hat\psi=\psi(x)+|y|^2+|w|^2$ near any compact subset of the
-  core. For `Y = -x` this is `modelHandleField k m` on the first factor,
-  which serves as a check. Names: `isotropicLiftField`,
+  equal to `Y` there, so its zeros on the core are those of `Y`. Let `K`
+  be a compact subset of `ℝᵏ` and `P` a positive definite symmetric form
+  on `ℝᵏ` such that, at every zero $x_0$ of `Y` in `K`, the form
+  $y\mapsto P(y,\,y-DY(x_0)^{T}y)$ is positive definite. Then, on a
+  neighbourhood of `K` in the model, the zeros of $\hat Y$ are those of
+  `Y` on the core; at each, the linearization of $\hat Y$ is block
+  triangular with diagonal blocks $DY(x_0)$, $I-DY(x_0)^{T}$ and
+  $\tfrac12 I$, and `P` is a Lyapunov form of the middle block, whose
+  eigenvalues thus have positive real part. So the nullity and the
+  dimension of the stable subspace are those of `Y` at $x_0$. If moreover
+  `Y` is gradient-like for `ψ` near `K`, then $\hat Y$ is gradient-like
+  for $\hat\psi=\psi(x)+P(y,y)+|w|^2$ near `K`. The hypothesis on `P` is
+  needed. For `P` the standard form it says that the symmetric part of
+  $DY(x_0)$ is below `I`; for `k = 2` the field `Y x = M x` with
+  $M=\begin{pmatrix}1/2&3\\0&1/2\end{pmatrix}$ is gradient-like for a
+  quadratic form `ψ`, yet $\psi+|y|^2+|w|^2$ decreases along $\hat Y$ at
+  $y=\varepsilon(1,1)$. An eigenvalue `1` of $DY(x_0)$ gives zeros off the
+  core, and an eigenvalue of real part above `1` a larger stable
+  subspace. For one zero, a `P` exists exactly when the eigenvalues of
+  $DY(x_0)$ have real part below `1`. For `Y = -x` and `P` the standard
+  form, $\hat Y$ is `modelHandleField k m` on the first factor, which
+  serves as a check. Names: `isotropicLiftField`,
   `isotropicLiftField_apply`, `isLiouvilleVectorField_isotropicLiftField`,
   `isotropicLiftField_apply_of_mem_range_modelDisc`,
   `exists_nhds_isGradientLike_isotropicLiftField`. Carried to a manifold
@@ -2576,7 +2633,15 @@ agree (forms pulled back by `Subtype.val`).
   local structure near `Δ`, with `ω t = ω` if `ω' = ω` on `U`, and with
   barriers as in *Barriers*: the function changes only near `Δ`, with
   values within `ε` of `f '' Δ`, so every regular value of `f` farther
-  than `ε` from `f '' Δ` stays regular.
+  than `ε` from `f '' Δ` stays regular. It applies 18e with `K = Δ` to
+  the field `Y` that `X` induces on `Δ`, read through the isotropic
+  neighbourhood theorem, and to `ψ = f` on `Δ`, and the hypothesis of
+  18e holds there: the only zero of `Y` in `Δ` is `p`, a nondegenerate
+  maximum of `ψ`, and $\mathrm{Hess}\,\psi(p)$ is a Lyapunov form of
+  $DY(p)$, the stable part of the linearization. With
+  $S=-\mathrm{Hess}\,\psi(p)$, positive definite, take for `P` the
+  inverse form of `S` on the `y` coordinates: for $y=Sv$,
+  $P(y,DY(p)^{T}y)=S(v,DY(p)v)<0$, so $P(y,\,y-DY(p)^{T}y)>0$.
   Name: `IsWeinsteinStructure.exists_isWeinsteinHomotopy_eq_nhds_of_subset_stableSet`.
   Issue 19 uses it in step 3 of Proposition 13.12, where the local
   structure is the one of a $J$-convex function on a neighbourhood of the
@@ -2794,7 +2859,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 18a | Rescaling the Liouville form | `Weinstein/Rescale.lean` | 17 | 350 |
 | 18b | Interpolating Liouville fields near a critical point | `Handle/Homotopy/LiouvilleField.lean` | 17 | 400 |
 | 18c | Changing the function near a critical point | `Handle/Homotopy/Function.lean` | 17 | 350 |
-| 18d | The normal form near a nondegenerate critical point | `Handle/Homotopy/CriticalPoint.lean` | 18b, 18c | 400 |
+| 18d | The normal form near a nondegenerate critical point | `Handle/Homotopy/CriticalPoint.lean` | 18b, 18c | 600 |
 | 18e | Liouville fields extending a field on an isotropic disc | `Handle/Homotopy/IsotropicLift.lean` | 17 | 400 |
 | 18f | The normal form near a stable disc | `Handle/Homotopy/StableDisc.lean` | 18b, 18c, 18e | 450 |
 | 18g | Removing birth–death points | `Handle/Homotopy/BirthDeath.lean` | 18d | 400 |
