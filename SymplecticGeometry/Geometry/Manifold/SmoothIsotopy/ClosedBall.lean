@@ -94,7 +94,7 @@ theorem exists_diffeotopy_eqOn_closedBall_of_isOrientationPreservingAt [T2Space 
     (hVg.comp_univBall hρ0 (hball.trans inter_subset_right) le_rfl)
   -- `univBall 0 ρ` fixes `0` and has derivative `ρ • id` there, so it preserves `o` at `0`.
   have hψo : o.IsOrientationPreservingAt o (univBall (0 : E) ρ) 0 :=
-    isOrientationPreservingAt_univBall hρ0 o
+    isOrientationPreservingAt_univBall_zero hρ0 o
   have hFo : o.IsOrientationPreservingAt oM F 0 := by
     simpa [F] using (univBall_apply_zero (0 : E) ρ ▸ hfo).comp hψo
   have hGo : o.IsOrientationPreservingAt oM G 0 := by

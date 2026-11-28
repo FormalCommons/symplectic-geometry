@@ -3176,8 +3176,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $\tfrac12\|\mu\|^2$ and its convergence, through a Łojasiewicz inequality,
   and the three stability conditions with their characterizations)
   and `HilbertMumford.lean` (the weights $w_\mu(p,\xi)$ for $\xi\in\Lambda$,
-  the limits $p^+_\xi$, the moment-weight inequality and the numerical
-  criteria); the Łojasiewicz inequality's files are those of
+  the limits $p^+_\xi$, the moment-weight inequality and the semistable
+  criterion, the polystable and stable criteria being in `KempfNess/`);
+  the Łojasiewicz inequality's files are those of
   `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
   products

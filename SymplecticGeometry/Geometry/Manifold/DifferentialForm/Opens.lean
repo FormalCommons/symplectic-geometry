@@ -15,6 +15,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
@@ -122,6 +123,17 @@ diffeomorphism pulls the restriction of `σ` back to the restriction of `τ`
 `PartialDiffeomorph.mpullback_symm_mpullback_apply`. The Legendrian neighbourhood theorem uses it
 with `e (w, z) = (w, z)`, from a product with an open subset to the product with the whole
 manifold.
+
+A form `α` on `M` can be pushed forward along a partial diffeomorphism `Φ` from `M` to `M'`
+and glued with a form `η` on `M'` off a closed set `C` inside the target, provided `α` agrees
+with `Φ^* η` at the points of the source that `Φ` sends off `C`: the result is a form `β` on `M'`
+with `Φ^* β = α` on the source and `β = η` off `C`
+(`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem`). It is built with
+`TauCeti.SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq`, on the cover of `M'` by the
+complement of `C` and the target. For `η = 0` this extends the push-forward by zero, and if
+`d α = Φ^* τ` on the source for a form `τ` vanishing off `C`, then `d β = τ`
+(`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_mextDeriv_eq`). The symplectic blowup
+uses both, to build its forms and their primitives from those of the model.
 
 ## References
 
@@ -513,6 +525,68 @@ theorem mpullback_toDiffeomorphSourceTarget_liftOpens {U : Opens M} {V : Opens M
   refine (TauCeti.SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun z hz ↦ ?_
   obtain ⟨y, hy, rfl⟩ : z ∈ Subtype.val '' Φ.source := Φ.liftOpens_source hU hV ▸ hz
   rw [TauCeti.mpullback_liftOpens_apply_coe Φ (by simp) hU hV _ hy, h y hy]
+
+/-- **Push-forward along a partial diffeomorphism, glued with a global form.** Let `Φ` be a
+partial diffeomorphism from `M` to `M'`, and `C` a closed subset of `M'` inside the target of
+`Φ`. A smooth form `α` on `M` that agrees with `Φ^* η` at the points `y` of the source with
+`Φ y ∉ C`, for a smooth form `η` on `M'`, is `Φ^* β` on the source of `Φ` for a smooth form `β` on
+`M'` that is `η` off `C`: on the target, `β` is the push-forward of `α` along `Φ`. -/
+theorem exists_smoothForm_mpullback_eq_and_eq_of_notMem (Φ : PartialDiffeomorph I I' M M' ∞)
+    {C : Set M'} (hC : IsClosed C) (hCΦ : C ⊆ Φ.target) (η : TauCeti.SmoothForm I' M' F k)
+    (α : TauCeti.SmoothForm I M F k)
+    (hα : ∀ y ∈ Φ.source, Φ y ∉ C → α.val y = TauCeti.mpullback I I' Φ η.val y) :
+    ∃ β : TauCeti.SmoothForm I' M' F k,
+      (∀ y ∈ Φ.source, TauCeti.mpullback I I' Φ β.val y = α.val y) ∧
+        ∀ x ∉ C, β.val x = η.val x := by
+  set D := Φ.toDiffeomorphSourceTarget
+  have hcover : Cᶜ ∪ ((⟨Φ.target, Φ.open_target⟩ : Opens M') : Set M') = univ :=
+    compl_subset_iff_union.1 (by rwa [compl_compl])
+  obtain ⟨β, hβC, hβT⟩ := TauCeti.SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq
+    hC.isOpen_compl hcover η
+    (TauCeti.SmoothForm.mpullback D.symm D.symm.contMDiff
+      (TauCeti.SmoothForm.mpullback (Subtype.val : (⟨Φ.source, Φ.open_source⟩ : Opens M) → M)
+        contMDiff_subtypeVal α))
+    fun x hx ↦ by
+      rw [← TauCeti.SmoothForm.coe_mpullback_subtype_val_apply η x,
+        ← TauCeti.SmoothForm.mpullback_symm_mpullback D
+          (TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal η)]
+      simp only [TauCeti.SmoothForm.coe_mpullback]
+      refine TauCeti.mpullback_apply_congr ?_
+      rw [TauCeti.mpullback_toDiffeomorphSourceTarget_apply Φ (by simp),
+        TauCeti.mpullback_subtype_val_apply]
+      exact hα _ (D.symm x).property (Φ.apply_toDiffeomorphSourceTarget_symm x ▸ hx)
+  exact ⟨β, (TauCeti.SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff Φ).1
+    (by rw [hβT, TauCeti.SmoothForm.mpullback_mpullback_symm]), hβC⟩
+
+/-- **Push-forward along a partial diffeomorphism, extended by zero, and its exterior
+derivative.** Let `Φ` be a partial diffeomorphism from `M` to `M'`, and `C` a closed subset of
+`M'` inside the target of `Φ`. A smooth form `α` on `M` that vanishes at the points `y` of the
+source with `Φ y ∉ C` is `Φ^* β` on the source for a smooth form `β` on `M'` that vanishes off
+`C`. If moreover `d α = Φ^* τ` on the source, for a form `τ` on `M'` that vanishes off `C`, then
+`d β = τ`. -/
+theorem exists_smoothForm_mpullback_eq_and_mextDeriv_eq (Φ : PartialDiffeomorph I I' M M' ∞)
+    {C : Set M'} (hC : IsClosed C) (hCΦ : C ⊆ Φ.target) (α : TauCeti.SmoothForm I M F k)
+    (hα : ∀ y ∈ Φ.source, Φ y ∉ C → α.val y = 0) {τ : TauCeti.RoughForm I' M' F (k + 1)}
+    (hdα : ∀ y ∈ Φ.source, TauCeti.mextDeriv α.val y = TauCeti.mpullback I I' Φ τ y)
+    (hτ : ∀ x ∉ C, τ x = 0) :
+    ∃ β : TauCeti.SmoothForm I' M' F k,
+      (∀ y ∈ Φ.source, TauCeti.mpullback I I' Φ β.val y = α.val y) ∧
+        (∀ x ∉ C, β.val x = 0) ∧ TauCeti.mextDeriv β.val = τ := by
+  obtain ⟨β, hΦβ, hβC⟩ := exists_smoothForm_mpullback_eq_and_eq_of_notMem Φ hC hCΦ 0 α
+    fun y hy hyC ↦ by simpa using hα y hy hyC
+  have hβ0 : ∀ x ∉ C, β.val x = 0 := fun x hx ↦ by simpa using hβC x hx
+  have : IsManifold I 2 M := IsManifold.of_le (n := ∞) (by simp)
+  have : IsManifold I' 2 M' := IsManifold.of_le (n := ∞) (by simp)
+  refine ⟨β, hΦβ, hβ0, funext fun x ↦ ?_⟩
+  by_cases hx : x ∈ C
+  · obtain ⟨y, hy, rfl⟩ := Φ.toPartialEquiv.image_source_eq_target ▸ hCΦ hx
+    refine ((Φ.isLocalDiffeomorphAt _ _ _ hy).mextDeriv_apply_eq_iff (by simp)
+      ((β.contMDiff _).of_le (by simp))).2 ?_
+    rw [TauCeti.mextDeriv_congr_of_eventuallyEq
+      (Filter.eventually_of_mem (Φ.open_source.mem_nhds hy) hΦβ), hdα y hy]
+  · rw [TauCeti.mextDeriv_congr_of_eventuallyEq (η := 0)
+      (Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx) hβ0), TauCeti.mextDeriv_zero,
+      Pi.zero_apply, hτ x hx]
 
 section Transport
 
