@@ -353,7 +353,7 @@ theorem mpullback_collarDiffeomorph (hδε : δ < ε) :
         (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
           stdComplexSymplecticForm.constSmooth) := by
   -- `f.collar hδε` is by definition the image of the collar map, so the general lemma applies.
-  exact (SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+  exact (SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal
     (f.isLocalDiffeomorph_collarMap hδε) (f.collarMap_injective hδε) _).trans
       (f.mpullback_collarMap hδε)
 

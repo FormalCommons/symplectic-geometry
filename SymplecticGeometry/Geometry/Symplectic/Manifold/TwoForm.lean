@@ -24,7 +24,7 @@ the other along the submanifold.
 
 A linear symplectomorphism between ambient tangent spaces is also one between the tangent spaces
 of open subsets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` for the restricted forms
-(`TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`), since
+(`TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtypeVal`), since
 restriction does not change the values of the forms. Together, these give the same conclusion
 for maps between open subsets.
 
@@ -42,7 +42,7 @@ a vector space.
   `TauCeti.SmoothTwoForm.IsNondegenerate`, so the converse of its
   `TauCeti.SmoothTwoForm.IsNondegenerate.nondegenerate_bilinFormAt` needs this lemma.
 * `TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`.
-* `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtypeVal`.
 * `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mfderiv_mfderiv`: the symplectic form
   of `ω₁` at `f x₀` on two differentials of `f` is the pull-back `f^* ω₁` at `x₀`.
@@ -99,7 +99,7 @@ theorem coe_mpullback_apply_eq_of_mfderiv_eq {f : M₀ → M₁} (hf : ContMDiff
 `ω₀` and `ω₁` give these tangent spaces is also a symplectomorphism `T_{x₀} U₀ ≃ T_{x₁} U₁` for
 the restrictions of `ω₀` to `U₀` and of `ω₁` to `U₁`. The point `x₁` is given in `M₁` as `y₁`,
 up to the equality `hx₁`. -/
-theorem IsNondegenerate.isSymplectomorphism_mpullback_subtype_val
+theorem IsNondegenerate.isSymplectomorphism_mpullback_subtypeVal
     {ω₀ : SmoothTwoForm I₀ M₀} {ω₁ : SmoothTwoForm I₁ M₁} (hω₀ : ω₀.IsNondegenerate)
     (hω₁ : ω₁.IsNondegenerate) {U₀ : Opens M₀} {U₁ : Opens M₁} {x₀ : U₀} {x₁ : U₁} {y₁ : M₁}
     (hx₁ : (x₁ : M₁) = y₁) (A : TangentSpace I₀ (x₀ : M₀) ≃L[ℝ] TangentSpace I₁ y₁)

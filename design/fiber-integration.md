@@ -232,17 +232,17 @@ The operator of an oriented fibration.
 - `fiberIntegral_apply_zero` (the integral over each fibre): in degree `m`,
   the value at `b` is `integralTopForm o` of the pull-back of `α` along
   `y ↦ e.symm (b, y)`, for every chart `e` at `b`.
-- `mpullback_subtype_val_fiberIntegral` (value in a trivialization): on `e.baseSet`, the
+- `mpullback_subtypeVal_fiberIntegral` (value in a trivialization): on `e.baseSet`, the
   restriction of `A.fiberIntegral hA α` is
   `prodFiberIntegral o (mpullback Ψ_e α)`, with
   `Ψ_e : e.baseSet × F → M`. Smoothness of `fiberIntegral` comes from it and
-  `TauCeti.contMDiffAt_mpullback_subtype_val_iff`.
+  `TauCeti.contMDiffAt_mpullback_subtypeVal_iff`.
 
 About 400 lines.
 
 ### `Geometry/Manifold/DifferentialForm/FiberIntegral/Calculus.lean`
 
-Reduced to the product files through `mpullback_subtype_val_fiberIntegral` and the
+Reduced to the product files through `mpullback_subtypeVal_fiberIntegral` and the
 locality of forms on open subsets.
 
 - `fiberIntegral_mextDeriv`: `A.fiberIntegral hA (cast (mextDerivₗ IM (r + m) α)) = mextDerivₗ I r (A.fiberIntegral hA α)`;

@@ -324,8 +324,8 @@ private theorem exists_primitive_invariantCore_of_eq_along [ContinuousSMul G M]
     ?_, fun q ↦ ?_, fun q ↦ ?_⟩
   · rw [SmoothForm.coe_mpullback, ← mpullback_inclusion_mextDeriv, hdβW,
       ← SmoothForm.coe_mpullback _ (contMDiff_inclusion hVW), map_sub,
-      SmoothForm.mpullback_inclusion_mpullback_subtype_val,
-      SmoothForm.mpullback_inclusion_mpullback_subtype_val]
+      SmoothForm.mpullback_inclusion_mpullback_subtypeVal,
+      SmoothForm.mpullback_inclusion_mpullback_subtypeVal]
   · rw [SmoothForm.coe_mpullback, mpullback_inclusion_apply]
     exact hβW0 q
   · have h := RoughForm.inChartAt_mpullback_inclusion_eventuallyEq hVW βW.val
@@ -615,7 +615,7 @@ theorem exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along
   · have h₁ : ((Ψ₀ ∘ Subtype.val) ∘ Opens.inclusion hU₁) ∘ φ = (Ψ₀ ∘ Subtype.val) ∘ φ := by
       funext y
       simp
-    rw [SmoothForm.mpullback_inclusion_mpullback_subtype_val] at hφσ
+    rw [SmoothForm.mpullback_inclusion_mpullback_subtypeVal] at hφσ
     simpa only [SmoothForm.mpullback_mpullback, h₁] using hφσ
 
 end TauCeti.SmoothEmbedding

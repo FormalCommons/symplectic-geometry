@@ -51,8 +51,8 @@ half of McDuff–Salamon's Proposition 3.5.31 ([McDuffSalamon2017]):
   vanishing along `f`, and `ρ^* β + μ` is the primitive sought.
 The theorem itself applies the case of a left inverse on the open neighbourhood where the smooth
 retraction of `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction` is defined, and extends the
-primitive to `M` with the restriction lemmas `TauCeti.mpullback_subtype_val_surjective`,
-`TauCeti.contMDiffAt_mpullback_subtype_val_iff` and `TauCeti.mpullback_subtype_val_mextDeriv`.
+primitive to `M` with the restriction lemmas `TauCeti.mpullback_subtypeVal_surjective`,
+`TauCeti.contMDiffAt_mpullback_subtypeVal_iff` and `TauCeti.mpullback_subtypeVal_mextDeriv`.
 
 ## Main results
 
@@ -177,25 +177,25 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
     (funext fun x ↦ (congrArg r (f.val_codRestrict_apply T hfT x)).trans (hrf x))
     (hθ.mpullback _ hval) (by rw [hβ, SmoothForm.mpullback_mpullback]; simp only [hvj])
   -- Extend `ξ` from `W'` to `T`, then to `M`; both extensions are smooth at the points of `W'`.
-  obtain ⟨γ', hγ'⟩ := mpullback_subtype_val_surjective W' ξ.val
-  obtain ⟨γ, hγ⟩ := mpullback_subtype_val_surjective T γ'
+  obtain ⟨γ', hγ'⟩ := mpullback_subtypeVal_surjective W' ξ.val
+  obtain ⟨γ, hγ⟩ := mpullback_subtypeVal_surjective T γ'
   have hγs (w : W') :
       ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
         (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ' y)) (w : T) ∧
       ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
         (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) ((w : T) : M) := by
-    have h₁ := (contMDiffAt_mpullback_subtype_val_iff γ' w).1 (hγ' ▸ ξ.contMDiff w)
-    exact ⟨h₁, (contMDiffAt_mpullback_subtype_val_iff γ (w : T)).1 (hγ ▸ h₁)⟩
+    have h₁ := (contMDiffAt_mpullback_subtypeVal_iff γ' w).1 (hγ' ▸ ξ.contMDiff w)
+    exact ⟨h₁, (contMDiffAt_mpullback_subtypeVal_iff γ (w : T)).1 (hγ ▸ h₁)⟩
   refine ⟨TopologicalSpace.Opens.imageVal W',
     (TopologicalSpace.Opens.imageVal W').isOpen, ?_⟩
   rw [TopologicalSpace.Opens.coe_imageVal]
   refine ⟨fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
     fun _ ⟨t, ht, h⟩ ↦ h ▸ (hγs ⟨t, ht⟩).2, ?_, ?_⟩
   · rintro _ ⟨t, ht, rfl⟩
-    have e := congrFun (mpullback_subtype_val_mextDeriv (U := W') γ') ⟨t, ht⟩
+    have e := congrFun (mpullback_subtypeVal_mextDeriv (U := W') γ') ⟨t, ht⟩
     rw [hγ', ← mextDerivₗ_apply, hdξ, SmoothForm.coe_mpullback, mpullback_subtype_val_apply,
       SmoothForm.coe_mpullback, mpullback_subtype_val_apply, mpullback_subtype_val_apply] at e
-    rw [← e, ← hγ, ← mpullback_subtype_val_mextDeriv, mpullback_subtype_val_apply]
+    rw [← e, ← hγ, ← mpullback_subtypeVal_mextDeriv, mpullback_subtype_val_apply]
   · let j' := j.codRestrict W' hjW'
     have hf' : f = (Subtype.val ∘ Subtype.val) ∘ j' := by
       rw [Function.comp_assoc, j.val_comp_codRestrict W' hjW', hvj]
