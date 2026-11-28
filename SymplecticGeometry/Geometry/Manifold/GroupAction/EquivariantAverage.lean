@@ -29,8 +29,8 @@ with `σ` (this is Tau Ceti's `ContRepresentation.integral_apply_inv_smul_smul`)
 that `A` is `C^n` on the set of `y` whose whole orbit lies in `U`, which is open by Tau Ceti's
 `TauCeti.isOpen_setOf_forall_smul_mem`, computes its derivative there as the integral of the
 derivatives of the maps `y ↦ σ k (φ (k⁻¹ • y))`, and specializes this at a fixed point `x` of
-the action, with `σ` the isotropy representation at `x`: if `φ x = 0` and `φ` has derivative the
-identity at `x`, so has `A`.
+the action, with `σ` the isotropy representation at `x`: if `φ` has derivative the identity at
+`x`, so has `A`. (If moreover `φ x = 0`, then `A x = 0`, since the integrand vanishes at `x`.)
 
 The proofs read `A` in the chart `extChartAt I y` at each point `y` and differentiate under the
 integral sign there; since `σ` is only continuous in `k`, they use that the derivatives in the
@@ -78,7 +78,7 @@ include IG in
 /-- The equivariant average read in the chart `extChartAt I y₀`: on the open set of chart points
 whose orbit lies in `U`, it is `C^n`, and it has there the derivative obtained by differentiating
 under the integral sign. -/
-private theorem contDiffOn_and_hasFDerivAt_integral_apply_inv_smul_extChartAt
+private theorem integral_apply_inv_smul_extChartAt
     (hσ : Continuous σ) (hU : IsOpen U) (hφ : ContMDiffOn I 𝓘(ℝ, F) n φ U) (y₀ : M) :
     IsOpen ((extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U}) ∧
     (∀ k : G, ContDiffOn ℝ n (fun w ↦ σ k (φ (k⁻¹ • (extChartAt I y₀).symm w)))
@@ -164,7 +164,7 @@ theorem ContMDiffOn.integral_apply_inv_smul (hσ : Continuous σ) (hU : IsOpen U
   intro y₀ hy₀
   have : ContinuousSMul G M :=
     ⟨(ContMDiffSMul.contMDiff_smul (I := IG) (I' := I) (n := n) (G := G) (M := M)).continuous⟩
-  obtain ⟨hV, -, hA, -, -⟩ := contDiffOn_and_hasFDerivAt_integral_apply_inv_smul_extChartAt (IG := IG)
+  obtain ⟨hV, -, hA, -, -⟩ := integral_apply_inv_smul_extChartAt (IG := IG)
     (μ := μ) hσ hU hφ y₀
   have hmem : extChartAt I y₀ y₀ ∈
       (extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U} :=
@@ -188,7 +188,7 @@ theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul (hσ : Continuous σ) (
   have hn' : (1 : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
   have hn0 : (n : WithTop ℕ∞) ≠ 0 := (zero_lt_one.trans_le hn').ne'
   have : IsManifold I 1 M := .of_le hn'
-  obtain ⟨hV, hΦ, -, hDcont, hA⟩ := contDiffOn_and_hasFDerivAt_integral_apply_inv_smul_extChartAt
+  obtain ⟨hV, hΦ, -, hDcont, hA⟩ := integral_apply_inv_smul_extChartAt
     (IG := IG) (μ := μ) hσ hU hφ y
   set χ := extChartAt I y
   have hmem : χ y ∈ χ.target ∩ χ.symm ⁻¹' {y | ∀ k : G, k • y ∈ U} :=
@@ -237,6 +237,34 @@ theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul (hσ : Continuous σ) (
     · rw [integral_of_not_completeSpace hc, integral_of_not_completeSpace hc]
       exact (ContinuousLinearMap.zero_comp _).symm
   rw [heq]
+  exact h
+
+include IG in
+/-- **The equivariant average of a chart at a fixed point.** Let `x` be a fixed point of the
+action, `σ` a continuous representation on the model space `E`, a Banach space, with `σ k` the
+derivative of `k • ·` at `x`, `μ` a probability measure on `G`, and `φ : M → E` a `C^n` map,
+`1 ≤ n`, on an open neighbourhood `U` of `x`, with derivative the identity at `x`. Then
+`y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ` also has derivative the identity at `x`. -/
+theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul_of_smul_eq [CompleteSpace E]
+    [IsProbabilityMeasure μ]
+    {σ : ContRepresentation ℝ G E} {φ : M → E} (hσ : Continuous σ) (hU : IsOpen U)
+    (hφ : ContMDiffOn I 𝓘(ℝ, E) n φ U) (hn : 1 ≤ n) {x : M} (hx : ∀ k : G, k • x = x)
+    (hxU : x ∈ U) (hσx : ∀ k : G, mfderiv I I (fun z : M ↦ k • z) x = σ k)
+    (hφx : mfderiv I 𝓘(ℝ, E) φ x = ContinuousLinearMap.id ℝ E) :
+    HasMFDerivAt I 𝓘(ℝ, E) (fun y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ) x
+      (ContinuousLinearMap.id ℝ E) := by
+  have h := hφ.hasMFDerivAt_integral_apply_inv_smul (IG := IG) (μ := μ) hσ hU hn
+    (y := x) fun k ↦ by rwa [hx]
+  have hk (k : G) : ((σ k).comp ((mfderiv I 𝓘(ℝ, E) φ (k⁻¹ • x)).comp
+      (mfderiv I I (fun z : M ↦ k⁻¹ • z) x)) : E →L[ℝ] E) = ContinuousLinearMap.id ℝ E := by
+    rw [hσx, hx, hφx]
+    ext v
+    exact DFunLike.congr_fun (σ.comp_inv_self k) v
+  have hI : (∫ k, ((σ k).comp ((mfderiv I 𝓘(ℝ, E) φ (k⁻¹ • x)).comp
+      (mfderiv I I (fun z : M ↦ k⁻¹ • z) x)) : E →L[ℝ] E) ∂μ) = ContinuousLinearMap.id ℝ E := by
+    simp only [hk]
+    exact (integral_const _).trans (by simp)
+  rw [hI] at h
   exact h
 
 end
