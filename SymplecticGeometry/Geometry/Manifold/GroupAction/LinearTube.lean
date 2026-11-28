@@ -273,7 +273,7 @@ of `e`. -/
 theorem contMDiffAt_linearSliceMap {p : P} (hp : L p ∈ e.chart.target) :
     ContMDiffAt 𝓘(ℝ, P) I' ∞ (e.linearSliceMap hL) p := by
   refine ContMDiffAt.congr_of_eventuallyEq ?_ (e.linearSliceMap_eventuallyEq hL hp)
-  exact (e.contMDiffOn_symm.contMDiffAt (e.chart.open_target.mem_nhds hp)).comp p
+  exact (e.contMDiffOn_chart_symm.contMDiffAt (e.chart.open_target.mem_nhds hp)).comp p
     L.contMDiff.contMDiffAt
 
 /-- At `0`, the slice map along a linear fibre has derivative `L`. -/
