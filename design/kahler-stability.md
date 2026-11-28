@@ -312,7 +312,7 @@ so no statement takes it.
   of the conjugates (insert `C.expI (-(t • ξ)) * C.expI (t • ξ) = 1`, from
   `expI_add_smul`), and that of `g⁻¹` the inverse, so limits multiply
   (`Filter.Tendsto.mul`, `Filter.Tendsto.inv`). Then
-  `parabolicLimit_mul`, and
+  `map_mul` for the homomorphism `C.parabolicLimit ξ`, and
   `expI_mul_parabolicLimit_mul_expI_neg : C.expI (s • ξ) * C.parabolicLimit ξ q * C.expI (-(s • ξ)) = C.parabolicLimit ξ q`
   (the conjugates are those at time `t + s`), so the limit commutes with
   every `C.expI (s • ξ)`.
@@ -529,31 +529,115 @@ This is a hypothesis of the statements below, not a definition.
   the difference is bounded by the previous item; divide by `s` and apply
   `tendsto_kempfNessFunction_expI_neg_smul_div` twice.
 
-*How the criteria use them* (their routes are for #7907 to settle). A
-polystable `p` is `g • x` with `μ x = 0`. Write `g = q * C.toHom u` with
-`q ∈ C.parabolic ξ` (`exists_mem_parabolic_mul_toHom`), so that `p = q • x'`
-with `x' = C.toHom u • x` and `μ x' = 0`. Then
-`momentWeight C μ p ξ = momentWeight C μ x' ξ ≤ μ x' ξ = 0` (`momentWeight_le`).
-If it is `0`, then `t ↦ μ (C.expI (t • ξ) • x') ξ` is constant on `t ≥ 0`, so
-each `C.expI (t • ξ)` fixes `x'` (`expI_smul_eq_self_of_moment_apply_le`).
-Hence `limitPoint C p ξ = C.parabolicLimit ξ q • x'`, in the orbit of `p`;
-and the stabilizer of `p` in `Gc`, conjugate to that of `x'`, contains the
-path `t ↦ q * C.expI (t • ξ) * q⁻¹`, injective by `polar` for `ξ ≠ 0`, so it
-is not discrete. These give the necessity halves of the polystable and
-stable criteria. For the sufficiency half of the stable one, a nonzero
-period `λ` with `C.expI (t • λ) • y = y` for all `t`, `μ y = 0` and
-`p = g • y`, write `g = C.toHom u * q` with `q ∈ C.parabolic λ`
-(`exists_toHom_mul_mem_parabolic`); then
-`momentWeight C μ p (Ad u λ) = momentWeight C μ (q • y) λ = μ y λ = 0`, and
-`Ad u λ ∈ nonzeroPeriods I G` (`tangentAd_mem_nonzeroPeriods`).
+*How the criteria use them.* The necessity halves and the sufficiency
+half of the stable criterion go through the following lemmas, in
+`HilbertMumford.lean` unless another file is named; the sufficiency half
+of the polystable criterion is #8142's to settle, and is used below only
+by its name, `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Let
+`Ad` be `Lie.tangentAd`.
 
+- `momentWeight_eq_moment_iff`: `momentWeight C μ x ξ = μ x ξ` exactly
+  when `C.expI (t • ξ) • x = x` for every `t`, in the setting of
+  `momentWeight_le`. Forward: for `t ≥ 0`,
+  `μ x (t • ξ) = t * momentWeight C μ x ξ ≤ μ (C.expI (t • ξ) • x) (t • ξ)`
+  by `momentWeight_le_moment_expI_smul`, so
+  `expI_smul_eq_self_of_moment_apply_le`, applied to `t • ξ`, fixes `x`;
+  for `t < 0`, apply `C.expI (t • ξ)` to the case `-t` (`expI_add_smul`).
+  Backward: the function in `tendsto_momentWeight` is then constant
+  (`tendsto_nhds_unique`). Fixed points of all `C.expI (t • ξ)` are the
+  zeros of `X_ξ` (`expI_smul_smul_eq_self_iff`).
+- `exists_momentWeight_smul_eq_moment_of_forall_expI_smul_eq`: if every
+  `C.expI (t • λ)` fixes `x`, then for each `g : Gc` some `u : G` has
+  `momentWeight C μ (g • x) (Ad u λ) = μ x λ`. Proof: write
+  `g = C.toHom u * q` with `q ∈ C.parabolic λ`
+  (`exists_toHom_mul_mem_parabolic`); then
+  `momentWeight_toHom_smul`, `momentWeight_smul_of_mem_parabolic` and
+  `momentWeight_eq_moment_iff` give
+  `momentWeight C μ (g • x) (Ad u λ) = momentWeight C μ (q • x) λ = momentWeight C μ x λ = μ x λ`.
+- `IsPolystable.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero`:
+  if `p` is polystable and `momentWeight C μ p ξ = 0`, there are
+  `q ∈ C.parabolic ξ` and `x` with `μ x = 0`,
+  `∀ t : ℝ, C.expI (t • ξ) • x = x` and `p = q • x`. Proof: take `g` with
+  `μ (g • p) = 0` (`isPolystable_iff_exists_smul`) and write
+  `g⁻¹ = q * C.toHom u` with `q ∈ C.parabolic ξ`
+  (`exists_mem_parabolic_mul_toHom`); put `x = C.toHom u • g • p`, so that
+  `p = q • x` and `μ x = 0` (`moment_toHom_smul`). By
+  `momentWeight_smul_of_mem_parabolic`,
+  `momentWeight C μ x ξ = 0 = μ x ξ`, and `momentWeight_eq_moment_iff`
+  concludes. It holds for every `ξ`, not only for periods.
+- `IsPolystable.limitPoint_mem_orbit` (the necessity half of the polystable
+  criterion), in the setting of `tendsto_limitPoint`: if `p` is polystable
+  and `momentWeight C μ p ξ = 0`, then `limitPoint C p ξ ∈ MulAction.orbit Gc p`.
+  With `q` and `x` from the previous item, `limitPoint C x ξ = x`
+  (`limitPoint_eq_of_tendsto` for the constant curve), so
+  `limitPoint C p ξ = C.parabolicLimit ξ q • x`
+  (`limitPoint_smul_of_mem_parabolic`), and `x = q⁻¹ • p`. Its
+  semistability part is `IsPolystable.isSemistable`.
+- `IsStable.momentWeight_neg` (the necessity half of the stable criterion):
+  if `p` is stable and `ξ ≠ 0`, then `momentWeight C μ p ξ < 0`. The weight
+  is `≤ 0` by `IsSemistable.momentWeight_nonpos`. If it were `0`, take `q`
+  and `x` as above: `X_ξ` vanishes at `x` (`expI_smul_smul_eq_self_iff`),
+  and the stabilizer of `x` in `Gc` is discrete, since that of `p` is and
+  `x = q⁻¹ • p` (`MulAction.discreteTopology_stabilizer_smul_iff`). As
+  `μ x = 0`, `IsComplexifiedAction.discreteTopology_stabilizer_iff_of_moment_eq_zero`
+  then gives `ξ = 0`. That lemma, already in `KempfNess/Basic.lean`, is
+  how a trivial isotropy algebra of a zero of `μ` in `G` gives a discrete
+  stabilizer in `Gc`, and back; no path in the stabilizer is needed.
+- `exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`
+  (`Geometry/Lie/Exponential/Periods.lean`): for compact `G` and `ξ ≠ 0`,
+  some `λ ∈ nonzeroPeriods I G` has
+  `closedOneParameterSubgroup λ ≤ closedOneParameterSubgroup ξ`. Proof:
+  `T := closedOneParameterSubgroup ξ` is a torus
+  (`isTorus_closedOneParameterSubgroup`), not `⊥` because some
+  `mulInvariantExp (t • ξ) ≠ 1` (`forall_mulInvariantExp_smul_eq_one_iff`),
+  so it has an element `k ≠ 1` with `k ^ 2 = 1`
+  (`IsTorus.exists_sq_eq_one_ne_one`), which is `lieExp X` for some `X` in
+  the Lie algebra of `T` (`IsTorus.image_lieExp_lieSubalgebraOfSubgroup`).
+  Let `λ` be twice the image of `X` in `𝔤` (`lieExp_eq_mulInvariantExp`):
+  `mulInvariantExp λ = k ^ 2 = 1` (`mulInvariantExp_nsmul`), `λ ≠ 0` since
+  `k ≠ 1`, and every `mulInvariantExp (t • λ)` lies in `T`
+  (`mem_lieSubalgebraOfSubgroup`, `T` being closed), so
+  `closedOneParameterSubgroup_le` gives the inclusion. This is how a
+  nonzero element of an isotropy algebra gives a nonzero period in it, by
+  `mem_isotropy_fundamental_iff_closedOneParameterSubgroup_le`; it needs no
+  Lie algebra of the stabilizer, and the approximation of
+  `mem_closure_smul_nonzeroPeriods` would not do, since its periods need
+  not fix the point.
+- `isStable_of_momentWeight_neg` (the sufficiency half of the stable
+  criterion): if `momentWeight C μ p λ < 0` for every
+  `λ ∈ nonzeroPeriods I G`, then `p` is stable. It is semistable
+  (`isSemistable_iff_momentWeight_nonpos`), so polystable by
+  `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, whose condition
+  holds vacuously; take `g` with `μ (g • p) = 0` and put `y = g • p`. By
+  `isStable_smul_iff` and `isStable_of_moment_eq_zero`, it is enough that
+  the stabilizer of `y` is discrete, that is, by
+  `IsComplexifiedAction.discreteTopology_stabilizer_iff_of_moment_eq_zero`,
+  that `X_ξ y = 0` only for `ξ = 0`. If `ξ ≠ 0` had `X_ξ y = 0`, the
+  previous item and
+  `mem_isotropy_fundamental_iff_closedOneParameterSubgroup_le` would give
+  `λ ∈ nonzeroPeriods I G` with `X_λ y = 0`, so every `C.expI (t • λ)` fixes
+  `y` (`expI_smul_smul_eq_self_iff`), and
+  `exists_momentWeight_smul_eq_moment_of_forall_expI_smul_eq` at `g⁻¹` some
+  `u` with `momentWeight C μ p (Ad u λ) = μ y λ = 0`. But
+  `Ad u λ ∈ nonzeroPeriods I G` (`tangentAd_mem_nonzeroPeriods`), whose
+  weight is negative.
 - `exists_momentWeight_pos_of_not_isSemistable`: a destabilizing
   $\xi\in\Lambda$, by the route of *The destabilizing direction* below.
-- `isSemistable_iff_momentWeight_nonpos`,
-  `isPolystable_iff_isSemistable_and_limitPoint_mem_orbit`,
-  `isStable_iff_momentWeight_neg`, and `hilbertMumford`, their
-  conjunction. Milestone: *Hilbert–Mumford numerical criteria*. The
-  quantifiers range over all of `nonzeroPeriods I G`, as the page says.
+- `isSemistable_iff_momentWeight_nonpos`;
+  `isPolystable_iff_isSemistable_and_limitPoint_mem_orbit`, from
+  `IsPolystable.isSemistable`, `IsPolystable.limitPoint_mem_orbit` and
+  `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`; and
+  `isStable_iff_momentWeight_neg`, from `IsStable.momentWeight_neg` and
+  `isStable_of_momentWeight_neg`. The quantifiers range over all of
+  `nonzeroPeriods I G`, as the page says, and the polystable criterion
+  keeps the restriction to those `ξ` with `momentWeight C μ p ξ = 0`.
+- `hilbertMumford`: the milestone, in the setting of `tendsto_limitPoint`
+  with the hypotheses of `kempfNess`. For every `p`: for each
+  `ξ ∈ nonzeroPeriods I G`, `t ↦ μ (C.expI (t • ξ) • p) ξ` tends to
+  `momentWeight C μ p ξ` and `t ↦ C.expI (t • ξ) • p` to `limitPoint C p ξ`
+  (`tendsto_momentWeight`, `tendsto_limitPoint`); and the three criteria
+  above, as a conjunction. Milestone: *Hilbert–Mumford numerical
+  criteria*.
 
 Edge cases: `G` trivial has $\Lambda=\emptyset$, and every point is
 stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
@@ -716,7 +800,16 @@ proof that needs it as a `Submodule` builds it there.
   (`Geometry/Lie/Exponential/LocalInverse.lean`),
   `commute_lieExp_of_lie_eq_zero` and `lieExp_add_of_lie_eq_zero`
   (`Geometry/Lie/Adjoint/Exponential/Formula.lean`), `conj_lieExp` and
-  `hasDerivAt_Ad_lieExp_smul_apply_zero`; for decision 8,
+  `hasDerivAt_Ad_lieExp_smul_apply_zero`; for the criteria, checked at the
+  pinned version `0aaa80fd07b7`, `isTorus_closedOneParameterSubgroup`,
+  `closedOneParameterSubgroup_le`, `forall_mulInvariantExp_smul_eq_one_iff`
+  and `mulInvariantExp_nsmul` (`Geometry/Lie/Subgroup/OneParameter.lean`,
+  `Geometry/Lie/Exponential/`), `IsTorus.exists_sq_eq_one_ne_one` and
+  `IsTorus.image_lieExp_lieSubalgebraOfSubgroup`
+  (`Geometry/Lie/Subgroup/Torus.lean`), `mem_lieSubalgebraOfSubgroup`
+  (`Geometry/Lie/Subgroup/LieAlgebra.lean`) and
+  `mem_isotropy_fundamental_iff_closedOneParameterSubgroup_le`
+  (`Geometry/Lie/Subgroup/Stabilizer.lean`); for decision 8,
   `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
   `TauCeti.Lie.conj_mulInvariantExp` and `mulInvariantLogChart`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
@@ -775,6 +868,21 @@ Each is a few hundred lines; each is blocked by the issues it names.
     5. `exists_momentWeight_pos_of_not_isSemistable` and
        `isSemistable_iff_momentWeight_nonpos`. Blocked by 12.2, 12.3 and
        12.4.
+
+    The polystable and stable criteria are these issues, in this order:
+    6. `exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`, in
+       `Geometry/Lie/Exponential/Periods.lean`. No blockers.
+    7. `momentWeight_eq_moment_iff`,
+       `exists_momentWeight_smul_eq_moment_of_forall_expI_smul_eq`,
+       `IsPolystable.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero`,
+       `IsPolystable.limitPoint_mem_orbit` and `IsStable.momentWeight_neg`.
+       Blocked by 14 and 15.
+
+    After these come the building issues of the sufficiency half of the
+    polystable criterion, which #8142 adds; the last issue,
+    `isStable_of_momentWeight_neg`, the polystable and stable criteria and
+    `hilbertMumford`, follows them and is blocked by them and by 12.5,
+    12.6 and 12.7.
 13. **The parabolic subgroup.** `Geometry/Lie/Subgroup/Parabolic.lean`:
     `C.parabolic ξ`, `C.parabolicLimit ξ` and `C.parabolicSubspace ξ` with
     their API, `tangentAd_expI_smul`, `isSymm_ad_cplx_lieMap`,

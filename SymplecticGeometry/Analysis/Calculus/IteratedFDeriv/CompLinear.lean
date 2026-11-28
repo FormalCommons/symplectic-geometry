@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
-import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.TangentCone.Prod
 import Mathlib.Analysis.Normed.Operator.Prod
 
@@ -31,6 +31,8 @@ This file gives within-a-set forms of three of the norm bounds of Tau Ceti's
   `s ×ˢ univ` have the same norms as those of `f` within `s`. This is the within-a-set form of Tau
   Ceti's `Prod.norm_iteratedFDeriv_comp_fst`, derived as Tau Ceti derives it, from the two bounds
   above applied to `ContinuousLinearMap.fst` and its right inverse `ContinuousLinearMap.inl`.
+* `Prod.norm_iteratedFDerivWithin_comp_fst_sub`: the same equality for the difference of the
+  iterated derivatives of two maps `f₁ ∘ Prod.fst` and `f₂ ∘ Prod.fst`.
 -/
 
 public section
@@ -94,5 +96,24 @@ theorem Prod.norm_iteratedFDerivWithin_comp_fst {f : E → F} {s : Set E} {n : W
     (ContinuousLinearMap.fst 𝕜 E G) (ContinuousLinearMap.inl 𝕜 E G) (fun _ ↦ by simp) hf hs hS
       hp hi).trans (mul_le_of_le_one_right (norm_nonneg _)
         (pow_le_one₀ (norm_nonneg _) (ContinuousLinearMap.norm_inl_le_one 𝕜 E G)))
+
+/-- The difference of the iterated derivatives of `f₁ ∘ Prod.fst` and `f₂ ∘ Prod.fst` within
+`s ×ˢ univ` at `p`, for `f₁` and `f₂` of class `C^n` on a set `s` of unique differentiability and
+`p.1 ∈ s`, has, up to order `n`, the same norm as the difference of those of `f₁` and `f₂` within
+`s` at `p.1`. -/
+theorem Prod.norm_iteratedFDerivWithin_comp_fst_sub {f₁ f₂ : E → F} {s : Set E}
+    {n : WithTop ℕ∞} (hf₁ : ContDiffOn 𝕜 n f₁ s) (hf₂ : ContDiffOn 𝕜 n f₂ s)
+    (hs : UniqueDiffOn 𝕜 s) {i : ℕ} (hi : i ≤ n) {p : E × G} (hp : p.1 ∈ s) :
+    ‖iteratedFDerivWithin 𝕜 i (f₁ ∘ Prod.fst) (s ×ˢ univ) p -
+        iteratedFDerivWithin 𝕜 i (f₂ ∘ Prod.fst) (s ×ˢ univ) p‖ =
+      ‖iteratedFDerivWithin 𝕜 i f₁ s p.1 - iteratedFDerivWithin 𝕜 i f₂ s p.1‖ := by
+  have hS : UniqueDiffOn 𝕜 (s ×ˢ (univ : Set G)) := hs.prod uniqueDiffOn_univ
+  have hpS : p ∈ s ×ˢ (univ : Set G) := ⟨hp, mem_univ _⟩
+  have hc (f : E → F) (hf : ContDiffOn 𝕜 n f s) :
+      ContDiffWithinAt 𝕜 i (f ∘ Prod.fst) (s ×ˢ (univ : Set G)) p :=
+    ((hf.comp contDiffOn_fst fun (q : E × G) (hq : q ∈ s ×ˢ univ) ↦ hq.1).of_le hi) p hpS
+  rw [← iteratedFDerivWithin_sub_apply (hc f₁ hf₁) (hc f₂ hf₂) hS hpS,
+    ← iteratedFDerivWithin_sub_apply ((hf₁.of_le hi) _ hp) ((hf₂.of_le hi) _ hp) hs hp]
+  exact Prod.norm_iteratedFDerivWithin_comp_fst (hf₁.sub hf₂) hs hi hp
 
 end

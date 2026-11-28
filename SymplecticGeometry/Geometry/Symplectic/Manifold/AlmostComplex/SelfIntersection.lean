@@ -287,7 +287,7 @@ theorem selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm [T2Space M] [C
   let := f.normalSpaceFiberBundle hn hν
   let := f.normalSpaceVectorBundle hn hν
   rw [selfIntersectionNumber_def,
-    complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless f _ (by simp) J hJ hν
+    complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless f _ J hJ hν
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
         finrank_euclideanSpace_fin) (finrank_self ℂ),
     Manifold.Orientation.evalFundamentalClass_toHomologicalOrientation_map hF

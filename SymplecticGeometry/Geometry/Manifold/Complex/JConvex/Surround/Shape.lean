@@ -865,6 +865,13 @@ theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × Euclidean
     modelHandle k m a b p = b * (shape p).2 - a * (shape p).1 :=
   (rfl)
 
+/-- On the core the model handle function is `-a |x|²`: `modelHandle k m a b (ι₀ x) = -(a ‖x‖²)`.
+-/
+@[simp]
+theorem modelHandle_modelDisc (a b : ℝ) (x : EuclideanSpace ℝ (Fin k)) :
+    modelHandle k m a b (modelDisc k m x) = -(a * ‖x‖ ^ 2) := by
+  simp [modelHandle_def, EuclideanSpace.real_norm_sq_eq]
+
 /-- The model handle function is smooth. -/
 @[fun_prop]
 theorem contDiff_modelHandle {n : WithTop ℕ∞} (a b : ℝ) :

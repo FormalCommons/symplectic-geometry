@@ -196,8 +196,8 @@ notes of the reviews of #2280 and #2445.
    trivializations of the atlas that cover the compact `S`, in degree two,
    with the classes $1$ in degree zero and `TauCeti.deRhamHom` of
    $[\Theta]$ in degree two, and are carried to de Rham classes by the
-   library's de Rham theorem on the total space and on `S`, both compact
-   (`TauCeti.bijective_deRhamHom_of_compactSpace`), and by its naturality
+   de Rham theorem on the total space and on `S`
+   (`TauCeti.bijective_deRhamHom`), and by its naturality
    (`TauCeti.deRhamHom_map`). The hypotheses on the fibre come from the
    fibre being $\mathbb CP^1$ (`OnePoint.diffeomorphProjectivization`):
    its real homology is finite by Tau Ceti's
@@ -213,7 +213,7 @@ notes of the reviews of #2280 and #2445.
    `mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`. This is
    shorter than a Mayer–Vietoris induction over a finite good cover of
    `S`, which would repeat the induction behind
-   `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`.
+   `TauCeti.bijective_deRhamHom`.
 8. **The form of Exercise 6.2.6 is Weinstein's form.** On
    $P\times_{S^1}S^2$ with a circle connection $A$ whose curvature is a
    constant multiple of an area form $\omega_S$ of `S` (the existence half
@@ -436,8 +436,8 @@ estimate, and `RuledSurface.lean` becomes `RuledSurface/Basic.lean`.
   `symplecticChernNumber_pullback` and `symplecticChernNumber_tangent`,
   `clutchingLineBundle`, `chernNumber_eq_sum_degree_clutching`,
   `unitFrame`, and `chernNumber_eq_integral_curvature_and_exists`.
-- The library's de Rham theorem
-  (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`) and singular
+- Tau Ceti's de Rham theorem
+  (`SmoothSingular/DeRham/Equiv.lean`) and the library's singular
   Leray–Hirsch theorem (`AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`).
 - Tau Ceti: Morse functions and sublevel deformations
   (`Geometry/Manifold/Morse/`), Ehresmann connections, associated bundles,

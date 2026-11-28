@@ -76,6 +76,8 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   map carries `X` to `X`.
 * `SymplecticGeometry.IsWeinsteinStructure.flow_apply_of_mvfderiv_eq_zero`: the critical points of
   `f` are rest points of the flow.
+* `SymplecticGeometry.IsWeinsteinStructure.mem_stableSet_self`: a critical point of `f` lies in
+  its own stable set.
 * `SymplecticGeometry.IsWeinsteinStructure.hasDerivAt_comp_flow` and
   `SymplecticGeometry.IsWeinsteinStructure.monotone_comp_flow`: along an orbit, `f` has
   derivative `df(X)`, which is nonnegative, so it is monotone.
@@ -268,6 +270,12 @@ theorem flow_apply_of_mvfderiv_eq_zero {x : M} (hx : mvfderiv 𝓘(ℝ, E) f x =
     hW.flow t x = x :=
   (forall_globalFlow_eq_self_iff _ hW.isCompleteVectorField x).2
     (hW.isGradientLike.eq_zero_iff.2 hx) t
+
+/-- A critical point of `f` lies in the stable set of itself under the flow of a Weinstein
+structure, since it is a rest point. -/
+theorem mem_stableSet_self {p : M} (hp : p ∈ criticalPoints 𝓘(ℝ, E) f) :
+    p ∈ hW.flow.stableSet p :=
+  Flow.self_mem_stableSet_iff.2 (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp))
 
 /-- The derivative of `f` along an orbit of the flow is `df(X)`. -/
 theorem hasDerivAt_comp_flow (y : M) (t : ℝ) :
