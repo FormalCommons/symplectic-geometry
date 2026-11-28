@@ -39,10 +39,10 @@ coefficients `ModuleCat.of ℤ (ULift ℤ)`. This is the counterpart for pairs o
   class cast to `k` by `SSetPair.intCastHomologyMap`
   (`SimplicialSet/Homology/Relative/RestrictScalars.lean`): on classes of cycles both pairings
   evaluate the cocycle on the cycle cast to `k`.
-* `TopPair.relClass_intCastHomologyMap`: that cast sends the integral class `TopPair.relClass` of
-  a singular simplex whose faces lie in the subspace to its class over `k`. With it,
-  `TopPair.singularKronecker_singularCohomologyIntChainsIso_hom_relClass` is the case of the
-  pairing on such a class.
+* `TopPair.singularKronecker_singularCohomologyIntChainsIso_hom_relClass`: its case on the
+  integral class `TopPair.relClass` of a singular simplex whose faces lie in the subspace, which
+  the cast sends to its class over `k` (`TopPair.relClass_intCastHomologyMap`,
+  `Singular/RelativeClass.lean`).
 
 The cochain comparison follows Tau Ceti's `TopCat.restrictScalarsCochainMap`, with the relative
 chain map in place of `TopCat.restrictScalarsChainMap`, and the cohomology comparison and its
@@ -63,29 +63,6 @@ noncomputable section
 open CategoryTheory Limits Simplicial TauCeti
 
 namespace TopPair
-
-section RelClass
-
-variable {k : Type} [Ring k] (P : TopPair.{0})
-
-/-- Casting integral relative homology to `k` (`SSetPair.intCastHomologyMap`) sends the integral
-class of a singular `(p + 1)`-simplex `s` whose faces lie in the subspace to the class of `s`
-over `k`, through the cast of integers to `k` on coefficients. -/
-@[reassoc]
-theorem relClass_intCastHomologyMap {p : ℕ} (s : (TopCat.toSSet.obj P.fst) _⦋p + 1⦌)
-    (h : ∀ i, Set.range (P.fst.toSSetObjEquiv _ ((TopCat.toSSet.obj P.fst).δ i s)) ⊆
-      Set.range P.map) :
-    P.relClass (ModuleCat.of ℤ (ULift.{0} ℤ)) s h ≫
-        SSetPair.intCastHomologyMap k (toSSetPair.obj P) (p + 1) =
-      ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          (P.relClass (ModuleCat.of k k) s h) := by
-  rw [relClass_def, relClass_def]
-  -- `s` is a simplex of `(toSSetPair.obj P).right`, which is `TopCat.toSSet.obj P.fst` only up to
-  -- unfolding `toSSetPair`, so the lemma for pairs of simplicial sets is applied as a term.
-  exact SSetPair.relClass_intCastHomologyMap (P := toSSetPair.obj P) s _ _
-
-end RelClass
 
 variable (k : Type) [CommRing k] (P : TopPair.{0})
 

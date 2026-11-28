@@ -32,18 +32,21 @@ coefficients `ModuleCat.of ℤ (ULift ℤ)`.
   of pairs.
 * `SSetPair.restrictScalarsHomologyMap f g P n : Hₙ(P; M) ⟶ f^* Hₙ(P; N)`: the induced map on
   relative homology. `SSetPair.homologyπ_restrictScalarsHomologyMap` gives it on the class of a
-  relative cycle, and `SSetPair.relClass_restrictScalarsHomologyMap` on the relative class
-  `SSetPair.relClass` of a simplex whose faces lie in the subcomplex.
+  relative cycle, `SSetPair.relClass_restrictScalarsHomologyMap` on the relative class
+  `SSetPair.relClass` of a simplex whose faces lie in the subcomplex, and
+  `SSetPair.restrictScalarsHomologyMap_naturality` says that it commutes with maps of pairs.
 * `SSetPair.intCastChainMap k P : C(P; ℤ) ⟶ F (C(P; k))`: for `F` the restriction of scalars
   along `ℤ → k`, the chain map casting the coefficients of integral relative chains to `k`, the
   change of coefficients along `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)`, with the
   same three lemmas.
 * `SSetPair.intCastHomologyMap k P n : Hₙ(P; ℤ) ⟶ F (Hₙ(P; k))`: the induced map on relative
-  homology, with `SSetPair.homologyπ_intCastHomologyMap` on classes of relative cycles and
-  `SSetPair.relClass_intCastHomologyMap` on relative classes of simplices.
+  homology, with `SSetPair.homologyπ_intCastHomologyMap` on classes of relative cycles,
+  `SSetPair.relClass_intCastHomologyMap` on relative classes of simplices and
+  `SSetPair.intCastHomologyMap_naturality` for maps of pairs.
 
-The maps on homology follow Tau Ceti's `TopCat.restrictScalarsHomologyMap` and
-`TopCat.homologyπ_restrictScalarsHomologyMap`, with the relative chain map in place of
+The maps on homology follow Tau Ceti's `TopCat.restrictScalarsHomologyMap`,
+`TopCat.homologyπ_restrictScalarsHomologyMap` and `TopCat.restrictScalarsHomologyMap_naturality`,
+with the relative chain map in place of
 `TopCat.restrictScalarsChainMap`.
 -/
 
@@ -179,6 +182,26 @@ theorem relClass_restrictScalarsHomologyMap {P : SSetPair.{u}} {n : ℕ} (s : P.
     chainComplexπ_f_restrictScalarsChainMap_f, SSet.ιChainComplex_restrictScalarsChainMap_f_assoc,
     Category.assoc g, ← Functor.map_comp, ← Functor.map_comp, HomologicalComplex.liftCycles_i]
 
+/-- The change of coefficients on relative homology commutes with the maps induced on relative
+homology by maps of pairs of simplicial sets. -/
+@[reassoc]
+theorem restrictScalarsHomologyMap_naturality {P Q : SSetPair.{u}} (h : P ⟶ Q) (n : ℕ) :
+    SSetPair.homologyMap h M n ≫ restrictScalarsHomologyMap f g Q n =
+      restrictScalarsHomologyMap f g P n ≫
+        (ModuleCat.restrictScalars f).map (SSetPair.homologyMap h N n) := by
+  have hc : SSetPair.chainComplexMap h M ≫ restrictScalarsChainMap f g Q =
+      restrictScalarsChainMap f g P ≫
+        ((ModuleCat.restrictScalars f).mapHomologicalComplex _).map
+          (SSetPair.chainComplexMap h N) := by
+    ext n : 1
+    rw [HomologicalComplex.comp_f, HomologicalComplex.comp_f,
+      Functor.mapHomologicalComplex_map_f, chainComplexMap_f_restrictScalarsChainMap]
+  rw [restrictScalarsHomologyMap_def, restrictScalarsHomologyMap_def,
+    ← HomologicalComplex.homologyMap_comp_assoc, hc, HomologicalComplex.homologyMap_comp_assoc]
+  exact congrArg (_ ≫ ·)
+    (((ModuleCat.restrictScalars f).mapHomologicalComplexCompHomologyFunctorIso _ n).hom.naturality
+      (SSetPair.chainComplexMap h N))
+
 end RestrictScalars
 
 section IntCast
@@ -281,6 +304,16 @@ theorem relClass_intCastHomologyMap {P : SSetPair.{0}} {n : ℕ} (s : P.right _�
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
           (SSetPair.relClass (ModuleCat.of k k) s t ht) := by
   rw [intCastHomologyMap_def, relClass_restrictScalarsHomologyMap]
+
+/-- Casting integral relative homology to `k` commutes with the maps induced on relative homology
+by maps of pairs of simplicial sets. -/
+@[reassoc]
+theorem intCastHomologyMap_naturality {P Q : SSetPair.{0}} (h : P ⟶ Q) (n : ℕ) :
+    SSetPair.homologyMap h (ModuleCat.of ℤ (ULift.{0} ℤ)) n ≫ intCastHomologyMap k Q n =
+      intCastHomologyMap k P n ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+          (SSetPair.homologyMap h (ModuleCat.of k k) n) := by
+  rw [intCastHomologyMap_def, intCastHomologyMap_def, restrictScalarsHomologyMap_naturality]
 
 end IntCast
 
