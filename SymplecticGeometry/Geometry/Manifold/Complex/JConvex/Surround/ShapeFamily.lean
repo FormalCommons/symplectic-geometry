@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Brid
 import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Order.Interval.Set.Piecewise
+import SymplecticGeometry.Topology.ContinuousOn
 import SymplecticGeometry.Topology.Order.Piecewise
 
 /-!
@@ -96,7 +97,14 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `i`-convex shape at every `r > δ` (`SymplecticGeometry.isConvexShapeAt_surroundFamily`),
   smooth on `(δ, ∞)`, continuous on `[δ, ∞)` with slope tending to `+∞` at `δ`, and strictly
   increasing on `[δ, ∞)` (`SymplecticGeometry.strictMonoOn_surroundFamily`); its leaf `-8 δ` is
-  `√(64 r² - 64 δ²)` (`SymplecticGeometry.surroundFamily_neg_eight_mul`).
+  `√(64 r² - 64 δ²)` (`SymplecticGeometry.surroundFamily_neg_eight_mul`). Across the leaves,
+  once `(ℓ, r) ↦ F ℓ r` is smooth on `[ℓ₀, ℓₜ] × (δ, ∞)`, every `r`-derivative of the family is
+  jointly continuous on `[-8 δ, ℓₜ] × (δ, ∞)`
+  (`SymplecticGeometry.continuousOn_iteratedDeriv_surroundFamily`): on each of the closed pieces
+  `[-8 δ, 0]`, `[0, 7 δ]`, the three stages of the bridge family and `[2 ℓ₀, ℓₜ]`, the leaves
+  agree on `(δ, ∞)` with a formula smooth in `(ℓ, r)`
+  (`continuousOn_iteratedDeriv_prod_right_of_eqOn`), and the pieces are glued with
+  `ContinuousOn.union_prod_of_isClosed`.
 
 ## References
 
@@ -851,6 +859,75 @@ theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
       (fun ℓ h ↦ (hFS ℓ (Icc_subset_Icc_right hℓₜ h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
       hFℓ hFs hFd hℓ hr
 
+/-- **The glued family and its `r`-derivatives are jointly continuous.** Let `0 < L`, `0 < δ`,
+`24 δ ≤ ℓ₀`, `0 ≤ M` and `2 ℓ₀ ≤ ℓₜ`, let `(ℓ, r) ↦ F ℓ r` be smooth at every point of
+`[ℓ₀, ℓₜ] × (δ, ∞)`, let `F ℓ₀` be an `i`-convex shape at every `r > δ` and the standard leaf
+`r ↦ √(64 r² + ℓ₀²)` from `ℓ₀ / 4` on, and let `F (2 ℓ₀)` be at least `2 ℓ₀` on `(δ, ∞)` and the
+standard leaf from `2 ℓ₀ / 4` on. Then for every `k` the `k`-th `r`-derivative
+`(ℓ, r) ↦ ∂ᵏχ/∂rᵏ (ℓ, r)` of the glued family `χ` is continuous on `[-8 δ, ℓₜ] × (δ, ∞)`. -/
+theorem continuousOn_iteratedDeriv_surroundFamily {ℓₜ : ℝ} (hL : 0 < L) (hδ : 0 < δ)
+    (hℓ₀ : 24 * δ ≤ ℓ₀) (hM : 0 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
+    (hF : ∀ q ∈ Icc ℓ₀ ℓₜ ×ˢ Ioi δ, ContDiffAt ℝ ∞ (Function.uncurry F) q)
+    (hFc : ∀ r, δ < r → IsConvexShapeAt (F ℓ₀) r)
+    (hFs : ∀ r, ℓ₀ / 4 ≤ r → F ℓ₀ r = √(64 * r ^ 2 + ℓ₀ ^ 2))
+    (hFℓ : ∀ r, δ < r → 2 * ℓ₀ ≤ F (2 * ℓ₀) r)
+    (hFs₂ : ∀ r, 2 * ℓ₀ / 4 ≤ r → F (2 * ℓ₀) r = √(64 * r ^ 2 + (2 * ℓ₀) ^ 2)) (k : ℕ) :
+    ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (surroundFamily L δ ℓ₀ M F q.1) q.2)
+      (Icc (-8 * δ) ℓₜ ×ˢ Ioi δ) := by
+  -- On each closed piece of `ℓ`, the leaves agree on `(δ, ∞)` with a formula smooth in `(ℓ, r)`.
+  have piece {a b : ℝ} (g : ℝ × ℝ → ℝ)
+      (hG : ∀ ℓ ∈ Icc a b, EqOn (surroundFamily L δ ℓ₀ M F ℓ) (fun r ↦ g (ℓ, r)) (Ioi δ))
+      (hg : ∀ q ∈ Icc a b ×ˢ Ioi δ, ContDiffAt ℝ ∞ g q) :
+      ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (surroundFamily L δ ℓ₀ M F q.1) q.2)
+        (Icc a b ×ˢ Ioi δ) :=
+    continuousOn_iteratedDeriv_prod_right_of_eqOn isOpen_Ioi hG hg (by exact_mod_cast le_top)
+  have glue {a b c : ℝ} (hab : a ≤ b) (hbc : b ≤ c)
+      (h₁ : ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (surroundFamily L δ ℓ₀ M F q.1) q.2)
+        (Icc a b ×ˢ Ioi δ))
+      (h₂ : ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (surroundFamily L δ ℓ₀ M F q.1) q.2)
+        (Icc b c ×ˢ Ioi δ)) :
+      ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (surroundFamily L δ ℓ₀ M F q.1) q.2)
+        (Icc a c ×ˢ Ioi δ) := by
+    rw [← Icc_union_Icc_eq_Icc hab hbc]
+    exact h₁.union_prod_of_isClosed h₂ isClosed_Icc isClosed_Icc isOpen_Ioi
+  have hbridge {ℓ : ℝ} (hℓ₁ : 7 * δ ≤ ℓ) (hℓ₂ : ℓ ≤ 2 * ℓ₀) :=
+    surroundFamily_eqOn_bridgeFamily (L := L) (M := M) (F := F) hδ ⟨hℓ₁, hℓ₂⟩
+  -- The leaves `ℓ ≤ 0`.
+  have hopen : IsOpen {p : ℝ × ℝ | δ < p.2 ∧ |p.1| < 8 * p.2} :=
+    (isOpen_lt continuous_const continuous_snd).inter
+      (isOpen_lt (continuous_abs.comp continuous_fst) (continuous_const.mul continuous_snd))
+  have h₁ := piece (a := -8 * δ) (b := 0) (Function.uncurry (sqrtSubLeaf L δ))
+    (fun ℓ hℓ r _ ↦ by dsimp only; rw [surroundFamily_of_nonpos hℓ.2, Function.uncurry_apply_pair])
+    fun q hq ↦ (contDiffOn_uncurry_sqrtSubLeaf L hδ.le).contDiffAt <| hopen.mem_nhds
+      ⟨hq.2, abs_lt.2 ⟨by linarith [hq.1.1, mem_Ioi.1 hq.2], by linarith [hq.1.2, mem_Ioi.1 hq.2]⟩⟩
+  -- The Struwe switch leaves.
+  have h₂ := piece (a := 0) (b := 7 * δ) (Function.uncurry (struweSwitchLeaf L δ))
+    (fun ℓ hℓ r _ ↦ by
+      dsimp only; rw [surroundFamily_eq_struweSwitchLeaf hδ.le hℓ, Function.uncurry_apply_pair])
+    fun q hq ↦ contDiffAt_uncurry_struweSwitchLeaf hL.le hδ hq.2
+  -- The three stages of the bridge family.
+  have h₃ := piece (a := 7 * δ) (b := 15 * δ / 2) _
+    (fun ℓ hℓ ↦ (hbridge hℓ.1 (by linarith [hℓ.2])).trans
+      (by rw [bridgeFamily_of_le hℓ.2]; exact eqOn_refl _ _))
+    fun q hq ↦ contDiffAt_bridgeLeaf_sqrtAddLeaf L hδ ℓ₀ hq.2
+  have h₄ := piece (a := 15 * δ / 2) (b := ℓ₀) _
+    (fun ℓ hℓ ↦ (hbridge (by linarith [hℓ.1]) (by linarith [hℓ.2])).trans
+      (bridgeFamily_eqOn_sqrt hL hδ M F hℓ))
+    fun q hq ↦ contDiffAt_bridgeLeaf_sqrt L hδ ℓ₀ hM hq.2
+  have h₅ := piece (a := ℓ₀) (b := 2 * ℓ₀) _
+    (fun ℓ hℓ ↦ (hbridge (by linarith [hℓ.1]) hℓ.2).trans
+      (bridgeFamily_eqOn_of_ge hL.le hδ (by linarith) hM hFc hFs hℓ.1))
+    fun q hq ↦ contDiffAt_bridgeLeaf_bridgeWidth L hδ hM
+      (hF q ⟨⟨hq.1.1, by linarith [hq.1.2]⟩, hq.2⟩) hq.2
+  -- The leaves `F ℓ`.
+  have h₆ := piece (a := 2 * ℓ₀) (b := ℓₜ) (Function.uncurry F)
+    (fun ℓ hℓ r hr ↦ by
+      dsimp only
+      rw [surroundFamily_eqOn_of_ge hδ hℓ₀ hM hFℓ hFs₂ hℓ.1 hr, Function.uncurry_apply_pair])
+    fun q hq ↦ hF q ⟨⟨by linarith [hq.1.1], hq.1.2⟩, hq.2⟩
+  exact glue (by linarith) (by linarith) h₁ <| glue (by linarith) (by linarith) h₂ <|
+    glue (by linarith) (by linarith) h₃ <| glue (by linarith) (by linarith) h₄ <|
+    glue (by linarith) hℓₜ h₅ h₆
 end surroundFamily
 
 end SymplecticGeometry
