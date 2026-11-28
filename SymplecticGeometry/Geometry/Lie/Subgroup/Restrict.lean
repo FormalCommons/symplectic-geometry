@@ -77,7 +77,6 @@ def restrict (f : ContMDiffMonoidMorphism I I' ∞ G G') (d : EmbeddedLieSubgrou
 
 /-- The underlying homomorphism of `ContMDiffMonoidMorphism.restrict` is the restriction of `f`
 to `K`, with its codomain cut down to `K'`. -/
-@[simp]
 theorem toMonoidHom_restrict (f : ContMDiffMonoidMorphism I I' ∞ G G')
     (d : EmbeddedLieSubgroupData I K F) (d' : EmbeddedLieSubgroupData I' K' F')
     (h : Set.MapsTo f K K') :
