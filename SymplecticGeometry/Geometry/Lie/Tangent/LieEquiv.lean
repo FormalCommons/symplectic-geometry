@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.Tangent.LieEquiv
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
+import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The adjoint map under the identification of left-invariant derivations with `E`
@@ -63,10 +65,8 @@ theorem conjContinuousAlgEquiv_leftInvariantDerivationLinearIsometryEquivModelVe
     LinearIsometryEquiv.coe_symm_toContinuousLinearEquiv, LinearMap.coe_toContinuousLinearMap',
     LieAlgebra.ad_apply]
   rw [he, LieEquiv.map_lie, ← he (e.symm w), e.apply_symm_apply,
-    leftInvariantDerivationLieEquivGroupLieAlgebra_apply]
-  -- `Module.End.toContinuousLinearMap` has no evaluation lemma in Mathlib, and the conjugation is
-  -- by `groupLieAlgebraEquivModelVectorSpace`, which is `LinearEquiv.refl ℝ E`: both sides are
-  -- the bracket of the value of `D` at the identity with `w`.
-  rfl
+    leftInvariantDerivationLieEquivGroupLieAlgebra_apply, Module.End.toContinuousLinearMap_apply,
+    LinearEquiv.conj_apply_apply, groupLieAlgebraEquivModelVectorSpace_apply,
+    LieAlgebra.ad_apply, groupLieAlgebraEquivModelVectorSpace_symm_apply]
 
 end

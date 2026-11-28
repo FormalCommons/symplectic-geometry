@@ -5,15 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Diffeomorphism.Group
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 
 /-!
-# Pulling back almost complex structures along the inverse of a diffeomorphism
+# Pulling back almost complex structures along inverses and in the diffeomorphism group
 
 For a smooth diffeomorphism `φ : M → N`, an almost complex structure `J` on `N` and one `K` on
 `M`, the inverse `φ⁻¹` pulls `K` back to `J` exactly when `φ` pulls `J` back to `K`
 (`TauCeti.SmoothAlmostComplexStructure.pullback_symm_eq_iff`). This complements Tau Ceti's
 `pullback_refl` and `pullback_trans`, from which it follows.
+
+In the group `TauCeti.Diff I M ∞` of smooth self-diffeomorphisms, where `φ * ψ = ψ.trans φ`,
+those two lemmas become `pullback_one` and `pullback_mul`: pulling back is a right action.
 
 ## References
 
@@ -41,6 +45,18 @@ theorem pullback_symm_eq_iff (φ : M ≃ₘ⟮I, I'⟯ N) {J : SmoothAlmostCompl
   constructor <;> rintro rfl
   · rw [← pullback_trans, Diffeomorph.self_trans_symm, pullback_refl]
   · rw [← pullback_trans, Diffeomorph.symm_trans_self, pullback_refl]
+
+/-- Pulling back along the identity of the diffeomorphism group does nothing. -/
+@[simp]
+theorem pullback_one (J : SmoothAlmostComplexStructure I M) :
+    J.pullback (1 : TauCeti.Diff I M ∞) = J := by
+  rw [Diffeomorph.one_def, pullback_refl]
+
+/-- Pulling back along a product `φ * ψ` (first `ψ`, then `φ`) is pulling back along `φ`, then
+along `ψ`. -/
+theorem pullback_mul (J : SmoothAlmostComplexStructure I M) (φ ψ : TauCeti.Diff I M ∞) :
+    J.pullback (φ * ψ) = (J.pullback φ).pullback ψ := by
+  rw [Diffeomorph.mul_def, pullback_trans]
 
 end TauCeti.SmoothAlmostComplexStructure
 

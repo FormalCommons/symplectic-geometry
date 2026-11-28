@@ -831,7 +831,9 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   `Projectivization.mapDiffeomorph` at the linear equivalence `ρ g`), with the
   library's `fubiniStudyForm n` and `ofComplexManifold`; the invariance of
   both under `G` (`mpullback_unitary_fubiniStudyForm`); and
-  `isComplexifiedAction_projectivization`. The fundamental vector field of
+  `isComplexifiedAction_projectivization`, stated for any smooth linear
+  action whose action on `V` is a complexified action for multiplication by
+  `Complex.I`, which for `ρ` is the condition on `dρ`. The fundamental vector field of
   `ξ` at `[y]` is the image of `dρ ξ • y` under the differential of the
   projection, which identifies it with the generator of Tau Ceti's
   `TauCeti.ComplexProjectiveSpace.unitaryAction` at `dρ ξ`, an
@@ -1011,7 +1013,8 @@ proof that needs it as a `Submodule` builds it there.
   orbit, which is at most the infimum, hence `0`, and
   `momentNormSq_eq_zero_iff` makes the minimum point a zero of `μ`.
 - `exists_momentWeight_pos_of_iInf_momentNormSq_pos` (`HilbertMumford.lean`):
-  in the setting of `momentNormSq_limit_eq_iInf`, if
+  in the setting of `exists_mem_orbit_maximalIntegralCurve`, with `B` positive
+  definite and `Ad`-invariant, if
   `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
   some `ξ` with `B ξ ξ = 1` has `0 < momentWeight C μ p ξ`. Proof: take
   the flow curve `g` of `exists_mem_orbit_maximalIntegralCurve`, so
