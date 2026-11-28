@@ -375,7 +375,7 @@ theorem stableSubspace_modelHandleField :
       ((((-1 : ℝ) • ContinuousLinearMap.id ℝ _).prodMap
           ((2 : ℝ) • ContinuousLinearMap.id ℝ _)).prodMap
         ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _)) := by
-    ext p <;> simp [modelHandleField, e]
+    ext p j <;> simp [modelHandleField_apply_fst_apply, e]
   rw [h, ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv,
     ContinuousLinearMap.stableSubspace_prodMap, ContinuousLinearMap.stableSubspace_prodMap,
     ContinuousLinearMap.stableSubspace_smul_id_of_neg (by norm_num),

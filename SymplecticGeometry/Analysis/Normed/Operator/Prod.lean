@@ -21,6 +21,7 @@ it is continuous and commutes with the exponential.
 
 * `ContinuousLinearMap.prodMapAlgHom`: `p ↦ p.1.prodMap p.2` as an algebra homomorphism
   `(M →L[R] M) × (N →L[R] N) →ₐ[R] (M × N →L[R] M × N)`.
+* `ContinuousLinearMap.coe_prodMapAlgHom`: on normed spaces it is `prodMapL` as a function.
 * `ContinuousLinearMap.continuous_prodMapAlgHom`: it is continuous on normed spaces.
 * `ContinuousLinearMap.exp_prodMap`: `exp (A.prodMap B) = (exp A).prodMap (exp B)`.
 -/
@@ -33,7 +34,7 @@ namespace ContinuousLinearMap
 
 section Algebra
 
-variable (R M N : Type*) [CommRing R] [TopologicalSpace M] [AddCommGroup M] [Module R M]
+variable (R M N : Type*) [CommSemiring R] [TopologicalSpace M] [AddCommGroup M] [Module R M]
   [IsTopologicalAddGroup M] [ContinuousConstSMul R M] [TopologicalSpace N] [AddCommGroup N]
   [Module R N] [IsTopologicalAddGroup N] [ContinuousConstSMul R N]
 
@@ -63,10 +64,15 @@ section Normed
 variable {𝕜 X Y : Type*} [NontriviallyNormedField 𝕜] [SeminormedAddCommGroup X]
   [NormedSpace 𝕜 X] [SeminormedAddCommGroup Y] [NormedSpace 𝕜 Y]
 
+/-- On normed spaces, `ContinuousLinearMap.prodMapAlgHom` is, as a function, Mathlib's
+continuous bilinear map `ContinuousLinearMap.prodMapL`. -/
+theorem coe_prodMapAlgHom : ⇑(prodMapAlgHom 𝕜 X Y) = ⇑(prodMapL 𝕜 X X Y Y) :=
+  (rfl)
+
 /-- On normed spaces, `ContinuousLinearMap.prodMapAlgHom` is continuous. -/
 theorem continuous_prodMapAlgHom : Continuous (prodMapAlgHom 𝕜 X Y) := by
-  rw [show ⇑(prodMapAlgHom 𝕜 X Y) = fun p ↦ p.1.prodMap p.2 from funext prodMapAlgHom_apply]
-  exact Continuous.prod_mapL 𝕜 continuous_fst continuous_snd
+  rw [coe_prodMapAlgHom]
+  exact (prodMapL 𝕜 X X Y Y).continuous
 
 end Normed
 
