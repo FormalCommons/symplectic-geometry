@@ -93,22 +93,11 @@ theorem mpullback_smul_fubiniStudyForm {K : Type*} [Group K]
 section Moment
 
 open TauCeti.Lie
-open scoped Matrix.Norms.Operator
-
--- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
-attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
-attribute [local instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
-
-/-- The model vector space of the matrix unitary Lie group `unitarySubgroup (GL (Fin (n + 1)) ℂ)`:
-its Lie algebra inside the Lie algebra of `GL (Fin (n + 1)) ℂ`. -/
-local notation "𝔨[" n "]" => LieSubalgebra.toSubmodule
-  (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))
-    (unitarySubgroup (GL (Fin (n + 1)) ℂ)))
 
 /-- **The moment map of a unitary representation on `ℂPⁿ`.** For a homomorphism
 `φ : G →* U(n + 1)` into the matrix unitary Lie group, the line `x` goes to the moment
@@ -118,12 +107,14 @@ moment map for `fubiniStudyForm n` when `G` acts on `ℂⁿ⁺¹` through `φ`
 (`SymplecticGeometry.isEquivariantMomentMap_neg_projectivizationMoment`). -/
 noncomputable def projectivizationMoment (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
     (x : ℙ ℂ (Fin (n + 1) → ℂ)) : Module.Dual ℝ (GroupLieAlgebra I G) :=
-  (unitaryProjectivizationMoment n x).comp (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n])).toLinearMap
+  (unitaryProjectivizationMoment n x).comp
+    (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)])).toLinearMap
 
 theorem projectivizationMoment_def (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
     (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
     projectivizationMoment I φ x =
-      (unitaryProjectivizationMoment n x).comp (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n])).toLinearMap :=
+      (unitaryProjectivizationMoment n x).comp
+        (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)])).toLinearMap :=
   (rfl)
 
 /-- The component of `projectivizationMoment I φ x` along `ξ` is that of the moment of the unitary
@@ -131,7 +122,7 @@ group along `dφ ξ`. -/
 theorem projectivizationMoment_apply (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
     (x : ℙ ℂ (Fin (n + 1) → ℂ)) (ξ : GroupLieAlgebra I G) :
     projectivizationMoment I φ x ξ =
-      unitaryProjectivizationMoment n x (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n]) ξ) :=
+      unitaryProjectivizationMoment n x (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :=
   (rfl)
 
 variable {I} [CompleteSpace E] [LieGroup I ∞ G]
@@ -143,7 +134,8 @@ through a homomorphism `φ : G →* U(n + 1)` that is differentiable at the iden
 `x ↦ -projectivizationMoment I φ x` is a coadjoint-equivariant moment map for the induced action on
 `ℂPⁿ` and the Fubini–Study form `fubiniStudyForm n`. -/
 theorem isEquivariantMomentMap_neg_projectivizationMoment
-    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ)) (hφ : MDifferentiableAt I 𝓘(ℝ, 𝔨[n]) (⇑φ) 1)
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (hφ : MDifferentiableAt I 𝓘(ℝ, 𝔨[Fin (n + 1)]) (⇑φ) 1)
     (hsmul : ∀ (g : G) (v : Fin (n + 1) → ℂ), g • v = φ g • v) :
     (fubiniStudyForm n).IsEquivariantMomentMap fun x ↦ -projectivizationMoment I φ x := by
   have h := (isEquivariantMomentMap_neg_unitaryProjectivizationMoment n).comp_monoidHom φ hφ
