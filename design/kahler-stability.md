@@ -762,7 +762,8 @@ the source, first half).
   `Subgroup.ambientConnectedComponentOfOne`). The curve `t ↦ k t • x` has
   derivative `mfderiv (k t • ·) x (X_ζ x) = 0`, so it is constant, and
   `k` is a connected curve through `1` in the stabilizer.
-- `stabilizerComplexification C hx : LieComplexification I₀ H₀ IC₀ Gc₀`,
+- `IsComplexifiedAction.stabilizerComplexification h hμ hg hx :
+  LieComplexification I₀ H₀ IC₀ Gc₀`,
   with `H₀` and `Gc₀` the identity components of the stabilizers of `x`
   in `G` and `Gc`, closed subgroups made Lie groups by
   `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` (`I₀`, `IC₀` their
@@ -775,9 +776,10 @@ the source, first half).
   `𝔥 × H` onto the stabilizer of `x` in `Gc`, so, being a
   homeomorphism, it maps the component `𝔥 × H₀` of `(0, 1)` onto `Gc₀`.
   `H₀` is compact and connected, so the setting holds for it.
-- `stabilizerComplexification_expI` and `mem_nonzeroPeriods_of_stabilizer`:
+- `IsComplexifiedAction.stabilizerComplexification_expI` and
+  `mem_nonzeroPeriods_of_stabilizer`:
   through the inclusion of Lie algebras, the `expI` of
-  `stabilizerComplexification C hx` is that of `C`, and a nonzero period of
+  `h.stabilizerComplexification hμ hg hx` is that of `C`, and a nonzero period of
   `H₀` is one of `G` (`EmbeddedLieSubgroupData.coe_mulInvariantExp`,
   `EmbeddedLieSubgroupData.injective_groupLieAlgebraMap_subtype`). These
   replace the passage from `H exp(i𝔥)` to its identity component: the
@@ -915,7 +917,7 @@ because the orbit of a zero of `μ` is isotropic (Tau Ceti's
   `u ∈ H₀`, and `ρ (C.expI η)` is `NormedSpace.exp (J x ∘ A η)` by
   `expI_smul_chart_symm`. In an orthonormal basis of `S` for the
   Hermitian product of `g_J` and `J x`, `ρ` is a representation of
-  `stabilizerComplexification C hx` as `Projective.lean` takes it.
+  `h.stabilizerComplexification hμ hg hx` as `Projective.lean` takes it.
 - The local criterion (Step 5): `v t₀ ≠ 0`, since otherwise
   `x ∈ MulAction.orbit Gc p`; `v t → 0` lies in the `Gc₀`-orbit of `v t₀`,
   so `exists_mem_nonzeroPeriods_tendsto_smul_zero` gives a period `λ` of
