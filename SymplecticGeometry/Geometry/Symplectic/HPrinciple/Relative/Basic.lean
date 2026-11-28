@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.Stage
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Exhaustion
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.InfiniteConcat
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
+import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Exhaustion
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 import TauCeti.Geometry.Symplectic.ExistsCompatible
@@ -23,6 +25,13 @@ all in the class of a two-form `α₀` and equal to `τ` over `P₀`, there is a
 `τ` over `L × [0, 1]` through forms that are nondegenerate over `K`, through closed forms in the
 class of `α₀` over `P₀`, and ending in closed forms in the class of `α₀`
 (`SymplecticGeometry.exists_isSmoothFamily_homotopy_closed`).
+
+For a family over `[0, 1]`, the corollary
+`SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval` extends `τ` to `ℝ`
+(`SymplecticGeometry.IsSmoothFamily.exists_extend`), takes `K = [0, 1]`, and restricts `H` to
+`[0, 1] × [0, 1]`. When the ends of `τ` are closed in the class of `α₀`, the segment between
+them is a family `α` for `P₀ = {0, 1}`
+(`SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends`).
 
 ## Proof
 
@@ -46,6 +55,10 @@ a point makes the dimension even (`TauCeti.SymplecticForm.even_finrank`), as
 
 * `SymplecticGeometry.exists_isSmoothFamily_homotopy_closed`: the smooth version of the
   parametric relative h-principle.
+* `SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval`: the same for a family
+  over `[0, 1]`.
+* `SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends`: the case of a
+  path whose ends are closed in the class of `α₀`, with `P₀ = {0, 1}`.
 
 ## References
 
@@ -253,6 +266,72 @@ theorem exists_isSmoothFamily_homotopy_closed
         rw [(seq n).hδ l, add_sub_cancel_left, exactForms_succ]; exact ⟨_, rfl⟩)) (hα₀ l)
     simpa only [sub_add_sub_cancel] using h
   · simpa only [infiniteConcat_one] using hεc l
+
+/-- **The parametric relative h-principle for symplectic forms over `[0, 1]`.** Let `M` be a
+manifold without boundary none of whose connected components is compact and `P₀ ⊆ [0, 1]` closed.
+Let `τ` be a smooth family of nondegenerate two-forms on `M` over `[0, 1]`, and `α` a smooth family
+over `ℝ` of closed two-forms with every `α s - α₀` exact and `α t = τ t` for `t ∈ P₀`. Then there
+is a smooth family `H` over `[0, 1] × [0, 1]` with `H (t, 0) = τ t` such that
+
+* every `H (t, u)` is nondegenerate;
+* `H (t, u)` is closed and `H (t, u) - α₀` is exact for `t ∈ P₀`;
+* `H (t, 1)` is closed and `H (t, 1) - α₀` is exact for every `t`.
+
+The family `α` is asked over `ℝ`, where the uses build it explicitly: a smooth extension to `ℝ`
+of a family of closed forms over `[0, 1]` need not be closed off `[0, 1]`. -/
+theorem exists_isSmoothFamily_homotopy_closed_unitInterval
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) {P₀ : Set unitInterval}
+    (hP₀ : IsClosed P₀) {τ : unitInterval → SmoothTwoForm I M} (hτ : IsSmoothFamily (𝓡∂ 1) τ)
+    (hnd : ∀ t, (τ t).IsNondegenerate) {α : ℝ → SmoothTwoForm I M}
+    (hα : IsSmoothFamily 𝓘(ℝ, ℝ) α) (hαc : ∀ s, mextDerivₗ I 2 (α s) = 0)
+    {α₀ : SmoothTwoForm I M} (hα₀ : ∀ s, α s - α₀ ∈ exactForms I M 2)
+    (hP₀α : ∀ t ∈ P₀, α t = τ t) :
+    ∃ H : unitInterval × unitInterval → SmoothTwoForm I M,
+      IsSmoothFamily ((𝓡∂ 1).prod (𝓡∂ 1)) H ∧ (∀ t, H (t, 0) = τ t) ∧
+      (∀ t u, (H (t, u)).IsNondegenerate) ∧
+      (∀ t ∈ P₀, ∀ u, mextDerivₗ I 2 (H (t, u)) = 0 ∧ H (t, u) - α₀ ∈ exactForms I M 2) ∧
+      ∀ t, mextDerivₗ I 2 (H (t, 1)) = 0 ∧ H (t, 1) - α₀ ∈ exactForms I M 2 := by
+  -- Extend `τ` to `ℝ`, apply the smooth version with `K = [0, 1]`, and restrict back.
+  obtain ⟨τ', hτ', hτ'τ⟩ := hτ.exists_extend
+  obtain ⟨H, hH, hH₀, hHnd, hHP₀, hH₁⟩ := exists_isSmoothFamily_homotopy_closed hM
+    (K := Icc 0 1) isCompact_Icc (isClosed_Icc.isClosedMap_subtypeVal _ hP₀) hτ'
+    (fun s hs ↦ by simpa only [hτ'τ ⟨s, hs⟩] using hnd ⟨s, hs⟩) hα hαc hα₀
+    (by rintro _ ⟨t, ht, rfl⟩; rw [hP₀α t ht, hτ'τ])
+  refine ⟨fun p ↦ H ((p.1 : ℝ), p.2),
+    hH.comp _ ((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).prodMap contMDiff_id),
+    fun t ↦ (hH₀ t).trans (hτ'τ t), fun t u ↦ hHnd t t.property u,
+    fun t ht u ↦ hHP₀ t ⟨t, ht, rfl⟩ u,
+    fun t ↦ hH₁ t t.property⟩
+
+/-- **The relative h-principle for a path of nondegenerate forms with closed ends.** Let `M` be
+a manifold without boundary none of whose connected components is compact, and `τ` a smooth
+family of nondegenerate two-forms on `M` over `[0, 1]` whose ends `τ 0` and `τ 1` are closed with
+`τ 0 - α₀` and `τ 1 - α₀` exact. Then there is a smooth family `H` over `[0, 1] × [0, 1]` with
+`H (t, 0) = τ t` such that
+
+* every `H (t, u)` is nondegenerate;
+* `H (t, u)` is closed and `H (t, u) - α₀` is exact for `t = 0` and `t = 1`;
+* `H (t, 1)` is closed and `H (t, 1) - α₀` is exact for every `t`.
+
+This is `SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval` for
+`P₀ = {0, 1}`, with the segment `s ↦ (1 - s) • τ 0 + s • τ 1` as the family `α`. -/
+theorem exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) {τ : unitInterval → SmoothTwoForm I M}
+    (hτ : IsSmoothFamily (𝓡∂ 1) τ) (hnd : ∀ t, (τ t).IsNondegenerate)
+    (h₀ : mextDerivₗ I 2 (τ 0) = 0) (h₁ : mextDerivₗ I 2 (τ 1) = 0) {α₀ : SmoothTwoForm I M}
+    (h₀α : τ 0 - α₀ ∈ exactForms I M 2) (h₁α : τ 1 - α₀ ∈ exactForms I M 2) :
+    ∃ H : unitInterval × unitInterval → SmoothTwoForm I M,
+      IsSmoothFamily ((𝓡∂ 1).prod (𝓡∂ 1)) H ∧ (∀ t, H (t, 0) = τ t) ∧
+      (∀ t u, (H (t, u)).IsNondegenerate) ∧
+      (∀ t ∈ ({0, 1} : Set unitInterval), ∀ u,
+        mextDerivₗ I 2 (H (t, u)) = 0 ∧ H (t, u) - α₀ ∈ exactForms I M 2) ∧
+      ∀ t, mextDerivₗ I 2 (H (t, 1)) = 0 ∧ H (t, 1) - α₀ ∈ exactForms I M 2 := by
+  refine exists_isSmoothFamily_homotopy_closed_unitInterval hM (Set.toFinite _).isClosed hτ hnd
+    (isSmoothFamily_one_sub_smul_add_smul (τ 0) (τ 1)) (fun s ↦ ?_) (fun s ↦ ?_) ?_
+  · rw [map_add, map_smul, map_smul, h₀, h₁, smul_zero, smul_zero, add_zero]
+  · convert add_mem (Submodule.smul_mem _ (1 - s) h₀α) (Submodule.smul_mem _ s h₁α) using 1
+    module
+  · rintro t (rfl | rfl) <;> simp
 
 end SymplecticGeometry
 

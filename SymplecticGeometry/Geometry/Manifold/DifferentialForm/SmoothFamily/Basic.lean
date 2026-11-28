@@ -93,6 +93,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   `.mpullback_family`, `.mextDeriv`, `.extendByZero_smul`, `.comp` and `.glue_collaredHalves`
   (concatenation of two families over `[0, 1]` that agree at the seam, by Tau Ceti's
   `ContMDiff.glue_collaredHalves`).
+* `SymplecticGeometry.isSmoothFamily_one_sub_smul_add_smul`: the segment between two forms is a
+  smooth family over `ℝ`.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback`: a family is smooth when its pullbacks along a
   smooth map with smooth local sections over an open cover of its target form a smooth family.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq`: in particular, a family is smooth
@@ -489,6 +491,13 @@ theorem isSmoothFamily_iff_contDiff_val {L : Type*} [NormedAddCommGroup L] [Norm
 the projection `N × M → M`. -/
 theorem isSmoothFamily_const (α : SmoothForm I M F k) : IsSmoothFamily J (fun _ : N ↦ α) :=
   ⟨_, fun t ↦ SmoothForm.mpullback_prodMk_mpullback_snd α t⟩
+
+/-- The affine segment `t ↦ (1 - t) • α₀ + t • α₁` through two forms is a smooth family over
+`ℝ`. -/
+theorem isSmoothFamily_one_sub_smul_add_smul (α₀ α₁ : SmoothForm I M F k) :
+    IsSmoothFamily 𝓘(ℝ, ℝ) fun t : ℝ ↦ (1 - t) • α₀ + t • α₁ :=
+  ((isSmoothFamily_const α₀).fun_smul (contMDiff_const.sub contMDiff_id)).add
+    ((isSmoothFamily_const α₁).fun_smul contMDiff_id)
 
 /-- The slices `t ↦ Ω (t, ·)` of a smooth form `Ω` on `N × M` form a smooth family. -/
 theorem isSmoothFamily_mpullback_prodMk (Ω : SmoothForm (J.prod I) (N × M) F k) :
