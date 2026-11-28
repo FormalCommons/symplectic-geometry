@@ -295,9 +295,6 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
 theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅)
     (hx : f x ∈ Ico a c) {t : ℝ} :
     t = Flow.levelCrossingTime hW.flow f a x ↔ f (hW.flow t x) = a := by
-  have ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a :=
-    isRegularValue_iff_notMem_image_criticalPoints.2 fun ⟨y, hy, hya⟩ ↦
-      eq_empty_iff_forall_notMem.1 hc y ⟨hy, hya.ge, hya.trans_lt (hx.1.trans_lt hx.2)⟩
   obtain ⟨s, -, hs⟩ := hW.exists_nonpos_flow_apply_eq hc hx
   have hf := hW.isGeneralizedMorse.contMDiff
   exact ⟨fun h ↦ h ▸ Flow.apply_flow_levelCrossingTime ⟨s, hs⟩, fun h ↦
@@ -305,7 +302,8 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
       ((hW.isMIntegralCurve_flow x).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
         (hf.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
         (fun _ hy ↦ ⟨hf.mdifferentiableAt (by simp),
-          hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha hy⟩)) h).symm⟩
+          hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
+            (hx.1.trans_lt hx.2) hc hy⟩)) h).symm⟩
 
 /-- **The crossing of the lower level is in the past.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a ≤ f x < c`, the orbit of `x` crosses the level `f ⁻¹' {a}` at a time
@@ -329,12 +327,9 @@ orbit of `x` crosses the level `f ⁻¹' {a}`. -/
 theorem mvfderiv_apply_pos_flow_levelCrossingTime
     (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅) (hx : f x ∈ Ico a c) :
     0 < mvfderiv 𝓘(ℝ, E) f (hW.flow (Flow.levelCrossingTime hW.flow f a x) x)
-      (X (hW.flow (Flow.levelCrossingTime hW.flow f a x) x)) := by
-  have hy : f (hW.flow (Flow.levelCrossingTime hW.flow f a x) x) = a :=
-    hW.mapsTo_flow_levelCrossingTime hc hx
-  refine hW.isGradientLike.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc _
-    ⟨mem_criticalPoints.2 h, hy.ge, ?_⟩
-  exact hy.trans_lt (hx.1.trans_lt hx.2)
+      (X (hW.flow (Flow.levelCrossingTime hW.flow f a x) x)) :=
+  hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
+    (hx.1.trans_lt hx.2) hc (hW.mapsTo_flow_levelCrossingTime hc hx)
 
 /-- **The backward map to the lower level is smooth.** If `f` has no critical point in
 `f ⁻¹' Ico a c`, the map `y ↦ φ (Flow.levelCrossingTime φ f a y) y`, for `φ` the flow, which
@@ -347,8 +342,8 @@ theorem contMDiffOn_flow_levelCrossingTime
     ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞)
       (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) (f ⁻¹' Ioo a c) := fun x hx ↦
   (hW.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos hW.isGeneralizedMorse.contMDiff
-    (fun y hy ↦ hW.isGradientLike.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc y
-      ⟨mem_criticalPoints.2 h, hy.ge, hy.trans_lt (hx.1.trans hx.2)⟩) x
+    (fun _ ↦ hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
+      (hx.1.trans hx.2) hc) x
     ⟨_, hW.mapsTo_flow_levelCrossingTime hc (Ioo_subset_Ico_self hx)⟩).mono
       fun _ hy ↦ ⟨_, hW.mapsTo_flow_levelCrossingTime hc (Ioo_subset_Ico_self hy)⟩
 
