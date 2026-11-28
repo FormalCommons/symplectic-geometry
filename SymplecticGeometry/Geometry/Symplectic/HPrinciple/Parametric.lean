@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.WeakEquivalence
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.FreeCompression
+import SymplecticGeometry.Topology.Homotopy.Cube.Basic
 import SymplecticGeometry.Topology.Homotopy.Cube.ConvexExtension
 import TauCeti.Topology.Homotopy.Cube.Basic
 import Mathlib.Topology.Homotopy.Path
@@ -44,15 +45,13 @@ family `β` of forms in the class of `α` that agrees with `g` over `P₀`.
   `TauCeti.piOptionEquivProdHomeomorph`). The homotopy is then what
   `TauCeti.RelHomotopyGroup.subsingleton_ofSubset_of_forall_homotopicWith` asks for.
 
-Last, the inclusion of `A` into `X` is the inclusion of the symplectic forms into the
-nondegenerate forms, up to the homeomorphism
-`Topology.IsEmbedding.homeomorphOfSubsetRange`, as in Tau Ceti's
-`ContinuousMap.isWeakHomotopyEquivalence_inclusion_preimage_val_iff`.
+Last, `ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` identifies the inclusion
+of `A` into `X` with the inclusion of the symplectic forms into the nondegenerate forms.
 
 ## References
 
 * [Y. Eliashberg and N. Mishachev, *Introduction to the h-principle*][EliashbergMishachev2002],
-  §10.2.
+  Theorems 10.2.1 and 10.2.2 (first edition).
 * Y. Eliashberg and N. Mishachev, *Holonomic approximation and Gromov's h-principle*,
   arXiv:math/0101196, Theorem 2.1.2.
 * M. Bertelson, *A h-principle for open relations invariant under foliated isotopies*,
@@ -168,33 +167,19 @@ theorem isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass
     · refine RelHomotopyGroup.subsingleton_ofSubset_of_forall_homotopicWith
         (X := TopCat.of (nondegenerateForms I M)) (fun g hg ↦ ?_) a
       let φ := piOptionEquivProdHomeomorph fun _ : Option (Fin n) ↦ unitInterval
-      have hcl : IsClosed (Cube.prodBoundary (Fin n)) := by
-        convert Cube.isClosed_boundary.preimage φ.symm.continuous using 1
-        ext z
-        rw [mem_preimage, ← piOptionEquivProdHomeomorph_mem_prodBoundary_iff,
-          Homeomorph.apply_symm_apply]
       obtain ⟨b, hb, hbC⟩ := hC.exists_continuousMap_eqOn_cubeBoundary ⟨_, hαC⟩
         (f := fun y ↦ ((g (φ y) : nondegenerateForms I M) :
           ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))))
         (by fun_prop) fun y hy ↦
           (mem_symplecticFormsInClass.1
             (hg (piOptionEquivProdHomeomorph_mem_prodBoundary_iff.2 hy))).2
-      exact exists_homotopicWith_symplecticFormsInClass e U hU hM hcover hα hcl g
+      exact exists_homotopicWith_symplecticFormsInClass e U hU hM hcover hα
+        (Cube.isClosed_prodBoundary (Fin n)) g
         (b.comp φ.symm) (fun z ↦ hbC ⟨_, rfl⟩) fun z hz ↦
           (hb (piOptionEquivProdHomeomorph_symm_mem_boundary hz)).trans
             (by simp only [φ, Homeomorph.apply_symm_apply])
-  -- The inclusion of `S` is that of `A`, up to a homeomorphism.
-  let φ := Topology.IsEmbedding.subtypeVal.homeomorphOfSubsetRange
-    ((symplecticFormsInClass_subset_nondegenerateForms α).trans
-      (Subtype.range_coe (s := nondegenerateForms I M)).ge)
-  have heq : ContinuousMap.inclusion (symplecticFormsInClass_subset_nondegenerateForms α) =
-      (ContinuousMap.subtypeVal A).comp (φ.symm : C(S, A)) := by
-    refine ContinuousMap.ext fun x ↦ Subtype.ext ?_
-    have := congrArg Subtype.val (φ.apply_symm_apply x)
-    rw [Topology.IsEmbedding.homeomorphOfSubsetRange_apply_coe] at this
-    exact this.symm
-  rw [heq]
-  exact hA.comp φ.symm.isWeakHomotopyEquivalence
+  exact (ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal
+    (symplecticFormsInClass_subset_nondegenerateForms α)).2 hA
 
 end SymplecticGeometry
 
