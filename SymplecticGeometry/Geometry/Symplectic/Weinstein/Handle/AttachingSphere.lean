@@ -196,8 +196,9 @@ compact, the lift is a smooth embedding by
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11, on the stable manifolds of the critical points of a Weinstein structure; their
-  isotropy, Proposition 11.9 (a), gives the horizontality in the lower level
+  Lemma 11.13 (a): the one-form `ι_X ω` vanishes on the stable manifold of a critical point of a
+  Weinstein structure, so that its intersection with a regular level is isotropic for the contact
+  structure there
 -/
 
 public section
@@ -813,7 +814,7 @@ pull-back of `ω` along the inclusion `ι : W → M` and `Y` the pull-back `x �
 stable set of `p` is horizontal for the kernel distribution of `α`: the image of each differential
 of `γ` lies in `ker α`.
 
-See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+See [CieliebakEliashberg2012], Lemma 11.13 (a). -/
 theorem isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet {n : ℕ}
     (hn : finrank ℝ E = n + 1) {a : ℝ} (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) {p : M}
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
@@ -891,7 +892,7 @@ unit sphere of `EuclideanSpace ℝ (Fin (m + 1))` into `∂W` whose image in `M`
 of the lower level `f ⁻¹' {a}` whose orbits tend to `p`, and which is horizontal for the kernel
 distribution of `α`.
 
-See [CieliebakEliashberg2012], Proposition 11.9. -/
+See [CieliebakEliashberg2012], Lemma 11.13 (a). -/
 theorem exists_attachingSphere {a b : ℝ} (hW : IsElementaryWeinsteinCobordism ω X f a b) {n : ℕ}
     (hn : finrank ℝ E = n + 1) {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
     (hpab : f p ∈ Icc a b) {m : ℕ} (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) :

@@ -114,9 +114,9 @@ stage() {
   # A run that found nothing when it started looks again now, an hour or
   # more later: an earlier run's modules have often reached the bucket
   # meanwhile. Then this run hands over only its mappings and what that
-  # file lacks, and cache-upload does not ask the bucket about some
-  # thousands of archives, as every run of a move that started together
-  # would.
+  # file lacks, and cache-upload does not send some thousands of archives
+  # that the bucket has by then, as every run of a move that started
+  # together would.
   [ -s "$dir/from" ] || find_mappings "$dir"
   rm -rf "$out"
   mkdir -p "$out/staged" || return 1

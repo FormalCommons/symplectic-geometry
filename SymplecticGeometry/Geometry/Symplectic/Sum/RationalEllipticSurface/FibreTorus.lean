@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Symplectic.Moser.Surface
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Positivity
 import SymplecticGeometry.LinearAlgebra.Alternating.Sign
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 
 /-!
 # The fibre of `E(1)` as the standard symplectic torus
@@ -114,16 +115,12 @@ private theorem eval₂_mpullback_fibreEmbedding_mfderiv_latticeTorusCover_pos (
   -- It is an immersion, so its differential does not vanish on `1`.
   have hne : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ)
       ((fibreEmbedding ∘ φ.symm) ∘ latticeTorusCover p fermatPeriodBasis) z (1 : ℂ) ≠ 0 := by
-    rw [mfderiv_comp z ((fibreEmbedding.contMDiff.comp φ.symm.contMDiff).mdifferentiableAt
-        (by simp)) (hπ.contMDiff.mdifferentiableAt (by simp)),
-      mfderiv_comp _ (fibreEmbedding.contMDiff.mdifferentiableAt (by simp))
-        (φ.symm.contMDiff.mdifferentiableAt (by simp))]
     refine (map_ne_zero_iff _ ?_).2 (one_ne_zero (α := ℂ))
-    rw [ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp,
-      ← φ.symm.isLocalDiffeomorph.mfderivToContinuousLinearEquiv_coe (by simp),
-      ← hπ.mfderivToContinuousLinearEquiv_coe (by simp)]
-    exact (fibreEmbedding.isImmersion.mfderiv_injective (by simp) _).comp
-      ((ContinuousLinearEquiv.injective _).comp (ContinuousLinearEquiv.injective _))
+    refine TauCeti.injective_mfderiv_comp (J := ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
+      (TauCeti.injective_mfderiv_comp
+        (fibreEmbedding.isImmersion.mfderiv_injective (by simp) _)
+        (φ.symm.isInvertible_mfderiv (by simp)).injective)
+      (hπ.isInvertible_mfderiv (by simp) z).injective
   have h := SmoothForm.eval₂_mpullback (latticeTorusCover p fermatPeriodBasis) hπ.contMDiff
     (SmoothForm.mpullback (fibreEmbedding ∘ φ.symm)
       (fibreEmbedding.contMDiff.comp φ.symm.contMDiff) symplecticForm) z (1 : ℂ) I
