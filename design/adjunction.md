@@ -226,9 +226,10 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
 Namespace `TauCeti.SmoothEmbedding`, for a smooth embedding of any
 regularity `n` over any field, with `hn : n ≠ 0`.
 
-- `exact_mfderiv_normalClass`: the differential at `x` and
-  `normalClass x hn` are exact (`Function.Exact`), from Tau Ceti's
-  `normalClass_ker`.
+- The exactness of the differential at `x` and `normalClass x hn`
+  (`Function.Exact`) is Tau Ceti's
+  `Manifold.IsImmersion.exact_mfderiv_normalClass`, applied to
+  `f.isImmersion`.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean`
 
@@ -311,8 +312,8 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   orientation of `(J.restrict f hJ).almostComplexStructureAt c`, reindexed, Tau
   Ceti's `Orientation.shortExact` of the sequence
   $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
-  `normalClass`, exact by `exact_mfderiv_normalClass` of
-  `NormalSpace/Exact.lean`) sends
+  `normalClass`, exact by Tau Ceti's
+  `Manifold.IsImmersion.exact_mfderiv_normalClass`) sends
   `o.orientationAt c` and the complex orientation of $(\nu_c, J_\nu)$ to the
   complex orientation of $(T_{f c}X, J)$. No splitting is chosen. The complex
   orientations are `AlmostComplexStructure.orientation` of

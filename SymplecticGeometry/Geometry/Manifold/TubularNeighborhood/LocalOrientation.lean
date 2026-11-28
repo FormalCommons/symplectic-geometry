@@ -420,7 +420,7 @@ theorem map_orientationAt_normalTubeChartDeriv (hΦ : f.IsNormalizedTube hn hdim
   have hS (u : TangentSpace I z) (v : f.isImmersion.NormalSpace z hn) :
       S (u, v) = (normalTubeChartDeriv Φ z).symm ((e.linearEquivAt ℝ z hz) v, u) := rfl
   have hX := (Orientation.ofExact_eq_map_prod (f.isImmersion.mfderiv_injective hn z)
-    (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+    (f.isImmersion.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
     (LinearEquiv.refl ℝ (TangentSpace I z)) S
     (fun u ↦ by
       rw [LinearEquiv.refl_apply, hS, map_zero]

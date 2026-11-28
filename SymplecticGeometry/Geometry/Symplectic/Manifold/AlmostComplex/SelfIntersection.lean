@@ -12,7 +12,6 @@ public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.CompDiffeomorphOfBoundaryless
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
@@ -23,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.Orientation.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 
 /-!
 # The self-intersection number of a `J`-invariant surface
@@ -403,7 +403,7 @@ theorem shortExact_orientationAt_normalSpace {k : ℕ} (hk : finrank ℝ E' = k)
       (finCongr (n := finrank ℝ (TangentSpace I' c)) hk)
       (((J.restrict f hJ).almostComplexStructureAt c).orientation rfl)) :
     Orientation.shortExact (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
-        (f.exact_mfderiv_normalClass c hn) (f.isImmersion.normalClass_surjective c hn)
+        (f.isImmersion.exact_mfderiv_normalClass c hn) (f.isImmersion.normalClass_surjective c hn)
             (o.orientationAt c)
         ((f.normalAlmostComplexStructureAt J hJ c).orientation rfl) hk rfl =
       Orientation.reindex ℝ _ (finCongr (by
