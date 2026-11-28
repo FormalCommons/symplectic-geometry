@@ -207,7 +207,7 @@ for a boundaryless `M` over `𝓘(ℝ, E)` with `E` finite-dimensional:
   `IsGradientLike.comp` (`h ∘ f` for `h` with `h' > 0`), and
   `isGradientLike_mgradient` (the gradient of `f` for any smooth metric,
   with `δ = 1 / 2`).
-- `isGradientLike_of_forall_exists_nhds`: the condition is local. If each
+- `isGradientLike_of_forall_isGradientLikeAt`: the condition is local. If each
   point has a neighbourhood, a metric and a constant for which the
   inequality holds there, the metrics glue by a partition of unity: for a
   convex combination of metrics, $|X|^2$ is the combination, and $|df|^2$ is

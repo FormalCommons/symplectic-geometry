@@ -82,20 +82,20 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.isGradientLike_of_mul_le`: on a finite-dimensional normed space, a constant `c > 0`
   with `c (‖X‖² + ‖df‖²) ≤ df(X)` everywhere suffices, for the metric carried over by
   `toEuclidean`.
-* `TauCeti.isGradientLike_of_forall_exists_nhds`: on a σ-compact Hausdorff manifold the condition
-  is local: a metric and a constant for which the inequality holds near each point suffice.
-* `TauCeti.IsGradientLike.exists_nhds_mul_le`: conversely, a gradient-like field satisfies that
-  local hypothesis at every point.
-* `TauCeti.exists_nhds_forall_mul_le_one_sub_smul_add_smul` and
+* `TauCeti.IsGradientLikeAt f X x`: `X` is gradient-like for `f` near `x`, that is, the inequality
+  holds on a neighbourhood of `x` for some metric and some constant `c > 0`; with
+  `TauCeti.isGradientLikeAt_def`.
+* `TauCeti.isGradientLike_of_forall_isGradientLikeAt` and
+  `TauCeti.IsGradientLike.isGradientLikeAt`: on a σ-compact Hausdorff manifold the condition is
+  local, `TauCeti.isGradientLike_iff_forall_isGradientLikeAt`.
+* `TauCeti.IsGradientLikeAt.one_sub_smul_add_smul` and
   `TauCeti.IsGradientLike.one_sub_smul_add_smul`: for a fixed field, the condition is convex in
-  the function. Near a point, the local hypotheses for two differentiable functions give one metric
-  and one constant for all their combinations `(1 - s) • f₁ + s • f₂` with `s ∈ [0, 1]`; globally,
-  a field gradient-like for both is gradient-like for each such combination.
+  the function, near a point for differentiable functions, and globally.
 * `TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`: near a point where `df(X) > 0`, the
   inequality holds for every metric and a small constant, when `f` is `C¹` and `X` continuous.
-* `TauCeti.IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`: the local hypothesis of
-  `TauCeti.isGradientLike_of_forall_exists_nhds` holds at `Φ y` when, near `y`, a local
-  diffeomorphism `Φ` carries a gradient-like field for `f'` to `X` and `f ∘ Φ = f'`.
+* `TauCeti.IsGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt`: `X` is gradient-like for `f`
+  near `Φ y` when, near `y`, a local diffeomorphism `Φ` carries a gradient-like field for `f'` to
+  `X` and `f ∘ Φ = f'`.
 * `TauCeti.IsGradientLike.mem_criticalPoints_of_mapClusterPt_atTop` and
   `TauCeti.IsGradientLike.mem_criticalPoints_of_mapClusterPt_atBot`: for a flow `Φ` whose orbits
   are integral curves of `X`, the cluster points of an orbit at `+∞` and at `-∞` are critical
@@ -140,7 +140,7 @@ neighbourhood the metric of `f₂` lies between two positive multiples of it, by
 only a smaller constant. For one metric and one constant, the fibrewise condition above is convex
 in the differential of the function, since the square is convex.
 
-For `IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`, the metric near `Φ y` is the
+For `IsGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt`, the metric near `Φ y` is the
 metric of the field on `M'` pulled back along the local inverse `Ψ` of `Φ`, which is smooth and
 positive definite on the source of `Ψ` (`PartialDiffeomorph.contMDiffOn_pullback`,
 `PartialDiffeomorph.pullback_apply_self_pos`). The fibrewise condition with
@@ -455,6 +455,29 @@ theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0
 
 section Local
 
+/-- A vector field `X` is **gradient-like for `f` near `x`** when `x` has a neighbourhood `U`, with
+a smooth Riemannian metric `g` and a constant `c > 0`, such that
+`c * (g y (X y) (X y) + ‖grad f y‖ ^ 2) ≤ df_y (X y)` for every `y ∈ U`, the gradient and its norm
+being those of `g`. On a σ-compact Hausdorff manifold, `X` is gradient-like for `f` exactly when
+this holds at every point (`TauCeti.isGradientLike_iff_forall_isGradientLikeAt`). -/
+def IsGradientLikeAt (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(ℝ, E) x) (x : M) : Prop :=
+  ∃ U ∈ 𝓝 x,
+    ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
+    ∃ c : ℝ, 0 < c ∧
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+      ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
+        mvfderiv 𝓘(ℝ, E) f y (X y)
+
+/-- The definition of `TauCeti.IsGradientLikeAt`, unfolded. -/
+theorem isGradientLikeAt_def (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(ℝ, E) x) (x : M) :
+    IsGradientLikeAt f X x ↔ ∃ U ∈ 𝓝 x,
+      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
+      ∃ c : ℝ, 0 < c ∧
+        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
+          mvfderiv 𝓘(ℝ, E) f y (X y) :=
+  Iff.rfl
+
 /-- The inequality of `TauCeti.IsGradientLike` at `y`, with the constant `δ` and with a bilinear
 form `s` on `T_y M` in place of the metric, put in a form that is convex in `s`: the bound
 `‖grad f y‖ ^ 2 ≤ R` is replaced by `(df_y v) ^ 2 ≤ R * s v v` for all `v`. -/
@@ -535,19 +558,11 @@ private theorem inner_mem_gradientLikeCondition_of_le
     ((mul_le_mul_of_nonneg_right hδδ' ?_).trans h)
   exact add_nonneg (g.toRiemannianMetric.inner_self_nonneg y (X y)) (sq_nonneg _)
 
-/-- **Being gradient-like is a local condition.** On a σ-compact Hausdorff manifold, if each point
-has a neighbourhood `U`, a smooth metric `g` and a constant `c > 0` such that
-`c * (g y (X y) (X y) + ‖grad f y‖ ^ 2) ≤ df_y (X y)` for every `y ∈ U`, the gradient and its norm
-being those of `g`, then `X` is gradient-like for `f`. -/
-theorem isGradientLike_of_forall_exists_nhds [T2Space M] [SigmaCompactSpace M]
-    (h : ∀ x : M, ∃ U ∈ 𝓝 x,
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f y (X y)) :
-    IsGradientLike f X := by
-  choose U hU g c hc hg using h
+/-- **Being gradient-like is a local condition.** On a σ-compact Hausdorff manifold, if `X` is
+gradient-like for `f` near every point, then `X` is gradient-like for `f`. -/
+theorem isGradientLike_of_forall_isGradientLikeAt [T2Space M] [SigmaCompactSpace M]
+    (h : ∀ x : M, IsGradientLikeAt f X x) : IsGradientLike f X := by
+  choose U hU g c hc hg using fun x ↦ (isGradientLikeAt_def f X x).1 (h x)
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) 𝓘(ℝ, E)
   -- A locally finite open refinement `V` of the interiors of the sets `U x`.
   obtain ⟨V, hVo, hVcov, hVlf, hVU⟩ := precise_refinement (fun x ↦ interior (U x))
@@ -591,24 +606,16 @@ private theorem pullback_mem_gradientLikeCondition {E' : Type*} [NormedAddCommGr
 
 /-- **The local criterion through a local diffeomorphism.** Let `X'` be gradient-like for `f'` on
 `M'`, and let `Φ : M' → M` be a smooth local diffeomorphism at `y` such that `f ∘ Φ = f'` near `y`
-and `dΦ_{y'} (X' y') = X (Φ y')` for `y'` near `y`. Then `Φ y` has a neighbourhood `U`, with a
-smooth metric `g` on `M` and a constant `c > 0`, such that
-`c * (g x (X x) (X x) + ‖grad f x‖ ^ 2) ≤ df_x (X x)` for every `x ∈ U`, the gradient and its norm
-being those of `g`: this is the local hypothesis of `TauCeti.isGradientLike_of_forall_exists_nhds`
-at `Φ y`. -/
-theorem IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt [T2Space M]
+and `dΦ_{y'} (X' y') = X (Φ y')` for `y'` near `y`. Then `X` is gradient-like for `f` near
+`Φ y`. -/
+theorem IsGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt [T2Space M]
     [SigmaCompactSpace M] {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
     [FiniteDimensional ℝ E'] {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M']
     [IsManifold 𝓘(ℝ, E') ∞ M'] {f' : M' → ℝ} {X' : (y : M') → TangentSpace 𝓘(ℝ, E') y}
     (hX' : IsGradientLike f' X') {Φ : M' → M} {y : M'}
     (hΦ : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ y) (hf : f ∘ Φ =ᶠ[𝓝 y] f')
     (hX : ∀ᶠ y' in 𝓝 y, mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ y' (X' y') = X (Φ y')) :
-    ∃ U ∈ 𝓝 (Φ y),
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ x ∈ U, c * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f x (X x) := by
+    IsGradientLikeAt f X (Φ y) := by
   obtain ⟨g', δ', hδ'c, hδ', hg'⟩ := hX'
   set Ψ := hΦ.localInverse
   set c := δ' y / 2
@@ -653,13 +660,13 @@ theorem IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt [T2Space M]
       · exact (hloc.isInvertible_mfderiv (by simp)).injective (by rw [hinv, hXb, hΦΨ])
       · rw [← hfb.mvfderiv_eq, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply,
           hloc.mfderiv_comp (by simp), ContinuousLinearMap.comp_apply, hinv, hΦΨ]
-  exact ⟨K, hK, G, c, hc, fun x hx ↦
+  exact (isGradientLikeAt_def f X (Φ y)).2 ⟨K, hK, G, c, hc, fun x hx ↦
     (inner_mem_gradientLikeCondition_iff G hc.le x).1 (hG x hx)⟩
 
 /-- Near a point `x` with `df_x (X x) > 0`, the inequality of `TauCeti.IsGradientLike` holds for
 every smooth metric `g` with some constant `c > 0`, when `f` is `C¹` at `x` and `X` is continuous
-at `x`. With `TauCeti.isGradientLike_of_forall_exists_nhds`, this leaves only the critical points
-of `f` to check. -/
+at `x`. With `TauCeti.isGradientLike_of_forall_isGradientLikeAt`, this leaves only the critical
+points of `f` to check. -/
 theorem exists_nhds_mul_le_of_mvfderiv_apply_pos
     (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {x : M}
     (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 1 f x)
@@ -758,53 +765,35 @@ private theorem mem_gradientLikeCondition_of_mvfderiv_eq {f₁ f₂ : M → ℝ}
       add_le_add (mul_le_mul_of_nonneg_left (h₁₂ v) ha) (mul_le_mul_of_nonneg_left (h₂₂ v) hb)
     _ = _ := by linear_combination (-(δ * S * s v v)) * hab
 
-/-- A gradient-like field satisfies the local hypothesis of
-`TauCeti.isGradientLike_of_forall_exists_nhds` at every point: near `x` its metric works with the
+/-- A gradient-like field is gradient-like near every point: near `x` its metric works with the
 constant `δ x / 2`. -/
-theorem IsGradientLike.exists_nhds_mul_le (hX : IsGradientLike f X) (x : M) :
-    ∃ U ∈ 𝓝 x,
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f y (X y) := by
+theorem IsGradientLike.isGradientLikeAt (hX : IsGradientLike f X) (x : M) :
+    IsGradientLikeAt f X x := by
   obtain ⟨g, δ, hδc, hδ, h⟩ := hX
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-  refine ⟨_, hδc.continuousAt.eventually (lt_mem_nhds (half_lt_self (hδ x))), g, δ x / 2,
+  refine (isGradientLikeAt_def f X x).2 ⟨_,
+    hδc.continuousAt.eventually (lt_mem_nhds (half_lt_self (hδ x))), g, δ x / 2,
     half_pos (hδ x), fun y hy ↦ ?_⟩
   refine (mul_le_mul_of_nonneg_right (le_of_lt hy) ?_).trans (h y)
   exact add_nonneg (g.toRiemannianMetric.inner_self_nonneg y (X y)) (sq_nonneg _)
 
-/-- **Convex combinations of functions, locally.** Suppose that near `x` the functions `f₁` and
-`f₂` are differentiable and each satisfies the local hypothesis of
-`TauCeti.isGradientLike_of_forall_exists_nhds` for `X`, with a metric and a constant of its own.
-Then there are a neighbourhood `U` of `x`, one smooth metric `g` and one constant `c > 0` such that
-`c * (g y (X y) (X y) + ‖grad fₛ y‖ ^ 2) ≤ d(fₛ)_y (X y)` for every `y ∈ U` and every function
-`fₛ = (1 - s) • f₁ + s • f₂` with `s ∈ [0, 1]`, the gradient and its norm being those of `g`. -/
-theorem exists_nhds_forall_mul_le_one_sub_smul_add_smul {f₁ f₂ : M → ℝ} {x : M}
+/-- On a σ-compact Hausdorff manifold, `X` is gradient-like for `f` exactly when it is
+gradient-like for `f` near every point. -/
+theorem isGradientLike_iff_forall_isGradientLikeAt [T2Space M] [SigmaCompactSpace M] :
+    IsGradientLike f X ↔ ∀ x, IsGradientLikeAt f X x :=
+  ⟨IsGradientLike.isGradientLikeAt, isGradientLike_of_forall_isGradientLikeAt⟩
+
+/-- **Convex combinations of functions, locally.** If `f₁` and `f₂` are differentiable near `x`
+and `X` is gradient-like for each of them near `x`, then `X` is gradient-like near `x` for every
+function `(1 - s) • f₁ + s • f₂` with `s ∈ [0, 1]`. -/
+theorem IsGradientLikeAt.one_sub_smul_add_smul {f₁ f₂ : M → ℝ} {x : M}
+    (h₁ : IsGradientLikeAt f₁ X x) (h₂ : IsGradientLikeAt f₂ X x)
     (hf₁ : ∀ᶠ y in 𝓝 x, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f₁ y)
-    (hf₂ : ∀ᶠ y in 𝓝 x, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f₂ y)
-    (h₁ : ∃ U ∈ 𝓝 x,
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f₁ y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f₁ y (X y))
-    (h₂ : ∃ U ∈ 𝓝 x,
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f₂ y‖ ^ 2) ≤
-          mvfderiv 𝓘(ℝ, E) f₂ y (X y)) :
-    ∃ U ∈ 𝓝 x,
-      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
-      ∃ c : ℝ, 0 < c ∧
-        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-        ∀ s ∈ Icc (0 : ℝ) 1, ∀ y ∈ U,
-          c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) ((1 - s) • f₁ + s • f₂) y‖ ^ 2) ≤
-            mvfderiv 𝓘(ℝ, E) ((1 - s) • f₁ + s • f₂) y (X y) := by
-  obtain ⟨U₁, hU₁, g₁, c₁, hc₁, H₁⟩ := h₁
-  obtain ⟨U₂, hU₂, g₂, c₂, hc₂, H₂⟩ := h₂
+    (hf₂ : ∀ᶠ y in 𝓝 x, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f₂ y) {s : ℝ} (hs : s ∈ Icc (0 : ℝ) 1) :
+    IsGradientLikeAt ((1 - s) • f₁ + s • f₂) X x := by
+  obtain ⟨U₁, hU₁, g₁, c₁, hc₁, H₁⟩ := (isGradientLikeAt_def f₁ X x).1 h₁
+  obtain ⟨U₂, hU₂, g₂, c₂, hc₂, H₂⟩ := (isGradientLikeAt_def f₂ X x).1 h₂
+  obtain ⟨hs₀, hs₁⟩ := hs
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) 𝓘(ℝ, E)
   -- A compact neighbourhood `K` of `x` on which everything holds.
   obtain ⟨K, hK, hKU, hKc⟩ := local_compact_nhds
@@ -816,7 +805,7 @@ theorem exists_nhds_forall_mul_le_one_sub_smul_add_smul {f₁ f₂ : M → ℝ} 
   simp only [ContMDiffRiemannianMetric.toContinuousRiemannianMetric_inner] at hg
   set c := min c₁ (min (c₂ * l) (c₂ / L))
   have hc : 0 < c := lt_min hc₁ (lt_min (mul_pos hc₂ hl) (div_pos hc₂ hL))
-  refine ⟨K, hK, g₁, c, hc, fun s ⟨hs₀, hs₁⟩ y hy ↦ ?_⟩
+  refine (isGradientLikeAt_def _ X x).2 ⟨K, hK, g₁, c, hc, fun y hy ↦ ?_⟩
   obtain ⟨⟨hy₁, hy₂⟩, hd₁, hd₂⟩ := hKU hy
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g₁.toRiemannianMetric⟩
   refine (inner_mem_gradientLikeCondition_iff g₁ hc.le y).1 <|
@@ -838,10 +827,9 @@ theorem IsGradientLike.one_sub_smul_add_smul [T2Space M] [SigmaCompactSpace M] {
     (h₁ : IsGradientLike f₁ X) (h₂ : IsGradientLike f₂ X)
     (hf₁ : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f₁) (hf₂ : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f₂) {s : ℝ}
     (hs : s ∈ Icc (0 : ℝ) 1) : IsGradientLike ((1 - s) • f₁ + s • f₂) X :=
-  isGradientLike_of_forall_exists_nhds fun x ↦ by
-    obtain ⟨U, hU, g, c, hc, h⟩ := exists_nhds_forall_mul_le_one_sub_smul_add_smul
-      (.of_forall hf₁) (.of_forall hf₂) (h₁.exists_nhds_mul_le x) (h₂.exists_nhds_mul_le x)
-    exact ⟨U, hU, g, c, hc, h s hs⟩
+  isGradientLike_of_forall_isGradientLikeAt fun x ↦
+    (h₁.isGradientLikeAt x).one_sub_smul_add_smul (h₂.isGradientLikeAt x) (.of_forall hf₁)
+      (.of_forall hf₂) hs
 
 end Local
 
