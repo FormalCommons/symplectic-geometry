@@ -1077,16 +1077,15 @@ width `η` of `G` and the Struwe/line shape raised by `t` is `struweShape δ 4 t
 theorem exists_eqOn_bridgeLeaf_struweShape (hδ : 0 < δ) {η t : ℝ} {G : ℝ → ℝ} (hη : 0 < η)
     (hG : ContinuousWithinAt G (Ici δ) δ) (h : G δ + η < struweShape δ 4 0 δ + t) :
     ∃ u, δ < u ∧ EqOn (bridgeLeaf δ η G t) (struweShape δ 4 t) (Ico δ u) := by
-  have hc : ContinuousWithinAt (fun r ↦ G r + η - (struweShape δ 4 0 r + t)) (Ici δ) δ :=
-    (hG.add continuousWithinAt_const).sub
-      ((continuousOn_struweShape hδ (by norm_num) 0 δ self_mem_Ici).add continuousWithinAt_const)
-  obtain ⟨u, hu, hsub⟩ :=
-    mem_nhdsGE_iff_exists_Ico_subset.1 (hc (Iio_mem_nhds (sub_neg.2 h)))
+  obtain ⟨u, hu, hS'⟩ := exists_eqOn_smoothedMax_right (g := fun r ↦ struweShape δ 4 0 r + t) hη
+    hG ((continuousOn_struweShape hδ (by norm_num) 0 δ self_mem_Ici).add continuousWithinAt_const)
+    h
   refine ⟨min u (7 * δ / 2), lt_min hu (by linarith), fun r hr ↦ ?_⟩
-  have hr' : G r + η - (struweShape δ 4 0 r + t) < 0 :=
-    hsub ⟨hr.1, hr.2.trans_le (min_le_left _ _)⟩
   have hS := struweLineShape_eq_struweShape hδ ⟨hr.1, (hr.2.trans_le (min_le_right _ _)).le⟩
-  rw [bridgeLeaf_eq_right hη (by rw [hS]; linarith), hS, add_comm, ← struweShape_add, add_zero]
+  rw [bridgeLeaf_def, hS]
+  refine (hS' ⟨hr.1, hr.2.trans_le (min_le_left _ _)⟩).trans ?_
+  beta_reduce
+  rw [add_comm, ← struweShape_add, add_zero]
 
 /-- **Each leaf of the bridge family is a Struwe shape near the cylinder.** Let `L ≥ 0`, `δ > 0`,
 `15 δ / 2 < ℓ₀` and `M ≥ 0`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be a constant plus
