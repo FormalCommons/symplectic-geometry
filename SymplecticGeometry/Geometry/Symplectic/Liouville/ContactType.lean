@@ -280,7 +280,7 @@ theorem SmoothTwoForm.mextDeriv_restrictInterior {U : Opens M} {σ : SmoothTwoFo
     mextDeriv (σ.restrictInterior Z hZ).val = mpullback I I Subtype.val σ.val := by
   funext x
   have hZx := hZ.contMDiffAt (U.isOpen.mem_nhds x.property)
-  rw [SmoothForm.coe_restrictInterior, ← mpullback_subtype_val_mextDeriv,
+  rw [SmoothForm.coe_restrictInterior, ← mpullback_subtypeVal_mextDeriv,
     mpullback_subtype_val_apply,
     ← mlieDerivForm_eq_mextDeriv_interior_apply
       (σ.isSmoothForm.contMDiff.mdifferentiable (by simp) x)

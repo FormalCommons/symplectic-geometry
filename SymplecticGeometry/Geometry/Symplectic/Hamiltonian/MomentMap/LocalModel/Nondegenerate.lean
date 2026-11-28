@@ -34,7 +34,7 @@ open neighbourhood of the zero section `{[g, 0] | g ∈ G}`.
 * The set where `ω` is nondegenerate is open
   (`TauCeti.SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt`) and `G`-invariant, and `ω`
   restricts to a symplectic form on it
-  (`TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val`).
+  (`TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtypeVal`).
 
 The last step follows the proof of Tau Ceti's
 `TauCeti.CotangentBundle.exists_opens_isNondegenerate_mpullback_coisotropicModelForm`.
@@ -178,7 +178,7 @@ theorem exists_opens_isSymplectic_mpullback_descendedForm :
   exact ⟨⟨_, SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt D.descendedForm⟩,
     D.nondegenerate_bilinFormAt_descendedForm_mk_zero,
     fun k y hy ↦ (D.nondegenerate_bilinFormAt_descendedForm_smul_iff k y).2 hy,
-    D.isClosed_descendedForm.isSymplectic_mpullback_subtype_val fun _ hy ↦ hy⟩
+    D.isClosed_descendedForm.isSymplectic_mpullback_subtypeVal fun _ hy ↦ hy⟩
 
 end LocalModelData
 

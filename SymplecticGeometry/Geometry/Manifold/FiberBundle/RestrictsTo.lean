@@ -445,14 +445,14 @@ theorem mextDeriv_glueForm_apply_of_mem_ker [IsManifold IF 2 F] [IsManifold IM 2
     (σ.contMDiff _).mpullback_form (hA.contMDiffAt_snd_trivAt hy) (by simp)
   rw [glueForm_eq_glueForms hρ, SmoothPartitionOfUnity.mextDeriv_glueForms_apply_of_mem_ker
     (hA.contMDiff_proj.of_le (by simp)) (fun i y hy ↦ (A.trivAt i).mem_source.2 (hρ i hy))
-    (fun i ↦ TauCeti.isSmoothForm_mpullback_subtype_val_of_contMDiffOn fun y hy ↦
+    (fun i ↦ TauCeti.isSmoothForm_mpullback_subtypeVal_of_contMDiffOn fun y hy ↦
       ((hθ i y ((A.trivAt i).mem_source.1 hy)).of_le (by simp)).contMDiffWithinAt) x hv,
     glueForm_apply, ContinuousAlternatingMap.sum_apply]
   calc _ = ∑ i ∈ (ρ.fintsupport (proj x)).attach, ρ i.val (proj x) *
         TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i.val y).2) (TauCeti.mextDeriv σ.val) x v :=
       Finset.sum_congr rfl fun i _ ↦ by
         have hi := hρ i.val ((ρ.mem_fintsupport_iff _ i.val).1 i.property)
-        rw [← TauCeti.mpullback_subtype_val_mextDeriv, TauCeti.mpullback_subtype_val_apply,
+        rw [← TauCeti.mpullback_subtypeVal_mextDeriv, TauCeti.mpullback_subtype_val_apply,
           TauCeti.mpullback_mextDeriv_at ((hA.contMDiffAt_snd_trivAt hi).of_le (by simp))
             ((σ.contMDiff _).of_le (by simp))]
         -- The two sides differ only in the point `↑⟨x, _⟩`, which is `x` by definition.

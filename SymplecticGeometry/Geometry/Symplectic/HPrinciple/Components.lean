@@ -99,7 +99,7 @@ theorem mem_nondegenerateForms_iff_forall_restrict (hcover : IsOpenCover U)
         (Subtype.val : U i → M) contMDiff_subtypeVal (ContMDiffTwoForm.tangentEquiv ω)) ∈
           nondegenerateForms I (U i) := by
   simp only [mem_nondegenerateForms, ContMDiffTwoForm.isNondegenerate_tangentEquiv_symm_iff,
-    ← TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_mpullback_subtype_val hcover,
+    ← TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_mpullback_subtypeVal hcover,
     ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff]
 
 /-- For pairwise disjoint open subsets `U i` covering `M` and a smooth two-form `α` on `M`, a
@@ -114,8 +114,8 @@ theorem mem_symplecticFormsInClass_iff_forall_restrict (hU : Pairwise (Disjoint 
           symplecticFormsInClass
             (TauCeti.SmoothForm.mpullback (Subtype.val : U i → M) contMDiff_subtypeVal α) := by
   simp only [mem_symplecticFormsInClass, LinearEquiv.apply_symm_apply, ← map_sub, forall_and,
-    ← TauCeti.SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtype_val hcover,
-    ← TauCeti.SmoothForm.mem_exactForms_iff_forall_mpullback_subtype_val hU hcover]
+    ← TauCeti.SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtypeVal hcover,
+    ← TauCeti.SmoothForm.mem_exactForms_iff_forall_mpullback_subtypeVal hU hcover]
 
 section Homeomorph
 
@@ -175,7 +175,7 @@ theorem continuous_tangentEquiv_symm_ofDisjointCover_opens :
           (hD' x)).comp (continuous_apply c)).prodMk (continuous_const (y := j))))).congr
             fun σ ↦ ContMDiffMap.ext fun z ↦ ?_
     rw [Function.comp_apply, hDω x _ z z.property, LinearEquiv.apply_symm_apply,
-      TauCeti.SmoothForm.mpullback_subtype_val_ofDisjointCover,
+      TauCeti.SmoothForm.mpullback_subtypeVal_ofDisjointCover,
       LinearEquiv.symm_apply_apply, ContMDiffMap.comp_apply]
     -- `j z` is `⟨⟨z, _⟩, _⟩` by the definition of `j`.
     rfl

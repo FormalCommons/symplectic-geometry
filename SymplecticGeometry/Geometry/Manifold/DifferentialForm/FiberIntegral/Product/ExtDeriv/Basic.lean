@@ -27,7 +27,7 @@ natural under pull-back along maps of the base
 `TauCeti.SmoothForm.mextDerivₗ_mpullback` and `TauCeti.SmoothForm.mpullback_cast`). So at `b : B`
 it is enough to compare their pull-backs to the target of the extended chart at `b`, an open
 subset of the model space, along the inverse of the chart
-(`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq`).
+(`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtypeVal_apply_eq`).
 
 This is the argument of Bott–Tu, §6, that integration along the fibre commutes with `d`.
 
@@ -70,7 +70,7 @@ theorem prodFiberIntegral_mextDeriv {m : ℕ} (o : Manifold.Orientation J F (Fin
   let Φ := ψ.toDiffeomorphSourceTarget
   have hb : b ∈ ψ.source := by
     simpa [ψ] using BoundarylessManifold.isInteriorPoint (I := I) (x := b)
-  refine SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq Φ ⟨b, hb⟩ ?_
+  refine SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtypeVal_apply_eq Φ ⟨b, hb⟩ ?_
   -- Both sides pulled back along `f`, the inverse of the chart read in `B`.
   let f : (⟨ψ.target, ψ.open_target⟩ : Opens E) → B := Subtype.val ∘ Φ.symm
   have hf : ContMDiff 𝓘(ℝ, E) I ∞ f := contMDiff_subtypeVal.comp Φ.symm.contMDiff

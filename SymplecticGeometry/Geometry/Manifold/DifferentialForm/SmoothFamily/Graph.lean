@@ -37,7 +37,7 @@ along `N`; its smoothness is that of the slice section of `α`
   is the slice of the pulled-back family along `χ ∘ f`.
 * `SymplecticGeometry.IsSmoothFamily.sliceAlong_comp`: the slice of the reparametrized family
   `fun s ↦ α (φ s)` along `χ` is the slice of `α` along `φ ∘ χ`.
-* `SymplecticGeometry.IsSmoothFamily.mpullback_subtype_val_sliceAlong`: on an open set where `χ`
+* `SymplecticGeometry.IsSmoothFamily.mpullback_subtypeVal_sliceAlong`: on an open set where `χ`
   is constantly `t`, its restriction is that of `α t`.
 * `SymplecticGeometry.IsSmoothFamily.isNondegenerate_sliceAlong_iff`: a family of two-forms
   gives a nondegenerate form exactly when each `α (χ x)` is nondegenerate at `x`; and
@@ -127,7 +127,7 @@ theorem sliceAlong_comp {EN' HN' N' : Type*} [NormedAddCommGroup EN'] [NormedSpa
 
 /-- **Locality.** On an open set `U` where `χ` is constantly `t`, the restriction of the slice of
 `α` along `χ` is the restriction of `α t`. -/
-theorem mpullback_subtype_val_sliceAlong (hα : IsSmoothFamily J α) {χ : M → N}
+theorem mpullback_subtypeVal_sliceAlong (hα : IsSmoothFamily J α) {χ : M → N}
     (hχ : ContMDiff I J ∞ χ) {U : Opens M} {t : N} (hU : ∀ x ∈ U, χ x = t) :
     SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal (hα.sliceAlong χ hχ) =
       SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal (α t) := by

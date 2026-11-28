@@ -1020,7 +1020,7 @@ theorem mpullback_rangeInlDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCom
     SmoothForm.mpullback (rangeInlDiffeomorph h).symm (rangeInlDiffeomorph h).symm.contMDiff
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
       SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff α :=
-  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal
     (isLocalDiffeomorph_inl_of_isCompatible h) (inl_injective _) α
 
 /-- The inverse of `rangeInlDiffeomorph h` pulls the restriction of the glued form to the range
@@ -1039,7 +1039,7 @@ theorem mpullback_rangeInrDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCom
     SmoothForm.mpullback (rangeInrDiffeomorph h).symm (rangeInrDiffeomorph h).symm.contMDiff
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
       SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff α :=
-  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal
     (isLocalDiffeomorph_inr_of_isCompatible h) (inr_injective _) α
 
 /-- The inverse of `rangeInrDiffeomorph h` pulls the restriction of the glued form to the range

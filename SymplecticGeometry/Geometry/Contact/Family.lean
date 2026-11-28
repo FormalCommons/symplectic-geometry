@@ -85,7 +85,7 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   smooth family of contact structures has a local defining family over `ℝ`.
 * `SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`: a local defining family
   restricts to smaller open sets.
-* `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
+* `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtypeVal`: restricting a one-form to an open
   subset keeps its kernels; that it keeps its contact points is Tau Ceti's
   `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul`: the Gray vector at `(t, x)` of a
@@ -237,7 +237,7 @@ omit [FiniteDimensional ℝ E] in
 /-- **Kernels restrict to open subsets.** Under the canonical identification of tangent spaces,
 the kernel at `x ∈ U` of the restriction of a one-form `α` to an open subset `U ⊆ M` is the kernel
 of `α` at `x`. -/
-theorem map_kerDistribution_mpullback_subtype_val {U : TopologicalSpace.Opens M}
+theorem map_kerDistribution_mpullback_subtypeVal {U : TopologicalSpace.Opens M}
     (α : SmoothForm I M ℝ 1) (x : U) :
     ((mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).kerDistribution x).map
       (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap =
@@ -374,7 +374,7 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
       constructor <;> linarith [ht.1.1, ht.1.2]
     have hx := ((hab (hδa htδ) (hUb x x.property)).1 (⟨t, ht.2⟩, x) rfl).2
     rw [mpullback_prodMk_mpullback_prodMap' hc.contMDiff Subtype.val contMDiff_subtypeVal, hct,
-      map_kerDistribution_mpullback_subtype_val, hx]
+      map_kerDistribution_mpullback_subtypeVal, hx]
     have hβ : mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
         mpullback (Prod.mk (⟨t, ht.2⟩ : unitInterval)) (contMDiff_const.prodMk contMDiff_id) α :=
       SmoothForm.mpullback_prodMk_timeExtend α ⟨t, ht.2⟩
