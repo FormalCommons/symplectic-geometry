@@ -369,14 +369,14 @@ so no statement takes it.
   `F (x, y) := mulInvariantExp (x : EC) * C.toHom (mulInvariantExp y)` on
   `C.parabolicSubspace ξ × E` takes values in the set
   `S := C.parabolic ξ * Set.range C.toHom`.
-- `parabolic_mul_range_toHom_mem_nhds_one : S ∈ 𝓝 1`. In the chart
-  `extChartAt IC 1`, in which the exponential has derivative the identity
-  at `0` (Tau Ceti's `hasFDerivAt_extChartAt_mulInvariantExp_zero`), the map `F` is
-  strictly differentiable at `0` with derivative `(x, y) ↦ x + C.lieMap y`,
-  which is onto by `parabolicSubspace_sup_range_lieMap`. Mathlib's
-  `HasStrictFDerivAt.map_nhds_eq_of_surj`
-  (`Analysis/Calculus/InverseFunctionTheorem/FDeriv.lean`) then makes the
-  image of `F` a neighbourhood of `1`.
+- `parabolic_mul_range_toHom_mem_nhds_one : S ∈ 𝓝 1`. By
+  `parabolicSubspace_sup_range_lieMap`, `range C.lieMap` contains a
+  complement of `C.parabolicSubspace ξ`. On the product of the two, carried
+  to left-invariant derivations, Tau
+  Ceti's `Submodule.lieExpMulLieExp` is a local diffeomorphism at `0`
+  (`Submodule.isLocalDiffeomorphAt_lieExpMulLieExp_zero_of_isCompl`), so its
+  image, which lies in `S` by `toHom_mulInvariantExp`, is a neighbourhood
+  of `1`.
 - `parabolic_mul_range_toHom_eq_univ : (C.parabolic ξ : Set Gc) * Set.range C.toHom = Set.univ`
   (Theorem D.3), with the two forms used below,
   `exists_mem_parabolic_mul_toHom : ∃ q ∈ C.parabolic ξ, ∃ u, g = q * C.toHom u`
@@ -1087,7 +1087,7 @@ proof that needs it as a `Submodule` builds it there.
   `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
   `TauCeti.Lie.conj_mulInvariantExp`,
   `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` and
-  `hasFDerivAt_extChartAt_mulInvariantExp_zero`; for the
+  `Submodule.isLocalDiffeomorphAt_lieExpMulLieExp_zero_of_isCompl`; for the
   local criterion, `TauCeti.exists_equivariant_contMDiff_chart_of_isCompact_stabilizer`,
   `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`,
   `Subgroup.ambientConnectedComponentOfOne`, `tangentRepresentation`,
@@ -1098,7 +1098,7 @@ proof that needs it as a `Submodule` builds it there.
   `unitaryAction`, checked at `0aaa80fd07b7`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
   and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`; for
-  decision 8, `HasStrictFDerivAt.map_nhds_eq_of_surj`,
+  decision 8,
   `IsClosed.mul_right_of_isCompact`
   and dominated convergence for interval integrals; for the local
   criterion, `HasStrictFDerivAt.toOpenPartialHomeomorph` and

@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Lie.Complexification
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Formula
 import SymplecticGeometry.Geometry.Lie.Adjoint.Eigenvector
+import SymplecticGeometry.Geometry.Lie.Exponential.ImageMul
+import SymplecticGeometry.Topology.Algebra.Group.SubgroupMul
 import TauCeti.Analysis.InnerProductSpace.Spectral.Relative
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import TauCeti.Geometry.Lie.Adjoint.InvariantForm
@@ -63,16 +65,19 @@ API, and shows that the subspace and the image of the Lie algebra of `G` span th
   `conj` exchanges the eigenvalues `μ` and `-μ`, and `x + conj x = 2 • lieMap (re x)`
   (`self_add_conj`).
 * `SymplecticGeometry.LieComplexification.parabolic_mul_range_toHom_mem_nhds_one`: for compact
-  `G`, the set `C.parabolic ξ * Set.range C.toHom` is a neighbourhood of `1`. In the chart
-  `extChartAt IC 1`, the map `(x, y) ↦ exp x * C.toHom (exp y)` on
-  `C.parabolicSubspace ξ × E` has derivative `(x, y) ↦ x + C.lieMap y` at `0`, which is onto by
-  `parabolicSubspace_sup_range_lieMap`, so Mathlib's `HasStrictFDerivAt.map_nhds_eq_of_surj`
-  applies.
+  `G`, the set `C.parabolic ξ * Set.range C.toHom` is a neighbourhood of `1`. It contains the
+  products `exp x * exp y` with `x ∈ C.parabolicSubspace ξ` (`mulInvariantExp_mem_parabolic`) and
+  `y ∈ range C.lieMap` (`toHom_mulInvariantExp`), which form a neighbourhood of `1` by
+  `mulInvariantExp_image_mul_mulInvariantExp_image_mem_nhds_one` and
+  `parabolicSubspace_sup_range_lieMap`.
 * `SymplecticGeometry.LieComplexification.parabolic_mul_range_toHom_eq_univ`: for compact `G`,
-  `Gc = C.parabolic ξ * Set.range C.toHom` ([GeorgoulasRobbinSalamon2021], Theorem D.3), since
-  that set is open, closed (by `IsClosed.mul_right_of_isCompact`) and contains every curve
-  `t ↦ C.polar (t • η, u)`; its two forms `exists_mem_parabolic_mul_toHom` and
-  `exists_toHom_mul_mem_parabolic` write every `g` as `q * C.toHom u` and as `C.toHom u * q`.
+  `Gc = C.parabolic ξ * Set.range C.toHom` ([GeorgoulasRobbinSalamon2021], Theorem D.3). That
+  set is open by `Subgroup.isOpen_mul_of_mem_nhds_one` and closed by
+  `Subgroup.isClosed_mul_of_isOpen_of_isCompact`. Writing `g = C.polar (η, u)` with `η` in the
+  Lie algebra of `G` and `u : G`, it contains `C.toHom u`, hence the whole curve
+  `t ↦ C.polar (t • η, u)` from `C.toHom u` to `g`. Its two forms
+  `exists_mem_parabolic_mul_toHom` and `exists_toHom_mul_mem_parabolic` write every `g` as
+  `q * C.toHom u` and as `C.toHom u * q`.
 
 ## References
 
@@ -304,65 +309,10 @@ theorem parabolic_mul_range_toHom_mem_nhds_one [FiniteDimensional ℝ E] [Compac
   have := C.finiteDimensional
   have : T2Space G := I.t2Space_of_lieGroup ∞
   have : BoundarylessManifold I G := ContMDiffMul.boundarylessManifold
-  let P : Submodule ℝ EC := C.parabolicSubspace ξ
-  let g : P × E → Gc := fun p ↦ mulInvariantExp (I := IC) (G := Gc) (p.1 : EC) *
-    C.toHom (mulInvariantExp (I := I) (G := G) p.2)
-  let φ := extChartAt IC (1 : Gc)
-  -- `mulInvariantExp_zero` at the zeros of the model spaces, which are those of the Lie
-  -- algebras after unfolding `TangentSpace`.
-  have he : mulInvariantExp (I := IC) (G := Gc) (0 : EC) = 1 := mulInvariantExp_zero
-  have he' : mulInvariantExp (I := I) (G := G) (0 : E) = 1 := mulInvariantExp_zero
-  have hg0 : g 0 = 1 := by
-    simp only [g, Prod.fst_zero, Prod.snd_zero, Submodule.coe_zero, he, he', map_one, mul_one]
-  have hg : ContMDiff 𝓘(ℝ, P × E) IC ∞ g := by
-    refine ContMDiff.mul ?_ ?_
-    · exact (contMDiff_mulInvariantExp (I := IC) (G := Gc)).comp
-        (P.subtypeL.comp (ContinuousLinearMap.fst ℝ P E)).contDiff.contMDiff
-    · exact C.toHom.contMDiff_toFun.comp ((contMDiff_mulInvariantExp (I := I) (G := G)).comp
-        (ContinuousLinearMap.snd ℝ P E).contDiff.contMDiff)
-  have hF : ContDiffAt ℝ ∞ (φ ∘ g) 0 := by
-    have h := (contMDiffAt_iff_target_of_mem_source (x := 0) (y := (1 : Gc))
-      (by rw [hg0]; exact mem_chart_source HC 1)).1 (hg 0)
-    exact contMDiffAt_iff_contDiffAt.1 h.2
-  set L := fderiv ℝ (φ ∘ g) 0
-  have hL : HasFDerivAt (φ ∘ g) L 0 := (hF.differentiableAt (by simp)).hasFDerivAt
-  have hexp := hasFDerivAt_extChartAt_mulInvariantExp_zero (I := IC) (G := Gc)
-  have h₁ (x : P) : L (x, 0) = x := by
-    have h : HasFDerivAt (fun x : P ↦ φ (mulInvariantExp (I := IC) (G := Gc) (x : EC)))
-        (L.comp (ContinuousLinearMap.inl ℝ P E)) 0 := by
-      refine (hL.comp (0 : P) (ContinuousLinearMap.inl ℝ P E).hasFDerivAt).congr_of_eventuallyEq
-        (Eventually.of_forall fun x ↦ ?_)
-      simp only [Function.comp_apply, g, ContinuousLinearMap.inl_apply, he', map_one, mul_one]
-    have h' := hexp.comp (0 : P) P.subtypeL.hasFDerivAt
-    exact congrArg (· x) (h.unique h')
-  have h₂ (y : E) : L (0, y) = C.lieMap y := by
-    let l : E →L[ℝ] EC := LinearMap.toContinuousLinearMap C.lieMap.toLinearMap
-    have h : HasFDerivAt (fun y : E ↦ φ (mulInvariantExp (I := IC) (G := Gc) (l y)))
-        (L.comp (ContinuousLinearMap.inr ℝ P E)) 0 := by
-      refine (hL.comp (0 : E) (ContinuousLinearMap.inr ℝ P E).hasFDerivAt).congr_of_eventuallyEq
-        (Eventually.of_forall fun y ↦ ?_)
-      simp only [Function.comp_apply, g, Submodule.coe_zero, he, one_mul]
-      exact congrArg φ (C.toHom_mulInvariantExp y).symm
-    have h' := (map_zero l ▸ hexp).comp (0 : E) l.hasFDerivAt
-    exact congrArg (· y) (h.unique h')
-  have hrange : L.range = ⊤ := by
-    refine eq_top_iff.2 ((C.parabolicSubspace_sup_range_lieMap ξ).symm.le.trans
-      (sup_le (fun x hx ↦ ⟨(⟨x, hx⟩, 0), h₁ _⟩) ?_))
-    rintro _ ⟨y, rfl⟩
-    exact ⟨(0, y), h₂ y⟩
-  have hmap := (hF.hasStrictFDerivAt hL (by simp)).map_nhds_eq_of_surj hrange
-  have hU : g ⁻¹' φ.source ∈ 𝓝 (0 : P × E) :=
-    hg.continuous.continuousAt.preimage_mem_nhds
-      (by rw [hg0]; exact extChartAt_source_mem_nhds (I := IC) (1 : Gc))
-  have himg : (φ ∘ g) '' (g ⁻¹' φ.source) ∈ 𝓝 (φ 1) := by
-    rw [← hg0, ← Function.comp_apply (f := φ), ← hmap]
-    exact image_mem_map hU
-  refine mem_of_superset
-    (inter_mem ((continuousAt_extChartAt (I := IC) (1 : Gc)).preimage_mem_nhds himg)
-    (extChartAt_source_mem_nhds (I := IC) (1 : Gc))) ?_
-  rintro h ⟨⟨p, hp, hph⟩, hh⟩
-  rw [← φ.injOn hp hh hph]
-  exact Set.mul_mem_mul (C.mulInvariantExp_mem_parabolic p.1.property) ⟨_, rfl⟩
+  refine mem_of_superset (mulInvariantExp_image_mul_mulInvariantExp_image_mem_nhds_one
+    _ _ (C.parabolicSubspace_sup_range_lieMap ξ)) ?_
+  rintro _ ⟨_, ⟨x, hx, rfl⟩, _, ⟨_, ⟨y, rfl⟩, rfl⟩, rfl⟩
+  exact Set.mul_mem_mul (C.mulInvariantExp_mem_parabolic hx) ⟨_, C.toHom_mulInvariantExp y⟩
 
 omit [FiniteDimensional ℝ EC] in
 /-- For a compact group `G` with finite-dimensional Lie algebra, every element of `Gc` is a
@@ -372,35 +322,21 @@ theorem parabolic_mul_range_toHom_eq_univ [FiniteDimensional ℝ E] [CompactSpac
     (ξ : GroupLieAlgebra I G) :
     (C.parabolic ξ : Set Gc) * Set.range C.toHom = Set.univ := by
   have := topologicalGroup_of_lieGroup IC ∞ (G := Gc)
-  set S := (C.parabolic ξ : Set Gc) * Set.range C.toHom
-  have hV := C.parabolic_mul_range_toHom_mem_nhds_one ξ
-  have hmem : ∀ q ∈ C.parabolic ξ, ∀ s ∈ S, ∀ u, q * s * C.toHom u ∈ S := by
-    rintro q hq _ ⟨p, hp, _, ⟨v, rfl⟩, rfl⟩ u
-    exact ⟨q * p, mul_mem hq hp, C.toHom (v * u), ⟨_, rfl⟩, by rw [map_mul]; group⟩
-  have hopen : IsOpen S := by
-    refine isOpen_iff_mem_nhds.2 ?_
-    rintro _ ⟨q, hq, _, ⟨u, rfl⟩, rfl⟩
-    have hc : Continuous fun h : Gc ↦ q⁻¹ * h * (C.toHom u)⁻¹ := by fun_prop
-    have h1 : q⁻¹ * (q * C.toHom u) * (C.toHom u)⁻¹ = 1 := by group
-    refine mem_of_superset (hc.continuousAt.preimage_mem_nhds (h1 ▸ hV)) fun h hh ↦ ?_
-    simpa only [mul_assoc, mul_inv_cancel_left, inv_mul_cancel, mul_one] using hmem q hq _ hh u
-  have hsub : closure (C.parabolic ξ : Set Gc) * Set.range C.toHom ⊆ S := by
-    rintro _ ⟨k, hk, _, ⟨u, rfl⟩, rfl⟩
-    have hc : Continuous fun p : Gc ↦ p⁻¹ * k := by fun_prop
-    have hN : (fun p : Gc ↦ p⁻¹ * k) ⁻¹' S ∈ 𝓝 k :=
-      hc.continuousAt.preimage_mem_nhds (by rwa [inv_mul_cancel])
-    obtain ⟨p, hpS, hp⟩ := mem_closure_iff_nhds.1 hk _ hN
-    simpa only [mul_inv_cancel_left] using hmem p hp _ hpS u
-  have hclosed : IsClosed S := by
-    rw [← hsub.antisymm (Set.mul_subset_mul_right subset_closure)]
-    exact isClosed_closure.mul_right_of_isCompact
-      (isCompact_range C.toHom.contMDiff_toFun.continuous)
+  have hQ : (C.toHom.toMonoidHom.range : Set Gc) = Set.range C.toHom := MonoidHom.coe_range _
+  have hopen : IsOpen ((C.parabolic ξ : Set Gc) * Set.range C.toHom) := by
+    rw [← hQ]
+    exact Subgroup.isOpen_mul_of_mem_nhds_one _ _ (hQ ▸ C.parabolic_mul_range_toHom_mem_nhds_one ξ)
+  have hclosed : IsClosed ((C.parabolic ξ : Set Gc) * Set.range C.toHom) := by
+    rw [← hQ] at hopen ⊢
+    exact Subgroup.isClosed_mul_of_isOpen_of_isCompact _ _
+      (hQ ▸ isCompact_range C.toHom.contMDiff_toFun.continuous) hopen
   refine Set.eq_univ_of_forall fun g ↦ ?_
-  -- `S` is clopen and contains `C.toHom u`, so it contains the curve
+  -- The set is clopen and contains `C.toHom u`, so it contains the curve
   -- `t ↦ C.polar (t • η, u)` from `C.toHom u` to `g = C.polar (η, u)`.
   have hc : Continuous fun t : ℝ ↦ C.polar (t • (C.polar.symm g).1, (C.polar.symm g).2) :=
     C.polar.continuous.comp (by fun_prop)
-  have h0 : (0 : ℝ) ∈ (fun t : ℝ ↦ C.polar (t • (C.polar.symm g).1, (C.polar.symm g).2)) ⁻¹' S := by
+  have h0 : (0 : ℝ) ∈ (fun t : ℝ ↦ C.polar (t • (C.polar.symm g).1, (C.polar.symm g).2)) ⁻¹'
+      ((C.parabolic ξ : Set Gc) * Set.range C.toHom) := by
     rw [Set.mem_preimage, zero_smul, C.polar_zero_apply]
     exact ⟨1, one_mem _, _, ⟨_, rfl⟩, one_mul _⟩
   have h1 : (1 : ℝ) ∈ _ := (IsClopen.preimage ⟨hclosed, hopen⟩ hc).eq_univ ⟨0, h0⟩ ▸ Set.mem_univ 1
