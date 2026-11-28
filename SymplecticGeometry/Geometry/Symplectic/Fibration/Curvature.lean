@@ -764,13 +764,13 @@ omit [CompleteSpace EB] [CompleteSpace EF] in
 /-- On the fibre over `x`, `τ(∂ᵢ, ∂ⱼ) - τ(Lᵢ, Lⱼ) = σ(x)(Xᵢ, Xⱼ)`, where `Lₖ` is the horizontal
 lift of the constant field `bs k`. -/
 private theorem sub_val_horizontalLiftField_const (i j : ι) (y' : F) :
-    τ.val (x, y') ![(bs i, 0), (bs j, 0)] -
+    RoughForm.baseComponent τ.val bs i j x y' -
         τ.val (x, y') ![hD.horizontalLiftField
             (fun _ ↦ bs i : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y'),
           hD.horizontalLiftField (fun _ ↦ bs j : Π b : EB, TangentSpace 𝓘(ℝ, EB) b) (x, y')] =
       SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
         (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y') := by
-  rw [horizontalLiftField_const_eq_add hD bs hσ i y',
+  rw [RoughForm.baseComponent_def, horizontalLiftField_const_eq_add hD bs hσ i y',
     horizontalLiftField_const_eq_add hD bs hσ j y']
   set Xᵢ := τ.mixedVectorField bs i x y'
   set Xⱼ := τ.mixedVectorField bs j x y'
@@ -822,23 +822,6 @@ private theorem mextDeriv_horizontalLiftField_const {y : F}
   rw [horizontalLiftField_const_eq_add hD bs hσ i y, horizontalLiftField_const_eq_add hD bs hσ j y]
   exact hsplit _ _ _ _ _ rfl rfl rfl
 
-omit hσ [CompleteSpace EB] [CompleteSpace EF] [FiniteDimensional ℝ EF] in
-/-- The function `τ((bs i, 0), (bs j, 0))` on `EB × F` is differentiable. -/
-private theorem mdifferentiableAt_val_const (i j : ι) (y : F) :
-    MDifferentiableAt (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, ℝ)
-      (fun z ↦ τ.val z ![(bs i, 0), (bs j, 0)]) (x, y) := by
-  set A : ι → Π z : EB × F, TangentSpace (𝓘(ℝ, EB).prod IF) z := fun k ↦
-    Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
-      (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) (0 : (y : F) → TangentSpace IF y)
-  have hA (k : ι) : MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
-      (fun z ↦ (A k z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
-    Manifold.mdifferentiableAt_prodVectorField
-      ((contMDiff_tangentBundle_mk_const (n := 1) _).mdifferentiableAt one_ne_zero)
-      ((contMDiff_zeroSection ℝ (TangentSpace IF)).mdifferentiableAt one_ne_zero)
-  have hAv (k : ι) (z : EB × F) : A k z = ((bs k, 0) : EB × EF) :=
-    Manifold.prodVectorField_apply _ _ z
-  simpa only [hAv] using τ.mdifferentiableAt_apply_two (hA i) (hA j)
-
 /-- **The curvature in a product chart.** Let `τ` be a smooth two-form on `EB × F` whose
 `τ`-orthogonals of the vertical spaces of `Prod.fst` form a `C^n` Ehresmann connection `hD`,
 `1 ≤ n`, and `bs` a basis of `EB`. Suppose that the fibre component `σ(x)` of `τ` over `x` is
@@ -882,25 +865,15 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     exact (τ.eval₂_smoothFiberComponent x y _ w).symm
   -- `dτ` on the constant fields and `(0, w)`, by Tau Ceti's formula on a parameter product.
   have hdτ := mextDeriv_horizontalLiftField_const hD bs hσ hτ i j w
-  have hfAB := SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv τ x y (bs i) (bs j) w
-  have ha (k : ι) (v : EB) : fderiv ℝ (fun q ↦ τ.val (q, y) ![(bs k, 0), ((0 : EB), w)]) x v =
-      -fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs k x' y ![w]) x v := by
-    have hα : (fun q ↦ τ.val (q, y) ![(bs k, 0), ((0 : EB), w)]) =
-        fun q ↦ -RoughForm.mixedComponent τ.val bs k q y ![w] :=
-      funext fun q ↦ by
-        rw [RoughForm.mixedComponent_apply]
-        exact (τ.val (q, y)).apply_vecCons_swap _ _
-    have h := congrArg (fun φ ↦ fderiv ℝ φ x v) hα
-    simp only [fderiv_fun_neg] at h
-    exact h
+  have hcurl := SmoothTwoForm.mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv τ bs i j x y w
   -- The derivative along `(0, w)` of `τ(Lᵢ, Lⱼ)` is read on the fibre over `x`.
-  have hfd := mdifferentiableAt_val_const (τ := τ) bs (x := x) i j y
+  have hfd := (SmoothTwoForm.contMDiff_baseComponent τ bs i j (x, y)).mdifferentiableAt (by simp)
   have hL (k : ι) := hD.mdifferentiableAt_horizontalLiftField hn (hproj (x, y))
     (V := (fun _ ↦ bs k : Π b : EB, TangentSpace 𝓘(ℝ, EB) b)) (hc k)
   have hg := τ.mdifferentiableAt_apply_two (hL i) (hL j)
   have hS : mvfderiv IF (fun y' ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
         (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y')) y w =
-      mvfderiv IF (fun y' ↦ τ.val (x, y') ![(bs i, 0), (bs j, 0)]) y w -
+      mvfderiv IF (RoughForm.baseComponent τ.val bs i j x) y w -
         mvfderiv (𝓘(ℝ, EB).prod IF) (fun z ↦ τ.val z ![Lᵢ z, Lⱼ z]) (x, y) ((0 : EB), w) := by
     have hmk : MDifferentiableAt IF (𝓘(ℝ, EB).prod IF) (fun y' : F ↦ (x, y')) y :=
       mdifferentiableAt_const.prodMk mdifferentiableAt_id
@@ -908,10 +881,9 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     simp only [sub_apply] at h
     rw [hg.mvfderiv_prod_eq_apply_of_fst_eq_zero
       (v := (((0 : EB), w) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y))) rfl]
-    exact (congrArg (fun φ ↦ mvfderiv IF φ y w)
-      (funext fun y' ↦ (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
-  rw [RoughForm.mixedCurl_def]
-  linear_combination -hlhs + hid - hdτ - hfAB - ha j (bs i) + ha i (bs j) + hS
+    exact (congrArg (fun φ ↦ mvfderiv IF φ y w) (funext fun y' ↦
+      (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
+  linear_combination -hlhs + hid - hdτ - hcurl + hS
 
 /-- **Hamiltonian curvature in a product chart.** In the setting of `curvatureIn_local`, suppose
 that `τ` is vertically closed along the fibre over `x`. Then the fibre component of the curvature
