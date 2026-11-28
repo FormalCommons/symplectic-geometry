@@ -247,9 +247,11 @@ theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG
     (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p) :
     (weinsteinForm σ μ hμs A).val p ![w₁, w₂] =
       σ.val p.2 ![(Manifold.tangentSpaceProdEquiv p w₁).2 +
-            fundamentalVectorField (I := IG) (G := G) IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]) p.2,
+            fundamentalVectorField (I := IG) (G := G) IF
+              (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]) p.2,
           (Manifold.tangentSpaceProdEquiv p w₂).2 +
-            fundamentalVectorField (I := IG) (G := G) IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2] +
+            fundamentalVectorField (I := IG) (G := G) IF
+              (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2] +
         momentMapCLM μ hμs p.2 ((gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val p.1
           ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1]) := by
   -- Infinitesimal equivariance: `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`.
@@ -267,7 +269,8 @@ theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG
   simp only [momentMapCLM_apply]
   rw [hμ.toIsMomentMap.mvfderiv_apply_of_neg (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]),
     hμ.toIsMomentMap.mvfderiv_apply_of_neg (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]),
-    GroupLieAlgebra.bracketL_apply (I := IG) (G := G) (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
+    GroupLieAlgebra.bracketL_apply (I := IG) (G := G)
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
       (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]),
     InfinitesimalAction.fundamental_apply (I' := IF) (M := F)
       (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]),
@@ -337,7 +340,11 @@ theorem mpullback_smul_momentPairing
   simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
     ContinuousLinearMap.id_apply, SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction,
     RoughForm.ofFunction_apply, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-    momentMapCLM_apply, hμG, adjointContinuousLinearMap_adjointContinuousLinearMap_inv]
+    momentMapCLM_apply]
+  -- The factor `Ad(g)` on `μ` cancels the factor `Ad(g⁻¹)` on `A`.
+  refine (hμG g p.2 _).trans (congrArg (μ p.2) ?_)
+  rw [GroupLieAlgebra.adjointL_apply]
+  exact adjointContinuousLinearMap_adjointContinuousLinearMap_inv g _
 
 /-- **Weinstein's form is invariant** under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` of `G`
 on `P × F`, for a connection form `A`, a two-form `σ` invariant under `G` and an equivariant moment
@@ -500,9 +507,11 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right, (A.val x).map_coord_zero 0 rfl,
     ((gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val x).map_coord_zero
-      0 rfl,
+      0 rfl]
+  -- The zero of the model space `EG` is the zero of the Lie algebra.
+  rw [show fundamentalVectorField (I := IG) (G := G) IF (0 : EG) = 0 from
     fundamentalVectorField_zero]
-  simp
+  simp [-momentMapCLM_apply]
 
 /-- **Weinstein's construction.** Let `P` be a smooth principal `G`-bundle with a connection form
 `A`, and let `G` act on a manifold `F` preserving a closed two-form `σ`, with an equivariant moment
@@ -531,10 +540,12 @@ theorem exists_isClosed_mpullback_eq_weinsteinForm {σ : SmoothTwoForm IF F} (h�
       ∀ (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p),
         (weinsteinForm σ μ hμs A).val p ![w₁, w₂] =
           σ.val p.2 ![(Manifold.tangentSpaceProdEquiv p w₁).2 +
-                fundamentalVectorField (I := IG) (G := G) IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
+                fundamentalVectorField (I := IG) (G := G) IF
+                  (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
                   p.2,
               (Manifold.tangentSpaceProdEquiv p w₂).2 +
-                fundamentalVectorField (I := IG) (G := G) IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
+                fundamentalVectorField (I := IG) (G := G) IF
+                  (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
                   p.2] +
             momentMapCLM μ hμs p.2 ((gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val p.1
               ![(Manifold.tangentSpaceProdEquiv p w₁).1,
