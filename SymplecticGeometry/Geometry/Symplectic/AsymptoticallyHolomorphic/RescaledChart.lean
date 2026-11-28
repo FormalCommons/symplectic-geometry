@@ -187,6 +187,9 @@ from `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`). So every `y`
   image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`; its two halves as real inequalities,
   `RescaledUnitaryCharts.norm_le_sqrt_two_mul_rescaledDist_symm` and
   `RescaledUnitaryCharts.rescaledDist_symm_le`.
+* `SymplecticGeometry.RescaledUnitaryCharts.eventually_forall_rescaledDist_symm_le`: for every
+  radius `R` and all large `k`, `d_k` from any `x` to the point with image `z` is at most
+  `√(3 / 2) * ‖z‖` for every `z` in the ball of radius `R`.
 * `SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_rescaledEDist_of_notMem` and
   `SymplecticGeometry.RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_rescaledEDist_lt`:
   the points outside the image of the ball of radius `ρ₁ * √k` are at rescaled distance at least
