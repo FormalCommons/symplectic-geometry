@@ -168,8 +168,8 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
       funext fun z ↦ by rw [Pi.add_apply, hτ']
     refine Subtype.ext ?_
     rw [SmoothTwoForm.coe_smoothFiberComponent, hval, RoughForm.fiberComponent_add,
-      RoughForm.fiberComponent_fun_smul, RoughForm.fiberComponent_fun_smul (f := fun x ↦ 1 - χ x),
-      hfibν]
+      RoughForm.fiberComponent_fun_smul_fst,
+      RoughForm.fiberComponent_fun_smul_fst (f := fun x ↦ 1 - χ x), hfibν]
     by_cases hx : x ∈ W
     · rw [hfibμ hx, ← add_smul, add_sub_cancel, one_smul]
     · rw [hχ0 hx, zero_smul, zero_add, sub_zero, one_smul]

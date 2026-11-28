@@ -83,8 +83,9 @@ since it inverts the flat maps of the smooth family `σ`.
 
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
 * `TauCeti.RoughForm.fiberComponent_add`, `fiberComponent_fun_smul` and their neighbours: the
-  slice over `x` is linear in `τ`, and a factor `f(x)` that depends only on the base point comes
-  out of the slice over `x` as the scalar `f x`.
+  slice over `x` is linear in `τ`, and a factor `g` on `EB × F` restricts to the fibre as
+  `y ↦ g (x, y)`; by `fiberComponent_fun_smul_fst`, a factor `f(x)` that depends only on the base
+  point comes out of the slice over `x` as the scalar `f x`.
 * `TauCeti.RoughForm.mextDeriv_fiberComponent_apply`: on vectors tangent to the fibre over `x`,
   the exterior derivative of `τ` is that of its slice `σ(x)`, for `τ` of class `C¹` at the point.
 * `TauCeti.RoughForm.differentiableAt_fiberComponent`: the slices of a form differentiable at
@@ -211,12 +212,18 @@ theorem fiberComponent_smul (c : ℝ) (x : EB) :
     (c • τ).fiberComponent x = c • τ.fiberComponent x := by
   simp only [fiberComponent_def, mpullback_smul]
 
+/-- Multiplying `τ` by a function `g` on `EB × F` multiplies its fibre component over `x`, at a
+point `y` of `F`, by `g (x, y)`. -/
+@[simp]
+theorem fiberComponent_fun_smul (g : EB × F → ℝ) (x : EB) :
+    fiberComponent (fun z ↦ g z • τ z) x = fun y ↦ g (x, y) • τ.fiberComponent x y := by
+  rw [fiberComponent_def, mpullback_fun_smul, fiberComponent_def]
+
 /-- Multiplying `τ` by a function `f` of the base point multiplies its fibre component over `x`
 by `f x`. -/
-@[simp]
-theorem fiberComponent_fun_smul (f : EB → ℝ) (x : EB) :
+theorem fiberComponent_fun_smul_fst (f : EB → ℝ) (x : EB) :
     fiberComponent (fun z ↦ f z.1 • τ z) x = f x • τ.fiberComponent x := by
-  rw [fiberComponent_def, mpullback_fun_smul, fiberComponent_def]
+  rw [fiberComponent_fun_smul]
   ext1 y
   rw [Pi.smul_apply]
 
