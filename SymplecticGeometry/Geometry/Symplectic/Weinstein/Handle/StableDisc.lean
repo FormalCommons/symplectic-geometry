@@ -886,7 +886,7 @@ theorem exists_forall_flow_strictAntiOn
       intro h0
       have hxp : hW.flow t (D.ι z) = p := by rw [← (hinv' t ht).2, h0, D.ι_zero]
       have hzp : D.ι z = p := by
-        rw [← Flow.map_zero_apply hW.flow (D.ι z), ← neg_add_cancel t, Flow.map_add, hxp,
+        rw [← hW.flow.map_neg_apply_map t (D.ι z), hxp,
           hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp.mem_criticalPoints)]
       apply hz0
       rw [← D.π_ι hzρ, hzp, D.π_self]

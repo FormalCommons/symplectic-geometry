@@ -83,7 +83,8 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
 * `SymplecticGeometry.Blowup.isClosed_exceptionalDivisor`,
   `SymplecticGeometry.Blowup.dense_exceptionalDivisor_compl`: the divisor is closed, and its
   complement is dense.
-* The instance `T2Space (Blowup c)` when `M` is Hausdorff.
+* The instance `T2Space (Blowup c)` when `M` is Hausdorff, and the instance
+  `SigmaCompactSpace (Blowup c)` when `M` is σ-compact.
 * `SymplecticGeometry.Blowup.isCompatible_complex`, `SymplecticGeometry.Blowup.isCompatible_real`:
   the gluing is holomorphically, resp. smoothly, compatible, and the instances
   `IsManifold 𝓘(ℂ, E) ω (Blowup c)` and `IsManifold 𝓘(ℝ, E) ∞ (Blowup c)`.
@@ -530,6 +531,15 @@ instance [T2Space M] : T2Space (Blowup c) := by
   have hzB' : ((z : puncturedOpens c) : M) ∈ B := by
     simpa [c.left_inv ((mem_puncturedSourceOpens c).1 z.property)] using hzB
   exact hAB.ne_of_mem hzA hzB' rfl
+
+/-! ### Countability -/
+
+/-- The blowup of a σ-compact space is σ-compact: such an `M`, charted on `ℂⁿ⁺¹`, is second
+countable, hence so is the blowup, which is locally compact as a space charted on `ℂⁿ⁺¹`. -/
+instance [SigmaCompactSpace M] : SigmaCompactSpace (Blowup c) := by
+  have := ChartedSpace.secondCountable_of_sigmaCompact (Fin (n + 1) → ℂ) M
+  have := ChartedSpace.locallyCompactSpace (Fin (n + 1) → ℂ) (Blowup c)
+  infer_instance
 
 /-! ### The manifold structures -/
 

@@ -444,7 +444,7 @@ theorem exists_globalFlow_eq_of_mem_unstableSet (hXφ : ∀ y ∈ φ.toChart.sou
   set Φ := globalFlow X hX hXc
   obtain ⟨T, -, a, ha⟩ :=
     φ.exists_globalFlow_eq_toChart_symm_negativeExtend_of_mem_unstableSet hX hXc hXφ hx
-  have hx' : x = Φ (-T) (Φ T x) := by rw [← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
+  have hx' : x = Φ (-T) (Φ T x) := (Φ.map_neg_apply_map T x).symm
   have haT : Φ T x = φ.toChart.symm (φ.negativeExtend a) := by
     have h := (ha T le_rfl).2
     rwa [sub_self, Real.exp_zero, one_smul] at h
@@ -499,7 +499,7 @@ private theorem eq_of_globalFlow_eq_globalFlow_of_le
   have h1 : φ.toChart.symm (φ.negativeExtend c.ofLp) =
       φ.toChart.symm (φ.negativeExtend (Real.exp (s' - s) • c').ofLp) := by
     rw [← φ.globalFlow_toChart_symm_negativeExtend_of_norm_le hX hXc hXφ hρ hc'.le hle,
-      sub_eq_neg_add, Flow.map_add, ← h, ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
+      sub_eq_neg_add, Flow.map_add, ← h, Flow.map_neg_apply_map]
   have hn : ‖Real.exp (s' - s) • c'‖ ≤ ρ := by
     rw [norm_smul, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _), hc']
     exact mul_le_of_le_one_left hρ0.le (Real.exp_le_one_iff.2 hle)
@@ -570,8 +570,7 @@ theorem injOn_globalFlow_toChart_symm_negativeExtend
       Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) ≠ p := by
     intro h
     have h' := congrArg (Φ (-θ c)) h
-    rw [← Flow.map_add, neg_add_cancel, Flow.map_zero_apply,
-      φ.globalFlow_self hX hXc hXφ] at h'
+    rw [Flow.map_neg_apply_map, φ.globalFlow_self hX hXc hXφ] at h'
     exact φ.toChart_symm_negativeExtend_ne (by simpa using hc0) (hρ c hc) h'
   have hzero := φ.globalFlow_toChart_symm_negativeExtend_zero hX hXc hXφ (θ 0)
   intro c hc c' hc' h
