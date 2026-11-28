@@ -11,7 +11,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
+import SymplecticGeometry.Geometry.Manifold.Riemannian.NormedSpace
 import TauCeti.Topology.VectorBundle.Riemannian.Comparison
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PullbackPartialDiffeomorph
 
@@ -34,8 +34,8 @@ in a Morse or a birth–death chart, use the gradient-like condition.
 
 On a compact neighbourhood `K` of `p` in the source of `e`, the metric `g` of the hypothesis is
 compared with the forms `(v, w) ↦ ⟪T (de_y v), T (de_y w)⟫`, where `T = toEuclidean`. These are
-the pull-back along `e` of the metric that `toEuclidean` carries to `E`, as in the proof of
-`TauCeti.isGradientLike_of_mul_le`; they are continuous and positive definite on the source of
+the pull-back along `e` of the metric `SymplecticGeometry.riemannianMetricToEuclidean E` that
+`toEuclidean` carries to `E`; they are continuous and positive definite on the source of
 `e` (`PartialDiffeomorph.contMDiffOn_pullback`, `PartialDiffeomorph.pullback_apply_self_pos`), so
 Tau Ceti's `IsCompact.exists_pos_forall_mul_norm_sq_le_bundle` and
 `IsCompact.exists_bound_of_continuousOn_bilinear_bundle` bound them above and below by the norm of
@@ -128,24 +128,16 @@ theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
   -- A compact neighbourhood `K` of `p` in the source of `e` on which the hypothesis holds.
   obtain ⟨K, hK, hKU, hKc⟩ := local_compact_nhds
     (Filter.inter_mem hU (e.open_source.mem_nhds hp))
-  -- The metric that `T = toEuclidean` carries to `E`, as in `isGradientLike_of_mul_le`.
+  -- The metric that `T = toEuclidean` carries to `E`.
   set T := toEuclidean (E := E)
-  have hT : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) (∞ + 1) T :=
-    T.contDiff.contMDiff
-  have hTinj (x : E) : Function.Injective
-      (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) T x) := by
-    rw [T.mfderiv_eq]
-    exact T.injective
-  set g₀ := ((riemannianMetricVectorSpace _).ofLE le_top).pullback T hT hTinj
+  set g₀ : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (TangentSpace 𝓘(ℝ, E)) :=
+    (SymplecticGeometry.riemannianMetricToEuclidean E).ofLE le_top
   have hg₀ (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g₀.inner x v w = inner ℝ (T v) (T w) := by
-    simp only [g₀]
-    rw [ContMDiffRiemannianMetric.pullback_inner, ContMDiffRiemannianMetric.ofLE_inner,
-      riemannianMetricVectorSpace_inner, T.mfderiv_eq]
-    rfl
+    rw [ContMDiffRiemannianMetric.ofLE_inner]
+    exact SymplecticGeometry.riemannianMetricToEuclidean_inner x v w
   obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖T v‖ ≤ L * ‖v‖ := ⟨_, T.toContinuousLinearMap.le_opNorm⟩
   obtain ⟨K', hK'⟩ : ∃ K', ∀ v, ‖v‖ ≤ K' * ‖T v‖ :=
     ⟨_, fun v ↦ by simpa using T.symm.toContinuousLinearMap.le_opNorm (T v)⟩
-  -- The pull-back of `g₀` along `e`, compared with `g` on `K`.
   -- The pull-back of `g₀` along `e`, compared with `g` on `K`.
   set Ψ := e.toPartialDiffeomorph he
   have hΨs : Ψ.source = e.source :=

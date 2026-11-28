@@ -752,9 +752,9 @@ theorem surroundFamily_neg_eight_mul (hδ : 0 ≤ δ) (r : ℝ) :
 /-- **The leaves of the glued family are `i`-convex shapes.** Let `δ > 0`, `24 δ ≤ ℓ₀ ≤ ℓₜ / 2`
 and `M ≥ 8`, let `L ≥ 1` be large compared with bounds `A` of `smoothTransition'`, `B` of
 `smoothTransition''` and `N` of `x smoothTransition'' x`, let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be an
-`i`-convex shape at every `r > δ`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be `C²` on `(δ, ∞)`, a
-constant plus `struweShape δ 4 0` on `(δ, 9 δ / 2]`, at least `ℓ` on `(δ, ∞)`, the standard leaf
-`r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
+`i`-convex shape at every `r > δ`, `C²` on `(δ, ∞)` and a constant plus `struweShape δ 4 0` on
+`[δ, 9 δ / 2]`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be at least `ℓ` on `(δ, ∞)`, the standard
+leaf `r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
 `[3 δ, ℓ / 4]`. Then for `ℓ ∈ [-8 δ, ℓₜ]` the leaf `ℓ` of the glued family is an `i`-convex
 shape at every `r > δ`. -/
 theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
@@ -764,9 +764,8 @@ theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
     (hM : 8 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
     (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
-    (hF2 : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
-    (hFS : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀),
-      ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hF2 : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
     (hFℓ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r)
     (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
     (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
@@ -785,7 +784,9 @@ theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
   rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
   · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
     exact isConvexShapeAt_bridgeFamily hA hB hN hL₁ hL hδ hℓ₀ hM (fun ℓ h ↦ hFc ℓ (hsub h))
-      hF2 hFS hFℓ hFs hFd ⟨h7.le, h2⟩ hr
+      (fun ℓ h ↦ hF2 ℓ (hsub h))
+      (fun ℓ h ↦ (hFS ℓ (hsub h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
+      hFℓ hFs hFd ⟨h7.le, h2⟩ hr
   · rw [surroundFamily_of_lt hδ.le h7 h2]
     exact hFc ℓ ⟨by linarith, hℓ₂⟩ r hr
 
@@ -862,10 +863,8 @@ theorem tendsto_deriv_surroundFamily {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ
       fun r hr ↦ by rw [hc r ⟨hr.1.le, hr.2.le⟩, ← struweShape_add, add_zero]
 
 /-- **The leaves of the glued family are increasing.** Under the hypotheses of
-`SymplecticGeometry.isConvexShapeAt_surroundFamily`, if moreover every `F ℓ` with
-`ℓ ∈ [ℓ₀, ℓₜ]` is `C²` on `(δ, ∞)` and equal to a constant plus `struweShape δ 4 0` on
-`[δ, 9 δ / 2]`, then each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the glued family is strictly increasing
-on `[δ, ∞)`. -/
+`SymplecticGeometry.isConvexShapeAt_surroundFamily`, each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the glued
+family is strictly increasing on `[δ, ∞)`. -/
 theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
     (hA : ∀ x, |deriv smoothTransition x| ≤ A)
     (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
@@ -882,9 +881,7 @@ theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
   strictMonoOn_Ici_of_isConvexShapeAt
     (continuousOn_surroundFamily (by linarith) hδ (by linarith) (by linarith) hℓₜ hFS
       (fun ℓ h ↦ (hF2 ℓ h).continuousOn) hℓ.2)
-    fun _ hr ↦ isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc
-      (fun ℓ h ↦ hF2 ℓ (Icc_subset_Icc_right hℓₜ h))
-      (fun ℓ h ↦ (hFS ℓ (Icc_subset_Icc_right hℓₜ h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
+    fun _ hr ↦ isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc hF2 hFS
       hFℓ hFs hFd hℓ hr
 
 /-- **The glued family and its `r`-derivatives are jointly continuous.** Let `0 < L`, `0 < δ`,
@@ -1087,13 +1084,7 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
       (∀ ℓ ∈ Icc (-8 * δ) 1, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
       (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, δ < r → χ ℓ r ≤ χ 1 r) ∧
       1 < χ 1 δ ∧ χ 1 δ < 1 + γ := by
-  obtain ⟨A, hA⟩ := smoothTransition.exists_forall_norm_deriv_le
-  obtain ⟨B, hB⟩ := smoothTransition.exists_forall_norm_deriv_deriv_le
-  obtain ⟨N, hN⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
-  simp only [Real.norm_eq_abs] at hA hB hN
-  set L := max 1 (1024 * (A + 2 * B + N))
-  have hL₁ : 1 ≤ L := le_max_left _ _
-  have hL : 1024 * (A + 2 * B + N) ≤ L := le_max_right _ _
+  obtain ⟨A, B, N, L, hA, hB, hN, hL₁, hL⟩ := exists_smoothTransition_bounds
   have hL₀ : 0 < L := by linarith
   obtain ⟨C, hC, hF⟩ := exists_convexShapeFamily_struweShape_sqrt hγ
   -- The bounds on `δ`: `(6 C + 32 + 8 L) δ < 6 γ` and `(30 C + 60 + 16 L) δ < 1`.
@@ -1124,9 +1115,6 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
     (hFsm ℓ h.1).of_le (by simp)
   have hFS' : ∀ ℓ ∈ Icc ℓ₀ 1, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r :=
     fun ℓ _ ↦ hFS ℓ
-  have hFS₂ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀),
-      ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r :=
-    fun ℓ _ ↦ (hFS ℓ).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩
   have hFℓ₂ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r :=
     fun ℓ h r hr ↦ (hFℓ ℓ h.1 r hr.le).le
   have hF4₂ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2) :=
@@ -1142,8 +1130,8 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
       (fun ℓ h ↦ (hFsm ℓ h.1).continuousOn) hℓ.2
   · exact strictMonoOn_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
       hFd hℓ
-  · exact isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc'
-      (fun ℓ h ↦ hF2 ℓ ⟨h.1, h.2.trans hℓₜ⟩) hFS₂ hFℓ₂ hF4₂ hFd hℓ hr
+  · exact isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
+      hFd hℓ hr
   · -- The leaves `F ℓ`, `ℓ ≤ 1`, are standard from `ℓ γ' ≤ γ` on.
     refine surroundFamily_eq_sqrt (R := γ) hL₀ hδ hℓ₀' hM₀ hℓₜ (fun ℓ h r hr ↦ ?_) hℓ.2
       (max_le hr (hfar.trans hr))
