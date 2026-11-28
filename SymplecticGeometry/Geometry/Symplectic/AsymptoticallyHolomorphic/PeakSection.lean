@@ -37,9 +37,18 @@ latter, and that peak sections at any sequence of centres are asymptotically hol
 * `SymplecticGeometry.RescaledUnitaryCharts.peakSection`: the peak section at `x`.
 * `SymplecticGeometry.RescaledUnitaryCharts.peakSection_mul`: the peak section at `x` times the
   `j`-th complex coordinate of the chart.
+* `SymplecticGeometry.RescaledUnitaryCharts.affinePeakSection`: the combination
+  `w₀ • peakSection k x + Σ_j w_j • peakSection_mul k x j`, additive and homogeneous in
+  `w = (w₀, w₁, …, wₙ)`.
 
 ## Main results
 
+* `SymplecticGeometry.RescaledUnitaryCharts.reading_affinePeakSection`: the reading of
+  `affinePeakSection k x w` in the chart at `x` is `(w₀ + Σ_j w_j z_j)` times the cut-off
+  Gaussian; and
+  `SymplecticGeometry.RescaledUnitaryCharts.reading_sub_affinePeakSection_eventuallyEq`: near
+  the points where the cut-off is `1`, the reading of `s - affinePeakSection k x w` is the quotient
+  of the reading of `s` by the cut-off Gaussian, minus `w₀ + Σ_j w_j z_j`, times the Gaussian.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_le_norm_peakSection`: the lower bound near
   the centre.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`,
@@ -59,7 +68,7 @@ latter, and that peak sections at any sequence of centres are asymptotically hol
 
 public section
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 open TauCeti Metric Bundle
 
 namespace SymplecticGeometry
@@ -108,6 +117,76 @@ theorem reading_peakSection_mul {k : ℕ} (hk : k₀ ≤ k) (x : M) (j : ι) :
     Set.EqOn (D.reading k x (D.peakSection_mul k x j)) (peakFunction_mul k j)
       (ball 0 (ρ₀ * √k)) :=
   D.reading_sectionOfReading hk x _
+
+/-! ### Affine combinations of peak sections -/
+
+/-- The **affine combination of peak sections** at `x` with coefficients
+`w = (w₀, w₁, …, wₙ)`, indexed by `Option ι` with `w₀ = w none`:
+`w₀ • D.peakSection k x + Σ_j w_j • D.peakSection_mul k x j`. -/
+noncomputable def affinePeakSection (k : ℕ) (x : M) (w : EuclideanSpace ℂ (Option ι)) :
+    Π y, PowerBundle P k y :=
+  w none • D.peakSection k x + ∑ j, w (some j) • D.peakSection_mul k x j
+
+theorem affinePeakSection_def (k : ℕ) (x : M) (w : EuclideanSpace ℂ (Option ι)) :
+    D.affinePeakSection k x w =
+      w none • D.peakSection k x + ∑ j, w (some j) • D.peakSection_mul k x j :=
+  (rfl)
+
+/-- The affine combination with zero coefficients is the zero section. -/
+@[simp]
+theorem affinePeakSection_zero (k : ℕ) (x : M) :
+    D.affinePeakSection k x (0 : EuclideanSpace ℂ (Option ι)) = 0 := by
+  simp [affinePeakSection_def]
+
+/-- The affine combination of peak sections is additive in its coefficients. -/
+theorem affinePeakSection_add (k : ℕ) (x : M) (w w' : EuclideanSpace ℂ (Option ι)) :
+    D.affinePeakSection k x (w + w') =
+      D.affinePeakSection k x w + D.affinePeakSection k x w' := by
+  simp only [affinePeakSection_def, PiLp.add_apply, add_smul, Finset.sum_add_distrib]
+  abel
+
+/-- The affine combination of peak sections is homogeneous in its coefficients. -/
+theorem affinePeakSection_smul (k : ℕ) (x : M) (c : ℂ) (w : EuclideanSpace ℂ (Option ι)) :
+    D.affinePeakSection k x (c • w) = c • D.affinePeakSection k x w := by
+  simp only [affinePeakSection_def, PiLp.smul_apply, smul_eq_mul, mul_smul, smul_add,
+    Finset.smul_sum]
+
+/-- For `k₀ ≤ k`, the reading of `D.affinePeakSection k x w` in the chart at `x` is
+`(w₀ + Σ_j w_j z_j)` times the cut-off Gaussian on the ball of radius `ρ₀ * √k`, for
+`z_j = (complexToRealEuclidean ι).symm z j`. -/
+theorem reading_affinePeakSection {k : ℕ} (hk : k₀ ≤ k) (x : M)
+    (w : EuclideanSpace ℂ (Option ι)) :
+    Set.EqOn (D.reading k x (D.affinePeakSection k x w))
+      (fun z ↦ (w none + ∑ j, w (some j) * (complexToRealEuclidean ι).symm z j) *
+        peakFunction k z) (ball 0 (ρ₀ * √k)) := by
+  intro z hz
+  simp only [affinePeakSection_def, reading_add, reading_smul, reading_sum, Pi.add_apply,
+    Pi.smul_apply, Finset.sum_apply, smul_eq_mul, D.reading_peakSection hk x hz,
+    D.reading_peakSection_mul hk x _ hz, peakFunction_mul_def, add_mul, Finset.sum_mul]
+  congr 1
+  exact Finset.sum_congr rfl fun j _ ↦ by ring
+
+/-- **The reading of a section corrected by peak sections.** For `k₀ ≤ k` and `z` in the balls of
+radii `ρ₀ * √k` and `k ^ (1 / 6)`, near `z` the reading of `s - D.affinePeakSection k x w` in the
+chart at `x` is `q - w₀ - Σ_j w_j z_j` times the Gaussian `exp (-‖·‖ ^ 2 / 4)`, for `q` the
+quotient of the reading of `s` by the cut-off Gaussian `peakFunction k`. -/
+theorem reading_sub_affinePeakSection_eventuallyEq {k : ℕ} (hk : k₀ ≤ k) (x : M)
+    (s : Π y, PowerBundle P k y) (w : EuclideanSpace ℂ (Option ι)) {z : StdSpace ι}
+    (hzρ : ‖z‖ < ρ₀ * √k) (hz6 : ‖z‖ < (k : ℝ) ^ (1 / 6 : ℝ)) :
+    D.reading k x (s - D.affinePeakSection k x w) =ᶠ[𝓝 z]
+      fun y ↦ (D.reading k x s y / peakFunction k y - w none -
+        ∑ j, w (some j) * (complexToRealEuclidean ι).symm y j) * Real.exp (-‖y‖ ^ 2 / 4) := by
+  have hzU : z ∈ ball (0 : StdSpace ι) (min (ρ₀ * √k) ((k : ℝ) ^ (1 / 6 : ℝ))) :=
+    mem_ball_zero_iff.2 (lt_min hzρ hz6)
+  filter_upwards [isOpen_ball.mem_nhds hzU] with y hy
+  have hy₁ : y ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (min_le_left _ _) hy
+  have hy₂ : y ∈ ball (0 : StdSpace ι) ((k : ℝ) ^ (1 / 6 : ℝ)) :=
+    ball_subset_ball (min_le_right _ _) hy
+  have hp : peakFunction k y = (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) := peakFunction_eqOn_ball k hy₂
+  rw [reading_sub, Pi.sub_apply, D.reading_affinePeakSection hk x w hy₁]
+  simp only [hp]
+  field_simp
+  ring
 
 /-! ### The estimates -/
 
