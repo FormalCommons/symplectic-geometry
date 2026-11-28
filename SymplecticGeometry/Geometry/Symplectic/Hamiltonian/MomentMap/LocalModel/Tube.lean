@@ -372,11 +372,8 @@ theorem mpullback_subtypeVal_apply_mk_zero_eq :
       (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
         ((0 : A), (0 : V))) :=
     (contMDiffAt_subtype_iff.1 (hΨU ⟨_, hU 1⟩)).mdifferentiableAt (by simp)
-  refine ContinuousAlternatingMap.ext fun w ↦ ?_
-  rw [SmoothForm.mpullback_comp_subtypeVal_apply, SmoothForm.coe_mpullback_subtype_val_apply]
-  refine (mpullback_apply (I := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))) Ψ₀ σ.val _
-    w).symm.trans ?_
-  exact DFunLike.congr_fun (D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ hΨ1 hdiff hT g) w
+  rw [SmoothForm.coe_mpullback_subtype_val_apply, SmoothForm.coe_mpullback_comp_subtypeVal_apply]
+  exact D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ hΨ1 hdiff hT g
 
 end LocalModelData
 

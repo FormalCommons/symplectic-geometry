@@ -46,7 +46,8 @@ absolute statement.
   (`TauCeti.singularKronecker_relativeDeRhamHom_homologyMap`).
 * For a smooth simplex `σ` whose faces are smooth simplices `t i` of `W`, the class
   `TopPair.relClass` of `σ` is the image of its class in the smooth singular pair
-  (`TopPair.relClass_eq`, `SSetPair.relClass_homologyMap`), and `c' = ∑ i, (-1) ^ i • t i`.
+  (`TopPair.relClass_eq_of_eq_toSSet_map_app`, `SSetPair.relClass_homologyMap`), and
+  `c' = ∑ i, (-1) ^ i • t i`.
 
 Lifting a relative cochain to the cocone is the one step that needs the definition of
 `TauCeti.relativeSmoothCochainLift`, which Tau Ceti does not expose; the file imports it with
@@ -249,9 +250,8 @@ theorem singularKronecker_relativeDeRhamHom_relClass (k : ℕ)
         SSetPair.homologyMap (smoothSingularPairι I W) (ModuleCat.of ℝ ℝ) (k + 1) := by
     have h₁ := SSetPair.relClass_homologyMap (Q := smoothSingularPair I W) (ModuleCat.of ℝ ℝ) σ t
       ht (smoothSingularPairι I W)
-    rw [h₁, TopPair.relClass_eq (TopPair.ofSubset (W : Set (TopCat.of M))) (ModuleCat.of ℝ ℝ)
-      σ.val (range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app σ t ht)
-      (fun i ↦ (t i).val)
+    rw [h₁, TopPair.relClass_eq_of_eq_toSSet_map_app (TopPair.ofSubset (W : Set (TopCat.of M)))
+      (ModuleCat.of ℝ ℝ) σ.val (fun i ↦ (t i).val)
       fun i ↦ δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app (ht i)]
     simp only [smoothSingularPairι_right, smoothSingularPairι_left]
     -- The inclusion of a subcomplex sends a simplex to its underlying simplex, by definition of

@@ -311,11 +311,9 @@ theorem realFirstChernClass_tangent_eq_of_surface
     hσ.isNondegenerate.realFirstChernClass G =
       ((2 - 2 * surfaceGenus S : ℝ) / integralTopForm o σ.val) •
         deRhamCohomology.mk (𝓡 2) 2 ⟨σ, hσ.isClosed.mem_closedForms⟩ := by
-  have hpos : 0 < integralTopForm o σ.val := by
-    have hp := hσ.isNondegenerate.isPositive_volumeForm (n := 1) finrank_euclideanSpace_fin
-    rw [SmoothTwoForm.volumeForm_one, ho] at hp
-    exact hp.integralTopForm_pos (σ.isSmoothForm.of_le bot_le)
-      (isClosed_tsupport _).isCompact
+  have hpos : 0 < integralTopForm o σ.val :=
+    ((hσ.isNondegenerate.volumeOrientation_eq_iff_isPositive _).1 ho).integralTopForm_pos
+      (σ.isSmoothForm.of_le bot_le) (isClosed_tsupport _).isCompact
   refine TauCeti.deRhamCohomology.injective_integral o ?_
   have hn := ContMDiffTwoForm.isNondegenerate_tangentEquiv_symm_iff.2 hσ.isNondegenerate
   obtain ⟨J, hJ⟩ := hn.exists_compatible
