@@ -6,11 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
+public import SymplecticGeometry.Geometry.Manifold.Flow.Linear
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import TauCeti.Geometry.Symplectic.Complex.ImInner.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.Geometry.Symplectic.Prod.Basic
+import Mathlib.Analysis.Calculus.Deriv.Prod
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -34,6 +37,13 @@ stated property by property.
 
 ## Main results
 
+* `SymplecticGeometry.isCompleteVectorField_modelHandleField`: the handle field is complete, as
+  is every bounded linear field (`ContinuousLinearMap.isCompleteVectorField`,
+  `Geometry/Manifold/Flow/Linear.lean`).
+* `SymplecticGeometry.modelHandleField_flow_apply`: the linear flow `exp (t A)` of the handle field
+  is `(x + i y, w) ↦ (e^{-t} x + i e^{2t} y, e^{t/2} w)`. The right side is an integral curve
+  through `(x + i y, w)`, so it is the flow by uniqueness of integral curves
+  (`ContinuousLinearMap.flow_eq_of_isMIntegralCurve`).
 * `SymplecticGeometry.isLiouvilleVectorField_modelHandleField`: the handle field is a Liouville
   field of the constant product form. On each complex line of the first factor the field is
   `diag (-1, 2)`, of trace `1`, and on the second factor it is `1 / 2`, so that
@@ -123,6 +133,57 @@ theorem contMDiff_modelHandleField {n : WithTop ℕ∞} :
         TangentBundle 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
           (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)))) :=
   contMDiff_vectorSpace_iff_contDiff.mpr (modelHandleField k m).contDiff
+
+/-! ### Completeness and the flow -/
+
+/-- The handle field is complete: its integral curves are defined for all time. -/
+theorem isCompleteVectorField_modelHandleField :
+    IsCompleteVectorField (I := 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)))
+      (fun p ↦ modelHandleField k m p) :=
+  (modelHandleField k m).isCompleteVectorField
+
+/-- The curve `t ↦ (e^{-t} x + i e^{2t} y, e^{t/2} w)` through `p = (x + i y, w)`, written with
+the real and imaginary parts of `TauCeti.complexEuclideanEquivRealProd`, is an integral curve of
+the handle field. -/
+private theorem isMIntegralCurve_modelHandleField
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    IsMIntegralCurve (I := 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)))
+      (fun t : ℝ ↦ ((complexEuclideanEquivRealProd (Fin k)).symm
+          (Real.exp (-t) • (complexEuclideanEquivRealProd (Fin k) p.1).1,
+            Real.exp (2 * t) • (complexEuclideanEquivRealProd (Fin k) p.1).2),
+        Real.exp (t / 2) • p.2))
+      (fun q ↦ modelHandleField k m q) := by
+  intro t
+  set e := complexEuclideanEquivRealProd (Fin k)
+  have h₁ : HasDerivAt (fun s : ℝ ↦ Real.exp (-s)) (-Real.exp (-t)) t := by
+    simpa using (hasDerivAt_neg t).exp
+  have h₂ : HasDerivAt (fun s : ℝ ↦ Real.exp (2 * s)) (2 * Real.exp (2 * t)) t := by
+    simpa [mul_comm] using ((hasDerivAt_id t).const_mul 2).exp
+  have h₃ : HasDerivAt (fun s : ℝ ↦ Real.exp (s / 2)) (2⁻¹ * Real.exp (t / 2)) t := by
+    simpa [div_eq_mul_inv, mul_comm] using ((hasDerivAt_id t).mul_const 2⁻¹).exp
+  have h := HasDerivAt.prodMk (e.symm.hasFDerivAt.comp_hasDerivAt t
+    (HasDerivAt.prodMk (h₁.smul_const (e p.1).1) (h₂.smul_const (e p.1).2)))
+    (h₃.smul_const p.2)
+  refine (h.congr_deriv ?_).hasFDerivAt.hasMFDerivAt
+  ext j
+  · apply Complex.ext <;> simp [e, modelHandleField_apply_fst_apply, -Complex.ofReal_exp]
+    ring
+  · simp [smul_smul, mul_comm]
+
+/-- **The flow of the handle field**: at time `t` it is
+`(x + i y, w) ↦ (e^{-t} x + i e^{2t} y, e^{t/2} w)`. -/
+theorem modelHandleField_flow_apply (t : ℝ)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    (modelHandleField k m).flow t p =
+      (WithLp.toLp 2 fun j ↦
+          ((Real.exp (-t) * (p.1 j).re : ℝ) : ℂ) + ((Real.exp (2 * t) * (p.1 j).im : ℝ) : ℂ) * I,
+        Real.exp (t / 2) • p.2) := by
+  have h := (modelHandleField k m).flow_eq_of_isMIntegralCurve
+    (isMIntegralCurve_modelHandleField p) t
+  simp only [neg_zero, mul_zero, zero_div, Real.exp_zero, one_smul, Prod.mk.eta,
+    ContinuousLinearEquiv.symm_apply_apply] at h
+  rw [h]
+  ext j <;> simp
 
 /-! ### The Liouville property -/
 
@@ -214,11 +275,9 @@ theorem isGradientLike_modelHandle_modelHandleField {a b : ℝ} (ha : 0 < a) (hb
   have hκ : min (2 * a) b * ‖p‖ ^ 2 ≤ fderiv ℝ (modelHandle k m a b) p (A p) := by
     rw [hD, shape_fst]
     have h1 : ‖p.1‖ ^ 2 = ∑ j, (p.1 j).re ^ 2 + ∑ j, (p.1 j).im ^ 2 := by
-      have h := norm_complexEuclideanEquivRealProd_symm_sq
-        (complexEuclideanEquivRealProd (Fin k) p.1)
-      rw [ContinuousLinearEquiv.symm_apply_apply, EuclideanSpace.real_norm_sq_eq,
-        EuclideanSpace.real_norm_sq_eq] at h
-      simpa using h
+      have h := shape_fst_add_shape_snd p
+      rw [shape_fst, shape_snd] at h
+      linarith
     have hs : 0 ≤ ∑ j, (p.1 j).re ^ 2 := by positivity
     have hy : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
     have hm₁ : min (2 * a) b ≤ 2 * a := min_le_left _ _

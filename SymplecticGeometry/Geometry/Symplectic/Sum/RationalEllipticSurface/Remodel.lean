@@ -115,7 +115,7 @@ theorem hasSymplecticTangentImages_fibreEmbedding_compDiffeomorph_torusDiffeomor
       |>.HasSymplecticTangentImages (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
         (fibreEmbedding.compDiffeomorphOfBoundaryless (torusDiffeomorph p) (by simp)) :=
   (SmoothEmbedding.hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff fibreEmbedding
-    (torusDiffeomorph p) (by simp) (by simp)).2
+    (torusDiffeomorph p) (by simp)).2
     ((isSymplectic_symplecticForm.isNondegenerate.hasSymplecticTangentImages_smul_iff _
       (torusScale_pos p).ne').2 hasSymplecticTangentImages_fibreEmbedding)
 
