@@ -826,9 +826,10 @@ theorem tendsto_deriv_surroundFamily {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ
       fun r hr ↦ by rw [hc r ⟨hr.1.le, hr.2.le⟩, ← struweShape_add, add_zero]
 
 /-- **The leaves of the glued family are increasing.** Under the hypotheses of
-`SymplecticGeometry.isConvexShapeAt_surroundFamily`, with `F ℓ` a constant plus
-`struweShape δ 4 0` on `[δ, 9 δ / 2]`, each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the glued family is
-strictly increasing on `[δ, ∞)`. -/
+`SymplecticGeometry.isConvexShapeAt_surroundFamily`, if moreover every `F ℓ` with
+`ℓ ∈ [ℓ₀, ℓₜ]` is `C²` on `(δ, ∞)` and equal to a constant plus `struweShape δ 4 0` on
+`[δ, 9 δ / 2]`, then each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the glued family is strictly increasing
+on `[δ, ∞)`. -/
 theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
     (hA : ∀ x, |deriv smoothTransition x| ≤ A)
     (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
