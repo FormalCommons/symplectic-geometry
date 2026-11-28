@@ -198,11 +198,8 @@ theorem orientation_map_eq_divisorNormalOrientation {ℓ : ℙ ℂ (Fin (n + 1) 
       (e.restrictScalars ℝ)).trans (divisorNormalEquiv c ℓ).symm.toLinearEquiv := by
     ext w
     exact (ContinuousLinearEquiv.eq_symm_apply _).2 (hm w)
-  have hC : (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2)
-      Complex.orthonormalBasisOneI.repr.symm.toLinearEquiv = Complex.orientation := by
-    rw [← Complex.orientation_map_orthonormalBasisOneI_repr,
-      LinearIsometryEquiv.toLinearEquiv_symm, ← Orientation.map_symm, Equiv.symm_apply_apply]
-  rw [hm', Orientation.map_trans, Orientation.map_trans, hC, divisorNormalOrientation_def]
+  rw [hm', Orientation.map_trans, Orientation.map_trans,
+    Complex.orientation_map_orthonormalBasisOneI_repr_symm, divisorNormalOrientation_def]
   refine Eq.trans ?_ (VectorBundleOrientation.comap_apply (g := ContinuousMap.id _) _ _
     (continuous_divisorNormalEquiv c) ℓ).symm
   rw [VectorBundleOrientation.reindex_apply, VectorBundleOrientation.complex_apply,
