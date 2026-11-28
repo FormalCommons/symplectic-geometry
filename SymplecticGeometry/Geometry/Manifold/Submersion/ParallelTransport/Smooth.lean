@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Topology.Connected.Clopen
-import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Curve
