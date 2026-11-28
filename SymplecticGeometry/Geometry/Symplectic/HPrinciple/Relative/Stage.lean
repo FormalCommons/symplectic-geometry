@@ -1,0 +1,185 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.StagePath
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CoreApproximation
+
+/-!
+# One stage of the relative h-principle
+
+Let `c` be a band core of a continuous function `g : M → ℝ` on a manifold `M`, for the levels
+`a₀`, `a`, `b` (`Morse/Core/Basic.lean`). A stage of the parametric relative h-principle starts
+from families of two-forms `τ l`, nondegenerate for the parameters `l` of a compact set `K`, of
+closed two-forms `α l` and of one-forms `β l`, such that `τ l = α l + d (β l)` on an open
+neighbourhood `N` of `{g ≤ a}` for every `l`, and on all of `M` for `l` in a closed set `P₀`.
+It returns a homotopy `H (l, ·)` of two-forms from `τ l`, nondegenerate for `l ∈ K`, and new
+families `α' l = e_l^* α l` and `β' l`, for the end `e_l` of an isotopy from the identity, such
+that
+
+* nothing changes on a neighbourhood `V` of `{g ≤ a}`;
+* `α' l` is closed, and `α' l - α l = d γ` for a one-form `γ` that vanishes on `V`;
+* `H (l, 1) = α' l + d (β' l)` on an open neighbourhood of `{g ≤ b}`;
+* for `l ∈ P₀`, the homotopy runs through closed forms cohomologous to `α l`, and
+  `H (l, 1) = α' l + d (β' l)` on all of `M`.
+
+The homotopy is `SymplecticGeometry.stagePath` (`Relative/StagePath.lean`), for the isotopy
+and cutoff of `SymplecticGeometry.exists_stagePath`, applied to the displacements and corrected
+one-forms of holonomic approximation over the cubes of `c` (`Relative/CoreApproximation.lean`).
+
+## Main results
+
+* `SymplecticGeometry.isSmoothFamily_stagePath`: the path of a stage is a smooth family over
+  `L × [0, 1]` when its data are smooth families over normed spaces.
+* `SymplecticGeometry.continuous_tangentEquiv_symm_stagePath`: the path of a stage is
+  continuous into the frame topology of a covering frame system when `τ` and `α` are, the
+  one-forms are a smooth family read through a continuous map, and the parameter space of the
+  isotopy is finite-dimensional.
+* `SymplecticGeometry.BandCore.exists_stage_family`: the stage for smooth families over a
+  finite-dimensional normed space `L`, nondegenerate over a compact `K ⊆ L`.
+* `SymplecticGeometry.BandCore.exists_stage_continuous_family`: the stage for families over a
+  compact Hausdorff space `P`, with two-forms continuous into the frame topology of a covering
+  frame system and one-forms `B (s l)` for a smooth family `B` over a finite-dimensional normed
+  space `S` and a continuous `s : P → S`. The new one-forms have the same shape, over
+  `S × ((i : c.ι) → Fin (n i) → ℝ)`.
+
+Both forms use the lemmas of `Relative/StagePath.lean` for all conclusions but the regularity of
+the homotopy in the parameter, which is the only place where they differ besides the call to
+holonomic approximation. The family of two-forms is called `τ`, as in `Relative/StagePath.lean`,
+since `ω` is notation in the scope `ContDiff`.
+
+## References
+
+* [Y. Eliashberg and N. Mishachev, *Introduction to the h-principle*][EliashbergMishachev2002],
+  §10.2.
+-/
+
+public section
+
+open Set Filter TauCeti
+open scoped Manifold ContDiff Topology
+
+namespace SymplecticGeometry
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {S : Type*} [NormedAddCommGroup S] [NormedSpace ℝ S]
+
+section Smooth
+
+variable {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+
+/-- The path of a stage is a smooth family over `L × [0, 1]` when `τ` and `α` are smooth families
+over `L`, `B'` is a smooth family over `S` and `s : L → S` is smooth. -/
+theorem isSmoothFamily_stagePath {e : (S × unitInterval) × M → M}
+    (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e) {ρ : M → ℝ}
+    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) {s : L → S} (hs : ContMDiff 𝓘(ℝ, L) 𝓘(ℝ, S) ∞ s)
+    {τ α : L → SmoothTwoForm I M} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
+    (hα : IsSmoothFamily 𝓘(ℝ, L) α) {B' : S → SmoothForm I M ℝ 1}
+    (hB' : IsSmoothFamily 𝓘(ℝ, S) B') :
+    IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) (stagePath he hρ s τ α B') := by
+  have hA := (collaredFirstHalf (n := ∞) le_rfl).contMDiff
+  have hC : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t ↦ (collaredSecondHalf (n := ∞) le_rfl t : ℝ) :=
+    contMDiff_subtypeVal_Icc.comp (collaredSecondHalf (n := ∞) le_rfl).contMDiff
+  have hs' : ContMDiff (𝓘(ℝ, L).prod (𝓡∂ 1)) 𝓘(ℝ, S) ∞ fun p : L × unitInterval ↦ s p.1 :=
+    hs.comp contMDiff_fst
+  -- The first term: `τ l` pulled back along the isotopy run at the speed `A`.
+  have h₁ := (hτ.comp Prod.fst contMDiff_fst).mpullback_family
+    (f := fun q : (L × unitInterval) × M ↦
+      e ((s q.1.1, collaredFirstHalf (n := ∞) le_rfl q.1.2), q.2))
+    (he.comp (((hs'.comp contMDiff_fst).prodMk
+      (hA.comp (contMDiff_snd.comp contMDiff_fst))).prodMk contMDiff_snd))
+  -- The second term: the correction pulled back along the end of the isotopy, cut off by `ρ`.
+  have h₂ := ((((hα.comp Prod.fst contMDiff_fst).add
+      (hB'.mextDeriv.comp (fun p : L × unitInterval ↦ s p.1) hs')).sub
+      (hτ.comp Prod.fst contMDiff_fst)).mpullback_family
+    (f := fun q : (L × unitInterval) × M ↦ e ((s q.1.1, 1), q.2))
+    (he.comp (((hs'.comp contMDiff_fst).prodMk contMDiff_const).prodMk
+      contMDiff_snd))).funSMul ⟨ρ, hρ⟩ |>.fun_smul (hC.comp contMDiff_snd)
+  convert h₁.add h₂ using 1
+  exact funext (stagePath_def he hρ s τ α B')
+
+end Smooth
+
+section Stage
+
+variable [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [SigmaCompactSpace M]
+  {g : M → ℝ} {a₀ a b : ℝ} {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+  [FiniteDimensional ℝ L]
+
+/-- **One stage of the relative h-principle, for smooth families.** Let `c` be a band core of a
+continuous `g : M → ℝ` for the levels `a₀`, `a`, `b`, let `K ⊆ L` be compact and `P₀ ⊆ L`
+closed. Let `τ` and `α` be smooth families over `L` of two-forms on `M`, with every `α l`
+closed and `τ l` nondegenerate for `l ∈ K`, and `β` a smooth family of one-forms, such that
+`τ l = α l + d (β l)` on an open `N ⊇ {g ≤ a}` for every `l`, and on all of `M` for `l ∈ P₀`.
+Then there are smooth families `H` over `L × [0, 1]` of two-forms, `α'` of two-forms and `β'` of
+one-forms, a neighbourhood `V` of `{g ≤ a}` and an open `N' ⊇ {g ≤ b}` such that
+
+* `H (l, 0) = τ l`, and `H (l, t)` is nondegenerate for `l ∈ K`;
+* on `V`, `H (l, t) = τ l`, `α' l = α l` and `β' l = β l`;
+* every `α' l` is closed, and `α' l = α l + d γ` for a one-form `γ` vanishing on `V`;
+* on `N'`, `H (l, 1) = α' l + d (β' l)`;
+* for `l ∈ P₀`, `H (l, 1) = α' l + d (β' l)` on all of `M`, and every `H (l, t)` is closed with
+  `H (l, t) - α l` exact. -/
+theorem BandCore.exists_stage_family (c : BandCore I g a₀ a b) (hg : Continuous g)
+    {K P₀ : Set L} (hK : IsCompact K) (hP₀ : IsClosed P₀)
+    {τ α : L → SmoothTwoForm I M} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
+    (hα : IsSmoothFamily 𝓘(ℝ, L) α) (hαc : ∀ l, mextDerivₗ I 2 (α l) = 0)
+    (hnd : ∀ l ∈ K, (τ l).IsNondegenerate)
+    {β : L → SmoothForm I M ℝ 1} (hβ : IsSmoothFamily 𝓘(ℝ, L) β)
+    {N : Set M} (hN : IsOpen N) (haN : {x | g x ≤ a} ⊆ N)
+    (hτN : ∀ l, ∀ x ∈ N, (τ l).val x = (α l + mextDerivₗ I 1 (β l)).val x)
+    (hτP₀ : ∀ l ∈ P₀, τ l = α l + mextDerivₗ I 1 (β l)) :
+    ∃ (H : L × unitInterval → SmoothTwoForm I M) (α' : L → SmoothTwoForm I M)
+      (β' : L → SmoothForm I M ℝ 1) (V N' : Set M),
+      IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) H ∧ IsSmoothFamily 𝓘(ℝ, L) α' ∧
+      IsSmoothFamily 𝓘(ℝ, L) β' ∧ (∀ l, H (l, 0) = τ l) ∧
+      (∀ l ∈ K, ∀ t, (H (l, t)).IsNondegenerate) ∧
+      V ∈ 𝓝ˢ {x | g x ≤ a} ∧ (∀ l t, ∀ x ∈ V, (H (l, t)).val x = (τ l).val x ∧
+        (α' l).val x = (α l).val x ∧ (β' l).val x = (β l).val x) ∧
+      (∀ l, mextDerivₗ I 2 (α' l) = 0 ∧
+        ∃ γ : SmoothForm I M ℝ 1, α' l = α l + mextDerivₗ I 1 γ ∧ ∀ x ∈ V, γ.val x = 0) ∧
+      IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧
+      (∀ l, ∀ x ∈ N', (H (l, 1)).val x = (α' l + mextDerivₗ I 1 (β' l)).val x) ∧
+      ∀ l ∈ P₀, H (l, 1) = α' l + mextDerivₗ I 1 (β' l) ∧
+        ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - α l ∈ exactForms I M 2 := by
+  obtain ⟨Φ, B', N₁, U, hΦ, -, hΦd, hΦ₀, hB', hN₁, haN₁, hN₁N, hΦN₁, hB'N₁, -, hB'P₀, hU,
+      hKU, hUc, hUnd⟩ :=
+    c.exists_approximation_family hg hK hP₀ hτ hα hnd hβ hN haN hτN hτP₀
+  obtain ⟨e, he, ρ, hρ, V, N', -, he₀, hV, hVa, hVN₁, heV, hN', hbN', -, hρN', hHnd⟩ :=
+    exists_stagePath c hg hK continuous_id hnd hΦ hΦd hΦ₀ hN₁ haN₁ hΦN₁ hU hKU hUc hUnd
+  -- The end of the isotopy, as a smooth family of maps over `L`.
+  have he₁ : ContMDiff (𝓘(ℝ, L).prod I) I ∞ fun q : L × M ↦ e ((q.1, 1), q.2) :=
+    he.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd)
+  refine ⟨stagePath he hρ id τ α B',
+    fun l ↦ SmoothForm.mpullback (fun x ↦ e ((l, 1), x))
+      (he.comp (contMDiff_const.prodMk contMDiff_id)) (α l),
+    fun l ↦ SmoothForm.mpullback (fun x ↦ e ((l, 1), x))
+      (he.comp (contMDiff_const.prodMk contMDiff_id)) (B' l), V, N',
+    isSmoothFamily_stagePath he hρ contMDiff_id hτ hα hB', hα.mpullback_family he₁,
+    hB'.mpullback_family he₁, fun l ↦ stagePath_zero he hρ id τ α B' (he₀ l),
+    hHnd, hVa, fun l t x hx ↦ ?_, fun l ↦ ⟨?_, ?_⟩, hN', hbN',
+    stagePath_one_eqOn he hρ id τ α B' hρN', fun l hl ↦ ?_⟩
+  · -- Nothing changes on `V`, where the isotopy is the identity, `B' = β` and `τ = α + d β`.
+    obtain ⟨h₁, h₂, h₃⟩ := stagePath_eqOn_nhdsSet he hρ id τ α B' hV (fun t ↦ heV (l, t))
+      (B := β) (fun x hx ↦ hB'N₁ l x (hVN₁ hx)) fun x hx ↦ hτN l x (hN₁N (hVN₁ hx))
+    exact ⟨h₁ t x hx, h₂ x hx, h₃ x hx⟩
+  · rw [SmoothForm.mextDerivₗ_mpullback, hαc, map_zero]
+  · obtain ⟨γ, hγ, hγV⟩ := exists_mextDerivₗ_eq_endPullback_sub he id α (he₀ l) (hαc l)
+      (V := V) fun t ↦ heV (l, t)
+    exact ⟨γ, eq_add_of_sub_eq' hγ.symm, hγV⟩
+  · -- For `l ∈ P₀` the correction vanishes, since `B' l = β l` there.
+    have hτl : τ l = α l + mextDerivₗ I 1 (B' (id l)) := by rw [id, hB'P₀ l hl, hτP₀ l hl]
+    obtain ⟨h₁, h₂⟩ := stagePath_of_mem he hρ id τ α B' (he₀ l) (hαc l) hτl
+    exact ⟨h₂, h₁⟩
+
+end Stage
+
+end SymplecticGeometry
+
+end
