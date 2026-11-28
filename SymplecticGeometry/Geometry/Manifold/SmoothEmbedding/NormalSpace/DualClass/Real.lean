@@ -53,7 +53,8 @@ naturality of the Kronecker pairing and of the class of a simplex, a simplex of 
 `σ` then pairs to `-1` with the pull-back
 (`TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt`).
 If `σ` lies in `B`, a singular simplex `s` of `X` that agrees with `g ∘ σ` on `Δ²` has its faces
-off `f(Z)` (`TauCeti.SmoothEmbedding.range_toSSetObjEquiv_δ_subset_compl_range`), and the real
+off `f(Z)` (`TauCeti.SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl_of_eq_comp`, in
+`LocalHomology/Orientation/Simplex.lean`, with `K = f(Z)`), and the real
 relative dual class pairs to `-1` with its class in `H₂(X, X ∖ f(Z); ℝ)`
 (`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`): `s` is the image
 under `g` of the lift of `σ` to `B`, the comparison of real and integral chains
@@ -90,11 +91,10 @@ of the real image of the dual class.
   two, pulled back along a disc `g` through `f x` that meets `f(Z)` only there and whose
   derivative at `0` is read on `ν_x` through an oriented isomorphism, it pairs to `-1` with a
   positively oriented smooth `2`-simplex around `0`.
-* `TauCeti.SmoothEmbedding.range_toSSetObjEquiv_δ_subset_compl_range`: a singular simplex of `X`
-  through such a disc, along a simplex of `ℝ²` around `0`, has its faces off `f(Z)`.
 * `singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`, in the namespace
   `TauCeti.SmoothEmbedding`: in rank two, the real relative dual class pairs to `-1` with the
-  class in `H₂(X, X ∖ f(Z); ℝ)` of such a simplex.
+  class in `H₂(X, X ∖ f(Z); ℝ)` of a singular simplex of `X` that agrees with `g ∘ σ` on `Δ²`,
+  for such a `σ` with values in the neighbourhood `B` of `0` on which `g` is continuous.
 * `TauCeti.SmoothEmbedding.exists_eq_smul_realRelDualClass`: for connected `Z`, every class of
   `Hʳ(X, X ∖ f(Z); ℝ)` is a real multiple of the real relative dual class.
 * `exists_eq_smul_singularCohomologyRealImageAddMonoidHom_dualClass_of_restrict_compl`, in the
@@ -392,45 +392,6 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt
   congr 3
   exact (congrArg (fun F ↦ (TopCat.toSSet.map F).app _ τ) (TopPair.ofSubsetMap_fst _ _)).trans hτ
 
-omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [IsManifold I ∞ Z] [IsManifold J ∞ X]
-  [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology X] in
-/-- **The faces of a simplex through a transverse disc avoid the submanifold.** Let
-`B ⊆ ℝ²` and `g : ℝ² → X` send no point of `B` other than `0` into `f(Z)`. Let `σ` be a smooth
-`2`-simplex of `ℝ²` with values in `B`, the restriction to `Δ²` of a map `φ` that is an open
-embedding on an open neighbourhood `U` of `Δ²`, with `0 ∈ φ (interior Δ²)`. Then every face of
-a singular `2`-simplex `s` of `X` that agrees with `g ∘ σ` on `Δ²` lies in `X ∖ f(Z)`. -/
-theorem range_toSSetObjEquiv_δ_subset_compl_range (f : SmoothEmbedding I J ∞ Z X)
-    {B : Set (EuclideanSpace ℝ (Fin 2))} {g : EuclideanSpace ℝ (Fin 2) → X}
-    (hgf : ∀ w ∈ B, g w ∈ range f → w = 0)
-    (σ : SmoothSimplex 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) 2)
-    {U : TopologicalSpace.Opens (EuclideanSpace ℝ (Fin 2))} (hU : fullSimplex 2 ⊆ U)
-    {φ : EuclideanSpace ℝ (Fin 2) → EuclideanSpace ℝ (Fin 2)}
-    (hφσ : ∀ y : fullSimplex 2, φ y = σ.toContinuousMap y)
-    (hφ : IsOpenEmbedding (φ ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
-    (h0 : 0 ∈ φ '' interior (fullSimplex 2)) (hσB : ∀ y, σ.toContinuousMap y ∈ B)
-    (s : (TopCat.toSSet.obj (TopCat.of X)) _⦋2⦌)
-    (hs : ∀ y, (TopCat.of X).toSSetObjEquiv _ s (fullSimplexEquivStdSimplex 2 y) =
-      g (σ.toContinuousMap y)) (i : Fin 3) :
-    Set.range ((TopCat.of X).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i s)) ⊆
-      Set.range (TopPair.ofSubset ((range f)ᶜ : Set (TopCat.of X))).map := by
-  rintro _ ⟨z, rfl⟩
-  -- The faces of `σ` avoid `0`.
-  obtain ⟨⟨w, hw⟩, hwz⟩ := SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl σ hU hφσ hφ
-    (singleton_subset_iff.2 h0) i ⟨z, rfl⟩
-  rw [TopPair.ofSubset_map] at hwz
-  -- The point of the face of `s` is `g` of the point `w` of the face of `σ`.
-  obtain ⟨y, hy⟩ :=
-    (fullSimplexEquivStdSimplex 2).surjective (Convexity.StdSimplex.map i.succAbove z)
-  have hσy : σ.toContinuousMap y = w := by
-    rw [SmoothSimplex.toContinuousMap_apply, hy]
-    exact hwz.symm
-  suffices hz : (TopCat.of X).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i s) z ∉ range f from
-    ⟨⟨_, hz⟩, rfl⟩
-  intro hz
-  rw [TopCat.toSSetObjEquiv_δ_apply, ← hy, hs, hσy] at hz
-  exact hw (hgf w (hσy ▸ hσB y) hz)
-
-
 /-- **The value of the real dual class of a codimension-two submanifold on a simplex through a
 transverse disc.** Take the hypotheses of
 `singularKronecker_realRelDualClass_relClass_of_hasFDerivAt`: a normal bundle of rank two, an
@@ -442,7 +403,8 @@ of `ℝ²` that is the restriction to `Δ²` of an orientation-preserving open e
 `realRelDualClass f hn hdim hf o hr` pairs to `-1` with the class in `H₂(X, X ∖ f(Z); ℝ)` of
 any singular `2`-simplex `s` of `X` that agrees with `g ∘ σ` on `Δ²`.
 
-The faces of `s` lie in `X ∖ f(Z)` by `range_toSSetObjEquiv_δ_subset_compl_range`. -/
+The faces of `s` lie in `X ∖ f(Z)` by
+`SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl_of_eq_comp`. -/
 theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp
     (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
@@ -472,7 +434,8 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp
     (TopPair.ofSubset ((range f)ᶜ : Set (TopCat.of X))).singularKronecker ℝ 2
         (f.realRelDualClass hn hdim hf o hr)
         ((TopPair.ofSubset ((range f)ᶜ : Set (TopCat.of X))).relClass (ModuleCat.of ℝ ℝ) (n := 1)
-          s (range_toSSetObjEquiv_δ_subset_compl_range f hgf σ hU hφσ hφ h0 hσB s hs) 1) =
+          s (SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl_of_eq_comp hgf σ hU hφσ hφ h0 hσB
+            s hs) 1) =
       -1 := by
   have hσB' : ∀ p, (TopCat.of _).toSSetObjEquiv _ σ.val p ∈ B := fun p ↦ by
     simpa [SmoothSimplex.toContinuousMap_apply] using hσB ((fullSimplexEquivStdSimplex 2).symm p)
@@ -497,7 +460,6 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp
     hB hgB hg0 hgf hg hA σ hU hφσ hφ ho h0 τ hτ
   refine (TopPair.singularKronecker_singularCohomologyIntChainsIso_hom_relClass ℝ _
     (f.realRelDualClass hn hdim hf o hr) s _).symm.trans (Eq.trans ?_ key)
-  subst hsτ
   set F := TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of X)
     (TopCat.ofHom ⟨B.domRestrict g, hgB.domRestrict⟩) (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ)
     (B' := (range f)ᶜ) fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))
@@ -511,13 +473,9 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp
       (TopPair.singularCohomologyIntChainsIso_hom_naturality ℝ F 2)
   rw [hI, TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply]
   refine congrArg _ ?_
-  rw [← ConcreteCategory.comp_apply]
-  -- `τ` is a simplex of `B`, the space of the pair only up to unfolding `ofSubset`, and the
-  -- ambient map of `F` is `g` on `B` only up to unfolding `ofSubsetMap`.
-  erw [TopPair.relClass_singularHomologyMap]
-  congr 3
-  exact (congrArg (fun G ↦ (TopCat.toSSet.map G).app _ τ)
-    (TopPair.ofSubsetMap_fst _ _)).symm
+  rw [← localHomologyMap_def (j := ⟨B.domRestrict g, hgB.domRestrict⟩)
+    (S := {⟨0, mem_of_mem_nhds hB⟩}) (T := range f) _ (fun w h ↦ Subtype.ext (hgf w w.property h))]
+  exact (TopPair.relClass_localHomologyMap_apply _ _ _ τ _ _ hsτ 1).symm
 
 section Connected
 
