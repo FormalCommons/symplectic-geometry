@@ -12,15 +12,14 @@ public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.SmoothSingular.Basic
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import SymplecticGeometry.Analysis.InnerProductSpace.Calculus
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Convex.FullSimplex
 import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Geometry.Manifold.Orientation.Chart
-import TauCeti.Geometry.Manifold.Orientation.Pullback
 import TauCeti.Topology.Algebra.Module.Determinant
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
@@ -44,9 +43,8 @@ containing the closed ball of radius `a`
 For `p = 2` no affine map does this when `b ≤ 2a`: a triangle in the ball of radius `b` has
 inradius at most `b / 2`. So `g` is Mathlib's diffeomorphism `OpenPartialHomeomorph.univBall 0 b`
 of `ℝᵖ` onto that ball, after a homothety that blows a ball inside `interior Δᵖ` up past the
-compact preimage of the closed ball of radius `a`. It preserves orientation at `0`, where its
-derivative is `b • id` (`OpenPartialHomeomorph.hasFDerivAt_univBall_zero`), hence everywhere, by
-Tau Ceti's `IsPreconnected.isOrientationPreservingAt_iff`. Read in `ℂ` through
+compact preimage of the closed ball of radius `a`; it preserves orientation everywhere
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`). Read in `ℂ` through
 `Complex.orthonormalBasisOneI.repr.symm`, it gives a smooth `2`-simplex of `ℂ`, positively
 oriented for the complex orientation, whose faces avoid the closed disc of radius `a`
 (`TauCeti.Manifold.Orientation.exists_smoothSimplex_complex_closedBall_subset_image`).
@@ -141,26 +139,6 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex_ball {p : �
   set F := OpenPartialHomeomorph.univBall (0 : EuclideanSpace ℝ (Fin p)) b
   have hFs : F.source = univ := OpenPartialHomeomorph.univBall_source _ _
   have hFt : F.target = ball 0 b := OpenPartialHomeomorph.univBall_target _ hb
-  -- `F` is a partial diffeomorphism from `ℝᵖ` onto the ball of radius `b`.
-  let Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin p)) 𝓘(ℝ, EuclideanSpace ℝ (Fin p))
-      (EuclideanSpace ℝ (Fin p)) (EuclideanSpace ℝ (Fin p)) ∞ :=
-    { toPartialEquiv := F.toPartialEquiv
-      open_source := F.open_source
-      open_target := F.open_target
-      contMDiffOn_toFun := OpenPartialHomeomorph.contDiff_univBall.contMDiff.contMDiffOn
-      contMDiffOn_invFun := by
-        rw [show F.toPartialEquiv.target = ball 0 b from hFt]
-        exact OpenPartialHomeomorph.contDiffOn_univBall_symm.contMDiffOn }
-  -- It preserves orientation at `0`, where its derivative is `b • id`, hence everywhere.
-  have hF (z) : IsOrientationPreservingAt (euclideanSpace p) (euclideanSpace p) F z := by
-    refine (isPreconnected_univ.isOrientationPreservingAt_iff
-      (fun z _ ↦ OpenPartialHomeomorph.contDiff_univBall.contMDiff.contMDiffAt)
-      (fun z _ ↦ (Φ.isLocalDiffeomorphAt _ _ _ (x := z) (hFs ▸ mem_univ z)).isInvertible_mfderiv
-        (by simp)) _ _ (mem_univ 0) (mem_univ z)).1 ?_
-    refine isOrientationPreservingAt_of_det_fderiv_pos _ ?_
-    rw [(OpenPartialHomeomorph.hasFDerivAt_univBall_zero 0 hb).fderiv, ContinuousLinearMap.det_smul,
-      ContinuousLinearMap.det_id, mul_one]
-    positivity
   -- The preimage of the closed disc of radius `a` is compact, so inside a ball of radius `R`.
   have hK : IsCompact (F.symm '' closedBall 0 a) :=
     (isCompact_closedBall 0 a).image_of_continuousOn
@@ -179,7 +157,8 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex_ball {p : �
     (Homeomorph.subRight p₀).trans (Homeomorph.smulOfNeZero c hc.ne')
   refine ⟨F ∘ A, OpenPartialHomeomorph.contDiff_univBall.comp
       ((contDiff_id.sub contDiff_const).const_smul c),
-    (F.isOpenEmbedding hFs).comp T.isOpenEmbedding, fun y ↦ (hF (A y)).comp ?_, ?_, ?_⟩
+    (F.isOpenEmbedding hFs).comp T.isOpenEmbedding, fun y ↦
+      (OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos hb _ (A y)).comp ?_, ?_, ?_⟩
   · refine isOrientationPreservingAt_of_det_fderiv_pos _ ?_
     rw [(hAd y).fderiv, ContinuousLinearMap.det_smul, ContinuousLinearMap.det_id, mul_one]
     positivity
@@ -193,8 +172,7 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex_ball {p : �
         _ = δ := by rw [inv_mul_eq_div, div_div_cancel₀ hR.ne']
     · simp only [Function.comp_apply, hAdef, add_sub_cancel_left, smul_inv_smul₀ hc.ne']
       exact F.right_inv (hFt ▸ closedBall_subset_ball hab hw)
-  · rintro _ ⟨y, rfl⟩
-    exact hFt ▸ F.map_source (hFs ▸ mem_univ (A y))
+  · exact (range_comp_subset_range _ _).trans (OpenPartialHomeomorph.range_univBall 0 hb).le
 
 /-- **A positively oriented smooth `2`-simplex of `ℂ` around a disc.** For `0 < b` and `a < b`,
 there are a smooth `2`-simplex `τ` of `ℂ` and a smooth open embedding `g : ℝ² → ℂ` restricting to
