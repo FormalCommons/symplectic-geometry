@@ -204,7 +204,7 @@ theorem exists_forall_mem_source_and_norm_centeredExtChartAt_le (hX : IsGradient
   have hdf : Continuous fun y ↦ mvfderiv 𝓘(ℝ, E) f y (X y) :=
     (hf.contMDiff_mvfderiv_apply (m := 0) (by simp)).continuous.comp hXc
   have hpos (w : E) (hw : w ∈ K) : 0 < mvfderiv 𝓘(ℝ, E) f (e.symm w) (X (e.symm w)) := by
-    refine hX.mvfderiv_apply_pos ((hball w (hrδ hw.2)).2 fun h ↦ ?_)
+    refine hX.mvfderiv_apply_pos (mt mem_criticalPoints.1 ((hball w (hrδ hw.2)).2 fun h ↦ ?_))
     have hwp : w = e p := by rw [← e.right_inv (hKt hw), h]
     have := hw.1
     rw [mem_ofPred_eq, hwp, sub_self, norm_zero] at this

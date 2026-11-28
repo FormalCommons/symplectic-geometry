@@ -26,6 +26,8 @@ Small facts about Tau Ceti's de Rham cohomology with real coefficients,
   direction.
 * `TauCeti.SmoothForm.IsClosed.wedgePow`, `TauCeti.SmoothForm.IsClosed.cast`: the wedge powers
   of a closed form are closed, and so is a closed form read in an equal degree.
+* `TauCeti.SmoothForm.wedgePow_succ_mem_exactForms`: the positive wedge powers of an exact form
+  are exact.
 * `TauCeti.deRhamCohomology.mk_eq_mk_iff`: two closed forms have the same de Rham class exactly
   when their difference is exact. This is the analogue of Tau Ceti's
   `TauCeti.compactlySupportedDeRhamCohomology.mk_eq_mk_iff`, with the same proof.
@@ -79,6 +81,14 @@ theorem IsClosed.mem_closedForms {k : ℕ} {φ : SmoothForm I M ℝ k} (h : φ.I
 theorem IsClosed.wedgePow {k : ℕ} {φ : SmoothForm I M ℝ k} (h : φ.IsClosed) (m : ℕ) :
     (φ.wedgePow m).IsClosed :=
   (isClosed_iff_mem_closedForms _).2 (wedgePow_mem_closedForms h.mem_closedForms m)
+
+/-- Every positive wedge power `φ^(m + 1)` of an exact smooth real form `φ` is exact: it is the
+wedge of the closed form `φ^m` with `φ`. -/
+theorem wedgePow_succ_mem_exactForms {k : ℕ} {φ : SmoothForm I M ℝ k}
+    (hφ : φ ∈ exactForms I M k) (m : ℕ) : φ.wedgePow (m + 1) ∈ exactForms I M (k * (m + 1)) := by
+  rw [wedgePow_succ]
+  exact wedge_mem_exactForms_of_right_mem
+    (wedgePow_mem_closedForms (exactForms_le_closedForms I k hφ) m) hφ
 
 end SmoothForm
 

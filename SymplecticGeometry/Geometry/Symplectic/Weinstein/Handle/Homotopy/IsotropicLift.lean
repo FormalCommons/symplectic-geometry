@@ -407,20 +407,14 @@ theorem stableSubspace_fderiv_isotropicLiftField_modelDisc
       (fderiv ℝ Y x).adjoint).stableSubspace = ⊥) :
     (fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x)).stableSubspace =
       (fderiv ℝ Y x).stableSubspace.map (modelDisc k m).toLinearMap := by
-  set e := (complexEuclideanEquivRealProd (Fin k)).prodCongr
-      (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))
-  have h : fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x) = e.symm.conjContinuousAlgEquiv
+  have h : fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x) =
+      ((complexEuclideanEquivRealProd (Fin k)).prodCongr
+        (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))).symm.conjContinuousAlgEquiv
       (((fderiv ℝ Y x).prodMap (ContinuousLinearMap.id ℝ _ - (fderiv ℝ Y x).adjoint)).prodMap
           ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _)) := by
     rw [fderiv_isotropicLiftField_modelDisc hY, ContinuousLinearEquiv.conjContinuousAlgEquiv_apply,
       ContinuousLinearEquiv.symm_symm]
-  rw [h, ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv,
-    ContinuousLinearMap.stableSubspace_prodMap, ContinuousLinearMap.stableSubspace_prodMap, hs,
-    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num), ← Submodule.map_inl,
-    ← Submodule.map_inl, ← Submodule.map_comp, ← Submodule.map_comp]
-  congr 1
-  refine LinearMap.ext fun y ↦
-    Prod.ext ((complexEuclideanEquivRealProd (Fin k)).injective ?_) ?_ <;> simp [e]
+  rw [h, stableSubspace_conjContinuousAlgEquiv_prodMap_eq_map_modelDisc _ _ hs]
 
 /-- **The Liouville lift has the nullity of `Y` at a core point.** Let `Y` be `C²` at `x`, and
 `P` a bilinear form on `ℝᵏ` with `0 < P(y, y - DY(x)ᵀ y)` for `y ≠ 0`. Then the kernel of the
