@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
+public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
@@ -48,11 +49,26 @@ frame coordinates of `s` along `f`. This proof of `continuous_pullbackMapCoord` 
 Tau Ceti's `ContMDiffSection.continuous_map_frameTopology` to sections pulled back along a family
 of maps.
 
+Convergence in the frame topology is local: a family of sections converges if, near each
+compact set of the base, it eventually agrees with a convergent family whose limit agrees there
+with the expected one (`ContMDiffSection.tendsto_frameTopology_of_forall_isCompact`). Each chart
+seminorm of Tau Ceti's frame topology only sees a section near a compact set, by Tau Ceti's
+`Bundle.Trivialization.chartDerivativeSeminorm_eq_zero_of_eventuallyEq_zero`. Hence the infinite
+concatenation (`SymplecticGeometry.infiniteConcat`) of families of sections over `P × [0, 1]`,
+continuous into the frame topology and no longer moving on the sets of an open cover, is
+continuous, its end included (`ContMDiffSection.continuous_infiniteConcat`). Before time `1` it
+is locally one family composed with a continuous change of time; at time `1`, near a compact set
+covered by finitely many of the open sets, it eventually agrees with the start of one later
+family. This follows this library's proof of smoothness,
+`SymplecticGeometry.IsSmoothFamily.infiniteConcat`.
+
 ## Main definitions and results
 
 * `ContMDiffSection.toContMDiffMap`, `ContMDiffSection.continuous_toContMDiffMap`
 * `ContMDiffSection.fiberwiseMap`, `ContMDiffSection.continuous_fiberwiseMap`
 * `ContMDiffSection.pullbackMap`, `ContMDiffSection.continuous_pullbackMap`
+* `ContMDiffSection.tendsto_frameTopology_of_forall_isCompact`
+* `ContMDiffSection.continuous_infiniteConcat`
 
 ## References
 
@@ -494,6 +510,109 @@ theorem continuous_pullbackMap (hcover : ∀ y, ∃ i, y ∈ U i)
     Bundle.Trivialization.frameCoordinates_apply, pullbackMap_apply]
 
 end PullbackMap
+
+section Locality
+
+variable [∀ x, AddCommGroup (V x)] [∀ x, Module 𝕜 (V x)] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V I] [IsManifold I n M]
+  {ι : Type*} (e : ι → Trivialization F (π F V)) [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+
+/-- **Convergence in the frame topology is local on compact sets.** A family of sections `s`
+converges to `s₀` along `l` in the frame topology if, for each compact `K` of the base, it agrees
+near `K`, eventually along `l`, with a family `g` that converges to a section `g₀` agreeing with
+`s₀` near `K`. -/
+theorem tendsto_frameTopology_of_forall_isCompact {X : Type*} {l : Filter X}
+    {s : X → Cₛ^n⟮I; F, V⟯} {s₀ : Cₛ^n⟮I; F, V⟯}
+    (h : ∀ K : Set M, IsCompact K → ∃ (g : X → Cₛ^n⟮I; F, V⟯) (g₀ : Cₛ^n⟮I; F, V⟯),
+      (let _ := frameTopology (I := I) (n := n) e U hU; Tendsto g l (𝓝 g₀)) ∧
+      (∀ᶠ y in 𝓝ˢ K, s₀ y = g₀ y) ∧ ∀ᶠ p in l, ∀ᶠ y in 𝓝ˢ K, s p y = g p y) :
+    let _ := frameTopology (I := I) (n := n) e U hU
+    Tendsto s l (𝓝 s₀) := by
+  let _ := frameTopology (I := I) (n := n) e U hU
+  refine (tendsto_frameTopology_iff (I := I) (n := n) e U hU).mpr ?_
+  intro i x K m hm
+  -- The points of the base that `K` represents form a compact set.
+  have hK : IsCompact (Subtype.val '' ((extChartAt I x).symm ''
+      (Subtype.val '' (K : Set (extChartAt I x).target)))) :=
+    ((K.isCompact.image continuous_subtypeVal).image_of_continuousOn
+      ((continuousOn_extChartAt_symm x).mono (by
+        rintro _ ⟨z, -, rfl⟩; exact z.property))).image continuous_subtypeVal
+  obtain ⟨g, g₀, hg, hg₀, hsg⟩ := h _ hK
+  have hg' := (tendsto_frameTopology_iff (I := I) (n := n) e U hU).mp hg i x K m hm
+  set q := (e i).chartDerivativeSeminorm (hU i) x K m hm
+  -- The seminorm only sees the sections near that compact set.
+  have hq₀ : q (g₀ - s₀) = 0 :=
+    Bundle.Trivialization.chartDerivativeSeminorm_eq_zero_of_eventuallyEq_zero _ _ _ _ _ _ <|
+      hg₀.mono fun y hy ↦ by simp [hy]
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hg'
+    (Eventually.of_forall fun _ ↦ apply_nonneg _ _) ?_
+  filter_upwards [hsg] with p hp
+  have hqp : q (s p - g p) = 0 :=
+    Bundle.Trivialization.chartDerivativeSeminorm_eq_zero_of_eventuallyEq_zero _ _ _ _ _ _ <|
+      hp.mono fun y hy ↦ by simp [hy]
+  calc q (s p - s₀) = q ((s p - g p) + (g p - g₀) + (g₀ - s₀)) := by abel_nf
+    _ ≤ q (s p - g p) + q (g p - g₀) + q (g₀ - s₀) :=
+      (map_add_le_add q _ _).trans (add_le_add_left (map_add_le_add q _ _) _)
+    _ = q (g p - g₀) := by rw [hqp, hq₀, zero_add, add_zero]
+
+open SymplecticGeometry in
+/-- **The infinite concatenation of continuous families of sections is continuous.** Let
+`σ k : P × [0, 1] → Cₛ^n⟮I; F, V⟯` be families of sections, continuous into the frame topology,
+each starting where the previous one ends, `σ (k + 1) (p, 0) = σ k (p, 1)`, and let `W k` be open
+sets covering `M` such that the later families no longer move on `W k`:
+`σ m (p, t) = σ k (p, 1)` on `W k` for `m > k`. Let `ε p` be a section equal on each `W k` to
+`σ k (p, 1)`. Then the infinite concatenation of the families `σ k (p, ·)` ending at `ε p` is
+continuous on `P × [0, 1]` into the frame topology. -/
+theorem continuous_infiniteConcat {P : Type*} [TopologicalSpace P]
+    {σ : ℕ → P × unitInterval → Cₛ^n⟮I; F, V⟯} {W : ℕ → Set M} {ε : P → Cₛ^n⟮I; F, V⟯}
+    (hσ : let _ := frameTopology (I := I) (n := n) e U hU; ∀ k, Continuous (σ k))
+    (hseam : ∀ k p, σ (k + 1) (p, 0) = σ k (p, 1))
+    (hWo : ∀ k, IsOpen (W k)) (hW : ∀ x, ∃ k, x ∈ W k)
+    (hσW : ∀ k m, k < m → ∀ q, ∀ x ∈ W k, σ m q x = σ k (q.1, 1) x)
+    (hε : ∀ k p, ∀ x ∈ W k, ε p x = σ k (p, 1) x) :
+    let _ := frameTopology (I := I) (n := n) e U hU
+    Continuous fun q : P × unitInterval ↦ infiniteConcat (fun k s ↦ σ k (q.1, s)) (ε q.1) q.2 := by
+  let _ := frameTopology (I := I) (n := n) e U hU
+  refine continuous_iff_continuousAt.2 fun ⟨p, t⟩ ↦ ?_
+  rcases lt_or_ge (t : ℝ) 1 with ht | ht
+  · -- Before time `1`, near the stage `k` of `t`, the concatenation is `σ k` reparametrized.
+    obtain ⟨k, hk⟩ := exists_mem_Ico_two_sub_two_pow_mul ht
+    have hc : Continuous fun q : P × unitInterval ↦
+        (q.1, TauCeti.collaredSmoothTransitionUnit (2 - 2 ^ (k + 1) * (1 - (q.2 : ℝ)))) :=
+      continuous_fst.prodMk (TauCeti.continuous_collaredSmoothTransitionUnit.comp (by fun_prop))
+    refine ((hσ k).comp hc).continuousAt.congr ?_
+    filter_upwards [(continuous_snd.tendsto (p, t)).eventually
+      (unitInterval.eventually_two_sub_two_pow_mul_mem_Ioo (t := t) (k := k)
+        ⟨by linarith [hk.1], by linarith [hk.2]⟩)] with q hq
+    rw [Function.comp_apply, infiniteConcat_of_mem_Ioo (fun m ↦ hseam m q.1) hq]
+  · -- At time `1`, near a compact set covered by `W 0, …, W N`, the concatenation is eventually
+    -- the start of `σ (N + 1)`.
+    obtain rfl : t = 1 := Subtype.ext (le_antisymm (unitInterval.le_one t) ht)
+    refine tendsto_frameTopology_of_forall_isCompact e U hU fun K hK ↦ ?_
+    obtain ⟨S, hS⟩ := hK.elim_finite_subcover W hWo fun x _ ↦ mem_iUnion.2 (hW x)
+    set N := S.sup id
+    have hWK : ∀ᶠ y in 𝓝ˢ K, y ∈ ⋃ i ∈ S, W i :=
+      (isOpen_biUnion fun i _ ↦ hWo i).mem_nhdsSet.2 hS
+    -- On `W i` with `i ≤ N`, every late value of the concatenation is `σ i (p, 1)` there, as is
+    -- the start of `σ (N + 1)`.
+    have hlate : ∀ q : P × unitInterval, 2 ^ (N + 1) * (1 - (q.2 : ℝ)) ≤ 1 →
+        ∀ y ∈ ⋃ i ∈ S, W i,
+          infiniteConcat (fun k s ↦ σ k (q.1, s)) (ε q.1) q.2 y = σ (N + 1) (q.1, 0) y := by
+      intro q hq y hy
+      obtain ⟨i, hi, hy⟩ := mem_iUnion₂.1 hy
+      have hiN : i < N + 1 := Nat.lt_succ_of_le (Finset.le_sup (f := id) hi)
+      rw [hσW i _ hiN _ y hy]
+      exact infiniteConcat_mem_of_le (s := {η : Cₛ^n⟮I; F, V⟯ | η y = σ i (q.1, 1) y})
+        (fun m hm s ↦ hσW i m (hiN.trans_le hm) _ y hy) (hε i q.1 y hy) hq
+    have hev : ∀ᶠ q : P × unitInterval in 𝓝 (p, 1), 2 ^ (N + 1) * (1 - (q.2 : ℝ)) < 1 :=
+      (continuous_snd.tendsto (p, 1)).eventually (unitInterval.eventually_two_pow_mul_one_sub_lt N)
+    exact ⟨fun q ↦ σ (N + 1) (q.1, 0), σ (N + 1) (p, 0),
+      ((hσ (N + 1)).comp (continuous_fst.prodMk continuous_const)).continuousAt,
+      hWK.mono fun y hy ↦ hlate (p, 1) (by simp) y hy,
+      hev.mono fun q hq ↦ hWK.mono fun y hy ↦ hlate q hq.le y hy⟩
+
+end Locality
 
 end ContMDiffSection
 
