@@ -37,10 +37,10 @@ Both parts are also written as Tau Ceti's `TauCeti.complexLinearPart` and
 `LinearMap.toContinuousLinearMap`
 (`TauCeti.SmoothAlmostComplexStructure.oneZeroPart_eq_toContinuousLinearMap_complexLinearPart`,
 `TauCeti.SmoothAlmostComplexStructure.zeroOnePart_eq_toContinuousLinearMap_complexAntilinearPart`).
-For a Riemannian metric on `M` and normed fibres, the two parts are also the continuous
+For a Riemannian metric on `M` and normed fibres `W x`, the two parts are also the continuous
 operators `TauCeti.complexLinearPartContinuousLinearMap` and
 `TauCeti.complexAntilinearPartContinuousLinearMap` for `j.toEndomorphism x` and
-`Complex.smulIEquiv (V x)`, evaluated at `η`
+`Complex.smulIEquiv (W x)`, evaluated at `η`
 (`TauCeti.SmoothAlmostComplexStructure.oneZeroPart_eq_complexLinearPartContinuousLinearMap`,
 `TauCeti.SmoothAlmostComplexStructure.zeroOnePart_eq_complexAntilinearPartContinuousLinearMap`),
 which is how the hypotheses of the zero set results of
