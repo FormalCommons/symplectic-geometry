@@ -22,6 +22,7 @@ import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import SymplecticGeometry.Topology.Order.NhdsSet
 
 /-!
 # Moser stability
@@ -260,41 +261,6 @@ theorem exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub {σ₀ σ₁ : Smooth
     rw [Diffeotopy.final_ofReal]
     exact h
 
-omit [I.Boundaryless] [T2Space M] in
-/-- If the slices `ρ_t` of a two-form `ρ` on `ℝ × M` have invertible flat maps at every point for
-the times `t ∈ [0, 1]`, and at the points outside a compact set `K` for all times, then they have
-invertible flat maps at every point for the times of some `(-δ, 1 + δ)`. -/
-private theorem exists_pos_forall_isInvertible_flat_mpullback_prodMk
-    (ρ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) {K : Set M} (hK : IsCompact K)
-    (hI : ∀ (t : unitInterval) x, (flat (SmoothForm.mpullback (Prod.mk (t : ℝ))
-      (contMDiff_const.prodMk contMDiff_id) ρ) x).IsInvertible)
-    (hKc : ∀ s, ∀ x ∉ K, (flat (SmoothForm.mpullback (Prod.mk s)
-      (contMDiff_const.prodMk contMDiff_id) ρ) x).IsInvertible) :
-    ∃ δ > 0, ∀ s ∈ Ioo (0 - δ) (1 + δ), ∀ x, (flat (SmoothForm.mpullback (Prod.mk s)
-      (contMDiff_const.prodMk contMDiff_id) ρ) x).IsInvertible := by
-  set W := {p : ℝ × M | (flat (SmoothForm.mpullback (Prod.mk p.1)
-    (contMDiff_const.prodMk contMDiff_id) ρ) p.2).IsInvertible}
-  have hW : IsOpen W := isOpen_setOfPred_isInvertible_flat_mpullback_prodMk ρ
-  -- the tube lemma for the compact set `K`, near each time of `[0, 1]`
-  have hnhds (t : unitInterval) : ∀ᶠ s in 𝓝 (t : ℝ), ∀ x, (s, x) ∈ W := by
-    refine (hK.eventually_forall_of_forall_eventually (P := fun s x ↦ (s, x) ∈ W) fun x _ ↦
-      hW.mem_nhds (hI t x)).mono fun s hs x ↦ ?_
-    by_cases hx : x ∈ K
-    · exact hs x hx
-    · exact hKc s x hx
-  obtain ⟨δ₀, hδ₀, h₀⟩ := Metric.eventually_nhds_iff_ball.mp (hnhds 0)
-  obtain ⟨δ₁, hδ₁, h₁⟩ := Metric.eventually_nhds_iff_ball.mp (hnhds 1)
-  refine ⟨min δ₀ δ₁, lt_min hδ₀ hδ₁, fun s hs x ↦ ?_⟩
-  rcases lt_or_ge s 0 with h | h
-  · refine h₀ s ?_ x
-    rw [Metric.mem_ball, Real.dist_eq, Icc.coe_zero, sub_zero, abs_of_neg h]
-    linarith [hs.1, min_le_left δ₀ δ₁]
-  rcases le_or_gt s 1 with h' | h'
-  · exact hI ⟨s, h, h'⟩ x
-  · refine h₁ s ?_ x
-    rw [Metric.mem_ball, Real.dist_eq, Icc.coe_one, abs_of_pos (by linarith)]
-    linarith [hs.2, min_le_right δ₀ δ₁]
-
 omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] in
 /-- Let `C = (h × id)^* timeExtend Ω` for a smooth reparametrization `h` of time, where the slices
 of the time extension of `Ω` vanish outside a closed set `K`. The slices of the contraction with
@@ -368,13 +334,24 @@ theorem exists_diffeotopy_mpullback_eq_of_isSmoothFamily {τ : unitInterval → 
     rw [hρs, SmoothBundleForm.add_apply, hdBK s x hx, add_zero]
   -- Step 3: the slices `ρ_s` are symplectic for `s` in a neighbourhood `(-δ, 1 + δ)` of
   -- `[0, 1]`: nondegeneracy is open, it holds on `[0, 1] × M`, and off `K` every slice is `τ_0`.
-  obtain ⟨δ, hδ, hgood⟩ := exists_pos_forall_isInvertible_flat_mpullback_prodMk ρ hK
-    (fun t x ↦ by
-      rw [hρI t]
-      exact isNondegenerate_iff_isInvertible_flat.mp (hτ t).isNondegenerate x)
-    (fun s x hx ↦ by
-      rw [flat_def, hρK s x hx, ← flat_def]
-      exact isNondegenerate_iff_isInvertible_flat.mp (hτ 0).isNondegenerate x)
+  have hI (t : unitInterval) (x : M) : (flat (SmoothForm.mpullback (Prod.mk (t : ℝ))
+      (contMDiff_const.prodMk contMDiff_id) ρ) x).IsInvertible := by
+    rw [hρI t]
+    exact isNondegenerate_iff_isInvertible_flat.mp (hτ t).isNondegenerate x
+  have hKc (s : ℝ) (x : M) (hx : x ∉ K) : (flat (SmoothForm.mpullback (Prod.mk s)
+      (contMDiff_const.prodMk contMDiff_id) ρ) x).IsInvertible := by
+    rw [flat_def, hρK s x hx, ← flat_def]
+    exact isNondegenerate_iff_isInvertible_flat.mp (hτ 0).isNondegenerate x
+  set W := {p : ℝ × M | (flat (SmoothForm.mpullback (Prod.mk p.1)
+    (contMDiff_const.prodMk contMDiff_id) ρ) p.2).IsInvertible}
+  obtain ⟨u, v, hu, -, hIu, hKv, huv⟩ := generalized_tube_lemma isCompact_Icc hK
+    (isOpen_setOfPred_isInvertible_flat_mpullback_prodMk ρ) fun p hp ↦ hI ⟨p.1, hp.1⟩ p.2
+  obtain ⟨δ, hδ, hsub⟩ := hu.exists_pos_Ioo_subset_of_Icc_subset hIu
+  have hgood (s : ℝ) (hs : s ∈ Ioo (0 - δ) (1 + δ)) (x : M) : (flat (SmoothForm.mpullback
+      (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) ρ) x).IsInvertible := by
+    by_cases hx : x ∈ K
+    · exact (huv (mk_mem_prod (hsub hs) (hKv hx)) : (s, x) ∈ W)
+    · exact hKc s x hx
   -- Step 4: reparametrize time by a smooth `h` that is the identity on `[0, 1]` and takes its
   -- values in `(-δ, 1 + δ)`, so that every slice of `ρ' = (h × id)^* ρ` is symplectic.
   obtain ⟨h, hh, hhI, hhδ, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one hδ
