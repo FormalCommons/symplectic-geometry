@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
-public import SymplecticGeometry.Geometry.Manifold.Morse.RadialEstimate
+public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
+public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import SymplecticGeometry.Analysis.Calculus.MeanValue
+import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
+import SymplecticGeometry.Geometry.Manifold.Morse.RadialEstimate
 
 /-!
 # Gradient-like and primitive estimates in a birth–death chart
@@ -33,6 +35,8 @@ The first two estimates are `TauCeti.IsGradientLikeAt.exists_mul_le_fderiv_comp_
 
 ## Main results
 
+* `SymplecticGeometry.mul_norm_le_norm_and_mul_norm_le_of_mul_le_apply`: a functional `D` that
+  satisfies the gradient-like inequality for a vector `x` has `c ‖x‖ ≤ ‖D‖` and `c ‖D‖ ≤ ‖x‖`.
 * `SymplecticGeometry.norm_sub_le_of_mul_le_apply`: two functionals that satisfy the
   gradient-like inequality for the same vector are close relative to the first one.
 * `TauCeti.IsGradientLikeAt.exists_abs_sub_le_mul_norm_mul_norm_fderiv_comp_symm`: the three
@@ -56,23 +60,27 @@ namespace SymplecticGeometry
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
+/-- If a functional `D` satisfies the gradient-like inequality `c (‖x‖² + ‖D‖²) ≤ D x` for a
+vector `x` and some `c > 0`, then `c ‖x‖ ≤ ‖D‖` and `c ‖D‖ ≤ ‖x‖`. -/
+theorem mul_norm_le_norm_and_mul_norm_le_of_mul_le_apply {D : E →L[ℝ] ℝ} {x : E} {c : ℝ}
+    (hc : 0 < c) (h : c * (‖x‖ ^ 2 + ‖D‖ ^ 2) ≤ D x) : c * ‖x‖ ≤ ‖D‖ ∧ c * ‖D‖ ≤ ‖x‖ := by
+  have hD : D x ≤ ‖D‖ * ‖x‖ := (le_abs_self _).trans (D.le_opNorm x)
+  constructor
+  · rcases (norm_nonneg x).eq_or_lt with hx | hx
+    · rw [← hx, mul_zero]; exact norm_nonneg _
+    · exact le_of_mul_le_mul_right (by nlinarith [sq_nonneg ‖D‖]) hx
+  · rcases (norm_nonneg D).eq_or_lt with hx | hx
+    · rw [← hx, mul_zero]; exact norm_nonneg _
+    · exact le_of_mul_le_mul_right (by nlinarith [sq_nonneg ‖x‖]) hx
+
 /-- If two functionals `D` and `D'` satisfy the gradient-like inequality
 `c (‖x‖² + ‖D‖²) ≤ D x` for the same vector `x` and the same `c > 0`, then
 `‖D' - D‖ ≤ (1 + 1 / c²) ‖D‖`. -/
 theorem norm_sub_le_of_mul_le_apply {D D' : E →L[ℝ] ℝ} {x : E} {c : ℝ} (hc : 0 < c)
     (h : c * (‖x‖ ^ 2 + ‖D‖ ^ 2) ≤ D x) (h' : c * (‖x‖ ^ 2 + ‖D'‖ ^ 2) ≤ D' x) :
     ‖D' - D‖ ≤ (1 + 1 / c ^ 2) * ‖D‖ := by
-  have hD : D x ≤ ‖D‖ * ‖x‖ := (le_abs_self _).trans (D.le_opNorm x)
-  have hD' : D' x ≤ ‖D'‖ * ‖x‖ := (le_abs_self _).trans (D'.le_opNorm x)
-  -- `c ‖x‖ ≤ ‖D‖` and `c ‖D'‖ ≤ ‖x‖`.
-  have h₁ : c * ‖x‖ ≤ ‖D‖ := by
-    rcases (norm_nonneg x).eq_or_lt with hx | hx
-    · rw [← hx, mul_zero]; exact norm_nonneg _
-    · exact le_of_mul_le_mul_right (by nlinarith [sq_nonneg ‖D‖]) hx
-  have h₂ : c * ‖D'‖ ≤ ‖x‖ := by
-    rcases (norm_nonneg D').eq_or_lt with hx | hx
-    · rw [← hx, mul_zero]; exact norm_nonneg _
-    · exact le_of_mul_le_mul_right (by nlinarith [sq_nonneg ‖x‖]) hx
+  have h₁ := (mul_norm_le_norm_and_mul_norm_le_of_mul_le_apply hc h).1
+  have h₂ := (mul_norm_le_norm_and_mul_norm_le_of_mul_le_apply hc h').2
   have h₃ : ‖D'‖ ≤ ‖D‖ / c ^ 2 := by
     rw [le_div_iff₀ (by positivity)]
     nlinarith
