@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Manifold.Morse.ComplexNegativity
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
+public import TauCeti.Geometry.Manifold.Morse.CWModel
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
@@ -22,9 +23,11 @@ import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHes
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
+import TauCeti.Geometry.Manifold.Morse.Deformation.Cofibration
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.ContMDiff.Log
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # Critical points of `log |s_k|²` for uniformly transverse sequences
@@ -69,10 +72,24 @@ by `TauCeti.SmoothAlmostComplexStructure.IsComplexNegativeAt.comp_subtypeVal`.
 
 On a Hausdorff manifold, given `ε > 0` such that no point with `0 < ‖s k x‖² ≤ ε` is critical,
 this function can then be made Morse without changing it on `{‖s k‖² ≤ ε}` and without losing the
-index bound, by a compactly supported change; `log ε` stays a regular value, the bands above it
-are compact, and the perturbed function lies below one of its regular values
+index bound, by a compactly supported change; its sublevel set at `log ε` is still
+`{‖s k‖² ≤ ε}`, `log ε` stays a regular value, the bands above it are compact, and the perturbed
+function lies below one of its regular values, which can be taken above `log ε`
 (`SymplecticGeometry.IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq`, from
 `TauCeti.SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic`).
+
+The Morse theory of this perturbation gives a relative CW model of `W = {s k ≠ 0}` over
+`A = {0 < ‖s k‖² ≤ ε}` with cells only in dimensions at least `dim M / 2`, together with the
+homotopy extension property of `A` in `W`
+(`SymplecticGeometry.IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_nonzeroOpens`).
+Here `A` is the sublevel set `{g ≤ log ε}` and `W` the sublevel set `{g ≤ b}`. Starting from `A`
+as a CW complex over itself, Tau Ceti's
+`TauCeti.IsMorse.exists_relCWComplex_extension_homotopyEquiv_sublevel` adds one cell for each
+critical point between the two levels, as Tau Ceti's own
+`TauCeti.IsMorse.exists_relCWComplex_homotopyEquiv_sublevel` does with base the sublevel set, and
+`TauCeti.hasHomotopyExtensionProperty_sublevel_of_isRegularValue` gives the homotopy extension
+property. This is the form, with `A` and `W` as sets of `M`, that
+`SymplecticGeometry.exists_relCWComplex_homotopyEquiv_of_isPushout` takes.
 
 These are the first steps of the Morse theory of `log |s_k|²` away from the zero set.
 
@@ -89,20 +106,24 @@ the transversality hypothesis of the tube and Morse–Bott results on the zero s
 
 * [D. Auroux, *Asymptotically holomorphic families of symplectic submanifolds*][Auroux1997],
   Proposition 2 and §5.1
+* J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
+  §3
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.4
 * [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996]
 -/
 
 public section
 
-open scoped Manifold ContDiff
-open TauCeti Bundle
+open scoped Manifold ContDiff ContinuousMap
+open TauCeti Bundle Topology
 
 namespace SymplecticGeometry
 
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [CompactSpace M] {ι : Type*} [Fintype ι]
+universe u
+
+variable {E H : Type*} {M : Type u} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M] {ι : Type*} [Fintype ι]
   {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
   [FiberBundle Circle P] [∀ x, Nonempty (P x)] [∀ x, MulAction Circleᵐᵒᵖ (P x)]
   [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
@@ -363,9 +384,10 @@ dimension.** In the setting of
 boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large and every
 `ε > 0` such that `y ↦ log ‖s k y‖²` has no critical point `x` with `0 < ‖s k x‖² ≤ ε`, there is a
 Morse function `g` on `U = nonzeroOpens (hsm k)` which agrees with `f = logNormSq (hsm k)` where
-`‖s k‖² ≤ ε`, such that `g - f` has compact support, whose Morse index at each critical point is
-at least `dim M / 2`, for which `log ε` is a regular value, such that each band
-`g⁻¹[log ε, b]` is compact, and which has a regular value `b` with `{g ≤ b}` all of `U`. -/
+`‖s k‖² ≤ ε` and whose sublevel set `{g ≤ log ε}` is `{‖s k‖² ≤ ε}`, such that `g - f` has
+compact support, whose Morse index at each critical point is at least `dim M / 2`, for which
+`log ε` is a regular value, such that each band `g⁻¹[log ε, b]` is compact, and which has a
+regular value `b > log ε` with `{g ≤ b}` all of `U`. -/
 theorem IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq [I.Boundaryless] [T2Space M]
     (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
     (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
@@ -378,11 +400,12 @@ theorem IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq [I.Boundaryless] [T2
         x ∉ criticalPoints I (fun y ↦ Real.log (‖s k y‖ ^ 2))) →
       ∃ g : C^∞⟮I, nonzeroOpens (hsm k); 𝓘(ℝ), ℝ⟯, IsMorse I g ∧
         (∀ x : nonzeroOpens (hsm k), ‖s k x‖ ^ 2 ≤ ε → g x = logNormSq (hsm k) x) ∧
+        (∀ x : nonzeroOpens (hsm k), g x ≤ Real.log ε ↔ ‖s k x‖ ^ 2 ≤ ε) ∧
         HasCompactSupport (fun x ↦ g x - logNormSq (hsm k) x) ∧
         (∀ x ∈ criticalPoints I g, Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I g x) ∧
         IsRegularValue I 𝓘(ℝ) g (Real.log ε) ∧
         (∀ b, IsCompact (g ⁻¹' Set.Icc (Real.log ε) b)) ∧
-        ∃ b, IsRegularValue I 𝓘(ℝ) g b ∧ {x | g x ≤ b} = Set.univ := by
+        ∃ b, Real.log ε < b ∧ IsRegularValue I 𝓘(ℝ) g b ∧ {x | g x ≤ b} = Set.univ := by
   filter_upwards [ht.isComplexNegativeAt_logNormSq D hJ hα hρ₀ hη hs hsm]
     with k hk ε hε hcrit
   have hpos (x : nonzeroOpens (hsm k)) : 0 < ‖s k x‖ ^ 2 :=
@@ -407,14 +430,89 @@ theorem IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq [I.Boundaryless] [T2
     rw [coe_logNormSq, mem_criticalPoints_comp_subtypeVal] at hx
     refine lt_of_not_ge fun h ↦ hcrit x (hpos x) ?_ hx
     rwa [logNormSq_apply, Real.log_le_log_iff (hpos x) hε] at h
-  obtain ⟨g, -, hgM, hgf, hgc, hgi, hreg, hgK, b, hb, hgb⟩ :=
+  obtain ⟨g, -, hgM, hgf, hIic, hgc, hgi, hreg, hgK, b, hεb, hb, hgb⟩ :=
     (J.restrictOpen (nonzeroOpens (hsm k))).exists_isMorse_eqOn_preimage_Iic hK hcrit' hk
       Filter.univ_mem
-  refine ⟨g, hgM, fun x hx ↦ hgf ?_, hgc, hgi, hreg, fun b ↦ hgK.of_isClosed_subset
-    (isClosed_Icc.preimage (map_continuous g)) (Set.preimage_mono Set.Icc_subset_Ici_self),
-    b, hb, Set.eq_univ_of_forall fun x ↦ (hgb x).le⟩
+  have hgle (x : nonzeroOpens (hsm k)) : g x ≤ Real.log ε ↔ ‖s k x‖ ^ 2 ≤ ε := by
+    have h := Set.ext_iff.1 hIic x
+    simp only [Set.mem_preimage, Set.mem_Iic] at h
+    rw [h, logNormSq_apply, Real.log_le_log_iff (hpos x) hε]
+  refine ⟨g, hgM, fun x hx ↦ hgf ?_, hgle, hgc, hgi, hreg,
+    fun b ↦ hgK.of_isClosed_subset (isClosed_Icc.preimage (map_continuous g))
+      (Set.preimage_mono Set.Icc_subset_Ici_self),
+    b, hεb, hb, Set.eq_univ_of_forall fun x ↦ (hgb x).le⟩
   rw [Set.mem_preimage, Set.mem_Iic, logNormSq_apply]
   exact Real.log_le_log (hpos x) hx
+
+/-- **A relative CW model of `{s_k ≠ 0}` over `{0 < ‖s_k‖² ≤ ε}`.** In the setting of
+`SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a Hausdorff
+boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large and every `ε > 0` such
+that `y ↦ log ‖s k y‖²` has no critical point `x` with `0 < ‖s k x‖² ≤ ε`, write
+`A = {x | 0 < ‖s k x‖² ≤ ε}` and `W = {x | s k x ≠ 0}`, the set of `nonzeroOpens (hsm k)`. Then
+`A` has the homotopy extension property in `W`, and `W` is homotopy equivalent to a Hausdorff
+relative CW complex `X`, in the universe of `M`, over the image of a closed embedding
+`j : A → X`, with no cell of dimension less than `dim M / 2`, by a homotopy equivalence `h` with
+`h (j a) = a`. -/
+theorem IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_nonzeroOpens [I.Boundaryless]
+    [T2Space M] (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s)
+    (hsm : ∀ k : ℕ, ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y))) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ ε : ℝ, 0 < ε →
+      (∀ x : M, 0 < ‖s k x‖ ^ 2 → ‖s k x‖ ^ 2 ≤ ε →
+        x ∉ criticalPoints I (fun y ↦ Real.log (‖s k y‖ ^ 2))) →
+      (∀ hAW : {x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε} ⊆ (nonzeroOpens (hsm k) : Set M),
+        HasHomotopyExtensionProperty (Set.range (ContinuousMap.inclusion hAW))) ∧
+      ∃ (X : Type u) (_ : TopologicalSpace X) (_ : T2Space X)
+        (j : C({x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε}, X))
+        (_ : RelCWComplex (Set.univ : Set X) (Set.range j))
+        (h : X ≃ₕ (nonzeroOpens (hsm k) : Set M)),
+        IsClosedEmbedding j ∧ (∀ a, (h (j a) : M) = a) ∧
+        ∀ m < Module.finrank ℝ E / 2, IsEmpty (RelCWComplex.cell (Set.univ : Set X) m) := by
+  filter_upwards [ht.exists_isMorse_eqOn_logNormSq D hJ hα hρ₀ hη hs hsm] with k hk ε hε hcrit
+  set U := nonzeroOpens (hsm k)
+  set A : Set M := {x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε}
+  obtain ⟨g, hgM, -, hgle, -, hgi, hreg, hgK, b, hεb, hb, hgb⟩ := hk ε hε hcrit
+  have hpos (x : U) : 0 < ‖s k x‖ ^ 2 := pow_pos (norm_pos_iff.2 (mem_nonzeroOpens.1 x.property)) 2
+  have hAU : A ⊆ (U : Set M) := fun x hx ↦ mem_nonzeroOpens.2 fun h ↦ by simp [A, h] at hx
+  -- `A` is the sublevel set `{g ≤ log ε}`, read in `M`.
+  have hset : {x : U | g x ≤ Real.log ε} = Subtype.val ⁻¹' A := by
+    ext x
+    exact (hgle x).trans ⟨fun hx ↦ ⟨hpos x, hx⟩, And.right⟩
+  let eA : A ≃ₜ {x : U | g x ≤ Real.log ε} :=
+    (Homeomorph.Set.preimageVal hAU).symm.trans (Homeomorph.setCongr hset.symm)
+  let eW : {x : U | g x ≤ b} ≃ₜ (U : Set M) :=
+    (Homeomorph.setCongr hgb).trans (Homeomorph.Set.univ U)
+  have heA (a : A) : ((eA a : U) : M) = a := by
+    simp only [eA, Homeomorph.trans_apply, Homeomorph.Set.preimageVal_symm_apply,
+      Homeomorph.setCongr_apply]
+  have heW (y : {x : U | g x ≤ b}) : (eW y : M) = (y : U) := rfl
+  refine ⟨fun hAW ↦ ?_, ?_⟩
+  · have hA := hasHomotopyExtensionProperty_sublevel_of_isRegularValue g.contMDiff hεb (hgK b) hreg
+    -- Mathlib states no coercion lemma for `ContinuousMap.inclusion`, whose underlying map is
+    -- `Set.inclusion` by definition.
+    have hr : Set.range (ContinuousMap.inclusion hAW) = {x : U | g x ≤ Real.log ε} :=
+      (Set.range_inclusion hAW).trans hset.symm
+    -- The subtype of `U` as a set of `M` is the subtype of `U` itself.
+    rw [hr]
+    exact hA
+  -- Start from `A`, a CW complex relative to itself with no cells.
+  let := relCWComplexSelf (Set.univ : Set A) isClosed_univ
+  obtain ⟨X, _, _, j, D', _, h, hD', hj, -, hh, e, -⟩ :=
+    hgM.exists_relCWComplex_extension_homotopyEquiv_sublevel hεb.le (hgK b) hreg hb A Set.univ
+      eA.toHomotopyEquiv
+  rw [Set.image_univ] at hD'
+  subst hD'
+  refine ⟨X, _, ‹_›, j, ‹_›, h.trans eW.toHomotopyEquiv, hj, fun a ↦ ?_, fun m hm ↦ ?_⟩
+  · rw [ContinuousMap.HomotopyEquiv.trans_apply, Homeomorph.coe_toHomotopyEquiv, heW, hh,
+      Homeomorph.coe_toHomotopyEquiv, heA]
+  -- The new cells are indexed by critical points, of index at least `dim M / 2`.
+  have : IsEmpty {x ∈ criticalPoints I g ∩ g ⁻¹' Set.Ioc (Real.log ε) b |
+      manifoldMorseIndex I g x = m} :=
+    ⟨fun ⟨x, ⟨hx, _⟩, hxm⟩ ↦ absurd (hgi x hx) (by omega)⟩
+  exact (e m).isEmpty
 
 end SymplecticGeometry
 
