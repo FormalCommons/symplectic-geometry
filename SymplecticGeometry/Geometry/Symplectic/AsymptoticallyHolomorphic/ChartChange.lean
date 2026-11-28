@@ -40,6 +40,18 @@ The jets of `dτ` at `0` are bounded by those of `τ` of orders `1` to `r + 1`, 
 bilinear bound `SymplecticGeometry.jetNormAt_bilinear_le` takes care of the composition with
 `dτ`. The exponent is again `2 * r`.
 
+The file also goes the other way, which is what is needed to control one function on a whole
+ball of the chart at `x`: the jet norm at `z` of the reading of `s` in the chart at `x` is
+bounded by the jet norm of `s` at `y`. Near `z`, that reading is `e' · (f_y ∘ τ')`, for `f_y`
+the reading in the chart at `y`, `τ'` the transition from the chart at `x` to the chart at `y`,
+which sends `z` to `0`, and `e'` the change of frame between these charts. The jets of `τ'` and
+`e'` at `z` are bounded in `ChartTransition.lean` and `FrameChange.lean`
+(`RescaledUnitaryCharts.exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le` and
+`RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_chart_symm_le`). Since `τ' z = 0`, the
+Faà di Bruno bound for `f_y ∘ τ'` has no factor `‖z‖`, and only the change of frame brings one,
+so the exponent is `r`. Smoothness moves the same way, and for an asymptotically holomorphic
+sequence the bounds at the centres become bounds on balls of fixed radius.
+
 ## Main results
 
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_le`: the bounds
@@ -49,6 +61,21 @@ bilinear bound `SymplecticGeometry.jetNormAt_bilinear_le` takes care of the comp
   `D.jetNorm k r s y ≤ C * (1 + d_k(x, y)) ^ (2 * r) * jetNormAt ℝ r (D.reading k x s) z`.
 * `SymplecticGeometry.RescaledUnitaryCharts.dbarJetNorm_le_of_chart_change`: for every `r`,
   `D.dbarJetNorm k r s y ≤ C * (1 + d_k(x, y)) ^ (2 * r) * jetNormAt ℝ r (D.dbarReading k x s) z`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_chartChange_chart_symm_le`:
+  the bounds at `z` on the jets of the change of frame and of the transition back to the chart
+  at `y`.
+* `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_of_chart_change` and
+  `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_dbarReading_of_chart_change`: if the
+  reading (and the `∂̄` reading) of `s` in the chart at `y` is `C^n` at `0`, then so is the
+  reading (and the `∂̄` reading) in the chart at `x` at `z`.
+* `SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_reading_le_of_chart_change`: for every `r`,
+  `jetNormAt ℝ r (D.reading k x s) z ≤ C * (1 + d_k(x, y)) ^ r * D.jetNorm k r s y`.
+* `SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_dbarReading_le_of_chart_change`: for every
+  `r`, `jetNormAt ℝ r (D.dbarReading k x s) z ≤ C * (1 + d_k(x, y)) ^ r * D.dbarJetNorm k r s y`.
+* `SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le`:
+  for an asymptotically holomorphic sequence and a fixed radius `R`, for large `k` the readings
+  and `∂̄` readings are smooth on the ball of radius `R` of every chart, with `r`-jet norms at
+  most `C` and `C * k ^ (-1/2)`.
 
 ## References
 
