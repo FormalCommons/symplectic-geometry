@@ -62,6 +62,15 @@ holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`). The conc
 families `a b : [0, 1] → α` with these time maps is `SymplecticGeometry.collaredConcat a b`; it
 starts where `a` starts and ends where `b` ends (`collaredConcat_zero`, `collaredConcat_one`), and
 it is `C^n` when `a` and `b` are and meet at the seam (`ContMDiff.collaredConcat`).
+
+The infinite concatenation `SymplecticGeometry.infiniteConcat a e` of families
+`a k : [0, 1] → α`, `k : ℕ`, runs through `a k` on the times `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹]`,
+reparametrized by Tau Ceti's `TauCeti.collaredSmoothTransitionUnit`, and takes the value `e` at
+time `1`. It starts at `a 0 0` and ends at `e` (`infiniteConcat_zero`, `infiniteConcat_one`), and
+its values are values of the `a k` or `e` (`infiniteConcat_mem`), of the `a m` with `m > k` or
+`e` after stage `k` (`infiniteConcat_mem_of_le`). When consecutive families meet, it runs through
+`a k` on an open set of times around stage `k` (`infiniteConcat_of_mem_Ioo`), since the time
+step is constant near the ends of each stage.
 -/
 
 public section
@@ -393,5 +402,152 @@ theorem ContMDiff.collaredConcat {a b : unitInterval → N} (ha : ContMDiff (�
         fun t : unitInterval ↦ (t, (0 : unitInterval)))
 
 end Glue
+
+
+section InfiniteConcat
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {α : Type*}
+
+/-- The **infinite concatenation** of families `a k : [0, 1] → α`, `k : ℕ`, ending at `e`. For
+`t < 1`, let `k` be least with `2 ^ (k + 1) * (1 - t) > 1`, so that
+`1 - 2⁻ᵏ ≤ t < 1 - 2⁻ᵏ⁻¹`: the value at `t` is that of `a k` at the time
+`collaredSmoothTransitionUnit (2 - 2 ^ (k + 1) * (1 - t))`, which runs from `0` to `1` on that
+interval and is constant near its ends. The value at `1` is `e`. -/
+noncomputable def infiniteConcat (a : ℕ → unitInterval → α) (e : α) (t : unitInterval) : α :=
+  if (t : ℝ) < 1 then
+    a (sInf {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))})
+      (collaredSmoothTransitionUnit
+        (2 - 2 ^ (sInf {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))} + 1) * (1 - (t : ℝ))))
+  else e
+
+theorem infiniteConcat_def (a : ℕ → unitInterval → α) (e : α) (t : unitInterval) :
+    infiniteConcat a e t =
+      if (t : ℝ) < 1 then
+        a (sInf {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))})
+          (collaredSmoothTransitionUnit
+            (2 - 2 ^ (sInf {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))} + 1) * (1 - (t : ℝ))))
+      else e :=
+  (rfl)
+
+variable {a : ℕ → unitInterval → α} {e : α} {t : unitInterval}
+
+/-- On the time interval `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹)`, written as `0 ≤ 2 - 2 ^ (k + 1) * (1 - t) < 1`,
+the infinite concatenation runs through `a k`. -/
+theorem infiniteConcat_of_mem_Ico {k : ℕ} (h₀ : 0 ≤ 2 - 2 ^ (k + 1) * (1 - (t : ℝ)))
+    (h₁ : 2 - 2 ^ (k + 1) * (1 - (t : ℝ)) < 1) :
+    infiniteConcat a e t =
+      a k (collaredSmoothTransitionUnit (2 - 2 ^ (k + 1) * (1 - (t : ℝ)))) := by
+  have ht : (t : ℝ) < 1 := by
+    by_contra h
+    have : (1 : ℝ) - t ≤ 0 := by linarith
+    nlinarith [pow_pos (two_pos (α := ℝ)) (k + 1)]
+  have hk : sInf {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))} = k := by
+    refine le_antisymm (Nat.sInf_le (show 1 < 2 ^ (k + 1) * (1 - (t : ℝ)) by linarith)) ?_
+    refine le_of_not_gt fun hlt ↦ ?_
+    have hmem := Nat.sInf_mem (s := {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))}) ⟨k, by
+      change 1 < 2 ^ (k + 1) * (1 - (t : ℝ)); linarith⟩
+    change 1 < 2 ^ (_ + 1) * (1 - (t : ℝ)) at hmem
+    have hpow : (2 : ℝ) ^ (sInf {k | 1 < 2 ^ (k + 1) * (1 - (t : ℝ))} + 1) ≤ 2 ^ k :=
+      pow_le_pow_right₀ one_le_two hlt
+    have h1t : (0 : ℝ) ≤ 1 - t := by linarith
+    have := mul_le_mul_of_nonneg_right hpow h1t
+    rw [pow_succ] at h₀
+    linarith
+  rw [infiniteConcat_def, ite_eq_left ht, hk]
+
+/-- The infinite concatenation ends at `e`. -/
+@[simp]
+theorem infiniteConcat_one (a : ℕ → unitInterval → α) (e : α) : infiniteConcat a e 1 = e := by
+  rw [infiniteConcat_def, ite_eq_right (by simp)]
+
+/-- The infinite concatenation starts where the first family starts. -/
+@[simp]
+theorem infiniteConcat_zero (a : ℕ → unitInterval → α) (e : α) :
+    infiniteConcat a e 0 = a 0 0 := by
+  rw [infiniteConcat_of_mem_Ico (k := 0) (by norm_num) (by norm_num),
+    collaredSmoothTransitionUnit_eq_zero_of_le (by norm_num)]
+
+/-- Every time before `1` lies in one of the intervals `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹)`. -/
+theorem exists_mem_Ico_two_sub_two_pow_mul (ht : (t : ℝ) < 1) :
+    ∃ k : ℕ, 0 ≤ 2 - 2 ^ (k + 1) * (1 - (t : ℝ)) ∧ 2 - 2 ^ (k + 1) * (1 - (t : ℝ)) < 1 := by
+  have h1t : (0 : ℝ) < 1 - t := by linarith
+  -- `2 ^ k ≤ (1 - t)⁻¹ < 2 ^ (k + 1)`, by Mathlib's `exists_nat_pow_near`.
+  obtain ⟨k, hk₀, hk₁⟩ :=
+    exists_nat_pow_near ((one_le_inv₀ h1t).2 (by linarith [unitInterval.nonneg t]))
+      one_lt_two
+  have hk₀ := mul_le_mul_of_nonneg_right hk₀ h1t.le
+  rw [inv_mul_cancel₀ h1t.ne'] at hk₀
+  rw [inv_lt_iff_one_lt_mul₀ h1t, mul_comm] at hk₁
+  refine ⟨k, ?_, by linarith⟩
+  rw [pow_succ]
+  linarith
+
+/-- **The infinite concatenation near the times of stage `k`.** If consecutive families meet,
+`a (k + 1) 0 = a k 1`, then for `-1 / 8 < 2 - 2 ^ (k + 1) * (1 - t) < 9 / 8`, an open set of
+times around `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹]`, the infinite concatenation runs through `a k`. -/
+theorem infiniteConcat_of_mem_Ioo (hab : ∀ k, a (k + 1) 0 = a k 1) {k : ℕ}
+    (h₀ : -1 / 8 < 2 - 2 ^ (k + 1) * (1 - (t : ℝ)))
+    (h₁ : 2 - 2 ^ (k + 1) * (1 - (t : ℝ)) < 9 / 8) :
+    infiniteConcat a e t =
+      a k (collaredSmoothTransitionUnit (2 - 2 ^ (k + 1) * (1 - (t : ℝ)))) := by
+  set u : ℝ := 2 ^ k * (1 - t) with hu
+  have hk : (2 : ℝ) ^ (k + 1) * (1 - t) = 2 * u := by rw [hu, pow_succ]; ring
+  rw [hk] at h₀ h₁ ⊢
+  rcases lt_or_ge (2 - 2 * u) 0 with hneg | hnn
+  · -- Before stage `k`: at the end of stage `k - 1`, where both families are at their seam.
+    obtain _ | j := k
+    · rw [pow_zero, one_mul] at hu
+      linarith [unitInterval.nonneg t]
+    have hj : (2 : ℝ) ^ (j + 1) * (1 - t) = u := by rw [hu, pow_succ]
+    rw [infiniteConcat_of_mem_Ico (k := j) (by rw [hj]; linarith) (by rw [hj]; linarith),
+      collaredSmoothTransitionUnit_eq_one_of_ge (by rw [hj]; linarith),
+      collaredSmoothTransitionUnit_eq_zero_of_le (by linarith), hab]
+  rcases lt_or_ge (2 - 2 * u) 1 with hlt | hge
+  · rw [infiniteConcat_of_mem_Ico (k := k) (by rw [hk]; exact hnn) (by rw [hk]; exact hlt), hk]
+  · -- After stage `k`: at the start of stage `k + 1`, where both families are at their seam.
+    have hj : (2 : ℝ) ^ (k + 1 + 1) * (1 - t) = 4 * u := by rw [hu, pow_succ, pow_succ]; ring
+    rw [infiniteConcat_of_mem_Ico (k := k + 1) (by rw [hj]; linarith) (by rw [hj]; linarith),
+      collaredSmoothTransitionUnit_eq_zero_of_le (by rw [hj]; linarith),
+      collaredSmoothTransitionUnit_eq_one_of_ge (by linarith), hab]
+
+/-- **Every value of the infinite concatenation is a value of one of its families, or its end.**
+If every value of every `a k` lies in `s`, and `e` lies in `s`, then so does every value of
+`infiniteConcat a e`. -/
+theorem infiniteConcat_mem {s : Set α} (ha : ∀ k t, a k t ∈ s) (he : e ∈ s) (t : unitInterval) :
+    infiniteConcat a e t ∈ s := by
+  rw [infiniteConcat_def]
+  split_ifs
+  exacts [ha _ _, he]
+
+/-- **After stage `k`, the infinite concatenation runs through the later families.** For times
+`t ≥ 1 - 2⁻ᵏ⁻¹`, if every value of `a m` for `m > k` lies in `s`, and `e` lies in `s`, then the
+value of `infiniteConcat a e` at `t` lies in `s`. -/
+theorem infiniteConcat_mem_of_le {s : Set α} {k : ℕ} (ha : ∀ m, k < m → ∀ t, a m t ∈ s)
+    (he : e ∈ s) (ht : 2 ^ (k + 1) * (1 - (t : ℝ)) ≤ 1) : infiniteConcat a e t ∈ s := by
+  rcases lt_or_ge (t : ℝ) 1 with h | h
+  · obtain ⟨m, hm₀, hm₁⟩ := exists_mem_Ico_two_sub_two_pow_mul h
+    rw [infiniteConcat_of_mem_Ico hm₀ hm₁]
+    refine ha m (lt_of_not_ge fun hmk ↦ ?_) _
+    have hpow : (2 : ℝ) ^ (m + 1) ≤ 2 ^ (k + 1) := pow_le_pow_right₀ one_le_two (by omega)
+    have h1t : (0 : ℝ) ≤ 1 - t := by linarith
+    have := mul_le_mul_of_nonneg_right hpow h1t
+    linarith
+  · rw [show t = 1 from Subtype.ext (le_antisymm (unitInterval.le_one t) h), infiniteConcat_one]
+    exact he
+
+/-- A function applied to an infinite concatenation is the infinite concatenation of the
+function applied to the families and to the end. -/
+theorem apply_infiniteConcat {β : Type*} (g : α → β) (a : ℕ → unitInterval → α) (e : α)
+    (t : unitInterval) :
+    g (infiniteConcat a e t) = infiniteConcat (fun k s ↦ g (a k s)) (g e) t := by
+  simp only [infiniteConcat_def, apply_ite g]
+
+end SymplecticGeometry
+
+end InfiniteConcat
 
 end
