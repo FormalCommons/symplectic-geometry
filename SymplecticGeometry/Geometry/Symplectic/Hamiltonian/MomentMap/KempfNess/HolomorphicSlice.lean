@@ -14,11 +14,12 @@ import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 /-!
 # The normal space of the complex orbit at a zero of the moment map
 
-Let a Lie group `G` act on a manifold `M` with a two-form `σ`, an almost complex structure `J`
-and a metric with `g(u, w) = σ(u, J w)`, and let `W = 𝔤 · x` be the orbit tangent space at `x`
-(`TauCeti.InfinitesimalAction.orbitTangent`). This file studies the **complex orbit tangent
-space** `T = W + J x W` (`SymplecticGeometry.complexOrbitTangent`) and its orthogonal complement
-`S = Tᗮ` for `g`, the **complex orbit normal space** (`SymplecticGeometry.complexOrbitNormal`).
+Suppose that `G` is a Lie group acting on `M`, which carries a two-form `σ`, an almost complex
+structure `J` and a metric with `g(u, w) = σ(u, J w)`, and let `W = 𝔤 · x` be the orbit
+tangent space at `x` (`TauCeti.InfinitesimalAction.orbitTangent`). This file studies the
+**complex orbit tangent space** `T = W + J x W` (`SymplecticGeometry.complexOrbitTangent`)
+and its orthogonal complement `S = Tᗮ` for `g`, the **complex orbit normal space**
+(`SymplecticGeometry.complexOrbitNormal`).
 These are the linear objects of the holomorphic slice at a zero of the moment map in the proof
 of Theorem 12.5 of [GeorgoulasRobbinSalamon2021] (Steps 2–5 there), in the spirit of the
 holomorphic slice theorem of Sjamaar (§1 of his paper below); the later steps read `S` in a
