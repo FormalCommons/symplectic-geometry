@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.DifferentialForm.Basic
 public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -39,6 +40,11 @@ says that the alternation of `curryLeft a` is `2 • a`). Then:
 * if the derivative of a one-form `f` is within `ε` of `G x` at `x`, then `df` is within `2 * ε`
   of `τ` at `x`, by Mathlib's bound `ContinuousAlternatingMap.norm_alternatizeUncurryFin_le` on
   the alternation;
+* consequently, if `τ'` is the reading along `φ` of a two-form `τ` on `M` and `τ' - r • η` is
+  nondegenerate at `z` for all small `η` and all `r ∈ [0, 1]`, then adding to the reading of a
+  one-form `β` a correction whose derivative is close to the formal primitive of the reading of
+  `τ - α` keeps the segment from the reading of `τ` to that of `α + dβ`, plus `r` times the
+  derivative of the correction, nondegenerate at `z`;
 * for smooth families `τ` and `β` of forms over a parameter manifold `N`, the datum
   `(t, x) ↦ formalPrimitive (τ t) (β t) x` is smooth on `N × E`.
 
@@ -59,6 +65,9 @@ proof of the handle-core lemma and of Gromov's theorem on symplectic forms on op
   along a smooth map.
 * `SymplecticGeometry.norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le`: a derivative
   within `ε` of it has exterior derivative within `2 * ε` of `τ`.
+* `SymplecticGeometry.nondegenerate_mpullback_add_smul_extDeriv`: a corrected segment of
+  two-forms read along a smooth map stays nondegenerate where the derivative of the corrected
+  one-form is close to the formal primitive.
 * `SymplecticGeometry.continuous_formalPrimitive`: it is continuous in a parameter, for families
   of forms whose values and first derivatives are continuous in the parameter and the point.
 * `SymplecticGeometry.contMDiff_formalPrimitive`: it is smooth in the parameter and the point
@@ -139,6 +148,64 @@ theorem norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le
     alternatizeUncurryFinCLM_apply, alternatizeUncurryFin_formalPrimitive, ← extDeriv] at this
   norm_num at this
   linarith
+
+/-- **Nondegeneracy of a corrected segment of two-forms, read along a map.** Let `φ : E → M` be
+smooth, `τ`, `α` two-forms and `β` a one-form on `M`, and `corr` a smooth one-form on `E`. Let
+`r₀` be such that `τ' - r • η` is nondegenerate at `z` for every two-form `η` on `E` with
+`‖η z‖ < r₀` and every `r ∈ [0, 1]`, where `τ'` is the pullback of `τ` along `φ`. If the
+derivative at `z` of the pullback of `β` plus `corr` is within `r₀ / 2` of the formal primitive
+of the pullback of `τ - α`, with zeroth-order part the pullback of `β`, then for every
+`r ∈ [0, 1]` the pullback at `z` of `τ + r • (α + d β - τ)` plus `r • d corr z` is
+nondegenerate. -/
+theorem nondegenerate_mpullback_add_smul_extDeriv {EM H M : Type*} [NormedAddCommGroup EM]
+    [NormedSpace ℝ EM] [TopologicalSpace H] [TopologicalSpace M] [ChartedSpace H M]
+    {I : ModelWithCorners ℝ EM H} [IsManifold I ∞ M]
+    {φ : E → M} (hφ : ContMDiff 𝓘(ℝ, E) I ∞ φ) {τ α : SmoothForm I M ℝ 2}
+    {β : SmoothForm I M ℝ 1} {corr : E → E [⋀^Fin 1]→L[ℝ] ℝ} (hcorr : ContDiff ℝ ∞ corr)
+    {z : E} {r₀ : ℝ}
+    (hmargin : ∀ η : SmoothForm 𝓘(ℝ, E) E ℝ 2,
+      @norm (E [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val z) < r₀ → ∀ r ∈ Set.Icc (0 : ℝ) 1,
+      ((SmoothForm.mpullback φ hφ τ - r • η).bilinFormAt z).Nondegenerate)
+    (happrox : ‖fderiv ℝ (fun x ↦ @HAdd.hAdd (E [⋀^Fin 1]→L[ℝ] ℝ) (E [⋀^Fin 1]→L[ℝ] ℝ) _ _
+        ((SmoothForm.mpullback φ hφ β).val x) (corr x)) z -
+      formalPrimitive (SmoothForm.mpullback φ hφ (τ - α)).val
+        (SmoothForm.mpullback φ hφ β).val z‖ < r₀ / 2)
+    {r : ℝ} (hr : r ∈ Set.Icc (0 : ℝ) 1) :
+    (MultilinearMap.toBilinMap (@HAdd.hAdd (E [⋀^Fin 2]→L[ℝ] ℝ) (E [⋀^Fin 2]→L[ℝ] ℝ) _ _
+      (mpullback 𝓘(ℝ, E) I φ (τ + r • (α + mextDerivₗ I 1 β - τ)).val z)
+      (r • extDeriv corr z)).toMultilinearMap).Nondegenerate := by
+  set b := SmoothForm.mpullback φ hφ β
+  set bv : E → E [⋀^Fin 1]→L[ℝ] ℝ := b.val
+  have hbc : ContDiff ℝ ∞ fun x ↦ bv x + corr x :=
+    (isSmoothForm_modelSpace_iff.mp b.isSmoothForm).add hcorr
+  -- The pullback of `β` plus the correction, as a one-form on `E`.
+  set b' : SmoothForm 𝓘(ℝ, E) E ℝ 1 :=
+    ⟨fun x ↦ bv x + corr x, (isSmoothForm_modelSpace_iff.mpr hbc).mem_smoothBundleForms⟩
+  set η := SmoothForm.mpullback φ hφ (τ - α) - mextDerivₗ _ 1 b'
+  have hb' : (mextDerivₗ _ 1 b').val z = extDeriv (fun x ↦ bv x + corr x) z := by
+    rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
+  -- The exterior derivative of `b'` is within `r₀` of the pullback of `τ - α`.
+  have hη : @norm (E [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val z) < r₀ := by
+    have h₄ := norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le le_rfl
+      (f := fun x ↦ bv x + corr x) (x := z)
+      (τ := (SmoothForm.mpullback φ hφ (τ - α)).val) (β := bv)
+    rw [SmoothBundleForm.sub_apply, hb']
+    exact (norm_sub_rev _ _).trans_lt (by linarith)
+  have hnd' := hmargin η hη r hr
+  -- The pullback of the segment plus the correction is `τ - r • η`, as forms on `E`.
+  have hform :
+      SmoothForm.mpullback φ hφ (τ + r • (α + mextDerivₗ I 1 β - τ)) +
+        r • mextDerivₗ _ 1 (b' - b) = SmoothForm.mpullback φ hφ τ - r • η := by
+    simp only [η, b, map_add, map_sub, map_smul, SmoothForm.mextDerivₗ_mpullback]
+    module
+  have hcorr' : extDeriv corr z = (mextDerivₗ _ 1 (b' - b)).val z := by
+    rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
+    refine congrArg (extDeriv · z) (funext fun x ↦ ?_)
+    rw [SmoothBundleForm.sub_apply]
+    exact (add_sub_cancel_left _ _).symm
+  rw [SmoothForm.bilinFormAt_def, ← hform, SmoothBundleForm.add_apply,
+    SmoothBundleForm.smul_apply, SmoothForm.coe_mpullback, ← hcorr'] at hnd'
+  exact hnd'
 
 /-- **Continuity of the formal primitive in a parameter.** For families `τ` of two-forms and `β`
 of one-forms on `E` over a topological space `X`, if `τ t x` and the derivative

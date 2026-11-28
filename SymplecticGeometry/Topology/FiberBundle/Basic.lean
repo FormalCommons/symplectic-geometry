@@ -56,6 +56,8 @@ two trivializations, these inclusions differ by the coordinate change.
 * `TauCeti.MapFiber.Atlas.iUnion_baseSet_trivAt` and
   `TauCeti.MapFiber.Atlas.isOpenCover_baseSet_trivAt`: the base sets of the trivializations of an
   atlas cover the base, as sets and as an open cover.
+* `TauCeti.MapFiber.Atlas.surjective_proj`: the projection of an atlas with a nonempty model
+  fibre is surjective; the analogue of Mathlib's `FiberBundle.surjective_proj`.
 * `TauCeti.MapFiber.Atlas.trivializationAt_fiberBundleOfHomeomorph_refl` and
   `TauCeti.MapFiber.Atlas.mem_trivializationAtlas_fiberBundleOfHomeomorph_refl_iff`: for an atlas
   of a bundle and the identity of its total space, the fibre bundle structure of Tau Ceti's
@@ -223,6 +225,11 @@ theorem isOpenCover_baseSet_trivAt :
     TopologicalSpace.IsOpenCover fun b ↦
       (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ : TopologicalSpace.Opens B) :=
   .of_sets (fun b ↦ (A.trivAt b).open_baseSet) A.iUnion_baseSet_trivAt
+
+include A in
+/-- If the model fibre of an atlas of `proj` is nonempty, then `proj` is surjective. -/
+theorem surjective_proj [Nonempty F] : Function.Surjective proj :=
+  fun b ↦ ((A.trivAt b).proj_surjOn_baseSet (A.mem_baseSet_trivAt b)).imp fun _ h ↦ h.2
 
 end Cover
 

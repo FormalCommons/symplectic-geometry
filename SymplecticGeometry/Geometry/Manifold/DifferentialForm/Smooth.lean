@@ -45,6 +45,10 @@ smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version
 `TauCeti.mextDeriv_ofFunction_comp_of_hasDerivAt`. These lemmas let proofs
 about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
 
+A smooth two-form evaluated on two vector fields that are differentiable at `x` is a function
+differentiable at `x` (`TauCeti.SmoothForm.mdifferentiableAt_apply_two`), by Tau Ceti's
+`TauCeti.SmoothForm.mdifferentiableAt_apply_vectorField` for the pair of fields.
+
 Finally, the smooth `F`-valued `0`-forms are the smooth `F`-valued functions:
 `TauCeti.SmoothForm.ofFunctionEquiv` is the linear equivalence that sends a function `f` to
 Tau Ceti's `0`-form `TauCeti.SmoothForm.ofFunction f`, and whose inverse reads a `0`-form `α` as
@@ -67,6 +71,8 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 * `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
   `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
 * `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
+* `TauCeti.SmoothForm.mdifferentiableAt_apply_two`: a smooth two-form on two vector fields
+  differentiable at `x` is differentiable at `x`.
 * `TauCeti.SmoothForm.ofFunctionEquiv`, with `ofFunctionEquiv_apply`,
   `coe_ofFunctionEquiv_symm` and `ofFunctionEquiv_symm_apply`.
 * `TauCeti.SmoothForm.ofFunction_zero`, `TauCeti.SmoothForm.ofFunction_add`,
@@ -255,6 +261,24 @@ theorem mextDerivₗ_ofFunction_comp_of_hasDerivAt [IsManifold I 2 M] {g : ℝ �
     (f.contMDiff.mdifferentiableAt (by simp)) (hg x)
 
 end FunSMul
+
+section Evaluation
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- Evaluating a smooth two-form `φ` on two vector fields `A` and `B` differentiable at `x` gives
+a function `y ↦ φ y (A y, B y)` differentiable at `x`. -/
+theorem mdifferentiableAt_apply_two (φ : SmoothForm I M F 2)
+    {A B : (y : M) → TangentSpace I y} {x : M}
+    (hA : MDifferentiableAt I I.tangent (fun y ↦ (A y : TangentBundle I M)) x)
+    (hB : MDifferentiableAt I I.tangent (fun y ↦ (B y : TangentBundle I M)) x) :
+    MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ.val y ![A y, B y]) x := by
+  have hev (y : M) : (fun k ↦ ![A, B] k y) = ![A y, B y] := by
+    funext k; fin_cases k <;> simp
+  simpa [hev] using φ.mdifferentiableAt_apply_vectorField (V := ![A, B])
+    (fun k ↦ by fin_cases k; exacts [hA, hB])
+
+end Evaluation
 
 section ZeroForm
 

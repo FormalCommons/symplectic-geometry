@@ -132,7 +132,8 @@ theorem divisorNormalEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
 Let `v ≠ 0`, and `g : ℂ → Blowup c` a curve with `g 0 = divisorRealEmbedding c [v]`, with real
 derivative `A` at `0`, and such that `lift c ∘ g` agrees near `0` with the lift
 `BlowupModel.curveLift (· • v)` of the line `t ↦ t • v`. Then `divisorNormalEquiv c [v]` sends the
-normal class of `A z` to `z • v`, for every `z : ℂ`. -/
+normal class of `A z` to `Projectivization.toTautological hv _ z`, the vector `z • v`, for every
+`z : ℂ`. -/
 theorem divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
     {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) {g : ℂ → Blowup c}
     {A : ℂ →L[ℝ] Fin (n + 1) → ℂ}
@@ -142,9 +143,7 @@ theorem divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
     divisorNormalEquiv c (Projectivization.mk ℂ v hv)
         ((divisorRealEmbedding c).isImmersion.normalClassL (Projectivization.mk ℂ v hv) hn
           (A z)) =
-      ⟨z • v, by
-        rw [Projectivization.submodule_mk]
-        exact Submodule.smul_mem _ z (Submodule.mem_span_singleton_self v)⟩ := by
+      Projectivization.toTautological hv (Projectivization.submodule_mk v hv) z := by
   have hL : HasMFDerivAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) (g 0)
       (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
         (divisorRealEmbedding c (Projectivization.mk ℂ v hv))) := by
@@ -154,6 +153,7 @@ theorem divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
   have h := ((hL.comp 0 hA).congr_of_eventuallyEq_abuse hg.symm).mfderiv
   refine (congrArg _ (Manifold.IsImmersion.normalClassL_apply _ _ _ _)).trans
     ((divisorNormalEquiv_normalClass c _ _).trans (Subtype.ext ?_))
+  rw [Projectivization.coe_toTautological_apply]
   -- `h` says that `mfderiv (curveLift (· • v)) 0` is `mfderiv (lift c) _ ∘L A`. Its value at `z`
   -- is the image of `A z` by unfolding the application of a composition: `comp_apply` does not
   -- elaborate, since the tangent space at `curveLift (· • v) 0` has no `Module ℝ` instance under
