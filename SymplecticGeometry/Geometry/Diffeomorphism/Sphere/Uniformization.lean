@@ -11,13 +11,13 @@ public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Kernel
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Mobius
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.RatioMap
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Automorphism
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.ScalarTopology
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
-import TauCeti.Topology.VectorBundle.ZeroSection
 
 /-!
 # The uniformizing map of a tame almost complex structure on the sphere
@@ -47,10 +47,14 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
   `SymplecticGeometry.uniformizingMap_infty`: `σ(J)` fixes `0`, `1` and `∞`.
 * `SymplecticGeometry.injective_uniformizingMap`: `σ(J)` is injective, since `σ(J) x = σ(J) y`
   gives a nonzero element `t y • s - s y • t` of `E_J` vanishing at `x` and at `y`.
-* `SymplecticGeometry.contMDiff_uniformizingMap`: `σ(J)` is smooth. Where `t` does not vanish it
-  is the inclusion of `ℂ` applied to a constant multiple of the quotient `s / t` of smooth
-  sections of `𝒪(1)` (`OnePoint.contMDiffAt_div_twistCore`), and where `s` does not vanish it is
-  the inverse of the inverted chart applied to a constant multiple of `t / s`.
+* `SymplecticGeometry.contMDiff_uniformizingMap`: `σ(J)` is smooth. The multiples
+  `s' = s · t 1` and `t' = t · s 1` lie in `E_J`, so they are smooth sections of `𝒪(1)` without
+  common zero, and `σ(J)` is their map `x ↦ [s' x : t' x]`, which is smooth by
+  `OnePoint.contMDiff_equivProjectivization_symm_mk_twistCore`. Near a point where `t'` does not
+  vanish, `σ(J)` is the inclusion of `ℂ` applied to `s' / t'`
+  (`OnePoint.equivProjectivization_symm_mk_eventuallyEq_coe_div`), and near a point where `s'`
+  does not vanish it is the inverse of the inverted chart applied to `t' / s'`
+  (`OnePoint.equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div`).
 * `SymplecticGeometry.isLocalDiffeomorph_uniformizingMap`: `σ(J)` is a local diffeomorphism.
   In the two local forms above, the quotient has injective derivative
   (`SymplecticGeometry.injective_mfderiv_div_of_mem_twistOneKernel`) and the charts are local
@@ -256,110 +260,29 @@ theorem injective_uniformizingMap (J : 𝒥) : Function.Injective (uniformizingM
     simp [(mul_eq_zero.1 e0).resolve_right ht0, (mul_eq_zero.1 einf).resolve_right hsinf]
   exact eq_of_mem_twistOneKernel_of_eq_zero J.property hi hw hw' hwx hwy
 
-/-- `σ(J)` in terms of the chosen sections, as a value of `OnePoint ℂ`. -/
-private theorem uniformizingMap_eq_ite (J : 𝒥) (p : OnePoint ℂ) : uniformizingMap J p =
-    if chosenSection J ∞ p * chosenSection J (0 : ℂ) (1 : ℂ) = 0 then (∞ : OnePoint ℂ)
-    else (((chosenSection J ∞ p * chosenSection J (0 : ℂ) (1 : ℂ))⁻¹ *
-      (chosenSection J (0 : ℂ) p * chosenSection J ∞ (1 : ℂ)) : ℂ) : OnePoint ℂ) := by
-  rw [uniformizingMap, OnePoint.equivProjectivization_symm_apply_mk]
-  simp only [Matrix.cons_val_one, Matrix.cons_val_zero]
-  -- The two sides differ only in the decidability instances of their conditions.
-  congr
+/-- `σ(J)` as the map `x ↦ [s' x : t' x]`, read through `OnePoint.equivProjectivization`, for
+the multiples `s' = s · t 1` and `t' = t · s 1` of the chosen sections `s` and `t`. -/
+private theorem uniformizingMap_def (J : 𝒥) : uniformizingMap J = fun x ↦
+    (OnePoint.equivProjectivization ℂ).symm (Projectivization.mk ℂ
+      ![chosenSection J (0 : ℂ) x * chosenSection J ∞ (1 : ℂ),
+        chosenSection J ∞ x * chosenSection J (0 : ℂ) (1 : ℂ)] (chosenSection_vec_ne_zero J x)) :=
+  (rfl)
 
-open scoped VectorBundle.ComplexToReal in
-/-- Near a point where the section `t` vanishing at `∞` does not vanish, `σ(J)` is the inclusion
-of `ℂ` applied to `t 1 / s 1` times the quotient `s / t`. -/
-private theorem uniformizingMap_eventuallyEq_coe (J : 𝒥) {x : OnePoint ℂ}
-    (hx : chosenSection J ∞ x ≠ 0) :
-    uniformizingMap J =ᶠ[𝓝 x] (↑) ∘ fun p ↦
-      chosenSection J ∞ (1 : ℂ) / chosenSection J (0 : ℂ) (1 : ℂ) *
-        (chosenSection J (0 : ℂ) p / chosenSection J ∞ p) := by
-  obtain ⟨hs, hs', h₀⟩ := chosenSection_spec J (0 : ℂ)
-  have ht := (chosenSection_spec J ∞).1
-  have hs₁ := apply_ne_zero_of_mem_twistOneKernel J.property
-    OnePoint.compatible_fubiniStudyForm.tames hs hs' h₀ (y := (1 : ℂ)) (by simp)
-  have htm := ((mem_twistOneKernel_iff J.val).1 ht).1
-  filter_upwards [(htm x).continuousAt.preimage_mem_nhds
-    ((TauCeti.isOpen_zeroSectionCompl ℂ _).mem_nhds (mem_zeroSectionCompl.2 hx))] with p hp
-  replace hp : chosenSection J ∞ p ≠ 0 := mem_zeroSectionCompl.1 hp
-  rw [Function.comp_apply, uniformizingMap_eq_ite, ite_eq_right (mul_ne_zero hp hs₁)]
-  congr 1
-  field_simp
-
-open scoped VectorBundle.ComplexToReal in
-/-- Near a point where the section `s` vanishing at `0` does not vanish, `σ(J)` is the inverse of
-the inverted chart applied to `s 1 / t 1` times the quotient `t / s`. -/
-private theorem uniformizingMap_eventuallyEq_invChart_symm (J : 𝒥) {x : OnePoint ℂ}
-    (hx : chosenSection J (0 : ℂ) x ≠ 0) :
-    uniformizingMap J =ᶠ[𝓝 x] OnePoint.invChart.symm ∘ fun p ↦
-      chosenSection J (0 : ℂ) (1 : ℂ) / chosenSection J ∞ (1 : ℂ) *
-        (chosenSection J ∞ p / chosenSection J (0 : ℂ) p) := by
-  obtain ⟨hs, hs', h₀⟩ := chosenSection_spec J (0 : ℂ)
-  obtain ⟨ht, ht', hinf⟩ := chosenSection_spec J ∞
-  have hi := OnePoint.compatible_fubiniStudyForm.tames
-  have hs₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi hs hs' h₀ (y := (1 : ℂ)) (by simp)
-  have ht₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi ht ht' hinf (y := (1 : ℂ))
-    (by simp)
-  have hsm := ((mem_twistOneKernel_iff J.val).1 hs).1
-  filter_upwards [(hsm x).continuousAt.preimage_mem_nhds
-    ((TauCeti.isOpen_zeroSectionCompl ℂ _).mem_nhds (mem_zeroSectionCompl.2 hx))] with p hp
-  replace hp : chosenSection J (0 : ℂ) p ≠ 0 := mem_zeroSectionCompl.1 hp
-  rw [Function.comp_apply, uniformizingMap_eq_ite]
-  by_cases htp : chosenSection J ∞ p = 0
-  · simp [htp]
-  · have hne : chosenSection J (0 : ℂ) (1 : ℂ) / chosenSection J ∞ (1 : ℂ) *
-        (chosenSection J ∞ p / chosenSection J (0 : ℂ) p) ≠ 0 := by simp [*]
-    rw [ite_eq_right (mul_ne_zero htp hs₁), OnePoint.invChart_symm_of_ne_zero hne]
-    congr 1
-    field_simp
-
-open scoped VectorBundle.ComplexToReal in
-/-- A constant multiple of the quotient of two chosen sections is smooth where the denominator
-does not vanish. -/
-private theorem contMDiffAt_const_mul_div_chosenSection (J : 𝒥) (c : ℂ) {a b : OnePoint ℂ}
-    {x : OnePoint ℂ} (hx : chosenSection J b x ≠ 0) :
-    ContMDiffAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (⊤ : ℕ∞)
-      (fun p ↦ c * (chosenSection J a p / chosenSection J b p)) x :=
-  contMDiffAt_const.mul (OnePoint.contMDiffAt_div_twistCore 1
-    (((mem_twistOneKernel_iff J.val).1 (chosenSection_spec J a).1).1 x)
-    (((mem_twistOneKernel_iff J.val).1 (chosenSection_spec J b).1).1 x) hx)
+/-- A chosen section times a constant lies in `twistOneKernel J`. -/
+private theorem chosenSection_mul_const_mem (J : 𝒥) (a : OnePoint ℂ) (c : ℂ) :
+    (fun p ↦ chosenSection J a p * c) ∈ twistOneKernel J.val := by
+  convert Submodule.smul_mem _ c (chosenSection_spec J a).1 using 1
+  funext p
+  simp [mul_comm]
 
 /-- **`σ(J)` is smooth.** The uniformizing map of a structure `J` tamed by the Fubini–Study form
 is a smooth map from the sphere to itself, for its structure as a real surface. -/
 theorem contMDiff_uniformizingMap (J : 𝒥) :
     ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (⊤ : ℕ∞) (uniformizingMap J) := by
-  intro x
-  by_cases hx : chosenSection J ∞ x = 0
-  · -- Near `x`, where `s` does not vanish, `σ(J)` reads through the inverted chart.
-    have hsx : chosenSection J (0 : ℂ) x ≠ 0 := fun h ↦
-      chosenSection_vec_ne_zero J x (by simp [h, hx])
-    exact (OnePoint.contMDiff_invChart_symm_real.contMDiffAt.comp x
-      (contMDiffAt_const_mul_div_chosenSection J _ (a := ∞) hsx)).congr_of_eventuallyEq
-      (uniformizingMap_eventuallyEq_invChart_symm J hsx)
-  · -- Near `x`, where `t` does not vanish, `σ(J)` reads through the inclusion of `ℂ`.
-    exact (OnePoint.contMDiff_coe_real.contMDiffAt.comp x
-      (contMDiffAt_const_mul_div_chosenSection J _ (a := (0 : ℂ)) hx)).congr_of_eventuallyEq
-      (uniformizingMap_eventuallyEq_coe J hx)
-
-/-- A constant multiple of a quotient of functions, as the quotient of a multiple. -/
-private theorem const_mul_div_eq_smul_div (c : ℂ) (u v : OnePoint ℂ → ℂ) :
-    (fun p ↦ c * (u p / v p)) = fun p ↦ (c • u) p / v p :=
-  funext fun p ↦ by rw [Pi.smul_apply, smul_eq_mul, mul_div_assoc]
-
-/-- For nonzero `u, v` in `twistOneKernel J` with `u y = 0 ≠ v y`, and `c ≠ 0`, the map
-`p ↦ c * (u p / v p)` has injective real derivative at every `x` with `v x ≠ 0`. -/
-private theorem injective_mfderiv_const_mul_div (J : 𝒥) {u v : OnePoint ℂ → ℂ}
-    (hu : u ∈ twistOneKernel J.val) (hv : v ∈ twistOneKernel J.val) (hu₀ : u ≠ 0) {c : ℂ}
-    (hc : c ≠ 0) {y : OnePoint ℂ} (huy : u y = 0) (hvy : v y ≠ 0) {x : OnePoint ℂ}
-    (hx : v x ≠ 0) :
-    Function.Injective (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ c * (u p / v p)) x) := by
-  rw [const_mul_div_eq_smul_div]
-  refine injective_mfderiv_div_of_mem_twistOneKernel J.property
-    OnePoint.compatible_fubiniStudyForm.tames (Submodule.smul_mem _ c hu) hv (fun d hd ↦ ?_) hx
-  have h := congrFun hd y
-  simp only [Pi.smul_apply, smul_eq_mul, huy, mul_zero] at h
-  rw [(mul_eq_zero.1 h.symm).resolve_right hvy, zero_smul, smul_eq_zero] at hd
-  exact hu₀ (hd.resolve_left hc)
+  rw [uniformizingMap_def]
+  exact OnePoint.contMDiff_equivProjectivization_symm_mk_twistCore
+    ((mem_twistOneKernel_iff J.val).1 (chosenSection_mul_const_mem J (0 : ℂ) _)).1
+    ((mem_twistOneKernel_iff J.val).1 (chosenSection_mul_const_mem J ∞ _)).1 _
 
 /-- **`σ(J)` is a local diffeomorphism.** The uniformizing map of a structure `J` tamed by the
 Fubini–Study form is a smooth local diffeomorphism from the sphere to itself, for its structure
@@ -375,31 +298,40 @@ theorem isLocalDiffeomorph_uniformizingMap (J : 𝒥) :
   have ht0 := apply_ne_zero_of_mem_twistOneKernel J.property hi ht ht' hinf (y := (0 : ℂ))
     (by simp)
   have hsinf := apply_ne_zero_of_mem_twistOneKernel J.property hi hs hs' h₀ (y := ∞) (by simp)
+  have hu := chosenSection_mul_const_mem J (0 : ℂ) (chosenSection J ∞ (1 : ℂ))
+  have hv := chosenSection_mul_const_mem J ∞ (chosenSection J (0 : ℂ) (1 : ℂ))
+  have hum := ((mem_twistOneKernel_iff J.val).1 hu).1
+  have hvm := ((mem_twistOneKernel_iff J.val).1 hv).1
   intro x
   refine isLocalDiffeomorphAt_of_injective_mfderiv (contMDiff_uniformizingMap J).contMDiffOn
     isOpen_univ (Set.mem_univ x) BoundarylessManifold.isInteriorPoint (by simp) ?_ rfl
+  rw [uniformizingMap_def]
   by_cases hx : chosenSection J ∞ x = 0
   · -- Near `x`, `σ(J)` is the inverse of the inverted chart after a quotient of sections.
-    have hsx : chosenSection J (0 : ℂ) x ≠ 0 := fun h ↦
-      chosenSection_vec_ne_zero J x (by simp [h, hx])
-    set q := fun p ↦ chosenSection J (0 : ℂ) (1 : ℂ) / chosenSection J ∞ (1 : ℂ) *
-      (chosenSection J ∞ p / chosenSection J (0 : ℂ) p)
+    have hux : chosenSection J (0 : ℂ) x * chosenSection J ∞ (1 : ℂ) ≠ 0 :=
+      mul_ne_zero (fun h ↦ chosenSection_vec_ne_zero J x (by simp [h, hx])) ht₁
+    set q := fun p ↦ chosenSection J ∞ p * chosenSection J (0 : ℂ) (1 : ℂ) /
+      (chosenSection J (0 : ℂ) p * chosenSection J ∞ (1 : ℂ))
     -- The inverse of the inverted chart is the inverse of the extended chart at `∞`.
     have hg : IsLocalDiffeomorphAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (⊤ : ℕ∞) OnePoint.invChart.symm (q x) := by
       simpa using isLocalDiffeomorphAt_extChartAt_symm (I := 𝓘(ℝ, ℂ)) (n := (⊤ : ℕ∞))
         (x := (∞ : OnePoint ℂ)) (z := q x) (by simp)
-    rw [(uniformizingMap_eventuallyEq_invChart_symm J hsx).mfderiv_eq,
+    rw [(OnePoint.equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div
+        (chosenSection_vec_ne_zero J) (hum x).continuousAt hux).mfderiv_eq,
       mfderiv_comp x (hg.mdifferentiableAt (by simp))
-        ((contMDiffAt_const_mul_div_chosenSection J _ (a := ∞) hsx).mdifferentiableAt (by simp))]
+        ((OnePoint.contMDiffAt_div_twistCore 1 (hvm x) (hum x) hux).mdifferentiableAt (by simp))]
     exact (hg.isInvertible_mfderiv (by simp)).injective.comp
-      (injective_mfderiv_const_mul_div J ht hs ht' (div_ne_zero hs₁ ht₁) hinf hsinf hsx)
+      (injective_mfderiv_div_of_mem_twistOneKernel J.property hi hv hu
+        (fun c h ↦ by simpa [h₀, ht0, hs₁] using congrFun h (0 : ℂ)) hux)
   · -- Near `x`, `σ(J)` is the inclusion of `ℂ` after a quotient of sections.
-    rw [(uniformizingMap_eventuallyEq_coe J hx).mfderiv_eq,
+    have hvx : chosenSection J ∞ x * chosenSection J (0 : ℂ) (1 : ℂ) ≠ 0 := mul_ne_zero hx hs₁
+    rw [(OnePoint.equivProjectivization_symm_mk_eventuallyEq_coe_div
+        (chosenSection_vec_ne_zero J) (hvm x).continuousAt hvx).mfderiv_eq,
       mfderiv_comp x (OnePoint.hasMFDerivAt_coe _).mdifferentiableAt
-        ((contMDiffAt_const_mul_div_chosenSection J _ (a := (0 : ℂ)) hx).mdifferentiableAt
-          (by simp)),
+        ((OnePoint.contMDiffAt_div_twistCore 1 (hum x) (hvm x) hvx).mdifferentiableAt (by simp)),
       (OnePoint.hasMFDerivAt_coe _).mfderiv]
-    exact injective_mfderiv_const_mul_div J hs ht hs' (div_ne_zero ht₁ hs₁) h₀ ht0 hx
+    exact injective_mfderiv_div_of_mem_twistOneKernel J.property hi hu hv
+      (fun c h ↦ by simpa [hinf, hsinf, ht₁] using congrFun h ∞) hvx
 
 /-- **`σ(J)` is bijective.** It is injective, and its range is open, since `σ(J)` is a local
 diffeomorphism, closed, as the image of the compact sphere, and nonempty, so it is the whole
@@ -409,38 +341,39 @@ theorem bijective_uniformizingMap (J : 𝒥) : Function.Bijective (uniformizingM
     IsClopen.eq_univ ⟨(isCompact_range (contMDiff_uniformizingMap J).continuous).isClosed,
       (isLocalDiffeomorph_uniformizingMap J).isOpen_range⟩ (Set.range_nonempty _)⟩
 
-/-- For `u, v` in `twistOneKernel J` and a constant `c`, the map `p ↦ c * (u p / v p)` is
-pseudoholomorphic from `J` to the standard structure of `ℂ` at every `x` with `v x ≠ 0`. -/
-private theorem isPseudoholomorphicAt_const_mul_div (J : 𝒥) {u v : OnePoint ℂ → ℂ}
-    (hu : u ∈ twistOneKernel J.val) (hv : v ∈ twistOneKernel J.val) (c : ℂ) {x : OnePoint ℂ}
-    (hx : v x ≠ 0) :
-    IsPseudoholomorphicAt J.val (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ)
-      (fun p ↦ c * (u p / v p)) x := by
-  rw [const_mul_div_eq_smul_div]
-  exact isPseudoholomorphicAt_div_of_mem_twistOneKernel (Submodule.smul_mem _ c hu) hv hx
-
 /-- **`σ(J)` is pseudoholomorphic** from `J` to the complex structure `i` of the Riemann sphere:
 its derivative intertwines `J` and `i`. -/
 theorem isPseudoholomorphic_uniformizingMap (J : 𝒥) :
     IsPseudoholomorphic J.val (SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ))
       (uniformizingMap J) := by
-  have hs := (chosenSection_spec J (0 : ℂ)).1
-  have ht := (chosenSection_spec J ∞).1
+  have hi := OnePoint.compatible_fubiniStudyForm.tames
+  obtain ⟨hs, hs', h₀⟩ := chosenSection_spec J (0 : ℂ)
+  obtain ⟨ht, ht', hinf⟩ := chosenSection_spec J ∞
+  have hs₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi hs hs' h₀ (y := (1 : ℂ)) (by simp)
+  have ht₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi ht ht' hinf (y := (1 : ℂ))
+    (by simp)
+  have hu := chosenSection_mul_const_mem J (0 : ℂ) (chosenSection J ∞ (1 : ℂ))
+  have hv := chosenSection_mul_const_mem J ∞ (chosenSection J (0 : ℂ) (1 : ℂ))
+  rw [uniformizingMap_def]
   refine isPseudoholomorphic_iff.2 fun x ↦ ?_
   by_cases hx : chosenSection J ∞ x = 0
   · -- Near `x`, `σ(J)` is the inverse of the inverted chart after a quotient of sections.
-    have hsx : chosenSection J (0 : ℂ) x ≠ 0 := fun h ↦
-      chosenSection_vec_ne_zero J x (by simp [h, hx])
+    have hux : chosenSection J (0 : ℂ) x * chosenSection J ∞ (1 : ℂ) ≠ 0 :=
+      mul_ne_zero (fun h ↦ chosenSection_vec_ne_zero J x (by simp [h, hx])) ht₁
     refine IsPseudoholomorphicAt.congr_of_eventuallyEq ?_
-      (uniformizingMap_eventuallyEq_invChart_symm J hsx)
+      (OnePoint.equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div
+        (chosenSection_vec_ne_zero J) (((mem_twistOneKernel_iff J.val).1 hu).1 x).continuousAt hux)
     exact (isPseudoholomorphicAt_ofComplexManifold_iff.2
       ((OnePoint.contMDiff_invChart_symm (𝕜 := ℂ)).mdifferentiableAt (by simp))).comp
-      (isPseudoholomorphicAt_const_mul_div J ht hs _ hsx)
+      (isPseudoholomorphicAt_div_of_mem_twistOneKernel hv hu hux)
   · -- Near `x`, `σ(J)` is the inclusion of `ℂ` after a quotient of sections.
-    refine IsPseudoholomorphicAt.congr_of_eventuallyEq ?_ (uniformizingMap_eventuallyEq_coe J hx)
+    have hvx : chosenSection J ∞ x * chosenSection J (0 : ℂ) (1 : ℂ) ≠ 0 := mul_ne_zero hx hs₁
+    refine IsPseudoholomorphicAt.congr_of_eventuallyEq ?_
+      (OnePoint.equivProjectivization_symm_mk_eventuallyEq_coe_div
+        (chosenSection_vec_ne_zero J) (((mem_twistOneKernel_iff J.val).1 hv).1 x).continuousAt hvx)
     exact (isPseudoholomorphicAt_ofComplexManifold_iff.2
       ((OnePoint.contMDiff_coe (𝕜 := ℂ)).mdifferentiableAt (by simp))).comp
-      (isPseudoholomorphicAt_const_mul_div J hs ht _ hx)
+      (isPseudoholomorphicAt_div_of_mem_twistOneKernel hu hv hvx)
 
 /-- `σ(J)` as a diffeomorphism of the sphere, before its membership in `diffPlus` is known. -/
 private noncomputable def uniformizingDiffeomorphAux (J : 𝒥) :
