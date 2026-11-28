@@ -14,6 +14,7 @@ import SymplecticGeometry.Algebra.Order.Floor.Semiring
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.SmoothApprox
 import SymplecticGeometry.Analysis.Calculus.Deriv.Rectangle
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 /-!
@@ -793,7 +794,8 @@ theorem exists_shapeChain_of_deriv_pos {P : (ℝ → ℝ) → ℝ → Prop} {a b
   -- A bound for the slopes of the `χ ℓ` on the rectangle, and on the band a rate of increase in
   -- `ℓ` and a Lipschitz bound in `ℓ` for the slopes; last, a bound `C₀ / δ` for the curvature of
   -- `smoothedAbs δ`.
-  obtain ⟨G₀, hG₀⟩ := hK.exists_bound_of_continuousOn (hcont 1 (by norm_num))
+  obtain ⟨G₀, hG₀⟩ :=
+    hK.exists_bound_of_continuousOn (ContinuousOn.deriv_of_iteratedDeriv hcont one_le_two)
   obtain ⟨m, hm, hrate⟩ := isCompact_Icc.exists_pos_mul_sub_le_sub_of_deriv_pos hU hband
     (hsmooth.of_le (by norm_cast)) hmono
   obtain ⟨L, hL⟩ := isCompact_Icc.exists_abs_deriv_sub_le_mul hU hband
@@ -988,7 +990,7 @@ theorem exists_antitone_shapeChain_overR {ρ : ℝ → ℝ → ℝ} {R₁ R₂ a
   -- of `ρ` there.
   obtain ⟨η₁, hη₁, hstab⟩ := exists_forall_isConvexShapeOverRAt_of_abs_sub_lt hK hc hcont
   obtain ⟨μ, hμ, hμK⟩ := hK.exists_forall_le'
-    (by simpa only [iteratedDeriv_zero] using hcont 0 (by norm_num)) fun x hx ↦
+    (ContinuousOn.uncurry_of_iteratedDeriv hcont) fun x hx ↦
       (hc x hx).pos_value
   -- The chain of smooth stand-ins `B i` of the family `-ρ`, which increases in `ℓ` on the band;
   -- the criterion over `R` for `-g` is stable near each `-ρ ℓ`.
