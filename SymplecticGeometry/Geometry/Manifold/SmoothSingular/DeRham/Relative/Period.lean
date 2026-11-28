@@ -192,6 +192,23 @@ theorem kronecker_integration_homologyπ (k : ℕ) {c : 𝒮[M].X (k + 1)} {c' :
 
 end relativeDeRhamCohomology
 
+/-- If the faces of a smooth simplex `σ` of `M` are the images of smooth simplices `t i` of an
+open subset `W`, then each face of the underlying singular simplex has its image in `W`, as
+`TopPair.relClass` asks. -/
+theorem range_δ_subset_of_eq_smoothSingularSubcomplexMap_app {k : ℕ}
+    (σ : SmoothSimplex I M (k + 1)) (t : Fin (k + 2) → SmoothSimplex I W k)
+    (ht : ∀ i, (smoothSingularSubcomplex I M : SSet).δ i σ =
+      (smoothSingularSubcomplexMap (Subtype.val : W → M) contMDiff_subtypeVal).app _ (t i))
+    (i : Fin (k + 2)) :
+    Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
+      Set.range (TopPair.ofSubset (X := TopCat.of M) (W : Set M)).map := by
+  have h : (TopCat.toSSet.obj (TopCat.of M)).δ i σ.val =
+      (TopCat.toSSet.map (TopPair.ofSubset (W : Set (TopCat.of M))).map).app _ (t i).val :=
+    (congrArg Subtype.val (ht i)).trans (coe_smoothSingularSubcomplexMap_app _ _)
+  rw [h]
+  rintro _ ⟨z, rfl⟩
+  exact ⟨_, rfl⟩
+
 section SingularCohomology
 
 variable [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [IsManifold I ∞ M]
@@ -231,20 +248,19 @@ theorem singularKronecker_relativeDeRhamHom_homologyMap (k : ℕ) {c : 𝒮[M].X
 `relativeDeRhamHom x` with the class `TopPair.relClass` of `σ` in the singular homology of
 `(M, W)` is the integral of `x` over the relative smooth cycle `(σ, ∑ i, (-1) ^ i • t i)`. -/
 theorem singularKronecker_relativeDeRhamHom_relClass (k : ℕ)
-    (σ : (smoothSingularSubcomplex I M : SSet) _⦋k + 1⦌)
-    (t : Fin (k + 2) → (smoothSingularSubcomplex I W : SSet) _⦋k⦌)
+    (σ : SmoothSimplex I M (k + 1)) (t : Fin (k + 2) → SmoothSimplex I W k)
     (ht : ∀ i, (smoothSingularSubcomplex I M : SSet).δ i σ =
       (smoothSingularSubcomplexMap (Subtype.val : W → M) contMDiff_subtypeVal).app _ (t i))
-    (hσ : ∀ i, Set.range ((TopCat.of M).toSSetObjEquiv _
-      ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
-        Set.range (TopPair.ofSubset (X := TopCat.of M) (W : Set M)).map)
     (x : relativeDeRhamCohomology I W (k + 1 : ℕ)) :
     (TopPair.ofSubset (W : Set (TopCat.of M))).singularKronecker ℝ (k + 1)
         (relativeDeRhamHom I W (k + 1) x)
-        ((TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val hσ 1) =
-      integral I W k (SSetPair.d_ιChainComplex_hom_apply (Q := smoothSingularPair I W)
-        (ModuleCat.of ℝ ℝ) σ t ht 1) x := by
-  have e : (TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val hσ =
+        ((TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val
+          (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) 1) =
+      integral I W k
+        (SSetPair.sum_ιChainComplex_comp_chainComplexMap_f_apply (Q := smoothSingularPair I W)
+          (ModuleCat.of ℝ ℝ) σ t ht 1).symm x := by
+  have e : (TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val
+        (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) =
       SSetPair.relClass (Q := smoothSingularPair I W) (ModuleCat.of ℝ ℝ) σ t ht ≫
         SSetPair.homologyMap (smoothSingularPairι I W) (ModuleCat.of ℝ ℝ) (k + 1) := by
     have h₁ := SSetPair.relClass_homologyMap (Q := smoothSingularPair I W) (ModuleCat.of ℝ ℝ) σ t
@@ -253,7 +269,8 @@ theorem singularKronecker_relativeDeRhamHom_relClass (k : ℕ)
         (TopCat.toSSet.map (TopPair.ofSubset (W : Set (TopCat.of M))).map).app _ (t i).val :=
       fun i ↦ (congrArg Subtype.val (ht i)).trans (coe_smoothSingularSubcomplexMap_app _ _)
     rw [h₁, TopPair.relClass_eq (TopPair.ofSubset (W : Set (TopCat.of M))) (ModuleCat.of ℝ ℝ)
-      σ.val hσ (fun i ↦ (t i).val) ht']
+      σ.val (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) (fun i ↦ (t i).val)
+      ht']
     simp only [smoothSingularPairι_right, smoothSingularPairι_left]
     -- The inclusion of a subcomplex sends a simplex to its underlying simplex, by definition of
     -- `Subfunctor.ι`; the proofs of the face conditions agree by proof irrelevance.
@@ -270,24 +287,21 @@ theorem singularKronecker_relativeDeRhamHom_relClass (k : ℕ)
 simplices `t i` of `W`, the relative class `relativeDeRhamHom [(α, β)]` evaluates on the relative
 class of `σ` to `∫_σ α - ∫_{∂σ} β`, where `∂σ = ∑ i, (-1) ^ i • t i` is read in `W`. -/
 theorem singularKronecker_relativeDeRhamHom_mk_relClass (k : ℕ)
-    (σ : (smoothSingularSubcomplex I M : SSet) _⦋k + 1⦌)
-    (t : Fin (k + 2) → (smoothSingularSubcomplex I W : SSet) _⦋k⦌)
+    (σ : SmoothSimplex I M (k + 1)) (t : Fin (k + 2) → SmoothSimplex I W k)
     (ht : ∀ i, (smoothSingularSubcomplex I M : SSet).δ i σ =
       (smoothSingularSubcomplexMap (Subtype.val : W → M) contMDiff_subtypeVal).app _ (t i))
-    (hσ : ∀ i, Set.range ((TopCat.of M).toSSetObjEquiv _
-      ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
-        Set.range (TopPair.ofSubset (X := TopCat.of M) (W : Set M)).map)
     (y : cocycles I W k) :
     (TopPair.ofSubset (W : Set (TopCat.of M))).singularKronecker ℝ (k + 1)
         (relativeDeRhamHom I W (k + 1) (mk I W k y))
-        ((TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val hσ 1) =
+        ((TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val
+          (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) 1) =
       (integrationCochain y.val.1.val).hom
           (((smoothSingularSubcomplex I M : SSet).ιChainComplex (R := ModuleCat.of ℝ ℝ) σ).hom 1) -
         (integrationCochain y.val.2.val).hom
           ((∑ i, (-1 : ℤ) ^ i.val •
             (smoothSingularSubcomplex I W : SSet).ιChainComplex (R := ModuleCat.of ℝ ℝ) (t i)).hom
               1) := by
-  rw [singularKronecker_relativeDeRhamHom_relClass I W k σ t ht hσ]
+  rw [singularKronecker_relativeDeRhamHom_relClass I W k σ t ht]
   exact integral_mk I W k _ y
 
 end SingularCohomology
