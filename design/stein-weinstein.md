@@ -2178,10 +2178,10 @@ are set on compact manifolds. Three pieces are missing:
   the Hessian (`hessianQuadraticForm`, by `associated_hessianQuadraticForm`)
   of `f` read in `extChartAt 𝓘(ℝ, E) p`:
   `IsGradientLike.exists_pos_mul_norm_sq_le_hessian` (in `TauCeti`, a
-  `c > 0` with $c\|v\|^2\le H(v,Av)$; in `Morse/Linearization.lean`),
-  `IsGradientLike.exists_projection_exponential_bounds` (the dichotomy),
+  `c > 0` with $c\|v\|^2\le H(v,Av)$),
+  `IsGradientLike.exists_projection_exponential_bounds` (the dichotomy) and
   `IsGradientLike.finrank_range_eq_manifoldMorseIndex` (for the projection
-  of any such dichotomy),
+  of any such dichotomy), all three in `Morse/Linearization.lean`;
   `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace` ($\omega_p$
   vanishes on `A.stableSubspace`), and
   `IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`
@@ -2553,8 +2553,8 @@ agree (forms pulled back by `Subtype.val`).
   `p`, and `Q` and `Q'` the Hessians of `f` and `f'`. Each of `A`, `A'`
   is a linear Liouville field of the constant form (`A - ½ I` lies in
   the symplectic Lie algebra), hyperbolic with a stable subspace of
-  dimension `k` (15c's `IsGradientLike.exists_projection_exponential_bounds`
-  and the isotropy of `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`),
+  dimension `k` (`IsGradientLike.exists_projection_exponential_bounds`, in
+  `Morse/Linearization.lean`, and the isotropy of `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`),
   and the Hessian is a Lyapunov form of it (`Morse/Linearization.lean`).
   Two such fields need not have a common Lyapunov form, and 18b keeps
   the function while 18c keeps the field, so neither applies to
@@ -2854,7 +2854,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 15 | Weinstein cobordisms and elementary cobordisms | `Handle/Cobordism.lean` | 7 | 450 |
 | 15a | Design: stable discs | this file | 15 | — |
 | 15b | The bounded parameter derivative of local stable solutions | `LyapunovPerron/ParameterDerivative.lean` | 15a | 250 |
-| 15c | The linearization at a nondegenerate critical point; the index bound | `Handle/Linearization.lean` | 15a | 400 |
+| 15c | The linearization at a nondegenerate critical point; the index bound | `Handle/Linearization.lean`, `Morse/Linearization.lean` | 15a | 400 |
 | 15d | Stable discs are isotropic | `Handle/StableDisc.lean` | 15b, 15c | 450 |
 | 15e | The attaching sphere in the lower level | `Handle/AttachingSphere.lean` | 15d | 500 |
 | 16a | Design: standard Weinstein handles and their attachment | this file | 15, 15e | — |

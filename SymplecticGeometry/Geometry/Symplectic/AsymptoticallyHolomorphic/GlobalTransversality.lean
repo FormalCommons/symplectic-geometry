@@ -319,26 +319,22 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
     D.exists_forall_jetNormAt_le_jetNorm_of_mem_ball hg hJ hα hρ₀ (11 / 10) 2
   obtain ⟨C₄, hC₄, h₄⟩ :=
     D.exists_forall_jetNormAt_le_jetNorm_of_mem_ball hg hJ hα hρ₀ (11 / 10) 1
-  obtain ⟨ρ, hρ, hρρ₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   set B' := max (C₃ * B) (C₄ * B)
   obtain ⟨p, hp, δ₀, hδ₀, H⟩ := D.exists_local_correction hg hα hρ₀ B'
   obtain ⟨C, c, -, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1
   obtain ⟨C₂, c₂, hc₂, Htail⟩ :=
     D.exists_jetNorm_sum_erase_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1 2
   refine ⟨p, hp, δ₀, hδ₀, max C 0, C₂, c₂, hc₂, fun δ hδ hδδ₀ ↦ ?_⟩
-  have hkρ : ∀ᶠ k : ℕ in Filter.atTop, (11 / 10 : ℝ) < ρ * √k :=
-    ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
-      hρ).eventually_gt_atTop _
   filter_upwards [H δ hδ hδδ₀, Hsum, Htail, Filter.eventually_ge_atTop k₀,
-    Filter.eventually_ne_atTop 0, hkρ, h₃, h₄,
+    Filter.eventually_ne_atTop 0, D.eventually_forall_rescaledDist_symm_le hg hρ₀ (11 / 10),
+    h₃, h₄,
     D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀,
     D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀]
-    with k hloc hsum htail hk hk0 hkρ h₃ h₄ hsm₁ hsm T R hR hT hsep s hs hsB
+    with k hloc hsum htail hk hk0 hd h₃ h₄ hsm₁ hsm T R hR hT hsep s hs hsB
   -- Points of the ball of radius `11 / 10` lie at rescaled distance at most `2` from the centre.
   have hdist (x : M) {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) :
       rescaledDist I k x ((D.chart k x).symm z) ≤ 2 := by
-    refine (D.rescaledDist_symm_le hg hρρ₀ hk x (hcmp hk x)
-      (mem_ball_zero_iff.2 (hz.trans hkρ))).trans ?_
+    refine (hd x z (mem_ball_zero_iff.2 hz)).trans ?_
     have h32 : √(3 / 2 : ℝ) ≤ 5 / 4 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
     nlinarith [norm_nonneg z]
   have hdiff (y : M) : ∀ᶠ v in 𝓝 0, DifferentiableAt ℝ (D.reading k y s) v :=

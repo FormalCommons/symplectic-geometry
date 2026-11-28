@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
 import TauCeti.Geometry.Manifold.Instances.Cylinder
 import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The map of the Riemann sphere given by two sections of `𝒪(k)`
@@ -258,15 +259,17 @@ theorem continuous_ratioMap {ι : Type*}
     Continuous (ratioMap (k := k) (n := n)) := by
   intro _
   -- Check continuity on the base set of the trivialization at each point.
-  let e' (x : OnePoint ℂ) := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x
-  let U' (x : OnePoint ℂ) : Opens (OnePoint ℂ) := ⟨_, (e' x).open_baseSet⟩
+  let e' := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber
+  let U' (x : OnePoint ℂ) := (e' x).baseSetOpens
+  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun x ↦
+    (e' x).coe_baseSetOpens.subset
   refine ContMDiffMap.continuous_of_forall_continuous_restrict_manifold U'
-    (fun x ↦ ⟨x, mem_baseSet_trivializationAt ℂ _ x⟩) fun x ↦ ?_
+    (FiberBundle.exists_mem_baseSetOpens_trivializationAt ℂ _) fun x ↦ ?_
   -- There, `[s : t]` is `projMk` composed with the pair of coordinates of `s` and `t`.
   let c (s : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) :=
-    (e' x).frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U' x) subset_rfl s
+    (e' x).frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U' x) (hU' x) s
   have hc : Continuous c := ContMDiffSection.continuous_frameCoordinates_of_cover e U hU hcover
-    (e' x) (U' x) subset_rfl
+    (e' x) (U' x) (hU' x)
   have hpair : Continuous fun p : {p : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ ×
       Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ // ∀ x, (![p.1 x, p.2 x] : Fin 2 → ℂ) ≠ 0} ↦
       (c p.val.1).prodMk (c p.val.2) :=
@@ -279,7 +282,7 @@ theorem continuous_ratioMap {ι : Type*}
     refine mem_puncturedSpace.2 fun h ↦ ?_
     obtain ⟨h₁, h₂⟩ := Prod.mk_eq_zero.mp h
     simp only [c, Bundle.Trivialization.frameCoordinates_apply] at h₁ h₂
-    refine vec_trivialization_ne_zero_twistCore (e' x) y.property (p.property y) ?_
+    refine vec_trivialization_ne_zero_twistCore (e' x) (hU' x y.property) (p.property y) ?_
     ext i
     fin_cases i <;> simp [h₁, h₂]
   convert (ContMDiffMap.continuous_postcomp_manifoldWeakWhitney projMk).comp
@@ -291,7 +294,7 @@ theorem continuous_ratioMap {ι : Type*}
     c,
     Bundle.Trivialization.frameCoordinates_apply]
   congr 1
-  exact (mk_trivialization_twistCore (e' x) y.property _ _).symm
+  exact (mk_trivialization_twistCore (e' x) (hU' x y.property) _ _).symm
 
 end Continuity
 
