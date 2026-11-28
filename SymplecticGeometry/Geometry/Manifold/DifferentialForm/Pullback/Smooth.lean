@@ -72,6 +72,10 @@ rule `TauCeti.mpullback_comp_at`, the pullback along the slice at `z` is the pul
 normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactically the product model, so
 `TauCeti.mpullback_comp_prodMk_apply_modelSpace` states the same identity for that model.
 
+By Tau Ceti's `TauCeti.mpullback_comp_add_right`, if a map `u` of a normed space is invariant
+under translation by `c`, so is the pullback along `u` of every form
+(`TauCeti.mpullback_add_of_forall_add_eq`).
+
 ## Main results
 
 * `TauCeti.mpullback_apply_eq_compContinuousLinearMap`: the pullback at `x` is
@@ -112,6 +116,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   product, as the pullback along `f` on the vectors `(0, m i)`.
 * `TauCeti.mpullback_comp_prodMk_apply_modelSpace`: the same, for a map on a product of normed
   spaces with the model `𝓘(ℝ, E₁ × E₂)`.
+* `TauCeti.mpullback_add_of_forall_add_eq`: the pullback along a map invariant under a translation
+  is invariant under it.
 * `TauCeti.SmoothForm.mpullback_comp_comp_eq_of_mpullback_eq`: if `a^* (i^* σ) = j^* τ`, then
   `(i ∘ a ∘ g)^* σ = (j ∘ g)^* τ` for every smooth `g`.
 * `TauCeti.SmoothForm.contDiff_apply_mfderiv`: along a smooth map `γ` from a normed space, a
@@ -253,6 +259,15 @@ theorem mpullback_comp_prodMk_apply_modelSpace {E₁ E₂ : Type*} [NormedAddCom
       mpullback 𝓘(ℝ, E₁ × E₂) I' f φ (s, z) fun i ↦ ((0 : E₁), m i) := by
   rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hf ⊢
   exact mpullback_comp_prodMk_apply hf φ m
+
+/-- If a differentiable map `u` of a normed space satisfies `u (w + c) = u w` for every `w`, the
+pullback `u^* φ` of any form is invariant under translation by `c`. -/
+theorem mpullback_add_of_forall_add_eq {u : E' → M} (hu : MDifferentiable 𝓘(ℝ, E') I u) {c : E'}
+    (hc : ∀ w, u (w + c) = u w) (φ : RoughForm I M F k) (y : E') :
+    mpullback 𝓘(ℝ, E') I u φ (y + c) = mpullback 𝓘(ℝ, E') I u φ y := by
+  have h := mpullback_comp_add_right (hu (y + c)) φ
+  rw [funext hc] at h
+  exact h.symm
 
 namespace SmoothForm
 
