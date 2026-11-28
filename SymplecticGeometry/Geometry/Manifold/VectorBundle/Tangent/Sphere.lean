@@ -9,6 +9,7 @@ public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
 public import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Analysis.InnerProductSpace.LinearIsometry
+import TauCeti.Topology.FiberBundle.Prod
 
 /-!
 # The tangent bundle of the sphere plus a trivial line
@@ -108,17 +109,19 @@ def sphereTangentProdHomeomorph :
       TotalSpace E (Trivial (sphere (0 : E) 1) E) :=
   TauCeti.bundleHomeomorph (sphereTangentProdEquiv m) <| by
     simp only [sphereTangentProdEquiv_apply]
-    have hdiag := (FiberBundle.Prod.isInducing_diag (EuclideanSpace ℝ (Fin m))
-      (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ℝ
-      (Trivial (sphere (0 : E) 1) ℝ)).continuous
+    have hfst := FiberBundle.Prod.continuous_totalSpaceFst (F₁ := EuclideanSpace ℝ (Fin m))
+      (E₁ := (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type)) (F₂ := ℝ)
+      (E₂ := Trivial (sphere (0 : E) 1) ℝ)
+    have hsnd := FiberBundle.Prod.continuous_totalSpaceSnd (F₁ := EuclideanSpace ℝ (Fin m))
+      (E₁ := (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type)) (F₂ := ℝ)
+      (E₂ := Trivial (sphere (0 : E) 1) ℝ)
     have hproj := (FiberBundle.continuous_proj (EuclideanSpace ℝ (Fin m))
-      (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type)).comp (continuous_fst.comp hdiag)
+      (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type)).comp hfst
     -- The tangent component `dι(v)`, through the tangent map of the inclusion.
     have hv := (TauCeti.contMDiff_coe_sphereTangentEquiv (E := E) (n := m)
-      (m := 0)).continuous.comp (continuous_fst.comp hdiag)
+      (m := 0)).continuous.comp hfst
     have ht := continuous_snd.comp
-      ((Trivial.isInducing_toProd (sphere (0 : E) 1) ℝ).continuous.comp
-        (continuous_snd.comp hdiag))
+      ((Trivial.isInducing_toProd (sphere (0 : E) 1) ℝ).continuous.comp hsnd)
     exact (Trivial.isInducing_toProd (sphere (0 : E) 1) E).continuous_iff.2
       (hproj.prodMk (hv.add (ht.smul (continuous_subtypeVal.comp hproj))))
 
