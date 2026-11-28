@@ -269,9 +269,9 @@ theorem exists_isSmoothFamily_homotopy_closed
 
 /-- **The parametric relative h-principle for symplectic forms over `[0, 1]`.** Let `M` be a
 manifold without boundary none of whose connected components is compact and `P₀ ⊆ [0, 1]` closed.
-Let `τ` be a smooth family of nondegenerate two-forms on `M` over `[0, 1]`, and `α` a smooth family
-over `ℝ` of closed two-forms with every `α s - α₀` exact and `α t = τ t` for `t ∈ P₀`. Then there
-is a smooth family `H` over `[0, 1] × [0, 1]` with `H (t, 0) = τ t` such that
+Let `τ : [0, 1] → SmoothTwoForm I M` be smooth with every `τ t` nondegenerate, and
+`α : ℝ → SmoothTwoForm I M` smooth with every `α s` closed, every `α s - α₀` exact and
+`α t = τ t` for `t ∈ P₀`. Then there is a smooth family `H` over `[0, 1] × [0, 1]` with `H (t, 0) = τ t` such that
 
 * every `H (t, u)` is nondegenerate;
 * `H (t, u)` is closed and `H (t, u) - α₀` is exact for `t ∈ P₀`;
@@ -304,9 +304,9 @@ theorem exists_isSmoothFamily_homotopy_closed_unitInterval
     fun t ↦ hH₁ t t.property⟩
 
 /-- **The relative h-principle for a path of nondegenerate forms with closed ends.** Let `M` be
-a manifold without boundary none of whose connected components is compact, and `τ` a smooth
-family of nondegenerate two-forms on `M` over `[0, 1]` whose ends `τ 0` and `τ 1` are closed with
-`τ 0 - α₀` and `τ 1 - α₀` exact. Then there is a smooth family `H` over `[0, 1] × [0, 1]` with
+a manifold without boundary none of whose connected components is compact, and
+`τ : [0, 1] → SmoothTwoForm I M` smooth with every `τ t` nondegenerate, whose ends `τ 0` and
+`τ 1` are closed with `τ 0 - α₀` and `τ 1 - α₀` exact. Then there is a smooth family `H` over `[0, 1] × [0, 1]` with
 `H (t, 0) = τ t` such that
 
 * every `H (t, u)` is nondegenerate;
