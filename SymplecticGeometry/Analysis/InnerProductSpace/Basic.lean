@@ -28,6 +28,8 @@ Facts about real inner product spaces that complement Mathlib's
   stated only for the real inner product `Inner.rclikeToReal`.
 * `norm_add_I_smul_eq_norm_sub_I_smul`: on such a space of complex dimension one, if `a` and `b`
   are orthogonal to a nonzero `u`, then `‖a + i • b‖ = ‖a - i • b‖`.
+* `eq_I_mul_real_inner_smul_of_real_inner_eq_zero`: on such a space of complex dimension one, a
+  vector `w` orthogonal to a unit vector `u` is `(i ⟪i • u, w⟫) • u`.
 -/
 
 public section
@@ -99,6 +101,24 @@ theorem norm_add_I_smul_eq_norm_sub_I_smul (hL : Module.finrank ℂ L = 1) {u a 
   congr 2
   apply Complex.ext <;> simp [ha, hb]
 
+/-- Let `L` be a complex line whose norm comes from a real inner product, and `u` a unit vector.
+Every `w` orthogonal to `u` is the imaginary multiple `(i ⟪i • u, w⟫) • u` of `u`. -/
+theorem eq_I_mul_real_inner_smul_of_real_inner_eq_zero (hL : Module.finrank ℂ L = 1)
+    {u w : L} (hu : ‖u‖ = 1) (hw : ⟪w, u⟫ = 0) :
+    w = (Complex.I * (⟪Complex.I • u, w⟫ : ℂ)) • u := by
+  have hu0 : u ≠ 0 := by
+    rintro rfl
+    simp at hu
+  obtain ⟨c, rfl⟩ := (finrank_eq_one_iff_of_ne_zero' u hu0).1 hL w
+  rw [real_inner_complex_smul_self, hu, one_pow, mul_one] at hw
+  have h : ⟪Complex.I • u, c • u⟫ = c.im := by
+    rw [real_inner_comm, show c • u = (c * -Complex.I) • Complex.I • u by
+      rw [smul_smul, mul_assoc, neg_mul, Complex.I_mul_I, neg_neg, mul_one],
+      real_inner_complex_smul_self, norm_smul, Complex.norm_I, one_mul, hu]
+    simp
+  rw [h]
+  congr 1
+  apply Complex.ext <;> simp [hw]
 
 end ComplexScalars
 
