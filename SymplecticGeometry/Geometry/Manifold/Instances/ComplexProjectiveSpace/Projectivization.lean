@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
+public import Mathlib.LinearAlgebra.Projectivization.Action
 public import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Basic
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Topology.ComplexProjectiveSpace.Homogeneous
 public import TauCeti.Topology.ComplexProjectiveSpace.Projectivization
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 
@@ -21,6 +23,11 @@ both inverse charts are `z ↦ [Fin.insertNth k 1 z]`: the homeomorphism sends
 `TauCeti.ComplexProjectiveSpace.affineParam k z` to `(Projectivization.affineChart k).symm z`.
 So in these charts the homeomorphism and its inverse are the identity, and both are holomorphic.
 
+The homeomorphism is also equivariant for the unitary group `U(n + 1)`: on `CPⁿ` a unitary matrix
+acts on unit representatives (`TauCeti.ComplexProjectiveSpace.instMulActionUnitaryGroup`), and on
+`ℙ ℂ (Fin (n + 1) → ℂ)` it acts linearly on representatives (Mathlib's `Projectivization.smul_mk`).
+Both send the class of a unit vector `x` to the class of `A *ᵥ x`, which is again a unit vector.
+
 ## Main declarations
 
 * `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization_affineParam`: the homeomorphism
@@ -33,6 +40,11 @@ So in these charts the homeomorphism and its inverse are the identity, and both 
 * `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`: the analytic diffeomorphism
   `ComplexProjectiveSpace n ≃ₘ^ω⟮𝓘(ℝ, Fin n → ℂ), 𝓘(ℝ, Fin n → ℂ)⟯ ℙ ℂ (Fin (n + 1) → ℂ)` of the
   underlying real manifolds, whose map is `homeomorphProjectivization n`.
+* `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization_smul`,
+  `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization_symm_smul`, and their forms
+  `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization_smul`,
+  `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization_symm_smul`: the homeomorphism and its
+  inverse commute with the actions of `Matrix.unitaryGroup (Fin (n + 1)) ℂ`.
 
 ## References
 
@@ -41,7 +53,7 @@ So in these charts the homeomorphism and its inverse are the identity, and both 
 
 public section
 
-open Metric
+open Matrix Metric
 open scoped ContDiff Manifold LinearAlgebra.Projectivization
 
 namespace TauCeti.ComplexProjectiveSpace
@@ -165,6 +177,41 @@ theorem diffeomorphProjectivization_symm_mk
     (diffeomorphProjectivization n).symm (Projectivization.mk ℂ (WithLp.ofLp
       (x : EuclideanSpace ℂ (Fin (n + 1)))) hx) = mk n x := by
   rw [coe_diffeomorphProjectivization_symm, homeomorphProjectivization_symm_mk]
+
+/-- The homeomorphism `CPⁿ ≃ₜ ℙ ℂ (Fin (n + 1) → ℂ)` is equivariant for the unitary group: it
+intertwines the action `A • [x] = [A x]` on unit representatives with the linear action
+`A • [v] = [A v]` on lines. -/
+@[simp]
+theorem homeomorphProjectivization_smul (A : unitaryGroup (Fin (n + 1)) ℂ)
+    (p : ComplexProjectiveSpace n) :
+    homeomorphProjectivization n (A • p) = A • homeomorphProjectivization n p := by
+  induction p using ComplexProjectiveSpace.inductionOn with
+  | h x =>
+    rw [smul_mk, homeomorphProjectivization_mk, homeomorphProjectivization_mk,
+      Projectivization.smul_mk]
+    simp only [LinearIsometryEquiv.coe_smul_unitSphere, UnitaryGroup.toLinearIsometryEquiv_apply,
+      WithLp.ofLp_toLp, Submonoid.smul_def, smul_eq_mulVec]
+
+/-- The inverse of the homeomorphism `CPⁿ ≃ₜ ℙ ℂ (Fin (n + 1) → ℂ)` is equivariant for the
+unitary group. -/
+@[simp]
+theorem homeomorphProjectivization_symm_smul (A : unitaryGroup (Fin (n + 1)) ℂ)
+    (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (homeomorphProjectivization n).symm (A • x) = A • (homeomorphProjectivization n).symm x := by
+  rw [Homeomorph.symm_apply_eq, homeomorphProjectivization_smul, Homeomorph.apply_symm_apply]
+
+/-- The diffeomorphism `CPⁿ ≃ ℙ ℂ (Fin (n + 1) → ℂ)` is equivariant for the unitary group. -/
+theorem diffeomorphProjectivization_smul (A : unitaryGroup (Fin (n + 1)) ℂ)
+    (p : ComplexProjectiveSpace n) :
+    diffeomorphProjectivization n (A • p) = A • diffeomorphProjectivization n p := by
+  rw [coe_diffeomorphProjectivization, homeomorphProjectivization_smul]
+
+/-- The inverse of the diffeomorphism `CPⁿ ≃ ℙ ℂ (Fin (n + 1) → ℂ)` is equivariant for the
+unitary group. -/
+theorem diffeomorphProjectivization_symm_smul (A : unitaryGroup (Fin (n + 1)) ℂ)
+    (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (diffeomorphProjectivization n).symm (A • x) = A • (diffeomorphProjectivization n).symm x := by
+  rw [coe_diffeomorphProjectivization_symm, homeomorphProjectivization_symm_smul]
 
 end TauCeti.ComplexProjectiveSpace
 

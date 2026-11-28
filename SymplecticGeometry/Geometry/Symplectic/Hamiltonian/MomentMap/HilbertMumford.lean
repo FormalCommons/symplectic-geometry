@@ -146,7 +146,9 @@ of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
   `w_μ(u x, Ad u ξ) = w_μ(x, ξ)` and `(u x)⁺_{Ad u ξ} = u x⁺_ξ` for `u : G`.
 * `SymplecticGeometry.limitPoint_smul_of_mem_parabolic`,
   `SymplecticGeometry.momentWeight_smul_of_mem_parabolic`: for `q` in the parabolic subgroup
-  `C.parabolic ξ`, `(q x)⁺_ξ = C.parabolicLimit ξ q • x⁺_ξ` and `w_μ(q x, ξ) = w_μ(x, ξ)`.
+  `C.parabolic ξ`, `(q x)⁺_ξ = C.parabolicLimit ξ q • x⁺_ξ` and `w_μ(q x, ξ) = w_μ(x, ξ)`. The
+  first is a case of `SymplecticGeometry.limitPoint_smul_of_mem_parabolic_of_tendsto`, which
+  assumes only that `exp (i t ξ) x` converges.
 * `SymplecticGeometry.tendsto_kempfNessFunction_expI_neg_smul_div`:
   `Φ_p (C.expI (-(s • ξ))) / s → -w_μ(p, ξ)` as `s → ∞`.
 * `SymplecticGeometry.exists_eventually_abs_kempfNessFunction_le`: along a convergent curve in
@@ -373,6 +375,18 @@ theorem limitPoint_eq_of_tendsto [T2Space M] {C : LieComplexification I G IC Gc}
   rw [limitPoint_def]
   exact h.limUnder_eq
 
+/-- **Limit points under the parabolic subgroup, given a limit.** If `C.expI (t • ξ) • x`
+converges to `y` as `t → ∞`, then for `q` in the parabolic subgroup `C.parabolic ξ` the limit
+point `(q x)⁺_ξ` is `C.parabolicLimit ξ q • y`, where `C.parabolicLimit ξ q` is the limit of the
+conjugates `exp (i t ξ) q exp (-i t ξ)`. -/
+theorem limitPoint_smul_of_mem_parabolic_of_tendsto [ContinuousSMul Gc M] [T2Space M]
+    {C : LieComplexification I G IC Gc} {ξ : GroupLieAlgebra I G} (q : C.parabolic ξ) {x y : M}
+    (hx : Tendsto (fun t : ℝ ↦ C.expI (t • ξ) • x) atTop (𝓝 y)) :
+    limitPoint C ((q : Gc) • x) ξ = C.parabolicLimit ξ q • y := by
+  -- `exp (i t ξ) q x` is the conjugate of `q` at time `t` acting on `exp (i t ξ) x`.
+  refine limitPoint_eq_of_tendsto (((C.tendsto_parabolicLimit ξ q).smul hx).congr fun t ↦ ?_)
+  rw [smul_smul, C.expI_neg, inv_mul_cancel_right, mul_smul]
+
 open _root_.Bundle Manifold
 open scoped RealInnerProductSpace
 
@@ -456,10 +470,7 @@ theorem limitPoint_smul_of_mem_parabolic (h : IsComplexifiedAction C J)
     {ξ : GroupLieAlgebra I G} (q : C.parabolic ξ) (x : M) :
     limitPoint C ((q : Gc) • x) ξ = C.parabolicLimit ξ q • limitPoint C x ξ := by
   have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := 𝓘(ℝ, E')) ∞
-  -- `exp (i t ξ) q x` is the conjugate of `q` at time `t` acting on `exp (i t ξ) x`.
-  refine limitPoint_eq_of_tendsto (((C.tendsto_parabolicLimit ξ q).smul
-    (tendsto_limitPoint h hμ hg x ξ)).congr fun t ↦ ?_)
-  rw [smul_smul, C.expI_neg, inv_mul_cancel_right, mul_smul]
+  exact limitPoint_smul_of_mem_parabolic_of_tendsto q (tendsto_limitPoint h hμ hg x ξ)
 
 /-- **Limit points are fixed by the flow.** Under the hypotheses of `tendsto_limitPoint`,
 `exp (i t ξ)` fixes the limit point `p⁺_ξ` for every `t`. -/
@@ -843,10 +854,10 @@ theorem IsPolystable.limitPoint_mem_orbit [CompactSpace G] [T2Space M]
   have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := I') ∞
   obtain ⟨q, hq, x, -, hx, rfl⟩ :=
     hp.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero h hμ hg hw
-  -- As `x` is fixed, `exp (i t ξ) q x` is the conjugate of `q` at time `t` acting on `x`.
+  -- As `x` is fixed by every `C.expI (t • ξ)`, the curve `C.expI (t • ξ) • x` is constant.
   have hlim : limitPoint C (q • x) ξ = C.parabolicLimit ξ ⟨q, hq⟩ • x :=
-    limitPoint_eq_of_tendsto (((C.tendsto_parabolicLimit ξ ⟨q, hq⟩).smul_const x).congr fun t ↦ by
-      rw [Subgroup.coe_mk, mul_smul, mul_smul, C.expI_neg, inv_smul_eq_iff.2 (hx t).symm])
+    limitPoint_smul_of_mem_parabolic_of_tendsto ⟨q, hq⟩
+      (tendsto_const_nhds.congr fun t ↦ (hx t).symm)
   refine MulAction.mem_orbit_iff.2 ⟨C.parabolicLimit ξ ⟨q, hq⟩ * q⁻¹, ?_⟩
   rw [hlim, mul_smul, inv_smul_smul]
 
