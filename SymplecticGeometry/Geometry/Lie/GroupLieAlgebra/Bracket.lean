@@ -12,13 +12,15 @@ public import Mathlib.Geometry.Manifold.GroupLieAlgebra
 
 Mathlib's lemmas on the second argument of a bracket (`lie_zero`, `lie_neg`, `lie_add`,
 `lie_sub`, `lie_smul`) are stated for a Lie module `M` over `L`. On `GroupLieAlgebra I G` they
-apply when `LieGroup I (minSmoothness 𝕜 3) G` is a hypothesis. They do not match, unless `L` is
-given explicitly, when that instance is derived from a hypothesis `LieGroup I ∞ G` through the
-local instance `LieGroup.minSmoothness_of_isRCLikeNormedField`, as in many files of this library.
-The lemmas on the first argument (`zero_lie`, `neg_lie`, `add_lie`, …) apply in both settings.
+apply when `LieGroup I (minSmoothness 𝕜 3) G` is a hypothesis. They also apply over a variable
+field `𝕜` with `[IsRCLikeNormedField 𝕜]` when that instance is derived from a hypothesis
+`LieGroup I ∞ G` through the local instance `LieGroup.minSmoothness_of_isRCLikeNormedField`. Over
+the concrete field `𝕜 = ℝ`, with the instance derived in that way, as in many files of this
+library, they do not match unless `L` is given explicitly. The lemmas on the first argument
+(`zero_lie`, `neg_lie`, `add_lie`, …) apply in all these settings.
 
 This file restates the lemmas on the second argument for `GroupLieAlgebra I G`, so that `rw` and
-`simp` apply them in both settings.
+`simp` apply them in all these settings.
 
 ## Main results
 
@@ -40,9 +42,10 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 namespace GroupLieAlgebra
 
 /-! The `simpNF` linter reports that `simp` proves each lemma below by Mathlib's lemma of the same
-name. That holds under a hypothesis `LieGroup I (minSmoothness 𝕜 3) G`, but Mathlib's lemmas do
-not fire when that instance comes from `LieGroup.minSmoothness_of_isRCLikeNormedField`, and these
-do; so they keep `@[simp]`, with `nolint simpNF`. -/
+name. That holds under a hypothesis `LieGroup I (minSmoothness 𝕜 3) G`, but over `𝕜 = ℝ`
+Mathlib's lemmas do not fire when that instance comes from
+`LieGroup.minSmoothness_of_isRCLikeNormedField`, and these do; so they keep `@[simp]`, with
+`nolint simpNF`. -/
 
 /-- The bracket of the Lie algebra of a Lie group vanishes when its second argument does. -/
 @[simp, nolint simpNF]
