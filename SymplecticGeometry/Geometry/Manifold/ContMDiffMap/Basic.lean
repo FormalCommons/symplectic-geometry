@@ -10,6 +10,10 @@ public import Mathlib.Geometry.Manifold.ContMDiffMap
 /-!
 # Basic lemmas on bundled `C^n` maps
 
+The functions underlying a composite and the identity (`ContMDiffMap.coe_comp`,
+`ContMDiffMap.coe_id`), for rewriting a bundled map where it stands as a function rather than
+applied to a point.
+
 Evaluation of a composite `g.comp ⟨f, hf⟩` of bundled `C^n` maps whose inner map is written with
 the anonymous constructor (`ContMDiffMap.comp_mk_apply`). Such a term has the bare subtype
 `{ f // ContMDiff I I' n f }` as the type of its inner map, so neither `ContMDiffMap.comp_apply`
@@ -36,6 +40,18 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
   {M'' : Type*} [TopologicalSpace M''] [ChartedSpace H'' M'']
   {n : WithTop ℕ∞}
+
+/-- The function underlying a composite of bundled `C^n` maps is the composite of their
+functions. -/
+@[simp]
+theorem coe_comp (g : C^n⟮I', M'; I'', M''⟯) (f : C^n⟮I, M; I', M'⟯) :
+    ⇑(g.comp f) = ⇑g ∘ ⇑f :=
+  (rfl)
+
+/-- The function underlying the bundled identity `C^n` map is the identity. -/
+@[simp]
+theorem coe_id : ⇑(ContMDiffMap.id : C^n⟮I, M; I, M⟯) = _root_.id :=
+  (rfl)
 
 /-- The composite `g ∘ f` of a bundled `C^n` map `g` with a `C^n` map `f`, bundled by the
 anonymous constructor, takes the value `g (f x)` at `x`. -/
