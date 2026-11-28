@@ -13,7 +13,8 @@ import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.LocalPrimitive
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
-import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 
 /-!
@@ -218,11 +219,6 @@ theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens {σ : Smooth
   set Y := VectorField.mpullback I I (Subtype.val : U → N) X
   have hY : ContMDiff I I.tangent ∞ (T% Y) :=
     VectorField.contMDiff_mpullback_subtypeVal hX.contMDiffOn
-  have hYX (y : U) : Y y = X y := by
-    have h := VectorField.mfderiv_subtypeVal_mpullback_subtypeVal X y
-    rw [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
-      Manifold.tangentSpaceOpenEquiv_apply] at h
-    exact h
   have hYσ := hXσ.mpullback contMDiff_subtypeVal (hX.of_le (by simp)) (hY.mdifferentiable (by simp))
     (VectorField.mfderiv_subtypeVal_mpullback_subtypeVal X)
   obtain ⟨W, hW, hpW, g, hg, hgp, hgW⟩ :=
@@ -231,21 +227,17 @@ theorem IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens {σ : Smooth
   set K : N → ℝ := fun x ↦ if hx : x ∈ U then g ⟨x, hx⟩ else 0
   have hK : K ∘ (Subtype.val : U → N) = g := funext fun y ↦ dite_eq_left y.property
   refine ⟨⟨Subtype.val '' W, U.isOpen.isOpenMap_subtypeVal W hW⟩,
-    by rintro _ ⟨y, -, rfl⟩; exact y.property, ⟨⟨p, hp⟩, hpW, rfl⟩, K, fun x hx ↦ ?_,
-    by simp [K, hp, hgp], ?_⟩
-  · refine (contMDiffAt_subtype_iff (x := ⟨x, hx⟩).1 ?_).contMDiffWithinAt
-    exact (hK ▸ hg).contMDiffAt
-  · rintro _ ⟨y, hyW, rfl⟩ v
-    rw [← Manifold.mvfderiv_comp_subtype_val K y, hK]
-    refine Eq.trans ?_ (hgW y hyW v)
-    have h (a b : TangentSpace I y) : SmoothBundleForm.eval₂
-        (SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal σ) y a b =
-          SmoothBundleForm.eval₂ σ y a b := by
-      rw [SmoothBundleForm.eval₂_apply, SmoothForm.coe_mpullback, mpullback_subtype_val_apply]
-      exact (SmoothBundleForm.eval₂_apply σ y a b).symm
-    -- The tangent spaces of `U` at `y` and of `N` at `↑y` are both `E`, which `rw` does not see
-    -- through, so the two sides are matched by `h` term by term.
-    exact congrArg₂ (· - ·) (h (X' y) v).symm ((h (Y y) v).trans (by rw [hYX])).symm
+    by rintro _ ⟨y, -, rfl⟩; exact y.property, ⟨⟨p, hp⟩, hpW, rfl⟩, K,
+    contMDiff_subtype_iff.1 (by rwa [← hK] at hg), by simp [K, hp, hgp], ?_⟩
+  rintro _ ⟨y, hyW, rfl⟩ v
+  rw [← Manifold.mvfderiv_comp_subtype_val K y, hK]
+  refine Eq.trans ?_ (hgW y hyW v)
+  -- The tangent spaces of `U` at `y` and of `N` at `↑y` are both `E`, which `rw` does not see
+  -- through, so the two sides are matched term by term.
+  exact congrArg₂ (· - ·) (SmoothTwoForm.eval₂_mpullback_subtypeVal y _ v).symm
+    ((SmoothTwoForm.eval₂_mpullback_subtypeVal y _ v).trans
+      (congrArg (SmoothBundleForm.eval₂ σ (y : N) · v)
+        (VectorField.mpullback_subtypeVal_apply X y))).symm
 
 /-- If moreover `X'` and `X` agree at `p`, for instance when both vanish there, the function `K`
 of `TauCeti.IsLiouvilleVectorField.exists_eval₂_sub_eq_mvfderiv_opens` also has `dK p = 0`: `p`
