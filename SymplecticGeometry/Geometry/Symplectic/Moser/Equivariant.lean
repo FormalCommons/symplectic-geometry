@@ -599,10 +599,10 @@ theorem exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along
       (fun g ↦ SmoothForm.mpullback_smul_mpullback (hΨ₀N N₀ le_rfl)
         (fun y ↦ by rw [Function.comp_apply, Function.comp_apply, hcN₀, hΨ₀G]) (hσG g))
       (fun q ↦ (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff _).2 (hnd q))
-      (fun q ↦ ContinuousAlternatingMap.ext fun w ↦ by
-        rw [SmoothForm.mpullback_comp_subtypeVal_apply,
-          SmoothForm.coe_mpullback_subtype_val_apply]
-        exact (TauCeti.mpullback_apply Ψ₀ σ.val _ w).symm.trans (DFunLike.congr_fun (heq q) w))
+      (fun q ↦ by
+        rw [SmoothForm.coe_mpullback_subtype_val_apply,
+          SmoothForm.coe_mpullback_comp_subtypeVal_apply]
+        exact heq q)
   -- `Ψ = Ψ₀ ∘ φ` on `U₀`.
   refine ⟨U₀, (Ψ₀ ∘ Subtype.val) ∘ φ, (hΨ₀N U₁ hU₁).comp φ.contMDiff,
     fun _ ⟨q, hq⟩ ↦ hq ▸ (hφf q).1, hU₀G, fun g x h ↦ ?_, fun q h ↦ ?_, fun x ↦ ?_, ?_⟩
