@@ -46,7 +46,10 @@ the zero `0`.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.5
   (Liouville vector fields)
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11 (Liouville and Weinstein structures)
+  §11.1, where Liouville fields are defined by `L_X ω = ω`. The identity at a zero is the
+  derivative at `t = 0` of `e^t ω_p (v, w) = ω_p (e^{tA} v, e^{tA} w)`, the expansion of `ω_p`
+  by the linearized flow in the proof of Proposition 11.9 (a). The radial field of
+  Example 11.12 (1) and the field of Example 11.18 are linear Liouville fields
 -/
 
 public section
