@@ -141,8 +141,8 @@ theorem exists_symplectic_class_firstChernClass [SecondCountableTopology M] [Sig
   have hτ := hψ'.isSymplectic_normalizedBlowupForm hh hσ
   refine ⟨_, hτ, hψ'.deRhamHom_normalizedBlowupForm hh hσ, ?_⟩
   obtain ⟨τ, hτf, hτs, hτ0, hτ1⟩ := hψ'.exists_path_compatible hσ
-  calc hτ.isNondegenerate.firstChernClass G = (hτs 0).isNondegenerate.firstChernClass G := by
-        congr 1; exact hτ0.symm
+  calc hτ.isNondegenerate.firstChernClass G = (hτs 0).isNondegenerate.firstChernClass G :=
+        hτ.isNondegenerate.firstChernClass_congr G _ hτ0.symm
     _ = _ := by
       rw [hτf.firstChernClass_eq G fun t ↦ (hτs t).isNondegenerate,
         (hτs 1).isNondegenerate.firstChernClass_eq_of_compatible G hτ1,

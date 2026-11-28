@@ -14,6 +14,7 @@ import SymplecticGeometry.Analysis.ODE.Linear
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import TauCeti.Analysis.InnerProductSpace.LyapunovForm.Inertia
 import TauCeti.Analysis.ODE.ExponentialDichotomy.Hyperbolic
+import TauCeti.Topology.Algebra.Module.BilinearForm
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
 
 /-!
@@ -37,6 +38,9 @@ bounds a multiple of `‖P w‖ ^ 2` on cones, for an operator `P` commuting wit
 * `ContinuousLinearMap.apply_self_neg_of_mem_stableSubspace` and
   `ContinuousLinearMap.apply_self_pos_of_mem_unstableSubspace`: `B` is negative definite on the
   stable subspace and positive definite on the unstable one.
+* `ContinuousLinearMap.stableSubspace_eq_bot_of_apply_pos`: if moreover `B` is positive definite,
+  the stable subspace of `A` is `⊥`; here only `0 < B v (A v)` for `v ≠ 0` is assumed, and the
+  constant `c` comes from compactness of the unit sphere.
 * `ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`: the negative index of
   inertia of `v ↦ B v v` is the dimension of the stable subspace of `A`.
 * `ContinuousLinearMap.exists_forall_half_mul_norm_sq_le_apply`: for a map `Y` with derivative
@@ -189,6 +193,17 @@ theorem apply_self_pos_of_mem_unstableSubspace (hB : ∀ u v, B u v = B v u) (hc
   have h := apply_self_neg_of_mem_stableSubspace (B := -B) (fun u w ↦ by simp [hB u w]) hc
     (fun w ↦ by simpa using hcB w) hv hv0
   simpa using h
+
+/-- **An operator with a positive definite Lyapunov form has no nonzero stable vector.** If `B` is
+symmetric and positive definite, and `0 < B v (A v)` for every nonzero `v`, then the stable
+subspace of `A` is `⊥`. No uniform constant `c` with `c * ‖v‖ ^ 2 ≤ B v (A v)` is assumed. -/
+theorem stableSubspace_eq_bot_of_apply_pos (hB : ∀ u v, B u v = B v u)
+    (hBpos : ∀ v, v ≠ 0 → 0 < B v v) (hBA : ∀ v, v ≠ 0 → 0 < B v (A v)) :
+    A.stableSubspace = ⊥ := by
+  obtain ⟨c, hc, hcB⟩ := isCompact_singleton.exists_pos_forall_mul_norm_sq_le_compRight B
+    (T := {A}) (by simpa using hBA)
+  refine (Submodule.eq_bot_iff _).2 fun v hv ↦ by_contra fun hv0 ↦ ?_
+  exact (apply_self_neg_of_mem_stableSubspace hB hc (hcB A rfl) hv hv0).not_gt (hBpos v hv0)
 
 /-- **The inertia theorem for a Lyapunov bilinear form.** If `B` is symmetric and
 `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`, then the negative index of inertia of the quadratic form
