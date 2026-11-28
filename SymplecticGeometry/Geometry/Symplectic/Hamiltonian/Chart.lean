@@ -110,7 +110,7 @@ theorem flatInChart_mvfderiv_mvfderiv (he : e ∈ IsManifold.maximalAtlas 𝓘(�
     (hz : z ∈ e.target) (v w : TangentSpace 𝓘(ℝ, E) (e.symm z)) :
     σ.flatInChart e z (mvfderiv 𝓘(ℝ, E) e (e.symm z) v)
         (mvfderiv 𝓘(ℝ, E) e (e.symm z) w) = SmoothBundleForm.eval₂ σ (e.symm z) v w := by
-  have h := e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he one_ne_zero hz
+  have h := e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he hz
   rw [flatInChart_apply, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
   exact congrArg₂ _ (h v) (h w)
 
@@ -123,16 +123,9 @@ at every point of the chart target. -/
 theorem IsNondegenerate.isInvertible_flatInChart (hσ : σ.IsNondegenerate)
     (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M) (hz : z ∈ e.target) :
     (σ.flatInChart e z).IsInvertible := by
-  -- `d(e⁻¹)_z`, as a linear equivalence of the model space with inverse `de_{e⁻¹ z}`.
-  let A : E ≃L[ℝ] E := .ofContinuousLinearMap (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z)
-    (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e (e.symm z))
-    (ContinuousLinearMap.ext
-      (e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he one_ne_zero hz))
-    (ContinuousLinearMap.ext fun u ↦ (mvfderiv_apply_eq_mfderiv_apply _ _ _).symm.trans
-      (e.mvfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he hz u))
-  rw [flatInChart_def, ← flat_def]
-  exact (hσ.isInvertible_flat (e.symm z)).bilinearComp (V := E) (V' := E) (W := E) (W' := E)
-    A A
+  obtain ⟨A, hA⟩ := isInvertible_mfderiv_chart_symm he hz
+  rw [flatInChart_def, ← flat_def, ← hA]
+  exact (hσ.isInvertible_flat (e.symm z)).bilinearComp (V := E) (V' := E) (W := E) (W' := E) A A
 
 /-- For a nondegenerate `σ` and `z` in the target of a chart `e` of the `C^1` maximal atlas, the
 flat map in the chart undoes its inverse at `z`. -/
@@ -164,7 +157,8 @@ theorem IsNondegenerate.mvfderiv_eq_inverseFlatInChart_fderiv (hσ : σ.IsNondeg
     (fun y hy ↦ by simp [e.left_inv hy]) hx
   rw [e.right_inv hz] at hK
   ext w
-  have hAB := e.mvfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he hz w
+  have hAB := e.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he hz w
+  rw [← mvfderiv_apply_eq_mfderiv_apply] at hAB
   conv_lhs => rw [← hAB]
   conv_rhs => rw [← hAB]
   rw [flatInChart_mvfderiv_mvfderiv he hz, hv, mvfderiv_apply_eq_mfderiv_apply,

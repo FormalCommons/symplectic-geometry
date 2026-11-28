@@ -46,9 +46,9 @@ Tau Ceti's `PartialDiffeomorph.inner_fderiv_comp_symm`, with `B` in place of the
 * `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_target`: for `y` in the target of
   `Φ`, `d(Φ⁻¹)_y ∘ dΦ_{Φ⁻¹ y}` is the identity.
 * `OpenPartialHomeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas` and
-  `OpenPartialHomeomorph.mvfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas`: for a chart `e`
-  of the maximal atlas and `z` in its target, `d(e⁻¹)_z` and `de_{e⁻¹ z}` are mutually inverse,
-  the second with `de` read in the model space.
+  `OpenPartialHomeomorph.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas`: for a chart `e`
+  of the `C^1` maximal atlas and `z` in its target, `d(e⁻¹)_z` and `de_{e⁻¹ z}` are mutually
+  inverse.
 * `PartialDiffeomorph.contDiffOn_symm_trans_chartAt`,
   `PartialDiffeomorph.contDiffOn_chartAt_symm_trans`,
   `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
@@ -133,26 +133,23 @@ end MFDerivSymmEquiv
 
 section ChartInverse
 
-/-- For a chart `e` of the `C^n` maximal atlas, `n ≠ 0`, and a point `z` of its target, the
-derivative of `e.symm` at `z` undoes the derivative of `e` at `e.symm z`. -/
+/-- For a chart `e` of the `C^1` maximal atlas and a point `z` of its target, the derivative of
+`e.symm` at `z` undoes the derivative of `e` at `e.symm z`. -/
 theorem _root_.OpenPartialHomeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas
-    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I n M) (hn : n ≠ 0) {z : H}
+    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I 1 M) {z : H}
     (hz : z ∈ e.target) (v : TangentSpace I (e.symm z)) :
     mfderiv I I e.symm z (mfderiv I I e (e.symm z) v) = v := by
-  have h := (e.toPartialDiffeomorph he).mfderiv_symm_apply_mfderiv_apply_of_mem_target hn
-    (by simpa using hz) v
+  have h := (e.toPartialDiffeomorph he).mfderiv_symm_apply_mfderiv_apply_of_mem_target
+    one_ne_zero (by simpa using hz) v
   rwa [e.coe_toPartialDiffeomorph_symm, e.coe_toPartialDiffeomorph] at h
 
-variable {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M']
-
-/-- For a chart `e` of the `C^1` maximal atlas of a manifold modelled on `E` and a point `z` of its
-target, the derivative of `e` at `e.symm z`, read in the model space, undoes the derivative of
-`e.symm` at `z`. -/
-theorem _root_.OpenPartialHomeomorph.mvfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas
-    {e : OpenPartialHomeomorph M' E} (he : e ∈ IsManifold.maximalAtlas 𝓘(𝕜, E) 1 M') {z : E}
-    (hz : z ∈ e.target) (u : E) :
-    mvfderiv 𝓘(𝕜, E) e (e.symm z) (mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E) e.symm z u) = u :=
-  (mvfderiv_apply_eq_mfderiv_apply _ _ _).trans <| e.mfderiv_apply_mfderiv_symm_apply hz
+/-- For a chart `e` of the `C^1` maximal atlas and a point `z` of its target, the derivative of
+`e` at `e.symm z` undoes the derivative of `e.symm` at `z`. -/
+theorem _root_.OpenPartialHomeomorph.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas
+    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I 1 M) {z : H}
+    (hz : z ∈ e.target) (u : TangentSpace I z) :
+    mfderiv I I e (e.symm z) (mfderiv I I e.symm z u) = u :=
+  e.mfderiv_apply_mfderiv_symm_apply hz
     (mdifferentiableAt_of_mem_maximalAtlas he (e.map_target hz))
     (mdifferentiableAt_symm_of_mem_maximalAtlas he hz) u
 
