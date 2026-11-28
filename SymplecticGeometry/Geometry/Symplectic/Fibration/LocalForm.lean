@@ -571,7 +571,7 @@ theorem isVerticallyClosedOn_singleton_iff_local {x : EB} {y : F}
   rw [isVerticallyClosedOn_iff]
   refine ⟨fun h ↦ ⟨?_, fun i ↦ ?_⟩, fun hh z hz η₁ hη₁ η₂ hη₂ v ↦ ?_⟩
   · refine ContinuousAlternatingMap.ext fun u ↦ ?_
-    have hu : u = ![u 0, u 1, u 2] := by funext k; fin_cases k <;> rfl
+    have hu : u = ![u 0, u 1, u 2] := (FinVec.etaExpand_eq u).symm
     rw [hu, τ.mextDeriv_fiberComponent_apply hτ]
     exact h (x, y) rfl _ (mem_ker_mfderiv_fst_iff.2 rfl) _ (mem_ker_mfderiv_fst_iff.2 rfl) _
   · refine ContinuousAlternatingMap.ext_fin_two fun w₁ w₂ ↦ ?_
