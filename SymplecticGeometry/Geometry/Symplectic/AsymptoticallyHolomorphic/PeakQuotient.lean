@@ -149,9 +149,9 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
             jetNormAt ℝ (r + 1) f z) := by
   obtain ⟨A, hA⟩ := exists_jetNormAt_le_of_isCompact
     (contDiff_ofReal_exp_norm_sq_div_four (E := StdSpace ι) (n := r)) (isCompact_closedBall 0 R)
-  obtain ⟨C₁, hC₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
+  obtain ⟨C₁, hC₁0, hC₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
   set J₀ := LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
-  set K := |C₁| * (1 + |R|)
+  set K := C₁ * (1 + |R|)
   refine ⟨2 ^ r * |A| * (1 + K), fun k J f z hz hk hf hJ ↦ ?_⟩
   set E : StdSpace ι → ℂ := fun y ↦ Real.exp (‖y‖ ^ 2 / 4)
   set T := fun w ↦ modelDbarWith J f w - modelDbarWith (fun _ ↦ J₀) f w
@@ -176,11 +176,9 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
   have hTle : jetNormAt ℝ r T z ≤
       K * (jetNormAt ℝ r (fun w ↦ J w - J₀) z * jetNormAt ℝ (r + 1) f z) := by
     have h := hC₁ J (fun _ ↦ J₀) f hf hJ contDiffAt_const
-    have h1 : C₁ * (1 + ‖z‖) ≤ K := by
+    have h1 : C₁ * (1 + ‖z‖) ≤ C₁ * (1 + |R|) := by
       have : ‖z‖ ≤ |R| := hz.trans (le_abs_self R)
-      calc C₁ * (1 + ‖z‖) ≤ |C₁| * (1 + ‖z‖) :=
-            mul_le_mul_of_nonneg_right (le_abs_self _) (by positivity)
-        _ ≤ |C₁| * (1 + |R|) := by gcongr
+      gcongr
     refine h.trans ?_
     rw [mul_assoc]
     exact mul_le_mul_of_nonneg_right h1
