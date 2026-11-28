@@ -85,8 +85,9 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
   says that the fibre `curveLift (· • v)` of the tautological line over `ℓ = [v]` crosses the
   divisor at `t = 0` with normal velocity `v`: read through
   `normalSpaceZeroSectionRealEquiv n hn ℓ`, the normal class of its real derivative at `0`
-  applied to `c : ℂ` is `c • v`. This is the form of the derivative hypothesis of the
-  slice lemma `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`; it follows
+  applied to `c : ℂ` is `c • v`. This is the derivative hypothesis of the slice lemma
+  `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`, with `m` the real
+  isomorphism `c ↦ c • v` followed by the inverse of that equivalence; it follows
   from `SymplecticGeometry.BlowupModel.mfderiv_blowdown_mfderiv_curveLift_smul`, the chain rule
   `mfderiv_blowdown_mfderiv_curveLift` of `Lift.lean` along these lifts.
 
