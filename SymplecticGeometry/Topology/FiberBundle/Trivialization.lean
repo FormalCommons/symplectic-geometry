@@ -35,6 +35,8 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
   `Φ (p, v) = (p, χ p v)` with each `χ p` a homeomorphism of `F`, the coordinate changes of the
   trivialization followed by `Φ⁻¹` are those of the original one composed with `χ b` or its
   inverse.
+* `Bundle.Trivialization.symm_apply_mk_coordChange`: reading a coordinate change from `e₁` to
+  `e₂` back through the inverse of `e₂` gives the inverse of `e₁`.
 * `Bundle.Trivialization.mapFiberHomeomorph`: the fibre `TauCeti.MapFiber proj b` over a point `b`
   of the base set of a trivialization, identified with the model fibre.
 * `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
@@ -244,6 +246,24 @@ theorem coordChange_transFiberwiseHomeomorph_symm_right (e' : Trivialization F p
 end Family
 
 end transFiberwiseHomeomorph
+
+section coordChange
+
+variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
+  {proj : Z → B}
+
+/-- Reading back through `e₂` the coordinate change from `e₁` to `e₂` gives the inverse of `e₁`:
+over a point `b` of both base sets, `e₂⁻¹ (b, e₁.coordChange e₂ b v) = e₁⁻¹ (b, v)`. This is
+Tau Ceti's `Bundle.Trivialization.symm_mk_coordChange`, for any projection `proj` rather than
+only for `Bundle.TotalSpace.proj`. -/
+theorem symm_apply_mk_coordChange (e₁ e₂ : Trivialization F proj) {b : B} (h₁ : b ∈ e₁.baseSet)
+    (h₂ : b ∈ e₂.baseSet) (v : F) :
+    e₂.toOpenPartialHomeomorph.symm (b, e₁.coordChange e₂ b v) =
+      e₁.toOpenPartialHomeomorph.symm (b, v) := by
+  rw [e₁.mk_coordChange e₂ h₁ h₂]
+  exact e₂.toOpenPartialHomeomorph.left_inv (e₂.mem_source.2 (by rwa [e₁.proj_symm_apply' h₁]))
+
+end coordChange
 
 section mapFiberHomeomorph
 
