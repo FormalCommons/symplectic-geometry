@@ -83,7 +83,7 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 ## Implementation notes
 
 That `d α` vanishes on vertical vectors is the case `G = Circle` of
-`SymplecticGeometry.IsConnectionForm.isSemibasic_gaugeCurvature`, applied to
+`TauCeti.PrincipalBundle.IsConnectionForm.isSemibasic_gaugeCurvature`, applied to
 `α ξ₀` through `SymplecticGeometry.isConnectionForm_mapCoeff_iff` and
 `TauCeti.gaugeCurvature_mapCoeff_toSpanSingleton`.
 
@@ -107,6 +107,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
+open TauCeti.PrincipalBundle (IsConnectionForm)
 open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
@@ -199,7 +200,8 @@ theorem isConnectionForm_mapCoeff_iff :
     rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
     exact toSpanSingleton_circleLieGenerator_apply _
   refine ⟨fun hA ↦ ⟨fun z ↦ (hpull z).mp (hA.mpullback_op_smul z), fun x ↦ ?_⟩,
-    fun hα ↦ ⟨fun g ↦ (hpull g).mpr (hα.mpullback_op_smul g), fun x ξ ↦ ?_⟩⟩
+    fun hα ↦ IsConnectionForm.of_mpullback_op_smul (fun x ξ ↦ ?_)
+      fun g ↦ (hpull g).mpr (hα.mpullback_op_smul g)⟩
   · refine smul_left_injective ℝ circleLieGenerator_ne_zero ?_
     simp only [one_smul]
     rw [← hval, hA.apply_rightFundamentalVectorField]

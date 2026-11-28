@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
-public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
+public import TauCeti.Geometry.Manifold.FiberBundle.Principal.Connection
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
@@ -27,13 +27,17 @@ Let `P` be a smooth principal `G`-bundle over `B`, with charted total space
 Write `R_g x = x • g` for the right action, `ξ^♯` for the fundamental vector field of `ξ ∈ 𝔤`
 and `Ad` for Tau Ceti's adjoint action `TauCeti.Lie.adjointContinuousLinearMap`.
 
-A **connection form** is a smooth `𝔤`-valued one-form `A` on the total space with
-`R_g^* A = Ad(g⁻¹) ∘ A` for every `g` and `A(ξ^♯) = ξ` for every `ξ`. A **tensorial** form of
-type `Ad` is a `𝔤`-valued `k`-form with the same equivariance that vanishes as soon as one of its
-arguments is vertical. Tensorial forms stand for the forms on `B` with values in the adjoint
-bundle `P ×_G 𝔤` (Tau Ceti's `TauCeti.AdjointBundle`, whose forms would be Tau Ceti's
-`TauCeti.SmoothBundleForm`); working with them on `P` needs no vector bundle structure on the
-adjoint bundle.
+Connection forms are Tau Ceti's `TauCeti.PrincipalBundle.IsConnectionForm`: smooth `𝔤`-valued
+one-forms `A` on the total space with `A(ξ^♯) = ξ` for every `ξ`, and equivariant at every point.
+This file adds what the library needs on top of them: the equivariance as an identity of forms,
+`R_g^* A = Ad(g⁻¹) ∘ A`, finite affine combinations, tensorial forms and the affine structure of
+connection forms over them, and horizontal spaces.
+
+A **tensorial** form of type `Ad` is a `𝔤`-valued `k`-form with the same equivariance that
+vanishes as soon as one of its arguments is vertical. Tensorial forms stand for the forms on `B`
+with values in the adjoint bundle `P ×_G 𝔤` (Tau Ceti's `TauCeti.AdjointBundle`, whose forms
+would be Tau Ceti's `TauCeti.SmoothBundleForm`); working with them on `P` needs no vector bundle
+structure on the adjoint bundle.
 
 The **horizontal space** of a one-form `A` at `x` is the kernel of `A_x`. For a connection form it
 is a complement of the vertical space `ker dπ_x`, and the action carries horizontal spaces to
@@ -42,40 +46,43 @@ form are a smooth Ehresmann connection on `π`.
 
 ## Main definitions
 
-* `SymplecticGeometry.IsConnectionForm A`: `A` is a connection form.
 * `SymplecticGeometry.IsTensorialForm a`: `a` is a tensorial form of type `Ad`.
 * `SymplecticGeometry.horizontal A x`: the kernel of `A` at `x`.
 
 ## Main results
 
+* `TauCeti.PrincipalBundle.IsConnectionForm.mpullback_op_smul`,
+  `TauCeti.PrincipalBundle.IsConnectionForm.of_mpullback_op_smul`: the equivariance of a
+  connection form as an identity of forms, and the converse construction.
+* `TauCeti.PrincipalBundle.isConnectionForm_sum_smul`: a combination of connection forms whose
+  weights sum to one is a connection form.
 * `SymplecticGeometry.IsTensorialForm.add`, `SymplecticGeometry.IsTensorialForm.smul`, … :
-  tensorial forms are a vector space.
-* `SymplecticGeometry.isConnectionForm_sum_smul`: a combination of connection forms whose weights
-  sum to one is a connection form.
-* `SymplecticGeometry.IsConnectionForm.apply_mfderiv_op_smul`,
-  `SymplecticGeometry.IsTensorialForm.apply_mfderiv_op_smul`: the equivariance at a point.
-* `SymplecticGeometry.IsConnectionForm.add_isTensorialForm`,
-  `SymplecticGeometry.IsConnectionForm.isTensorialForm_sub`,
-  `SymplecticGeometry.IsConnectionForm.existsUnique_eq_add`: the connection forms are an affine
-  space over the tensorial one-forms.
+  tensorial forms are a vector space; `SymplecticGeometry.IsTensorialForm.apply_mfderiv_op_smul`:
+  their equivariance at a point.
+* `TauCeti.PrincipalBundle.IsConnectionForm.add_isTensorialForm`,
+  `TauCeti.PrincipalBundle.IsConnectionForm.isTensorialForm_sub`,
+  `TauCeti.PrincipalBundle.IsConnectionForm.existsUnique_eq_add`: the connection forms are an
+  affine space over the tensorial one-forms.
 * `SymplecticGeometry.isTensorialForm_iff_isBasic`: for a commutative structure group, the
   tensorial forms are the forms that are basic for the projection (`TauCeti.RoughForm.IsBasic`).
-* `SymplecticGeometry.IsConnectionForm.isCompl_horizontal`: the horizontal space of a connection
-  form is a complement of the vertical space.
-* `SymplecticGeometry.IsConnectionForm.mfderiv_op_smul_mem_horizontal`: the action preserves the
-  horizontal spaces.
-* `SymplecticGeometry.IsConnectionForm.isEhresmannConnection_horizontal`: for finite-dimensional
-  `B` and `G`, the horizontal spaces of a connection form are a smooth Ehresmann connection
-  (Tau Ceti's `TauCeti.IsEhresmannConnection`) on the projection; they are smooth because they
-  are the kernels of `A`, which is onto `𝔤` at every point
+* `TauCeti.PrincipalBundle.IsConnectionForm.isCompl_horizontal`: the horizontal space of a
+  connection form is a complement of the vertical space.
+* `TauCeti.PrincipalBundle.IsConnectionForm.mfderiv_op_smul_mem_horizontal`: the action preserves
+  the horizontal spaces.
+* `TauCeti.PrincipalBundle.IsConnectionForm.isEhresmannConnection_horizontal`: for
+  finite-dimensional `B` and `G`, the horizontal spaces of a connection form are a smooth
+  Ehresmann connection (Tau Ceti's `TauCeti.IsEhresmannConnection`) on the projection; they are
+  smooth because they are the kernels of `A`, which is onto `𝔤` at every point
   (`TauCeti.SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv`).
 
 ## Implementation notes
 
 The forms take their values in the model space `EG` of `G`, which is `𝔤` by definition and
-carries the norm that `SmoothForm` needs, as Tau Ceti's connection forms
-(`TauCeti.PrincipalBundle.IsConnectionForm`) do. The adjoint action enters as
-`GroupLieAlgebra.adjointL IG g : EG →L[ℝ] EG`.
+carries the norm that `SmoothForm` needs, as Tau Ceti's connection forms do. The adjoint action
+enters the form-level statements as `GroupLieAlgebra.adjointL IG g : EG →L[ℝ] EG`. The statements
+about connection forms are in Tau Ceti's namespace `TauCeti.PrincipalBundle.IsConnectionForm`, so
+that dot notation finds them. The proof of `TauCeti.PrincipalBundle.isConnectionForm_sum_smul`
+follows that of Tau Ceti's `TauCeti.PrincipalBundle.IsConnectionForm.smul_add_smul`.
 
 ## References
 
@@ -93,8 +100,6 @@ noncomputable section
 open Bundle Manifold Module MulOpposite TauCeti TauCeti.Lie
 open scoped Manifold ContDiff
 
-namespace SymplecticGeometry
-
 variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
   {EG HG G : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
@@ -104,22 +109,9 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
   [ContMDiffFiberBundle ∞ G P IB IG]
 
-/-! ### Connection forms and tensorial forms -/
+namespace SymplecticGeometry
 
-/-- A **connection form** on a smooth principal `G`-bundle `P`: a smooth one-form `A` on the total
-space with values in the Lie algebra `𝔤` of `G` that is equivariant, `R_g^* A = Ad(g⁻¹) ∘ A` for
-the right action `R_g` of every `g : G`, and takes the value `ξ` on the fundamental vector field
-of every `ξ ∈ 𝔤`. -/
-structure IsConnectionForm
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) : Prop where
-  /-- A connection form is equivariant: its pull-back by the action of `g` is its image under
-  `Ad(g⁻¹)`. -/
-  mpullback_op_smul (g : G) :
-    SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) A = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A
-  /-- A connection form takes the value `ξ` on the fundamental vector field of `ξ`. -/
-  apply_rightFundamentalVectorField (x : ManifoldTotalSpace G P) (ξ : GroupLieAlgebra IG G) :
-    A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ
+/-! ### Connection forms and tensorial forms -/
 
 /-- A **tensorial form** of type `Ad` on a smooth principal `G`-bundle `P`: a smooth `k`-form `a`
 on the total space with values in the Lie algebra `𝔤` of `G` that is equivariant,
@@ -181,24 +173,6 @@ theorem sub (ha : IsTensorialForm a) (hb : IsTensorialForm b) : IsTensorialForm 
 
 end IsTensorialForm
 
-/-- **Affine combinations of connection forms.** A combination `∑ i ∈ s, c i • A i` of
-connection forms whose weights `c i` sum to `1` is a connection form. -/
-theorem isConnectionForm_sum_smul {ι : Type*} (s : Finset ι)
-    {A : ι → SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
-    (hA : ∀ i ∈ s, IsConnectionForm (A i)) {c : ι → ℝ} (hc : ∑ i ∈ s, c i = 1) :
-    IsConnectionForm (∑ i ∈ s, c i • A i) where
-  mpullback_op_smul g := by
-    simp only [map_sum, map_smul]
-    exact Finset.sum_congr rfl fun i hi ↦ by rw [(hA i hi).mpullback_op_smul]
-  apply_rightFundamentalVectorField x ξ := by
-    rw [SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply,
-      Finset.sum_congr rfl fun i hi ↦ by
-        rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
-          (hA i hi).apply_rightFundamentalVectorField]]
-    -- The weights act on `ξ` as an element of the model space `EG`.
-    have key (y : EG) : ∑ i ∈ s, c i • y = y := by rw [← Finset.sum_smul, hc, one_smul]
-    exact key ξ
-
 /-! ### Horizontal spaces -/
 
 omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
@@ -227,21 +201,70 @@ theorem mem_horizontal_iff
   rw [horizontal_def, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
     SmoothForm.degreeOneEquiv_apply_apply_vec]
 
+end SymplecticGeometry
+
+/-! ### Connection forms -/
+
+namespace TauCeti.PrincipalBundle
+
+open SymplecticGeometry
+
+omit [PrincipalBundle G P] in
+/-- **Affine combinations of connection forms.** A combination `∑ i ∈ s, c i • A i` of
+connection forms whose weights `c i` sum to `1` is a connection form. -/
+theorem isConnectionForm_sum_smul {ι : Type*} (s : Finset ι)
+    {A : ι → SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
+    (hA : ∀ i ∈ s, IsConnectionForm (A i)) {c : ι → ℝ} (hc : ∑ i ∈ s, c i = 1) :
+    IsConnectionForm (∑ i ∈ s, c i • A i) where
+  apply_rightFundamentalVectorField x ξ := by
+    rw [SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply,
+      Finset.sum_congr rfl fun i hi ↦ by
+        rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
+          (hA i hi).apply_rightFundamentalVectorField]]
+    -- The weights act on `ξ` as an element of the model space `EG`.
+    have key (y : EG) : ∑ i ∈ s, c i • y = y := by rw [← Finset.sum_smul, hc, one_smul]
+    exact key ξ
+  apply_mfderiv_op_smul g x v := by
+    rw [SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply,
+      SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply]
+    -- The adjoint action is read as a linear map of the model space, where the sum lives.
+    refine (Finset.sum_congr rfl fun i hi ↦ ?_).trans
+      (map_sum (adjointContinuousLinearMap (I := IG) g⁻¹ : EG →L[ℝ] EG) _ _).symm
+    rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
+      SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
+      (hA i hi).apply_mfderiv_op_smul]
+    exact ((adjointContinuousLinearMap (I := IG) g⁻¹ : EG →L[ℝ] EG).map_smul _ _).symm
+
 namespace IsConnectionForm
 
 variable {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
 
-/-- The equivariance of a connection form at a point: its value at `x • g` on the image of a
-tangent vector `v` under the derivative of the action of `g` is `Ad(g⁻¹)` applied to its value at
-`x` on `v`. -/
-theorem apply_mfderiv_op_smul (hA : IsConnectionForm A) (g : G) (x : ManifoldTotalSpace G P)
-    (v : TangentSpace (IB.prod IG) x) :
-    A.val (op g • x) ![mfderiv (IB.prod IG) (IB.prod IG) (fun y ↦ op g • y) x v] =
-      GroupLieAlgebra.adjointL IG g⁻¹ (A.val x ![v]) := by
-  have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (hA.mpullback_op_smul g)) x) ![v]
-  simp only [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
-    at h
-  exact h
+/-- A one-form that takes the value `ξ` on the fundamental vector field of every `ξ` and whose
+pull-back by the action of every `g` is its image under `Ad(g⁻¹)` is a connection form. -/
+theorem of_mpullback_op_smul
+    (h₁ : ∀ (x : ManifoldTotalSpace G P) (ξ : GroupLieAlgebra IG G),
+      A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ)
+    (h₂ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
+      (contMDiff_const_smul (op g)) A =
+        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A) :
+    IsConnectionForm A where
+  apply_rightFundamentalVectorField := h₁
+  apply_mfderiv_op_smul g x v := by
+    have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (h₂ g)) x) ![v]
+    simp only [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
+      GroupLieAlgebra.adjointL_apply] at h
+    exact h
+
+/-- **The equivariance of a connection form, as forms.** The pull-back of a connection form `A`
+by the action of `g` is its image `Ad(g⁻¹) ∘ A` under the adjoint action of `g⁻¹`. -/
+theorem mpullback_op_smul (hA : IsConnectionForm A) (g : G) :
+    SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
+      (contMDiff_const_smul (op g)) A =
+        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A := by
+  refine SmoothBundleForm.ext fun x v ↦ ?_
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by rw [Subsingleton.elim i 0]; rfl⟩
+  rw [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
+    hA.apply_mfderiv_op_smul, GroupLieAlgebra.adjointL_apply]
 
 /-- The horizontal space of a connection form is a complement of the vertical space, the kernel
 of the derivative of the projection. -/
@@ -263,13 +286,16 @@ theorem isCompl_horizontal {n : ℕ∞ω} (hA : IsConnectionForm A) (x : Manifol
   rw [horizontal_def]
   exact h.symm
 
+omit [PrincipalBundle G P] in
 /-- The right action of `G` on the total space carries the horizontal spaces of a connection form
 to horizontal spaces. -/
 theorem mfderiv_op_smul_mem_horizontal (hA : IsConnectionForm A) (g : G)
     {x : ManifoldTotalSpace G P} {v : TangentSpace (IB.prod IG) x} (hv : v ∈ horizontal A x) :
     mfderiv (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y) x v ∈
       horizontal A (op g • x) := by
-  rw [mem_horizontal_iff, hA.apply_mfderiv_op_smul, mem_horizontal_iff.mp hv, map_zero]
+  rw [mem_horizontal_iff, hA.apply_mfderiv_op_smul, mem_horizontal_iff.mp hv]
+  -- The adjoint action is read as a linear map of the model space, where the form takes values.
+  exact map_zero (adjointContinuousLinearMap (I := IG) g⁻¹ : EG →L[ℝ] EG)
 
 /-- **The horizontal spaces of a connection form are a smooth Ehresmann connection** on the
 projection of the principal bundle to its base: they are complements of the vertical spaces and
@@ -295,17 +321,16 @@ theorem isEhresmannConnection_horizontal [FiniteDimensional ℝ EB] [FiniteDimen
 /-- Adding a tensorial one-form to a connection form gives a connection form. -/
 theorem add_isTensorialForm (hA : IsConnectionForm A)
     {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
-    (ha : IsTensorialForm a) : IsConnectionForm (A + a) where
-  mpullback_op_smul g := by
-    rw [map_add, map_add, hA.mpullback_op_smul, ha.mpullback_op_smul]
-  apply_rightFundamentalVectorField x ξ := by
+    (ha : IsTensorialForm a) : IsConnectionForm (A + a) :=
+  of_mpullback_op_smul (fun x ξ ↦ by
     have ha0 : a.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = 0 :=
       ha.isSemibasic.apply_eq_zero x _ 0 (by
         rw [ManifoldTotalSpace.coe_projContMDiffMap]
         exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ)
     rw [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
       hA.apply_rightFundamentalVectorField, ha0]
-    exact add_zero _
+    exact add_zero _) fun g ↦ by
+    rw [map_add, map_add, hA.mpullback_op_smul, ha.mpullback_op_smul]
 
 /-- The difference of two connection forms is a tensorial one-form. -/
 theorem isTensorialForm_sub (hA : IsConnectionForm A)
@@ -335,6 +360,10 @@ theorem existsUnique_eq_add (hA : IsConnectionForm A)
     fun a ⟨_, h⟩ ↦ by rw [h, add_sub_cancel_left]⟩
 
 end IsConnectionForm
+
+end TauCeti.PrincipalBundle
+
+namespace SymplecticGeometry
 
 /-! ### Tensorial forms for a commutative structure group -/
 
