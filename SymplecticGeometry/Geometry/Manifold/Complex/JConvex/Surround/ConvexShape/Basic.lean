@@ -523,6 +523,14 @@ theorem contDiffAt_shapeGraph {n : WithTop ℕ∞} {s t : ℝ} (hχ : ContDiffAt
   exact ((Real.contDiffAt_sqrt hs.ne').neg.comp (s, t) contDiffAt_fst).add
     ((hχ.comp t (Real.contDiffAt_sqrt ht.ne')).comp (s, t) contDiffAt_snd)
 
+/-- `shapeGraph χ` is differentiable at `(s, t)` with `s, t > 0` if `χ` is differentiable
+at `√t`. -/
+theorem differentiableAt_shapeGraph {s t : ℝ} (hχ : DifferentiableAt ℝ χ (√t)) (hs : 0 < s)
+    (ht : 0 < t) : DifferentiableAt ℝ (shapeGraph χ) (s, t) := by
+  rw [shapeGraph_eq_comp_fst_add_comp_snd]
+  exact ((Real.hasDerivAt_sqrt hs.ne').neg.differentiableAt.comp _ differentiableAt_fst).add
+    ((hχ.comp _ (Real.hasDerivAt_sqrt ht.ne').differentiableAt).comp _ differentiableAt_snd)
+
 /-- The differential of `shapeGraph χ` at `(s, t)` with `s, t > 0`:
 `(a, b) ↦ -a / (2 √s) + b χ'(√t) / (2 √t)`. -/
 theorem fderiv_shapeGraph_apply {s t : ℝ} (hχ : DifferentiableAt ℝ χ (√t)) (hs : 0 < s)
@@ -570,14 +578,10 @@ theorem fderiv_shapeGraph_comp_shape_apply
     fderiv ℝ (shapeGraph χ ∘ shape) p v =
       -fderiv ℝ (fun q ↦ (shape q).1) p v / (2 * √(shape p).1) +
         fderiv ℝ (fun q ↦ (shape q).2) p v * deriv χ (√(shape p).2) / (2 * √(shape p).2) := by
-  have hH : DifferentiableAt ℝ (shapeGraph χ) (shape p) := by
-    rw [shapeGraph_eq_comp_fst_add_comp_snd]
-    exact ((Real.hasDerivAt_sqrt hs.ne').neg.differentiableAt.comp _ differentiableAt_fst).add
-      ((hχ.comp _ (Real.hasDerivAt_sqrt ht.ne').differentiableAt).comp _ differentiableAt_snd)
   have h := fderiv_shapeGraph_apply hχ hs ht (fderiv ℝ (fun q ↦ (shape q).1) p v)
     (fderiv ℝ (fun q ↦ (shape q).2) p v)
   rw [Prod.mk.eta] at h
-  rw [fderiv_comp_shape_apply hH, h]
+  rw [fderiv_comp_shape_apply (differentiableAt_shapeGraph hχ hs ht), h]
 
 /-- `shapeGraph χ` vanishes at the point `(χ r ², r ²)` of the curve of the shape, for
 `χ r ≥ 0` and `r ≥ 0`. -/
@@ -733,6 +737,14 @@ theorem shapeGraphOverR_eq_neg_comp_swap (ρ : ℝ → ℝ) :
     shapeGraphOverR ρ = -(shapeGraph ρ ∘ Prod.swap) :=
   funext (shapeGraphOverR_eq_neg_shapeGraph_swap ρ)
 
+/-- `shapeGraphOverR ρ` is minus `shapeGraph ρ` composed with the continuous linear equivalence
+`prodComm` that exchanges the two coordinates; the form to differentiate through. -/
+theorem shapeGraphOverR_eq_neg_comp_prodComm (ρ : ℝ → ℝ) :
+    shapeGraphOverR ρ = -(shapeGraph ρ ∘ ContinuousLinearEquiv.prodComm ℝ ℝ ℝ) :=
+  funext fun q ↦ by
+    rw [shapeGraphOverR_eq_neg_shapeGraph_swap, Pi.neg_apply, Function.comp_apply,
+      ContinuousLinearEquiv.prodComm_apply]
+
 /-- `shapeGraphOverR ρ` is a separated sum of the functions `s ↦ -ρ (√s)` and `t ↦ √t`. -/
 theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
     shapeGraphOverR ρ = (-(ρ ∘ fun s ↦ √s)) ∘ Prod.fst + (fun t ↦ √t) ∘ Prod.snd := by
@@ -747,17 +759,21 @@ theorem contDiffAt_shapeGraphOverR {ρ : ℝ → ℝ} {n : WithTop ℕ∞} {s t 
   exact ((contDiffAt_shapeGraph hρ ht hs).comp (f := Prod.swap) (s, t)
     (contDiff_snd.prodMk contDiff_fst).contDiffAt).neg
 
+/-- `shapeGraphOverR ρ` is differentiable at `(s, t)` with `s, t > 0` if `ρ` is differentiable
+at `√s`. -/
+theorem differentiableAt_shapeGraphOverR {ρ : ℝ → ℝ} {s t : ℝ} (hρ : DifferentiableAt ℝ ρ (√s))
+    (hs : 0 < s) (ht : 0 < t) : DifferentiableAt ℝ (shapeGraphOverR ρ) (s, t) := by
+  rw [shapeGraphOverR_eq_neg_comp_swap]
+  exact ((differentiableAt_shapeGraph hρ ht hs).comp (f := Prod.swap) (s, t)
+    (differentiableAt_snd.prodMk differentiableAt_fst)).neg
+
 /-- The differential of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0`:
 `(a, b) ↦ -a ρ'(√s) / (2 √s) + b / (2 √t)`. -/
 theorem fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ : DifferentiableAt ℝ ρ (√s))
     (hs : 0 < s) (ht : 0 < t) (a b : ℝ) :
     fderiv ℝ (shapeGraphOverR ρ) (s, t) (a, b) =
       -a * deriv ρ (√s) / (2 * √s) + b / (2 * √t) := by
-  -- The swap as the continuous linear equivalence `prodComm`, to differentiate through it.
-  have hswap : (Prod.swap : ℝ × ℝ → ℝ × ℝ) = ContinuousLinearEquiv.prodComm ℝ ℝ ℝ :=
-    funext fun q ↦ (ContinuousLinearEquiv.prodComm_apply ℝ ℝ ℝ q).symm
-  rw [shapeGraphOverR_eq_neg_comp_swap, hswap, fderiv_neg,
-    ContinuousLinearEquiv.comp_right_fderiv]
+  rw [shapeGraphOverR_eq_neg_comp_prodComm, fderiv_neg, ContinuousLinearEquiv.comp_right_fderiv]
   simp [fderiv_shapeGraph_apply hρ ht hs]
   ring
 
@@ -768,17 +784,13 @@ theorem fderiv_fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ 
     fderiv ℝ (fderiv ℝ (shapeGraphOverR ρ)) (s, t) (a, b) (a', b') =
       a * a' * (deriv ρ (√s) / (4 * s * √s) - iteratedDeriv 2 ρ (√s) / (4 * s)) -
         b * b' / (4 * t * √t) := by
-  have hf : ContDiffAt ℝ 2 (-(ρ ∘ fun s ↦ √s)) s := (hρ.comp s (Real.contDiffAt_sqrt hs.ne')).neg
-  have hg : ContDiffAt ℝ 2 (fun t ↦ √t) t := Real.contDiffAt_sqrt ht.ne'
-  have h2f : iteratedDeriv 2 (-(ρ ∘ fun s ↦ √s)) s =
-      deriv ρ (√s) / (4 * s * √s) - iteratedDeriv 2 ρ (√s) / (4 * s) := by
-    rw [iteratedDeriv_neg, Real.iteratedDeriv_two_comp_sqrt hρ hs]
-    ring
-  rw [shapeGraphOverR_eq_comp_fst_add_comp_snd, fderiv_fderiv_comp_fst_add_comp_snd hf hg]
-  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    ContinuousLinearMap.coe_prodMap', Prod.map_fst, Prod.map_snd,
-    ContinuousLinearMap.coprodEquivL_apply_apply,
-    fderiv_fderiv_apply_eq_smul_iteratedDeriv, h2f, Real.iteratedDeriv_two_sqrt ht, smul_eq_mul]
+  have hd : fderiv ℝ (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ) =
+      fun _ ↦ (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ : ℝ × ℝ →L[ℝ] ℝ × ℝ) :=
+    funext fun _ ↦ ContinuousLinearEquiv.fderiv _
+  rw [shapeGraphOverR_eq_neg_comp_prodComm, TauCeti.fderiv_fderiv_neg, neg_apply, neg_apply,
+    TauCeti.fderiv_fderiv_comp_apply (by simpa using contDiffAt_shapeGraph hρ ht hs)
+      (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ).contDiff.contDiffAt]
+  simp [hd, fderiv_fderiv_shapeGraph_apply hρ ht hs]
   ring
 
 /-- The differential of `shapeGraphOverR ρ ∘ shape` at `p` with `s = (shape p).1 > 0` and
@@ -791,15 +803,10 @@ theorem fderiv_shapeGraphOverR_comp_shape_apply {ρ : ℝ → ℝ}
     fderiv ℝ (shapeGraphOverR ρ ∘ shape) p v =
       -fderiv ℝ (fun q ↦ (shape q).1) p v * deriv ρ (√(shape p).1) / (2 * √(shape p).1) +
         fderiv ℝ (fun q ↦ (shape q).2) p v / (2 * √(shape p).2) := by
-  have hH : DifferentiableAt ℝ (shapeGraphOverR ρ) (shape p) := by
-    rw [shapeGraphOverR_eq_comp_fst_add_comp_snd]
-    exact ((hρ.comp _ (Real.hasDerivAt_sqrt hs.ne').differentiableAt).neg.comp _
-      differentiableAt_fst).add
-      ((Real.hasDerivAt_sqrt ht.ne').differentiableAt.comp _ differentiableAt_snd)
   have h := fderiv_shapeGraphOverR_apply hρ hs ht (fderiv ℝ (fun q ↦ (shape q).1) p v)
     (fderiv ℝ (fun q ↦ (shape q).2) p v)
   rw [Prod.mk.eta] at h
-  rw [fderiv_comp_shape_apply hH, h]
+  rw [fderiv_comp_shape_apply (differentiableAt_shapeGraphOverR hρ hs ht), h]
 
 /-- `shapeGraphOverR ρ` vanishes at the point `(R ², ρ R ²)` of the curve `r = ρ (R)`, for
 `R ≥ 0` and `ρ R ≥ 0`. -/
