@@ -233,9 +233,10 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul [IsM
   have hdδ : mextDeriv (τ₁ - τ₂) x = mextDeriv τ₁ x - mextDeriv τ₂ x :=
     mextDeriv_sub (τ₁.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt (hτ₁ x hx))
       (τ₂.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt (hτ₂ x hx))
-  -- `d (f ∘ proj)` is semibasic, and `τ₁`, `τ₂` agree on vertical pairs.
+  -- The difference `τ₁ - τ₂` vanishes on vertical pairs, and `d (f ∘ proj)` is semibasic.
   have hwedge := (RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp (hf x hx)
-    (hproj x hx)).wedge_apply_eq_of_forall_apply_eq (fun u w hu hw ↦ heq x hx u hu w hw) hη₁ hη₂ v
+    (hproj x hx)).wedge_apply_eq_zero (ψ := τ₁ - τ₂)
+      (fun u w hu hw ↦ sub_eq_zero.2 (heq x hx u hu w hw)) hη₁ hη₂ v
   rw [hblend, mextDeriv_add
       (RoughForm.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt
         (fun y ↦ (f ∘ proj) y • (τ₁ - τ₂) y) (hg.smul_section hδ))
@@ -245,10 +246,7 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul [IsM
   -- The derivative formula reads the arguments in degree `0 + 1 + 2`, through `Fin.cast`.
   change (mextDeriv (RoughForm.ofFunction IM (f ∘ proj))).wedge (τ₁ - τ₂) x ![η₁, η₂, v] +
     _ + _ = 0
-  -- Split `τ₁ - τ₂` inside the wedge; the two halves cancel by `hwedge`.
-  rw [sub_eq_add_neg τ₁, ← neg_one_smul ℝ τ₂, RoughForm.wedge_add_right,
-    RoughForm.wedge_smul_right, Pi.add_apply, ContinuousAlternatingMap.add_apply, Pi.smul_apply,
-    ContinuousAlternatingMap.smul_apply, hwedge]
+  rw [hwedge]
   simp
 
 section Pullback
