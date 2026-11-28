@@ -2287,7 +2287,7 @@ that flow are integral curves), `mvfderiv_modelHandle_modelHandleField` (the
 formula above), `isGradientLike_modelHandle_modelHandleField`,
 `stableSubspace_modelHandleField`
 (`((modelHandleField k m).stableSubspace : Set V) = range (modelDisc k m)`,
-through Tau Ceti's `coe_stableSubspace` and `mem_stableSubspace`), the
+by `stableSubspace_prodMap` in real coordinates), the
 isotropy
 of the core, `range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
 modelDisc k m '' sphere 0 √(c / a)` for `0 < c` (the attaching sphere of
