@@ -491,9 +491,9 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
 - `mpullback_unitary_fubiniStudyForm (U : Matrix.unitaryGroup (Fin (n + 1)) ℂ)`:
   invariance under `Projectivization.mapDiffeomorph
   (Matrix.UnitaryGroup.toLinearEquiv U) ∞` (part 4, first sentence).
-- `compatible_fubiniStudyForm : (fubiniStudyForm n).Compatible J_P`, upstairs:
-  `mkNonzero` is holomorphic, $\rho$ is $J_0$-invariant, and
-  $\rho(v,iv)>0$ for $v\notin\mathbb Cz$ (the kernel of `ker_mfderiv_mkNonzero`).
+- `compatible_fubiniStudyForm : (fubiniStudyForm n).Compatible J_P`, from
+  Tau Ceti's `ComplexProjectiveSpace.compatible_fubiniStudyForm`, pulled back
+  along the holomorphic `(diffeomorphProjectivization n).symm`.
 - `isKahler_fubiniStudyForm : (fubiniStudyForm n).IsKahler J_P`, with
   `nijenhuis_ofComplexManifold` (part 3, first two sentences).
 - `mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1))`: along the
