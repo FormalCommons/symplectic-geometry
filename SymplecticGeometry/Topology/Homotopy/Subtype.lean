@@ -19,6 +19,11 @@ contraction of a subtype that keeps a smaller subtype contracts it too.
 Tau Ceti's `ContinuousMap.HomotopyRel.restrictInvariant` restricts a homotopy from the identity
 of `X` to an invariant set `S ⊆ X`; here the space is itself a subtype `{x // P x}`, and the
 restriction is to the subtype `{x // Q x}` of `X`, not to a set of `{x // P x}`.
+
+The construction of `restrictSubtype` and its proofs adapt Tau Ceti's linear
+`TauCeti.SymplecticForm.Compatible.compatibleCayleyContraction`
+(`TauCeti/Geometry/Symplectic/Cayley/Contractible.lean`), with the same steps for an arbitrary
+based contraction of a subtype that keeps a smaller subtype.
 -/
 
 public section
