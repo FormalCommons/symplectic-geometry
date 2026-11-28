@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+import SymplecticGeometry.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import TauCeti.Analysis.Calculus.ContDiff.IsOpen
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
@@ -55,13 +56,11 @@ theorem ContDiffOn.exists_contDiff_norm_iteratedFDeriv_sub_lt {f : E → F} {n :
     ∃ g : E → F, ContDiff ℝ ∞ g ∧
       (∀ k ≤ n, ∀ x ∈ K, ‖iteratedFDeriv ℝ k g x - iteratedFDeriv ℝ k f x‖ < ε) ∧
       g =ᶠ[𝓝ˢ C] f := by
-  obtain ⟨U', hU'o, hKU', hU'U⟩ := (mem_nhdsSet_iff_exists).1 hU
-  obtain ⟨V', hV'o, hCV', hV'V⟩ := (mem_nhdsSet_iff_exists).1 hV
   -- `C^n` and smooth extensions of `f` from near `K` and from near `C`.
-  obtain ⟨f₂, hf₂, -, -, -, hf₂K⟩ :=
-    (hf.mono hU'U).exists_contDiff_eventuallyEq_on_isCompact hK hU'o hKU'
-  obtain ⟨f₀, hf₀, -, -, -, hf₀C⟩ :=
-    (hfV.mono hV'V).exists_contDiff_eventuallyEq_on_isCompact hC hV'o hCV'
+  obtain ⟨f₂, hf₂, hf₂K⟩ := hf.exists_contDiff_eventuallyEq_nhdsSet hK hU
+  obtain ⟨f₀, hf₀, hf₀C⟩ := hfV.exists_contDiff_eventuallyEq_nhdsSet hC hV
+  replace hf₂K : ∀ x ∈ K, f₂ =ᶠ[𝓝 x] f := eventually_nhdsSet_iff_forall.1 hf₂K
+  replace hf₀C : ∀ x ∈ C, f₀ =ᶠ[𝓝 x] f := eventually_nhdsSet_iff_forall.1 hf₀C
   -- A cutoff equal to `1` near `C`, supported where `f₀` agrees with `f`.
   set W : Set E := {x | f₀ =ᶠ[𝓝 x] f}
   have hWo : IsOpen W := isOpen_setOfPred_eventually_nhds
