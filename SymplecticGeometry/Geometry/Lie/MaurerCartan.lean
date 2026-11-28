@@ -74,7 +74,7 @@ theorem leftMaurerCartanForm_eq_leftInvariantSmoothForm :
       (ContinuousAlternatingMap.ofSubsingleton ℝ (GroupLieAlgebra I G) E 0
         (ContinuousLinearMap.id ℝ E)) := by
   refine SmoothBundleForm.ext fun g u ↦ ?_
-  have hu : u = ![u 0] := by ext i; fin_cases i; rfl
+  have hu : u = ![u 0] := (FinVec.etaExpand_eq u).symm
   rw [leftInvariantSmoothForm_val, leftInvariantForm_apply, hu, leftMaurerCartanForm_apply]
   -- The identity of `E` applied to the translated vector is that vector, by definition.
   rfl
