@@ -41,6 +41,8 @@ is `SymplecticGeometry.smoothedMax`.
   jointly continuous in the parameter, since the margins and bounds above are then uniform.
   `SymplecticGeometry.exists_pos_forall_isConvexShapeAt_smoothedMax` is the pointwise statement
   behind both: `δ₀` depends only on the margin and the two bounds, not on the shapes.
+  `SymplecticGeometry.isConvexShapeAt_smoothedMax_of_imp` adds the points where the two pieces
+  are more than the width apart, where the smoothed maximum is one of them near `r`.
 * `SymplecticGeometry.min_le_deriv_smoothedMax_div_sub_one_div` and
   `SymplecticGeometry.min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div`: the
   smoothed maximum keeps the smaller of the two margins in (4.3), and in the case `σ = r` of
@@ -229,6 +231,25 @@ theorem isConvexShapeAt_smoothedMax {χ₁ χ₂ : ℝ → ℝ} {δ : ℝ} (h₁
   exact isConvexShapeAt_iff.2 ⟨hc₁.pos, hc₁.pos_value.trans_le
     ((le_max_left _ _).trans (max_le_smoothedMax hδ _ _)),
     one_div_smoothedMax_lt_deriv_div h₁ h₂ hδ hc₁ hc₂, by linarith⟩
+
+/-- **The smoothed maximum of two shapes, piece by piece.** Let `χ₁`, `χ₂` be `C²` at `r` and
+`δ > 0`. Suppose that `χ₁` is an `i`-convex shape at `r` if `χ₂ r ≤ χ₁ r + δ`, that `χ₂` is one
+if `χ₁ r ≤ χ₂ r + δ`, and that `δ (χ₁' r + χ₂' r) ≤ 2 r` if `|χ₁ r - χ₂ r| ≤ δ`. Then
+`r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` is an `i`-convex shape at `r`: near `r` it is one of the pieces
+where they are more than `δ` apart, and `isConvexShapeAt_smoothedMax` applies elsewhere. -/
+theorem isConvexShapeAt_smoothedMax_of_imp {χ₁ χ₂ : ℝ → ℝ} {δ : ℝ} (h₁ : ContDiffAt ℝ 2 χ₁ r)
+    (h₂ : ContDiffAt ℝ 2 χ₂ r) (hδ : 0 < δ) (hc₁ : χ₂ r ≤ χ₁ r + δ → IsConvexShapeAt χ₁ r)
+    (hc₂ : χ₁ r ≤ χ₂ r + δ → IsConvexShapeAt χ₂ r)
+    (hδr : |χ₁ r - χ₂ r| ≤ δ → δ * (deriv χ₁ r + deriv χ₂ r) ≤ 2 * r) :
+    IsConvexShapeAt (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r := by
+  rcases lt_or_ge (χ₂ r + δ) (χ₁ r) with h | h
+  · exact (hc₁ (by linarith)).congr_of_eventuallyEq
+      (smoothedMax_eventuallyEq_left_of_continuousAt hδ h₁.continuousAt h₂.continuousAt h)
+  rcases lt_or_ge (χ₁ r + δ) (χ₂ r) with h' | h'
+  · exact (hc₂ (by linarith)).congr_of_eventuallyEq
+      (smoothedMax_eventuallyEq_right_of_continuousAt hδ h₁.continuousAt h₂.continuousAt h')
+  exact isConvexShapeAt_smoothedMax h₁ h₂ hδ (hc₁ h') (hc₂ h)
+    (hδr (abs_le.2 ⟨by linarith, by linarith⟩))
 
 /-- **A chain of smoothed maxima of `i`-convex shapes.** Let `δ > 0`, and let `A 0, …, A n` be
 `C²` at `r` and `i`-convex shapes at `r` with slopes at most `G` there, where `δ G ≤ r`. Then the

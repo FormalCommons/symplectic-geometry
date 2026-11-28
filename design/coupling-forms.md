@@ -192,7 +192,7 @@ Holonomy around loops that bound discs. About 450 lines.
   diffeotopy `TauCeti.Diffeotopy IF ∞ F` whose slice at `s` is
   `hD.parallelTransportIn e e (fun t ↦ Δ (s, t)) 0 1`. It starts at the
   identity since $\Delta(0,\cdot)$ is constant (`parallelTransport_const`), and is
-  jointly smooth by `contMDiffOn_parallelTransport_param`. API:
+  jointly smooth by `contMDiffOn_parallelTransportIn_param`. API:
   `holonomyDiffeotopy_apply`, `final_holonomyDiffeotopy` (the holonomy of
   the boundary loop `t ↦ Δ (1, t)`), `timeSlice_holonomyDiffeotopy`, and,
   for a symplectic connection and `e = A.trivAt b`,

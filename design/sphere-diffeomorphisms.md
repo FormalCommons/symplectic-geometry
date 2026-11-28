@@ -362,7 +362,8 @@ $\sigma=\omega_{FS}$):
   `uniformizingDiffeomorph J : diffPlus` with
   `pullback_uniformizingDiffeomorph : (uniformizingDiffeomorph J).pullback i = J`.
   The $J$-holomorphy of the ratio of two elements of $E_J$ is a lemma of its
-  own, `isPseudoholomorphicOn_div_of_mem_twistOneKernel`.
+  own, `isPseudoholomorphicOn_div_of_mem_twistOneKernel`, in part 45's
+  `CauchyRiemann/Kernel.lean`.
 - `eq_uniformizingDiffeomorph_iff`: an element of `diffPlus` equals
   `uniformizingDiffeomorph J` exactly when it pulls $i$ back to $J$ and
   fixes `0`, `1` and `∞` (Decision 7); and
