@@ -454,6 +454,7 @@ theorem coe_uniformizingDiffeomorph (J : 𝒥) :
     IsLocalDiffeomorph.coe_diffeomorphOfBijective]
 
 /-- **`σ(J)` pulls `i` back to `J`**: `σ(J)^* i = J`. -/
+@[simp]
 theorem pullback_uniformizingDiffeomorph (J : 𝒥) :
     (SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)).pullback
       (uniformizingDiffeomorph J) = J.val := by
