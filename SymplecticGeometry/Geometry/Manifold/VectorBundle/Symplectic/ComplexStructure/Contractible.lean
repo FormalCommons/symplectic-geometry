@@ -359,8 +359,9 @@ def Compatible.compatibleCayleyContraction (hcover : ∀ x, ∃ i, x ∈ U i) :
   letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
   { toFun := fun p ↦ ⟨h₀.cayleyContraction e U hU hcover (p.1, ⟨p.2, p.2.property.tames⟩),
       h₀.compatible_cayleyPath p.2.property _⟩
-    continuous_toFun := ((h₀.cayleyContraction e U hU hcover).continuous.comp
-      (continuous_fst.prodMk ((continuous_subtypeVal.comp continuous_snd).subtype_mk _))
+    continuous_toFun := (continuous_subtypeVal.comp
+      ((h₀.cayleyContraction e U hU hcover).continuous.comp
+        (continuous_fst.prodMk ((continuous_subtypeVal.comp continuous_snd).subtype_mk _)))
       ).subtype_mk _
     map_zero_left := fun J ↦ Subtype.ext (by simp)
     map_one_left := fun J ↦ Subtype.ext (by simp)
@@ -379,7 +380,6 @@ theorem Compatible.coe_compatibleCayleyContraction (hcover : ∀ x, ∃ i, x ∈
 
 /-- At time `t`, the compatible Cayley contraction onto `J₀` sends an `ω`-compatible structure
 `J` to the Cayley path from `J₀` to `J` at time `1 - t`. -/
-@[simp]
 theorem Compatible.compatibleCayleyContraction_apply (hcover : ∀ x, ∃ i, x ∈ U i)
     (t : unitInterval) (J : {J : ContMDiffComplexStructure I n F V // ω.Compatible J}) :
     (h₀.compatibleCayleyContraction e U hU hcover (t, J) : ContMDiffComplexStructure I n F V) =
