@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 public import TauCeti.Geometry.Manifold.DeRham.Relative.SingularCohomology
 import all TauCeti.Geometry.Manifold.DeRham.Relative.Basic
 import all TauCeti.Geometry.Manifold.DeRham.Relative.Integration
@@ -39,13 +40,16 @@ The proof passes through three commutative squares.
 
 The final step follows the proof of the absolute statement `TauCeti.deRhamHom_map`. The proof of
 the first square composes the squares of mapping cones under the shift `⟦-1⟧`, as the proof of
-Tau Ceti's `TauCeti.relativeDeRhamComplex.map_comp` does.
+Tau Ceti's `TauCeti.relativeDeRhamComplex.map_comp` does. The square
+`TauCeti.smoothCochainRestriction_comp_extendMap_cochainComplexMap` and its proof follow Tau Ceti's
+private lemma `relativeDeRhamComplex.deRhamRestriction_comm`, with smooth cochains in place of
+forms, and `TauCeti.relativeSmoothCochainComplex.map` is built from it as
+`TauCeti.relativeDeRhamComplex.map` is built from that lemma.
 
 The cochain maps `TauCeti.relativeDeRhamComplex.map`, `TauCeti.relativeDeRhamIntegration` and
 `TauCeti.relativeSmoothCochainLift`, and the isomorphism `TauCeti.relativeSmoothCohomologyIso`, are
 not exposed by their Tau Ceti modules, so this file imports those modules with `import all` to
-unfold them. It also takes the smoothness of the restriction `g` from the private Tau Ceti lemma
-`relativeDeRhamComplex.contMDiff_of_val_comp`.
+unfold them.
 
 ## Main results
 
@@ -93,20 +97,20 @@ theorem smoothCochainRestriction_comp_extendMap_cochainComplexMap {g : W → W'}
 namespace relativeSmoothCochainComplex
 
 /-- The map of mapping cocones of the restriction of smooth cochains induced by a smooth map
-`f : (M, W) → (M', W')` of open pairs, given with its smooth restriction `g : W → W'`: pullback of
-smooth cochains along `f` and along `g`. -/
-def map {g : W → W'} (hf : ContMDiff I I' ∞ f) (hg : ContMDiff I I' ∞ g)
-    (hfg : ∀ x, (g x : M') = f x) :
+`f : (M, W) → (M', W')` of open pairs, given with its restriction `g : W → W'`: pullback of
+smooth cochains along `f` and along `g`. The restriction `g` is smooth by
+`ContMDiff.restrict_opens`. -/
+def map {g : W → W'} (hf : ContMDiff I I' ∞ f) (hfg : ∀ x, (g x : M') = f x) :
     relativeSmoothCochainComplex I' W' ⟶ relativeSmoothCochainComplex I W :=
   (CochainComplex.mappingCone.map _ _ _ _
-    (smoothCochainRestriction_comp_extendMap_cochainComplexMap hf hg hfg))⟦(-1 : ℤ)⟧'
+    (smoothCochainRestriction_comp_extendMap_cochainComplexMap hf
+      (hf.restrict_opens hfg) hfg))⟦(-1 : ℤ)⟧'
 
 /-- The map of cocones induced by a smooth map of open pairs commutes with the first projections:
 on the first component it is pullback of smooth cochains along `f`. -/
 @[reassoc (attr := simp)]
-theorem map_fst {g : W → W'} (hf : ContMDiff I I' ∞ f) (hg : ContMDiff I I' ∞ g)
-    (hfg : ∀ x, (g x : M') = f x) :
-    map hf hg hfg ≫ CochainComplex.mappingCocone.fst (smoothCochainRestriction I W) =
+theorem map_fst {g : W → W'} (hf : ContMDiff I I' ∞ f) (hfg : ∀ x, (g x : M') = f x) :
+    map hf hfg ≫ CochainComplex.mappingCocone.fst (smoothCochainRestriction I W) =
       CochainComplex.mappingCocone.fst (smoothCochainRestriction I' W') ≫
         extendMap (SSet.cochainComplexMap (smoothSingularSubcomplexMap f hf))
           ComplexShape.embeddingUpNat :=
@@ -115,12 +119,13 @@ theorem map_fst {g : W → W'} (hf : ContMDiff I I' ∞ f) (hg : ContMDiff I I' 
 /-- The map of cocones induced by a smooth map of open pairs commutes with the second projections:
 on the second component it is pullback of smooth cochains along the restriction `g`. -/
 @[reassoc (attr := simp)]
-theorem map_f_snd_v {g : W → W'} (hf : ContMDiff I I' ∞ f) (hg : ContMDiff I I' ∞ g)
-    (hfg : ∀ x, (g x : M') = f x) (p : ℤ) :
-    (map hf hg hfg).f p ≫
+theorem map_f_snd_v {g : W → W'} (hf : ContMDiff I I' ∞ f) (hfg : ∀ x, (g x : M') = f x)
+    (p : ℤ) :
+    (map hf hfg).f p ≫
         (CochainComplex.mappingCocone.snd (smoothCochainRestriction I W)).v p (p + -1) rfl =
       (CochainComplex.mappingCocone.snd (smoothCochainRestriction I' W')).v p (p + -1) rfl ≫
-        (extendMap (SSet.cochainComplexMap (smoothSingularSubcomplexMap g hg))
+        (extendMap (SSet.cochainComplexMap
+            (smoothSingularSubcomplexMap g (hf.restrict_opens hfg)))
           ComplexShape.embeddingUpNat).f (p + -1) :=
   CochainComplex.mappingCocone.shiftFunctor_map_mappingCone_map_f_snd_v _ _ _ _ _ p
 
@@ -131,9 +136,8 @@ maps of open pairs: it intertwines the pullback of relative smooth cochains alon
 smooth singular pairs with the map of cocones `TauCeti.relativeSmoothCochainComplex.map`. -/
 @[reassoc]
 theorem relativeSmoothCochainLift_comp_relativeSmoothCochainComplexMap {g : W → W'}
-    (hf : ContMDiff I I' ∞ f) (hg : ContMDiff I I' ∞ g) (hfg : ∀ x, (g x : M') = f x)
-    (hWW' : Set.MapsTo f W W') :
-    relativeSmoothCochainLift I' W' ≫ relativeSmoothCochainComplex.map hf hg hfg =
+    (hf : ContMDiff I I' ∞ f) (hfg : ∀ x, (g x : M') = f x) (hWW' : Set.MapsTo f W W') :
+    relativeSmoothCochainLift I' W' ≫ relativeSmoothCochainComplex.map hf hfg =
       extendMap (SSetPair.cochainComplexMap (smoothSingularPairMap hf hWW'))
           ComplexShape.embeddingUpNat ≫ relativeSmoothCochainLift I W := by
   obtain rfl : g = hWW'.restrict f W W' := funext fun x ↦ Subtype.ext (hfg x)
@@ -160,27 +164,15 @@ relative forms along a smooth map of open pairs with the map of cocones
 `TauCeti.relativeSmoothCochainComplex.map`. -/
 @[reassoc]
 theorem relativeDeRhamComplex.map_comp_relativeDeRhamIntegration (hf : ContMDiff I I' ∞ f)
-    (hg : ContMDiff I I' ∞ g) (hfg : ∀ x, (g x : M') = f x) :
+    (hfg : ∀ x, (g x : M') = f x) :
     relativeDeRhamComplex.map I W hf hfg ≫ relativeDeRhamIntegration I W =
-      relativeDeRhamIntegration I' W' ≫ relativeSmoothCochainComplex.map hf hg hfg := by
+      relativeDeRhamIntegration I' W' ≫ relativeSmoothCochainComplex.map hf hfg := by
   -- Both sides are `⟦-1⟧` shifts of maps of mapping cones; compose those squares.
   unfold relativeDeRhamComplex.map relativeDeRhamIntegration relativeSmoothCochainComplex.map
     relativeDeRhamComplex relativeSmoothCochainComplex CochainComplex.mappingCocone
   rw [← CategoryTheory.Functor.map_comp, ← CategoryTheory.Functor.map_comp,
     ← CochainComplex.mappingCone.map_comp, ← CochainComplex.mappingCone.map_comp]
-  have ha : extendMap (deRhamComplex.map f hf) ComplexShape.embeddingUpNat ≫
-      extendMap (deRhamIntegration I M) ComplexShape.embeddingUpNat =
-        extendMap (deRhamIntegration I' M') ComplexShape.embeddingUpNat ≫
-          extendMap (SSet.cochainComplexMap (smoothSingularSubcomplexMap f hf))
-            ComplexShape.embeddingUpNat := by
-    rw [← extendMap_comp, ← extendMap_comp, deRhamIntegration_naturality]
-  have hb : extendMap (deRhamComplex.map g hg) ComplexShape.embeddingUpNat ≫
-      extendMap (deRhamIntegration I W) ComplexShape.embeddingUpNat =
-        extendMap (deRhamIntegration I' W') ComplexShape.embeddingUpNat ≫
-          extendMap (SSet.cochainComplexMap (smoothSingularSubcomplexMap g hg))
-            ComplexShape.embeddingUpNat := by
-    rw [← extendMap_comp, ← extendMap_comp, deRhamIntegration_naturality]
-  simp only [ha, hb]
+  simp only [← extendMap_comp, deRhamIntegration_naturality]
 
 namespace relativeDeRhamCohomology
 
@@ -192,29 +184,29 @@ theorem integration_naturality (hf : ContMDiff I I' ∞ f) (hfg : ∀ x, (g x : 
     integration I W n (homologyMap (relativeDeRhamComplex.map I W hf hfg) n x) =
       homologyMap (SSetPair.cochainComplexMap (smoothSingularPairMap hf hWW')) n
         (integration I' W' n x) := by
-  have hg := relativeDeRhamComplex.contMDiff_of_val_comp I W hf hfg
   -- The lift of relative smooth cochains intertwines the two pullbacks on cohomology.
-  have hℓ : homologyMap (relativeSmoothCochainComplex.map hf hg hfg) n ≫
+  have hℓ : homologyMap (relativeSmoothCochainComplex.map hf hfg) n ≫
       inv (homologyMap (relativeSmoothCochainLift I W) n) =
         inv (homologyMap (relativeSmoothCochainLift I' W') n) ≫
           homologyMap (extendMap (SSetPair.cochainComplexMap (R := ModuleCat.of ℝ ℝ) (k := ℝ)
             (M := ModuleCat.of ℝ ℝ) (smoothSingularPairMap hf hWW'))
               ComplexShape.embeddingUpNat) n := by
     rw [IsIso.eq_inv_comp, ← Category.assoc, IsIso.comp_inv_eq, ← homologyMap_comp,
-      ← homologyMap_comp, relativeSmoothCochainLift_comp_relativeSmoothCochainComplexMap hf hg hfg]
+      ← homologyMap_comp, relativeSmoothCochainLift_comp_relativeSmoothCochainComplexMap hf hfg]
   have h : homologyMap (relativeDeRhamComplex.map I W hf hfg) n ≫
       homologyMap (relativeDeRhamIntegration I W) n ≫ (relativeSmoothCohomologyIso I W n).hom =
         (homologyMap (relativeDeRhamIntegration I' W') n ≫
           (relativeSmoothCohomologyIso I' W' n).hom) ≫
             homologyMap (SSetPair.cochainComplexMap (smoothSingularPairMap hf hWW')) n := by
     rw [← homologyMap_comp_assoc,
-      relativeDeRhamComplex.map_comp_relativeDeRhamIntegration hf hg hfg, homologyMap_comp,
+      relativeDeRhamComplex.map_comp_relativeDeRhamIntegration hf hfg, homologyMap_comp,
       Category.assoc, Category.assoc]
     congr 1
     simp only [relativeSmoothCohomologyIso, Iso.trans_hom, Iso.symm_hom, asIso_inv,
       reassoc_of% hℓ, extendHomologyIso_hom_naturality, Category.assoc]
-  -- `integration` is by definition the map on cohomology composed above.
-  exact ConcreteCategory.congr_hom h x
+  -- `integration` is the map on cohomology composed above, by `ofHom_integration`.
+  rw [← ofHom_integration, ← ofHom_integration] at h
+  simpa using ConcreteCategory.congr_hom h x
 
 end relativeDeRhamCohomology
 
