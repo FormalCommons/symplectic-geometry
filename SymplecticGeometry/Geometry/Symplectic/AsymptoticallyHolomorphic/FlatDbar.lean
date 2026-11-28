@@ -216,7 +216,7 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
   ext z : 1
   have h := isComplexLinear_complexToRealEuclideanCoord (ι := ι) j
   rw [← LinearMap.coe_toContinuousLinearMap (stdComplexStructure ι).toLinearMap,
-    ← Complex.coe_smulIEquiv_eq_ofComplexModule] at h
+    ← Complex.toLinearMap_smulIEquiv_eq_ofComplexModule] at h
   rw [flatDbar_eq, (complexToRealEuclideanCoord ι j).fderiv,
     h.complexAntilinearPartContinuousLinearMap_eq_zero (Complex.smulIEquiv_comp_smulIEquiv ℂ),
     Pi.zero_apply]
@@ -240,13 +240,13 @@ theorem flatDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 
 /-- As a real-linear map, the flat `∂` of `f` at `z` is Tau Ceti's complex-linear part
 `TauCeti.complexLinearPart` of `df_z`, for `J₀` and multiplication by `i`. -/
-theorem coe_flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+theorem toLinearMap_flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     (flatDel f z : StdSpace ι →ₗ[ℝ] ℂ) =
       complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  rw [flatDel_def, coe_complexLinearPartContinuousLinearMap_apply,
-    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule]
+  rw [flatDel_def, toLinearMap_complexLinearPartContinuousLinearMap_apply,
+    LinearMap.coe_toContinuousLinearMap, Complex.toLinearMap_smulIEquiv_eq_ofComplexModule]
 
 theorem flatDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     flatDel f z v =
@@ -265,8 +265,9 @@ theorem flatDel_add_flatDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 theorem flatDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDel (c • f) z = c • flatDel f z := by
   apply ContinuousLinearMap.coe_injective
-  rw [coe_flatDel, ContinuousLinearMap.toLinearMap_smul, coe_flatDel, fderiv_const_smul_field,
-    Pi.smul_apply, ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
+  rw [toLinearMap_flatDel, ContinuousLinearMap.toLinearMap_smul, toLinearMap_flatDel,
+    fderiv_const_smul_field, Pi.smul_apply, ContinuousLinearMap.toLinearMap_smul,
+    complexLinearPart_complex_smul]
 
 /-- The **flat `∂` is Tau Ceti's `∂` on functions**: for the constant smooth almost complex
 structure `J₀` on `StdSpace ι`, `TauCeti.SmoothAlmostComplexStructure.delFunction f z` is the flat

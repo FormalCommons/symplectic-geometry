@@ -19,7 +19,7 @@ of its inverse.
 
 ## Main results
 
-* `Matrix.coe_toLinearEquiv_toEuclideanCLE`: the linear map underlying
+* `Matrix.toLinearMap_toLinearEquiv_toEuclideanCLE`: the linear map underlying
   `(A.toEuclideanCLE hA).toLinearEquiv` is `Matrix.toEuclideanLin A`.
 * `Matrix.UnitaryGroup.coe_toLinearIsometryEquiv`: the continuous linear map of
   `UnitaryGroup.toLinearIsometryEquiv A` is `Matrix.toEuclideanCLM A`;
@@ -36,7 +36,7 @@ variable {ι 𝕜 : Type*} [Fintype ι] [DecidableEq ι] [RCLike 𝕜]
 /-- The linear map underlying the linear equivalence of an invertible matrix `A` is the action
 `Matrix.toEuclideanLin A` of `A` on `EuclideanSpace 𝕜 ι`. -/
 @[simp]
-theorem coe_toLinearEquiv_toEuclideanCLE (A : Matrix ι ι 𝕜) (hA : A.det ≠ 0) :
+theorem toLinearMap_toLinearEquiv_toEuclideanCLE (A : Matrix ι ι 𝕜) (hA : A.det ≠ 0) :
     ((A.toEuclideanCLE hA).toLinearEquiv : EuclideanSpace 𝕜 ι →ₗ[𝕜] EuclideanSpace 𝕜 ι) =
       A.toEuclideanLin :=
   LinearMap.ext (toEuclideanCLE_apply A hA)

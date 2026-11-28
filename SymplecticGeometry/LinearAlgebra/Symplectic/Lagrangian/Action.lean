@@ -85,7 +85,7 @@ theorem isLagrangian_map_toEuclideanLin {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (hL : (stdForm ι).IsLagrangian L) :
     (stdForm ι).IsLagrangian (L.map (toEuclideanLin A)) := by
   let e := (A.toEuclideanCLE (SymplecticGroup.symplectic_det hA).ne_zero).toLinearEquiv
-  rw [← coe_toLinearEquiv_toEuclideanCLE A (SymplecticGroup.symplectic_det hA).ne_zero]
+  rw [← toLinearMap_toLinearEquiv_toEuclideanCLE A (SymplecticGroup.symplectic_det hA).ne_zero]
   exact (SymplecticForm.IsSymplectomorphism.isLagrangian_map_iff
     (SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ by
       simpa [e] using mem_symplecticGroup_iff_forall_stdForm.1 hA v w)).2 hL
@@ -125,7 +125,7 @@ theorem coe_smul_eq_map_toEuclideanCLE (g : GLSymplectic ι ℝ) (Λ : ℒ ι) :
       (Λ : Submodule ℝ (StdSpace ι)).map
         ((((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE
           (g : GL (ι ⊕ ι) ℝ).det_ne_zero).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
-  rw [coe_smul, coe_toLinearEquiv_toEuclideanCLE]
+  rw [coe_smul, toLinearMap_toLinearEquiv_toEuclideanCLE]
 
 /-- If a Lagrangian `Λ` is spanned by the columns of a frame `Z`, its image under a symplectic
 matrix `g` is spanned by the columns of `g * Z`. -/

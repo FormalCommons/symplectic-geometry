@@ -284,7 +284,6 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
       -(J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I (k + 1) α) -
         mextDerivₗ I (k + 1) (J.toEndomorphism.realAlternatingDerivation α)) := by
   refine eq_of_forall_osculating hJ hσ hg fun ψ J₀ hψ y hy hgr ↦ ?_
-  let _ := o.fact_finrank_tangentSpace (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.neg_apply]
   rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
@@ -326,7 +325,6 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
       -(J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I (k + 1) α) -
         mextDerivₗ I (k + 1) (J.toEndomorphism.realAlternatingDerivation α)) := by
   refine eq_of_forall_osculating hJ hσ hg fun ψ J₀ hψ y hy hgr ↦ ?_
-  let _ := o.fact_finrank_tangentSpace (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.neg_apply]
   rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
@@ -361,7 +359,6 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
     SmoothForm.codifferential o hkl (σ.lefschetz f) =
       J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I 0 f) := by
   refine eq_of_forall_osculating hJ hσ hg fun ψ J₀ hψ y hy hgr ↦ ?_
-  let _ := o.fact_finrank_tangentSpace (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   rw [ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega) (σ.lefschetz f) hy
       hgr,
