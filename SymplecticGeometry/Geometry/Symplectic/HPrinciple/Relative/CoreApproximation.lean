@@ -142,7 +142,7 @@ theorem exists_pairwise_disjoint_image_cthickening [T2Space M] (c : BandCore I g
     (fun i ↦ (c.isSmoothEmbedding_chart i).contMDiff.continuous)
     (fun _ ↦ (isCompact_closedBall 0 1).prod isCompact_singleton) c.pairwise_disjoint
   obtain ⟨δ', ⟨hδ', hδ'1⟩, hδ'0⟩ :=
-    ((h.and (eventually_le_nhds (by norm_num : (0 : ℝ) < 1 / 2))).filter_mono
+    ((h.and (Iic_mem_nhds (by norm_num : (0 : ℝ) < 1 / 2))).filter_mono
       nhdsWithin_le_nhds).and self_mem_nhdsWithin |>.exists (f := 𝓝[>] (0 : ℝ))
   exact ⟨δ', hδ'0, hδ'1, hδ'⟩
 
