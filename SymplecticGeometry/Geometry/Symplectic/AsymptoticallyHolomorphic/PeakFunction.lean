@@ -487,12 +487,14 @@ multiplication by `i` on `ℂ`, applied to the model connection
 `SymplecticGeometry.modelConnection f z`. It is the `(1,0)` counterpart of the model `∂̄`
 `SymplecticGeometry.modelDbar`. -/
 noncomputable def modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (modelConnection f z)
+  complexLinearPartContinuousLinearMap
+    (LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+    (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (modelConnection f z)
 
 theorem modelDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    modelDel f z = complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (modelConnection f z) :=
+    modelDel f z = complexLinearPartContinuousLinearMap
+      (LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+      (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (modelConnection f z) :=
   (rfl)
 
 /-- As a real-linear map, the model `∂` of `f` at `z` is Tau Ceti's complex-linear part
@@ -503,19 +505,19 @@ theorem coe_modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
       complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  rw [modelDel_def, complexLinearPartContinuousLinearMap_apply,
-    LinearMap.coe_toContinuousLinearMap]
+  rw [modelDel_def, coe_complexLinearPartContinuousLinearMap_apply,
+    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule]
 
 theorem modelDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     modelDel f z v = (2⁻¹ : ℝ) •
       (modelConnection f z v - Complex.I * modelConnection f z (stdComplexStructure ι v)) := by
   rw [modelDel_def, complexLinearPartContinuousLinearMap_apply_apply, complexLinearPart_apply]
-  simp [AlmostComplexStructure.ofComplexModule_apply]
+  simp
 
 /-- The model connection of `f` at `z` is the sum of its model `∂` and its model `∂̄`. -/
 theorem modelDel_add_modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     modelDel f z + modelDbar f z = modelConnection f z := by
-  rw [modelDel_def, modelDbar_def, modelDbarWith_def, LinearMap.coe_toContinuousLinearMap,
+  rw [modelDel_def, modelDbar_def, modelDbarWith_def,
     complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
 
 /-- The model `∂` commutes with complex scalars. -/
@@ -701,8 +703,9 @@ uniformly in `s ≥ 1`. -/
 private theorem exists_jetNormAt_cutoffDbar_le (r : ℕ) :
     ∃ A, 0 ≤ A ∧ ∀ s : ℝ, 1 ≤ s → ∀ z : StdSpace ι, jetNormAt ℝ r (cutoffDbar s) z ≤ A := by
   obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := StdSpace ι) (r + 1)
-  set P := complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+  set P := complexAntilinearPartContinuousLinearMap
+    (LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+    (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ)
   refine ⟨‖P‖ * A, by positivity, fun s hs z ↦ ?_⟩
   have hχ : ContDiff ℝ (r + 1) fun y : StdSpace ι ↦ peakCutoff (‖y‖ / s) :=
     contDiff_peakCutoff_norm_div (by linarith)

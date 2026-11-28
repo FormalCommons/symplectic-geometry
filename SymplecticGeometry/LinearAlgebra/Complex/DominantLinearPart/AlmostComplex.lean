@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
+public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 
@@ -31,8 +32,9 @@ and orientation statements, which need one, are in
   sum `A + B` is surjective.
 * `TauCeti.AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt`: a real-linear map
   `F` from a finite-dimensional `V` to a complex normed space `W` of dimension one whose
-  complex-antilinear part (`TauCeti.complexAntilinearPart`) has smaller norm than its
-  complex-linear part (`TauCeti.complexLinearPart`) is surjective. This is the form needed at a
+  complex-antilinear part (`TauCeti.complexAntilinearPartContinuousLinearMap`, for `J` and
+  multiplication by `i`, `Complex.smulIEquiv W`) has smaller norm than its complex-linear part
+  (`TauCeti.complexLinearPartContinuousLinearMap`) is surjective. This is the form needed at a
   zero of a section of a Hermitian line bundle, where the derivative takes values in the fibre.
 * `TauCeti.AlmostComplexStructure.norm_le_of_re_apply_eq_inner`: on a real inner product space
   with an orthogonal almost complex structure `J`, a real-linear form whose real and imaginary
@@ -87,16 +89,23 @@ by `i` on `W`, has smaller operator norm than its complex-linear part. Then `F` 
 surjective. -/
 theorem surjective_of_norm_complexAntilinearPart_lt [FiniteDimensional ℝ V]
     (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
-    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    (h : ‖complexAntilinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖ <
+      ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖) :
     Function.Surjective F := by
   have hs := IsComplexLinear.surjective_of_norm_lt hW
-    (isComplexLinear_complexLinearPart J.square_neg (ofComplexModule W).square_neg _)
-    (isComplexAntilinear_complexAntilinearPart J.square_neg (ofComplexModule W).square_neg _) h
-  rwa [← map_add, complexLinearPart_add_complexAntilinearPart,
-    LinearMap.coe_toContinuousLinearMap'] at hs
+    (by
+      rw [coe_complexLinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
+        coe_smulIEquiv_eq_ofComplexModule]
+      exact isComplexLinear_complexLinearPart J.square_neg (ofComplexModule W).square_neg _)
+    (by
+      rw [coe_complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
+        coe_smulIEquiv_eq_ofComplexModule]
+      exact isComplexAntilinear_complexAntilinearPart J.square_neg (ofComplexModule W).square_neg _)
+    h
+  rwa [complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
+    at hs
 
 end AlmostComplexStructure
 

@@ -221,22 +221,21 @@ real-linear endomorphisms of `StdSpace ι`: Tau Ceti's complex-antilinear part o
 and multiplication by `i` on `ℂ`, that is `v ↦ ½ (df_z v + i df_z (J z v))`. -/
 noncomputable def flatDbarWith (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι)
     (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  complexAntilinearPartContinuousLinearMap (J z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z)
+  complexAntilinearPartContinuousLinearMap (J z)
+    (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (fderiv ℝ f z)
 
 theorem flatDbarWith_def (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
     (z : StdSpace ι) :
-    flatDbarWith J f z = complexAntilinearPartContinuousLinearMap
-      (J z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z) :=
+    flatDbarWith J f z = complexAntilinearPartContinuousLinearMap (J z)
+      (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (fderiv ℝ f z) :=
   (rfl)
 
 theorem flatDbarWith_apply (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
     (z v : StdSpace ι) :
     flatDbarWith J f z v = (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z (J z v)) := by
   simp only [flatDbarWith_def, complexAntilinearPartContinuousLinearMap_apply_apply,
-    TauCeti.complexAntilinearPart_apply, coe_coe, AlmostComplexStructure.ofComplexModule_apply,
-    smul_eq_mul]
+    TauCeti.complexAntilinearPart_apply, coe_coe, ContinuousLinearEquiv.coe_coe,
+    Complex.smulIEquiv_apply, smul_eq_mul]
 
 variable {J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι}
 
@@ -298,14 +297,13 @@ real-linear endomorphisms of `StdSpace ι`: Tau Ceti's complex-antilinear part o
 connection `SymplecticGeometry.modelConnection f z`, for `J z` and multiplication by `i` on `ℂ`. -/
 noncomputable def modelDbarWith (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι)
     (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  complexAntilinearPartContinuousLinearMap (J z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (modelConnection f z)
+  complexAntilinearPartContinuousLinearMap (J z)
+    (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (modelConnection f z)
 
 theorem modelDbarWith_def (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
     (z : StdSpace ι) :
-    modelDbarWith J f z = complexAntilinearPartContinuousLinearMap
-      (J z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (modelConnection f z) :=
+    modelDbarWith J f z = complexAntilinearPartContinuousLinearMap (J z)
+      (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (modelConnection f z) :=
   (rfl)
 
 theorem modelDbarWith_apply (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
@@ -313,8 +311,8 @@ theorem modelDbarWith_apply (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace 
     modelDbarWith J f z v =
       (2⁻¹ : ℝ) • (modelConnection f z v + Complex.I * modelConnection f z (J z v)) := by
   simp only [modelDbarWith_def, complexAntilinearPartContinuousLinearMap_apply_apply,
-    TauCeti.complexAntilinearPart_apply, coe_coe, AlmostComplexStructure.ofComplexModule_apply,
-    smul_eq_mul]
+    TauCeti.complexAntilinearPart_apply, coe_coe, ContinuousLinearEquiv.coe_coe,
+    Complex.smulIEquiv_apply, smul_eq_mul]
 
 /-- **Change of structure in the model `∂̄`.** For two fields `J` and `J'` of real-linear
 endomorphisms of `StdSpace ι`, the model `∂̄` of `f` for `J` at `z` is that for `J'` plus

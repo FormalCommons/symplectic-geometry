@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metr
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.FundamentalClass
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
+public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Symplectic
@@ -141,14 +142,12 @@ theorem isTransverse_of_norm_dbar_lt [g : RiemannianBundle (fun x : M ↦ Tangen
     (hs : ∀ x, s x = 0 →
       MDifferentiableAt I (I.prod 𝓘(ℝ, F)) (fun x ↦ TotalSpace.mk' F x (s x)) x)
     (hdom : ∀ x, s x = 0 →
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖) :
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖) :
     ∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x) := by
   intro x hx
   rw [← D.apply_eq_sectionLinearization (hs x hx) hx]
@@ -168,14 +167,12 @@ theorem isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt [I.Boundaryless
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     letI := transverseZeroSetChartedSpace (by simp) hs
       (isTransverse_of_norm_dbar_lt (g := hc.riemannianBundle)
@@ -222,14 +219,12 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
     letI := transverseZeroSetChartedSpace (by simp) hs
       (isTransverse_of_norm_dbar_lt (g := hc.riemannianBundle)
@@ -344,14 +339,12 @@ theorem dualClass_zeroSet_of_norm_dbar_lt (hc : σ.Compatible J) (hF : finrank �
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
     letI := transverseZeroSetChartedSpace (by simp) hs
       (isTransverse_of_norm_dbar_lt (g := hc.riemannianBundle)
@@ -428,14 +421,12 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt [CompactS
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {j : ℕ}
     (hk : finrank ℝ E' = 2 * (j + 1)) :
     letI := transverseZeroSetChartedSpace (by simp) hs
@@ -496,14 +487,12 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finran
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) (hk : finrank ℝ E' = 0) :
     letI := transverseZeroSetChartedSpace (by simp) hs
       (isTransverse_of_norm_dbar_lt (g := hc.riemannianBundle)
@@ -582,14 +571,12 @@ theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
-        ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (J.almostComplexStructureAt x).toLinearMap
-          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
-          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+      ‖complexAntilinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
+        ‖complexLinearPartContinuousLinearMap
+          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+          (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     (∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x)) ∧
     (letI := transverseZeroSetChartedSpace (by simp) hs
