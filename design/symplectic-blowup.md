@@ -516,7 +516,8 @@ Namespace `SymplecticGeometry`, for `M` as in *Setting*, `ω`, `J`, `p₀`,
 
 - (v) `deRhamHom_normalizedBlowupForm`: the image under `deRhamHom` of
   $[\tilde\omega_{\psi,\lambda,\varepsilon}]$ is $\pi_M^*$ of that of
-  $[\omega]$ minus $\pi\lambda^2e$. Proof: on the complement of $Z$ the
+  $[\omega]$ plus $\pi\lambda^2e$, as the library's $e$ pairs to $-1$ with
+  a positive normal disc (`ERRATA.md`). Proof: on the complement of $Z$ the
   difference with $\pi_M^*\omega$ is $d$ of a form supported in the lifted
   ball, so the difference class restricts to zero there and lifts to
   $H^2(\widetilde M,\widetilde M\setminus Z)$, where it is a multiple of

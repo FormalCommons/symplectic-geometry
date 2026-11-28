@@ -136,6 +136,33 @@ Each entry has this form:
 
 ## atlas/constructing-symplectic-manifolds.md
 
+### Sign of the exceptional class in the class of the blowup form
+
+- **Where:** `atlas/constructing-symplectic-manifolds.md`, *Symplectic
+  structure on the almost complex blowup*, the item on the cohomology class;
+  McDuff–Salamon, Theorem 7.1.21 (v).
+- **Error:** not a mathematical error but a sign convention. The page and
+  the book give the class of $\tilde\omega_{\psi,\lambda,\varepsilon}$ as
+  $\pi_M^*[\omega]-\pi\lambda^2 e$, where $e$ is Poincaré dual to $Z$ and so
+  takes the value $+1$ on a disc that meets $Z$ once, transversally, with
+  the orientation of the normal bundle. The library's exceptional class
+  `Blowup.exceptionalClass` is the dual class
+  `TauCeti.SmoothEmbedding.dualClass` of $Z$, whose real relative version
+  takes the value $-1$ on such a disc
+  (`TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`,
+  from the sign of `TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`).
+  The form $\tilde\omega_{\psi,\lambda,\varepsilon}-\pi_M^*\omega$ integrates
+  to $-\pi\lambda^2$ over such a disc, so with the library's $e$ the class
+  is $\pi_M^*[\omega]+\pi\lambda^2 e$.
+- **Fix:** `IsNormalizedBallEmbedding.relativeDeRhamHom_mk_eq_smul_realRelDualClass`
+  shows that the relative class is $+\pi\lambda^2$ times the real relative
+  dual class, and `IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm`,
+  item (v) of the milestone `IsNormalizedBallEmbedding.normalizedBlowupForm_spec`
+  (both in `Geometry/Symplectic/Blowup/Normalized/Class.lean`), states the
+  class as $\pi_M^*[\omega]+\pi\lambda^2 e$ for `Blowup.exceptionalClass`,
+  which is the page's statement for the Poincaré dual $-e$.
+- **Issue:** #8166.
+
 ### The parametric h-principle on open manifolds is a weak equivalence
 
 - **Where:** `atlas/constructing-symplectic-manifolds.md`, *Gromov's
