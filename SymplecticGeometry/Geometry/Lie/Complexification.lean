@@ -362,6 +362,11 @@ theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
 
+/-- `expI (s • ξ)` and `expI (t • ξ)` commute. -/
+theorem commute_expI_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
+    Commute (C.expI (s • ξ)) (C.expI (t • ξ)) := by
+  rw [commute_iff_eq, ← C.expI_add_smul, ← C.expI_add_smul, add_comm]
+
 /-- `expI (-ξ) = (expI ξ)⁻¹`. -/
 theorem expI_neg (ξ : GroupLieAlgebra I G) :
     C.expI (-ξ) = (C.expI ξ)⁻¹ := by
