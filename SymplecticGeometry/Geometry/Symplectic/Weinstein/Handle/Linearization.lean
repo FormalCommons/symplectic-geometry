@@ -240,13 +240,9 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
   set Y : E → E := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
   -- At the critical point `p`, the inequality forces `X p = 0`.
-  have hX₀ : X p = 0 := by
-    let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-    have h := hg p (mem_of_mem_nhds hU)
-    rw [mem_criticalPoints.1 hp, zero_apply] at h
-    by_contra hne
-    have := g.pos p (X p) hne
-    nlinarith [sq_nonneg ‖mgradient 𝓘(ℝ, E) f p‖]
+  have hX₀ : X p = 0 :=
+    (eq_zero_iff_mem_criticalPoints_of_mul_le g.toRiemannianMetric hc
+      (hg p (mem_of_mem_nhds hU))).2 hp
   have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
     hf.eventually_differentiableAt (by simp)
   obtain ⟨κ, hκ, hev⟩ :=
@@ -285,12 +281,8 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
   have hp' := (isManifoldNondegenerateCriticalPoint_iff _).1 hp
   set φ := extChartAt 𝓘(ℝ, E) p
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
-  -- The inequality of `TauCeti.IsGradientLike` near `p`, with the constant `δ p / 2`.
-  obtain ⟨g, δ, hδc, hδ, h⟩ := (isGradientLike_def f X).1 hX
   obtain ⟨κ, hκ, hκB⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv
-    ⟨_, hδc.continuousAt.eventually (lt_mem_nhds (half_lt_self (hδ p))), g, δ p / 2,
-      half_pos (hδ p), fun y hy ↦ (mul_le_mul_of_nonneg_right (le_of_lt hy)
-        (add_nonneg (g.toRiemannianMetric.inner_self_nonneg y (X y)) (sq_nonneg _))).trans (h y)⟩
+    ((isGradientLikeAt_def f X p).1 (hX.isGradientLikeAt p))
     hp.mem_criticalPoints hp'.contDiffAt hXp rfl
   obtain ⟨L, hL⟩ := hp'.isInvertible
   replace hL : (L : E →L[ℝ] E →L[ℝ] ℝ) = B := hL
