@@ -212,11 +212,10 @@ theorem exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le [I.Boundaryless
   -- One bound `Cτ` for the derivatives of orders `1` to `r + 1` of the transition serves the
   -- change of frame and the jets of `τ` and of `dτ`.
   obtain ⟨Cτ, hCτ⟩ := D.exists_forall_norm_iteratedFDeriv_chartTransition_le hJ (r + 1) B
-  obtain ⟨Ce, hCe⟩ := D.exists_forall_jetNormAt_frameChange_le hα r Cτ
+  obtain ⟨Ce, hCe0, hCe⟩ := D.exists_forall_jetNormAt_frameChange_le hα r Cτ
   set A : ℝ := 1 + r * |Cτ|
   have hA : 1 ≤ A := le_add_of_nonneg_right (by positivity)
-  set C : ℝ := |Ce| + (r + 1)! * A ^ r + (r + 1) * |Cτ|
-  have hCe' : 0 ≤ |Ce| := abs_nonneg _
+  set C : ℝ := Ce + (r + 1)! * A ^ r + (r + 1) * |Cτ|
   have hCA : 0 ≤ ((r + 1)! : ℝ) * A ^ r := by positivity
   have hCτ' : 0 ≤ ((r : ℝ) + 1) * |Cτ| := by positivity
   refine ⟨C, by positivity, fun {k} hk x y w hw hB ↦ ?_⟩
@@ -226,8 +225,7 @@ theorem exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le [I.Boundaryless
     D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y hw)
   refine ⟨?_, ?_, fun {F} _ _ {g} hg ↦ ?_⟩
   · -- The change of frame.
-    refine (hCe hk hw hCτw).trans (mul_le_mul_of_nonneg_right ?_ (by positivity))
-    exact (le_abs_self _).trans (by linarith)
+    exact (hCe hk hw hCτw).trans (mul_le_mul_of_nonneg_right (by linarith) (by positivity))
   · -- The derivative of the transition.
     exact (jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
       hCτw (j + 1) (by omega) (by omega)).trans (by linarith)
@@ -310,8 +308,8 @@ theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
 /-- **Jet norms under a change of chart.** Let `M` be a Hausdorff boundaryless manifold, let `σ`
 be compatible with `J`, and let `M` carry a Riemannian metric whose inner product is
 `⟪u, w⟫ = σ(u, J w)`, the metric `g_J` of the pair. Let `α` be a connection form and `ρ₀ > 0`.
-There is a radius `ρ` with `0 < ρ ≤ ρ₀` such that for every order `r` there is a constant `C`
-with the following property. For all `k ≥ k₀`, all points `x`, all `z` in the ball of radius
+There is a radius `ρ` with `0 < ρ ≤ ρ₀` such that for every order `r` there is a constant
+`C ≥ 0` with the following property. For all `k ≥ k₀`, all points `x`, all `z` in the ball of radius
 `ρ * √k`, and every section `s` of `PowerBundle P k` whose reading in the chart centred at `x` is
 `C^r` at `z`, the `r`-jet norm of `s` at `y = (D.chart k x)⁻¹ z` is at most
 `C * (1 + d_k(x, y)) ^ (2 * r)` times the `r`-jet norm at `z` of the reading of `s` in the chart
@@ -321,7 +319,7 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) :
-    ∃ ρ, 0 < ρ ∧ ρ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
+    ∃ ρ, 0 < ρ ∧ ρ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
       ∀ z ∈ ball (0 : StdSpace ι) (ρ * √k), ∀ {s : Π y, PowerBundle P k y},
         ContDiffAt ℝ r (D.reading k x s) z →
         D.jetNorm k r s ((D.chart k x).symm z) ≤
@@ -330,7 +328,7 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   obtain ⟨ρ, hρ, hρρ₀, hB⟩ := D.exists_forall_jetNormAt_chartChange_le hg hJ hα hρ₀
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
   obtain ⟨C, hC, hB⟩ := hB r
-  refine ⟨4 ^ r * C ^ 2, fun {k} hk x z hz {s} hs ↦ ?_⟩
+  refine ⟨4 ^ r * C ^ 2, by positivity, fun {k} hk x z hz {s} hs ↦ ?_⟩
   obtain ⟨h0W, hτ0, -, he, -, hcomp, hd⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
   set f := D.reading k x s
@@ -352,7 +350,7 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
 
 /-- **Jet norms of `∂̄` under a change of chart.** Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.jetNorm_le_of_chart_change`, there is a radius `ρ` with
-`0 < ρ ≤ ρ₀` such that for every order `r` there is a constant `C` with the following property.
+`0 < ρ ≤ ρ₀` such that for every order `r` there is a constant `C ≥ 0` with the following property.
 For all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ * √k`, and every section `s` of
 `PowerBundle P k` whose reading in the chart centred at `x` is differentiable near `z` and whose
 `∂̄` reading in that chart is `C^r` at `z`, the `r`-jet norm of the `∂̄` reading of `s` at
@@ -363,7 +361,7 @@ theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) :
-    ∃ ρ, 0 < ρ ∧ ρ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
+    ∃ ρ, 0 < ρ ∧ ρ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
       ∀ z ∈ ball (0 : StdSpace ι) (ρ * √k), ∀ {s : Π y, PowerBundle P k y},
         (∀ᶠ w in 𝓝 z, DifferentiableAt ℝ (D.reading k x s) w) →
         ContDiffAt ℝ r (D.dbarReading k x s) z →
@@ -373,7 +371,7 @@ theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   obtain ⟨ρ, hρ, hρρ₀, hB⟩ := D.exists_forall_jetNormAt_chartChange_le hg hJ hα hρ₀
   refine ⟨ρ, hρ, hρρ₀, fun r ↦ ?_⟩
   obtain ⟨C, hC, hB⟩ := hB r
-  refine ⟨8 ^ r * C ^ 3, fun {k} hk x z hz {s} hs hds ↦ ?_⟩
+  refine ⟨8 ^ r * C ^ 3, by positivity, fun {k} hk x z hz {s} hs hds ↦ ?_⟩
   obtain ⟨h0W, hτ0, -, he, hjdτ, hcomp, hd⟩ := hB hk x z hz
   set y := (D.chart k x).symm z
   set g := D.dbarReading k x s

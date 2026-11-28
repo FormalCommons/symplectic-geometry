@@ -177,15 +177,15 @@ theorem contDiff_peakCutoff_norm_div {n : ℕ∞} {s : ℝ} (hs : 0 ≤ s) :
   simp_rw [peakCutoff_norm_div hs]
   exact contDiff_peakCutoff_norm.comp (contDiff_const_smul _)
 
-/-- The jet norms of the scaled cut-offs `z ↦ χ (‖z‖ / s)` are bounded uniformly in `s`, for `s`
-equal to `0` or at least `1`. -/
+/-- The jet norms of the scaled cut-offs `z ↦ χ (‖z‖ / s)` are bounded by a constant `C ≥ 0`
+uniformly in `s`, for `s` equal to `0` or at least `1`. -/
 theorem exists_jetNormAt_peakCutoff_norm_div_le [FiniteDimensional ℝ E] (r : ℕ) :
-    ∃ C, ∀ s : ℝ, (s = 0 ∨ 1 ≤ s) → ∀ z : E,
+    ∃ C, 0 ≤ C ∧ ∀ s : ℝ, (s = 0 ∨ 1 ≤ s) → ∀ z : E,
       jetNormAt ℝ r (fun z : E ↦ peakCutoff (‖z‖ / s)) z ≤ C := by
-  obtain ⟨C, -, hC⟩ :=
+  obtain ⟨C, hC0, hC⟩ :=
     hasCompactSupport_peakCutoff_norm.exists_bound_iteratedFDeriv
       (contDiff_peakCutoff_norm (E := E)) r
-  refine ⟨(r + 1) * C, fun s hs z ↦ ?_⟩
+  refine ⟨(r + 1) * C, by positivity, fun s hs z ↦ ?_⟩
   have hs0 : 0 ≤ s := by rcases hs with rfl | hs <;> linarith
   have hs1 : ‖s⁻¹‖ ≤ 1 := by
     rw [Real.norm_eq_abs, abs_inv, abs_of_nonneg hs0]
@@ -245,10 +245,10 @@ theorem contDiff_ofReal_exp_norm_sq_div_four [InnerProductSpace ℝ E] {n : With
     ring
   exact Complex.ofRealCLM.contDiff.comp h
 
-/-- The jet norms of the Gaussian `exp (-‖z‖ ^ 2 / 4)` are at most a constant times
+/-- The jet norms of the Gaussian `exp (-‖z‖ ^ 2 / 4)` are at most a nonnegative constant times
 `exp (-‖z‖ ^ 2 / 8)`: `exists_jetNormAt_exp_neg_mul_norm_sq_le` for `a = 1 / 4`. -/
 private theorem exists_jetNormAt_gaussian_le [InnerProductSpace ℝ E] (r : ℕ) :
-    ∃ B, ∀ z : E,
+    ∃ B, 0 ≤ B ∧ ∀ z : E,
       jetNormAt ℝ r (fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4)) z ≤ B * Real.exp (-‖z‖ ^ 2 / 8) := by
   obtain ⟨B, hB⟩ := exists_jetNormAt_exp_neg_mul_norm_sq_le (E := E) r (a := 1 / 4) (by norm_num)
   have hG : (fun z : E ↦ Real.exp (-(1 / 4 * ‖z‖ ^ 2))) = fun z ↦ Real.exp (-‖z‖ ^ 2 / 4) := by
@@ -257,7 +257,8 @@ private theorem exists_jetNormAt_gaussian_le [InnerProductSpace ℝ E] (r : ℕ)
   have hG' (z : E) : Real.exp (-(1 / 4 * ‖z‖ ^ 2) / 2) = Real.exp (-‖z‖ ^ 2 / 8) := by
     ring_nf
   simp_rw [hG, hG'] at hB
-  exact ⟨B, hB⟩
+  refine ⟨B, ?_, hB⟩
+  simpa using (jetNormAt_nonneg _ _ _).trans (hB 0)
 
 theorem contDiff_peakFunction [InnerProductSpace ℝ E] {n : ℕ∞} (k : ℕ) :
     ContDiff ℝ n (peakFunction (E := E) k) := by
@@ -321,8 +322,8 @@ theorem exists_jetNormAt_peakFunction_le [InnerProductSpace ℝ E] [FiniteDimens
     (r : ℕ) :
     ∃ C N, ∃ c > 0, ∀ (k : ℕ) (z : E),
       jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2) := by
-  obtain ⟨A, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := E) r
-  obtain ⟨B, hB⟩ := exists_jetNormAt_gaussian_le (E := E) r
+  obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := E) r
+  obtain ⟨B, -, hB⟩ := exists_jetNormAt_gaussian_le (E := E) r
   refine ⟨2 ^ r * A * B, 0, 1 / 8, by norm_num, fun k z ↦ ?_⟩
   set s := (k : ℝ) ^ (1 / 6 : ℝ)
   have hs : s = 0 ∨ 1 ≤ s := by
@@ -340,8 +341,7 @@ theorem exists_jetNormAt_peakFunction_le [InnerProductSpace ℝ E] [FiniteDimens
         jetNormAt ℝ r (fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4)) z
       ≤ 2 ^ r * A * (B * Real.exp (-‖z‖ ^ 2 / 8)) :=
         mul_le_mul (mul_le_mul_of_nonneg_left (hA s hs z) (by positivity)) (hB z)
-          (jetNormAt_nonneg _ _ _)
-          (mul_nonneg (by positivity) ((jetNormAt_nonneg _ _ _).trans (hA s hs z)))
+          (jetNormAt_nonneg _ _ _) (by positivity)
     _ = _ := by ring_nf
 
 /-! ### A complex coordinate times the cut-off Gaussian -/
@@ -696,13 +696,14 @@ private theorem contDiff_cutoffDbar {n : ℕ∞} {s : ℝ} (hs : 0 ≤ s) :
     ContDiff ℝ n (cutoffDbar (ι := ι) s) :=
   contDiff_flatDbar (Complex.ofRealCLM.contDiff.comp (contDiff_peakCutoff_norm_div hs))
 
-/-- The jet norms of the flat `∂̄` of the scaled cut-offs are bounded uniformly in `s ≥ 1`. -/
+/-- The jet norms of the flat `∂̄` of the scaled cut-offs are bounded by a constant `A ≥ 0`
+uniformly in `s ≥ 1`. -/
 private theorem exists_jetNormAt_cutoffDbar_le (r : ℕ) :
-    ∃ A, ∀ s : ℝ, 1 ≤ s → ∀ z : StdSpace ι, jetNormAt ℝ r (cutoffDbar s) z ≤ A := by
-  obtain ⟨A, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := StdSpace ι) (r + 1)
+    ∃ A, 0 ≤ A ∧ ∀ s : ℝ, 1 ≤ s → ∀ z : StdSpace ι, jetNormAt ℝ r (cutoffDbar s) z ≤ A := by
+  obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := StdSpace ι) (r + 1)
   set P := complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
     (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-  refine ⟨‖P‖ * A, fun s hs z ↦ ?_⟩
+  refine ⟨‖P‖ * A, by positivity, fun s hs z ↦ ?_⟩
   have hχ : ContDiff ℝ (r + 1) fun y : StdSpace ι ↦ peakCutoff (‖y‖ / s) :=
     contDiff_peakCutoff_norm_div (by linarith)
   have hχC : ContDiff ℝ (r + 1) (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦ peakCutoff (‖y‖ / s)) :=
@@ -751,12 +752,11 @@ private theorem exists_jetNormAt_cutoffDbar_le_rpow (r : ℕ) :
     ∃ A, ∀ k : ℕ, 1 ≤ k → ∀ z : StdSpace ι,
       jetNormAt ℝ r (cutoffDbar ((k : ℝ) ^ (1 / 6 : ℝ))) z ≤
         A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3 := by
-  obtain ⟨A, hA⟩ := exists_jetNormAt_cutoffDbar_le (ι := ι) r
+  obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_cutoffDbar_le (ι := ι) r
   refine ⟨A, fun k hk z ↦ ?_⟩
   set s := (k : ℝ) ^ (1 / 6 : ℝ)
   have hk0 : (0 : ℝ) < k := by exact_mod_cast hk
   have hs1 : 1 ≤ s := Real.one_le_rpow (by exact_mod_cast hk) (by norm_num)
-  have hA0 : 0 ≤ A := (jetNormAt_nonneg (𝕜 := ℝ) r (cutoffDbar (ι := ι) s) z).trans (hA s hs1 z)
   by_cases hz : ‖z‖ < s ∨ 2 * s < ‖z‖
   · rw [jetNormAt_cutoffDbar_eq_zero r (zero_lt_one.trans_le hs1) hz]
     positivity
@@ -816,7 +816,7 @@ theorem exists_jetNormAt_modelDbar_peakFunction_le (r : ℕ) :
       jetNormAt ℝ r (modelDbar (peakFunction k)) z ≤
         C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2) := by
   obtain ⟨A, hA⟩ := exists_jetNormAt_cutoffDbar_le_rpow (ι := ι) r
-  obtain ⟨B, hB⟩ := exists_jetNormAt_gaussian_le (E := StdSpace ι) r
+  obtain ⟨B, hB0, hB⟩ := exists_jetNormAt_gaussian_le (E := StdSpace ι) r
   refine ⟨2 ^ r * B * A, 3, 1 / 8, by norm_num, fun k hk z ↦ ?_⟩
   rw [modelDbar_peakFunction_eq]
   refine (jetNormAt_fun_smul_le contDiff_gaussian.contDiffAt
@@ -826,7 +826,7 @@ theorem exists_jetNormAt_modelDbar_peakFunction_le (r : ℕ) :
       ≤ 2 ^ r * (B * Real.exp (-‖z‖ ^ 2 / 8)) * (A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3) :=
         mul_le_mul (mul_le_mul_of_nonneg_left (hB z) (by positivity)) (hA k hk z)
           (jetNormAt_nonneg _ _ _)
-          (mul_nonneg (by positivity) ((jetNormAt_nonneg _ _ _).trans (hB z)))
+          (by positivity)
     _ = _ := by ring_nf
 
 /-- The **model `∂̄` bound** for the coordinates times the cut-off Gaussians: for every order `r`
