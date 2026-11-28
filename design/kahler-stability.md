@@ -5,8 +5,9 @@ It proves two milestones of `atlas/symplectic-group-actions.md`, the
 *Kempf–Ness correspondence* and the *Hilbert–Mumford numerical criteria*,
 following McDuff–Salamon [McDuffSalamon2017], §5.7 (equations
 (5.7.2)–(5.7.4) and Theorem 5.7.2), and Georgoulas–Robbin–Salamon
-[GeorgoulasRobbinSalamon2021] (arXiv v2: Lemma 2.1, Theorems 4.1 and 4.3,
-Definition 7.1, Theorem 7.3, Theorems 12.2, 12.5 and 12.6). The convergence
+[GeorgoulasRobbinSalamon2021] (arXiv v2: Lemmas 2.1, 2.3 and 8.4,
+Theorems 4.1 and 4.3, Definition 7.1, Theorems 7.2, 7.3 and 8.5, Theorems
+12.2, 12.4, 12.5 and 12.6). The convergence
 of the gradient flow of $\tfrac12\|\mu\|^2$ follows Lerman (E. Lerman,
 *Gradient flow of the norm squared of a moment map*, Enseign. Math. 51
 (2005), 117–127), whose proof needs a Łojasiewicz inequality and a local
@@ -246,11 +247,14 @@ may adjust implicit arguments and instance arguments to what elaborates.
   $f$, its Łojasiewicz inequality, convergence, Ness's uniqueness theorem
   and the moment limit), and
   `Stability.lean` (the boundedness and properness criteria and the
-  milestone), and `HolomorphicSlice.lean` (the local criterion at a zero
-  of $\mu$, the one step that uses `hJi`).
+  milestone); for the local criterion at a zero of $\mu$, the one step
+  that uses `hJi`, `Stabilizer.lean`, `HolomorphicChart.lean`,
+  `Projective.lean` and `HolomorphicSlice.lean`; and
+  `NumericalCriterion.lean` (the sufficiency halves of the polystable and
+  stable criteria, the three criteria and the Hilbert–Mumford milestone).
 - `Geometry/Symplectic/Hamiltonian/MomentMap/HilbertMumford.lean`:
-  weights, limit points, the slope identity, the moment-weight inequality
-  and the criteria.
+  weights, limit points, the slope identity, the moment-weight inequality,
+  the semistable criterion and the necessity halves of the others.
 
 ## Definitions and their API
 
@@ -620,8 +624,8 @@ them, under *Sufficiency for polystability*. Let `Ad` be `Lie.tangentAd`.
   Lie algebra of the stabilizer, and the approximation of
   `mem_closure_smul_nonzeroPeriods` would not do, since its periods need
   not fix the point.
-- `isStable_of_momentWeight_neg` (the sufficiency half of the stable
-  criterion), with `hJi`: if `momentWeight C μ p λ < 0` for every
+- `isStable_of_momentWeight_neg` (`KempfNess/NumericalCriterion.lean`;
+  the sufficiency half of the stable criterion), with `hJi`: if `momentWeight C μ p λ < 0` for every
   `λ ∈ nonzeroPeriods I G`, then `p` is stable. It is semistable
   (`isSemistable_iff_momentWeight_nonpos`), so polystable by
   `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, whose condition
@@ -640,7 +644,8 @@ them, under *Sufficiency for polystability*. Let `Ad` be `Lie.tangentAd`.
   weight is negative.
 - `exists_momentWeight_pos_of_not_isSemistable`: a destabilizing
   $\xi\in\Lambda$, by the route of *The destabilizing direction* below.
-- `isSemistable_iff_momentWeight_nonpos`;
+- `isSemistable_iff_momentWeight_nonpos`; and, in
+  `KempfNess/NumericalCriterion.lean`,
   `isPolystable_iff_isSemistable_and_limitPoint_mem_orbit`, from
   `IsPolystable.isSemistable`, `IsPolystable.limitPoint_mem_orbit` and
   `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`; and
@@ -649,7 +654,8 @@ them, under *Sufficiency for polystability*. Let `Ad` be `Lie.tangentAd`.
   `nonzeroPeriods I G`, as the page says, and the polystable criterion
   keeps the restriction to those `ξ` with `momentWeight C μ p ξ = 0`.
   The polystable and stable criteria take `hJi`.
-- `hilbertMumford`: the milestone, in the setting of `tendsto_limitPoint`
+- `hilbertMumford` (`KempfNess/NumericalCriterion.lean`): the milestone,
+  in the setting of `tendsto_limitPoint`
   with the hypotheses of `kempfNess`, the invariance of `J` under `G` and
   `hJi`. For every `p`: for each
   `ξ ∈ nonzeroPeriods I G`, `t ↦ μ (C.expI (t • ξ) • p) ξ` tends to
@@ -663,59 +669,35 @@ stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
 
 ### Sufficiency for polystability
 
-This follows [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 12.5), with
-the holomorphic part gathered into one lemma at a zero of $\mu$. A
-semistable `p` that is not polystable has, by `isSemistable_iff` and
-`isPolystable_iff_exists_smul`, a point `x` with `μ x = 0` in the closure
-of `MulAction.orbit Gc p` and not in it; the flow of `momentNormSq` is
-not needed for this.
+This follows [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 12.5, Steps
+1–7), with the holomorphic part gathered into one lemma at a zero of
+$\mu$. Let `p` be semistable and not polystable, and let `x` be the limit
+of the negative gradient flow of `momentNormSq` from `p`
+(`tendsto_maximalIntegralCurve_momentNormSq`). The flow stays in
+`MulAction.orbit Gc p` (`exists_mem_orbit_maximalIntegralCurve`), so `x`
+lies in its closure. By `momentNormSq_limit_eq_iInf`, `isSemistable_iff`
+and the continuity of `momentNormSq`, `momentNormSq … x = 0`, so `μ x = 0`
+(`momentNormSq_eq_zero_iff`); and `x ∉ MulAction.orbit Gc p`, since
+otherwise `p` would be polystable (`isPolystable_iff`). This is
+Theorem 7.2 there. The local criterion takes this `x`, and not any zero
+of `μ` in the closure of the orbit, because its proof follows the flow
+into the chart.
 
 - `exists_mem_nonzeroPeriods_tendsto_expI_smul`
   (`KempfNess/HolomorphicSlice.lean`), the local criterion: in the setting
   of `tendsto_limitPoint`, with the hypotheses of `kempfNess`, the
-  invariance of `J` under `G` and `hJi`, if `μ x = 0`, `x ∈ closure (MulAction.orbit Gc p)` and
-  `x ∉ MulAction.orbit Gc p`, then there are `y ∈ MulAction.orbit Gc p` and
-  `λ ∈ nonzeroPeriods I G` with
+  invariance of `J` under `G` and `hJi`, if the negative gradient flow of
+  `momentNormSq μ (B.toDual hB).symm` from `p` tends to `x`, `μ x = 0`
+  and `x ∉ MulAction.orbit Gc p`, then there are
+  `y ∈ MulAction.orbit Gc p` and `λ ∈ nonzeroPeriods I G` with
   `Tendsto (fun t ↦ C.expI (t • λ) • y) atTop (𝓝 x)`. Edge case: for `G`
-  trivial the orbit is `{p}`, closed, so the hypotheses cannot hold. Route,
-  with `H` the stabilizer of `x` in `G`, compact:
-  (a) an `H`-equivariant chart at `x` in which `J` is constant, by
-  averaging over the Haar measure of `H` a chart in which `J` is constant
-  (`hJi`, `isIntegrable_def`), as Tau Ceti's
-  `exists_equivariant_contMDiff_chart_of_compactSpace`
-  (`Geometry/Manifold/GroupAction/CompactLinearization.lean`) does for
-  smooth charts. The average keeps `J` constant because each `h ∈ H` acts
-  on $T_xM$ by a $J$-linear map. In this chart $X_\xi$, for $\xi$ in the
-  Lie algebra $\mathfrak h$ of `H`, is linear, hence so is
-  $X_{i\xi}=JX_\xi$, and `C.expI (t • ξ)` acts linearly as long as the
-  orbit stays in the chart;
-  (b) the slice: as `μ x = 0`, $\sigma(X_\xi,X_\eta)=\pm\mu(x)([\xi,\eta])=0$,
-  so $\mathfrak g\cdot x$ and $J\mathfrak g\cdot x$ are orthogonal for $g_J$,
-  and their orthogonal complement $W\subset T_xM$ is complex and
-  `H`-invariant;
-  (c) the linear criterion: for the identity component $H_0$ of `H` acting
-  on $W$, if $0$ lies in the closure of the orbit of $w$ under
-  $H_0\exp(i\mathfrak h)$, some period $\lambda$ of $H_0$ has
-  $\exp(it\lambda)w\to0$, with $|\exp(it\lambda)w|$ decreasing, so that the
-  curve stays in the chart. It comes from
-  `isSemistable_iff_momentWeight_nonpos` applied to $H_0$ acting on the
-  projective space of $W$ with the Fubini–Study form of
-  `Geometry/Manifold/Projectivization/FubiniStudy/`, whose Kempf–Ness
-  function at $[w]$ is a positive multiple of $\log|g'w|^2-\log|w|^2$, with
-  $g'$ equal to $g$ or to $g^{-1}$ as the *Sign* bullet decides, so it is
-  unbounded below when $0$ is in the orbit closure
-  (`isSemistable_iff_bddBelow_kempfNessFunction`). A period of positive
-  weight at $[w]$ makes this function tend to $-\infty$ along it
-  (`tendsto_deriv_kempfNessFunction`), so $w$ decays along it or along its
-  negative, which is a period too. It needs $H_0\exp(i\mathfrak h)$ as a `LieComplexification` of
-  $H_0$, a closed subgroup of `Gc` (Tau Ceti's
-  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`), and the moment map
-  of a unitary representation on projective space;
-  (d) a point of `MulAction.orbit Gc p` in the slice near `x` to which
-  (c) applies, by the holomorphic slice theorem at a zero of the moment
-  map (R. Sjamaar, *Holomorphic slices, symplectic reduction and
-  multiplicities of representations*, Ann. of Math. 141 (1995), §1).
-  Its design issue, #8260, splits (a)–(d) into building issues.
+  trivial the orbit is `{p}`, closed, so the hypotheses cannot hold. The
+  route, with `H` the stabilizer of `x` in `G` and `H₀` its identity
+  component, is given under *The local criterion* below. It needs no
+  holomorphic slice theorem: the flow itself, written in a chart at `x`
+  as an orbit point times a point of a linear slice, carries the slice
+  coordinate along one orbit of the complexification of `H₀` (Steps 2–4
+  of the source).
 - `exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`
   (`HilbertMumford.lean`), steps 6–7 of the source: in the setting of
   `tendsto_limitPoint`, if `y ∈ MulAction.orbit Gc p`,
@@ -732,11 +714,209 @@ not needed for this.
   point `C.toHom u • C.parabolicLimit λ q • x`, which lies in the orbit of
   `x`, disjoint from that of `p`; and `ξ ∈ nonzeroPeriods I G`
   (`tangentAd_mem_nonzeroPeriods`). It does not use `hJi`.
-- `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, with `hJi`: if
-  `p` is semistable and `limitPoint C p ξ ∈ MulAction.orbit Gc p` for every
+- `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`
+  (`KempfNess/NumericalCriterion.lean`): in the setting of
+  `tendsto_limitPoint`, with the hypotheses of `kempfNess`, the invariance
+  of `J` under `G` and `hJi`, if `p` is semistable and
+  `limitPoint C p ξ ∈ MulAction.orbit Gc p` for every
   `ξ ∈ nonzeroPeriods I G` with `momentWeight C μ p ξ = 0`, then `p` is
   polystable. Otherwise take `x` as above; the two previous items give a
   `ξ` that contradicts the hypothesis.
+
+### The local criterion
+
+The proof of `exists_mem_nonzeroPeriods_tendsto_expI_smul` follows Steps
+1–5 of [GeorgoulasRobbinSalamon2021] (arXiv v2, proof of Theorem 12.5),
+with their Lemma 2.3 for the stabilizer and Theorem 12.4 (with Lemma 8.4
+and Theorem 8.5) for the linear case. Fix `x` as in the statement, so
+`μ x = 0`; `H = MulAction.stabilizer G x` is closed in the compact `G`,
+hence compact. Write `𝔥 ⊆ 𝔤` for the isotropy algebra of `x`, the `ξ`
+with `X_ξ x = 0`, which is the Lie algebra of `H` and of `H₀`
+(`TauCeti.Lie.lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne_stabilizer`),
+and `𝔤c_x` for the `Z` in the Lie algebra of `Gc` with `X_Z x = 0`. Since
+`μ x = 0`,
+`IsComplexifiedAction.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero`
+makes `𝔤c_x` the sum of `C.lieMap 𝔥` and `C.cplx (C.lieMap 𝔥)`. The
+files below go in `Geometry/Symplectic/Hamiltonian/MomentMap/KempfNess/`.
+`HilbertMumford.lean` imports none of them, and they import it only where
+they use the semistable criterion, so the two halves do not import each
+other.
+
+**`KempfNess/Stabilizer.lean`** (the complexified stabilizer, Step 1 of
+the source, first half).
+
+- `polar_symm_mem_stabilizer_iff_of_moment_eq_zero`: if `μ x = 0`, then
+  `g ∈ MulAction.stabilizer Gc x` exactly when, for
+  `(η, u) = C.polar.symm g`, `X_η x = 0` and `u ∈ H` (Lemma 2.3 of the
+  source). Backward: `C.expI η` fixes `x` (`expI_smul_smul_eq_self_iff`).
+  Forward: `y = C.toHom u • x` has `μ y = 0` (`moment_toHom_smul`) and
+  `C.expI η • y = x`; `t ↦ μ (C.expI (t • η) • y) η` is antitone
+  (`antitone_moment_expI`) and vanishes at `t = 0` and `t = 1`, so it is
+  constant there, `X_η` vanishes along the curve (`hasDerivAt_moment_expI`),
+  the curve is constant, and `y = x`.
+- `mem_stabilizer_of_hasLeftTrivializedDerivOn`: a curve `k : ℝ → Gc`
+  on an interval `s` with `k t₀ = 1` and left-trivialized derivative in
+  `𝔤c_x` on `s` takes values in the identity component `Gc₀` of
+  `MulAction.stabilizer Gc x` (Tau Ceti's
+  `Subgroup.ambientConnectedComponentOfOne`). The curve `t ↦ k t • x` has
+  derivative `mfderiv (k t • ·) x (X_ζ x) = 0`, so it is constant, and
+  `k` is a connected curve through `1` in the stabilizer.
+- `stabilizerComplexification C hx : LieComplexification I₀ H₀ IC₀ Gc₀`,
+  with `H₀` and `Gc₀` the identity components of the stabilizers of `x`
+  in `G` and `Gc`, closed subgroups made Lie groups by
+  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` (`I₀`, `IC₀` their
+  models). Its `toHom` is `C.toHom` restricted (it maps `H₀` into `Gc₀`,
+  being continuous and `H₀` connected); `cplx` is `C.cplx` on the Lie
+  algebra of `Gc₀`, read as `𝔤c_x` through
+  `EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_eq_isotropy`
+  (`Geometry/Lie/Subgroup/IdentityComponent.lean`); and `polar` is
+  `C.polar` restricted to `𝔥 × H₀`. By the first item, `C.polar` maps
+  `𝔥 × H` onto the stabilizer of `x` in `Gc`, so, being a
+  homeomorphism, it maps the component `𝔥 × H₀` of `(0, 1)` onto `Gc₀`.
+  `H₀` is compact and connected, so the setting holds for it.
+- `stabilizerComplexification_expI` and `mem_nonzeroPeriods_of_stabilizer`:
+  through the inclusion of Lie algebras, the `expI` of
+  `stabilizerComplexification C hx` is that of `C`, and a nonzero period of
+  `H₀` is one of `G` (`EmbeddedLieSubgroupData.coe_mulInvariantExp`,
+  `EmbeddedLieSubgroupData.injective_groupLieAlgebraMap_subtype`). These
+  replace the passage from `H exp(i𝔥)` to its identity component: the
+  curve of Step 4 starts at `1`, so it never leaves `Gc₀`.
+
+**`KempfNess/HolomorphicChart.lean`** (Step 1, second half; the only use
+of `hJi` besides the statements that pass it on).
+
+- `exists_equivariant_holomorphic_chart`: with `hJi`, `J` invariant under
+  `G` and `H` compact, there is an `OpenPartialHomeomorph M E'` `e`, smooth
+  with smooth inverse, with `e x = 0`, derivative the identity at `x`,
+  `H`-invariant source, `e (h • z) = mfderiv I' I' (h • ·) x (e z)` for
+  `h ∈ H`, and `J` constant in it:
+  `mfderiv e z (J z v) = J x (mfderiv e z v)` on its source. Proof: take a
+  chart in which `J` is constant (`isIntegrable_iff_mfderiv`), composed
+  with a linear map so that its derivative at `x` is the identity and its
+  constant structure is `J x`, and average it over the Haar measure of `H`
+  as Tau Ceti's `TauCeti.exists_equivariant_contMDiff_chart_of_isCompact_stabilizer`
+  (`Geometry/Manifold/GroupAction/EquivariantSlice.lean`) does for smooth
+  charts, which already gives `H` the Lie group structure of the closed
+  subgroup theorem. The average keeps `J` constant because each `h ∈ H` is
+  `J`-holomorphic near `x`, by the invariance of `J`; that `dh_x` is
+  `J`-linear would not be enough. The averaging lemma that Tau Ceti's
+  proof uses is private there, so this file proves the step it needs
+  (differentiation under the integral sign of a family of maps with
+  `J x`-linear derivatives) and credits Tau Ceti's theorem.
+- `fundamentalVectorField_chart_symm`: for `ξ, η ∈ 𝔥`,
+  `Z = C.lieMap ξ + C.cplx (C.lieMap η)` and `v` in the target of `e`,
+  `X_Z (e.symm v) = mfderiv (e.symm) v (A ξ v + J x (A η v))`, where `A ξ`
+  is the derivative at `0` of `t ↦ mfderiv (mulInvariantExp (t • ξ) • ·) x`,
+  a `J x`-linear map, skew for `g_J` at `x`. For `η = 0` this is the
+  derivative of the equivariance at `h = mulInvariantExp (t • ξ)`
+  (equation (12.5) of the source); for `ξ = 0`, `X_{iη} = J X_η` and `J`
+  is constant in `e`.
+- `expI_smul_chart_symm`: if `NormedSpace.exp (s • (J x ∘ A λ)) v` lies in
+  the target of `e` for `s ∈ [0, t]`, then
+  `C.expI (t • λ) • e.symm v = e.symm (NormedSpace.exp (t • (J x ∘ A λ)) v)`:
+  both are integral curves of `X_{iλ}` from `e.symm v`
+  (`isMIntegralCurve_expI_smul`, the previous item), so they agree.
+
+**`KempfNess/Projective.lean`** (the linear case, Theorem 12.4 of the
+source). Here `C : LieComplexification I G IC Gc` is any complexification
+in the setting, `V = Fin (n + 1) → ℂ` with the Hermitian product of
+`EuclideanSpace`, and `ρ : Gc →* Matrix.GeneralLinearGroup (Fin (n + 1)) ℂ`
+is smooth, unitary on `C.toHom` (`Matrix.unitaryGroup`), and complex in
+its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
+
+- The action of `Gc` on `ℙ ℂ V` through `ρ` (Tau Ceti's
+  `Projectivization.mapDiffeomorph` at the linear equivalence `ρ g`), with the
+  library's `fubiniStudyForm n` and `ofComplexManifold`; the invariance of
+  both under `G` (`mpullback_unitary_fubiniStudyForm`); and
+  `isComplexifiedAction_projectivization`. The fundamental vector field of
+  `ξ` at `[y]` is the image of `dρ ξ • y` under the differential of the
+  projection, which identifies it with the generator of Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.unitaryAction` at `dρ ξ`, an
+  identification Tau Ceti leaves open.
+- `projectivizationMoment ρ : ℙ ℂ V → Module.Dual ℝ 𝔤`, a constant multiple
+  of Tau Ceti's `TauCeti.ComplexProjectiveSpace.unitaryMomentMap` composed
+  with `dρ` and `diffeomorphProjectivization`, and
+  `isEquivariantMomentMap_neg_projectivizationMoment` for the *Sign*
+  convention. It is transported from `isMomentMap_unitaryMomentMap` and
+  `unitaryMomentMap_smul`, not derived again; the constant comes from
+  `fubiniStudyForm n` being `π` times the pull-back of Tau Ceti's form, for
+  which `unitaryMomentMap` is a moment map of `-2π` times it.
+- `kempfNessFunction_projectivization_mk`: for `v ≠ 0`,
+  `Φ_[v] g = c * (Real.log ‖ρ g' v‖ ^ 2 - Real.log ‖v‖ ^ 2)` with `c > 0`
+  and `g'` equal to `g` or `g⁻¹` as the *Sign* bullet decides, by
+  `existsUnique_kempfNessFunction`; and
+  `not_isSemistable_projectivization_mk`: if `0` lies in the closure of
+  `{ρ g v | g}`, `[v]` is not semistable
+  (`isSemistable_iff_bddBelow_kempfNessFunction`) (Theorem 8.5 there).
+- `tendsto_smul_zero_of_momentWeight_pos`: if
+  `momentWeight C (projectivizationMoment ρ) [v] λ > 0`, then `v` lies in
+  the sum of the eigenspaces of one sign of the Hermitian matrix
+  `-Complex.I • dρ λ`, so `ρ (C.expI (t • λ')) v → 0` with antitone norm,
+  for `λ'` equal to `λ` or `-λ` as the sign decides (Lemma 8.4 there).
+  The moment along `C.expI (t • λ)` is a weighted mean of the eigenvalues
+  of the components of `v`, with weights `exp (2 t a) ‖v_a‖ ^ 2`.
+- `exists_mem_nonzeroPeriods_tendsto_smul_zero` (Theorem 12.4 there): if
+  `v ≠ 0` and `0` lies in the closure of `{ρ g v | g}`, some
+  `λ ∈ nonzeroPeriods I G` has `ρ (C.expI (t • λ)) v → 0` as `t → ∞`
+  with antitone norm. By the previous two items and
+  `isSemistable_iff_momentWeight_nonpos` for `ℙ ℂ V`, which is compact,
+  connected and modelled on `𝓘(ℝ, Fin n → ℂ)`, as `tendsto_limitPoint`
+  needs; `nonzeroPeriods` is closed under negation.
+
+**`KempfNess/HolomorphicSlice.lean`** (Steps 2–5 of the source). Let `e` be
+the chart of `exists_equivariant_holomorphic_chart`, and `T ⊆ E'` the
+complex orbit tangent space `{X_Z x | Z}`, which is the `g_J`-orthogonal
+sum of `{X_ξ x | ξ}` and its image under `J x`: the two are orthogonal
+because the orbit of a zero of `μ` is isotropic (Tau Ceti's
+`TauCeti.SmoothTwoForm.IsMomentMap.orbitTangent_inf_orthogonal`).
+
+- `slice`: the `g_J`-orthogonal complement `S` of `T` at `x`, a
+  `J x`-invariant subspace, invariant under `A ξ` and under
+  `mfderiv (h • ·) x` for `ξ ∈ 𝔥` and `h ∈ H` (equation (12.6) of the
+  source: `A ξ (X_η x) = X_⁅ξ, η⁆ x`, and `A ξ` is skew). Tau Ceti's
+  symplectic slice `SymplecticSlice` is `W^σ ⧸ W` with `W` the real orbit
+  tangent space, and `J x` does not preserve `W^σ`; `S` maps
+  isomorphically onto it, `H`-equivariantly, but the steps below need a
+  `J x`-invariant subspace of `E'`, so they use `S`.
+- `ker_sliceOperator_eq` (Step 2): for `v ∈ S` near `0`, the kernel of
+  `(Z, w) ↦ X_Z (e.symm v) - mfderiv e.symm v w` on the Lie algebra of
+  `Gc` times `S` is `{(C.lieMap ξ + C.cplx (C.lieMap η), A ξ v + J x (A η v)) | ξ, η ∈ 𝔥}`.
+  This set lies in the kernel by `fundamentalVectorField_chart_symm`; the
+  operator is onto at `v = 0`, so near it, and the kernel then has the
+  dimension `2 dim 𝔥` of this set.
+- `exists_eventually_eq_expI_mul_smul_chart_symm` (Step 3): with `𝔥ᗮ` the
+  `B`-orthogonal complement of `𝔥`, the map
+  `(α, β, v) ↦ C.expI α * C.toHom (mulInvariantExp β) • e.symm v` on
+  `𝔥ᗮ × 𝔥ᗮ × S` has bijective derivative at `0`, so it is a local
+  diffeomorphism there (`HasStrictFDerivAt.toOpenPartialHomeomorph`), and
+  the flow from `p`, which tends to `x`, is eventually
+  `C.expI (α t) * C.toHom (mulInvariantExp (β t)) • e.symm (v t)` with
+  `α, β, v` differentiable and `v t` near `0`.
+- `exists_mem_stabilizer_slice_eq` (Step 4): with `g` the flow curve of
+  `exists_mem_orbit_maximalIntegralCurve`, `h t` the element
+  `C.expI (α t) * C.toHom (mulInvariantExp (β t))` and
+  `k t = (h t₀)⁻¹ * (g t₀)⁻¹ * g t * h t`, one has
+  `e.symm (v t) = (k t)⁻¹ • e.symm (v t₀)` for `t ≥ t₀`. Differentiating,
+  `ker_sliceOperator_eq` puts the left-trivialized derivative of `k` in
+  `𝔤c_x`, so `k t ∈ Gc₀` (`mem_stabilizer_of_hasLeftTrivializedDerivOn`),
+  and `v t = ρ (k t)⁻¹ (v t₀)`, where `ρ` is the tangent representation
+  `g ↦ mfderiv (g • ·) x` of `Gc₀` on `S` (Tau Ceti's
+  `tangentRepresentation`): both sides solve the same linear equation
+  (`ODE_solution_unique_of_mem_Icc`). `ρ` preserves `S` and is
+  `J x`-linear, since by `polar_symm_mem_stabilizer_iff_of_moment_eq_zero`
+  every element of `Gc₀` is `C.expI η * C.toHom u` with `η ∈ 𝔥` and
+  `u ∈ H₀`, and `ρ (C.expI η)` is `NormedSpace.exp (J x ∘ A η)` by
+  `expI_smul_chart_symm`. In an orthonormal basis of `S` for the
+  Hermitian product of `g_J` and `J x`, `ρ` is a representation of
+  `stabilizerComplexification C hx` as `Projective.lean` takes it.
+- The local criterion (Step 5): `v t₀ ≠ 0`, since otherwise
+  `x ∈ MulAction.orbit Gc p`; `v t → 0` lies in the `Gc₀`-orbit of `v t₀`,
+  so `exists_mem_nonzeroPeriods_tendsto_smul_zero` gives a period `λ` of
+  `H₀` with `ρ (expI (t • λ)) (v t₀) → 0` and antitone norm. The curve
+  stays in the ball of `S` where `e.symm` is defined, so by
+  `expI_smul_chart_symm`, `C.expI (t • λ) • e.symm (v t₀) → e.symm 0 = x`,
+  with `e.symm (v t₀) = (h t₀)⁻¹ • (g t₀)⁻¹ • p` in the orbit of `p`, and
+  `λ ∈ nonzeroPeriods I G` (`mem_nonzeroPeriods_of_stabilizer`).
 
 ### The destabilizing direction
 
@@ -908,19 +1088,27 @@ proof that needs it as a `Submodule` builds it there.
   (`Geometry/Lie/Subgroup/Stabilizer.lean`); for decision 8,
   `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
   `TauCeti.Lie.conj_mulInvariantExp` and `mulInvariantLogChart`; for the
-  local criterion, `TauCeti.exists_equivariant_contMDiff_chart_of_compactSpace`
-  and `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`, checked at
-  `0aaa80fd07b7`.
+  local criterion, `TauCeti.exists_equivariant_contMDiff_chart_of_isCompact_stabilizer`,
+  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`,
+  `Subgroup.ambientConnectedComponentOfOne`, `tangentRepresentation`,
+  `TauCeti.SmoothTwoForm.IsMomentMap.orbitTangent_inf_orthogonal`,
+  `Projectivization.mapDiffeomorph`,
+  `TauCeti.ComplexProjectiveSpace.unitaryMomentMap`,
+  `unitaryMomentMap_smul`, `isMomentMap_unitaryMomentMap` and
+  `unitaryAction`, checked at `0aaa80fd07b7`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
   and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`; for
   decision 8, `LinearMap.IsSymmetric.direct_sum_isInternal`,
   `HasStrictFDerivAt.map_nhds_eq_of_surj`, `IsClosed.mul_right_of_isCompact`
-  and dominated convergence for interval integrals.
+  and dominated convergence for interval integrals; for the local
+  criterion, `HasStrictFDerivAt.toOpenPartialHomeomorph` and
+  `ODE_solution_unique_of_mem_Icc`.
 - From other parts, only merged files: for the local criterion of
   *Sufficiency for polystability*, `IsIntegrable` from
   `Geometry/Manifold/Complex/Integrable.lean` (*Nijenhuis tensor*) and the
   Fubini–Study form of `Geometry/Manifold/Projectivization/FubiniStudy/`
-  (*Complex projective space*). The local normal form (c)
+  (*Complex projective space*), and
+  `Geometry/Lie/Subgroup/IdentityComponent.lean`. The local normal form (c)
   is not Tau Ceti's weight chart of part 37 (*Equivariant normal forms*),
   which holds only at fixed points; it generalizes it along orbits.
 
@@ -955,7 +1143,9 @@ Each is a few hundred lines; each is blocked by the issues it names.
 11. **Weights and limit points.** The first two items of
     `HilbertMumford.lean`. Blocked by 3 and 7.
 12. **Destabilizing directions, and the second milestone.**
-    The rest of `HilbertMumford.lean`, from the moment-weight inequality on. Blocked by 10 and 11;
+    The rest of `HilbertMumford.lean`, from the moment-weight inequality on,
+    and the files of the local criterion and `KempfNess/NumericalCriterion.lean`.
+    Blocked by 10 and 11;
     its polystable and stable criteria are also blocked by 14 and 15.
     The destabilizing direction is these issues, in this order:
     1. `sqrt_polar_symm_fst_le_add_mul`, unless the moment-weight
@@ -985,16 +1175,38 @@ Each is a few hundred lines; each is blocked by the issues it names.
     this order:
     8. `exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`. Blocked by
        14 and 15.
-    9. `exists_mem_nonzeroPeriods_tendsto_expI_smul`, in
-       `KempfNess/HolomorphicSlice.lean` and the files that its design
-       issue #8260 gives for (a)–(d), with the building issues that #8260
-       sets. Blocked by #8260 and by 12.5, whose
-       semistable criterion (c) applies to projective space.
-    10. `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Blocked by
-        12.8 and 12.9.
+    9. `exists_mem_nonzeroPeriods_tendsto_expI_smul`, by the route of
+       *The local criterion*, in these issues, in this order:
+       1. `polar_symm_mem_stabilizer_iff_of_moment_eq_zero` and
+          `mem_stabilizer_of_hasLeftTrivializedDerivOn`, in
+          `KempfNess/Stabilizer.lean`. No blockers.
+       2. `stabilizerComplexification`, `stabilizerComplexification_expI`
+          and `mem_nonzeroPeriods_of_stabilizer`. Blocked by 12.9.1.
+       3. `KempfNess/HolomorphicChart.lean`:
+          `exists_equivariant_holomorphic_chart`,
+          `fundamentalVectorField_chart_symm` and `expI_smul_chart_symm`.
+          No blockers.
+       4. The complexified action on `ℙ ℂ V` from `ρ`,
+          `isComplexifiedAction_projectivization`, `projectivizationMoment`
+          and `isEquivariantMomentMap_neg_projectivizationMoment`, in
+          `KempfNess/Projective.lean`. No blockers.
+       5. `kempfNessFunction_projectivization_mk`,
+          `not_isSemistable_projectivization_mk`,
+          `tendsto_smul_zero_of_momentWeight_pos` and
+          `exists_mem_nonzeroPeriods_tendsto_smul_zero`. Blocked by 12.9.4
+          and by 12.5.
+       6. `slice`, `ker_sliceOperator_eq` and
+          `exists_eventually_eq_expI_mul_smul_chart_symm`, in
+          `KempfNess/HolomorphicSlice.lean`. Blocked by 12.9.3.
+       7. `exists_mem_stabilizer_slice_eq` with the representation of
+          `Gc₀` on the slice, and `exists_mem_nonzeroPeriods_tendsto_expI_smul`.
+          Blocked by 12.9.2, 12.9.5 and 12.9.6.
+    10. `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, in
+        `KempfNess/NumericalCriterion.lean`. Blocked by 12.8 and 12.9.7.
 
     The last issue, `isStable_of_momentWeight_neg`, the polystable and
-    stable criteria and `hilbertMumford`, is blocked by 12.5, 12.6, 12.7
+    stable criteria and `hilbertMumford`, in
+    `KempfNess/NumericalCriterion.lean`, is blocked by 12.5, 12.6, 12.7
     and 12.10.
 13. **The parabolic subgroup.** `Geometry/Lie/Subgroup/Parabolic.lean`:
     `C.parabolic ξ`, `C.parabolicLimit ξ` and `C.parabolicSubspace ξ` with
@@ -1017,13 +1229,10 @@ Issues 1, 5, 7 and 8 can start at once; the Kempf–Ness milestone
   §5.7, equations (5.7.2)–(5.7.4) and Theorem 5.7.2.
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight
   Inequality and the Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021],
-  arXiv v2, Lemma 2.1, Theorems 4.1, 4.3, 5.3, 7.3, 12.2, 12.5 and 12.6,
-  Lemma 7.5, Definition 7.1, and Appendices D and E.
+  arXiv v2, Lemmas 2.1, 2.3, 7.5 and 8.4, Theorems 4.1, 4.3, 5.3, 7.2,
+  7.3, 8.5, 12.2, 12.4, 12.5 and 12.6, Definition 7.1, and Appendices D and E.
 * [V. Guillemin and S. Sternberg][GuilleminSternberg1990], for the local
   normal form.
-* R. Sjamaar, *Holomorphic slices, symplectic reduction and
-  multiplicities of representations*, Ann. of Math. (2) 141 (1995),
-  87–129, §1, for the slice at a zero of the moment map.
 * E. Lerman, *Gradient flow of the norm squared of a moment map*, Enseign.
   Math. 51 (2005), 117–127.
 * C.-M. Marle, *Modèle d'action hamiltonienne d'un groupe de Lie sur une

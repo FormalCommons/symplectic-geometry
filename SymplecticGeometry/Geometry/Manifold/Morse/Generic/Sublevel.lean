@@ -15,9 +15,10 @@ import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Evaluation
 Let `f` be a smooth function on a Hausdorff boundaryless manifold with a finite-dimensional model,
 and `c` a real number such that the superlevel set `f⁻¹[c, ∞)` is compact and every critical value
 of `f` exceeds `c`. Then every weak Whitney neighbourhood of `f` contains a Morse function `g`
-which agrees with `f` on the sublevel set `f⁻¹(-∞, c]`, differs from `f` by a compactly supported
-function, has `c` as a regular value, has compact superlevel set `g⁻¹[c, ∞)`, lies below one of
-its regular values, and has all its critical points where `f > c`
+which agrees with `f` on the sublevel set `f⁻¹(-∞, c]` and has the same sublevel set at `c`,
+differs from `f` by a compactly supported function, has `c` as a regular value, has compact
+superlevel set `g⁻¹[c, ∞)`, lies below one of its regular values above `c`, and has all its
+critical points where `f > c`
 (`ContMDiffMap.exists_isMorse_eqOn_preimage_Iic`).
 
 ## Implementation notes
@@ -51,15 +52,17 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 /-- **Morse perturbation fixed on a sublevel set.** Let `f` be a smooth function on a Hausdorff
 boundaryless manifold with a finite-dimensional model, and `c` a real number such that `f⁻¹[c, ∞)`
 is compact and `c < f x` at every critical point `x` of `f`. Then every neighbourhood of `f` in the
-weak Whitney topology contains a Morse function `g` which agrees with `f` on `f⁻¹(-∞, c]`, such
-that `g - f` has compact support, `c < f x` at every critical point `x` of `g`, `c` is a regular
-value of `g`, `g⁻¹[c, ∞)` is compact, and `g < b` everywhere for some regular value `b` of `g`. -/
+weak Whitney topology contains a Morse function `g` which agrees with `f` on `f⁻¹(-∞, c]` and has
+the same sublevel set `g⁻¹(-∞, c] = f⁻¹(-∞, c]`, such that `g - f` has compact support, `c < f x`
+at every critical point `x` of `g`, `c` is a regular value of `g`, `g⁻¹[c, ∞)` is compact, and
+`g < b` everywhere for some regular value `b > c` of `g`. -/
 theorem exists_isMorse_eqOn_preimage_Iic (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) {c : ℝ}
     (hc : IsCompact (f ⁻¹' Ici c)) (hcrit : ∀ x ∈ criticalPoints I f, c < f x)
     {𝒰 : Set C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (h𝒰 : 𝒰 ∈ 𝓝 f) :
-    ∃ g ∈ 𝒰, IsMorse I g ∧ EqOn g f (f ⁻¹' Iic c) ∧ HasCompactSupport (fun y ↦ g y - f y) ∧
+    ∃ g ∈ 𝒰, IsMorse I g ∧ EqOn g f (f ⁻¹' Iic c) ∧ g ⁻¹' Iic c = f ⁻¹' Iic c ∧
+      HasCompactSupport (fun y ↦ g y - f y) ∧
       (∀ x ∈ criticalPoints I g, c < f x) ∧ IsRegularValue I 𝓘(ℝ) g c ∧
-      IsCompact (g ⁻¹' Ici c) ∧ ∃ b, IsRegularValue I 𝓘(ℝ) g b ∧ ∀ x, g x < b := by
+      IsCompact (g ⁻¹' Ici c) ∧ ∃ b, c < b ∧ IsRegularValue I 𝓘(ℝ) g b ∧ ∀ x, g x < b := by
   -- Above `c` there is a collar `f⁻¹[c, a]` free of critical points.
   have hcreg : IsRegularValue I 𝓘(ℝ) f c := isRegularValue_iff_notMem_image_criticalPoints.2
     fun ⟨x, hx, hxc⟩ ↦ (hcrit x hx).ne' hxc
@@ -93,6 +96,12 @@ theorem exists_isMorse_eqOn_preimage_Iic (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) {
     · rw [mem_preimage, ← (hgf x h).eq_of_nhds]
       exact hx
     · exact (hca.trans h).le
+  -- Where `f > c`, also `g > c`: either `g = f` near the point, or `f ≥ a` there.
+  have hIic : g ⁻¹' Iic c = f ⁻¹' Iic c := Set.ext fun x ↦ by
+    rcases le_or_gt (f x) a with h | h
+    · rw [mem_preimage, mem_preimage, (hgf x h).eq_of_nhds]
+    · simp only [mem_preimage, mem_Iic]
+      exact iff_of_false (hg𝒱 x h.le).not_ge (hca.trans h).not_ge
   have hgcomp : IsCompact (g ⁻¹' Ici c) :=
     hc.of_isClosed_subset (isClosed_Ici.preimage (map_continuous g)) hsub
   obtain ⟨B, hB⟩ := hgcomp.bddAbove_image (map_continuous g).continuousOn
@@ -103,9 +112,10 @@ theorem exists_isMorse_eqOn_preimage_Iic (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) {
   refine ⟨g, hg𝒰, isMorseOn_univ.1 <| isMorseOn_iff_criticalPoints.2
     ⟨g.contMDiff.contMDiffOn, fun x _ hx ↦
       (isMorseOn_iff_criticalPoints.1 hgK).2 x (hK x hx).le hx⟩,
-    fun x hx ↦ (hgf x (le_trans hx hca.le)).eq_of_nhds, hgc, hK,
+    fun x hx ↦ (hgf x (le_trans hx hca.le)).eq_of_nhds, hIic, hgc, hK,
     isRegularValue_iff_notMem_image_criticalPoints.2 fun ⟨x, hx, hxc⟩ ↦ ?_, hgcomp,
-    max c B + 1, isRegularValue_iff.2 fun x hx ↦ absurd hx (hlt x).ne, hlt⟩
+    max c B + 1, by linarith [le_max_left c B],
+    isRegularValue_iff.2 fun x hx ↦ absurd hx (hlt x).ne, hlt⟩
   rcases le_or_gt (f x) a with h | h
   · exact hgC x h hx
   · exact (hg𝒱 x h.le).ne' hxc

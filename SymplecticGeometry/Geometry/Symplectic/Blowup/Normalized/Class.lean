@@ -7,8 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -25,9 +23,9 @@ that vanishes off the image under the lift `ψ̃` of the compact set
 divisor (`BlowupModel.exists_mextDeriv_eq_mpullback_subtypeVal_profileForm_sub`). The lift sends
 the model's divisor into `Z`, so off `Z` it restricts to a partial diffeomorphism from the
 complement of the model's divisor; the primitive of the blowup is the push-forward of that of the
-model along it, extended by zero. The two pieces agree since the model's primitive vanishes off
-`L(l + ε)`. The argument is that of `exists_mextDeriv_eq_normalizedBlowupForm_sub`, for two
-profiles, carried out on the complement of the divisor.
+model along it, extended by zero, which is legitimate since the model's primitive vanishes off
+`L(l + ε)` (`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_mextDeriv_eq`). The same
+lemma gives `exists_mextDeriv_eq_normalizedBlowupForm_sub`, for two profiles, on the whole blowup.
 
 This is the first step of the proof of McDuff–Salamon, Theorem 7.1.21 (v): by it, the difference
 class lifts to the cohomology of the blowup relative to the complement of `Z`.
@@ -125,7 +123,6 @@ theorem exists_mextDeriv_eq_mpullback_subtypeVal_normalizedBlowupForm_sub {h : �
     exact ⟨⟨y, mem_offDivisorOpens.2 hy⟩⟩
   set Φ₁ := Φ.subtypeRestr (offDivisorOpens n) hU
   set Ψ := (Φ₁.symm.subtypeRestr W hW).symm
-  set D := Ψ.toDiffeomorphSourceTarget
   have hΨsource : Ψ.source = {y : offDivisorOpens n | (y : BlowupModel n) ∈ openNbhd n r ∧
       Φ y ∈ W} := by
     ext y
@@ -146,52 +143,26 @@ theorem exists_mextDeriv_eq_mpullback_subtypeVal_normalizedBlowupForm_sub {h : �
       rw [hΨsource]
       exact ⟨hK hy, hyx ▸ x.property⟩
     exact ⟨⟨y, hyZ⟩, hyS, hy, Subtype.ext ((hΨapply _ hyS).trans hyx)⟩
-  -- The open subset of `W` off `K`, and the target of `Ψ`, cover `W`.
-  have hWo : IsOpen ((Subtype.val : W → Blowup hN.blowupChart) ⁻¹' Kᶜ) :=
-    (hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd
-      hψ.weight_add_width_lt).isClosed.isOpen_compl.preimage continuous_subtypeVal
-  have hcover : (Subtype.val : W → Blowup hN.blowupChart) ⁻¹' Kᶜ ∪
-      (⟨Ψ.target, Ψ.open_target⟩ : Opens W) = univ := by
-    refine eq_univ_of_forall fun x ↦ ?_
-    by_cases hx : (x : Blowup hN.blowupChart) ∈ K
-    · obtain ⟨y, hy, -, rfl⟩ := hKΨ x hx
-      exact Or.inr (Ψ.map_source hy)
-    · exact Or.inl hx
   obtain ⟨β₀, hβ₀, hβ₀0⟩ := exists_mextDeriv_eq_mpullback_subtypeVal_profileForm_sub n hh
-  obtain ⟨β, hβW, hβT⟩ := SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq hWo hcover 0
-    (SmoothForm.mpullback D.symm D.symm.contMDiff
-      (SmoothForm.mpullback (Subtype.val : (⟨Ψ.source, Ψ.open_source⟩ : Opens _) → _)
-        contMDiff_subtypeVal β₀))
+  obtain ⟨β, -, hβ0, hdβ⟩ := PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_mextDeriv_eq Ψ
+    ((hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd
+      hψ.weight_add_width_lt).isClosed.preimage continuous_subtypeVal)
+    (fun x hx ↦ by
+      obtain ⟨y, hy, -, rfl⟩ := hKΨ x hx
+      exact Ψ.map_source hy)
+    β₀ (fun y hy hyK ↦ hβ₀0 y fun hyL ↦ hyK (by
+      rw [mem_preimage, hΨapply y hy]
+      exact mem_image_of_mem Φ hyL))
+    (fun y hy ↦ by
+      rw [hβ₀, mpullback_normalizedBlowupForm_sub_of_coe_apply hψ hh Ψ hΨapply hy
+        (hΨsource ▸ hy).1])
     fun x hx ↦ by
-      have h0 : β₀.val (D.symm x) = 0 := hβ₀0 _ fun hy ↦ hx ⟨_, hy,
-        (hΨapply _ (D.symm x).property).symm.trans
-          (congrArg Subtype.val (Ψ.apply_toDiffeomorphSourceTarget_symm x))⟩
-      simp only [SmoothForm.coe_mpullback]
-      exact TauCeti.mpullback_apply_eq_zero (TauCeti.mpullback_apply_eq_zero h0)
-  -- `Ψ` pulls `β` back to `β₀`.
-  have hΨβ : ∀ y ∈ Ψ.source, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-      Ψ β.val y = β₀.val y :=
-    (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff Ψ).1
-      (by rw [hβT, SmoothForm.mpullback_mpullback_symm])
-  have : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) 2 W := IsManifold.of_le (n := ∞) (by simp)
-  have : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) 2 (offDivisorOpens n) :=
-    IsManifold.of_le (n := ∞) (by simp)
-  refine ⟨β, funext fun x ↦ ?_, fun x hx ↦ by simpa using hβW x hx⟩
-  by_cases hx : (x : Blowup hN.blowupChart) ∈ K
-  · obtain ⟨y, hy, -, rfl⟩ := hKΨ x hx
-    have hloc : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ Ψ y :=
-      Ψ.isLocalDiffeomorphAt _ _ _ hy
-    refine (hloc.mextDeriv_apply_eq_iff (by simp) ((β.contMDiff _).of_le (by simp))).2 ?_
-    rw [mextDeriv_congr_of_eventuallyEq (Filter.eventually_of_mem (Ψ.open_source.mem_nhds hy) hΨβ),
-      hβ₀, mpullback_normalizedBlowupForm_sub_of_coe_apply hψ hh Ψ hΨapply hy (hΨsource ▸ hy).1]
-  · have hβx : ∀ᶠ z in 𝓝 x, β.val z = (0 : RoughForm 𝓘(ℝ, Fin (n + 1) → ℂ) W ℝ 1) z :=
-      Filter.eventually_of_mem (hWo.mem_nhds hx) fun z hz ↦ by simpa using hβW z hz
-    rw [mextDeriv_congr_of_eventuallyEq hβx, mextDeriv_zero, SmoothForm.coe_mpullback,
-      mpullback_subtype_val_apply, Submodule.coe_sub, Pi.sub_apply,
-      hψ.normalizedBlowupForm_eq_on_compl _ hx, sub_self, Pi.zero_apply]
-    -- The two zeros lie in the fibres at `x` of `W` and at `x` of the blowup, which are both the
-    -- model fibre.
-    rfl
+      rw [SmoothForm.coe_mpullback, mpullback_subtype_val_apply, Submodule.coe_sub, Pi.sub_apply,
+        hψ.normalizedBlowupForm_eq_on_compl _ hx, sub_self]
+      -- The zero lies in the fibre at `x` of the blowup, which is that at `x` of `W`: both are
+      -- the model fibre.
+      rfl
+  exact ⟨β, hdβ, hβ0⟩
 
 end IsNormalizedBallEmbedding
 
