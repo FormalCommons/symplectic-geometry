@@ -1346,11 +1346,14 @@ containing `ι '' closedBall 0 1`:
        `exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two`
        (`Surround/ConvexShape/Basic.lean`), a convex shape.
     The shapes of `exists_convexShapeFamily_surround` have vertical
-    tangents at `r = δ`, where they are not graphs over `r`; there the
-    same statement is used with `r` as a function of `R`, the shapes
-    being graphs over `R` near that line, and the building issue states
-    that second form (`Surround/ShapeFoliation/OverR.lean`) with the
-    criterion of 14d1 rewritten for it.
+    tangents at `r = δ`, where they are not graphs over `r`. A second
+    form of this statement, with `r` as a function of `R` and the
+    criterion of 14d1 rewritten for it
+    (`Surround/ShapeFoliation/OverR.lean`), was made for a smoothing
+    near that line. The route of issue 14d7 does not use it there: it
+    smooths over `r` only above some `r_a > δ`, and writes the leaves
+    near the cylinder as smoothed minima of curves over `R` that are
+    already smooth.
   - `exists_contDiff_shapeLevel` (`Surround/ShapeFoliation/Level.lean`,
     the function of a foliation): a family
     as above, on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂` and with `0 < ∂χ/∂ℓ`, defines,
