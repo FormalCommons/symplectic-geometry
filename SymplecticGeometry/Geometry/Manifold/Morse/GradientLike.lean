@@ -66,6 +66,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   `TauCeti.IsGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty`: the
   same on the level `f⁻¹(a)` when `f` has no critical point in a band `f⁻¹([a, c))` with `a < c`.
 * `TauCeti.IsGradientLike.eq_zero_iff`: `X x = 0` exactly when `x` is a critical point of `f`.
+  This holds already where the inequality holds at the point itself
+  (`TauCeti.eq_zero_iff_mem_criticalPoints_of_mul_le`), and near a point where `X` is
+  gradient-like (`TauCeti.IsGradientLikeAt.eq_zero_iff`).
 * `TauCeti.IsGradientLike.strictMonoOn_comp`, `TauCeti.IsGradientLike.strictMono_comp`: `f`
   increases strictly along an integral curve of `X`, on a convex set of times or on all of `ℝ`,
   that meets no critical point.
@@ -203,6 +206,29 @@ theorem isGradientLike_def (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(�
 
 variable {f : M → ℝ} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
 
+/-- If `c * (g (X p) (X p) + ‖grad f p‖ ^ 2) ≤ df_p (X p)` at a point `p`, for a smooth metric `g`
+and a constant `c > 0`, the gradient and its norm being those of `g`, then `X p = 0` exactly when
+`p` is a critical point of `f`. -/
+theorem eq_zero_iff_mem_criticalPoints_of_mul_le
+    (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {c : ℝ}
+    (hc : 0 < c) {p : M}
+    (h : letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+      c * (g.inner p (X p) (X p) + ‖mgradient 𝓘(ℝ, E) f p‖ ^ 2) ≤ mvfderiv 𝓘(ℝ, E) f p (X p)) :
+    X p = 0 ↔ p ∈ criticalPoints 𝓘(ℝ, E) f := by
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  rw [mem_criticalPoints]
+  constructor
+  · intro h0
+    simp only [h0, map_zero, zero_add] at h
+    rw [← mgradient_eq_zero_iff (I := 𝓘(ℝ, E)), ← norm_eq_zero]
+    exact pow_eq_zero_iff (n := 2) two_ne_zero |>.1 <|
+      le_antisymm (nonpos_of_mul_nonpos_right h hc) (sq_nonneg _)
+  · intro h0
+    rw [h0, zero_apply] at h
+    by_contra hne
+    have := g.pos p (X p) hne
+    nlinarith [sq_nonneg ‖mgradient 𝓘(ℝ, E) f p‖]
+
 namespace IsGradientLike
 
 /-- A gradient-like field increases `f` strictly at every point that is not critical for `f`. -/
@@ -248,21 +274,7 @@ theorem mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
 theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :
     X x = 0 ↔ mvfderiv 𝓘(ℝ, E) f x = 0 := by
   obtain ⟨g, δ, -, hδ, h⟩ := hX
-  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-  have hx := h x
-  have hδx := hδ x
-  constructor
-  · intro h0
-    simp only [h0, map_zero, zero_add] at hx
-    have : ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 ≤ 0 := nonpos_of_mul_nonpos_right hx hδx
-    rw [← mgradient_eq_zero_iff (I := 𝓘(ℝ, E)), ← norm_eq_zero]
-    exact pow_eq_zero_iff (n := 2) (by norm_num) |>.1 (le_antisymm this (by positivity))
-  · intro h0
-    rw [h0, zero_apply] at hx
-    rw [mgradient_eq_zero_iff.2 h0, norm_zero] at hx
-    by_contra hne
-    have := g.pos x (X x) hne
-    nlinarith
+  rw [eq_zero_iff_mem_criticalPoints_of_mul_le g (hδ x) (h x), mem_criticalPoints]
 
 /-- Along an integral curve of a gradient-like field on a convex set `s` of times that meets no
 critical point of `f`, the function `f` is strictly increasing on `s`. -/
@@ -477,6 +489,13 @@ theorem isGradientLikeAt_def (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(
         ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
           mvfderiv 𝓘(ℝ, E) f y (X y) :=
   Iff.rfl
+
+/-- If `X` is gradient-like for `f` near `x`, then `X x = 0` exactly when `x` is a critical point
+of `f`. -/
+theorem IsGradientLikeAt.eq_zero_iff {x : M} (h : IsGradientLikeAt f X x) :
+    X x = 0 ↔ x ∈ criticalPoints 𝓘(ℝ, E) f := by
+  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X x).1 h
+  exact eq_zero_iff_mem_criticalPoints_of_mul_le g hc (hg x (mem_of_mem_nhds hU))
 
 /-- The inequality of `TauCeti.IsGradientLike` at `y`, with the constant `δ` and with a bilinear
 form `s` on `T_y M` in place of the metric, put in a form that is convex in `s`: the bound
