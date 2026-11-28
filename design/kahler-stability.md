@@ -184,6 +184,27 @@ may adjust implicit arguments and instance arguments to what elaborates.
    $g$ to $\tilde g$ is $s\mapsto g\exp(is\eta)$, and its two end slopes are
    given by `hasDerivAt_kempfNessFunction_geodesic`, so the monotonicity
    is `antitone_moment_expI` and needs no second variation.
+8. **Parabolic subgroups without weights outside $\mathfrak g$.**
+   [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 5.3, Lemma 7.5,
+   Appendices D and E) move weights across $G^{\mathbb C}$ by extending
+   $w_\mu$ to the $G^{\mathbb C}$-conjugates $g\xi g^{-1}$ of elements of
+   $\mathfrak g$, and by writing each conjugate as $q\xi' q^{-1}$ with $q$ in
+   the parabolic subgroup $P(\xi')$ (Theorem D.4, proved inside
+   $\mathrm{GL}(n,\mathbb C)$). The criteria need less. They use only
+   (i) that $w_\mu(qx,\xi)=w_\mu(x,\xi)$, and that $p^+_\xi$ is moved by an
+   element of $G^{\mathbb C}$ when $x$ is replaced by $qx$, for $q\in P(\xi)$;
+   (ii) the decomposition $G^{\mathbb C}=P(\xi)G$ (Theorem D.3); and (iii) the
+   equivariance $w_\mu(ux,\operatorname{Ad}_u\xi)=w_\mu(x,\xi)$ for $u\in G$.
+   So the part defines no weight along a direction outside $\mathfrak g$, and
+   proves neither Theorem 5.3 in its general form nor Theorem D.4. $P(\xi)$ is
+   defined by the convergence of $\exp(it\xi)\,g\,\exp(-it\xi)$, which needs
+   only `expI`, and (ii) is proved from `polar`, `cplx` and `lieMap` by
+   an open-and-closed argument on the connected group $G^{\mathbb C}$, which,
+   like Appendix E, avoids the structure theory of Lie groups. It uses the
+   eigenspaces of $\operatorname{ad}(i\xi)$, an operator that is symmetric for
+   an inner product built from `B`. *How the criteria use them*, under
+   `HilbertMumford.lean` below, shows how (i)–(iii) give the steps of the
+   criteria that the source proves with Theorems 5.3 and D.4.
 
 ## Files
 
@@ -191,6 +212,10 @@ may adjust implicit arguments and instance arguments to what elaborates.
   (`expI`, `im`, `re`, `lieMap_re_add_cplx_lieMap_im`, `polar_apply`,
   `connectedSpace` from connectedness of `G`, `toHom` a closed embedding),
   the circle example, and the Gauss lemma of decision 7.
+- `Geometry/Lie/Subgroup/Parabolic.lean`: the parabolic subgroup
+  `C.parabolic ξ` of decision 8, its Lie subspace, and
+  $G^{\mathbb C}=P(\xi)G$. Tau Ceti's folder `Geometry/Lie/Subgroup/` has no
+  file of that name, and `Complexification.lean` keeps its path.
 - `Geometry/RealAlgebraic/Semialgebraic/CurveSelection.lean`: decision 4 (a).
 - `Analysis/Calculus/Lojasiewicz/Polynomial.lean`: decision 4 (b), in Tau
   Ceti's folder `Analysis/Calculus/Lojasiewicz/`.
@@ -242,6 +267,15 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 - `momentWeight C μ p ξ : ℝ`, the limit of `μ (C.expI (t • ξ) • p) ξ` as
   `t → ∞` (`limUnder atTop`), with `tendsto_momentWeight`, and
   `limitPoint C p ξ : M`, with `tendsto_limitPoint` for every `ξ`.
+- `C.parabolic ξ : Subgroup Gc` (decision 8), the `g` for which
+  `t ↦ C.expI (t • ξ) * g * C.expI (-(t • ξ))` has a limit as `t → ∞`, with
+  `mem_parabolic_iff`; `C.parabolicLimit ξ : C.parabolic ξ →* Gc`, that
+  limit (`limUnder atTop`; `Gc` is Hausdorff by `IC.t2Space_of_lieGroup`), with
+  `tendsto_parabolicLimit`; and `C.parabolicSubspace ξ`, the submodule of
+  `GroupLieAlgebra IC Gc` of the `x` for which
+  `t ↦ tangentAd (C.expI (t • ξ)) x` converges. Edge cases:
+  `parabolic_zero : C.parabolic 0 = ⊤`, and in the circle example of
+  decision 1, where `Gc` is commutative, every `C.parabolic ξ` is `⊤`.
 - `nonzeroPeriods I G : Set 𝔤 := {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}`,
   written $\Lambda$, invariant under `Ad` and under positive integer
   multiples, in `Geometry/Lie/Exponential/Periods.lean`.
@@ -268,6 +302,77 @@ For connected `G` and a symmetric `Ad`-invariant `B`, so that `B` is also
   even part of the series $(1-e^{-z})/z$ at $z=\operatorname{ad}_{i\eta}$,
   a power series in $\operatorname{ad}_\eta^2$. It is $B$-symmetric and
   fixes $\eta$, so $B(\eta,S\dot\eta)=B(\eta,\dot\eta)$.
+
+### `Geometry/Lie/Subgroup/Parabolic.lean` (decision 8)
+
+Here `G` is compact and connected and `E` finite-dimensional, as in the
+setting; the proofs choose `B` with
+`TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`,
+so no statement takes it.
+
+- `C.parabolic ξ` is a subgroup: the conjugate of `g * h` is the product
+  of the conjugates (insert `C.expI (-(t • ξ)) * C.expI (t • ξ) = 1`, from
+  `expI_add_smul`), and that of `g⁻¹` the inverse, so limits multiply
+  (`Filter.Tendsto.mul`, `Filter.Tendsto.inv`). Then
+  `parabolicLimit_mul`, and
+  `expI_mul_parabolicLimit_mul_expI_neg : C.expI (s • ξ) * C.parabolicLimit ξ q * C.expI (-(s • ξ)) = C.parabolicLimit ξ q`
+  (the conjugates are those at time `t + s`), so the limit commutes with
+  every `C.expI (s • ξ)`.
+- `tangentAd_expI_smul`: `tangentAd (C.expI (t • ξ))` is
+  `NormedSpace.exp (t • A)` for `A := ad (C.cplx (C.lieMap ξ))`, by Tau
+  Ceti's `TauCeti.Lie.tangentAd_mulInvariantExp_apply`
+  (`Geometry/Lie/Adjoint/Exponential/Formula.lean`). So
+  `C.parabolicSubspace ξ` is the sum of the eigenspaces of `A` with
+  eigenvalue `≤ 0`, once `A` is diagonalizable with real eigenvalues
+  (next item).
+- `isSymm_ad_cplx_lieMap`: for the form
+  `Bc x y := B (C.re x) (C.re y) + B (C.im x) (C.im y)`, symmetric and
+  positive definite because `lieMap_re_add_cplx_lieMap_im` splits
+  `GroupLieAlgebra IC Gc`, the operator `A` is `Bc`-symmetric. Proof: by
+  `cplx_lie'`, `re_lie`, `im_lie`, `re_lieMap`, `im_lieMap` and the values of
+  `re` and `im` on `cplx`, `C.re (A x) = -⁅ξ, C.im x⁆` and
+  `C.im (A x) = ⁅ξ, C.re x⁆`; then the `ad`-invariance of `B`
+  (`TauCeti.Lie.lieInvariant_iff_adjoint_invariant`) gives
+  `Bc (A x) y = Bc x (A y)`. With `Bc` as the inner product of a local
+  `InnerProductSpace.ofCore` on the model space `EC`, Mathlib's
+  `LinearMap.IsSymmetric.direct_sum_isInternal`
+  (`Analysis/InnerProductSpace/Spectrum.lean`) splits `EC` into
+  eigenspaces of `A`.
+- `parabolicSubspace_sup_range_lieMap : C.parabolicSubspace ξ ⊔ LinearMap.range C.lieMap = ⊤`.
+  Proof: the conjugation `τ x := C.lieMap (C.re x) - C.cplx (C.lieMap (C.im x))`
+  anticommutes with `A` (by the same formulas), so it maps the eigenspace
+  of `λ` to that of `-λ`. For `x` in the eigenspace of `λ > 0`,
+  `x = 2 • C.lieMap (C.re x) - τ x` with `τ x` in the eigenspace of `-λ`;
+  the other eigenspaces lie in `C.parabolicSubspace ξ`.
+- `mulInvariantExp_mem_parabolic`: for `x ∈ C.parabolicSubspace ξ`,
+  `mulInvariantExp x ∈ C.parabolic ξ`, by `TauCeti.Lie.conj_mulInvariantExp`
+  (`Geometry/Lie/Adjoint/Exponential/Basic.lean`) and continuity of
+  `mulInvariantExp`. With `toHom_mulInvariantExp`, the map
+  `F (x, y) := mulInvariantExp (x : EC) * C.toHom (mulInvariantExp y)` on
+  `C.parabolicSubspace ξ × E` takes values in the set
+  `S := C.parabolic ξ * Set.range C.toHom`.
+- `parabolic_mul_range_toHom_mem_nhds_one : S ∈ 𝓝 1`. In the logarithm
+  chart `mulInvariantLogChart` of Tau Ceti's
+  `Geometry/Lie/Exponential/LocalInverse.lean`, whose derivative at `1` is
+  the identity (`hasFDerivAt_mulInvariantLogChart_one`), the map `F` is
+  strictly differentiable at `0` with derivative `(x, y) ↦ x + C.lieMap y`,
+  which is onto by `parabolicSubspace_sup_range_lieMap`. Mathlib's
+  `HasStrictFDerivAt.map_nhds_eq_of_surj`
+  (`Analysis/Calculus/InverseFunctionTheorem/FDeriv.lean`) then makes the
+  image of `F` a neighbourhood of `1`.
+- `parabolic_mul_range_toHom_eq_univ : (C.parabolic ξ : Set Gc) * Set.range C.toHom = Set.univ`
+  (Theorem D.3), with the two forms used below,
+  `exists_mem_parabolic_mul_toHom : ∃ q ∈ C.parabolic ξ, ∃ u, g = q * C.toHom u`
+  and `exists_toHom_mul_mem_parabolic : ∃ u, ∃ q ∈ C.parabolic ξ, g = C.toHom u * q`
+  (the first applied to `g⁻¹`). Proof: `S` is open, since for
+  `g = q * C.toHom u` and a neighbourhood `V ⊆ S` of `1`, the neighbourhood
+  `q • V • C.toHom u` of `g` lies in `S`. `S` is closed: for `k` in
+  `closure (C.parabolic ξ)`, the neighbourhood `k * V⁻¹` of `k` meets
+  `C.parabolic ξ`, so `k ∈ C.parabolic ξ * V ⊆ S`; hence
+  `S = closure (C.parabolic ξ) * Set.range C.toHom`, closed by Mathlib's
+  `IsClosed.mul_right_of_isCompact` (`Topology/Algebra/Group/Pointwise.lean`),
+  since `G` is compact. `Gc` is connected (`C.connectedSpace`) and `S` is
+  nonempty.
 
 ### `KempfNess/Basic.lean`
 
@@ -395,6 +500,54 @@ This is a hypothesis of the statements below, not a definition.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,
   $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for $\xi\in\Lambda$ and $g\in G^{\mathbb C}$,
   with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq μ (B.toDual hB).symm (g • p))`.
+- `momentWeight_toHom_smul : momentWeight C μ (C.toHom u • x) (Ad u ξ) = momentWeight C μ x ξ`
+  and `limitPoint_toHom_smul : limitPoint C (C.toHom u • x) (Ad u ξ) = C.toHom u • limitPoint C x ξ`,
+  from `toHom_mul_expI_mul_inv` and `moment_toHom_smul` (decision 8 (iii)).
+- `limitPoint_smul_of_mem_parabolic`: for `q ∈ C.parabolic ξ`,
+  `limitPoint C (q • x) ξ = C.parabolicLimit ξ q • limitPoint C x ξ`, since
+  `C.expI (t • ξ) • q • x` is the conjugate of `q` at time `t` acting on
+  `C.expI (t • ξ) • x`; by continuity of the action of `Gc` and
+  `limitPoint_eq_of_tendsto`.
+- `tendsto_kempfNessFunction_expI_neg_smul_div`:
+  `Φ_p (C.expI (-(s • ξ))) / s → -momentWeight C μ p ξ` as `s → ∞`. By
+  `kempfNessFunction_expI` the quotient is
+  `-∫ t in 0..1, μ (C.expI ((t * s) • ξ) • p) ξ`, and dominated convergence
+  (`intervalIntegral.tendsto_integral_filter_of_dominated_convergence`, with
+  the bound from compactness of `M`) and `tendsto_momentWeight` give the
+  limit. It does not use the slope identity.
+- `abs_kempfNessFunction_expI_mul_toHom_le`: if `√(momentNormSq μ (B.toDual hB).symm y) ≤ L`
+  for all `y`, then `|Φ_p (C.expI η * C.toHom u)| ≤ L * √(B η η)` for every
+  `p`, from `kempfNessFunction_expI_mul_toHom` and
+  `abs_apply_le_sqrt_momentNormSq_mul_sqrt`.
+- `momentWeight_smul_of_mem_parabolic`: for `q ∈ C.parabolic ξ`,
+  `momentWeight C μ (q • x) ξ = momentWeight C μ x ξ` (decision 8 (i)).
+  Proof: by `kempfNessFunction_mul`,
+  `Φ_{q • x} (C.expI (-(s • ξ))) = Φ_x (C.expI (-(s • ξ)) * k s) - Φ_x q⁻¹`
+  with `k s := C.expI (s • ξ) * q⁻¹ * C.expI (-(s • ξ))`, and, again by
+  `kempfNessFunction_mul`, `Φ_x (C.expI (-(s • ξ)) * k s)` differs from
+  `Φ_x (C.expI (-(s • ξ)))` by `Φ_y (k s)` for some `y`. As `k s` converges,
+  its polar radius (through the continuous `C.polar.symm`) is bounded, so
+  the difference is bounded by the previous item; divide by `s` and apply
+  `tendsto_kempfNessFunction_expI_neg_smul_div` twice.
+
+*How the criteria use them* (their routes are for #7907 to settle). A
+polystable `p` is `g • x` with `μ x = 0`. Write `g = q * C.toHom u` with
+`q ∈ C.parabolic ξ` (`exists_mem_parabolic_mul_toHom`), so that `p = q • x'`
+with `x' = C.toHom u • x` and `μ x' = 0`. Then
+`momentWeight C μ p ξ = momentWeight C μ x' ξ ≤ μ x' ξ = 0` (`momentWeight_le`).
+If it is `0`, then `t ↦ μ (C.expI (t • ξ) • x') ξ` is constant on `t ≥ 0`, so
+each `C.expI (t • ξ)` fixes `x'` (`expI_smul_eq_self_of_moment_apply_le`).
+Hence `limitPoint C p ξ = C.parabolicLimit ξ q • x'`, in the orbit of `p`;
+and the stabilizer of `p` in `Gc`, conjugate to that of `x'`, contains the
+path `t ↦ q * C.expI (t • ξ) * q⁻¹`, injective by `polar` for `ξ ≠ 0`, so it
+is not discrete. These give the necessity halves of the polystable and
+stable criteria. For the sufficiency half of the stable one, a nonzero
+period `λ` with `C.expI (t • λ) • y = y` for all `t`, `μ y = 0` and
+`p = g • y`, write `g = C.toHom u * q` with `q ∈ C.parabolic λ`
+(`exists_toHom_mul_mem_parabolic`); then
+`momentWeight C μ p (Ad u λ) = momentWeight C μ (q • y) λ = μ y λ = 0`, and
+`Ad u λ ∈ nonzeroPeriods I G` (`tangentAd_mem_nonzeroPeriods`).
+
 - `exists_momentWeight_pos_of_not_isSemistable`: a destabilizing
   $\xi\in\Lambda$, by the route of *The destabilizing direction* below.
 - `isSemistable_iff_momentWeight_nonpos`,
@@ -564,9 +717,14 @@ proof that needs it as a `Submodule` builds it there.
   (`Geometry/Lie/Exponential/LocalInverse.lean`),
   `commute_lieExp_of_lie_eq_zero` and `lieExp_add_of_lie_eq_zero`
   (`Geometry/Lie/Adjoint/Exponential/Formula.lean`), `conj_lieExp` and
-  `hasDerivAt_Ad_lieExp_smul_apply_zero`.
+  `hasDerivAt_Ad_lieExp_smul_apply_zero`; for decision 8,
+  `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
+  `TauCeti.Lie.conj_mulInvariantExp` and `mulInvariantLogChart`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
-  and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`.
+  and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`; for
+  decision 8, `LinearMap.IsSymmetric.direct_sum_isInternal`,
+  `HasStrictFDerivAt.map_nhds_eq_of_surj`, `IsClosed.mul_right_of_isCompact`
+  and dominated convergence for interval integrals.
 - From other parts: none on `main` is needed. The local normal form (c)
   is not Tau Ceti's weight chart of part 37 (*Equivariant normal forms*),
   which holds only at fixed points; it generalizes it along orbits.
@@ -602,7 +760,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
 11. **Weights and limit points.** The first two items of
     `HilbertMumford.lean`. Blocked by 3 and 7.
 12. **Destabilizing directions, and the second milestone.**
-    The rest of `HilbertMumford.lean`, from the moment-weight inequality on. Blocked by 10 and 11.
+    The rest of `HilbertMumford.lean`, from the moment-weight inequality on. Blocked by 10 and 11;
+    its polystable and stable criteria are also blocked by 14 and 15.
     The destabilizing direction is these issues, in this order:
     1. `sqrt_polar_symm_fst_le_add_mul`, unless the moment-weight
        inequality has proved it. No blockers.
@@ -617,6 +776,16 @@ Each is a few hundred lines; each is blocked by the issues it names.
     5. `exists_momentWeight_pos_of_not_isSemistable` and
        `isSemistable_iff_momentWeight_nonpos`. Blocked by 12.2, 12.3 and
        12.4.
+13. **The parabolic subgroup.** `Geometry/Lie/Subgroup/Parabolic.lean`:
+    `C.parabolic ξ`, `C.parabolicLimit ξ` and `C.parabolicSubspace ξ` with
+    their API, `tangentAd_expI_smul`, `isSymm_ad_cplx_lieMap`,
+    `parabolicSubspace_sup_range_lieMap` and `mulInvariantExp_mem_parabolic`.
+    Blocked by 1.
+14. **$G^{\mathbb C}=P(\xi)G$.** The rest of `Parabolic.lean`, from
+    `parabolic_mul_range_toHom_mem_nhds_one` on. Blocked by 13.
+15. **Weights under the parabolic subgroup.** In `HilbertMumford.lean`,
+    the items of *Main results* from `momentWeight_toHom_smul` to
+    `momentWeight_smul_of_mem_parabolic`. Blocked by 11 and 13.
 
 Issues 1, 5, 7 and 8 can start at once; the Kempf–Ness milestone
 (issue 10) comes before the Hilbert–Mumford one (issue 12).
@@ -627,8 +796,8 @@ Issues 1, 5, 7 and 8 can start at once; the Kempf–Ness milestone
   §5.7, equations (5.7.2)–(5.7.4) and Theorem 5.7.2.
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight
   Inequality and the Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021],
-  arXiv v2, Lemma 2.1, Theorems 4.1, 4.3, 7.3, 12.2, 12.5 and 12.6, and
-  Definition 7.1.
+  arXiv v2, Lemma 2.1, Theorems 4.1, 4.3, 5.3, 7.3, 12.2, 12.5 and 12.6,
+  Lemma 7.5, Definition 7.1, and Appendices D and E.
 * [V. Guillemin and S. Sternberg][GuilleminSternberg1990], for the local
   normal form.
 * E. Lerman, *Gradient flow of the norm squared of a moment map*, Enseign.

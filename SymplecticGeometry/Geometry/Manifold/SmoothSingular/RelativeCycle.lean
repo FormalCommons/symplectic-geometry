@@ -46,6 +46,8 @@ pair.
 * `TauCeti.exists_smoothSingular_sub_eq_d_add_of_relClass`: a smooth cycle and a smooth simplex
   with faces in `U` that have the same class in the homology of `(M, U)` differ by a smooth
   boundary and a smooth chain of `U`.
+* `TauCeti.range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app`: a smooth simplex
+  whose faces are smooth simplices of `U` has its faces in `U`, as `TopPair.relClass` asks.
 
 ## References
 
@@ -62,6 +64,38 @@ open scoped Manifold ContDiff
 universe u v
 
 namespace TauCeti
+
+section Faces
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type u} [TopologicalSpace M] [ChartedSpace H M] {U : Opens M}
+
+/-- If the `i`-th face of a smooth simplex `σ` of `M` is the image of a smooth simplex `τ` of an
+open subset `U`, then the `i`-th face of the underlying singular simplex of `σ` is the image of
+the underlying singular simplex of `τ` under the inclusion of `U`. -/
+theorem δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app {k : ℕ}
+    {σ : SmoothSimplex I M (k + 1)} {τ : SmoothSimplex I U k} {i : Fin (k + 2)}
+    (h : (smoothSingularSubcomplex I M : SSet).δ i σ =
+      (smoothSingularSubcomplexMap (Subtype.val : U → M) contMDiff_subtypeVal).app _ τ) :
+    (TopCat.toSSet.obj (TopCat.of M)).δ i σ.val =
+      (TopCat.toSSet.map (TopPair.ofSubset (U : Set (TopCat.of M))).map).app _ τ.val :=
+  (congrArg Subtype.val h).trans (coe_smoothSingularSubcomplexMap_app _ _)
+
+/-- If the faces of a smooth simplex `σ` of `M` are the images of smooth simplices `t i` of an
+open subset `U`, then each face of the underlying singular simplex has its image in `U`, as
+`TopPair.relClass` asks. -/
+theorem range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app {k : ℕ}
+    (σ : SmoothSimplex I M (k + 1)) (t : Fin (k + 2) → SmoothSimplex I U k)
+    (ht : ∀ i, (smoothSingularSubcomplex I M : SSet).δ i σ =
+      (smoothSingularSubcomplexMap (Subtype.val : U → M) contMDiff_subtypeVal).app _ (t i))
+    (i : Fin (k + 2)) :
+    Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
+      Set.range (TopPair.ofSubset (X := TopCat.of M) (U : Set M)).map := by
+  rw [δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app (ht i)]
+  rintro _ ⟨z, rfl⟩
+  exact ⟨_, rfl⟩
+
+end Faces
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}

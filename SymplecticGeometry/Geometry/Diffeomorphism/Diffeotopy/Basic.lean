@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Diffeomorph.Prod
 
 /-!
 # Basic facts about diffeotopies
@@ -129,9 +130,10 @@ diffeotopy for the product `𝓘(ℝ, A).prod 𝓘(ℝ, B)` of the self-models. 
 map (`TauCeti.Diffeotopy.toProdModel_apply`). -/
 def toProdModel : Diffeotopy (𝓘(ℝ, A).prod 𝓘(ℝ, B)) n (A × B) where
   toDiffeomorph :=
-    ((Diffeomorph.reflProdCongr unitInterval (Diffeomorph.prodModelSelf ℝ A B)).symm.trans
-      Φ.toDiffeomorph).trans (Diffeomorph.reflProdCongr unitInterval
-        (Diffeomorph.prodModelSelf ℝ A B))
+    (((Diffeomorph.refl (𝓡∂ 1) unitInterval n).prodCongrOfModels
+      (Diffeomorph.prodModelSelf ℝ A B)).symm.trans Φ.toDiffeomorph).trans
+        ((Diffeomorph.refl (𝓡∂ 1) unitInterval n).prodCongrOfModels
+          (Diffeomorph.prodModelSelf ℝ A B))
   fst_apply p := by simp
   snd_apply_zero' x := by simp
 
