@@ -508,9 +508,9 @@ theorem exists_complexFrame_mfderiv {ι : EuclideanSpace ℝ (Fin k) → M}
     have hAx : A x (modelDisc k m x') = L x (modelDisc k m x').1 := by
       rw [show modelDisc k m x' = ((modelDisc k m x').1, 0) from
         Prod.ext rfl (modelDisc_apply_snd x'), hA, map_zero, add_zero]
-    have hx' : (modelDisc k m x').1 = (complexEuclideanEquivRealProd (Fin k)).symm (x', 0) := by
-      ext j
-      simpa [complexEuclideanEquivRealProd_symm_apply] using modelDisc_apply_fst_apply (m := m) x' j
+    have hx' : (modelDisc k m x').1 = (complexEuclideanEquivRealProd (Fin k)).symm (x', 0) :=
+      (complexEuclideanEquivRealProd (Fin k)).eq_symm_apply.mpr
+        (complexEuclideanEquivRealProd_modelDisc_fst x')
     refine (ContinuousLinearMap.comp_apply _ _ _).trans (hAx.trans ?_)
     rw [hx']
     exact complexExtension_apply_symm_real _ x'

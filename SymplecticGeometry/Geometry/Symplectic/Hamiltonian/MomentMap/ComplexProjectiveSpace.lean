@@ -160,22 +160,11 @@ end TauCeti.ComplexProjectiveSpace
 /-! ### The group-level moment map of the unitary group -/
 
 open TauCeti.Lie
-open scoped ContDiff Matrix.Norms.Operator
-
--- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
-attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
-attribute [local instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-
-/-- The model vector space of the matrix unitary Lie group `unitarySubgroup (GL (Fin (n + 1)) ℂ)`:
-its Lie algebra inside the Lie algebra of `GL (Fin (n + 1)) ℂ`. -/
-local notation "𝔨[" n "]" => LieSubalgebra.toSubmodule
-  (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))
-    (unitarySubgroup (GL (Fin (n + 1)) ℂ)))
+open scoped ContDiff Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
 
 /-- The Lie algebra of the matrix unitary Lie group `unitarySubgroup (GL (Fin (n + 1)) ℂ)`. -/
 local notation "𝔤[" n "]" =>
-  GroupLieAlgebra 𝓘(ℝ, 𝔨[n]) (unitarySubgroup (GL (Fin (n + 1)) ℂ))
+  GroupLieAlgebra 𝓘(ℝ, 𝔨[Fin (n + 1)]) (unitarySubgroup (GL (Fin (n + 1)) ℂ))
 
 namespace Projectivization
 
@@ -198,7 +187,7 @@ theorem fundamentalVectorField_mk_unitarySubgroup (ξ : 𝔤[n]) {y : Fin (n + 1
     fundamentalVectorField 𝓘(ℝ, Fin n → ℂ) ξ (mk ℂ y hy) =
       mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) ⟨y, mem_puncturedSpace.2 hy⟩
         ((matrixUnitaryLieAlgebraEquiv ξ : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ y) :=
-  (fundamentalVectorField_mk ξ hy ((ContMDiffSMul.contMDiff_smul_const (I := 𝓘(ℝ, 𝔨[n]))
+  (fundamentalVectorField_mk ξ hy ((ContMDiffSMul.contMDiff_smul_const (I := 𝓘(ℝ, 𝔨[Fin (n + 1)]))
     (n := ∞) y).mdifferentiableAt (by simp))).trans
       (by rw [fundamentalVectorField_unitarySubgroup])
 
@@ -265,7 +254,8 @@ matrix unitary Lie group. -/
 theorem unitaryProjectivizationMoment_smul (g : unitarySubgroup (GL (Fin (n + 1)) ℂ))
     (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
     unitaryProjectivizationMoment n (g • x) =
-      Lie.coadjointRepresentation ℝ 𝓘(ℝ, 𝔨[n]) _ g (unitaryProjectivizationMoment n x) := by
+      Lie.coadjointRepresentation ℝ 𝓘(ℝ, 𝔨[Fin (n + 1)]) _ g
+        (unitaryProjectivizationMoment n x) := by
   rw [unitaryProjectivizationMoment_def, unitaryProjectivizationMoment_def,
     Projectivization.unitarySubgroup_smul_eq,
     ComplexProjectiveSpace.diffeomorphProjectivization_symm_smul,
@@ -285,7 +275,7 @@ theorem isEquivariantMomentMap_neg_unitaryProjectivizationMoment :
     have h := (((ComplexProjectiveSpace.isMomentMap_unitaryMomentMap (n := n)).comp
       (matrixUnitaryLieAlgebraEquiv :
         𝔤[n] ≃ₗ⁅ℝ⁆ unitaryLieAlgebra (Fin (n + 1))).toLieHom).mpullback
-      (a' := InfinitesimalAction.fundamental 𝓘(ℝ, 𝔨[n]) _ 𝓘(ℝ, Fin n → ℂ) _)
+      (a' := InfinitesimalAction.fundamental 𝓘(ℝ, 𝔨[Fin (n + 1)]) _ 𝓘(ℝ, Fin n → ℂ) _)
       ((ComplexProjectiveSpace.diffeomorphProjectivization n).symm.contMDiff.of_le le_top)
       fun ξ x ↦ by
         rw [InfinitesimalAction.fundamental_apply, InfinitesimalAction.comp_apply,

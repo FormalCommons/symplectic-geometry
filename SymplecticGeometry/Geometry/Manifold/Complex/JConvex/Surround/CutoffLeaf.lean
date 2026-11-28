@@ -625,12 +625,18 @@ theorem contDiffOn_uncurry_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) :
     (contDiffAt_const.add (contDiffAt_fst.pow 2)) contDiffAt_snd
     (cutoffLeaf_radicand_pos L hrδ (by nlinarith)).ne').contDiffWithinAt
 
+/-- The family `(ℓ, r) ↦ sqrtAddLeaf L δ ℓ r` is smooth at every `(ℓ, r)` with `δ < r`, for
+`0 ≤ δ`. -/
+theorem contDiffAt_uncurry_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) {q : ℝ × ℝ} (hq : δ < q.2) :
+    ContDiffAt ℝ ∞ (Function.uncurry (sqrtAddLeaf L δ)) q :=
+  (contDiffOn_uncurry_sqrtAddLeaf L hδ).contDiffAt
+    ((isOpen_univ.prod isOpen_Ioi).mem_nhds ⟨trivial, hq⟩)
+
 /-- Each leaf `sqrtAddLeaf L δ ℓ` is `Cⁿ` where `δ < r`, for `0 ≤ δ`. -/
 theorem contDiffOn_sqrtAddLeaf {n : ℕ∞} (L : ℝ) (hδ : 0 ≤ δ) (ℓ : ℝ) :
     ContDiffOn ℝ n (sqrtAddLeaf L δ ℓ) (Ioi δ) := fun r hr ↦
-  (((contDiffOn_uncurry_sqrtAddLeaf L hδ).contDiffAt
-    (prod_mem_nhds univ_mem (Ioi_mem_nhds hr))).uncurry_left.of_le
-      (by exact_mod_cast le_top)).contDiffWithinAt
+  ((contDiffAt_uncurry_sqrtAddLeaf L hδ (q := (ℓ, r)) hr).uncurry_left.of_le
+    (by exact_mod_cast le_top)).contDiffWithinAt
 
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtAddLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
@@ -884,8 +890,7 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
   have hAc : ContDiffAt ℝ 2 A r :=
     (contDiffOn_sqrtAddLeaf L zero_le_one ℓ).contDiffAt (Ioi_mem_nhds hr)
   have hTc : ContDiffAt ℝ 2 T r :=
-    ((contDiffOn_struweShape one_pos le_rfl _).contDiffAt (Ioi_mem_nhds hr)).of_le
-      (by simp)
+    (contDiffOn_struweShape one_pos le_rfl _).contDiffAt (Ioi_mem_nhds hr)
   -- From `2` on, `A - T ≥ 2 > η`.
   have hr₂ : A r - T r ≤ η → r < 2 := fun h ↦ by
     by_contra! h'
@@ -989,8 +994,7 @@ theorem contDiffAt_uncurry_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < 
     (hq : δ < q.2) : ContDiffAt ℝ ∞ (Function.uncurry (struweSwitchLeaf L δ)) q := by
   set A := Function.uncurry (sqrtAddLeaf L δ)
   set T := fun p : ℝ × ℝ ↦ struweShape δ 1 (2 * p.1 - 47 * δ / 8) p.2
-  have hA : ContDiffAt ℝ ∞ A q := (contDiffOn_uncurry_sqrtAddLeaf L hδ.le).contDiffAt
-    ((isOpen_univ.prod isOpen_Ioi).mem_nhds ⟨trivial, hq⟩)
+  have hA : ContDiffAt ℝ ∞ A q := contDiffAt_uncurry_sqrtAddLeaf L hδ.le hq
   -- `T` is the joint Struwe shape composed with `(ℓ, r) ↦ (2 ℓ - 47 δ / 8, r)`.
   have hT : ContDiffAt ℝ ∞ T q :=
     ContDiffAt.comp (g := Function.uncurry (struweShape δ 1))

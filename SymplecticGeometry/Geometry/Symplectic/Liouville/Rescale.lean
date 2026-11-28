@@ -32,7 +32,8 @@ field dual to the primitive `h λ` of the rescaled form, and it is a Liouville f
 * `SymplecticGeometry.rescaledForm`: the two-form `d(h ι_X σ)`, with `rescaledForm_def` and the
   pointwise formula `rescaledForm_apply`.
 * `SymplecticGeometry.rescaledField`: the field `x ↦ (h x / (h x + dh_x (X x))) • X x`, with
-  `rescaledField_apply`, and its smoothness `contMDiff_rescaledField`.
+  `rescaledField_def` and `rescaledField_apply`, the smoothness of its factor
+  `contMDiff_div_self_add_mvfderiv`, and its smoothness `contMDiff_rescaledField`.
 * `SymplecticGeometry.interior_rescaledField_rescaledForm`: `ι_Y d(h λ) = h λ` for the rescaled
   field `Y`, when `h + dh(X)` vanishes nowhere.
 * `SymplecticGeometry.isLiouvilleVectorField_rescaledField`: the rescaled field is a Liouville
@@ -164,6 +165,12 @@ def rescaledField (X : (x : M) → TangentSpace I x) (h : M → ℝ) : (x : M) �
   fun x ↦ (h x / (h x + mvfderiv I h x (X x))) • X x
 
 omit [IsManifold I ∞ M] in
+/-- The rescaled field is, by definition, `x ↦ (h x / (h x + dh_x (X x))) • X x`. -/
+theorem rescaledField_def (X : (x : M) → TangentSpace I x) (h : M → ℝ) :
+    rescaledField X h = fun x ↦ (h x / (h x + mvfderiv I h x (X x))) • X x :=
+  (rfl)
+
+omit [IsManifold I ∞ M] in
 /-- The value of the rescaled field at a point. -/
 theorem rescaledField_apply (X : (x : M) → TangentSpace I x) (h : M → ℝ) (x : M) :
     rescaledField X h x = (h x / (h x + mvfderiv I h x (X x))) • X x :=
@@ -177,13 +184,17 @@ theorem rescaledField_one (X : (x : M) → TangentSpace I x) : rescaledField X 1
   rw [rescaledField_apply, Pi.one_apply, Pi.one_def, mvfderiv_const]
   simp
 
+/-- The factor `x ↦ h x / (h x + dh_x (X x))` of the rescaled field is smooth for smooth `X` and
+`h`, where `h + dh(X)` vanishes nowhere. -/
+theorem contMDiff_div_self_add_mvfderiv (hne : ∀ x, h x + mvfderiv I h x (X x) ≠ 0) :
+    ContMDiff I 𝓘(ℝ, ℝ) ∞ fun x ↦ h x / (h x + mvfderiv I h x (X x)) :=
+  h.contMDiff.div₀ (h.contMDiff.add
+    ((h.contMDiff.contMDiff_mvfderiv_apply (by simp)).comp X.contMDiff)) hne
+
 /-- The rescaled field of smooth `X` and `h` is smooth where `h + dh(X)` vanishes nowhere. -/
 theorem contMDiff_rescaledField (hne : ∀ x, h x + mvfderiv I h x (X x) ≠ 0) :
-    ContMDiff I I.tangent ∞ (T% (rescaledField X h)) := by
-  have hc : ContMDiff I 𝓘(ℝ, ℝ) ∞ fun x ↦ h x / (h x + mvfderiv I h x (X x)) :=
-    h.contMDiff.div₀ (h.contMDiff.add
-      ((h.contMDiff.contMDiff_mvfderiv_apply (by simp)).comp X.contMDiff)) hne
-  exact hc.smul_section X.contMDiff
+    ContMDiff I I.tangent ∞ (T% (rescaledField X h)) :=
+  (contMDiff_div_self_add_mvfderiv hne).smul_section X.contMDiff
 
 /-! ### The rescaled structure -/
 
