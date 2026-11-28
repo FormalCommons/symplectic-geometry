@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -44,6 +45,10 @@ Tau Ceti's `PartialDiffeomorph.inner_fderiv_comp_symm`, with `B` in place of the
   differentiable, in the sense of `OpenPartialHomeomorph.MDifferentiable`.
 * `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_target`: for `y` in the target of
   `Φ`, `d(Φ⁻¹)_y ∘ dΦ_{Φ⁻¹ y}` is the identity.
+* `OpenPartialHomeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas` and
+  `OpenPartialHomeomorph.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas`: for a chart `e`
+  of the `C^1` maximal atlas and `z` in its target, `d(e⁻¹)_z` and `de_{e⁻¹ z}` are mutually
+  inverse.
 * `PartialDiffeomorph.contDiffOn_symm_trans_chartAt`,
   `PartialDiffeomorph.contDiffOn_chartAt_symm_trans`,
   `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
@@ -125,6 +130,30 @@ theorem toContinuousLinearMap_mfderivSymmEquiv_symm (Φ : PartialDiffeomorph I J
   (rfl)
 
 end MFDerivSymmEquiv
+
+section ChartInverse
+
+/-- For a chart `e` of the `C^1` maximal atlas and a point `z` of its target, the derivative of
+`e.symm` at `z` undoes the derivative of `e` at `e.symm z`. -/
+theorem _root_.OpenPartialHomeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas
+    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I 1 M) {z : H}
+    (hz : z ∈ e.target) (v : TangentSpace I (e.symm z)) :
+    mfderiv I I e.symm z (mfderiv I I e (e.symm z) v) = v := by
+  have h := (e.toPartialDiffeomorph he).mfderiv_symm_apply_mfderiv_apply_of_mem_target
+    one_ne_zero (by simpa using hz) v
+  rwa [e.coe_toPartialDiffeomorph_symm, e.coe_toPartialDiffeomorph] at h
+
+/-- For a chart `e` of the `C^1` maximal atlas and a point `z` of its target, the derivative of
+`e` at `e.symm z` undoes the derivative of `e.symm` at `z`. -/
+theorem _root_.OpenPartialHomeomorph.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas
+    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I 1 M) {z : H}
+    (hz : z ∈ e.target) (u : TangentSpace I z) :
+    mfderiv I I e (e.symm z) (mfderiv I I e.symm z u) = u :=
+  e.mfderiv_apply_mfderiv_symm_apply hz
+    (mdifferentiableAt_of_mem_maximalAtlas he (e.map_target hz))
+    (mdifferentiableAt_symm_of_mem_maximalAtlas he hz) u
+
+end ChartInverse
 
 section ChartTransition
 
