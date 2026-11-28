@@ -85,6 +85,7 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
   complement is dense.
 * The instance `T2Space (Blowup c)` when `M` is Hausdorff, and the instances
   `SecondCountableTopology (Blowup c)` and `SigmaCompactSpace (Blowup c)` when `M` is σ-compact.
+  The instance `CompactSpace (Blowup c)` when `M` is compact.
 * `SymplecticGeometry.Blowup.isCompatible_complex`, `SymplecticGeometry.Blowup.isCompatible_real`:
   the gluing is holomorphically, resp. smoothly, compatible, and the instances
   `IsManifold 𝓘(ℂ, E) ω (Blowup c)` and `IsManifold 𝓘(ℝ, E) ∞ (Blowup c)`.
@@ -545,6 +546,42 @@ a space charted on `ℂⁿ⁺¹`. -/
 instance [SigmaCompactSpace M] : SigmaCompactSpace (Blowup c) := by
   have := ChartedSpace.locallyCompactSpace (Fin (n + 1) → ℂ) (Blowup c)
   infer_instance
+
+/-! ### Compactness -/
+
+/-- The blowup of a compact space is compact. It is covered by the images of two compact sets:
+the points of `M` outside the preimage `U` under `c` of a small open ball around `0`, and the
+points of the model lying over the closed ball of the same radius, a neighbourhood of the
+model's exceptional divisor. -/
+instance [CompactSpace M] : CompactSpace (Blowup c) := by
+  set e := TauCeti.complexToRealEuclidean (Fin (n + 1))
+  obtain ⟨ε, hε, hεU⟩ : ∃ ε, 0 < ε ∧ closedNbhd n ε ⊆ modelOpens c :=
+    exists_closedNbhd_subset <| (modelOpens c).isOpen.mem_nhdsSet.2 fun y hy ↦ by
+      rw [SetLike.mem_coe, mem_modelOpens, BlowupModel.mem_exceptionalDivisor_iff.1 hy]
+      exact c.zero_mem_target
+  set U : Set M := c.source ∩ c ⁻¹' {z | ‖e z‖ < ε}
+  have hp₀ : p₀ ∈ U := ⟨c.mem_source, by simpa [c.map_center] using hε⟩
+  have hA : IsCompact (Subtype.val ⁻¹' Uᶜ : Set (puncturedOpens c)) := by
+    rw [Subtype.isCompact_iff, image_preimage_eq_inter_range, Subtype.range_coe_subtype,
+      inter_eq_left.2]
+    · exact (c.isOpen_inter_preimage (isOpen_lt (by fun_prop) continuous_const)).isClosed_compl
+        |>.isCompact
+    · exact fun x hx ↦ (mem_puncturedOpens c).2 fun h ↦ hx (h ▸ hp₀)
+  have hB : IsCompact (Subtype.val ⁻¹' closedNbhd n ε : Set (modelOpens c)) := by
+    rw [Subtype.isCompact_iff, image_preimage_eq_inter_range, Subtype.range_coe_subtype]
+    convert isCompact_closedNbhd (n := n) ε using 1
+    exact inter_eq_left.2 hεU
+  refine GluedAlong.compactSpace_of_isCompact _ hA hB (fun x hx ↦ ?_) fun y hy ↦ ?_
+  · -- A point `x` of `U` is glued to a point of the model over `c x`.
+    have hxU : (x : M) ∈ U := not_not.1 hx
+    have hxs : x ∈ puncturedSourceOpens c := (mem_puncturedSourceOpens c).2 hxU.1
+    refine ⟨gluingHomeomorph c ⟨x, hxs⟩, ?_, GluedAlong.inr_apply _ ⟨x, hxs⟩⟩
+    rw [mem_preimage, mem_closedNbhd_iff, blowdown_gluingHomeomorph]
+    exact le_of_lt hxU.2
+  · -- A point of the model outside the overlap lies over `0`.
+    rw [mem_compl_iff, SetLike.mem_coe, mem_modelOffDivisorOpens, not_not] at hy
+    rw [mem_preimage, mem_closedNbhd_iff, hy, map_zero, norm_zero]
+    exact hε.le
 
 /-! ### The manifold structures -/
 
