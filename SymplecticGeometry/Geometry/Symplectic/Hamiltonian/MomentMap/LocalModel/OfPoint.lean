@@ -85,7 +85,7 @@ composite sends it to `ξ_M(x)`.
 
 public section
 
-open MulAction TauCeti TauCeti.Lie TauCeti.Manifold
+open MulAction TauCeti TauCeti.Lie TauCeti.Manifold TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -389,7 +389,7 @@ theorem ofPoint_equivDual𝔪 :
 /-! ### The tangent space at `[1, 0]` -/
 
 /-- **The tangent space of the local model at `[1, 0]` is `T_x M`.** For the data `D` of the
-local model at `x`, with `Y = G ×_{G_x} (A × V)`, its descended form `ω = D.descendedForm` and the
+local model at `x`, with `Y = G ×_{G_x} (A × V)`, its descended form `ω` and the
 projection `π (g, p) = [g, p]`, some linear isomorphism `T : T_{[1, 0]} Y ≃ T_x M`
 
 * takes `ω` at `[1, 0]` to `σ_x`;
@@ -410,7 +410,10 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
         (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
           ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
       (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
-        SmoothBundleForm.eval₂ D.descendedForm
+        SmoothBundleForm.eval₂
+            (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+              D.mpullback_smul_mpullback_snd_constSmooth
+              D.isMomentMap_mpullback_snd_constSmooth)
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) ∧
       (∀ (k : stabilizer G x) u,
