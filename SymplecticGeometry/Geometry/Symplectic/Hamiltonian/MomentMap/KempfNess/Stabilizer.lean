@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
+import SymplecticGeometry.Topology.Connected.Basic
 
 /-!
 # The stabilizer in the complexification of a zero of the moment map
@@ -96,5 +97,51 @@ theorem IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero [T2Space M]
     rw [C.expI_neg, inv_smul_eq_iff.2 hfix.symm, hx, LinearMap.zero_apply] at hpos
     exact lt_irrefl 0 hpos
   · simpa [hu] using h.expI_smul_smul_eq_self_iff.2 hX 1
+/-- **The polar decomposition of the stabilizer of a zero of the moment map.** In the setting of
+`IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, `C.polar` maps the product of the
+isotropy algebra `𝔤_x` and the stabilizer `G_x` onto the stabilizer `Gc_x`. -/
+theorem IsComplexifiedAction.image_polar_isotropy_prod_stabilizer [T2Space M]
+    [BoundarylessManifold I' M] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    C.polar '' (((InfinitesimalAction.fundamental I G I' M).isotropy x : Set (GroupLieAlgebra I G))
+      ×ˢ (MulAction.stabilizer G x : Set G) : Set (E × G)) = MulAction.stabilizer Gc x := by
+  ext g
+  refine ⟨?_, fun hgx ↦ ⟨C.polar.symm g, ?_, C.polar.apply_symm_apply g⟩⟩
+  · rintro ⟨p, ⟨hp₁, hp₂⟩, rfl⟩
+    rw [SetLike.mem_coe, h.mem_stabilizer_iff_of_moment_eq_zero hμ hg hx, C.polar.symm_apply_apply]
+    exact ⟨by simpa using hp₁, hp₂⟩
+  · rw [SetLike.mem_coe, h.mem_stabilizer_iff_of_moment_eq_zero hμ hg hx] at hgx
+    exact ⟨by simpa using hgx.1, hgx.2⟩
+
+/-- **The polar decomposition of the identity component of the stabilizer of a zero of the
+moment map.** In the setting of `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`,
+`C.polar` maps the product of the isotropy algebra `𝔤_x` and the identity component of `G_x` onto
+the identity component of `Gc_x`. -/
+theorem IsComplexifiedAction.image_polar_isotropy_prod_ambientConnectedComponentOfOne
+    [IsTopologicalGroup G] [IsTopologicalGroup Gc] [T2Space M]
+    [BoundarylessManifold I' M] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    C.polar '' (((InfinitesimalAction.fundamental I G I' M).isotropy x : Set (GroupLieAlgebra I G))
+      ×ˢ ((MulAction.stabilizer G x).ambientConnectedComponentOfOne : Set G) : Set (E × G)) =
+        (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne := by
+  have h0 : ((0 : E), (1 : G)) ∈
+      (((InfinitesimalAction.fundamental I G I' M).isotropy x : Set (GroupLieAlgebra I G)) ×ˢ
+        (MulAction.stabilizer G x : Set G) : Set (E × G)) :=
+    ⟨zero_mem _, one_mem _⟩
+  have h𝔥 : connectedComponentIn
+      (((InfinitesimalAction.fundamental I G I' M).isotropy x : Set (GroupLieAlgebra I G)))
+        (0 : GroupLieAlgebra I G) = (InfinitesimalAction.fundamental I G I' M).isotropy x :=
+    (((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule.convex).isPreconnected
+      |>.connectedComponentIn (zero_mem _)
+  have key := C.polar.toHomeomorph.image_connectedComponentIn h0
+  rw [Diffeomorph.coe_toHomeomorph, h.image_polar_isotropy_prod_stabilizer hμ hg hx,
+    C.polar_zero_apply, map_one] at key
+  rw [Subgroup.coe_ambientConnectedComponentOfOne, Subgroup.coe_ambientConnectedComponentOfOne,
+    ← key]
+  refine congrArg (C.polar '' ·) ?_
+  exact ((connectedComponentIn_prod _ (MulAction.stabilizer G x : Set G) _ 1).trans
+    (congrArg (· ×ˢ connectedComponentIn (MulAction.stabilizer G x : Set G) 1) h𝔥)).symm
 
 end SymplecticGeometry
