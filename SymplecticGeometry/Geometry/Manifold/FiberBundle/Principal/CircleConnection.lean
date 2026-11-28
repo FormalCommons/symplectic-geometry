@@ -35,9 +35,9 @@ McDuff–Salamon: `α` is invariant under the action of `Circle` and takes the v
 fundamental vector field of `1 ∈ ℝ`, read in the Lie algebra of `Circle` through `Circle.exp`
 (`SymplecticGeometry.circleLieGenerator`).
 
-Writing `ξ₀ = circleLieGenerator`, the `𝔤`-valued form `α ξ₀` is a connection form in the sense of
-`Principal/Connection/Basic.lean` exactly when `α` is a circle connection form, and its curvature
-is `(d α) ξ₀`, since the bracket term vanishes on the line `𝔤`.
+Writing `ξ₀ = circleLieGenerator`, the `𝔤`-valued form `α ξ₀` is a connection form (Tau Ceti's
+`TauCeti.PrincipalBundle.IsConnectionForm`) exactly when `α` is a circle connection form, and its
+curvature is `(d α) ξ₀`, since the bracket term vanishes on the line `𝔤`.
 
 The exterior derivative `d α` is invariant and, as the curvature of a connection form, vanishes on
 vertical vectors, so it is basic and descends along `π`: its curvature `hα.curvature` is the
