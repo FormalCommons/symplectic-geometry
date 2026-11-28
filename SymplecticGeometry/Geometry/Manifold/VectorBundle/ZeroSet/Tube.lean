@@ -114,11 +114,7 @@ theorem exists_pos_forall_retraction_sublevel_norm_sq [CompactSpace X] [T2Space 
     exact .refl _ _
   obtain ⟨x₀, hx₀⟩ := hZ
   -- Transversality at a zero bounds the rank of the bundle by the dimension of `X`.
-  have hk : finrank ℝ F' ≤ finrank ℝ V := by
-    have := VectorBundle.finiteDimensional ℝ F' E' x₀
-    have := LinearMap.finrank_le_finrank_of_surjective
-      (f := (sectionLinearization (F := F') J _root_.id s x₀).toLinearMap) (hs x₀ hx₀)
-    exact (VectorBundle.finrank_eq ℝ F' E' x₀).symm.le.trans this
+  have hk := finrank_le_of_surjective_sectionLinearization (hs x₀ hx₀)
   let E := EuclideanSpace ℝ (Fin (finrank ℝ V - finrank ℝ F'))
   have hE : finrank ℝ E + finrank ℝ F' = finrank ℝ V := by
     rw [finrank_euclideanSpace_fin]
