@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Holonomy
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Curvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Analysis.Calculus.Deriv.Prod
 
@@ -193,11 +194,8 @@ theorem mpullback_mextDeriv_transportedCylinder_eq_deriv_sub {τ : SmoothTwoForm
       ![(1, 0, 0), (0, 1, 0), (0, 0, 1)] =
         mextDeriv τ.val (C (s, t, θ)) ![mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (1, 0, 0),
           mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 1, 0),
-          mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 0, 1)] := by
-    rw [mpullback_apply]
-    congr 1
-    ext i
-    fin_cases i <;> rfl
+          mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 0, 1)] :=
+    mpullback_apply_triple _ _ _ _ _ _
   -- The derivative of `τ(v₁♯, v₂♯)` along `∂_θC` is its derivative in `θ` along the cylinder.
   have hℓ : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun θ' : ℝ ↦ (s, t, θ')) θ
       ((1 : ℝ →L[ℝ] ℝ).smulRight ((0, 0, 1) : ℝ × ℝ × ℝ)) :=
