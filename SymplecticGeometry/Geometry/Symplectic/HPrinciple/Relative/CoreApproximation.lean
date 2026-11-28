@@ -49,7 +49,8 @@ It contains these steps, shared by the smooth and the continuous form.
   (`TauCeti.Diffeotopy.list_prod_map_apply_fst`), its slices at a parameter and a time are
   diffeomorphisms of `M` (`TauCeti.Diffeotopy.slice`).
 * The cube data that holonomic approximation returns change nothing over a neighbourhood of
-  the relative set `B i` of each cube (`exists_relativeSet`) and outside compact sets `C i`.
+  the relative set `B i` of each cube (`exists_relativeSet`) and outside sets `C i` whose
+  images in `D i` are compact.
   The points where they may change something thus lie over the compact sets
   `Z i := Prod.snd '' C i ∩ {z | z.1 ∉ interior (N' i)}`, which the chart sends above `a`.
   Removing their images from `N` leaves an open set `N₁` between `{g ≤ a}` and `N` over which
@@ -91,7 +92,7 @@ It contains these steps, shared by the smooth and the continuous form.
   `BandCore.exists_relativeSet`. Near the moved cube the exterior derivative of the
   approximation is close to the reading of `τ - α`
   (`SymplecticGeometry.norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le`), so the
-  segments stay nondegenerate (`BandCore.nondegenerate_mpullback_chart_add_smul_extDeriv`), and
+  segments stay nondegenerate (`SymplecticGeometry.nondegenerate_mpullback_add_smul_extDeriv`), and
   `BandCore.exists_stageData_of_cubes` gives the data on `M`.
 * `BandCore.exists_approximation_continuous_family` is the continuous form, over a compact
   Hausdorff space of parameters, for two-forms continuous into the frame topology and one-forms
@@ -123,9 +124,6 @@ It contains these steps, shared by the smooth and the continuous form.
 * `SymplecticGeometry.BandCore.exists_stageData_of_cubes`: from per-cube data of the shape that
   holonomic approximation returns, the diffeotopy, the corrected one-forms and the open sets
   `N₁` and `U` that `exists_stagePath` needs.
-* `SymplecticGeometry.BandCore.nondegenerate_mpullback_chart_add_smul_extDeriv`: in the chart of
-  a cube, the corrected segment of two-forms is nondegenerate where the derivative of the
-  corrected one-form is close to the formal primitive.
 * `SymplecticGeometry.BandCore.exists_approximation_family`: holonomic approximation over all
   cubes of a band core for smooth families over a finite-dimensional normed space, in the form
   that `exists_stagePath` takes.
@@ -636,82 +634,6 @@ theorem exists_stageData_of_cubes (c : BandCore I g a₀ a b) {N : Set M} (hN : 
   rw [← dist_eq_norm] at this
   linarith
 
-omit [T2Space M] [FiniteDimensional ℝ E] in
-open TauCeti in
-/-- **Nondegeneracy of the corrected segment, read in a cube chart.** Let `τ`, `α` be two-forms
-and `β` a one-form on `M`, and let `corr` be a smooth one-form on the domain `D i` of
-`c.chart i`. Let `r₀` be such that `τ' - r • η` is nondegenerate at a point `z` of `D i` for
-every two-form `η` on `D i` with `‖η z‖ < r₀` and every `r ∈ [0, 1]`, where `τ'` is the reading
-of `τ` in the chart. If the derivative at `z` of the reading of `β` plus `corr` is within
-`r₀ / 2` of the formal primitive of the reading of `τ - α`, with zeroth-order part the reading of
-`β`, then for every `r ∈ [0, 1]` the reading at `z` of `τ + r • (α + d β - τ)` plus
-`r • d corr z` is nondegenerate. -/
-theorem nondegenerate_mpullback_chart_add_smul_extDeriv (c : BandCore I g a₀ a b) (i : c.ι)
-    {τ α : SmoothTwoForm I M} {β : SmoothForm I M ℝ 1}
-    {corr : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
-      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ}
-    (hcorr : ContDiff ℝ ∞ corr) {z : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)}
-    {r₀ : ℝ}
-    (hmargin : ∀ η : SmoothTwoForm 𝓘(ℝ, (Fin (c.dim i) → ℝ) ×
-        (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
-        ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)),
-      @norm (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
-        [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val z) < r₀ → ∀ r ∈ Icc (0 : ℝ) 1,
-        ((SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff τ -
-          r • η).bilinFormAt z).Nondegenerate)
-    (happrox : ‖fderiv ℝ (fun x ↦ @HAdd.hAdd
-        (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ)
-        (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ) _ _
-        ((SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff β).val x)
-        (corr x)) z -
-      formalPrimitive (SmoothForm.mpullback (c.chart i)
-        (c.isSmoothEmbedding_chart i).contMDiff (τ - α)).val
-        (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff β).val z‖ <
-      r₀ / 2)
-    {r : ℝ} (hr : r ∈ Icc (0 : ℝ) 1) :
-    (MultilinearMap.toBilinMap (@HAdd.hAdd
-      (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ)
-      (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) _ _
-      (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
-        (c.chart i) (τ + r • (α + mextDerivₗ I 1 β - τ)).val z)
-      (r • extDeriv corr z)).toMultilinearMap).Nondegenerate := by
-  have hφ := (c.isSmoothEmbedding_chart i).contMDiff
-  set b := SmoothForm.mpullback (c.chart i) hφ β
-  set bv : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
-      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ := b.val
-  have hbc : ContDiff ℝ ∞ fun x ↦ bv x + corr x :=
-    (isSmoothForm_modelSpace_iff.mp b.isSmoothForm).add hcorr
-  -- The reading of `β` plus the correction, as a one-form on the domain of the chart.
-  set b' : SmoothForm 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
-      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) ℝ 1 :=
-    ⟨fun x ↦ bv x + corr x, (isSmoothForm_modelSpace_iff.mpr hbc).mem_smoothBundleForms⟩
-  set η := SmoothForm.mpullback (c.chart i) hφ (τ - α) - mextDerivₗ _ 1 b'
-  have hb' : (mextDerivₗ _ 1 b').val z = extDeriv (fun x ↦ bv x + corr x) z := by
-    rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
-  -- The exterior derivative of `b'` is within `r₀` of the reading of `τ - α`.
-  have hη : @norm (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
-      [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val z) < r₀ := by
-    have h₄ := norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le le_rfl
-      (f := fun x ↦ bv x + corr x) (x := z)
-      (τ := (SmoothForm.mpullback (c.chart i) hφ (τ - α)).val) (β := bv)
-    rw [SmoothBundleForm.sub_apply, hb']
-    exact (norm_sub_rev _ _).trans_lt (by linarith)
-  have hnd' := hmargin η hη r hr
-  -- The reading of the segment plus the correction is `τ - r • η`, as forms on the chart.
-  have hform :
-      SmoothForm.mpullback (c.chart i) hφ (τ + r • (α + mextDerivₗ I 1 β - τ)) +
-        r • mextDerivₗ _ 1 (b' - b) = SmoothForm.mpullback (c.chart i) hφ τ - r • η := by
-    simp only [η, b, map_add, map_sub, map_smul, SmoothForm.mextDerivₗ_mpullback]
-    module
-  have hcorr' : extDeriv corr z = (mextDerivₗ _ 1 (b' - b)).val z := by
-    rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
-    refine congrArg (extDeriv · z) (funext fun x ↦ ?_)
-    rw [SmoothBundleForm.sub_apply]
-    exact (add_sub_cancel_left _ _).symm
-  rw [SmoothForm.bilinFormAt_def, ← hform, SmoothBundleForm.add_apply,
-    SmoothBundleForm.smul_apply, SmoothForm.coe_mpullback, ← hcorr'] at hnd'
-  exact hnd'
-
 section Smooth
 
 open TauCeti
@@ -813,8 +735,9 @@ private theorem exists_approximation_family_of_chart (c : BandCore I g a₀ a b)
   -- The estimate and the nondegeneracy on `V`.
   rintro ⟨l, z⟩ hp hl hz r hr
   have hz2 : z ∈ closedBall 0 2 := ball_subset_closedBall hz
-  refine c.nondegenerate_mpullback_chart_add_smul_extDeriv i (corr := fun x ↦ f' (l, x) - f (l, x))
-    ((hf'.sub hf).comp (contDiff_const.prodMk contDiff_id)) (hmargin l hl z hz2) ?_ hr
+  refine nondegenerate_mpullback_add_smul_extDeriv (c.isSmoothEmbedding_chart i).contMDiff
+    (corr := fun x ↦ f' (l, x) - f (l, x)) ((hf'.sub hf).comp (contDiff_const.prodMk contDiff_id))
+    (hmargin l hl z hz2) ?_ hr
   -- The derivative of the approximation is within `2 * r₀ / 5` of the formal primitive.
   have h₂ := (happrox (l, z) hp).2
   have h₃ := hG'T (l, z) hz2
@@ -1001,8 +924,9 @@ private theorem exists_approximation_continuous_family_of_chart (c : BandCore I 
   -- The estimate and the nondegeneracy on `V`.
   rintro ⟨l, z⟩ hp hz r hr
   have hz2 : z ∈ closedBall 0 2 := ball_subset_closedBall hz
-  refine c.nondegenerate_mpullback_chart_add_smul_extDeriv i (corr := fun x ↦ corr (σ l, x))
-    (hcorr.comp (contDiff_const.prodMk contDiff_id)) (hmargin l (mem_univ l) z hz2) ?_ hr
+  refine nondegenerate_mpullback_add_smul_extDeriv (c.isSmoothEmbedding_chart i).contMDiff
+    (corr := fun x ↦ corr (σ l, x)) (hcorr.comp (contDiff_const.prodMk contDiff_id))
+    (hmargin l (mem_univ l) z hz2) ?_ hr
   -- The derivative of the approximation is within `2 * r₀ / 5` of the formal primitive.
   have h₂ := (happrox (l, z) hp).2
   have h₃ := hG'T l z hz2
