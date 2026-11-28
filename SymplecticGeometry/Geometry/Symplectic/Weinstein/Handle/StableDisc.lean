@@ -87,6 +87,9 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`:
   for a smooth `g` with `dg(X) > 0` on the level `g ⁻¹' {c}`, the time at which orbits cross that
   level, and the crossing point, are smooth on the open set of points whose orbits meet it.
+* `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_isRegularValue`: the
+  case `g = f` at a regular value: the crossing time of a regular level of `f` is smooth on the
+  open set of points whose orbits meet it.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_le_of_mem_stableSet`: `f x ≤ f p` for every `x`
   in the stable set of `p`.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
@@ -307,6 +310,16 @@ theorem contMDiffOn_levelCrossingTime_of_mvfderiv_pos {g : M → ℝ} {c : ℝ}
       {x | ∃ t, g (hW.flow t x) = c} :=
   _root_.TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos le_top hW.contMDiff_field
     hW.isCompleteVectorField hW.flowOf_eq_flow hg hgX
+
+/-- **The crossing time of a regular level is smooth.** For a regular value `b` of the function of
+a Weinstein structure with flow `φ`, the time `Flow.levelCrossingTime φ f b` at which orbits cross
+the level `f ⁻¹' {b}` is smooth on the open set of points whose orbits meet that level. -/
+theorem contMDiffOn_levelCrossingTime_of_isRegularValue {b : ℝ}
+    (hb : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f b) :
+    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) (Flow.levelCrossingTime hW.flow f b)
+      {x | ∃ t, f (hW.flow t x) = b} :=
+  hW.contMDiffOn_levelCrossingTime_of_mvfderiv_pos hW.isGeneralizedMorse.contMDiff
+    fun _ hx ↦ hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb hx
 
 /-- **The crossing point of an upward level is smooth.** Let `g` be smooth with `dg(X) > 0` at
 each point of the level `g ⁻¹' {c}`. Then the map `y ↦ φ (Flow.levelCrossingTime φ g c y) y`, for

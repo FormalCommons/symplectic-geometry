@@ -38,10 +38,10 @@ The last step follows the proof of Tau Ceti's
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_zero`: `ω` is
-  nondegenerate at every point `[g, 0]` of the zero section.
-* `SymplecticGeometry.LocalModelData.exists_opens_isSymplectic_mpullback_descendedForm`: `ω`
-  restricts to a symplectic form on a `G`-invariant open set containing the zero section.
+* `LocalModelData.nondegenerate_bilinFormAt_balancedProductInducedForm_mk_zero`:
+  `ω` is nondegenerate at every point `[g, 0]` of the zero section.
+* `LocalModelData.exists_opens_isSymplectic_mpullback_balancedProductInducedForm`:
+  `ω` restricts to a symplectic form on a `G`-invariant open set containing the zero section.
 
 ## References
 
@@ -76,7 +76,7 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   (D : LocalModelData (I := I) K (F := F) V A)
 
 /-- **The descended form is nondegenerate along the zero section**: at every point `[g, 0, 0]`. -/
-theorem nondegenerate_bilinFormAt_descendedForm_mk_zero (g : G) :
+theorem nondegenerate_bilinFormAt_balancedProductInducedForm_mk_zero (g : G) :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
@@ -115,7 +115,7 @@ theorem nondegenerate_bilinFormAt_descendedForm_mk_zero (g : G) :
 `G ×_K (A × V)` that contains every point `[g, 0, 0]` of the zero section and is invariant under
 the action of `G`, on which the descended form of the local model restricts to a symplectic
 form. -/
-theorem exists_opens_isSymplectic_mpullback_descendedForm :
+theorem exists_opens_isSymplectic_mpullback_balancedProductInducedForm :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
@@ -139,7 +139,7 @@ theorem exists_opens_isSymplectic_mpullback_descendedForm :
       (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
         D.mpullback_smul_mpullback_snd_constSmooth
         D.isMomentMap_mpullback_snd_constSmooth)⟩,
-    D.nondegenerate_bilinFormAt_descendedForm_mk_zero,
+    D.nondegenerate_bilinFormAt_balancedProductInducedForm_mk_zero,
     fun k y hy ↦ (nondegenerate_bilinFormAt_balancedProductInducedForm_smul_iff k y).2 hy,
     (isClosed_balancedProductInducedForm ((SymplecticForm.isClosed_constSmooth D.σ).mpullback _ _)
       ).isSymplectic_mpullback_subtypeVal fun _ hy ↦ hy⟩
