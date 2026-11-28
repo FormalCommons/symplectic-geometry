@@ -71,6 +71,8 @@ itself it is integrable.
 * `TauCeti.isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas`: every chart of the
   maximal complex atlas of a complex manifold is pseudoholomorphic on its source, from the
   structure of the manifold to that of the model.
+* `TauCeti.isPseudoholomorphic_const_smul`: an action on a complex manifold by holomorphic maps is
+  an action by pseudoholomorphic maps.
 * `TauCeti.SmoothAlmostComplexStructure.ofTangentCoordChange` and
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofTangentCoordChange`: the constant structure
   of a complex structure of the model that commutes with the changes of coordinates, and its
@@ -516,6 +518,15 @@ theorem isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas {n : WithTop
       (SmoothAlmostComplexStructure.ofComplexManifold E E) e e.source :=
   isPseudoholomorphicOn_ofComplexManifold_iff.2
     ((contMDiffOn_of_mem_maximalAtlas he).mdifferentiableOn hn)
+
+/-- If `G` acts on a complex manifold `M` by holomorphic maps, every `g : G` acts by a
+pseudoholomorphic map for the almost complex structure of `M`. -/
+theorem isPseudoholomorphic_const_smul {G : Type*} [SMul G M]
+    [ContMDiffConstSMul 𝓘(ℂ, E) 1 G M] (g : G) :
+    IsPseudoholomorphic (SmoothAlmostComplexStructure.ofComplexManifold E M)
+      (SmoothAlmostComplexStructure.ofComplexManifold E M) (g • ·) :=
+  isPseudoholomorphic_ofComplexManifold_iff.2
+    ((contMDiff_const_smul (I := 𝓘(ℂ, E)) (n := 1) g).mdifferentiable one_ne_zero)
 
 end ComplexManifold
 

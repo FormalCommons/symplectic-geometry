@@ -253,6 +253,40 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul [IsM
   rw [hwedge]
   simp
 
+omit [IsManifold IM ∞ M] in
+/-- **Blending by a function of the base supported in a set.** Let `proj` be continuous, and
+let the closure of the support of `f : B → ℝ` lie in `W`. Let `τ₁` be vertically closed on
+`proj ⁻¹' W` and `τ₂` vertically closed everywhere, the two agreeing on vertical pairs at the
+points over `W`. If `proj`, `τ₁` and `τ₂` are differentiable at the points over `W`, and `f`
+at their images, then the blend `(f ∘ proj) • τ₁ + (1 - f ∘ proj) • τ₂` is vertically closed
+everywhere. -/
+theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul_of_tsupport_subset
+    [IsManifold IM 1 M] {f : B → ℝ} {τ₁ τ₂ : RoughForm IM M ℝ 2} {W : Set B}
+    (hfW : tsupport f ⊆ W) (hproj_cont : Continuous proj)
+    (h₁ : τ₁.IsVerticallyClosedOn IB proj (proj ⁻¹' W))
+    (h₂ : τ₂.IsVerticallyClosedOn IB proj univ)
+    (hproj : ∀ x ∈ proj ⁻¹' W, MDifferentiableAt IM IB proj x)
+    (hf : ∀ x ∈ proj ⁻¹' W, MDifferentiableAt IB 𝓘(ℝ) f (proj x))
+    (hτ₁ : ∀ x ∈ proj ⁻¹' W, MDifferentiableAt IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y (τ₁ y)) x)
+    (hτ₂ : ∀ x ∈ proj ⁻¹' W, MDifferentiableAt IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y (τ₂ y)) x)
+    (heq : ∀ x ∈ proj ⁻¹' W, ∀ η₁ ∈ (mfderiv IM IB proj x).ker,
+      ∀ η₂ ∈ (mfderiv IM IB proj x).ker, τ₁ x ![η₁, η₂] = τ₂ x ![η₁, η₂]) :
+    RoughForm.IsVerticallyClosedOn IB proj
+      (fun y ↦ f (proj y) • τ₁ y + (1 - f (proj y)) • τ₂ y) univ := by
+  intro x _ η₁ hη₁ η₂ hη₂ v
+  by_cases hx : x ∈ proj ⁻¹' W
+  · exact h₁.smul_add_one_sub_smul (h₂.mono (subset_univ _)) hproj hf hτ₁ hτ₂ heq x hx
+      η₁ hη₁ η₂ hη₂ v
+  · -- Off the support of `f`, the blend is `τ₂` near `x`.
+    have hev : ∀ᶠ y in nhds x, f (proj y) • τ₁ y + (1 - f (proj y)) • τ₂ y = τ₂ y := by
+      filter_upwards [((isClosed_tsupport f).isOpen_compl.preimage hproj_cont).mem_nhds
+        (show proj x ∉ tsupport f from fun h ↦ hx (hfW h))] with y hy
+      rw [image_eq_zero_of_notMem_tsupport hy, zero_smul, zero_add, sub_zero, one_smul]
+    rw [mextDeriv_congr_of_eventuallyEq hev]
+    exact h₂ x (mem_univ _) η₁ hη₁ η₂ hη₂ v
+
 section Pullback
 
 variable {EM' : Type*} [NormedAddCommGroup EM'] [NormedSpace ℝ EM'] {HM' : Type*}
@@ -364,6 +398,18 @@ theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
   -- The derivative of the fibre inclusion takes vertical values.
   rw [← e.range_mfderiv_fiberInclusionMap hd hb v]
   exact LinearMap.mem_range_self _ _
+
+/-- **The fibre form of a vertically closed form is closed.** If a vertically closed two-form
+`τ` restricts to `σ` along a smooth atlas over a nonempty base, then `σ` is closed: it is the
+pull-back of `τ` along a fibre inclusion. Over an empty base every form `σ` satisfies the
+hypothesis. -/
+theorem IsVerticallyClosed.isClosed_of_restrictsTo [Nonempty B] {A : MapFiber.Atlas F proj}
+    {σ : SmoothTwoForm IF F} (h : IsVerticallyClosed IB proj τ) (hA : A.IsContMDiff ∞ IB IF IM)
+    (hτσ : A.RestrictsTo σ τ) : σ.IsClosed := by
+  obtain ⟨b⟩ := ‹Nonempty B›
+  rw [← hτσ.mpullback_fiberInclusionMap_eq hA (A.mem_baseSet_trivAt b)]
+  exact h.isClosed_mpullback_fiberInclusionMap (hA.contMDiffOn_trivAt b)
+    (hA.contMDiffOn_trivAt_symm b) _
 
 end FiberInclusion
 

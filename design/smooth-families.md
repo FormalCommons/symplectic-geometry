@@ -836,12 +836,12 @@ In `TauCeti.Diffeotopy`, for `[CompleteSpace E] [IsManifold I ∞ M]
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
-  `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`),
-  `exists_contDiff_eqOn_id_Icc_mem_Ioo` and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
+  `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`)
+  and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
   the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`, and
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Extension.lean`; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
-  `Gray.lean`, and `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Family.lean`.
+  `Gray.lean`.
 
 ## Issues
 

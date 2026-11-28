@@ -10,7 +10,6 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
-import SymplecticGeometry.Topology.Order.NhdsSet
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.Calculus.Deriv.Parity
 public import TauCeti.Analysis.SpecialFunctions.SmoothTransition
@@ -60,9 +59,9 @@ takes its values in the open interval `(a - ε, b + ε)`, and is constant outsid
 the midpoint `m` of `[a, b]` and a smooth bump `f` centred at `m`, equal to `1` on `[a, b]` and
 supported in `(a - ε, b + ε)`. The construction adapts Tau Ceti's
 `TauCeti.exists_contDiff_eventuallyEq_id_forall_mem_ball` to a prescribed interval on which the
-map is the identity, including the degenerate case `a = b`. Since an open set containing `[a, b]`
-contains some `(a - ε, b + ε)`, the values can also be kept in any such open set
-(`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_of_isOpen`).
+map is the identity, including the degenerate case `a = b`. To keep the values in an arbitrary
+open set containing `[a, b]` when constancy outside it is not needed, use Tau Ceti's
+`TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`.
 
 For any `0 ≤ r < R ≤ 1` it also gives a smooth odd function that is the identity on `[-r, r]`,
 `1` on `[R, ∞)`, bounded by `1` in absolute value, at least `t` at every `t ∈ [0, 1]`, and with
@@ -391,15 +390,6 @@ theorem exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ} (hab : a ≤ b) (hε 
       · right; linarith
       · left; linarith
     simp [f.zero_of_le_dist this, hm]
-
-/-- A smooth map `ℝ → ℝ` that is the identity on the closed interval `[a, b]` and takes its
-values in a given open set `U ⊇ [a, b]`, for any `a ≤ b`. -/
-theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab : a ≤ b)
-    (hU : IsOpen U) (hIU : Set.Icc a b ⊆ U) :
-    ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧ Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ U := by
-  obtain ⟨δ, hδ, hδU⟩ := hU.exists_pos_Ioo_subset_of_Icc_subset hIU
-  obtain ⟨c, hc, hcI, hcU, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo hab hδ
-  exact ⟨c, hc, hcI, fun t ↦ hδU (hcU t)⟩
 
 /-- For a differentiable `ν` with values in `[0, 1]`, equal to `1` on `(-∞, r]` for some
 `0 ≤ r ≤ R ≤ 1`, with `|ν'| ≤ τ` everywhere and `ν' = 0` outside `(r, R)`, the derivative of
