@@ -716,7 +716,8 @@ containing `ι '' closedBall 0 1`:
   (Proposition 4.27): for `0 < γ` and all small enough `δ ∈ Ioo 0 γ`, a
   family `χ : ℝ → ℝ → ℝ`, `ℓ ∈ Icc (-8 * δ) 1`, continuous in
   `(ℓ, r)` and smooth in `r` on `Ioi δ` for each `ℓ`, with every
-  `χ ℓ` increasing and a convex shape at every `r > δ`,
+  `χ ℓ` continuous and strictly increasing on `Ici δ` and a convex shape
+  at every `r > δ`,
   `χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)`, `χ ℓ r` equal to the
   standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`, and, for some
   `r₀ ∈ Ioo δ γ`, for all `r ≥ r₀` when `ℓ` is near `-8 * δ` (as issue
@@ -724,10 +725,10 @@ containing `ι '' closedBall 0 1`:
   leaf has a finite slope at `δ`),
   `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop`, `χ ℓ ≤ χ 1` on `Ioi δ` and
   `1 < χ 1 δ < 1 + γ`. The book's family is piecewise smooth in `ℓ`,
-  smooth in `(ℓ, r)` on each piece, so the statement asks for `χ`,
-  `∂χ/∂r` and `∂²χ/∂r²` to be jointly continuous on
-  `Icc (-8 * δ) 1 ×ˢ Ioi δ`, which is what issue 14d6 uses, and not for
-  smoothness in `ℓ`.
+  smooth in `(ℓ, r)` on each piece, so the statement asks for every
+  `r`-derivative `iteratedDeriv k (χ ℓ) r`, `χ` included, to be jointly
+  continuous on `Icc (-8 * δ) 1 ×ˢ Ioi δ` (issue 14d6 uses `k ≤ 2`), and
+  not for smoothness in `ℓ`.
   - `isConvexShapeAt_sqrt_sub` (in `Surround/SpecialShape.lean`, next to
     `isConvexShapeAt_sqrt`): for `1 < a`, `0 < r` and `c < a * r ^ 2`,
     `r ↦ √(a * r ^ 2 - c)` is a convex shape at `r`. With

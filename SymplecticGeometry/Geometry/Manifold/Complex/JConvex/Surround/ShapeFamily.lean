@@ -12,10 +12,12 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Brid
 
 import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.ContinuousOn
 import SymplecticGeometry.Topology.Order.Piecewise
 import TauCeti.Analysis.Calculus.ContDiff.Prod
+import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # Families of special `i`-convex shapes
@@ -115,6 +117,13 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   bridge leaves are below `1` or equal to `F ℓ` (`SymplecticGeometry.bridgeFamily_le_or_eq`), and
   further out below the standard leaf `ℓ` or equal to `F ℓ`
   (`SymplecticGeometry.bridgeFamily_le_sqrt_or_eq`).
+
+* `SymplecticGeometry.exists_convexShapeFamily_surround` (Proposition 4.27): for `0 < γ` and
+  every small enough `δ > 0`, the glued family with `L` large, `F` and `ℓ₀ = C δ` from
+  `SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`, and `ℓₜ = 1`. Its leaves are
+  standard from `γ` on once `t₁ + 2 δ ≤ 6 γ`, lie below the top leaf once `2 t₁ + 18 ℓ₀ ≤ 1`,
+  and the leaves near the bottom one are standard from `(2 + L) δ` on; both bounds on `t₁` hold
+  for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ`.
 
 ## References
 
@@ -1039,6 +1048,117 @@ theorem surroundFamily_le_surroundFamily_one {γ' r : ℝ} (hL : 0 < L) (hδ : 0
     exact hFle ℓ ⟨by linarith, hℓ₂⟩ r hr
 
 end surroundFamily
+
+/-- **The surrounding family** (Cieliebak–Eliashberg, Proposition 4.27). For `0 < γ` and every
+small enough `δ > 0` there is a family `χ ℓ`, `ℓ ∈ [-8 δ, 1]`, of shapes over the cylinder of
+radius `δ` such that
+* every `r`-derivative `(ℓ, r) ↦ ∂ᵏχ/∂rᵏ (ℓ, r)`, `χ` itself included, is jointly continuous
+  on `[-8 δ, 1] × (δ, ∞)`;
+* each leaf `χ ℓ` is smooth on `(δ, ∞)`, continuous and strictly increasing on `[δ, ∞)`, an
+  `i`-convex shape at every `r > δ`, and its slope tends to `+∞` at `δ`;
+* the bottom leaf is `χ (-8 δ) r = √(64 r² - 64 δ²)`;
+* every leaf is the standard leaf `√(64 r² + ℓ |ℓ|)` from `γ` on, and, for some `r₀ ∈ (δ, γ)`,
+  every leaf with `ℓ` close to `-8 δ` from above is standard from `r₀` on;
+* every leaf lies below the top leaf `χ 1` on `(δ, ∞)`, and `1 < χ 1 δ < 1 + γ`.
+
+The family is `SymplecticGeometry.surroundFamily L δ ℓ₀ M F` for a cutoff parameter `L` large
+compared with bounds of the first two derivatives of `smoothTransition`, the family `F`, base
+point `ℓ₀ = C δ` and slope bound `M` of
+`SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`, and `δ` so small that
+`2 t₁ + 18 ℓ₀ ≤ 1` and `t₁ + 2 δ ≤ 6 γ` for the height `t₁ = bridgeHeight L δ ℓ₀` of its
+bridge leaves. The leaves near `-8 δ` are standard from `r₀ = (2 + L) δ` on. -/
+theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
+    ∀ᶠ δ in 𝓝[>] 0, ∃ χ : ℝ → ℝ → ℝ,
+      (∀ k : ℕ, ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (χ q.1) q.2)
+        (Icc (-8 * δ) 1 ×ˢ Ioi δ)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, ContDiffOn ℝ ∞ (χ ℓ) (Ioi δ)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, ContinuousOn (χ ℓ) (Ici δ)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, StrictMonoOn (χ ℓ) (Ici δ)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, δ < r → IsConvexShapeAt (χ ℓ) r) ∧
+      (∀ r, χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, γ ≤ r → χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
+      (∃ r₀ ∈ Ioo δ γ, ∀ᶠ ℓ in 𝓝[≥] (-8 * δ), ∀ r, r₀ ≤ r →
+        χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, δ < r → χ ℓ r ≤ χ 1 r) ∧
+      1 < χ 1 δ ∧ χ 1 δ < 1 + γ := by
+  obtain ⟨A, hA⟩ := smoothTransition.exists_forall_norm_deriv_le
+  obtain ⟨B, hB⟩ := smoothTransition.exists_forall_norm_deriv_deriv_le
+  obtain ⟨N, hN⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
+  simp only [Real.norm_eq_abs] at hA hB hN
+  set L := max 1 (1024 * (A + 2 * B + N))
+  have hL₁ : 1 ≤ L := le_max_left _ _
+  have hL : 1024 * (A + 2 * B + N) ≤ L := le_max_right _ _
+  have hL₀ : 0 < L := by linarith
+  obtain ⟨C, hC, hF⟩ := exists_convexShapeFamily_struweShape_sqrt hγ
+  -- The bounds on `δ`: `(6 C + 32 + 8 L) δ < 6 γ` and `(30 C + 60 + 16 L) δ < 1`.
+  have hP : 0 < 6 * C + 32 + 8 * L := by linarith
+  have hQ : 0 < 30 * C + 60 + 16 * L := by linarith
+  filter_upwards [Ioo_mem_nhdsGT (lt_min (div_pos (mul_pos (by norm_num : (0 : ℝ) < 6) hγ) hP)
+    (one_div_pos.2 hQ))] with δ ⟨hδ, hδ'⟩
+  have h₁ : (6 * C + 32 + 8 * L) * δ < 6 * γ := by
+    rw [mul_comm]; exact (lt_div_iff₀ hP).1 (hδ'.trans_le (min_le_left _ _))
+  have h₂ : (30 * C + 60 + 16 * L) * δ < 1 := by
+    rw [mul_comm, ← lt_div_iff₀ hQ]; exact hδ'.trans_le (min_le_right _ _)
+  set ℓ₀ := C * δ with hℓ₀def
+  have hℓ₀ : 24 * δ ≤ ℓ₀ := mul_le_mul_of_nonneg_right hC hδ.le
+  have hℓ₀₁ : 2 * ℓ₀ < 1 := by nlinarith
+  -- The height `t₁` of the bridge leaves is at most `6 ℓ₀ + (30 + 8 L) δ`.
+  have ht₁ : bridgeHeight L δ ℓ₀ ≤ 6 * ℓ₀ + (30 + 8 * L) * δ := by
+    have h30 : √30 ≤ 6 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
+    have := (struweShape_four_zero_self_mem_Icc hδ).1
+    rw [bridgeHeight_def]
+    nlinarith
+  have hsmall : 2 * bridgeHeight L δ ℓ₀ + 9 * (2 * ℓ₀) ≤ 1 := by nlinarith
+  have hfar : (bridgeHeight L δ ℓ₀ + 2 * δ) / 6 ≤ γ := by
+    rw [div_le_iff₀ (by norm_num)]
+    nlinarith
+  obtain ⟨F, M, hM, hFs, hFsm, hFc, hFm, hFS, -, -, hFℓ, hFγ, hF4, hFd, hF1, hF1γ⟩ :=
+    hF δ hδ (by linarith [hℓ₀def])
+  have hM₀ : 0 ≤ M := by linarith
+  have hℓ₀' : 15 * δ / 2 < ℓ₀ := by linarith
+  have hℓₜ : 2 * ℓ₀ ≤ 1 := hℓ₀₁.le
+  have hℓ₀1 : ℓ₀ ≤ 1 := by linarith
+  have hFc' : ∀ ℓ ∈ Icc ℓ₀ 1, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r := fun ℓ h ↦ hFc ℓ h.1
+  have hF2 : ∀ ℓ ∈ Icc ℓ₀ 1, ContDiffOn ℝ 2 (F ℓ) (Ioi δ) := fun ℓ h ↦
+    (hFsm ℓ h.1).of_le (by simp)
+  have hFS' : ∀ ℓ ∈ Icc ℓ₀ 1, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r :=
+    fun ℓ _ ↦ hFS ℓ
+  have hFS₂ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀),
+      ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r :=
+    fun ℓ _ ↦ (hFS ℓ).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩
+  have hFℓ₂ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r :=
+    fun ℓ h r hr ↦ (hFℓ ℓ h.1 r hr.le).le
+  have hF4₂ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2) :=
+    fun ℓ h ↦ hF4 ℓ h.1
+  refine ⟨surroundFamily L δ ℓ₀ M F, fun k ↦ ?_, fun ℓ hℓ ↦ ?_, fun ℓ hℓ ↦ ?_, fun ℓ hℓ ↦ ?_,
+    fun ℓ hℓ r hr ↦ ?_, surroundFamily_neg_eight_mul hδ.le, fun ℓ hℓ r hr ↦ ?_,
+    ⟨(2 + L) * δ, ⟨by nlinarith, by nlinarith⟩, ?_⟩, fun ℓ hℓ ↦ ?_, fun ℓ hℓ r hr ↦ ?_, ?_⟩
+  · exact continuousOn_iteratedDeriv_surroundFamily hL₀ hδ hℓ₀ hM₀ hℓₜ
+      (fun q hq ↦ hFs q ⟨hq.1.1, hq.2⟩) (hFc ℓ₀ le_rfl) (hF4 ℓ₀ le_rfl)
+      (fun r hr ↦ (hFℓ _ (by linarith) r hr.le).le) (hF4 _ (by linarith)) k
+  · exact contDiffOn_surroundFamily (n := ⊤) hL₀.le hδ hℓₜ (fun ℓ h ↦ hFsm ℓ h.1) hℓ
+  · exact continuousOn_surroundFamily hL₀.le hδ hℓ₀' hM₀ hℓₜ hFS'
+      (fun ℓ h ↦ (hFsm ℓ h.1).continuousOn) hℓ.2
+  · exact strictMonoOn_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
+      hFd hℓ
+  · exact isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc'
+      (fun ℓ h ↦ hF2 ℓ ⟨h.1, h.2.trans hℓₜ⟩) hFS₂ hFℓ₂ hF4₂ hFd hℓ hr
+  · -- The leaves `F ℓ`, `ℓ ≤ 1`, are standard from `ℓ γ' ≤ γ` on.
+    refine surroundFamily_eq_sqrt (R := γ) hL₀ hδ hℓ₀' hM₀ hℓₜ (fun ℓ h r hr ↦ ?_) hℓ.2
+      (max_le hr (hfar.trans hr))
+    have : ℓ * min γ (1 / 16) ≤ γ := (mul_le_of_le_one_left
+      (lt_min hγ (by norm_num : (0 : ℝ) < 1 / 16)).le h.2).trans (min_le_left _ _)
+    exact hFγ ℓ h.1 r (this.trans hr)
+  · filter_upwards [Ico_mem_nhdsGE (by linarith : -8 * δ < 7 * δ)] with ℓ hℓ r hr
+    exact surroundFamily_eq_sqrt_of_le hL₀ hδ hℓ.2.le hr
+  · exact tendsto_deriv_surroundFamily hL₀.le hδ hℓ₀' hM₀ hℓₜ hFS' hℓ.2
+  · exact surroundFamily_le_surroundFamily_one hL₀ hδ hℓ₀' hM₀ hsmall (min_le_right _ _)
+      (fun r hr ↦ (hFℓ 1 hℓ₀1 r hr.le).le)
+      (fun r hr ↦ by rw [hFγ 1 hℓ₀1 r (by rwa [one_mul]), one_pow])
+      (fun ℓ h r hr ↦ (hFm r hr).monotoneOn (mem_Ici.2 h.1) (mem_Ici.2 (by linarith)) h.2) hℓ hr
+  · rw [surroundFamily_of_lt hδ.le (by linarith) hℓ₀₁]
+    exact ⟨hF1, hF1γ⟩
 
 end SymplecticGeometry
 
