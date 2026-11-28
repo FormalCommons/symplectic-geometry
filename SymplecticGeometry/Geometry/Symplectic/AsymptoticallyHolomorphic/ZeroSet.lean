@@ -17,7 +17,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
-import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Symplectic
 import SymplecticGeometry.Geometry.Manifold.Orientation.DualClass
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.DualClass
 import SymplecticGeometry.Geometry.Manifold.Orientation.Reindex
