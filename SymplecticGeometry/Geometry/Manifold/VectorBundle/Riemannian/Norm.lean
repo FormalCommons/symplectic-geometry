@@ -9,10 +9,10 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.Geometry.Manifold.ContMDiffMap
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
-import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 import TauCeti.Geometry.Manifold.ContMDiff.Log
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
 # Smoothness of the norm of a section of a Riemannian bundle
@@ -21,8 +21,9 @@ For a `C^n` Riemannian metric on a vector bundle `E`, Mathlib's `ContMDiffWithin
 says that the inner product of two `C^n` maps into the total space over a common base map is
 `C^n`. This file deduces that the norm `‖v m‖` of such a map is `C^n` where `v` does not vanish
 (`ContMDiffWithinAt.norm_bundle` and its variants), as the square root of `⟪v m, v m⟫`.
-Dividing a section that vanishes nowhere by its norm then gives a `C^n` section
-(`ContMDiff.inv_norm_smul_section`).
+Dividing such a map by its norm, where it does not vanish, gives a `C^n` map
+(`ContMDiffWithinAt.inv_norm_smul_bundle` and its variants), by Tau Ceti's
+`ContMDiffWithinAt.smul_totalSpace`.
 
 For a `C^n` section `t` of such a bundle, the points where `t` does not vanish form an open set
 `Bundle.nonzeroOpens ht`, and `y ↦ log ‖t y‖²` is a `C^n` function on it, `Bundle.logNormSq ht`,
@@ -79,27 +80,38 @@ theorem ContMDiff.norm_bundle
     ContMDiff IM 𝓘(ℝ) n (fun m ↦ ‖v m‖) :=
   fun x ↦ (hv x).norm_bundle (h x)
 
-section InvNormSMul
+/-- Dividing a map into a Riemannian bundle that is `C^n` within a set at a point where it does
+not vanish by its norm gives a map that is `C^n` within that set there. -/
+theorem ContMDiffWithinAt.inv_norm_smul_bundle
+    (hv : ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ (v m : TotalSpace F E)) s x)
+    (hx : v x ≠ 0) :
+    ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ ((‖v m‖⁻¹ • v m : E (b m)) : TotalSpace F E)) s x :=
+  ((hv.norm_bundle hx).inv₀ (norm_ne_zero_iff.2 hx)).smul_totalSpace hv
 
-variable {t : Π y, E y} {y₀ : B}
+/-- Dividing a map into a Riemannian bundle that is `C^n` at a point where it does not vanish by
+its norm gives a map that is `C^n` there. -/
+theorem ContMDiffAt.inv_norm_smul_bundle
+    (hv : ContMDiffAt IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ (v m : TotalSpace F E)) x)
+    (hx : v x ≠ 0) :
+    ContMDiffAt IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ ((‖v m‖⁻¹ • v m : E (b m)) : TotalSpace F E)) x :=
+  ContMDiffWithinAt.inv_norm_smul_bundle hv hx
 
-/-- Dividing a section of a Riemannian bundle that is `C^n` at a point where it does not vanish
-by its norm gives a section that is `C^n` there. -/
-theorem ContMDiffAt.inv_norm_smul_section
-    (ht : ContMDiffAt IB (IB.prod 𝓘(ℝ, F)) n (fun y ↦ TotalSpace.mk' F y (t y)) y₀)
-    (h0 : t y₀ ≠ 0) :
-    ContMDiffAt IB (IB.prod 𝓘(ℝ, F)) n (fun y ↦ TotalSpace.mk' F y (‖t y‖⁻¹ • t y)) y₀ :=
-  ((ht.norm_bundle h0).inv₀ (norm_ne_zero_iff.2 h0)).smul_section (V := E) ht
+/-- Dividing a map into a Riemannian bundle that is `C^n` on a set where it does not vanish by
+its norm gives a map that is `C^n` there. -/
+theorem ContMDiffOn.inv_norm_smul_bundle
+    (hv : ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ (v m : TotalSpace F E)) s)
+    (hs : ∀ x ∈ s, v x ≠ 0) :
+    ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ ((‖v m‖⁻¹ • v m : E (b m)) : TotalSpace F E)) s :=
+  fun x hx ↦ (hv x hx).inv_norm_smul_bundle (hs x hx)
 
-/-- Dividing a nowhere-vanishing `C^n` section of a Riemannian bundle by its norm gives a `C^n`
-section. -/
-theorem ContMDiff.inv_norm_smul_section
-    (ht : ContMDiff IB (IB.prod 𝓘(ℝ, F)) n (fun y ↦ TotalSpace.mk' F y (t y)))
-    (h0 : ∀ y, t y ≠ 0) :
-    ContMDiff IB (IB.prod 𝓘(ℝ, F)) n (fun y ↦ TotalSpace.mk' F y (‖t y‖⁻¹ • t y)) :=
-  fun y ↦ (ht y).inv_norm_smul_section (h0 y)
-
-end InvNormSMul
+/-- Dividing a nowhere-vanishing `C^n` map into a Riemannian bundle by its norm gives a `C^n`
+map. -/
+theorem ContMDiff.inv_norm_smul_bundle
+    (hv : ContMDiff IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ (v m : TotalSpace F E)))
+    (h : ∀ x, v x ≠ 0) :
+    ContMDiff IM (IB.prod 𝓘(ℝ, F)) n (fun m ↦ ((‖v m‖⁻¹ • v m : E (b m)) : TotalSpace F E)) :=
+  fun x ↦ (hv x).inv_norm_smul_bundle (h x)
 
 namespace Bundle
 
