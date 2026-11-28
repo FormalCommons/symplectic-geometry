@@ -15,6 +15,7 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Gluing
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import SymplecticGeometry.Analysis.Calculus.Deriv.Rectangle
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
@@ -50,11 +51,16 @@ The first two pieces are `SymplecticGeometry.exists_smoothedMax_family` and
 to `-ρ` and negated; the criterion comes from the uniform smoothed minimum
 `SymplecticGeometry.exists_forall_isConvexShapeOverRAt_smoothedMin`, applied to the pairs of
 curves that the smoothed minima combine, and from `IsConvexShapeOverRAt.sub_const`. The blend is
-smooth by `SymplecticGeometry.contDiffOn_blend`. The estimates
-`SymplecticGeometry.abs_sub_lt_of_eventuallyEq_add_const` and
-`SymplecticGeometry.abs_sub_lt_of_max_le_of_le_max`, and
-`SymplecticGeometry.blend_eventuallyEq_nhdsSet_union`, apply to these pieces as they are, after
-negation where needed.
+smooth by `SymplecticGeometry.contDiffOn_blend`, and
+`SymplecticGeometry.blend_eventuallyEq_nhdsSet_union` applies to it as it is.
+
+* `SymplecticGeometry.abs_sub_lt_of_eventuallyEq_sub_const` and
+  `SymplecticGeometry.abs_sub_lt_of_le_min_of_min_le`: a function that is locally `g - c`, or
+  that is bounded as a smoothed minimum of `M - c` and `g` is, is close to `h` in the sense that
+  `SymplecticGeometry.exists_blend_shapeFamilyOverR` asks for, when `g` and `M` are close to `h`
+  in value and first two derivatives and `c` is small. They are
+  `SymplecticGeometry.abs_sub_lt_of_eventuallyEq_add_const` and
+  `SymplecticGeometry.abs_sub_lt_of_max_le_of_le_max` applied to the negated functions.
 
 With these pieces the file proves the theorem itself:
 
@@ -64,11 +70,14 @@ With these pieces the file proves the theorem itself:
   continuous in `(ℓ, R)`, lying above `ρ ℓ₁` for `ℓ < ℓ₁` and smooth with `∂ρ/∂ℓ < 0` near
   `{ℓ₀, ℓ₁} × [R₁, R₂] ∪ [ℓ₀, ℓ₁] × {R₂}`, is replaced by a family smooth on the rectangle with
   the same properties and `∂ψ/∂ℓ < 0` everywhere, equal to `ρ` near that part of the boundary.
-  The proof follows that of `SymplecticGeometry.exists_shapeFoliation` step by step: the piece
-  next to `ℓ₀`, the weakly decreasing chain
-  `SymplecticGeometry.exists_antitone_shapeChain_overR` lowered by `q` in the middle, the
-  piece next to `ℓ₁` below the last member of the chain, glued by
-  `SymplecticGeometry.exists_contDiff_eventuallyEq_of_eventuallyEq_Icc` and blended with `ρ`
+  The proof follows that of `SymplecticGeometry.exists_shapeFoliation` step by step, and shares
+  its steps that do not involve a criterion: the open set, band and strips of
+  `SymplecticGeometry.exists_isOpen_band_strips_subset_of_mem_nhdsSet`, the point near `ℓ₁` of
+  `IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn`, and the gluing
+  `SymplecticGeometry.exists_contDiff_forall_eventuallyEq_of_eventuallyEq_Icc`. The pieces are
+  the one next to `ℓ₀`, the weakly decreasing chain
+  `SymplecticGeometry.exists_antitone_shapeChain_overR` lowered by `q` in the middle, and the
+  piece next to `ℓ₁` below the last member of the chain; the glued family is blended with `ρ`
   near `R₂`. Over `R` the lowering `q` must stay below `ρ` and the chain, so it is also bounded
   by half a positive lower bound of `ρ` on the rectangle; the chain stays above that bound less
   its error, being antitone in `ℓ`.
@@ -298,27 +307,64 @@ theorem exists_blend_shapeFamilyOverR {ρ : ℝ → ℝ → ℝ} {V : Set (ℝ �
     · exact deriv_mul_add_one_sub_mul_neg (hψ₀ℓ x hx) (hρℓ x ⟨hx.1, h, hx.2.2⟩) (hβI x.2).1
         (hβI x.2).2
 
-/-- The closeness that `SymplecticGeometry.abs_sub_lt_of_eventuallyEq_add_const` and
-`SymplecticGeometry.abs_sub_lt_of_max_le_of_le_max` give for `-f` and `-h` at `R` is the
-closeness that `SymplecticGeometry.exists_blend_shapeFamilyOverR` asks of `f` and `h`. -/
-private theorem abs_sub_lt_of_neg {f h : ℝ → ℝ} {R τ : ℝ}
-    (H : |-f R - -h R| < τ ∧ |deriv (fun R ↦ -f R) R - deriv (fun R ↦ -h R) R| < τ ∧
-      iteratedDeriv 2 (fun R ↦ -h R) R - τ < iteratedDeriv 2 (fun R ↦ -f R) R) :
+/-- **Closeness of a lowered family to `ρ`.** Let `f` agree near `R` with `g - c`, where
+`0 ≤ c ≤ τ / 2`, and let `g` be within `τ / 2` of `h` at `R` in value and first two
+derivatives. Then at `R` the function `f` is within `τ` of `h` in value and first derivative,
+and its second derivative is less than that of `h` plus `τ`, as
+`SymplecticGeometry.exists_blend_shapeFamilyOverR` asks of the family it blends. This is
+`SymplecticGeometry.abs_sub_lt_of_eventuallyEq_add_const` for `-f`, `-g` and `-h`. -/
+theorem abs_sub_lt_of_eventuallyEq_sub_const {f g h : ℝ → ℝ} {R c τ : ℝ}
+    (hf : f =ᶠ[𝓝 R] fun R ↦ g R - c) (hc₀ : 0 ≤ c) (hc : c ≤ τ / 2)
+    (hg : ∀ k ≤ 2, |iteratedDeriv k g R - iteratedDeriv k h R| < τ / 2) :
     |f R - h R| < τ ∧ |deriv f R - deriv h R| < τ ∧
       iteratedDeriv 2 f R < iteratedDeriv 2 h R + τ := by
-  obtain ⟨h₀, h₁, h₂⟩ := H
-  rw [deriv.fun_neg, deriv.fun_neg] at h₁
+  have hg' : ∀ k ≤ 2,
+      |iteratedDeriv k (fun R ↦ -g R) R - iteratedDeriv k (fun R ↦ -h R) R| < τ / 2 :=
+    fun k hk ↦ by
+      simpa only [← Real.norm_eq_abs, norm_iteratedDeriv_fun_neg_sub_fun_neg] using hg k hk
+  obtain ⟨h₀, h₁, h₂⟩ := abs_sub_lt_of_eventuallyEq_add_const (f := fun R ↦ -f R)
+    (g := fun R ↦ -g R) (h := fun R ↦ -h R)
+    (hf.mono fun R hR ↦ by simp only [hR]; ring) hc₀ hc hg'
+  rw [neg_sub_neg, abs_sub_comm] at h₀
+  rw [deriv.fun_neg, deriv.fun_neg, neg_sub_neg, abs_sub_comm] at h₁
   rw [iteratedDeriv_fun_neg, iteratedDeriv_fun_neg] at h₂
-  rw [neg_sub_neg, abs_sub_comm] at h₀ h₁
   exact ⟨h₀, h₁, by linarith⟩
 
-/-- Closeness of `g` to `h` at `R` in value and first two derivatives is that of `-g` to `-h`. -/
-private theorem abs_iteratedDeriv_neg_sub_neg_lt {g h : ℝ → ℝ} {R ε : ℝ}
-    (H : ∀ k ≤ 2, |iteratedDeriv k g R - iteratedDeriv k h R| < ε) :
-    ∀ k ≤ 2, |iteratedDeriv k (fun R ↦ -g R) R - iteratedDeriv k (fun R ↦ -h R) R| < ε :=
-  fun k hk ↦ by
-    rw [iteratedDeriv_fun_neg, iteratedDeriv_fun_neg, neg_sub_neg, abs_sub_comm]
-    exact H k hk
+/-- **Closeness of a smoothed minimum to `ρ`.** Let `M` and `g` be within `τ / 2` of `h` at `R`
+in value and first two derivatives, and let `c ≤ τ / 4` and `δ ≤ τ / 2`. Let `f` at `R` lie
+between `min (M R - c) (g R) - δ / 2` and `min (M R - c) (g R)`, have first derivative between
+the smaller and the larger of those of `M` and `g`, and second derivative at most the larger of
+theirs, as `-smoothedMax δ (-(M - c)) (-g)` does. Then at `R` the function `f` is within `τ` of
+`h` in value and first derivative, and its second derivative is less than that of `h` plus `τ`,
+as `SymplecticGeometry.exists_blend_shapeFamilyOverR` asks of the family it blends. This is
+`SymplecticGeometry.abs_sub_lt_of_max_le_of_le_max` for `-f`, `-M`, `-g` and `-h`. -/
+theorem abs_sub_lt_of_le_min_of_min_le {f M g h : ℝ → ℝ} {R c δ τ : ℝ} (hc : c ≤ τ / 4)
+    (hδ : δ ≤ τ / 2) (hM : ∀ k ≤ 2, |iteratedDeriv k M R - iteratedDeriv k h R| < τ / 2)
+    (hg : ∀ k ≤ 2, |iteratedDeriv k g R - iteratedDeriv k h R| < τ / 2)
+    (hv₁ : min (M R - c) (g R) - δ / 2 ≤ f R) (hv₂ : f R ≤ min (M R - c) (g R))
+    (hd₁ : min (deriv M R) (deriv g R) ≤ deriv f R)
+    (hd₂ : deriv f R ≤ max (deriv M R) (deriv g R))
+    (hdd : iteratedDeriv 2 f R ≤ max (iteratedDeriv 2 M R) (iteratedDeriv 2 g R)) :
+    |f R - h R| < τ ∧ |deriv f R - deriv h R| < τ ∧
+      iteratedDeriv 2 f R < iteratedDeriv 2 h R + τ := by
+  have hneg : ∀ {F H : ℝ → ℝ}, (∀ k ≤ 2, |iteratedDeriv k F R - iteratedDeriv k H R| < τ / 2) →
+      ∀ k ≤ 2, |iteratedDeriv k (fun R ↦ -F R) R - iteratedDeriv k (fun R ↦ -H R) R| < τ / 2 :=
+    fun H k hk ↦ by
+      simpa only [← Real.norm_eq_abs, norm_iteratedDeriv_fun_neg_sub_fun_neg] using H k hk
+  have hmax : max (-M R + c) (-g R) = -min (M R - c) (g R) := by
+    rw [← max_neg_neg, neg_sub, sub_eq_neg_add]
+  obtain ⟨h₀, h₁, h₂⟩ := abs_sub_lt_of_max_le_of_le_max (f := fun R ↦ -f R)
+    (M := fun R ↦ -M R) (g := fun R ↦ -g R) (h := fun R ↦ -h R) hc hδ (hneg hM) (hneg hg)
+    (by rw [hmax]; linarith) (by rw [hmax]; linarith)
+    (by rw [deriv.fun_neg, deriv.fun_neg, deriv.fun_neg, min_neg_neg]; exact neg_le_neg hd₂)
+    (by rw [deriv.fun_neg, deriv.fun_neg, deriv.fun_neg, max_neg_neg]; exact neg_le_neg hd₁)
+    (by
+      rw [iteratedDeriv_fun_neg, iteratedDeriv_fun_neg, iteratedDeriv_fun_neg, min_neg_neg]
+      exact neg_le_neg hdd)
+  rw [neg_sub_neg, abs_sub_comm] at h₀
+  rw [deriv.fun_neg, deriv.fun_neg, neg_sub_neg, abs_sub_comm] at h₁
+  rw [iteratedDeriv_fun_neg, iteratedDeriv_fun_neg] at h₂
+  exact ⟨h₀, h₁, by linarith⟩
 
 /-- **A strictly decreasing smooth family of shapes over `R` with prescribed ends.** Let
 `Q = [ℓ₀, ℓ₁] × [R₁, R₂]` with `ℓ₀ < ℓ₁` and `R₁ < R₂`, and let `E` be the part
@@ -348,43 +394,23 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
       Function.uncurry ψ =ᶠ[𝓝ˢ ({ℓ₀, ℓ₁} ×ˢ Icc R₁ R₂ ∪ Icc ℓ₀ ℓ₁ ×ˢ {R₂})]
         Function.uncurry ρ := by
   set Q := Icc ℓ₀ ℓ₁ ×ˢ Icc R₁ R₂
-  set E := ({ℓ₀, ℓ₁} : Set ℝ) ×ˢ Icc R₁ R₂ ∪ Icc ℓ₀ ℓ₁ ×ˢ {R₂}
   have hR₁ : 0 < R₁ := (hc (ℓ₀, R₁) ⟨left_mem_Icc.2 hℓ.le, left_mem_Icc.2 hR.le⟩).pos
-  -- An open `U'` around `E`, and a thickening of `E` of size `d` inside it.
-  obtain ⟨U', hU'o, hEU', hU'U⟩ := mem_nhdsSet_iff_exists.1 hU
+  -- An open `U' ⊆ U`, the band `[ℓ₀, ℓ₁] × [R₃, R₂]` inside it, and the cutoff `β` and
+  -- tolerance `τ` of the blend there.
+  obtain ⟨U', hU'o, hU'U, R₃, ⟨hR₁₃, hR₃₂⟩, hBU, hstrip⟩ :=
+    exists_isOpen_band_strips_subset_of_mem_nhdsSet hℓ hR hU
   have hsm' : ContDiffOn ℝ ∞ (Function.uncurry ρ) U' := hsmooth.mono hU'U
   have hmono' : ∀ x ∈ U', deriv (fun ℓ' ↦ ρ ℓ' x.2) x.1 < 0 := fun x hx ↦ hmono x (hU'U hx)
-  have hEc : IsCompact E :=
-    ((Set.toFinite _).isCompact.prod isCompact_Icc).union (isCompact_Icc.prod isCompact_singleton)
-  obtain ⟨d, hd, hdU⟩ := hEc.exists_cthickening_subset_open hU'o hEU'
-  have hnear : ∀ x y : ℝ × ℝ, y ∈ E → |x.1 - y.1| ≤ d → |x.2 - y.2| ≤ d → x ∈ U' :=
-    fun x y hy h₁ h₂ ↦ hdU (Metric.mem_cthickening_of_dist_le x y d E hy (by
-      rw [Prod.dist_eq, Real.dist_eq, Real.dist_eq]
-      exact max_le h₁ h₂))
-  -- The band `[ℓ₀, ℓ₁] × [R₃, R₂]` inside `U'`, and the cutoff `β` and tolerance `τ` of the
-  -- blend there.
-  set R₃ := max R₁ (R₂ - d)
-  have hR₁₃ : R₁ ≤ R₃ := le_max_left _ _
-  have hR₃₂ : R₃ < R₂ := max_lt hR (by linarith)
   have hBQ : Icc ℓ₀ ℓ₁ ×ˢ Icc R₃ R₂ ⊆ Q := fun x hx ↦ ⟨hx.1, hR₁₃.trans hx.2.1, hx.2.2⟩
-  have hBU : Icc ℓ₀ ℓ₁ ×ˢ Icc R₃ R₂ ⊆ U' := fun x hx ↦
-    hnear x (x.1, R₂) (Or.inr ⟨hx.1, rfl⟩) (by simp [hd.le]) (by
-      rw [abs_le]
-      constructor <;> linarith [hx.2.1, hx.2.2, le_max_right R₁ (R₂ - d)])
   obtain ⟨β, -, -, -, hβ0, τ, hτ, hblend⟩ := exists_blend_shapeFamilyOverR (R₁ := R₁) hR₃₂
     hU'o hBU hsm' (fun x hx ↦ hc x (hBQ hx)) fun x hx ↦ hmono' x (hBU hx)
   -- A step `w` in `ℓ` over which the value and first two `R`-derivatives of `ρ` move by less
   -- than `τ / 4`.
   obtain ⟨w, hw, hu⟩ := isCompact_Icc.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn
     (n := 2) hcont (by positivity : 0 < τ / 4)
-  -- The inner ends `a = ℓ₀ + s`, `b = ℓ₁ - s` of the pieces next to `ℓ₀` and `ℓ₁`.
-  set s := min (min d w) ((ℓ₁ - ℓ₀) / 3)
-  have hs0 : 0 < s := by
-    have := sub_pos.2 hℓ
-    positivity
-  have hsd : s ≤ d := (min_le_left _ _).trans (min_le_left _ _)
-  have hsw : s ≤ w := (min_le_left _ _).trans (min_le_right _ _)
-  have hs3 : s ≤ (ℓ₁ - ℓ₀) / 3 := min_le_right _ _
+  -- The inner ends `a = ℓ₀ + s`, `b = ℓ₁ - s` of the pieces next to `ℓ₀` and `ℓ₁`, whose strips
+  -- lie in `U'`.
+  obtain ⟨s, ⟨hs0, hsw⟩, hs3, hLU, hRU⟩ := hstrip w hw
   set a := ℓ₀ + s
   set b := ℓ₁ - s
   have hℓa : ℓ₀ < a := by linarith
@@ -393,17 +419,9 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
   have hLQ : Icc ℓ₀ a ⊆ Icc ℓ₀ ℓ₁ := Icc_subset_Icc_right (by linarith)
   have hMQ : Icc a b ⊆ Icc ℓ₀ ℓ₁ := Icc_subset_Icc (by linarith) (by linarith)
   have hRQ : Icc b ℓ₁ ⊆ Icc ℓ₀ ℓ₁ := Icc_subset_Icc_left (by linarith)
-  have hLU : Icc ℓ₀ a ×ˢ Icc R₁ R₂ ⊆ U' := fun x hx ↦
-    hnear x (ℓ₀, x.2) (Or.inl ⟨Or.inl rfl, hx.2⟩) (by
-      rw [abs_le]
-      constructor <;> linarith [hx.1.1, hx.1.2]) (by simp [hd.le])
-  have hRU : Icc b ℓ₁ ×ˢ Icc R₁ R₂ ⊆ U' := fun x hx ↦
-    hnear x (ℓ₁, x.2) (Or.inl ⟨Or.inr rfl, hx.2⟩) (by
-      rw [abs_le]
-      constructor <;> linarith [hx.1.1, hx.1.2]) (by simp [hd.le])
   -- A positive lower bound `μ` of `ρ` on `Q`, below which the lowerings stay.
-  have hρcont : ContinuousOn (fun x : ℝ × ℝ ↦ ρ x.1 x.2) Q := by
-    simpa [iteratedDeriv_zero] using hcont 0 (by norm_num)
+  have hρcont : ContinuousOn (fun x : ℝ × ℝ ↦ ρ x.1 x.2) Q :=
+    ContinuousOn.uncurry_of_iteratedDeriv hcont
   obtain ⟨μ, hμ, hμQ⟩ := (isCompact_Icc.prod isCompact_Icc).exists_forall_le' hρcont
     fun x hx ↦ (hc x hx).pos_value
   -- The gap `g` between the members over `[a, b]` and `ρ ℓ₁`.
@@ -416,22 +434,10 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
       fun x hx ↦ sub_pos.2 (htop x.1 ⟨(hMQ hx.1).1, by linarith [hx.1.2]⟩ x.2 hx.2)
     exact ⟨g, hg, fun ℓ hℓ' R hR' ↦ by linarith [hgK (ℓ, R) ⟨hℓ', hR'⟩]⟩
   -- The point `c ∈ (b, ℓ₁)` from which on the members are within `g / 4` of `ρ ℓ₁`.
-  obtain ⟨w', hw', hu'⟩ := isCompact_Icc.exists_pos_abs_sub_lt_of_continuousOn
-    (hcont 0 (by norm_num)) (by positivity : 0 < g / 4)
-  set c := ℓ₁ - min w' (s / 2)
-  have hbc : b < c := by
-    have : min w' (s / 2) ≤ s / 2 := min_le_right _ _
-    linarith
-  have hcℓ : c < ℓ₁ := by
-    have : 0 < min w' (s / 2) := by positivity
-    linarith
-  have hnearℓ₁ : ∀ ℓ ∈ Icc c ℓ₁, ∀ R ∈ Icc R₁ R₂, ρ ℓ R < ρ ℓ₁ R + g / 4 := by
-    intro ℓ hℓ' R hR'
-    have := hu' R hR' ℓ₁ (right_mem_Icc.2 hℓ.le) ℓ ⟨by linarith [hℓ'.1], hℓ'.2⟩ (by
-      rw [abs_le]
-      constructor <;> linarith [hℓ'.1, hℓ'.2, min_le_left w' (s / 2)])
-    simp only [iteratedDeriv_zero] at this
-    linarith [(abs_lt.1 this).2]
+  obtain ⟨c, ⟨hbc, hcℓ⟩, hc'⟩ := isCompact_Icc.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn
+    hρcont (by positivity : 0 < g / 4) (by linarith) hbℓ
+  have hnearℓ₁ : ∀ ℓ ∈ Icc c ℓ₁, ∀ R ∈ Icc R₁ R₂, ρ ℓ R < ρ ℓ₁ R + g / 4 :=
+    fun ℓ hℓ' R hR' ↦ by linarith [(abs_lt.1 (hc' ℓ hℓ' R hR')).2]
   -- The lowering `q`, a smooth step from `0` at `a₀ = ℓ₀ + s / 4` to `κ` at `c`.
   set κ := min (min (τ / 4) (g / 4)) (μ / 2)
   have hκ0 : 0 < κ := by positivity
@@ -510,20 +516,10 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
         from ⟨rfl, hR'⟩)), (continuous_fst.tendsto (b, R)).eventually hCb] with y hy1 hy2
     simp only [Function.uncurry_def, hCq] at hy1 ⊢
     rw [hy1, hy2]
-  obtain ⟨ψ', hψ's, hψ'₀, hψ'm, hψ'₁⟩ := exists_contDiff_eventuallyEq_of_eventuallyEq_Icc
-    (ℓ₀ := ℓ₀) (ℓ₁ := ℓ₁) hab isCompact_Icc hT₀s hCqs hT₁s hTa hTb
-  -- Near each point of `Q`, `ψ'` is the piece of its interval in `ℓ`.
-  have hloc' : ∀ x ∈ Q,
-      (x.1 ∈ Icc ℓ₀ a ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry T₀) ∨
-      (x.1 ∈ Icc a b ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry Cq) ∨
-      (x.1 ∈ Icc b ℓ₁ ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry T₁) := by
-    intro x hx
-    rcases le_or_gt x.1 a with h | h
-    · exact Or.inl ⟨⟨hx.1.1, h⟩, hψ'₀.filter_mono (nhds_le_nhdsSet ⟨⟨hx.1.1, h⟩, hx.2⟩)⟩
-    rcases le_or_gt x.1 b with h' | h'
-    · exact Or.inr (Or.inl ⟨⟨h.le, h'⟩, hψ'm.filter_mono (nhds_le_nhdsSet ⟨⟨h.le, h'⟩, hx.2⟩)⟩)
-    · exact Or.inr (Or.inr ⟨⟨h'.le, hx.1.2⟩,
-        hψ'₁.filter_mono (nhds_le_nhdsSet ⟨⟨h'.le, hx.1.2⟩, hx.2⟩)⟩)
+  -- The glued family `ψ'`: near each point of `Q` it is the piece of its interval in `ℓ`, and
+  -- it is `ρ` near `{ℓ₀, ℓ₁} × [R₁, R₂]`.
+  obtain ⟨ψ', hψ's, hloc', hψ'E⟩ := exists_contDiff_forall_eventuallyEq_of_eventuallyEq_Icc
+    hℓa.le hab hbℓ.le isCompact_Icc hT₀s hCqs hT₁s hTa hTb hT₀ℓ₀ hT₁ℓ₁
   -- The members of `ψ'` satisfy the criterion over `R` and have negative `ℓ`-derivative.
   have hψ'c : ∀ x ∈ Q, IsConvexShapeOverRAt (ψ' x.1) x.2 := by
     intro x hx
@@ -547,8 +543,7 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
     · rw [h2.uncurry_right.deriv_eq]
       exact hT₁ℓ x ⟨h1, hx.2⟩
   -- On the band, `ψ'` is close to `ρ`: each piece is close to members of `ρ` at most `s` away
-  -- in `ℓ`, or to the chain, which is close to `ρ`. The estimates over `r` apply to the
-  -- negated functions.
+  -- in `ℓ`, or to the chain, which is close to `ρ`.
   have hclose : ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc R₃ R₂, |ψ' x.1 x.2 - ρ x.1 x.2| < τ ∧
       |deriv (ψ' x.1) x.2 - deriv (ρ x.1) x.2| < τ ∧
       iteratedDeriv 2 (ψ' x.1) x.2 < iteratedDeriv 2 (ρ x.1) x.2 + τ := by
@@ -560,62 +555,28 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
         ((abs_sub_le_iff.2 ⟨by linarith [hl.2], by linarith [hl.1]⟩).trans hsw)
     rcases hloc' x (hBQ hx) with ⟨h1, h2⟩ | ⟨h1, h2⟩ | ⟨h1, h2⟩
     · obtain ⟨ℓ', hℓ'm, hT⟩ := hT₀m x ⟨h1, hR'⟩
-      refine abs_sub_lt_of_neg (abs_sub_lt_of_eventuallyEq_add_const (τ := τ) (c := q x.1)
-        (f := fun R ↦ -ψ' x.1 R) (g := fun R ↦ -ρ ℓ' R)
-        ((h2.uncurry_left.trans hT).mono fun R hR ↦ ?_) (hq0 x.1)
-        (by linarith [hqκ x.1]) (abs_iteratedDeriv_neg_sub_neg_lt fun k hk ↦
-          (hstep ℓ' (hLQ hℓ'm) ⟨by linarith [h1.2, hℓ'm.1], by linarith [h1.1, hℓ'm.2]⟩
-            k hk).trans (by linarith)))
-      simp only at hR ⊢
-      rw [hR]
-      ring
-    · refine abs_sub_lt_of_neg (abs_sub_lt_of_eventuallyEq_add_const (τ := τ) (c := q x.1)
-        (f := fun R ↦ -ψ' x.1 R) (g := fun R ↦ -C x.1 R)
-        (h2.uncurry_left.mono fun R hR ↦ ?_) (hq0 x.1)
-        (by linarith [hqκ x.1]) (abs_iteratedDeriv_neg_sub_neg_lt fun k hk ↦
-          (hCclose x ⟨h1, hx.2⟩ k hk).trans (by linarith)))
-      simp only [hCq] at hR ⊢
-      rw [hR]
-      ring
+      exact abs_sub_lt_of_eventuallyEq_sub_const (h2.uncurry_left.trans hT) (hq0 x.1)
+        (by linarith [hqκ x.1]) fun k hk ↦ (hstep ℓ' (hLQ hℓ'm)
+          ⟨by linarith [h1.2, hℓ'm.1], by linarith [h1.1, hℓ'm.2]⟩ k hk).trans (by linarith)
+    · exact abs_sub_lt_of_eventuallyEq_sub_const h2.uncurry_left (hq0 x.1)
+        (by linarith [hqκ x.1]) fun k hk ↦ (hCclose x ⟨h1, hx.2⟩ k hk).trans (by linarith)
     · obtain ⟨ℓ', hℓ'm, -, hv₁, hv₂, hd₁, hd₂, hdd⟩ := hT₁m x ⟨h1, hR'⟩
       rw [h2.uncurry_left.eq_of_nhds, h2.uncurry_left.deriv_eq,
         h2.uncurry_left.iteratedDeriv_eq 2]
-      have hCbx : ∀ k ≤ 2, |iteratedDeriv k (C b) x.2 - iteratedDeriv k (ρ x.1) x.2| < τ / 2 := by
-        intro k hk
-        have hCb : |iteratedDeriv k (C b) x.2 - iteratedDeriv k (ρ b) x.2| < τ / 4 :=
+      refine abs_sub_lt_of_le_min_of_min_le (hqκ x.1 |>.trans hκτ) (by linarith)
+        (fun k hk ↦ ?_) (fun k hk ↦ ?_) hv₁ hv₂ hd₁ hd₂ hdd
+      · have hCb : |iteratedDeriv k (C b) x.2 - iteratedDeriv k (ρ b) x.2| < τ / 4 :=
           hCclose (b, x.2) ⟨⟨hab.le, le_rfl⟩, hx.2⟩ k hk
         have hρb := hstep b (hRQ ⟨le_rfl, hbℓ.le⟩) ⟨by linarith [h1.2], by linarith [h1.1]⟩ k hk
         exact (abs_sub_le _ (iteratedDeriv k (ρ b) x.2) _).trans_lt (by linarith)
-      have hρx : ∀ k ≤ 2, |iteratedDeriv k (ρ ℓ') x.2 - iteratedDeriv k (ρ x.1) x.2| < τ / 2 :=
-        fun k hk ↦ (hstep ℓ' (hRQ hℓ'm) ⟨by linarith [h1.2, hℓ'm.1], by linarith [h1.1, hℓ'm.2]⟩
+      · exact (hstep ℓ' (hRQ hℓ'm) ⟨by linarith [h1.2, hℓ'm.1], by linarith [h1.1, hℓ'm.2]⟩
           k hk).trans (by linarith)
-      have hneg : -C b x.2 + q x.1 = -(C b x.2 - q x.1) := by ring
-      refine abs_sub_lt_of_neg (abs_sub_lt_of_max_le_of_le_max (τ := τ)
-        (f := fun R ↦ -T₁ x.1 R) (M := fun R ↦ -C b R)
-        (g := fun R ↦ -ρ ℓ' R) (c := q x.1) (δ := δ) (hqκ x.1 |>.trans hκτ) (by linarith)
-        (abs_iteratedDeriv_neg_sub_neg_lt hCbx) (abs_iteratedDeriv_neg_sub_neg_lt hρx)
-        ?_ ?_ ?_ ?_ ?_)
-      · rw [hneg, max_neg_neg]
-        linarith
-      · rw [hneg, max_neg_neg]
-        linarith
-      · rw [deriv.fun_neg, deriv.fun_neg, deriv.fun_neg, min_neg_neg]
-        exact neg_le_neg hd₂
-      · rw [deriv.fun_neg, deriv.fun_neg, deriv.fun_neg, max_neg_neg]
-        exact neg_le_neg hd₁
-      · rw [iteratedDeriv_fun_neg, iteratedDeriv_fun_neg, iteratedDeriv_fun_neg, min_neg_neg]
-        exact neg_le_neg hdd
   -- The blend with `ρ` near `R₂`; it is `ρ` near `{ℓ₀, ℓ₁} × [R₁, R₂]`, where `ψ'` is.
   obtain ⟨hψs, hψc, hψℓ⟩ := hblend ψ' hψ's hψ'c hψ'ℓ hclose
   refine ⟨fun ℓ R ↦ β R * ψ' ℓ R + (1 - β R) * ρ ℓ R, hψs.mono fun x hx ↦ ?_, hψc, hψℓ,
-    blend_eventuallyEq_nhdsSet_union ?_ hβ0⟩
-  · rcases lt_or_ge x.2 R₃ with h | h
-    · exact Or.inl ⟨mem_univ _, h⟩
-    · exact Or.inr (hBU ⟨hx.1, h, hx.2.2⟩)
-  rw [insert_eq, union_prod, EventuallyEq, nhdsSet_union, eventually_sup]
-  exact ⟨((hψ'₀.filter_mono (nhdsSet_mono (prod_mono (singleton_subset_iff.2
-      ⟨le_rfl, hℓa.le⟩) le_rfl))).trans hT₀ℓ₀),
-    ((hψ'₁.filter_mono (nhdsSet_mono (prod_mono (singleton_subset_iff.2
-      ⟨hbℓ.le, le_rfl⟩) le_rfl))).trans hT₁ℓ₁)⟩
+    blend_eventuallyEq_nhdsSet_union hψ'E hβ0⟩
+  rcases lt_or_ge x.2 R₃ with h | h
+  · exact Or.inl ⟨mem_univ _, h⟩
+  · exact Or.inr (hBU ⟨hx.1, h, hx.2.2⟩)
 
 end SymplecticGeometry
