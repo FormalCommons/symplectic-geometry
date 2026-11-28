@@ -543,6 +543,15 @@ theorem transportedCylinder_add_one (hc : Periodic c 1) (s t θ : ℝ) :
     hD.transportedCylinder e Δ c (s, t, θ + 1) = hD.transportedCylinder e Δ c (s, t, θ) := by
   simp only [transportedCylinder_def, hc θ]
 
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [FiniteDimensional ℝ EB] [IB.Boundaryless]
+  [T2Space B] in
+/-- The transported cylinder of the constant family at `b` is `(s, t, θ) ↦ e⁻¹ (b, c θ)`, since
+parallel transport along a constant curve is the identity. -/
+theorem transportedCylinder_const (hn : 1 ≤ n) (hf : ContMDiff IM IB 2 proj) (b : B)
+    (p : ℝ × ℝ × ℝ) :
+    hD.transportedCylinder e (fun _ ↦ b) c p = e.toOpenPartialHomeomorph.symm (b, c p.2.2) := by
+  rw [transportedCylinder_def, hD.parallelTransport_const (by exact_mod_cast hn) hf]
+
 omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
   [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
 /-- For a smooth disc `Δ` with centre `x` and `s ∈ [0, 1]`, the transported cylinder starts at
