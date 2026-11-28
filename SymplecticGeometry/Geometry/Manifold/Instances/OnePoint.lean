@@ -8,7 +8,6 @@ module
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
-public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
@@ -17,6 +16,7 @@ public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Analysis.InnerProductSpace.Euclidean.CoordinateHyperplane
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
