@@ -49,7 +49,9 @@ For real-linear endomorphisms `J` and `J'` of finite-dimensional real normed spa
 no complex structure, `TauCeti.complexAntilinearPartContinuousLinearMap J J'` is Tau Ceti's
 algebraic complex-antilinear part `TauCeti.complexAntilinearPart J J'`, built from
 `TauCeti.complexAntilinearPartLinearMap`, as a continuous real-linear operator on the continuous
-real-linear maps.
+real-linear maps. For fields of endomorphisms and of operators that are `C^n` at a point, the
+field of their complex-antilinear parts is `C^n` there
+(`ContDiffAt.complexAntilinearPartContinuousLinearMap`).
 
 For topological complex modules whose real structure is compatible with the complex one, the
 setting of Tau Ceti's versions for real scalars, both parts commute with complex scalars
@@ -270,6 +272,21 @@ theorem complexAntilinearPartContinuousLinearMap_apply_apply (J : V →ₗ[ℝ] 
     complexAntilinearPartContinuousLinearMap J J' F v =
       complexAntilinearPart J J' (F : V →ₗ[ℝ] W) v := by
   rw [complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap']
+
+/-- For a field `J` of continuous endomorphisms of `V` and a field `F` of operators `V →L[ℝ] W`,
+both `C^n` at `x`, the field of complex-antilinear parts
+`y ↦ TauCeti.complexAntilinearPart (J y) J' (F y)` is `C^n` at `x`. -/
+theorem _root_.ContDiffAt.complexAntilinearPartContinuousLinearMap {X : Type*}
+    [NormedAddCommGroup X] [NormedSpace ℝ X] {n : WithTop ℕ∞} {J : X → V →L[ℝ] V}
+    {F : X → V →L[ℝ] W} {x : X} (J' : W →ₗ[ℝ] W) (hJ : ContDiffAt ℝ n J x)
+    (hF : ContDiffAt ℝ n F x) :
+    ContDiffAt ℝ n
+      (fun y ↦ complexAntilinearPartContinuousLinearMap (J y : V →ₗ[ℝ] V) J' (F y)) x := by
+  have h := (hF.add ((contDiffAt_const (c := LinearMap.toContinuousLinearMap J')).clm_comp
+    (hF.clm_comp hJ))).const_smul (2⁻¹ : ℝ)
+  refine h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun y ↦ ?_)
+  ext v
+  simp [complexAntilinearPart_apply]
 
 end TauCeti
 
