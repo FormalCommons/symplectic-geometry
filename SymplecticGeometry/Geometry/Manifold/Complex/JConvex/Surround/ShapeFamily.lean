@@ -87,7 +87,9 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `64 (r² - δ²)` and `64 r² - ℓ²` (`SymplecticGeometry.contDiffOn_uncurry_sqrtSubLeaf`); the
   slope of each leaf tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_sqrtSubLeaf`); and
   at each `r > δ` the leaves increase strictly with `ℓ`
-  (`SymplecticGeometry.strictMonoOn_sqrtSubLeaf`).
+  (`SymplecticGeometry.strictMonoOn_sqrtSubLeaf`), with a positive derivative in `ℓ` at every
+  `ℓ ∈ (-8 r, 0)` (`SymplecticGeometry.hasDerivAt_sqrtSubLeaf_param`,
+  `SymplecticGeometry.deriv_sqrtSubLeaf_param_pos`).
 
 * `SymplecticGeometry.surroundFamily`: the family of Proposition 4.27 over the cylinder of
   radius `δ`, glued from four pieces along `ℓ`: `sqrtSubLeaf` for `ℓ ≤ 0`, the Struwe switch
@@ -96,8 +98,12 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `(δ, ∞)` neighbouring pieces agree at the junctions `0`, `7 δ` and `2 ℓ₀`
   (`SymplecticGeometry.surroundFamily_eq_struweSwitchLeaf`,
   `SymplecticGeometry.surroundFamily_eqOn_bridgeFamily`,
-  `SymplecticGeometry.surroundFamily_eqOn_of_ge`). Leaf by leaf, for `ℓ ∈ [-8 δ, ℓₜ]` and `F`
-  with the properties that the bridge family asks of it on `[ℓ₀, ℓₜ]`, each leaf is an
+  `SymplecticGeometry.surroundFamily_eqOn_of_ge`). Where `ℓ < 0`, `δ < r` and `|ℓ| < 8 r`, the
+  family is `sqrtSubLeaf L δ`, so it is jointly smooth there
+  (`SymplecticGeometry.contDiffOn_uncurry_surroundFamily_of_neg`) and its derivative in `ℓ` is
+  positive (`SymplecticGeometry.deriv_surroundFamily_param_pos`). Leaf by leaf, for
+  `ℓ ∈ [-8 δ, ℓₜ]` and `F` with the properties that the bridge family asks of it on
+  `[ℓ₀, ℓₜ]`, each leaf is an
   `i`-convex shape at every `r > δ` (`SymplecticGeometry.isConvexShapeAt_surroundFamily`),
   smooth on `(δ, ∞)`, continuous on `[δ, ∞)` with slope tending to `+∞` at `δ`, and strictly
   increasing on `[δ, ∞)` (`SymplecticGeometry.strictMonoOn_surroundFamily`); its leaf `-8 δ` is
@@ -123,8 +129,10 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   every small enough `δ > 0`, the glued family with `L` large, `F` and `ℓ₀ = C δ` from
   `SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`, and `ℓₜ = 1`. Its leaves are
   standard from `γ` on once `t₁ + 2 δ ≤ 6 γ`, lie below the top leaf once `2 t₁ + 18 ℓ₀ ≤ 1`,
-  and the leaves near the bottom one are standard from `(2 + L) δ` on; both bounds on `t₁` hold
-  for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ` (`SymplecticGeometry.bridgeHeight_le`).
+  the leaves near the bottom one are standard from `(2 + L) δ` on, and the family is jointly
+  smooth on a neighbourhood of `[-8 δ, ℓ₃] × (δ, ∞)`, with a positive derivative in `ℓ` there,
+  for `ℓ₃ = -4 δ`; both bounds on `t₁` hold for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ`
+  (`SymplecticGeometry.bridgeHeight_le`).
 
 ## References
 
@@ -634,33 +642,47 @@ theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ <
   exact cutoffLeaf_lt_cutoffLeaf (by linarith) (by nlinarith [hℓ₂.2])
     (by nlinarith [hℓ₁.1, hℓ₁.2]) (by gcongr)
 
+/-- Where the radicand `64 (r² - δ²) + (64 δ² - ℓ²) h` is positive, `h` being the cutoff
+`smoothTransition ((r - 2 δ) / (L δ))`, the leaf `sqrtSubLeaf L δ ℓ r` has derivative
+`(1 - h) / 64 - ℓ h / √(64 (r² - δ²) + (64 δ² - ℓ²) h)` in `ℓ`. -/
+theorem hasDerivAt_sqrtSubLeaf_param (L δ : ℝ) {ℓ r : ℝ}
+    (hrad : 0 < 64 * (r ^ 2 - δ ^ 2) +
+      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ))) :
+    HasDerivAt (fun ℓ' ↦ sqrtSubLeaf L δ ℓ' r)
+      ((1 - smoothTransition ((r - 2 * δ) / (L * δ))) / 64 -
+        ℓ * smoothTransition ((r - 2 * δ) / (L * δ)) /
+          √(64 * (r ^ 2 - δ ^ 2) +
+            (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)))) ℓ := by
+  set h := smoothTransition ((r - 2 * δ) / (L * δ))
+  simp only [sqrtSubLeaf_def]
+  have hF : HasDerivAt (fun ℓ' ↦ 64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ' ^ 2) * h)
+      (-(2 * ℓ) * h) ℓ := by
+    simpa using (((hasDerivAt_const ℓ (64 * δ ^ 2)).sub (hasDerivAt_pow 2 ℓ)).mul_const
+      h).const_add (64 * (r ^ 2 - δ ^ 2))
+  refine (((((hasDerivAt_id ℓ).add_const (8 * δ)).div_const 64).mul_const (1 - h)).add
+    (hF.sqrt hrad.ne')).congr_deriv ?_
+  field_simp
+  ring
+
 /-- At `r > δ`, for `0 ≤ δ`, the leaf `sqrtSubLeaf L δ ℓ r` has a positive derivative in `ℓ` at
-every `ℓ ∈ (-8 r, 0)`. With `h` the cutoff at `r` and `F` the radicand, that derivative is
-`(1 - h) / 64 - ℓ h / √F`: the first term is positive where `h < 1`, the second where `0 < h`. -/
+every `ℓ ∈ (-8 r, 0)`. -/
 theorem deriv_sqrtSubLeaf_param_pos (L : ℝ) (hδ : 0 ≤ δ) {ℓ r : ℝ} (hr : δ < r)
     (hℓ₁ : -8 * r < ℓ) (hℓ₂ : ℓ < 0) : 0 < deriv (fun ℓ' ↦ sqrtSubLeaf L δ ℓ' r) ℓ := by
-  set h := smoothTransition ((r - 2 * δ) / (L * δ))
-  have hrad : 0 < 64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h :=
+  have hrad : 0 < 64 * (r ^ 2 - δ ^ 2) +
+      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) :=
     sqrtSubLeaf_radicand_pos L (by nlinarith) (by nlinarith)
-  have hd : HasDerivAt (fun ℓ' ↦ sqrtSubLeaf L δ ℓ' r)
-      (1 / 64 * (1 - h) + -(2 * ℓ) * h / (2 * √(64 * (r ^ 2 - δ ^ 2) +
-        (64 * δ ^ 2 - ℓ ^ 2) * h))) ℓ := by
-    simp only [sqrtSubLeaf_def]
-    refine ((((hasDerivAt_id ℓ).add_const (8 * δ)).div_const 64).mul_const (1 - h)).add ?_
-    have := (((hasDerivAt_const ℓ (64 * δ ^ 2)).sub (hasDerivAt_pow 2 ℓ)).mul_const h).const_add
-      (64 * (r ^ 2 - δ ^ 2))
-    convert this.sqrt hrad.ne' using 2
-    simp
-  rw [hd.deriv]
+  rw [(hasDerivAt_sqrtSubLeaf_param L δ hrad).deriv]
+  set h := smoothTransition ((r - 2 * δ) / (L * δ))
   have h0 : 0 ≤ h := smoothTransition.nonneg _
   have h1 : h ≤ 1 := smoothTransition.le_one _
-  have h2 : 0 ≤ -(2 * ℓ) * h / (2 * √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h)) :=
-    div_nonneg (mul_nonneg (by linarith) h0) (by positivity)
+  have hs := sqrt_pos.2 hrad
+  have h2 : ℓ * h / √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h) ≤ 0 :=
+    div_nonpos_of_nonpos_of_nonneg (mul_nonpos_of_nonpos_of_nonneg hℓ₂.le h0) hs.le
   rcases h1.lt_or_eq with h1 | h1
-  · have : 0 < 1 / 64 * (1 - h) := by nlinarith
+  · have : 0 < (1 - h) / 64 := by linarith
     linarith
-  · have : 0 < -(2 * ℓ) * h / (2 * √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h)) :=
-      div_pos (by rw [h1]; linarith) (by linarith [Real.sqrt_pos.2 hrad])
+  · have : ℓ * h / √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h) < 0 :=
+      div_neg_of_neg_of_pos (by rw [h1]; linarith) hs
     linarith
 
 /-- **The leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`**
