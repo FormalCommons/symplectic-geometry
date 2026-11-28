@@ -86,16 +86,13 @@ theorem pairedWedge_apply_eq_zero_of_mem (μ : F₁ →L[ℝ] F₂ →L[ℝ] F�
     exacts [h₁, h₂, absurd rfl hi]
   rw [pairedWedge_apply]
   refine smul_eq_zero_of_right _ (Finset.sum_eq_zero fun σ _ ↦ ?_)
-  have hα' : (fun i : Fin 1 ↦ w (σ (Fin.castAdd 2 i))) = ![w (σ 0)] := by
-    ext i
-    fin_cases i
-    rfl
+  have hα' : (fun i : Fin 1 ↦ w (σ (Fin.castAdd 2 i))) = ![w (σ 0)] :=
+    (FinVec.etaExpand_eq _).symm
   by_cases h0 : σ 0 = 2
   · -- `α` receives `v`, so `ψ` receives the two vectors of `K`.
     have hne (i : Fin 3) (hi : i ≠ 0) : σ i ≠ 2 := fun h ↦ hi (σ.injective (h.trans h0.symm))
-    have hψσ : (fun j : Fin 2 ↦ w (σ (Fin.natAdd 1 j))) = ![w (σ 1), w (σ 2)] := by
-      ext j
-      fin_cases j <;> rfl
+    have hψσ : (fun j : Fin 2 ↦ w (σ (Fin.natAdd 1 j))) = ![w (σ 1), w (σ 2)] :=
+      (FinVec.etaExpand_eq _).symm
     simp [hψσ, hψ _ (hw _ (hne 1 (by decide))) _ (hw _ (hne 2 (by decide)))]
   · -- `α` receives a vector of `K`.
     simp [hα', hα _ (hw _ h0)]
