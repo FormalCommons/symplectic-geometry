@@ -452,12 +452,13 @@ The corollary. About 150 lines.
 In the order they can be done; each is one pull request of a few hundred
 lines, and waits only for what it names.
 
-1. **The curvature identity and the local formula.** The first five items
+1. **The curvature identity and the local formula.** The first items
    of `Fibration/Curvature.lean`:
    `apply_curvature_eq_mvfderiv_sub_mextDeriv` (milestone line),
    `curvatureIn`, `HasHamiltonianCurvature`,
-   `hasHamiltonianCurvature_of_isClosed`, `curvatureIn_local` and
-   `hasHamiltonianCurvature_iff_local`. Waits for *Symplectic fibrations*
+   `hasHamiltonianCurvature_of_isClosed`, `curvatureIn_local`; and
+   `hasHamiltonianCurvature_iff_local`, in
+   `Fibration/HamiltonianCurvature.lean`. Waits for *Symplectic fibrations*
    (`HorizontalDistribution.lean`, `LocalForm.lean`) and *Parallel
    transport* (`Curvature.lean`).
 2. **Holonomy around discs.** `Fibration/Holonomy.lean`. Waits for

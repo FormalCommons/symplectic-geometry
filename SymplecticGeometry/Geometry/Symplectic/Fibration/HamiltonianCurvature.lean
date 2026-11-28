@@ -58,10 +58,10 @@ open scoped Manifold ContDiff Topology
 
 namespace TauCeti.IsEhresmannConnection
 
-variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpace EB]
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [FiniteDimensional ℝ EB] {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
   [IB.Boundaryless] {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
-  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [CompleteSpace EF]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF]
   [FiniteDimensional ℝ EF] {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
   {F : Type*} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
   {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [CompleteSpace EM] {HM : Type*}
@@ -200,10 +200,10 @@ theorem hasHamiltonianCurvature_iff_local [T2Space B] {τ : SmoothTwoForm IM M} 
           (Finset.sum_congr rfl fun j _ ↦ map_smul (LinearMap.snd ℝ EB EF) _ _))
     have hcf (i j : ι) : ContMDiff IF 𝓘(ℝ) ∞ (c i j • f i j) :=
       (contDiff_const_smul (c i j)).comp_contMDiff (hf i j)
-    have hcs (i : ι) : ContMDiff IF 𝓘(ℝ) ∞ (∑ j, c i j • f i j) := by
-      simpa only [← Finset.sum_apply] using ContMDiff.sum fun j (_ : j ∈ Finset.univ) ↦ hcf i j
+    have hcs (i : ι) : ContMDiff IF 𝓘(ℝ) ∞ (∑ j, c i j • f i j) :=
+      contMDiff_finsetSum' fun j _ ↦ hcf i j
     refine ⟨∑ i, ∑ j, c i j • f i j, ?_, ?_⟩
-    · simpa only [← Finset.sum_apply] using ContMDiff.sum fun i (_ : i ∈ Finset.univ) ↦ hcs i
+    · exact contMDiff_finsetSum' fun i _ ↦ hcs i
     rw [hcurv]
     refine SmoothTwoForm.IsHamiltonianVectorField.sum (fun i _ ↦ ?_) fun i _ ↦ ?_
     · exact SmoothTwoForm.IsHamiltonianVectorField.sum (fun j _ ↦ (hX i j).const_smul (c i j))
