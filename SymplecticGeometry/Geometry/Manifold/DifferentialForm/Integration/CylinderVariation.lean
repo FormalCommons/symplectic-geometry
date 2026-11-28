@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Homotopy
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Analysis.Calculus.DifferentialForm.Basic
@@ -41,9 +41,9 @@ the pullback under the period, as in the proof of Tau Ceti's
 a family of rectangles in two parameters, to a third parameter.
 
 The derivative at `s₀` depends only on `u` near the slice at `s₀`: composing `u` in `s` with a
-smooth map of `ℝ` into a neighbourhood of `s₀` that is the identity near `s₀`, built from a
-`ContDiffBump`, gives the formula for `u` smooth only near that slice
-(`TauCeti.hasDerivAt_rectangleIntegral_slice_of_contMDiffOn`).
+smooth map of `ℝ` into a neighbourhood of `s₀` that is the identity near `s₀`
+(`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), gives the formula for `u` smooth only
+near that slice (`TauCeti.hasDerivAt_rectangleIntegral_slice_of_contMDiffOn`).
 
 ## Main results
 
@@ -219,23 +219,17 @@ theorem hasDerivAt_rectangleIntegral_slice_of_contMDiffOn [CompleteSpace F]
           mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ (s₀, 0, θ) ![(1, 0, 0), (0, 0, 1)])) s₀ := by
   obtain ⟨δ, hδ, hball⟩ := Metric.mem_nhds_iff.1 hU
   -- A smooth map `ρ` of `ℝ` into the ball of radius `δ` about `s₀`, the identity near `s₀`.
-  let f : ContDiffBump s₀ := ⟨δ / 2, δ, half_pos hδ, half_lt_self hδ⟩
-  set ρ : ℝ → ℝ := fun r ↦ s₀ + f r * (r - s₀)
-  have hρ : ContDiff ℝ 2 ρ := contDiff_const.add (f.contDiff.mul (contDiff_id.sub contDiff_const))
-  have hρU (r : ℝ) : ρ r ∈ U := by
-    refine hball ?_
-    rw [Metric.mem_ball, Real.dist_eq, add_sub_cancel_left, abs_mul, abs_of_nonneg f.nonneg]
-    by_cases hr : dist r s₀ < δ
-    · exact (mul_le_of_le_one_left (abs_nonneg _) f.le_one).trans_lt (by rwa [← Real.dist_eq])
-    · rw [f.zero_of_le_dist (not_lt.1 hr), zero_mul]
-      exact hδ
-  have hρs : ρ =ᶠ[𝓝 s₀] id := by
-    filter_upwards [Metric.closedBall_mem_nhds s₀ (half_pos hδ)] with r hr
-    simp [ρ, f.one_of_mem_closedBall hr]
+  obtain ⟨ρ, hρ, hρid, hρU, -⟩ := SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo
+    (a := s₀ - δ / 2) (b := s₀ + δ / 2) (by linarith) (half_pos hδ)
+  replace hρU (r : ℝ) : ρ r ∈ U := hball (by
+    rw [Real.ball_eq_Ioo]
+    convert hρU r using 2 <;> ring)
+  have hρs : ρ =ᶠ[𝓝 s₀] id :=
+    Filter.eventuallyEq_of_mem (Icc_mem_nhds (by linarith) (by linarith)) hρid
   -- `u` reparametrized by `ρ` in `s` is smooth everywhere, and agrees with `u` near `s₀`.
   set w : ℝ × ℝ × ℝ → M := fun p ↦ u (ρ p.1, p.2)
   have hw : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) I 2 w :=
-    hu.comp_contMDiff ((hρ.comp contDiff_fst).prodMk contDiff_snd).contMDiff
+    hu.comp_contMDiff (((hρ.comp contDiff_fst).prodMk contDiff_snd).contMDiff.of_le (by simp))
       fun p ↦ ⟨hρU p.1, mem_univ _⟩
   have hwu (t θ : ℝ) : w =ᶠ[𝓝 (s₀, t, θ)] u := by
     filter_upwards [hρs.comp_tendsto (continuous_fst.tendsto (s₀, t, θ))] with p hp
