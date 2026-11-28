@@ -596,22 +596,24 @@ following; its design file, from #466, gives their names.
 3. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
-Let `τ := Prod.snd^* ω_0 + mextDeriv B` on `ℝ × M`. It is closed, and its
-slices are `ω_0 + d B_s`, which are `ω_s` for `s ∈ [0, 1]`. Nondegeneracy
-is open and `M` is compact, so the parameters `s` at which `τ_s` is
-nondegenerate everywhere form an open set containing $[0,1]$
-(`isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk` of
-`Manifold/Family.lean`, through the closed projection `ℝ × M → ℝ`). Let `P`
-be that open set and `σ'` the restriction of `τ` to `P × M`: every slice of
-`σ'` is symplectic. The time derivative of a closed form on
-`ℝ × M` is exact, `L_{∂_t} τ = d (ι_{∂_t} τ)` by Cartan's formula
-(`SmoothForm.mextDerivₗ_timeInterior`, in
-`DifferentialForm/Flow/Family.lean`), so the restriction `α` of `ι_{∂_t} τ`
-to `P × M` satisfies the hypothesis of
-`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_uIcc_subset` on
-$[0,1] ⊆ P$, since pullbacks commute with `d` and the restriction keeps the
-time derivative. That theorem gives
-`ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `Diffeotopy/Real.lean` restricts to `Ψ`.
+The milestone is the case `K = univ` of
+`exists_diffeotopy_mpullback_eq_of_isSmoothFamily` in the same file, which
+takes a family `τ_t` of symplectic forms over $[0,1]$ on a boundaryless
+manifold and a smooth family of primitives `β_t` of `τ_t - τ_0` vanishing
+outside a compact set `K`, and gives a diffeotopy fixed outside `K`. Item 1
+supplies `β`. In that theorem, item 2 extends `β` to `B` on `ℝ × M`, and
+`ρ := Prod.snd^* τ_0 + mextDeriv B` is closed, with slices `τ_s` for
+`s ∈ [0, 1]` and `τ_0` outside `K`. Nondegeneracy is open
+(`isOpen_setOfPred_isInvertible_flat_mpullback_prodMk` of
+`Manifold/Family.lean`) and `K` is compact, so the slices of `ρ` are
+symplectic for times in some $(-\delta,1+\delta)$; pulling `ρ` back along
+`h × id`, for a smooth `h` that is the identity on $[0,1]$ with values in
+that interval, makes every slice symplectic. By Cartan's formula
+(`SmoothForm.mextDerivₗ_timeInterior`, in `DifferentialForm/Flow/Family.lean`)
+the contraction with `∂_t` of this closed form is a primitive of its time
+derivative, and it vanishes outside `K`, so
+`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact` applies.
+It gives `ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which item 3 restricts to `Ψ`.
 
 ## What the part uses
 
