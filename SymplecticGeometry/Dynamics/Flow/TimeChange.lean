@@ -9,6 +9,7 @@ public import Mathlib.Dynamics.Flow
 public import Mathlib.Topology.MetricSpace.Bounded
 import Mathlib.Topology.Instances.Real.Lemmas
 import Mathlib.Topology.Order.IntermediateValue
+import TauCeti.Dynamics.Flow.Basic
 
 /-!
 # Time changes of a flow that vary from point to point
@@ -73,7 +74,7 @@ theorem bijective_apply_self (hinj : ∀ x, Injective (fun s ↦ s + τ (ϕ s x)
   · -- `b` lies on the orbit of `a`, at time `s = τ a - τ b`.
     have hb : b = ϕ (τ a - τ b) a := by
       rw [sub_eq_neg_add, Flow.map_add, ← show ϕ (τ b) b = ϕ (τ a) a from hab.symm,
-        ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
+        Flow.map_neg_apply_map]
     have hs : τ a - τ b = 0 := by
       refine hinj a ?_
       simp only [← hb, Flow.map_zero_apply]
