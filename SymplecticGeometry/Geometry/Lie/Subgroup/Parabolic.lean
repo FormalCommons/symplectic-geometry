@@ -240,8 +240,12 @@ theorem tangentAd_expI_smul_of_lie_eq_smul {ξ : GroupLieAlgebra I G} {x : Group
   have h := C.tangentAd_expI_smul ξ t x
   rw [ContinuousLinearMap.exp_apply_of_apply_eq_smul _ (μ := t * μ) ?_,
     ← Real.exp_eq_exp_ℝ] at h
-  · exact h
+  · -- `h` is the goal read in the model space `EC`, which `GroupLieAlgebra IC Gc` is by
+    -- definition.
+    exact h
   · rw [smul_apply, mul_smul]
+    -- The operator is `ad` conjugated by the identity equivalence of `GroupLieAlgebra IC Gc`
+    -- with `EC`, so it sends `x` to the bracket by definition.
     exact congrArg (t • ·) hx
 
 /-- An eigenvector of `ad (cplx (lieMap ξ))` with eigenvalue `μ ≤ 0` lies in the parabolic
