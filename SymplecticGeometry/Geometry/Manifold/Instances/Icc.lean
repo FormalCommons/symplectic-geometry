@@ -411,12 +411,11 @@ namespace unitInterval
 open SymplecticGeometry
 
 /-- A smooth path in the square `[0, 1] × [0, 1]` from `(0, 0)` to `(1, 0)` that runs along the
-three other sides: each of its points lies on `{0} × [0, 1]`, on `{1} × [0, 1]` or on
-`[0, 1] × {1}`. -/
+three other sides: each of its points lies on `{0, 1} × [0, 1]` or on `[0, 1] × {1}`. -/
 theorem exists_contMDiff_path_sq_boundary :
     ∃ γ : unitInterval → unitInterval × unitInterval,
       ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) ∞ γ ∧ γ 0 = (0, 0) ∧ γ 1 = (1, 0) ∧
-      ∀ t, (γ t).1 = 0 ∨ (γ t).1 = 1 ∨ (γ t).2 = 1 := by
+      ∀ t, (γ t).1 ∈ ({0, 1} : Set unitInterval) ∨ (γ t).2 = 1 := by
   -- Up the side `{0} × [0, 1]`, along the top, and down the side `{1} × [0, 1]`.
   let a : unitInterval → unitInterval × unitInterval := fun u ↦ (0, u)
   let b : unitInterval → unitInterval × unitInterval := fun u ↦ (u, 1)

@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormSpaces
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.Basic
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 
@@ -22,7 +23,9 @@ about the class `[α]`:
   two-forms are also the ends of a smooth path that stays among symplectic forms of that class
   (`TauCeti.SmoothTwoForm.IsSymplectic.exists_isSmoothFamily_isSymplectic_of_homotopy`), and the
   same holds for paths that are only continuous for the frame topology of a covering frame
-  system (`SymplecticGeometry.exists_continuousMap_isSymplectic_of_homotopy`).
+  system: two forms of `SymplecticGeometry.symplecticFormsInClass α` joined in
+  `SymplecticGeometry.nondegenerateForms I M` are joined inside the first space
+  (`SymplecticGeometry.joinedIn_symplecticFormsInClass_of_joined`).
 
 A class `a` of degree two is given by a closed representative `α`: every class is
 `TauCeti.deRhamCohomology.mk` of a closed form (`TauCeti.deRhamCohomology.mk_surjective`), and
@@ -41,8 +44,8 @@ slice at the parameter `0` is the path. For the second, the given path `τ` is t
 sides, concatenated by `SymplecticGeometry.collaredConcat` so that it stays smooth
 (`unitInterval.exists_contMDiff_path_sq_boundary`), composed with `H`, joins `τ 0` to `τ 1`.
 The continuous version runs the same argument with the continuous form of the relative
-h-principle, the segment from `τ 0` to `τ 1` being continuous because addition and scalar
-multiplication are continuous for the frame topology.
+h-principle for a path with closed ends
+(`SymplecticGeometry.exists_continuousMap_homotopy_closed_of_ends`).
 
 ## References
 
@@ -95,7 +98,7 @@ class of degree two is that of a closed form (`TauCeti.deRhamCohomology.mk_surje
 `TauCeti.deRhamCohomology.mk_eq_zero_iff`), this holds for every class.
 
 The path `τ` is smooth as a family over `[0, 1]`; for paths that are only continuous in the
-frame topology, see `SymplecticGeometry.exists_continuousMap_isSymplectic_of_homotopy`. -/
+frame topology, see `SymplecticGeometry.joinedIn_symplecticFormsInClass_of_joined`. -/
 theorem IsSymplectic.exists_isSmoothFamily_isSymplectic_of_homotopy
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) {α : SmoothTwoForm I M}
     {ω₀ ω₁ : SmoothTwoForm I M}
@@ -114,11 +117,10 @@ theorem IsSymplectic.exists_isSmoothFamily_isSymplectic_of_homotopy
   refine ⟨fun t ↦ H (γ t), hH.comp _ hγ, by simp only [hγ₀, hH₀], by simp only [hγ₁, hH₀],
     fun t ↦ ?_⟩
   have hclosed : mextDerivₗ I 2 (H (γ t)) = 0 ∧ H (γ t) - α ∈ exactForms I M 2 := by
-    obtain h | h | h := hγside t
-    · exact hHP₀ (γ t).1 (by simp [h]) (γ t).2
-    · exact hHP₀ (γ t).1 (by simp [h]) (γ t).2
+    obtain h | h := hγside t
+    · exact hHP₀ _ h _
     · rw [← Prod.mk.eta (p := γ t), h]
-      exact hH₁ (γ t).1
+      exact hH₁ _
   exact ⟨⟨(SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).2 hclosed.1,
     hHnd _ _⟩, hclosed.2⟩
 
@@ -135,59 +137,47 @@ variable {ι : Type*}
   (W : ι → TopologicalSpace.Opens M) (hW : ∀ j, (W j : Set M) ⊆ (fr j).baseSet)
 
 /-- **Paths in the h-principle for symplectic forms on open manifolds, continuous version.** Here
-`M` is a manifold without boundary none of whose connected components is compact, the smooth
-two-forms on its tangent bundle carry the frame topology of a covering frame system, and `α` is
-a two-form on `M`. If the ends of a continuous path `τ` of nondegenerate two-forms are
-symplectic forms `ω` with `ω - α` exact, that is, in the de Rham class of `α`, then they are
-joined by a continuous path `σ` of nondegenerate two-forms that are all symplectic in the class
-of `α`. -/
-theorem exists_continuousMap_isSymplectic_of_homotopy
+`M` is a manifold without boundary none of whose connected components is compact, the space
+`nondegenerateForms I M` carries the frame topology of a covering frame system, and `α` is a
+two-form on `M`. Two forms `ω₀` and `ω₁` of `symplecticFormsInClass α` that are joined by a path
+in `nondegenerateForms I M` are joined by a path in `nondegenerateForms I M` that stays in
+`symplecticFormsInClass α`. -/
+theorem joinedIn_symplecticFormsInClass_of_joined
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) (hcover : ∀ x, ∃ j, x ∈ W j)
     {α : SmoothTwoForm I M} :
     letI := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
-    ∀ τ : C(unitInterval,
-        {σ : Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) // σ.IsNondegenerate}),
-      (Bundle.ContMDiffTwoForm.tangentEquiv (τ 0).val).IsSymplectic →
-      (Bundle.ContMDiffTwoForm.tangentEquiv (τ 1).val).IsSymplectic →
-      Bundle.ContMDiffTwoForm.tangentEquiv (τ 0).val - α ∈ exactForms I M 2 →
-      Bundle.ContMDiffTwoForm.tangentEquiv (τ 1).val - α ∈ exactForms I M 2 →
-      ∃ σ : C(unitInterval,
-          {σ : Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) // σ.IsNondegenerate}),
-        σ 0 = τ 0 ∧ σ 1 = τ 1 ∧ ∀ t, (Bundle.ContMDiffTwoForm.tangentEquiv (σ t).val).IsSymplectic ∧
-          Bundle.ContMDiffTwoForm.tangentEquiv (σ t).val - α ∈ exactForms I M 2 := by
-  intro τ h₀ h₁ h₀α h₁α
+    ∀ {ω₀ ω₁ : nondegenerateForms I M}, ω₀.val ∈ symplecticFormsInClass α →
+      ω₁.val ∈ symplecticFormsInClass α → Joined ω₀ ω₁ →
+      JoinedIn (Subtype.val ⁻¹' symplecticFormsInClass α) ω₀ ω₁ := by
+  intro ω₀ ω₁ h₀ h₁ ⟨γ⟩
   let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
-  let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I)
-    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
-  let _ := ContMDiffSection.continuousSMul_frameTopology (𝕜 := ℝ) (I := I)
-    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
-  set ω₀ := Bundle.ContMDiffTwoForm.tangentEquiv (τ 0).val
-  set ω₁ := Bundle.ContMDiffTwoForm.tangentEquiv (τ 1).val
+  rw [mem_symplecticFormsInClass] at h₀ h₁
   have hc {ψ : SmoothTwoForm I M} (h : ψ.IsSymplectic) : mextDerivₗ I 2 ψ = 0 :=
     (SmoothForm.isClosed_iff_mextDerivₗ_eq_zero ψ).1 h.isClosed
-  -- The segment from `ω₀` to `ω₁` is the family of closed forms in the class over `{0, 1}`.
-  obtain ⟨H, hH₀, hHP₀, hH₁⟩ := exists_continuousMap_homotopy_closed fr W hW hM hcover
-    (Set.toFinite ({0, 1} : Set unitInterval)).isClosed τ
-    (α := fun t ↦ ω₀ + (t : ℝ) • (ω₁ - ω₀)) (α₀ := α)
-    (by
-      simp only [map_add, map_smul, map_sub, LinearEquiv.symm_apply_apply, ω₀, ω₁]
-      fun_prop)
-    (fun t ↦ by simp [hc h₀, hc h₁])
-    (fun t ↦ by
-      convert add_mem h₀α (Submodule.smul_mem _ (t : ℝ) (sub_mem h₁α h₀α)) using 1
-      module)
-    (by rintro t (rfl | rfl) <;> simp [ω₀, ω₁])
-  obtain ⟨γ, hγ, hγ₀, hγ₁, hγside⟩ := unitInterval.exists_contMDiff_path_sq_boundary
-  refine ⟨H.comp ⟨γ, hγ.continuous⟩, by simp [hγ₀, hH₀], by simp [hγ₁, hH₀], fun t ↦ ?_⟩
-  have hclosed : mextDerivₗ I 2 (Bundle.ContMDiffTwoForm.tangentEquiv (H (γ t)).val) = 0 ∧
-      Bundle.ContMDiffTwoForm.tangentEquiv (H (γ t)).val - α ∈ exactForms I M 2 := by
-    obtain h | h | h := hγside t
-    · exact hHP₀ (γ t).1 (by simp [h]) (γ t).2
-    · exact hHP₀ (γ t).1 (by simp [h]) (γ t).2
-    · rw [← Prod.mk.eta (p := γ t), h]
-      exact hH₁ (γ t).1
-  exact ⟨⟨(SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).2 hclosed.1,
-    Bundle.ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2 (H (γ t)).property⟩, hclosed.2⟩
+  -- The path `γ`, as a path in the subtype that the relative h-principle takes.
+  let τ : C(unitInterval,
+      {σ : Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) // σ.IsNondegenerate}) :=
+    ⟨fun t ↦ ⟨(γ t).val, mem_nondegenerateForms.1 (γ t).property⟩,
+      (continuous_subtypeVal.comp γ.continuous).subtype_mk _⟩
+  have hτ₀ : (τ 0).val = ω₀.val := congrArg Subtype.val γ.source
+  have hτ₁ : (τ 1).val = ω₁.val := congrArg Subtype.val γ.target
+  obtain ⟨H, hH₀, hHP₀, hH₁⟩ := exists_continuousMap_homotopy_closed_of_ends fr W hW hM hcover τ
+    (hτ₀ ▸ hc h₀.1) (hτ₁ ▸ hc h₁.1) (hτ₀ ▸ h₀.2) (hτ₁ ▸ h₁.2)
+  obtain ⟨c, hc', hc₀, hc₁, hcside⟩ := unitInterval.exists_contMDiff_path_sq_boundary
+  refine ⟨{ toFun t := ⟨(H (c t)).val, mem_nondegenerateForms.2 (H (c t)).property⟩
+            continuous_toFun := ((continuous_subtypeVal.comp H.continuous).comp
+              hc'.continuous).subtype_mk _
+            source' := Subtype.ext (by simp only [hc₀, hH₀, hτ₀])
+            target' := Subtype.ext (by simp only [hc₁, hH₀, hτ₁]) }, fun t ↦ ?_⟩
+  have hclosed : mextDerivₗ I 2 (Bundle.ContMDiffTwoForm.tangentEquiv (H (c t)).val) = 0 ∧
+      Bundle.ContMDiffTwoForm.tangentEquiv (H (c t)).val - α ∈ exactForms I M 2 := by
+    obtain h | h := hcside t
+    · exact hHP₀ _ h _
+    · rw [← Prod.mk.eta (p := c t), h]
+      exact hH₁ _
+  exact mem_symplecticFormsInClass.2 ⟨⟨(SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).2
+    hclosed.1, Bundle.ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2 (H (c t)).property⟩,
+    hclosed.2⟩
 
 end SymplecticGeometry
 
