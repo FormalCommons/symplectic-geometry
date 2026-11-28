@@ -38,8 +38,9 @@ orientation `ν` of `Q` to `o x`, the class pulled back along `m` and the normal
 (`TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_realRelDualClass`). This is the real
 image of the integral statement `singularCohomologyMap_normalSlice_relDualClass` of
 `DualClass/Slice.lean`, since the real relative dual class is the real image of the integral one
-and the real image commutes with maps of pairs. In rank two, with `Q = ℝ²` oriented by its standard basis, the generator pairs to `-1`
-with the class of a smooth `2`-simplex of `ℝ²` that is positively oriented around `0`
+and the real image commutes with maps of pairs. In rank two, with `Q = ℝ²` oriented by its
+standard basis, the generator pairs to `-1` with the class of a smooth `2`-simplex of `ℝ²` that
+is positively oriented around `0`
 (`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`), and the real image
 pairs as its cast. So the slice of the real relative dual class pairs with such a simplex to `-1`
 (`TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`).
