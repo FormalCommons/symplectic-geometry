@@ -296,7 +296,7 @@ theorem iUnion_baseSet_trivializationAt : ⋃ b, (trivializationAt F E b).baseSe
 variable (F E) in
 /-- Each point of the base lies in the base set, read as an open set, of some preferred
 trivialization of a fibre bundle. With `trivializationAt F E`, this is for instance the covering
-hypothesis of Tau Ceti's `ContMDiffSection.frameTopology`. -/
+hypothesis `hcover` of Tau Ceti's `ContMDiffSection.frameTopology_le_of_cover`. -/
 theorem exists_mem_baseSetOpens_trivializationAt (x : B) :
     ∃ b, x ∈ (trivializationAt F E b).baseSetOpens :=
   ⟨x, Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F E x)⟩
