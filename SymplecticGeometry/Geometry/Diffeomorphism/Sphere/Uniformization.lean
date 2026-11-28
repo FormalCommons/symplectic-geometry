@@ -7,10 +7,12 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
+public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Kernel
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 import TauCeti.Topology.VectorBundle.ZeroSection
 
 /-!
@@ -50,6 +52,23 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
   (`SymplecticGeometry.injective_mfderiv_div_of_mem_twistOneKernel`) and the charts are local
   diffeomorphisms, so Tau Ceti's inverse function theorem
   `TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv` applies at every point.
+* `SymplecticGeometry.bijective_uniformizingMap`: `σ(J)` is bijective. Its range is open, as
+  that of a local diffeomorphism, closed, as the image of a compact space, and nonempty, so it is
+  the whole connected sphere.
+* `SymplecticGeometry.isPseudoholomorphic_uniformizingMap`: `σ(J)` is pseudoholomorphic from `J`
+  to the complex structure `i` of the sphere, since in the two local forms above the quotient is
+  pseudoholomorphic (`SymplecticGeometry.isPseudoholomorphicAt_div_of_mem_twistOneKernel`) and
+  the charts are holomorphic.
+* `SymplecticGeometry.uniformizingDiffeomorph`: `σ(J)` as an element of `diffPlus`, built by
+  Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`, with
+  `SymplecticGeometry.coe_uniformizingDiffeomorph`, and
+  `SymplecticGeometry.pullback_uniformizingDiffeomorph`: `σ(J)^* i = J`, since a diffeomorphism
+  pseudoholomorphic from `J` to `i` pulls `i` back to `J`
+  (`TauCeti.SmoothAlmostComplexStructure.eq_localPullback_iff_isPseudoholomorphic`). It preserves
+  the orientation by `SymplecticGeometry.mem_diffPlus_iff_tames_pullback`, since the
+  Fubini–Study form tames `J`. So `uniformizingDiffeomorph` is a section of
+  `SymplecticGeometry.complexStructureMap`
+  (`SymplecticGeometry.complexStructureMap_uniformizingDiffeomorph`).
 
 ## References
 
@@ -303,6 +322,11 @@ theorem contMDiff_uniformizingMap (J : 𝒥) :
       (contMDiffAt_const_mul_div_chosenSection J _ (a := (0 : ℂ)) hx)).congr_of_eventuallyEq
       (uniformizingMap_eventuallyEq_coe J hx)
 
+/-- A constant multiple of a quotient of functions, as the quotient of a multiple. -/
+private theorem const_mul_div_eq_smul_div (c : ℂ) (u v : OnePoint ℂ → ℂ) :
+    (fun p ↦ c * (u p / v p)) = fun p ↦ (c • u) p / v p :=
+  funext fun p ↦ by rw [Pi.smul_apply, smul_eq_mul, mul_div_assoc]
+
 /-- For nonzero `u, v` in `twistOneKernel J` with `u y = 0 ≠ v y`, and `c ≠ 0`, the map
 `p ↦ c * (u p / v p)` has injective real derivative at every `x` with `v x ≠ 0`. -/
 private theorem injective_mfderiv_const_mul_div (J : 𝒥) {u v : OnePoint ℂ → ℂ}
@@ -310,9 +334,7 @@ private theorem injective_mfderiv_const_mul_div (J : 𝒥) {u v : OnePoint ℂ �
     (hc : c ≠ 0) {y : OnePoint ℂ} (huy : u y = 0) (hvy : v y ≠ 0) {x : OnePoint ℂ}
     (hx : v x ≠ 0) :
     Function.Injective (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ c * (u p / v p)) x) := by
-  have he : (fun p ↦ c * (u p / v p)) = fun p ↦ (c • u) p / v p :=
-    funext fun p ↦ by rw [Pi.smul_apply, smul_eq_mul, mul_div_assoc]
-  rw [he]
+  rw [const_mul_div_eq_smul_div]
   refine injective_mfderiv_div_of_mem_twistOneKernel J.property
     OnePoint.compatible_fubiniStudyForm.tames (Submodule.smul_mem _ c hu) hv (fun d hd ↦ ?_) hx
   have h := congrFun hd y
@@ -359,6 +381,90 @@ theorem isLocalDiffeomorph_uniformizingMap (J : 𝒥) :
           (by simp)),
       (OnePoint.hasMFDerivAt_coe _).mfderiv]
     exact injective_mfderiv_const_mul_div J hs ht hs' (div_ne_zero ht₁ hs₁) h₀ ht0 hx
+
+/-- **`σ(J)` is bijective.** It is injective, and its range is open, since `σ(J)` is a local
+diffeomorphism, closed, as the image of the compact sphere, and nonempty, so it is the whole
+sphere, which is connected. -/
+theorem bijective_uniformizingMap (J : 𝒥) : Function.Bijective (uniformizingMap J) :=
+  ⟨injective_uniformizingMap J, Set.range_eq_univ.1 <|
+    IsClopen.eq_univ ⟨(isCompact_range (contMDiff_uniformizingMap J).continuous).isClosed,
+      (isLocalDiffeomorph_uniformizingMap J).isOpen_range⟩ (Set.range_nonempty _)⟩
+
+/-- For `u, v` in `twistOneKernel J` and a constant `c`, the map `p ↦ c * (u p / v p)` is
+pseudoholomorphic from `J` to the standard structure of `ℂ` at every `x` with `v x ≠ 0`. -/
+private theorem isPseudoholomorphicAt_const_mul_div (J : 𝒥) {u v : OnePoint ℂ → ℂ}
+    (hu : u ∈ twistOneKernel J.val) (hv : v ∈ twistOneKernel J.val) (c : ℂ) {x : OnePoint ℂ}
+    (hx : v x ≠ 0) :
+    IsPseudoholomorphicAt J.val (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ)
+      (fun p ↦ c * (u p / v p)) x := by
+  rw [const_mul_div_eq_smul_div]
+  exact isPseudoholomorphicAt_div_of_mem_twistOneKernel (Submodule.smul_mem _ c hu) hv hx
+
+/-- **`σ(J)` is pseudoholomorphic** from `J` to the complex structure `i` of the Riemann sphere:
+its derivative intertwines `J` and `i`. -/
+theorem isPseudoholomorphic_uniformizingMap (J : 𝒥) :
+    IsPseudoholomorphic J.val (SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ))
+      (uniformizingMap J) := by
+  have hs := (chosenSection_spec J (0 : ℂ)).1
+  have ht := (chosenSection_spec J ∞).1
+  refine isPseudoholomorphic_iff.2 fun x ↦ ?_
+  by_cases hx : chosenSection J ∞ x = 0
+  · -- Near `x`, `σ(J)` is the inverse of the inverted chart after a quotient of sections.
+    have hsx : chosenSection J (0 : ℂ) x ≠ 0 := fun h ↦
+      chosenSection_vec_ne_zero J x (by simp [h, hx])
+    refine IsPseudoholomorphicAt.congr_of_eventuallyEq ?_
+      (uniformizingMap_eventuallyEq_invChart_symm J hsx)
+    exact (isPseudoholomorphicAt_ofComplexManifold_iff.2
+      ((OnePoint.contMDiff_invChart_symm (𝕜 := ℂ)).mdifferentiableAt (by simp))).comp
+      (isPseudoholomorphicAt_const_mul_div J ht hs _ hsx)
+  · -- Near `x`, `σ(J)` is the inclusion of `ℂ` after a quotient of sections.
+    refine IsPseudoholomorphicAt.congr_of_eventuallyEq ?_ (uniformizingMap_eventuallyEq_coe J hx)
+    exact (isPseudoholomorphicAt_ofComplexManifold_iff.2
+      ((OnePoint.contMDiff_coe (𝕜 := ℂ)).mdifferentiableAt (by simp))).comp
+      (isPseudoholomorphicAt_const_mul_div J hs ht _ hx)
+
+/-- `σ(J)` as a diffeomorphism of the sphere, before its membership in `diffPlus` is known. -/
+private noncomputable def uniformizingDiffeomorphAux (J : 𝒥) :
+    TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ((⊤ : ℕ∞) : ℕ∞ω) :=
+  (isLocalDiffeomorph_uniformizingMap J).diffeomorphOfBijective (bijective_uniformizingMap J)
+
+private theorem pullback_uniformizingDiffeomorphAux (J : 𝒥) :
+    (SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)).pullback
+      (uniformizingDiffeomorphAux J) = J.val := by
+  rw [← SmoothAlmostComplexStructure.localPullback_eq_pullback, eq_comm,
+    SmoothAlmostComplexStructure.eq_localPullback_iff_isPseudoholomorphic,
+    uniformizingDiffeomorphAux, IsLocalDiffeomorph.coe_diffeomorphOfBijective]
+  exact isPseudoholomorphic_uniformizingMap J
+
+/-- **The uniformizing diffeomorphism** `σ(J)` of a structure `J` tamed by the Fubini–Study form:
+the bijective local diffeomorphism `uniformizingMap J`, as an element of `diffPlus`. It lies in
+`diffPlus` because it pulls `i` back to `J` (`pullback_uniformizingDiffeomorph`), which the
+Fubini–Study form tames. -/
+noncomputable def uniformizingDiffeomorph (J : 𝒥) : diffPlus :=
+  ⟨uniformizingDiffeomorphAux J, mem_diffPlus_iff_tames_pullback.2 <| by
+    rw [pullback_uniformizingDiffeomorphAux]
+    exact J.property⟩
+
+/-- The underlying map of `uniformizingDiffeomorph J` is `uniformizingMap J`. -/
+@[simp]
+theorem coe_uniformizingDiffeomorph (J : 𝒥) :
+    ⇑(uniformizingDiffeomorph J : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ((⊤ : ℕ∞) : ℕ∞ω)) =
+      uniformizingMap J := by
+  rw [uniformizingDiffeomorph, Subgroup.coe_mk, uniformizingDiffeomorphAux,
+    IsLocalDiffeomorph.coe_diffeomorphOfBijective]
+
+/-- **`σ(J)` pulls `i` back to `J`**: `σ(J)^* i = J`. -/
+theorem pullback_uniformizingDiffeomorph (J : 𝒥) :
+    (SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)).pullback
+      (uniformizingDiffeomorph J) = J.val := by
+  rw [uniformizingDiffeomorph, Subgroup.coe_mk, pullback_uniformizingDiffeomorphAux]
+
+/-- `uniformizingDiffeomorph` is a section of `complexStructureMap`, the map `φ ↦ φ^* i` from
+`diffPlus` to the structures tamed by the Fubini–Study form. -/
+@[simp]
+theorem complexStructureMap_uniformizingDiffeomorph (J : 𝒥) :
+    complexStructureMap (uniformizingDiffeomorph J) = J :=
+  Subtype.ext ((coe_complexStructureMap _).trans (pullback_uniformizingDiffeomorph J))
 
 end SymplecticGeometry
 
