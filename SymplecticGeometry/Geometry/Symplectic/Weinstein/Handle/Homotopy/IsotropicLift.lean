@@ -6,7 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Model
+public import TauCeti.Analysis.ODE.Linear
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+import SymplecticGeometry.Analysis.ODE.Linear
+import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import SymplecticGeometry.Geometry.Symplectic.Complex.ImInner
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Analysis.InnerProductSpace.Adjoint
@@ -22,7 +25,8 @@ symplectic form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`, a vector field `Y
 where the transpose is the adjoint for the Euclidean inner product of `ℝᵏ`. The core
 `range (modelDisc k m)` is the copy `{(x, 0)}` of `ℝᵏ`, and the lift extends `Y` from the core to
 a Liouville field of the model. This file proves the first properties of the lift, its zeros near
-the core and its derivative on the core; the gradient-like property comes later.
+the core, its derivative on the core, and the kernel and stable subspace of that derivative; the
+gradient-like property comes later.
 
 ## Main results
 
@@ -59,6 +63,20 @@ the core and its derivative on the core; the gradient-like property comes later.
   derivative of the lift at `ι₀ x` is `DY(x) ⊕ (I - DY(x)ᵀ) ⊕ ½ I` in the real coordinates
   `(x, y, w)`, since the term in `D²Y` vanishes at `y = 0`; pointwise, this is
   `SymplecticGeometry.fderiv_isotropicLiftField_modelDisc_apply`.
+* `SymplecticGeometry.ker_fderiv_isotropicLiftField_modelDisc` and
+  `SymplecticGeometry.stableSubspace_fderiv_isotropicLiftField_modelDisc`: when `I - DY(x)ᵀ` is
+  injective, resp. has no nonzero stable vector, the kernel, resp. the stable subspace, of the
+  derivative of the lift at `ι₀ x` is the image under `ι₀` of that of `DY(x)`. The block
+  `½ I` contributes nothing, and the stable subspace of the block diagonal operator is computed by
+  `ContinuousLinearMap.stableSubspace_prodMap`, carried through the real coordinates by
+  `ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv`.
+* `SymplecticGeometry.finrank_ker_fderiv_isotropicLiftField_modelDisc` and
+  `SymplecticGeometry.finrank_stableSubspace_fderiv_isotropicLiftField_modelDisc`: under the
+  book's hypothesis on a form `P`, the lift has at `ι₀ x` the nullity and the stable dimension of
+  `Y` at `x`. A positive definite symmetric `P` with `P(y, y - DY(x)ᵀ y) > 0` for `y ≠ 0` is a
+  Lyapunov form of `I - DY(x)ᵀ`, so that operator has no nonzero stable vector
+  (`ContinuousLinearMap.stableSubspace_eq_bot_of_apply_pos`); the kernel needs only the positivity
+  of `P(y, y - DY(x)ᵀ y)`.
 
 In the book the lift is `p ∂_p + z ∂_z / 2 + X_H` on `T^*ℝᵏ × ℂᵐ`, with `H = ⟨p, Y(q)⟩`. Tau
 Ceti's `TauCeti.cotangentLiouvilleField` and Hamiltonian fields live on cotangent models whose
@@ -76,7 +94,7 @@ cost more than the direct computation above, which needs only the derivative of 
 
 public section
 
-open Complex Set
+open Complex Module Set
 open scoped Manifold ContDiff InnerProductSpace
 
 namespace SymplecticGeometry
@@ -349,6 +367,93 @@ theorem fderiv_isotropicLiftField_modelDisc
   refine ContinuousLinearMap.ext fun u ↦ ?_
   rw [fderiv_isotropicLiftField_modelDisc_apply hY]
   simp [Prod.map]
+
+
+/-! ### Kernel and stable subspace of the derivative on the core -/
+
+/-- **The kernel of the derivative of the Liouville lift on the core.** At `ι₀ x`, for `Y` of class
+`C²` at `x` and `I - DY(x)ᵀ` injective, the kernel of the derivative of the lift is the image under
+`ι₀` of the kernel of `DY(x)`. -/
+theorem ker_fderiv_isotropicLiftField_modelDisc
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} {x : EuclideanSpace ℝ (Fin k)}
+    (hY : ContDiffAt ℝ 2 Y x)
+    (hinj : Function.Injective
+      (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin k)) - (fderiv ℝ Y x).adjoint)) :
+    (fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x)).ker =
+      (fderiv ℝ Y x).ker.map (modelDisc k m).toLinearMap := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  have hy {y : EuclideanSpace ℝ (Fin k)} : y - (fderiv ℝ Y x).adjoint y = 0 ↔ y = 0 := by
+    simpa using hinj.eq_iff (b := 0)
+  ext u
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
+    fderiv_isotropicLiftField_modelDisc_apply hY, Submodule.mem_map]
+  simp only [Prod.mk_eq_zero, EmbeddingLike.map_eq_zero_iff, hy, smul_eq_zero, inv_eq_zero,
+    OfNat.ofNat_ne_zero, false_or, LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+  constructor
+  · rintro ⟨⟨h1, h2⟩, h3⟩
+    refine ⟨_, h1, Prod.ext (e.injective ?_) (by simp [h3])⟩
+    rw [complexEuclideanEquivRealProd_modelDisc_fst, ← h2]
+  · rintro ⟨a, ha, rfl⟩
+    simp [ha]
+
+/-- **The stable subspace of the derivative of the Liouville lift on the core.** At `ι₀ x`, for `Y`
+of class `C²` at `x` and `I - DY(x)ᵀ` without nonzero stable vector, the stable subspace of the
+derivative of the lift is the image under `ι₀` of the stable subspace of `DY(x)`: the derivative
+is `DY(x) ⊕ (I - DY(x)ᵀ) ⊕ ½ I` in real coordinates, and `½ I` has no nonzero stable vector. -/
+theorem stableSubspace_fderiv_isotropicLiftField_modelDisc
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} {x : EuclideanSpace ℝ (Fin k)}
+    (hY : ContDiffAt ℝ 2 Y x)
+    (hs : (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin k)) -
+      (fderiv ℝ Y x).adjoint).stableSubspace = ⊥) :
+    (fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x)).stableSubspace =
+      (fderiv ℝ Y x).stableSubspace.map (modelDisc k m).toLinearMap := by
+  set e := (complexEuclideanEquivRealProd (Fin k)).prodCongr
+      (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))
+  have h : fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x) = e.symm.conjContinuousAlgEquiv
+      (((fderiv ℝ Y x).prodMap (ContinuousLinearMap.id ℝ _ - (fderiv ℝ Y x).adjoint)).prodMap
+          ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _)) := by
+    rw [fderiv_isotropicLiftField_modelDisc hY, ContinuousLinearEquiv.conjContinuousAlgEquiv_apply,
+      ContinuousLinearEquiv.symm_symm]
+  rw [h, ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv,
+    ContinuousLinearMap.stableSubspace_prodMap, ContinuousLinearMap.stableSubspace_prodMap, hs,
+    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num), ← Submodule.map_inl,
+    ← Submodule.map_inl, ← Submodule.map_comp, ← Submodule.map_comp]
+  congr 1
+  refine LinearMap.ext fun y ↦
+    Prod.ext ((complexEuclideanEquivRealProd (Fin k)).injective ?_) ?_ <;> simp [e]
+
+/-- **The Liouville lift has the nullity of `Y` at a core point.** Let `Y` be `C²` at `x`, and
+`P` a bilinear form on `ℝᵏ` with `0 < P(y, y - DY(x)ᵀ y)` for `y ≠ 0`. Then the kernel of the
+derivative of the lift at `ι₀ x` has the dimension of the kernel of `DY(x)`. -/
+theorem finrank_ker_fderiv_isotropicLiftField_modelDisc
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} {x : EuclideanSpace ℝ (Fin k)}
+    (hY : ContDiffAt ℝ 2 Y x)
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hP : ∀ y, y ≠ 0 → 0 < P y (y - (fderiv ℝ Y x).adjoint y)) :
+    finrank ℝ (fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x)).ker =
+      finrank ℝ (fderiv ℝ Y x).ker := by
+  have hinj : Function.Injective
+      (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin k)) - (fderiv ℝ Y x).adjoint) :=
+    (injective_iff_map_eq_zero _).2 fun y hy ↦ by_contra fun hy0 ↦
+      (hP y hy0).ne' (by simpa using congrArg (P y) hy)
+  rw [ker_fderiv_isotropicLiftField_modelDisc hY hinj]
+  exact (Submodule.equivMapOfInjective _ modelDisc_injective _).finrank_eq.symm
+
+/-- **The Liouville lift has the stable dimension of `Y` at a core point.** Let `Y` be `C²` at
+`x`, and `P` a positive definite symmetric bilinear form on `ℝᵏ` with
+`0 < P(y, y - DY(x)ᵀ y)` for `y ≠ 0`. Then the stable subspace of the derivative of the lift at
+`ι₀ x` has the dimension of the stable subspace of `DY(x)`. -/
+theorem finrank_stableSubspace_fderiv_isotropicLiftField_modelDisc
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} {x : EuclideanSpace ℝ (Fin k)}
+    (hY : ContDiffAt ℝ 2 Y x)
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hPsymm : ∀ u v, P u v = P v u) (hPpos : ∀ y, y ≠ 0 → 0 < P y y)
+    (hP : ∀ y, y ≠ 0 → 0 < P y (y - (fderiv ℝ Y x).adjoint y)) :
+    finrank ℝ (fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x)).stableSubspace =
+      finrank ℝ (fderiv ℝ Y x).stableSubspace := by
+  rw [stableSubspace_fderiv_isotropicLiftField_modelDisc hY
+    (ContinuousLinearMap.stableSubspace_eq_bot_of_apply_pos hPsymm hPpos (by simpa using hP))]
+  exact (Submodule.equivMapOfInjective _ modelDisc_injective _).finrank_eq.symm
 
 end SymplecticGeometry
 
