@@ -94,6 +94,9 @@ and their curvature is `-curvature`.
   exactly when the bracket of the two lifts is horizontal there.
 * `TauCeti.IsEhresmannConnection.curvature_apply_eq_of_eventuallyEq`: the curvature is local in
   the connection and in the fields.
+* `TauCeti.IsEhresmannConnection.contMDiffAt_curvature` and
+  `TauCeti.IsEhresmannConnection.contMDiff_curvature`: for a connection of class `C^k` on a
+  `C^(k+1)` map, the curvature of `C^k` fields is `C^m` when `m + 1 ≤ k`.
 * `TauCeti.IsEhresmannConnection.mfderiv_curvature_of_related`: a map covering another and
   carrying one connection into the other carries the curvature on related fields to the
   curvature.
@@ -214,6 +217,57 @@ theorem curvature_apply_eq_of_eventuallyEq {x : P} (hDD' : ∀ᶠ y in 𝓝 x, D
       (h₁.mlieBracket_vectorField_eq h₂)]
 
 end Locality
+
+section Smoothness
+
+/-! ### Smoothness -/
+
+variable [IsRCLikeNormedField 𝕜] [CompleteSpace E] [CompleteSpace F] [IsManifold J 1 B]
+
+/-- **The curvature of smooth fields is smooth.** For an Ehresmann connection `D` of class at
+least `C^k` on `f`, with `f` of class `C^(k+1)` at `x` and `v₁ v₂` of class `C^k` at `f x`, the
+curvature of `v₁ v₂` is of class `C^m` at `x` whenever `m + 1 ≤ k`. -/
+theorem contMDiffAt_curvature {k m : ℕ∞} [IsManifold I (k + 1) P] [IsManifold J (k + 1) B]
+    (hkn : (k : ℕ∞ω) ≤ n) (hmk : m + 1 ≤ k) {x : P} (hf : ContMDiffAt I J (k + 1) f x)
+    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent k (T% v₁) (f x))
+    (hv₂ : ContMDiffAt J J.tangent k (T% v₂) (f x)) :
+    ContMDiffAt I I.tangent m (T% (hD.curvature v₁ v₂)) x := by
+  have hmk' : minSmoothness 𝕜 ((m : ℕ∞ω) + 1) ≤ k := by
+    rw [minSmoothness_of_isRCLikeNormedField]
+    exact_mod_cast hmk
+  have h2 : minSmoothness 𝕜 2 ≤ (k : ℕ∞ω) + 1 := by
+    have h1 : (1 : ℕ∞ω) ≤ k := by exact_mod_cast le_add_self.trans hmk
+    rw [minSmoothness_of_isRCLikeNormedField, ← one_add_one_eq_two]
+    gcongr
+  have hmn : (m : ℕ∞ω) ≤ n := by
+    grw [← hkn]
+    exact_mod_cast le_self_add.trans hmk
+  have : IsManifold I (minSmoothness 𝕜 2) P := IsManifold.of_le h2
+  have : IsManifold J (minSmoothness 𝕜 2) B := IsManifold.of_le h2
+  -- See the lifts as those of `D` seen as a `C^k` connection, and the lift of the bracket as
+  -- that of `D` seen as a `C^m` connection.
+  rw [curvature_def, ← hD.horizontalLiftField_of_le v₁ hkn,
+    ← hD.horizontalLiftField_of_le v₂ hkn,
+    ← hD.horizontalLiftField_of_le (mlieBracket J v₁ v₂) hmn]
+  have h₁ := (hD.of_le hkn).contMDiffAt_horizontalLiftField hf hv₁
+  have h₂ := (hD.of_le hkn).contMDiffAt_horizontalLiftField hf hv₂
+  have h₃ := (hD.of_le hmn).contMDiffAt_horizontalLiftField
+    (hf.of_le (by gcongr; exact_mod_cast le_self_add.trans hmk))
+    (hv₁.mlieBracket_vectorField hv₂ hmk')
+  exact (h₁.mlieBracket_vectorField h₂ hmk').sub_section h₃
+
+/-- **The curvature of smooth fields is smooth.** For an Ehresmann connection `D` of class at
+least `C^k` on a `C^(k+1)` map `f`, the curvature of two `C^k` vector fields of the base is a
+`C^m` vector field whenever `m + 1 ≤ k`. Over `ℝ` or `ℂ`, with `k = m = ∞`: the curvature of a
+smooth connection on a smooth map, on smooth fields, is smooth. -/
+theorem contMDiff_curvature {k m : ℕ∞} [IsManifold I (k + 1) P] [IsManifold J (k + 1) B]
+    (hkn : (k : ℕ∞ω) ≤ n) (hmk : m + 1 ≤ k) (hf : ContMDiff I J (k + 1) f)
+    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiff J J.tangent k (T% v₁))
+    (hv₂ : ContMDiff J J.tangent k (T% v₂)) :
+    ContMDiff I I.tangent m (T% (hD.curvature v₁ v₂)) :=
+  fun x ↦ hD.contMDiffAt_curvature hkn hmk (hf x) (hv₁ (f x)) (hv₂ (f x))
+
+end Smoothness
 
 section Smooth
 
