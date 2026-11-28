@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
@@ -341,9 +342,8 @@ theorem isMIntegralCurve_expI_smul (h : IsComplexifiedAction C J) (ξ : GroupLie
     IsMIntegralCurve (fun t : ℝ ↦ C.expI (t • ξ) • p)
       (fun x ↦ J x (fundamentalVectorField I' ξ x)) := by
   have hγ : (fun t : ℝ ↦ C.expI (t • ξ) • p) =
-      fun t : ℝ ↦ mulInvariantExp (t • C.cplx (C.lieMap ξ)) • p := by
-    funext t
-    rw [LieComplexification.expI_def, map_smul, AlmostComplexStructure.apply_smul]
+      fun t : ℝ ↦ mulInvariantExp (t • C.cplx (C.lieMap ξ)) • p :=
+    funext fun t ↦ by rw [C.expI_smul]
   have hv : fundamentalVectorField I' (C.cplx (C.lieMap ξ)) =
       fun x ↦ J x (fundamentalVectorField I' ξ x) :=
     funext (h.fundamentalVectorField_cplx_lieMap ξ)
@@ -583,7 +583,10 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
   have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
     ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
   have hda (u : F) : Differentiable ℝ (a u) := by
-    simpa only [ha] using differentiable_mfderiv_inv_mul_mfderiv hγ u
+    have hd := differentiable_mfderiv_inv_mul_mfderiv hγ u
+    simp only [ha] at hd
+    -- `hd` is stated in the model space `EC`, with its norm, which is the norm of the Lie algebra.
+    exact hd
   set imL := LinearMap.toContinuousLinearMap C.im
   have hdim (u : F) (r : F) : fderiv ℝ (fun z ↦ C.im (a u z)) y r = C.im (fderiv ℝ (a u) y r) :=
     congr($(imL.fderiv_comp_left (hda u y)) r)

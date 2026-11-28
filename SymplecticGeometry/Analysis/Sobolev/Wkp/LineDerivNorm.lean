@@ -6,30 +6,29 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Sobolev.Wkp.LineDeriv.Basic
-import TauCeti.Analysis.Normed.Operator.Bilinear
+import TauCeti.Analysis.Sobolev.Wkp.LineDeriv.Seminorm
 import SymplecticGeometry.MeasureTheory.Function.LpSpace.Basic
 
 /-!
 # Directional weak derivatives and the norm of `W^{k+1,p}(Ω)`
 
-Two estimates, with constants that do not depend on `Ω`, `p` or the measure, connect the norm of
-`W^{k+1,p}(Ω)` with the directional weak derivatives `TauCeti.Wkp.lineDerivL`:
+For an orthonormal basis `(eᵢ)` of `E`, the norm of `u ∈ W^{k+1,p}(Ω)` is bounded by the `Lᵖ`
+norm of `u` and the `W^{k,p}` norms of its directional weak derivatives `TauCeti.Wkp.lineDerivL`
+along the basis, with a constant that depends only on `k`:
 
-* `TauCeti.Wkp.norm_lineDerivL_apply_le_succ_mul`: `‖∂ᵥu‖ ≤ (k + 1) ‖v‖ ‖u‖`;
-* `TauCeti.Wkp.norm_le_mul_norm_value_add_sum_norm_lineDerivL`: for an orthonormal basis
-  `(eᵢ)`, `‖u‖ ≤ (k + 1) (‖u‖_{Lᵖ} + ∑ᵢ ‖∂ᵢu‖)`.
+* `TauCeti.Wkp.norm_le_mul_norm_value_add_sum_norm_lineDerivL`:
+  `‖u‖ ≤ (k + 1) (‖u‖_{Lᵖ} + ∑ᵢ ‖∂ᵢu‖)`.
 
-The first adapts the induction of Tau Ceti's private
-`TauCeti.Wkp.exists_norm_le_of_hasWeakLineDerivOn`, which gives a bound for each `Ω` without
-naming the constant. It uses Tau Ceti's `TauCeti.Wkp.lowerOrder_lineDerivL`, by which directional
-derivatives commute with forgetting the highest weak derivative; `TauCeti.Wkp.lineDerivL_zero`
-computes the directional derivative at order zero.
+It is a converse of Tau Ceti's `TauCeti.Wkp.norm_lineDerivL_apply_le`, which bounds each
+`‖∂ᵥu‖` by `√2 ‖v‖ ‖u‖`. The proof is by induction on `k`, through Tau Ceti's
+`TauCeti.Wkp.lowerOrder_lineDerivL`, by which directional derivatives commute with forgetting the
+highest weak derivative. At order zero, the weak gradient is bounded by the case `j = 0` of
+Tau Ceti's `TauCeti.Wkp.norm_iteratedGradient_le_sum_norm_iteratedLineDerivZeroL`.
 -/
 
 public section
 
 open MeasureTheory TopologicalSpace
-open scoped InnerProductSpace
 
 namespace TauCeti
 
@@ -38,38 +37,6 @@ namespace Wkp
 variable {E : Type*} [MeasurableSpace E] [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [BorelSpace E] {mu : Measure E} [mu.IsAddHaarMeasure]
   {Omega : Opens E} {p : ENNReal} [Fact (1 ≤ p)]
-
-/-- At order zero, the directional derivative of `u ∈ W^{1,p}(Ω)` in the direction `v` is the
-component `⟪v, ∇u⟫` of its weak gradient. -/
-theorem lineDerivL_zero (v : E) (u : Wkp mu Omega p 1) :
-    lineDerivL v 0 u = (innerSL ℝ v).compLp (iteratedGradient 0 u) :=
-  lineDerivL_eq_of_hasWeakLineDerivOn (hasWeakLineDerivOn_value_innerSL_compLp v u)
-
-/-- **The directional derivative is bounded uniformly in `Ω`.** The weak derivative of
-`u ∈ W^{k+1,p}(Ω)` in the direction `v` has `W^{k,p}` norm at most `(k + 1) ‖v‖ ‖u‖`. -/
-theorem norm_lineDerivL_apply_le_succ_mul (v : E) :
-    ∀ (k : ℕ) (u : Wkp mu Omega p (k + 1)), ‖lineDerivL v k u‖ ≤ (k + 1) * ‖v‖ * ‖u‖
-  | 0, u => by
-    -- `Wkp mu Omega p 0` is `Lp ℝ p (mu.restrict Omega)`, with the same norm
-    rw [lineDerivL_zero, Nat.cast_zero, zero_add, one_mul, ← innerSL_apply_norm ℝ v]
-    exact ((innerSL ℝ v).norm_compLp_le _).trans
-      (mul_le_mul_of_nonneg_left (norm_iteratedGradient_le 0 u) (norm_nonneg _))
-  | k + 1, u => by
-    have hlow : ‖lowerOrder k (lineDerivL v (k + 1) u)‖ ≤ (k + 1) * ‖v‖ * ‖u‖ := by
-      rw [lowerOrder_lineDerivL]
-      exact (norm_lineDerivL_apply_le_succ_mul v k _).trans
-        (mul_le_mul_of_nonneg_left (norm_lowerOrder_le _ u) (by positivity))
-    have htop : ‖iteratedGradient k (lineDerivL v (k + 1) u)‖ ≤ ‖v‖ * ‖u‖ := by
-      rw [iteratedGradient_lineDerivL]
-      exact ((ContinuousLinearMap.apply ℝ (IteratedGradient E k) v).norm_compLp_le _).trans
-        (mul_le_mul (ContinuousLinearMap.opNorm_apply_apply_le v) (norm_iteratedGradient_le _ u)
-          (norm_nonneg _) (norm_nonneg _))
-    calc ‖lineDerivL v (k + 1) u‖
-        ≤ ‖lowerOrder k (lineDerivL v (k + 1) u)‖ +
-            ‖iteratedGradient k (lineDerivL v (k + 1) u)‖ :=
-          norm_le_norm_lowerOrder_add_norm_iteratedGradient k _
-      _ ≤ (k + 1) * ‖v‖ * ‖u‖ + ‖v‖ * ‖u‖ := add_le_add hlow htop
-      _ = ((k + 1 : ℕ) + 1) * ‖v‖ * ‖u‖ := by push_cast; ring
 
 variable {ι : Type*} [Fintype ι]
 
@@ -81,13 +48,11 @@ theorem norm_le_mul_norm_value_add_sum_norm_lineDerivL (b : OrthonormalBasis ι 
       ‖u‖ ≤ (k + 1) * (‖value (k + 1) u‖ + ∑ i, ‖lineDerivL (b i) k u‖)
   | 0, u => by
     have hg : ‖iteratedGradient 0 u‖ ≤ ∑ i, ‖lineDerivL (b i) 0 u‖ := by
-      -- as in `norm_lineDerivL_apply_le_succ_mul`, the norm of `Wkp mu Omega p 0` is the `Lᵖ` norm
-      refine (Lp.norm_le_sum_norm_compLp (fun i => innerSL ℝ (b i))
-        (fun i => ContinuousLinearMap.toSpanSingleton ℝ (b i)) (fun x => ?_) (fun i => ?_)
-        _).trans_eq (Finset.sum_congr rfl fun i _ => by rw [lineDerivL_zero])
-      · simpa only [ContinuousLinearMap.toSpanSingleton_apply, innerSL_apply_apply] using
-          b.sum_repr' x
-      · rw [ContinuousLinearMap.norm_toSpanSingleton, b.norm_eq_one]
+      -- the order-zero case of Tau Ceti's bound by iterated directional derivatives, whose sum
+      -- runs over the one-element tuples of basis indices
+      refine (norm_iteratedGradient_le_sum_norm_iteratedLineDerivZeroL 0 b u).trans_eq ?_
+      exact Fintype.sum_equiv (Equiv.funUnique (Fin 1) ι) _ _ fun r => by
+        simp [iteratedLineDerivZeroL_one, Equiv.funUnique_apply, Fin.default_eq_zero]
     have hv : ‖lowerOrder 0 u‖ = ‖value 1 u‖ := by rw [value_succ, value_zero]
     calc ‖u‖ ≤ ‖lowerOrder 0 u‖ + ‖iteratedGradient 0 u‖ :=
           norm_le_norm_lowerOrder_add_norm_iteratedGradient 0 u

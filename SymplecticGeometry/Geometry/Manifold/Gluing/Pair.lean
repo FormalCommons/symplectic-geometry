@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Gluing two spaces along open subsets
@@ -935,10 +936,8 @@ theorem mpullback_inr_glue {σ₁ : RoughForm I M₁ F k} {σ₂ : RoughForm I M
     obtain ⟨hxU, hy⟩ := (inl_eq_inr_diffeomorph_iff φ).1 hx
     subst hy
     set u : U₁ := ⟨x, hxU⟩
-    have hd₁ : MDifferentiable I I (Subtype.val : U₂ → M₂) :=
-      (contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)
-    have hd₂ : MDifferentiable I I (Subtype.val : U₁ → M₁) :=
-      (contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)
+    have hd₁ : MDifferentiable I I (Subtype.val : U₂ → M₂) := mdifferentiable_subtypeVal
+    have hd₂ : MDifferentiable I I (Subtype.val : U₁ → M₁) := mdifferentiable_subtypeVal
     have hφd : MDifferentiable I I φ := φ.contMDiff.mdifferentiable (by simp)
     rw [← mpullback_subtype_val_apply
         (mpullback I I (inr φ.toHomeomorph)
@@ -1020,7 +1019,7 @@ theorem mpullback_rangeInlDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCom
     SmoothForm.mpullback (rangeInlDiffeomorph h).symm (rangeInlDiffeomorph h).symm.contMDiff
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
       SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff α :=
-  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal
     (isLocalDiffeomorph_inl_of_isCompatible h) (inl_injective _) α
 
 /-- The inverse of `rangeInlDiffeomorph h` pulls the restriction of the glued form to the range
@@ -1039,7 +1038,7 @@ theorem mpullback_rangeInrDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCom
     SmoothForm.mpullback (rangeInrDiffeomorph h).symm (rangeInrDiffeomorph h).symm.contMDiff
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
       SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff α :=
-  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal
     (isLocalDiffeomorph_inr_of_isCompatible h) (inr_injective _) α
 
 /-- The inverse of `rangeInrDiffeomorph h` pulls the restriction of the glued form to the range

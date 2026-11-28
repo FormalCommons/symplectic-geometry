@@ -306,7 +306,7 @@ with `IsWeinsteinStructure.mextDeriv_interior` ($d(\iota_X\omega)=\omega$,
 from Tau Ceti's `isLiouvilleVectorField_iff_mextDeriv_interior_eq`),
 `IsWeinsteinStructure.comp` (`h ∘ f`), `IsWeinsteinStructure.pullback`
 (along a diffeomorphism), and the example of `ℂⁿ` with the radial field
-and $|z|^2$, from Tau Ceti's `Liouville/Radial/`.
+and $|z|^2$, Liouville by `SymplecticForm.isLiouvilleVectorField_constSmooth`.
 
 A Weinstein domain is a compact manifold with boundary over the
 half-space, as a strong filling is in *Liouville structures*:
@@ -1252,8 +1252,8 @@ containing `ι '' closedBall 0 1`:
     `0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ`. Conclusion: a `ψ : ℝ → ℝ → ℝ`,
     `ContDiffOn ℝ ∞ (Function.uncurry ψ) Q`, with
     `IsConvexShapeAt (ψ ℓ) r` and `0 < deriv (fun ℓ' ↦ ψ ℓ' r) ℓ` on
-    `Q`, and `Function.uncurry ψ = Function.uncurry χ` on some
-    `V ∈ 𝓝ˢ E`. "Increasing in `ℓ`" is always this strict sign of the
+    `Q`, and `Function.uncurry ψ =ᶠ[𝓝ˢ E] Function.uncurry χ`.
+    "Increasing in `ℓ`" is always this strict sign of the
     `ℓ`-derivative, the hypothesis of `exists_contDiff_shapeLevel`, and
     `ℓ` is whatever parameter the caller uses (issue 14d7 takes
     `u = ℓ * |ℓ|`, see there). No lower bound `χ ℓ₀ ≤ χ ℓ` is needed,
@@ -2350,7 +2350,7 @@ birth–death points are allowed.
   `g < 0` to `g > 0`. This is a fact about any flow, as
   `subsingleton_setOfPred_flow_apply_eq` (15e) is for a regular level of
   `f`, and it goes with the library's
-  `Geometry/Manifold/Flow/LevelCrossing.lean` if it fits there.
+  `Geometry/Manifold/IntegralCurve/Monotone.lean` if it fits there.
   (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
   it reaches `{f ≤ a}`, or it stays in the compact region, where its
   limit set consists of critical points

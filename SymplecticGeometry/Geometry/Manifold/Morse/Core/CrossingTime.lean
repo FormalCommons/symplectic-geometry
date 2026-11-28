@@ -13,6 +13,7 @@ import SymplecticGeometry.Analysis.InnerProductSpace.RadialExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
+import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.Morse.UnstableSet
 
 /-!
@@ -133,8 +134,8 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
   have hanti (y : M) : Antitone fun t ↦ g (Φ t y) :=
     antitone_comp_globalFlow hX hXc (hg.mdifferentiable (by simp)) hgX y
   have huniq (y : M) : {t | g (Φ t y) = a}.Subsingleton :=
-    (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOfPred_apply_eq (fun _ ↦ hgd _) (hanti y)
-      fun _ ht ↦ (hneg _ ht.ge (ht.le.trans hab)).ne
+    (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOfPred_apply_eq (hanti y)
+      fun _ ht ↦ ⟨hgd _, (hneg _ ht.ge (ht.le.trans hab)).ne⟩
   -- Each flow line from the sphere reaches the level `a`.
   obtain ⟨T, hT0, hT⟩ :=
     exists_forall_globalFlow_lt hX hXc (hg.of_le (by simp)) hab hcompact hneg
@@ -147,7 +148,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     obtain ⟨t₀, ht₀, ht₀0⟩ :=
       ((hu.eventually (lt_mem_nhds ha)).and (eventually_le_atBot 0)).exists
     have hcont : Continuous fun t ↦ g (Φ t (ι c)) :=
-      hg.continuous.comp (Φ.continuous continuous_id continuous_const)
+      hg.continuous.comp (Φ.continuous_eval_const _)
     obtain ⟨t, -, ht⟩ := intermediate_value_Icc' (ht₀0.trans hT0) hcont.continuousOn
       ⟨hlow.le, ht₀.le⟩
     exact ⟨t, ht⟩

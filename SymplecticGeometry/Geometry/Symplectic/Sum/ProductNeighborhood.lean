@@ -28,7 +28,7 @@ import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
-import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
+public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
@@ -85,7 +85,7 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   `TauCeti.contMDiff_bundle_symm`; and `SymplecticGeometry.SymplecticFraming.transDiffeomorph`,
   the first along a diffeomorphism `ψ : M ≃ M'`, for the embedding `ψ ∘ ι`, whose tangent images
   are symplectic by
-  `TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff`;
+  `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff`;
   `SymplecticGeometry.SymplecticFraming.ofPos`, the framing obtained from linear isomorphisms
   `e q : ℂ ≃ N_q ι`, smooth in `q`, on which the normal form `ω_ι` of `ι` is positive, by rescaling
   `e q` by `(√(ω_ι (e q 1) (e q i)))⁻¹`. On the plane `ℂ` every alternating form is a multiple
@@ -573,8 +573,7 @@ def transDiffeomorph (Φ : SymplecticFraming hι hP) (ψ : M ≃ₘ⟮I, I'⟯ M
     (hσ' : σ'.IsNondegenerate) (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ)
     (hP' : finrank ℝ ℂ = finrank ℝ E' - finrank ℝ EQ) :
     SymplecticFraming (hσ := hσ') (ι := ι.transDiffeomorphOfBoundaryless ψ (by simp))
-      (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _ ▸
-        (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ).2 hι)
+      ((ι.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff ψ (by simp) hψ).2 hι)
       hP' :=
   Φ.transLocalDiffeomorph ψ.isLocalDiffeomorph hψ
     (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm
@@ -695,7 +694,7 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     (hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ') :
     SymplecticFraming hι' hP' where
   toFun q := (zeroSliceNormalEquiv J' Q' q).trans ((zeroSliceNormalEquiv J Q (χ q)).symm.trans
-    ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ q).symm))
+    ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ q).symm))
   contMDiff_toFun := by
     let := (zeroSlice J' Q').normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ'))
@@ -704,13 +703,13 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Read through the identification of normal spaces, the framing is `Φ` over `χ`, after the
     -- identifications of the normal bundles of the zero slices with `Q' × ℂ` and `Q × ℂ`.
-    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ _ (by simp) hP
+    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ (by simp) hP
       hP' le_rfl (u := TotalSpace.proj)).2 ?_
     exact Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
       (((χ.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd).comp
         contMDiff_zeroSliceNormalEquiv))
   symplecticNormalForm_toFun q v w := by
-    refine (ι.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ hι hι' q _
+    refine (ι.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ hι hι' q _
       _).symm.trans ?_
     simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply]
     -- On both zero slices the normal form is `ω₀`, read through `zeroSliceNormalEquiv`.
@@ -727,8 +726,7 @@ theorem compDiffeomorphOfBoundaryless_apply (Φ : SymplecticFraming hι hP) (χ 
     (hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ') (q : Q')
     (v : (zeroSlice J' Q').isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
     Φ.compDiffeomorphOfBoundaryless χ hι' hP' q v =
-      (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ (by simp)
-          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) q).symm
+      (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ (by simp) q).symm
         (Φ (χ q) ((zeroSliceNormalEquiv J Q (χ q)).symm (zeroSliceNormalEquiv J' Q' q v))) :=
   (rfl)
 

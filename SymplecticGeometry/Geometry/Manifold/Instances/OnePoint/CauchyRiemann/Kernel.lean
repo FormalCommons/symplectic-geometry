@@ -172,7 +172,7 @@ theorem eulerNumber_twistCore_one :
     ((complexManifoldHomologicalOrientation ℂ (OnePoint ℂ) (finrank_self ℂ)).evalFundamentalClass
       (Complex.finrank_real_complex) (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id _)
       (((VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber).reindex
-        (finCongr (by simp : 2 * finrank ℂ ℂ = 1 + 1))).eulerClass
+        (finCongr Complex.two_mul_finrank_self)).eulerClass
           Complex.finrank_real_complex)).down = 1 := by
   set s : ∀ x, (twistCore (𝕜 := ℂ) 1).Fiber x := identitySection
   have hs : Continuous fun x ↦ TotalSpace.mk' ℂ x (s x) :=
@@ -229,10 +229,10 @@ private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
     ((mem_twistOneKernel_iff J).1 hs).1.continuous
   have hsum := VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt
     ((VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber).reindex
-      (finCongr (by simp : 2 * finrank ℂ ℂ = 1 + 1))) Complex.finrank_real_complex
+      (finCongr Complex.two_mul_finrank_self)) Complex.finrank_real_complex
     (complexManifoldHomologicalOrientation ℂ (OnePoint ℂ) (finrank_self ℂ)) hcont
     (fun z ↦ (ψ z).toOpenPartialHomeomorph) e
-    (fun _ ↦ Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+    (fun _ ↦ Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self)
       (complexOrientation ℂ)) (fun z _ ↦ hzψ z) hZ (fun z _ ↦ hze z)
     (fun z _ ↦ .of_forall (ho z))
     (fun z _ ↦ hφ₀ z) (fun z _ ↦ hA z)
@@ -447,13 +447,13 @@ variable {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
 noncomputable def twistOneSobolevSMulI (k : ℕ) :
     SobolevSection (twistCoreAtlas 1) volume 2 k →L[ℝ]
       SobolevSection (twistCoreAtlas 1) volume 2 k :=
-  SobolevSection.contMDiffHomMulL (twistCoreAtlas 1) (twistCoreAtlas 1).closure_dom_subset_baseSet
-    volume 2 k (TauCeti.contMDiff_smulIEquiv_bundle (n := ∞))
+  SobolevSection.bundleMapL (twistCoreAtlas 1) (twistCoreAtlas 1).closure_dom_subset_baseSet
+    (TauCeti.contMDiff_smulIEquiv_bundle (n := ∞)) volume 2 k
 
 theorem twistOneSobolevSMulI_def (k : ℕ) :
-    twistOneSobolevSMulI k = SobolevSection.contMDiffHomMulL (twistCoreAtlas 1)
-      (twistCoreAtlas 1).closure_dom_subset_baseSet volume 2 k
-      (TauCeti.contMDiff_smulIEquiv_bundle (n := ∞)) :=
+    twistOneSobolevSMulI k = SobolevSection.bundleMapL (twistCoreAtlas 1)
+      (twistCoreAtlas 1).closure_dom_subset_baseSet
+      (TauCeti.contMDiff_smulIEquiv_bundle (n := ∞)) volume 2 k :=
   (rfl)
 
 /-- On the Sobolev section of an element `s` of `twistOneKernel J`, multiplication by `i` gives
@@ -462,7 +462,7 @@ theorem twistOneSobolevSMulI_twistOneKernelSobolev (k : ℕ) (s : twistOneKernel
     twistOneSobolevSMulI (k + 1) (twistOneKernelSobolev J k s) =
       twistOneKernelSobolev J k (Complex.I • s) := by
   rw [twistOneSobolevSMulI_def, twistOneKernelSobolev_apply, twistOneKernelSobolev_apply]
-  refine (SobolevSection.contMDiffHomMulL_ofContMDiffSection _ _).trans ?_
+  refine (SobolevSection.bundleMapL_ofContMDiffSection _).trans ?_
   exact congrArg _ (ContMDiffSection.ext fun x ↦ by
     simp only [ContMDiffSection.coeFn_mk, coe_twistOneKernelToContMDiffSection, Submodule.coe_smul,
       Pi.smul_apply]

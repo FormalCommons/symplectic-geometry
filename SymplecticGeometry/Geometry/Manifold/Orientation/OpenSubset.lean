@@ -23,9 +23,6 @@ at the same point.
 * `TauCeti.Manifold.Orientation.orientationAt_restrict`: Tau Ceti's
   `TauCeti.Manifold.Orientation.map_orientationAt_restrict` without the transport,
   which is possible since `tangentSpaceOpenEquiv x` is the identity.
-* `TauCeti.Manifold.Orientation.isOrientationPreservingAt_restrict_iff`: a map into `U` preserves
-  orientation into the restriction of `o` exactly when its composite with the inclusion of `U`
-  preserves orientation into `o`.
 
 ## References
 
@@ -55,20 +52,6 @@ theorem orientationAt_restrict (o : Orientation I M ι) (U : Opens M) (x : U) :
     LinearEquiv.ext (TauCeti.Manifold.tangentSpaceOpenEquiv_apply x)
   rw [← map_orientationAt_restrict o U x, he]
   exact (Equiv.ext_iff.mp (_root_.Orientation.map_refl ι) _).symm
-
-/-- A map `f` into an open subset `U` of `M` preserves orientation at `x`, from `o'` to the
-restriction of `o` to `U`, exactly when its composite with the inclusion of `U` preserves
-orientation at `x`, from `o'` to `o`. -/
-theorem isOrientationPreservingAt_restrict_iff {E' H' N : Type*} [NormedAddCommGroup E']
-    [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
-    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' 1 N]
-    {o : Orientation I M ι} {U : Opens M} {o' : Orientation I' N ι} {f : N → U} {x : N} :
-    IsOrientationPreservingAt o' (o.restrict U) f x ↔
-      IsOrientationPreservingAt o' o (Subtype.val ∘ f) x :=
-  ⟨fun h ↦ (o.isOrientationPreservingAt_restrict U (f x)).comp h, fun h ↦
-    .of_comp (o.isOrientationPreservingAt_restrict U (f x)) h
-      (TauCeti.Manifold.mdifferentiableAt_subtype_val_comp_iff.1
-        (mdifferentiableAt_of_isInvertible_mfderiv h.isInvertible_mfderiv))⟩
 
 end TauCeti.Manifold.Orientation
 

@@ -32,15 +32,13 @@ continuously on a Hausdorff `Z`, needs nothing here: Mathlib's instance
 `t2Space_quotient_mulAction_of_properSMul` applies, since the diagonal action is proper by Tau
 Ceti's `properSMul_prod`.
 
-The action of `K` on `G` by `h • g = g h⁻¹` has the fundamental vector field
-`ξ_G(g) = -d(L_g)(ξ')`, where `ξ'` is the image of `ξ ∈ Lie(K)` in `Lie(G)`: the orbit map of `g`
-is `h ↦ g h⁻¹`, and inversion has differential `-1` at the identity
-(`Subgroup.RightTranslation.fundamentalVectorField_toRightTranslation`). The kernel of `dπ` at a
-point is the tangent space of its `K`-orbit, spanned by the fundamental vector fields of the
-diagonal action; this is Tau Ceti's
-`ProperSMul.ker_mfderiv_eq_orbitTangent_fundamental_of_isSubmersionAt`, applied as in the
-proof of Tau Ceti's `ProperSMul.ker_mfderiv_quotientMk`. So the kernel of `dπ` at `(g, z)`
-consists of the vectors `(-d(L_g)(ξ'), ξ_Z(z))` for `ξ ∈ Lie(K)`.
+The kernel of `dπ` at a point is the tangent space of its `K`-orbit, spanned by the fundamental
+vector fields of the diagonal action (Tau Ceti's
+`TauCeti.BalancedProduct.ker_mfderiv_quotientMk_rightTranslation`). By Tau Ceti's
+`Subgroup.RightTranslation.fundamentalVectorField_prod_apply`, the fundamental vector field of
+`ξ ∈ Lie(K)` at `(g, z)` is `((-ξ')^L(g), ξ_Z(z))`, where `ξ'` is the image of `ξ` in `Lie(G)` and
+`(-ξ')^L` the left-invariant vector field of `-ξ'`. So the kernel of `dπ` at `(g, z)` consists of
+these vectors.
 
 For a `K`-equivariant map `ι : Z → M` to a `G`-manifold, the lift `[g, z] ↦ g • ι z`
 (`TauCeti.BalancedProduct.liftRightTranslation`) is smooth at `[g, z]` when `ι` is smooth at `z`:
@@ -75,7 +73,7 @@ function theorem applies again.
 * `TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`: `G ×_K Z` is second
   countable.
 * `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`: on `G × Z`, a tangent
-  vector at `(g, z)` is vertical exactly when it is `(-d(L_g)(ξ'), ξ_Z(z))` for some `ξ ∈ Lie(K)`.
+  vector at `(g, z)` is vertical exactly when it is `((-ξ')^L(g), ξ_Z(z))` for some `ξ ∈ Lie(K)`.
 * `TauCeti.BalancedProduct.surjective_mk_toRightTranslation`,
   `TauCeti.BalancedProduct.isSubmersion_mk_toRightTranslation`: on `G × Z`, the projection is a
   surjective smooth submersion.
@@ -111,39 +109,6 @@ public section
 
 open Function Manifold Set TauCeti
 open scoped ContDiff Manifold
-
-namespace Subgroup.RightTranslation
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {G : Type*} [Group G] {K : Subgroup G}
-  {E H : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H]
-  {I : ModelWithCorners 𝕜 E H} [TopologicalSpace G] [ChartedSpace H G] [LieGroup I 1 G]
-  {EK HK : Type*} [NormedAddCommGroup EK] [NormedSpace 𝕜 EK] [TopologicalSpace HK]
-  {IK : ModelWithCorners 𝕜 EK HK} [ChartedSpace HK K] [ContMDiffSMul IK I 1 K G]
-
-/-- **The fundamental vector fields of right translation.** For the action `h • g = g h⁻¹` of a
-subgroup `K` on `G`, the fundamental vector field of `ξ ∈ Lie(K)` at `g` is `-d(L_g)(ξ')`, minus
-the left-invariant vector field of the image `ξ'` of `ξ` in `Lie(G)`. -/
-theorem fundamentalVectorField_toRightTranslation (ξ : GroupLieAlgebra IK K) (g : G) :
-    fundamentalVectorField I ξ (K.toRightTranslation g) =
-      -mulInvariantVectorField (K.subtype.groupLieAlgebraMap IK I ξ) g := by
-  have hsub : MDifferentiableAt IK I K.subtype 1 :=
-    (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (I' := IK) (n := 1)).mdifferentiableAt
-      one_ne_zero
-  have hinv : MDifferentiableAt I I (fun x : G ↦ x⁻¹) 1 :=
-    (contMDiff_inv I 1).mdifferentiableAt one_ne_zero
-  have hmul : MDifferentiableAt I I (fun x : G ↦ g * x) 1 :=
-    (contMDiff_mul_left (I := I) (n := 1)).mdifferentiableAt one_ne_zero
-  rw [fundamentalVectorField_apply]
-  -- `K.RightTranslation` is `G` with the same charts, `K.toRightTranslation` is the identity, and
-  -- `k • g = g k⁻¹`, so the orbit map of `g` is `k ↦ g k⁻¹`, a map into `G`.
-  change mfderiv IK I ((fun x : G ↦ g * x) ∘ (fun x : G ↦ x⁻¹) ∘ K.subtype) 1 ξ = _
-  rw [mfderiv_comp_apply_of_eq 1 hmul (hinv.comp_of_eq 1 hsub (by simp)) (by simp),
-    mfderiv_comp_apply_of_eq 1 hinv hsub (by simp), ← MonoidHom.groupLieAlgebraMap_apply,
-    GroupLieAlgebra.mfderiv_inv_one_apply, map_neg, GroupLieAlgebra.mulInvariantVectorField_apply]
-  -- The two sides agree up to how the base point of their tangent space is written.
-  rfl
-
-end Subgroup.RightTranslation
 
 namespace TauCeti.BalancedProduct
 
@@ -188,16 +153,16 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   [ContMDiffSMul 𝓘(ℝ, F) IZ ∞ K Z]
 
 /-- **The vertical directions of `G × Z → G ×_K Z`.** A tangent vector at `(g, z)` lies in the
-kernel of the differential of `(g, z) ↦ [g, z]` exactly when it is `(-d(L_g)(ξ'), ξ_Z(z))` for
-some `ξ` in the Lie algebra of `K`, where `ξ'` is the image of `ξ` in `Lie(G)` and `ξ_Z` is the
-fundamental vector field of `ξ` on `Z`. -/
+kernel of the differential of `(g, z) ↦ [g, z]` exactly when it is `((-ξ')^L(g), ξ_Z(z))` for
+some `ξ` in the Lie algebra of `K`, where `ξ'` is the image of `ξ` in `Lie(G)`, `(-ξ')^L` is the
+left-invariant vector field of `-ξ'`, and `ξ_Z` is the fundamental vector field of `ξ` on `Z`. -/
 theorem mem_ker_mfderiv_mk_toRightTranslation_iff (g : G) (z : Z)
     (v : TangentSpace (I.prod IZ) (g, z)) :
     letI := rightTranslationChartedSpace K Z I IZ F
     v ∈ (mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
       (fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2) (g, z)).ker ↔
       ∃ ξ : GroupLieAlgebra 𝓘(ℝ, F) K,
-        v = (-mulInvariantVectorField (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ) g,
+        v = (mulInvariantVectorField (-K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ) g,
           fundamentalVectorField IZ ξ z) := by
   let _ := rightTranslationChartedSpace K Z I IZ F
   -- `K.RightTranslation` is `G` with the same charts and `K.toRightTranslation` is the identity,
@@ -206,16 +171,9 @@ theorem mem_ker_mfderiv_mk_toRightTranslation_iff (g : G) (z : Z)
   refine (SetLike.ext_iff.1
     (ker_mfderiv_quotientMk_rightTranslation (K.toRightTranslation g, z)) v).trans
     ((InfinitesimalAction.mem_orbitTangent_iff _ _).trans (exists_congr fun ξ ↦ ?_))
-  have h : (Manifold.prodVectorField (fundamentalVectorField I ξ)
-      (fundamentalVectorField IZ ξ) (K.toRightTranslation g, z) : E × EZ) =
-      (-mulInvariantVectorField (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ) g,
-        fundamentalVectorField IZ ξ z) :=
-    Prod.ext ((Manifold.prodVectorField_fst _ _ _).trans
-      (Subgroup.RightTranslation.fundamentalVectorField_toRightTranslation ξ g))
-      (Manifold.prodVectorField_snd _ _ _)
-  rw [InfinitesimalAction.fundamental_prod, InfinitesimalAction.prod_apply,
-    InfinitesimalAction.fundamental_apply, InfinitesimalAction.fundamental_apply]
-  exact h ▸ eq_comm
+  rw [InfinitesimalAction.fundamental_apply]
+  exact Subgroup.RightTranslation.fundamentalVectorField_prod_apply (I := I) (IZ := IZ) ξ
+    (K.toRightTranslation g, z) ▸ eq_comm
 
 /-- The projection `(g, z) ↦ [g, z]` from `G × Z` onto the balanced product `G ×_K Z` is a smooth
 submersion. -/

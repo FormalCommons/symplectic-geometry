@@ -39,7 +39,7 @@ characterization of the Reeb field.
   and `β_x` by `f(x) β_x + c α_x`.
 * `TauCeti.SmoothForm.IsContactForm.mfderiv_contactMoserVectorField_mpullback`: naturality of the
   contact-Moser vector field under maps with bijective differentials.
-* `IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtype_val` (in the
+* `IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtypeVal` (in the
   namespace `TauCeti.SmoothForm`): its restriction to an open subset.
 
 ## References
@@ -115,7 +115,7 @@ theorem IsContactForm.mfderiv_contactMoserVectorField_mpullback {α : SmoothForm
 a one-form `β` and an open subset `U ⊆ N`, the contact-Moser vector of the restrictions of
 `α` and `β` to `U` at `x` is, under the canonical identification of tangent spaces, the
 contact-Moser vector of `(α, β)` at `x`. -/
-theorem IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtype_val
+theorem IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtypeVal
     [FiniteDimensional ℝ F] {α : SmoothForm J N ℝ 1} (hα : α.IsContactForm) (U : Opens N)
     (β : SmoothForm J N ℝ 1) (x : U) :
     Manifold.tangentSpaceOpenEquiv x

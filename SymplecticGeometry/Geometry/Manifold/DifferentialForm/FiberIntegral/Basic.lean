@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The fibre integral of a fibration with an atlas
@@ -79,8 +80,8 @@ over `F` of `A.fiberIntegrand α b v`. On the base set `U` of a chart `e` of the
 integrand over every point is read through `e` without changing its integral, so the restriction
 of the fibre integral to `U` is the fibre integral `SymplecticGeometry.prodFiberIntegral` on
 `U × F` of the pull-back of `α` along `(b, y) ↦ e⁻¹ (b, y)`
-(`TauCeti.MapFiber.Atlas.mpullback_subtype_val_fiberIntegral`); the fibre integral is therefore
-smooth, smoothness of a form being local (`TauCeti.contMDiffAt_mpullback_subtype_val_iff`).
+(`TauCeti.MapFiber.Atlas.mpullback_subtypeVal_fiberIntegral`); the fibre integral is therefore
+smooth, smoothness of a form being local (`TauCeti.contMDiffAt_mpullback_subtypeVal_iff`).
 
 ## Main definitions
 
@@ -112,7 +113,7 @@ smooth, smoothness of a form being local (`TauCeti.contMDiffAt_mpullback_subtype
   integral of the integrand does not depend on the chart.
 * `TauCeti.MapFiber.Atlas.isSmoothForm_fiberIntegrand`: the integrand of a smooth form is smooth.
 * `TauCeti.MapFiber.Atlas.fiberIntegral_apply`: the value of the fibre integral.
-* `TauCeti.MapFiber.Atlas.mpullback_subtype_val_fiberIntegral`: the restriction of the fibre
+* `TauCeti.MapFiber.Atlas.mpullback_subtypeVal_fiberIntegral`: the restriction of the fibre
   integral to the base set of a chart is a fibre integral on a product.
 * `TauCeti.MapFiber.Atlas.fiberIntegral_apply_of_mem`,
   `TauCeti.MapFiber.Atlas.fiberIntegral_apply_of_lift`: the value through any
@@ -237,8 +238,6 @@ theorem fiberIntegrand_eq_prodFiberIntegrand
     e.fiberIntegrand (I := I) α b v = prodFiberIntegrand
       (mpullback (I.prod J) IM (fun p : U × F ↦ e.toOpenPartialHomeomorph.symm (p.1, p.2)) α) b v
     := by
-  have hval : MDifferentiableAt I I (Subtype.val : U → B) b :=
-    contMDiff_subtypeVal.mdifferentiableAt one_ne_zero
   have hf (y : F) : MDifferentiableAt (I.prod J) (I.prod J) (Prod.map (Subtype.val : U → B) id)
       (b, y) := ((contMDiff_subtypeVal.prodMap contMDiff_id).mdifferentiableAt one_ne_zero)
   have hg (y : F) :
@@ -250,7 +249,7 @@ theorem fiberIntegrand_eq_prodFiberIntegrand
   symm
   funext y
   rw [prodFiberIntegrand_def, hcomp, mpullback_comp_at (hf y) (hg y), ← prodFiberIntegrand_def,
-    prodFiberIntegrand_mpullback_prodMap hval]
+    prodFiberIntegrand_mpullback_prodMap mdifferentiableAt_subtypeVal]
   simp only [Manifold.mfderiv_subtype_val_apply]
   exact congrFun (e.fiberIntegrand_def (J := J) α (b : B) v).symm y
 
@@ -617,7 +616,7 @@ private theorem fiberIntegralRoughForm_apply (hA : A.IsContMDiff ∞ I J IM)
 
 /-- On the base set `U` of a chart, the restriction of the fibre integral is the fibre integral
 on the product `U × F` of the pull-back along `(b, y) ↦ e⁻¹ (b, y)`. -/
-private theorem mpullback_subtype_val_fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J IM)
+private theorem mpullback_subtypeVal_fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J IM)
     {hn : (∞ : ℕ∞ω) ≠ 0} (ho : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
     (α : SmoothForm IM M ℝ (r + m)) (b' : B) :
     mpullback I I (Subtype.val : (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ :
@@ -639,8 +638,8 @@ private theorem isSmoothForm_fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J 
   have h := (prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_symm_val_prod
     (hA.contMDiffOn_trivAt_symm b) (U := ⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩)
     subset_rfl) α)).isSmoothForm
-  rw [← mpullback_subtype_val_fiberIntegralRoughForm o hA ho α b, isSmoothForm_def] at h
-  exact (contMDiffAt_mpullback_subtype_val_iff _ ⟨b, A.mem_baseSet_trivAt b⟩).1 (h _)
+  rw [← mpullback_subtypeVal_fiberIntegralRoughForm o hA ho α b, isSmoothForm_def] at h
+  exact (contMDiffAt_mpullback_subtypeVal_iff _ ⟨b, A.mem_baseSet_trivAt b⟩).1 (h _)
 
 variable {o} in
 /-- **The fibre integral of a fibration with an oriented atlas.** Let `A` be a smooth atlas of
@@ -673,13 +672,13 @@ theorem fiberIntegral_apply (α : SmoothForm IM M ℝ (r + m)) (b : B)
 /-- **The value in a trivialization.** On the base set `U` of the chart `e = A.trivAt b'`, the
 restriction of the fibre integral of `α` is the fibre integral on the product `U × F` of the
 pull-back of `α` along `(b, y) ↦ e⁻¹ (b, y)`. -/
-theorem mpullback_subtype_val_fiberIntegral (α : SmoothForm IM M ℝ (r + m)) (b' : B) :
+theorem mpullback_subtypeVal_fiberIntegral (α : SmoothForm IM M ℝ (r + m)) (b' : B) :
     SmoothForm.mpullback (Subtype.val : (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ :
         TopologicalSpace.Opens B) → B) contMDiff_subtypeVal (A.fiberIntegral hA ho α) =
       prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b').contMDiff_symm_val_prod
         (hA.contMDiffOn_trivAt_symm b') subset_rfl) α) :=
   SmoothBundleForm.ext fun b v ↦ by
-    rw [SmoothForm.coe_mpullback, ← mpullback_subtype_val_fiberIntegralRoughForm o hA ho α b',
+    rw [SmoothForm.coe_mpullback, ← mpullback_subtypeVal_fiberIntegralRoughForm o hA ho α b',
       mpullback_subtype_val_apply, mpullback_subtype_val_apply]
     exact (fiberIntegral_apply o hA ho α b v).trans (fiberIntegralRoughForm_apply o hA α b v).symm
 

@@ -10,7 +10,6 @@ public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
-public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 
@@ -38,8 +37,7 @@ neither.
 The identification `z ↦ (re z, im z)` of `ℂ` with `ℝ²` carries `Complex.orientation` to the
 standard orientation of `ℝ²` (`Complex.orientation_map_orthonormalBasisOneI_repr`), so, as a map
 of manifolds, it preserves orientation at every point
-(`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`), and so does its restriction to any
-open set of `ℂ` (`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_comp_subtypeVal`).
+(`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`).
 
 `AddCircle.orientationAt_orientation_prod_real` adapts the proof of Tau Ceti's
 `AddCircle.orientationAt_orientation_prod_orientation`, in
@@ -59,8 +57,6 @@ open set of `ℂ` (`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_
   orientation at negative radii.
 * `Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`: the identification
   `z ↦ (re z, im z)` of `ℂ` with `ℝ²` preserves orientation.
-* `Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_comp_subtypeVal`: so does its
-  restriction to an open set of `ℂ`.
 
 ## References
 
@@ -200,15 +196,3 @@ theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr (z : ℂ) :
     (Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.mfderiv_eq (x := z)).symm).2 ?_
   rw [orientationAt_complex, orientationAt_euclideanSpace]
   exact Complex.orientation_map_orthonormalBasisOneI_repr
-
-/-- On an open set `U` of `ℂ`, the identification `z ↦ (re z, im z)` with `ℝ²` preserves
-orientation at every point, from the standard orientation of `ℂ` restricted to `U` to the standard
-orientation of `ℝ²`. -/
-theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_comp_subtypeVal
-    (U : TopologicalSpace.Opens ℂ) (z : U) :
-    IsOrientationPreservingAt
-      (Manifold.Orientation.complex.restrict U)
-      (Manifold.Orientation.euclideanSpace 2)
-      (Complex.orthonormalBasisOneI.repr ∘ (Subtype.val : U → ℂ)) z :=
-  (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _).comp
-    (isOrientationPreservingAt_restrict _ U z)

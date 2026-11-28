@@ -65,6 +65,14 @@ normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `
 that `c = relDualClassOf f hn hdim hf u` exactly when the slices of `c` along any normalized tube
 are the fibre restrictions of `u` (`eq_relDualClassOf_iff_forall_slice`).
 
+For a normal orientation `o`, the slices of `relDualClass f hn hdim hf o hr` are therefore the
+fibre restrictions of the canonical Thom class: read through a linear isomorphism `m : Q ≃ ν_x`
+that carries an orientation `ν` of `Q` to `o x`, the slice at `x` is the generator
+`ν.modelThomGenerator hQ` (`singularCohomologyMap_normalSlice_relDualClass`), by the naturality
+of the model generators under linear isomorphisms
+(`Orientation.singularCohomologyMap_modelThomGenerator`), which moves it from the trivialization
+at `x` to `m`.
+
 For a diffeomorphism `φ : X' ≃ X` and the embedding `f' = φ⁻¹ ∘ f`
 (`f.transDiffeomorph φ.symm`), the triangle `φ ∘ f' = f` (`comp_transDiffeomorph_symm`) has an
 ambient map with invertible derivative, so `NormalSpace/ThomPairMap.lean` gives the isomorphism
@@ -117,6 +125,9 @@ is the pull-back along `φ` of the dual class of `f` with `o` (`relDualClass_tra
 * `TauCeti.SmoothEmbedding.eq_relDualClassOf_iff_forall_slice`: for `u` of degree `r`, a class
   is `relDualClassOf f hn hdim hf u` exactly when its slices along a normalized tube are the
   fibre restrictions of `u`.
+* `TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_relDualClass`: read through a linear
+  isomorphism `Q ≃ ν_x` that preserves orientation, the normal slice at `x` of the relative dual
+  class is the model generator of `Q`.
 * `TauCeti.SmoothEmbedding.fiberThomPairMap_comp_transDiffeomorphThomPairMap`: on the fibre over
   `x`, the map of Thom pairs under a diffeomorphism is the fibre-pair isomorphism of the
   derivative.
@@ -577,6 +588,51 @@ theorem eq_relDualClassOf_iff_forall_slice (f : SmoothEmbedding I J ∞ Z X) (hn
   refine ⟨?_, fun h ↦ (relDualClassOf_eq_of_isNormalizedTube f hn hdim hf hΦ h).symm⟩
   rintro rfl
   exact singularCohomologyMap_excisionMap_relDualClassOf f hn hdim hf hΦ u
+
+/-- **The normal slices of the relative dual class.** Let `Φ` be a normalized tube of `f`,
+`x : Z`, and `m : Q ≃ ν_x` a linear isomorphism from a real normed space `Q` of dimension `r`
+that carries an orientation `ν` of `Q` to the normal orientation `o x`. The pull-back of
+`relDualClass f hn hdim hf o hr` along `m` followed by the normal slice of `Φ` at `x` is the
+generator `ν.modelThomGenerator hQ` of `Hʳ(Q, Q ∖ {0}; ℤ)` selected by `ν`. -/
+theorem singularCohomologyMap_normalSlice_relDualClass (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (hf : IsClosed (range f)) {r : ℕ}
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+    (hr : finrank ℝ P = r) {W : TopologicalSpace.Opens X}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (x : Z) {Q : Type w} [NormedAddCommGroup Q]
+    [NormedSpace ℝ Q] [FiniteDimensional ℝ Q] (ν : Orientation ℝ Q (Fin r))
+    (hQ : finrank ℝ Q = r) (m : Q ≃L[ℝ] f.isImmersion.NormalSpace x hn)
+    (hm : ν.map (Fin r) m.toLinearEquiv = o x) :
+    TopPair.singularCohomologyMap (m.complZeroPairIso.hom ≫
+        f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) r (f.relDualClass hn hdim hf o hr) =
+      ν.modelThomGenerator hQ := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  subst hr
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
+  have hx : x ∈ e.baseSet := FiberBundle.mem_baseSet_trivializationAt' x
+  -- `eq_relDualClassOf_iff_forall_slice` is stated for the `ℤ`-linear structure
+  -- `ModuleCat.instLinear`: read the class for that structure, take its slice, and read it back.
+  rw [TopPair.singularCohomologyMap_comp_apply,
+    relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
+    ← TopPair.singularCohomologyLinearCongr_naturality,
+    (eq_relDualClassOf_iff_forall_slice f hn hdim hf hΦ _ _).1 rfl x,
+    TopPair.singularCohomologyLinearCongr_naturality,
+    TopPair.singularCohomologyLinearCongr_apply_apply,
+    TopPair.singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply,
+    o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass rfl e hx]
+  have h : ν.map _ (m.trans (e.continuousLinearEquivAt ℝ x hx)).toLinearEquiv =
+      e.mapOrientation _ hx (o x) := by
+    rw [Trivialization.mapOrientation_apply, ← hm, ← Orientation.map_trans]
+    -- `(e.continuousLinearEquivAt ℝ x hx).toLinearEquiv` is `e.linearEquivAt ℝ x hx`.
+    congr 1
+  rw [← Orientation.singularCohomologyMap_modelThomGenerator _ ν hQ rfl, h,
+    ContinuousLinearEquiv.complZeroPairIso_trans, Iso.trans_hom,
+    TopPair.singularCohomologyMap_comp_apply]
 
 end Independence
 

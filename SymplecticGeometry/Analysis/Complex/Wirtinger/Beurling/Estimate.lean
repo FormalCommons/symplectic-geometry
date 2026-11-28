@@ -99,14 +99,12 @@ theorem eLpNorm_wirtingerDeriv_le_eLpNorm_conjWirtingerDeriv (u : 𝓢(ℂ, F)) 
 /-- **The estimate for `∂̄ + μ ∂` on Schwartz functions**: if `‖μ‖ ≤ m` almost everywhere, then
 `(1 - m) ‖∂̄u‖₂ ≤ ‖∂̄u + μ ∂u‖₂`. -/
 theorem eLpNorm_conjWirtingerDeriv_le_of_norm_le (u : 𝓢(ℂ, F)) {μ : ℂ → ℂ}
-    (hμ : AEStronglyMeasurable μ volume) {m : ℝ≥0} (hμm : ∀ᵐ z, ‖μ z‖ ≤ m) :
+    {m : ℝ≥0} (hμm : ∀ᵐ z, ‖μ z‖ ≤ m) :
     (1 - (m : ℝ≥0∞)) * eLpNorm (fun z ↦ conjWirtingerDeriv (⇑u) z 1) 2 volume ≤
       eLpNorm (fun z ↦ conjWirtingerDeriv (⇑u) z 1 + μ z • wirtingerDeriv (⇑u) z 1) 2 volume := by
   have hm₁ := SchwartzMap.memLp (SchwartzMap.conjWirtingerDerivCLM F u) 2 volume
-  have hm₂ := SchwartzMap.memLp (SchwartzMap.wirtingerDerivCLM F u) 2 volume
-  rw [funext (SchwartzMap.wirtingerDerivCLM_apply u)] at hm₂
   rw [funext (SchwartzMap.conjWirtingerDerivCLM_apply u)] at hm₁
-  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two hm₂.aestronglyMeasurable hμ hμm
+  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two hμm
     (eLpNorm_wirtingerDeriv_le_eLpNorm_conjWirtingerDeriv u) hm₁.eLpNorm_ne_top
 
 /-- **`‖∂v‖₂ ≤ ‖∂̄v‖₂` for compactly supported `W^{1,2}` maps.** If `D` is a weak derivative of a
@@ -162,7 +160,7 @@ complex-antilinear parts of `D`. -/
 theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
     {v : ℂ → F} {D : ℂ → ℂ →L[ℝ] F} (h : HasWeakFDerivOn volume ⊤ v D)
     (hv : HasCompactSupport v) (hD : MemLp D 2 volume) {μ : ℂ → ℂ}
-    (hμ : AEStronglyMeasurable μ volume) {m : ℝ≥0} (hμm : ∀ᵐ z, ‖μ z‖ ≤ m) :
+    {m : ℝ≥0} (hμm : ∀ᵐ z, ‖μ z‖ ≤ m) :
     (1 - (m : ℝ≥0∞)) * eLpNorm (fun z ↦ (D z).complexAntilinearPart 1) 2 volume ≤
       eLpNorm (fun z ↦ (D z).complexAntilinearPart 1 + μ z • (D z).complexLinearPart 1) 2
         volume := by
@@ -171,10 +169,8 @@ theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
       continuous_complexAntilinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
       (.of_forall fun z ↦ by
         simpa using norm_complexAntilinearPart_apply_le (D z) 1)
-  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two
-    (((continuous_eval_const 1).comp
-      continuous_complexLinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
-    hμ hμm (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
+  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two hμm
+    (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
     hQ.eLpNorm_ne_top
 
 /-- **The estimate for `∂̄ + μ ∂` on compactly supported `C¹` maps.** If `v` is a compactly
@@ -183,12 +179,9 @@ supported `C¹` map on the plane and `‖μ‖ ≤ m` on the topological support
 `∂v` vanishes there. -/
 theorem _root_.ContDiff.eLpNorm_conjWirtingerDeriv_le_of_norm_le {v : ℂ → F}
     (hv : ContDiff ℝ 1 v) (hc : HasCompactSupport v) {μ : ℂ → ℂ}
-    (hμ : AEStronglyMeasurable μ (volume.restrict (tsupport v))) {m : ℝ≥0}
-    (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
+    {m : ℝ≥0} (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
     (1 - (m : ℝ≥0∞)) * eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume ≤
       eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
-  have hν : AEStronglyMeasurable ((tsupport v).indicator μ) volume :=
-    (aestronglyMeasurable_indicator_iff (isClosed_tsupport v).measurableSet).2 hμ
   have hνm : ∀ᵐ z, ‖(tsupport v).indicator μ z‖ ≤ m := .of_forall fun z ↦ by
     by_cases hz : z ∈ tsupport v
     · simpa [Set.indicator_of_mem hz] using hμm z hz
@@ -198,7 +191,7 @@ theorem _root_.ContDiff.eLpNorm_conjWirtingerDeriv_le_of_norm_le {v : ℂ → F}
   have hD : MemLp (fderiv ℝ v) 2 volume :=
     (hv.continuous_fderiv one_ne_zero).memLp_of_hasCompactSupport (hc.fderiv (𝕜 := ℝ))
   have := (hv.contDiffOn (s := Set.univ)).hasWeakFDerivOn_fderiv (μ := volume) (Ω := ⊤)
-    |>.eLpNorm_complexAntilinearPart_le_of_norm_le hc hD hν hνm
+    |>.eLpNorm_complexAntilinearPart_le_of_norm_le hc hD hνm
   simpa only [← wirtingerDeriv_eq_complexLinearPart, ← conjWirtingerDeriv_eq_complexAntilinearPart,
     heq] using this
 
@@ -207,8 +200,7 @@ on the plane and `‖μ‖ ≤ m < 1` on the topological support of `v`, then
 `‖Dv‖₂ ≤ 2 (1 - m)⁻¹ ‖∂̄v + μ ∂v‖₂`. -/
 theorem _root_.ContDiff.eLpNorm_fderiv_le_of_norm_le {v : ℂ → F}
     (hv : ContDiff ℝ 1 v) (hc : HasCompactSupport v) {μ : ℂ → ℂ}
-    (hμ : AEStronglyMeasurable μ (volume.restrict (tsupport v))) {m : ℝ≥0} (hm : m < 1)
-    (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
+    {m : ℝ≥0} (hm : m < 1) (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
     eLpNorm (fderiv ℝ v) 2 volume ≤ 2 * (1 - (m : ℝ≥0∞))⁻¹ *
       eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
   have hdv : Continuous (fderiv ℝ v) := hv.continuous_fderiv one_ne_zero
@@ -226,7 +218,7 @@ theorem _root_.ContDiff.eLpNorm_fderiv_le_of_norm_le {v : ℂ → F}
   have habs : eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume ≤ (1 - (m : ℝ≥0∞))⁻¹ *
       eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
     rw [← ENNReal.div_eq_inv_mul, ENNReal.le_div_iff_mul_le (.inl hm₀) (.inl (by simp)), mul_comm]
-    exact hv.eLpNorm_conjWirtingerDeriv_le_of_norm_le hc hμ hμm
+    exact hv.eLpNorm_conjWirtingerDeriv_le_of_norm_le hc hμm
   calc eLpNorm (fderiv ℝ v) 2 volume
       ≤ eLpNorm (fun z ↦ wirtingerDeriv v z 1) 2 volume +
           eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume := by
@@ -329,10 +321,8 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_le_of_contDiff {K : Set ℂ} (
       ENNReal.inv_ne_top.2 (tsub_pos_of_lt (by exact_mod_cast hm)).ne'
     refine ⟨(1 + 2 * (1 - (m : ℝ≥0∞))⁻¹).toNNReal, fun v hv hvK ↦ ?_⟩
     rw [ENNReal.coe_toNNReal (by finiteness)]
-    have hμv : AEStronglyMeasurable μ (volume.restrict (tsupport v)) :=
-      hμ.continuous.aestronglyMeasurable
     have h := (hv.of_le (by simp)).eLpNorm_fderiv_le_of_norm_le
-      (hK.of_isClosed_subset (isClosed_tsupport v) hvK) hμv hm fun z hz ↦ hμK z (hvK hz)
+      (hK.of_isClosed_subset (isClosed_tsupport v) hvK) hm fun z hz ↦ hμK z (hvK hz)
     simp only [zero_add, Finset.sum_range_succ, Finset.sum_range_zero]
     have hPv : ContDiff ℝ ∞ (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) :=
       (hv.conjWirtingerDeriv_apply (by simp) 1).add (hμ.smul (hv.wirtingerDeriv_apply (by simp) 1))

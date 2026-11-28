@@ -20,6 +20,7 @@ import TauCeti.Geometry.Euclidean.Inversion
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Sphere
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The pointwise connected-sum obstruction
@@ -106,7 +107,7 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
     rw [IsSmoothFamily.sliceAlong_val, hχW x hx, hβ₁, SmoothForm.coe_mpullback,
       mpullback_subtype_val_apply]
   obtain ⟨τ, hτW, hτV⟩ :=
-    SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq hW hWV η σ hσ
+    SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq hW hWV η σ hσ
   have hnd : ∀ y, (τ.bilinFormAt y).Nondegenerate := fun y ↦ by
     by_cases hy : y ∈ V
     · have hσnd : SmoothTwoForm.IsNondegenerate σ := hβ.isNondegenerate_sliceAlong hχ hχI hβnd
@@ -208,7 +209,7 @@ private theorem exists_isNondegenerate_chart {e : E → M} (de : IsLocalDiffeomo
     SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback, ← hGk] at h
   -- The restriction of `G` to `W` is `G ∘ Subtype.val`, by definition of composition.
   rw [h, show (fun x : W ↦ G x) = G ∘ Subtype.val from rfl,
-    mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero)
+    mpullback_comp_at mdifferentiableAt_subtypeVal
       (hGw.mdifferentiableAt (by simp)), mpullback_subtype_val_apply]
 
 end Chart

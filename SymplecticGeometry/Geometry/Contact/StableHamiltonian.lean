@@ -524,7 +524,7 @@ theorem exists_isSymplectic_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     (U := ⟨_,
       SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
     h.nondegenerate_bilinFormAt_stableHamiltonianModel_zero
-  exact ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).isSymplectic_mpullback_subtype_val
+  exact ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).isSymplectic_mpullback_subtypeVal
     fun _ hp ↦ hle hp⟩
 
 /-- **The kernels of the slices of the model.** At a point `(r, x)` where the stable Hamiltonian

@@ -12,12 +12,12 @@ public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.CompDiffeomorphOfBoundaryless
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.LinearAlgebra.Orientation.ShortExact
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
+public import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Orientation.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
@@ -106,7 +106,7 @@ variable {E : Type} {H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Fi
 
 section Number
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 variable [T2Space M] [CompactSpace M]
 
@@ -248,7 +248,7 @@ section Remodel
 
 open CategoryTheory
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 variable [I.Boundaryless]
 
@@ -276,7 +276,7 @@ theorem selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm [T2Space M] [C
     letI := f.normalSpaceVectorBundle hn
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     (f.compDiffeomorphOfBoundaryless e.symm (by simp)).selfIntersectionNumber
-        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) (A := (J ·)) hJ)
         (o.map e hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
         (ContinuousMap.id C)
@@ -319,7 +319,7 @@ theorem selfIntersectionNumber_remodel
     letI := f.normalSpaceVectorBundle hn
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     (f.compDiffeomorphOfBoundaryless (remodelDiffeomorph Φ C).symm (by simp)).selfIntersectionNumber
-        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) (A := (J ·)) hJ)
         (o.map (remodelDiffeomorph Φ C) hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
         (ContinuousMap.id C)
@@ -359,7 +359,7 @@ theorem selfIntersectionNumber_remodel_complexCurveOrientation
       (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
         (finrank_real_of_finrank_complex_eq_add_one hG))
     (f.compDiffeomorphOfBoundaryless (remodelDiffeomorph Φ C).symm (by simp)).selfIntersectionNumber
-        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) (A := (J ·)) hJ)
         ((complexCurveOrientation G C hG).map (remodelDiffeomorph Φ C) hn
           (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       complexManifoldEvalFundamentalClass G C (r := 0) hG
@@ -403,7 +403,7 @@ theorem shortExact_orientationAt_normalSpace {k : ℕ} (hk : finrank ℝ E' = k)
       (finCongr (n := finrank ℝ (TangentSpace I' c)) hk)
       (((J.restrict f hJ).almostComplexStructureAt c).orientation rfl)) :
     Orientation.shortExact (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
-        (f.exact_mfderiv_normalClass c hn) (f.isImmersion.normalClass_surjective c hn)
+        (f.isImmersion.exact_mfderiv_normalClass c hn) (f.isImmersion.normalClass_surjective c hn)
             (o.orientationAt c)
         ((f.normalAlmostComplexStructureAt J hJ c).orientation rfl) hk rfl =
       Orientation.reindex ℝ _ (finCongr (by

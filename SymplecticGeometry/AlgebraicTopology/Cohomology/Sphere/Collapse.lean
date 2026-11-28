@@ -13,6 +13,7 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smoot
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Sphere
+import TauCeti.Data.Set.Image
 import SymplecticGeometry.Topology.Compactification.OnePoint.Sphere
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Degree
 import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveLinePow
@@ -369,13 +370,9 @@ theorem exists_singularHomologyMap_topCatSphereCollapse_singularHomologyCross_eq
   have hf : (f : _ → _) = Φ ∘ (sphereCollapse h p q r ∘ Ψ) :=
     coe_topCatSphereCollapse h p q r hE hF
   have hfib : f ⁻¹' {f x} = {x} := by
-    ext y
-    refine ⟨fun hy ↦ Ψ.injective ?_, fun hy ↦ hy ▸ Set.mem_singleton _⟩
-    simp only [Set.mem_preimage, Set.mem_singleton_iff, hf, Function.comp_apply,
-      Φ.injective.eq_iff] at hy
-    rw [← Set.mem_singleton_iff, ← Set.mem_preimage,
-      preimage_sphereCollapse_singleton h p q r hx] at hy
-    exact Set.mem_singleton_iff.1 hy
+    rw [hf, Function.comp_apply, Function.comp_apply, preimage_comp, preimage_comp,
+      Φ.injective.preimage_singleton, preimage_sphereCollapse_singleton h p q r hx,
+      Ψ.injective.preimage_singleton]
   have hs : IsLocalHomeomorphOn f (Ψ ⁻¹' ({p}ᶜ ×ˢ {q}ᶜ)) := by
     rw [hf]
     exact Φ.isLocalHomeomorph.isLocalHomeomorphOn.comp

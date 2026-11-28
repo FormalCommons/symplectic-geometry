@@ -11,19 +11,13 @@ import TauCeti.Geometry.Manifold.ContMDiff.Prod
 /-!
 # Diffeomorphisms of products
 
-For a diffeomorphism `ψ : M ≃ₘ^n⟮I, I'⟯ M'` and a manifold `N` modelled on `J`, the map
-`Prod.map id ψ` is a diffeomorphism of `N × M` onto `N × M'`. Conversely, a diffeomorphism of
-`N × M` onto `N × M'` that preserves the first coordinate has, at each `t : N`, a slice: a
-diffeomorphism of `M` onto `M'`.
-
-Mathlib's `Diffeomorph.prodCongr` builds the product of two diffeomorphisms, but asks that the
-models of the second factor's source and target share their vector space, so
-`(Diffeomorph.refl J N n).prodCongr ψ` does not typecheck when `I` and `I'` are modelled on
-different spaces. This file gives that product with the models of `ψ` free.
+A diffeomorphism of `N × M` onto `N × M'` that preserves the first coordinate has, at each
+`t : N`, a slice: a diffeomorphism of `M` onto `M'`. The product `id × ψ` of the identity of `N`
+with a diffeomorphism `ψ` of `M` onto `M'`, whose models may have different vector spaces, is
+Tau Ceti's `(Diffeomorph.refl J N n).prodCongrOfModels ψ`.
 
 ## Main definitions
 
-* `Diffeomorph.reflProdCongr N ψ`: the diffeomorphism `id × ψ` of `N × M` onto `N × M'`.
 * `Diffeomorph.slice Ψ hΨ t`: the slice at `t` of a diffeomorphism `Ψ` of `N × M` onto `N × M'`
   that preserves the first coordinate.
 * `Diffeomorph.prodModelSelf 𝕜 A B`: the identity of `A × B`, from the self-model of the product
@@ -32,10 +26,6 @@ different spaces. This file gives that product with the models of `ψ` free.
   self-models of the products is the same as one for the products of the self-models.
 
 ## Implementation notes
-
-The definition of `Diffeomorph.reflProdCongr` is Mathlib's `Diffeomorph.prodCongr` of
-`Diffeomorph.refl` and `ψ`, with the models of `ψ` freed. It belongs upstream as a
-generalization of that definition.
 
 The smoothness fields of `Diffeomorph.prodModelSelf` come from Tau Ceti's
 `contMDiff_prod_modelWithCornersSelf_iff`, which changes the model of the source.
@@ -56,29 +46,11 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace M'] [ChartedSpace H' M']
   [TopologicalSpace N] [ChartedSpace G N] {n : WithTop ℕ∞}
 
-variable (N) in
-/-- The diffeomorphism `id × ψ` of `N × M` onto `N × M'`, for a diffeomorphism `ψ` of `M` onto
-`M'` and any manifold `N`. -/
-def reflProdCongr (ψ : M ≃ₘ^n⟮I, I'⟯ M') : (N × M) ≃ₘ^n⟮J.prod I, J.prod I'⟯ N × M' where
-  toEquiv := (Equiv.refl N).prodCongr ψ.toEquiv
-  contMDiff_toFun := contMDiff_fst.prodMk (ψ.contMDiff.comp contMDiff_snd)
-  contMDiff_invFun := contMDiff_fst.prodMk (ψ.symm.contMDiff.comp contMDiff_snd)
-
-@[simp]
-theorem coe_reflProdCongr (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
-    ⇑(ψ.reflProdCongr N (J := J)) = Prod.map id ψ :=
-  (rfl)
-
 /-- Mathlib's product `ψ.prodCongr (Diffeomorph.refl J N n)` of `ψ` with the identity of `N`
 sends `x` to `(ψ x.1, x.2)`. -/
 @[simp]
 theorem prodCongr_refl_right_apply (ψ : M ≃ₘ^n⟮I, I'⟯ M') (x : M × N) :
     ψ.prodCongr (Diffeomorph.refl J N n) x = (ψ x.1, x.2) :=
-  (rfl)
-
-@[simp]
-theorem reflProdCongr_symm (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
-    (ψ.reflProdCongr N (J := J)).symm = ψ.symm.reflProdCongr N :=
   (rfl)
 
 section slice

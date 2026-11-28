@@ -16,6 +16,7 @@ import Mathlib.Analysis.Complex.OperatorNorm
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import TauCeti.Analysis.InnerProductSpace.SquaredDistance
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
@@ -52,7 +53,9 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   both are smooth.
 * `SymplecticGeometry.tsupport_peakFunction_subset`,
   `SymplecticGeometry.tsupport_peakFunction_mul_subset`: for `k ≠ 0`, their supports lie in the
-  closed ball of radius `2 * k ^ (1 / 6)`.
+  closed ball of radius `2 * k ^ (1 / 6)`, and so, for every `ε > 0` and large `k`, in the ball
+  of radius `ε * √k` (`SymplecticGeometry.eventually_tsupport_peakFunction_subset_ball`,
+  `SymplecticGeometry.eventually_tsupport_peakFunction_mul_subset_ball`).
 * `SymplecticGeometry.peakFunction_eqOn_ball`: on the ball of radius `k ^ (1 / 6)` the cut-off
   Gaussian is the Gaussian `exp (-‖z‖ ^ 2 / 4)`.
 * `SymplecticGeometry.exp_neg_one_div_four_le_norm_peakFunction`: its lower bound `exp (-1 / 4)`
@@ -280,6 +283,14 @@ theorem tsupport_peakFunction_subset {k : ℕ} (hk : k ≠ 0) :
   rw [mem_closedBall_zero_iff]
   exact ((div_lt_iff₀ hs).1 h).le
 
+/-- For every `ε > 0` and all large `k`, the support of the cut-off Gaussian lies in the ball of
+radius `ε * √k`. -/
+theorem eventually_tsupport_peakFunction_subset_ball {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ k : ℕ in Filter.atTop, tsupport (peakFunction (E := E) k) ⊆ ball 0 (ε * √k) := by
+  filter_upwards [Real.eventually_mul_rpow_one_sixth_lt_mul_sqrt 2 hε,
+    Filter.eventually_ge_atTop 1] with k hk hk1
+  exact (tsupport_peakFunction_subset (by omega)).trans (closedBall_subset_ball hk)
+
 /-- The **uniform Gaussian jet bound** for the cut-off Gaussians: for every order `r` there are
 `C`, `N` and `c > 0` such that `jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N *
 exp (-c * ‖z‖ ^ 2)` for all `k` and `z`. -/
@@ -345,6 +356,14 @@ theorem tsupport_peakFunction_mul_subset {k : ℕ} (hk : k ≠ 0) (j : ι) :
     rw [peakFunction_mul_def, Pi.mul_apply]
   rw [this]
   exact tsupport_mul_subset_right.trans (tsupport_peakFunction_subset hk)
+
+/-- For every `ε > 0` and all large `k`, the support of `peakFunction_mul k j` lies in the ball of
+radius `ε * √k`, for every `j`. -/
+theorem eventually_tsupport_peakFunction_mul_subset_ball {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ j : ι, tsupport (peakFunction_mul k j) ⊆ ball 0 (ε * √k) := by
+  filter_upwards [Real.eventually_mul_rpow_one_sixth_lt_mul_sqrt 2 hε,
+    Filter.eventually_ge_atTop 1] with k hk hk1 j
+  exact (tsupport_peakFunction_mul_subset (by omega) j).trans (closedBall_subset_ball hk)
 
 /-- The **uniform Gaussian jet bound** for the coordinates times the cut-off Gaussians: for every
 order `r` there are `C`, `N` and `c > 0` such that

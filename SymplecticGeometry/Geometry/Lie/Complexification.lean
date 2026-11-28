@@ -17,7 +17,10 @@ public import TauCeti.Geometry.Lie.Functor
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.RepresentationTheory.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
@@ -103,6 +106,9 @@ The complex structure `cplx` is not determined by the other fields.
   polar decomposition. For connected `G` and a symmetric `Ad`-invariant form `B`, the polar radius
   `B η η` of a differentiable curve `a = expI η * toHom u` has derivative
   `2 B (Ad u⁻¹ η) (im (a⁻¹ ȧ))`.
+* `SymplecticGeometry.LieComplexification.sqrt_polar_symm_fst_le_add_mul`: for such a `B` that is
+  also nonnegative, the polar radius `√(B η η)` of a curve whose left-trivialized derivative has
+  imaginary part of `B`-length at most `K` grows at most like `K * t`.
 * `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
   `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
   `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
@@ -374,14 +380,16 @@ theorem contMDiff_expI : ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ 
   (C.polar.contMDiff.comp (contMDiff_id.prodMk (contMDiff_const (c := (1 : G))))).congr
     fun ξ ↦ (C.polar_apply ξ 1).trans (by rw [map_one, mul_one]) |>.symm
 
+/-- The first polar coordinate of `expI ξ` is `ξ`. -/
+@[simp]
+theorem polar_symm_expI_fst (ξ : GroupLieAlgebra I G) : (C.polar.symm (C.expI ξ)).1 = ξ := by
+  rw [← mul_one (C.expI ξ), ← map_one C.toHom, ← C.polar_apply, Diffeomorph.symm_apply_apply]
+
 /-- The inverse of the polar decomposition reads `expI ξ * toHom u` as the pair `(ξ, u)`. -/
 @[simp]
 theorem polar_symm_expI_mul_toHom (ξ : GroupLieAlgebra I G) (u : G) :
     C.polar.symm (C.expI ξ * C.toHom u) = (ξ, u) := by
-  rw [← C.polar_apply, Diffeomorph.symm_apply_apply]
-  -- The sides differ only in the type of `ξ`: the first component of a point of `E × G` on the
-  -- left, an element of `GroupLieAlgebra I G` on the right, which is `E` by definition.
-  rfl
+  refine Prod.ext ?_ ?_ <;> rw [← C.polar_apply, Diffeomorph.symm_apply_apply]
 
 /-- Every element of `Gc` is `expI ξ * toHom u` for the pair `(ξ, u)` that the inverse of the
 polar decomposition gives it. -/
@@ -507,8 +515,7 @@ theorem mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom [FiniteDimensional ℝ
   -- Conjugating by `toHom u` turns the curve into a left-translated exponential line.
   have h (τ : ℝ) : C.expI (τ • ξ) * C.toHom u =
       C.toHom u * mulInvariantExp (τ • C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ))) := by
-    rw [← C.cplx.apply_smul, ← map_smul, ← expI_def, ← map_smul, ← C.toHom_mul_expI_mul_inv,
-      map_inv, inv_inv]
+    rw [← C.expI_smul, ← map_smul, ← C.toHom_mul_expI_mul_inv, map_inv, inv_inv]
     group
   rw [funext h, h t]
   exact mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul _ _ t
@@ -625,6 +632,37 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E]
   rw [zero_apply, zero_apply, zero_add, hkey, ← hd, hη]
   exact congrArg (2 * ·) (LinearMap.toContinuousBilinearMap_apply B η _)
 
+/-- **Linear growth of the polar radius.** For connected `G` and a symmetric, nonnegative,
+`Ad`-invariant form `B` on its Lie algebra, let `a` be a curve in `Gc` with left-trivialized
+derivative `v` at every time, and let `√(B (im (v s)) (im (v s))) ≤ K` for every `s`. Then for
+`t ≥ 0` the polar radius `√(B η η)` of `a t`, where `η` is the first component of
+`C.polar.symm (a t)`, is at most that of `a 0` plus `K * t`. -/
+theorem sqrt_polar_symm_fst_le_add_mul [FiniteDimensional ℝ E]
+    [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} (hBs : B.IsSymm)
+    (hpos : B.IsNonneg) (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {a : ℝ → Gc} {v : ℝ → GroupLieAlgebra IC Gc} (ha : HasLeftTrivializedDerivOn a v Set.univ)
+    {K : ℝ} (hK : ∀ s, √(B (C.im (v s)) (C.im (v s))) ≤ K) {t : ℝ} (ht : 0 ≤ t) :
+    √(B (C.polar.symm (a t)).1 (C.polar.symm (a t)).1) ≤
+      √(B (C.polar.symm (a 0)).1 (C.polar.symm (a 0)).1) + K * t := by
+  set f : ℝ → ℝ := fun s ↦ B (C.polar.symm (a s)).1 (C.polar.symm (a s)).1
+  set b : ℝ → ℝ := fun s ↦
+    B (Lie.tangentAd (I := I) (C.polar.symm (a s)).2⁻¹ (C.polar.symm (a s)).1) (C.im (v s))
+  have hfd (s : ℝ) : HasDerivAt f (2 * b s) s := by
+    have hd := C.hasDerivAt_polar_symm_fst_comp hBs hB (ha.mdifferentiableAt Filter.univ_mem)
+      (Prod.mk.eta ..).symm (t := s)
+    rwa [ha.mfderiv_inv_mul_curveVelocity Filter.univ_mem] at hd
+  -- Cauchy–Schwarz for `B`, with `B (Ad u⁻¹ η) (Ad u⁻¹ η) = B η η`.
+  have hb (s : ℝ) : b s ≤ √(f s) * K := by
+    have hAd (u : G) (x : GroupLieAlgebra I G) :
+        B (Lie.tangentAd (I := I) u x) (Lie.tangentAd (I := I) u x) = B x x := by
+      rw [Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply (𝕜 := ℝ), hB.apply]
+    refine (le_abs_self _).trans <| (B.abs_apply_le_sqrt_mul_sqrt hBs hpos _ _).trans ?_
+    refine (congrArg (fun r ↦ √r * √(B (C.im (v s)) (C.im (v s)))) (hAd _ _)).trans_le ?_
+    exact mul_le_mul_of_nonneg_left (hK s) (Real.sqrt_nonneg _)
+  have hK0 : 0 ≤ K := (Real.sqrt_nonneg _).trans (hK 0)
+  simpa using Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le (fun s _ ↦ hpos.nonneg _)
+    (fun s _ ↦ hfd s) (fun s _ ↦ by linarith [hb s]) hK0 ht
+
 end LieComplexification
 
 end SymplecticGeometry
@@ -675,16 +713,12 @@ private theorem lieHomC_injective : Injective lieHomC :=
 /-- The imaginary part of `lieHomC`, a linear isomorphism from the Lie algebra of `Circle` to
 `ℝ`. -/
 private def imLieHom : EuclideanSpace ℝ (Fin 1) ≃ₗ[ℝ] ℝ :=
-  LinearEquiv.ofBijective (imLm ∘ₗ lieHomC) <| by
-    have hinj : Injective (imLm ∘ₗ lieHomC) := fun ξ η h ↦
-      lieHomC_injective (Complex.ext (by rw [re_lieHomC, re_lieHomC]) h)
-    refine ⟨hinj, ?_⟩
-    rwa [← LinearMap.injective_iff_surjective_of_finrank_eq_finrank]
-    simp
+  (imLm ∘ₗ lieHomC).linearEquivOfInjective
+    (fun ξ η h ↦ lieHomC_injective (Complex.ext (by rw [re_lieHomC, re_lieHomC]) h)) (by simp)
 
 private theorem imLieHom_apply (ξ : EuclideanSpace ℝ (Fin 1)) :
     imLieHom ξ = (lieHomC ξ).im :=
-  (rfl)
+  LinearMap.linearEquivOfInjective_apply _ _ ξ
 
 private theorem lieHomC_eq (ξ : EuclideanSpace ℝ (Fin 1)) :
     lieHomC ξ = (imLieHom ξ : ℂ) * I := by

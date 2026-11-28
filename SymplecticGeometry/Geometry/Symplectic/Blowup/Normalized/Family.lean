@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Families of normalized ball embeddings, their lifts and their forms
@@ -222,7 +223,7 @@ private theorem contMDiffAt_of_eq_on_ballLift
   have hΦ := (hψ t).ballLiftPartialDiffeomorph.mdifferentiableAt (by simp)
     (show (y : BlowupModel n) ∈ (hψ t).ballLiftPartialDiffeomorph.source by simpa using hy)
   simp only [SmoothForm.coe_mpullback]
-  rw [hfun, mpullback_comp_at (contMDiff_subtypeVal.mdifferentiableAt (n := 1) one_ne_zero) hΦ,
+  rw [hfun, mpullback_comp_at mdifferentiableAt_subtypeVal hΦ,
     mpullback_subtype_val_apply, mpullback_subtype_val_apply, hβP t y hy]
 
 /-- **Gluing a smooth family of forms on the blowup.** Let `M` be Hausdorff, and `ψ` a smooth

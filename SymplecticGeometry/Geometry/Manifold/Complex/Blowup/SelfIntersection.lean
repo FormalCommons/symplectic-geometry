@@ -72,7 +72,7 @@ namespace SymplecticGeometry
 
 namespace BlowupModel
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 /-- **The exceptional divisor of the blowup of `ℂ²` at the origin has self-intersection `-1`.**
 Let `Φ` be any diffeomorphism from the model `𝓘(ℝ, Fin 1 → ℂ)` of `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` to `𝓡 2`.
@@ -89,7 +89,7 @@ theorem selfIntersectionNumber_zeroSection
         (by simp [Module.finrank_pi_fintype])
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (BlowupModel 1))
         ((zeroSectionRealEmbedding 1).mapsTo_tangentRange_compDiffeomorphOfBoundaryless _
-          (by simp) (by simp) (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
+          (by simp) (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
             (BlowupModel 1) ·))
           mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding)
         ((complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)).map
@@ -146,7 +146,7 @@ theorem selfIntersectionNumber_exceptionalDivisor_almostComplexStructure
         (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))).symm (by simp)).selfIntersectionNumber
         (by simp [Module.finrank_pi_fintype]) (almostComplexStructure c J hJ)
         ((divisorRealEmbedding c).mapsTo_tangentRange_compDiffeomorphOfBoundaryless _
-          (by simp) (by simp) (A := (almostComplexStructure c J hJ ·))
+          (by simp) (A := (almostComplexStructure c J hJ ·))
           (mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding c J hJ))
         ((complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)).map
           (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))) (by simp)
@@ -189,7 +189,7 @@ theorem selfIntersectionNumber_exceptionalDivisor
         (by simp [Module.finrank_pi_fintype])
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (Blowup c))
         ((divisorRealEmbedding c).mapsTo_tangentRange_compDiffeomorphOfBoundaryless _
-          (by simp) (by simp) (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
+          (by simp) (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
             (Blowup c) ·))
           (mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding c))
         ((complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)).map

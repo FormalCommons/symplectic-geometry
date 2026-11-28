@@ -95,10 +95,11 @@ Together they give the chain itself:
   stand-ins and their lowerings are convex shapes, then `c` is taken below the rate of increase
   of `χ` on the band
   (`IsCompact.exists_pos_mul_sub_le_sub_of_deriv_pos`), and last `h` small by uniform continuity
-  in `ℓ` (`IsCompact.exists_pos_abs_sub_lt_of_continuousOn`) and against the Lipschitz constant
-  of `∂χ/∂r` in `ℓ` (`IsCompact.exists_abs_deriv_sub_le_mul`), which makes the curvature term
-  of `SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le` of order `h / c`. The mesh cell of
-  a point of `[a, b]` comes from `SymplecticGeometry.exists_lt_mem_Icc_add_mul`.
+  in `ℓ` (`IsCompact.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn`) and against the
+  Lipschitz constant of `∂χ/∂r` in `ℓ` (`IsCompact.exists_abs_deriv_sub_le_mul`), which makes
+  the curvature term of `SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le` of order
+  `h / c`. The mesh cell of a point of `[a, b]` comes from
+  `SymplecticGeometry.exists_lt_mem_Icc_add_mul`.
 
 ## References
 
@@ -219,13 +220,13 @@ theorem min_le_deriv_smoothedMaxPath_div_sub_one_div (hδ : 0 < δ) (hη : 0 ≤
   exact (min_le_min_left _ (by linarith)).trans h
 
 /-- **The path keeps the smaller margin in the case `σ = r` of (4.4).** For `δ > 0`, `r > 0`,
-`0 ≤ η < A r`, `M r > 0`, `M` and `A` of class `C²` with `M' r, A' r ≥ 0` and
+`0 ≤ η < A r`, `M r > 0`, `M` and `A` of class `C²` at `r` with `M' r, A' r ≥ 0` and
 `δ (M' r + A' r) ≤ 2 r`, the margin `χ'' + χ'³ / r - 1 / χ` of each shape `χ` of the path at
 `r` is at least the smaller of those of `M` and of `A - η`. The latter is that of `A` less
 `η / (A r (A r - η))` (`iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const`). -/
 theorem min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div (hδ : 0 < δ)
-    (hr : 0 < r) (hη : 0 ≤ η) (hηA : η < A r) (hM₀ : 0 < M r) (hM : ContDiff ℝ 2 M)
-    (hA : ContDiff ℝ 2 A) (hMd : 0 ≤ deriv M r) (hAd : 0 ≤ deriv A r)
+    (hr : 0 < r) (hη : 0 ≤ η) (hηA : η < A r) (hM₀ : 0 < M r) (hM : ContDiffAt ℝ 2 M r)
+    (hA : ContDiffAt ℝ 2 A r) (hMd : 0 ≤ deriv M r) (hAd : 0 ≤ deriv A r)
     (hδr : δ * (deriv M r + deriv A r) ≤ 2 * r) (σ : ℝ) :
     min (iteratedDeriv 2 M r + deriv M r ^ 3 / r - 1 / M r)
         (iteratedDeriv 2 A r + deriv A r ^ 3 / r - 1 / (A r - η)) ≤
@@ -233,8 +234,8 @@ theorem min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div (
         deriv (smoothedMaxPath δ η M A σ) r ^ 3 / r - 1 / smoothedMaxPath δ η M A σ r := by
   obtain ⟨c, ⟨-, hcη⟩, he⟩ := exists_mem_Icc_smoothedMaxPath_eq (δ := δ) (M := M) (A := A) hη σ
   have hAc : 0 < A r - c := by linarith
-  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hM.contDiffAt
-    (hA.sub contDiff_const).contDiffAt hδ hr hM₀ hAc hMd (by rwa [deriv_sub_const])
+  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hM
+    (hA.sub contDiffAt_const) hδ hr hM₀ hAc hMd (by rwa [deriv_sub_const])
     (by rwa [deriv_sub_const])
   rw [deriv_sub_const, iteratedDeriv_sub_const two_pos] at h
   have hb : 1 / (A r - c) ≤ 1 / (A r - η) := one_div_le_one_div_of_le (by linarith) (by linarith)
@@ -423,7 +424,7 @@ theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 
   nlinarith
 
 /-- **The chain of paths stays `C²`-close to what its ends are close to.** For `δ, h > 0` and
-`η ≥ 0`, let `A j` and `A (j + 1)` be `C²`, let the joints match near `r`,
+`η ≥ 0`, let `A j` and `A (j + 1)` be `C²` at `r`, let the joints match near `r`,
 `A (i + 1) - η + δ ≤ M i` for `i < N` with `M = smoothedMaxChain δ A`, and let `A 0, …, A j` each
 lie at least `δ` below the next near `r`, so that `M j = A j` near `r`. If `C / δ` bounds the
 curvature of `smoothedAbs δ`, then for `ℓ ∈ [a + j h, a + (j + 1) h]` and any values `φ 0`,
@@ -431,7 +432,7 @@ curvature of `smoothedAbs δ`, then for `ℓ ∈ [a + j h, a + (j + 1) h]` and a
 are as close to `φ 0`, `φ 1`, `φ 2` as the farther of those of `A j` and `A (j + 1)`, up to
 `η + δ / 2` for the value and `C (A j' r - A (j + 1)' r)² / (2 δ)` for the second derivative. -/
 theorem abs_iteratedDeriv_shapeChain_sub_le {C : ℝ} {j : ℕ} (hδ : 0 < δ) (hh : 0 < h)
-    (hη : 0 ≤ η) (hAj : ContDiff ℝ 2 (A j)) (hAj₁ : ContDiff ℝ 2 (A (j + 1)))
+    (hη : 0 ≤ η) (hAj : ContDiffAt ℝ 2 (A j) r) (hAj₁ : ContDiffAt ℝ 2 (A (j + 1)) r)
     (hJ : ∀ᶠ r' in 𝓝 r, ∀ i < N, A (i + 1) r' - η + δ ≤ smoothedMaxChain δ A i r')
     (hup : ∀ᶠ r' in 𝓝 r, ∀ i < j, A i r' + δ ≤ A (i + 1) r')
     (hC : ∀ t, iteratedDeriv 2 (smoothedAbs δ) t ≤ C / δ) (hj : j < N)
@@ -452,9 +453,8 @@ theorem abs_iteratedDeriv_shapeChain_sub_le {C : ℝ} {j : ℕ} (hδ : 0 < δ) (
       smoothedMaxChain_eventuallyEq hδ hup] with r' h₁ h₂
     rw [h₁, he]
     exact congrArg (smoothedMax δ · (A (j + 1) r' - c)) h₂
-  have hd : DifferentiableAt ℝ (A j) r := (hAj.differentiable two_ne_zero).differentiableAt
-  have hd₁ : DifferentiableAt ℝ (A (j + 1)) r :=
-    (hAj₁.differentiable two_ne_zero).differentiableAt
+  have hd : DifferentiableAt ℝ (A j) r := hAj.differentiableAt two_ne_zero
+  have hd₁ : DifferentiableAt ℝ (A (j + 1)) r := hAj₁.differentiableAt two_ne_zero
   refine ⟨?_, ?_, ?_⟩
   · rw [hloc.eq_of_nhds]
     have hc : |A (j + 1) r - c - φ 0| ≤ |A (j + 1) r - φ 0| + η := by
@@ -469,8 +469,7 @@ theorem abs_iteratedDeriv_shapeChain_sub_le {C : ℝ} {j : ℕ} (hδ : 0 < δ) (
     simpa only [deriv_sub_const] using abs_deriv_smoothedMax_sub_le hd (hd₁.sub_const c) (φ 1)
   · rw [hloc.iteratedDeriv_eq 2]
     simpa only [deriv_sub_const, iteratedDeriv_sub_const two_pos] using
-      abs_iteratedDeriv_two_smoothedMax_sub_le hAj.contDiffAt (hAj₁.sub contDiff_const).contDiffAt
-        hδ.le (hC _) (φ 2)
+      abs_iteratedDeriv_two_smoothedMax_sub_le hAj (hAj₁.sub contDiffAt_const) hδ.le (hC _) (φ 2)
 
 end shapeChain
 
@@ -590,7 +589,8 @@ private theorem abs_iteratedDeriv_shapeChain_sub_lt_of_mem_band {A : ℕ → ℝ
             rw [hstep i hiN] at h₁
             linarith)
     filter_upwards [h] with r' hr' i hi using (hr' i hi).le
-  obtain ⟨e₀, e₁, e₂⟩ := abs_iteratedDeriv_shapeChain_sub_le hδ hh hη (hA j) (hA (j + 1))
+  obtain ⟨e₀, e₁, e₂⟩ := abs_iteratedDeriv_shapeChain_sub_le hδ hh hη (hA j).contDiffAt
+    (hA (j + 1)).contDiffAt
     hJ hup hQδ hj hℓj (fun k ↦ iteratedDeriv k (χ ℓ) r)
   rw [(hAe j).eq_of_nhds, (hAe (j + 1)).eq_of_nhds] at e₀
   rw [(hAe j).deriv_eq, (hAe (j + 1)).deriv_eq] at e₁ e₂
@@ -684,14 +684,8 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
     ⟨min (min (m / 2) (ε / (b - a))) (min (r₁ / G) (η / 4)), by positivity, by simp⟩
   obtain ⟨ε₀, hε₀, hε₀η, hε₀τ⟩ : ∃ ε₀ > 0, ε₀ ≤ η / 2 ∧ ε₀ ≤ τ / 4 :=
     ⟨min (η / 2) (τ / 4), by positivity, min_le_left _ _, min_le_right _ _⟩
-  obtain ⟨w, hw, hu⟩ : ∃ w > 0, ∀ k ≤ 2, ∀ r ∈ Icc r₁ r₂, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b,
-      |ℓ' - ℓ| ≤ w → |iteratedDeriv k (χ ℓ') r - iteratedDeriv k (χ ℓ) r| < ε₀ := by
-    choose! w hw hu using fun k (hk : k ≤ 2) ↦
-      isCompact_Icc.exists_pos_abs_sub_lt_of_continuousOn (hcont k hk) hε₀
-    refine ⟨min (w 0) (min (w 1) (w 2)),
-      lt_min (hw 0 (by norm_num)) (lt_min (hw 1 (by norm_num)) (hw 2 le_rfl)),
-      fun k hk r hr ℓ hℓ ℓ' hℓ' hl ↦ hu k hk r hr ℓ hℓ ℓ' hℓ' (hl.trans ?_)⟩
-    interval_cases k <;> simp
+  obtain ⟨w, hw, hu⟩ :=
+    isCompact_Icc.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn (n := 2) hcont hε₀
   obtain ⟨h₀, hh₀, hh₀w, hh₀1, hh₀τ⟩ :
       ∃ h₀ > 0, h₀ ≤ w ∧ h₀ ≤ 1 ∧ h₀ ≤ τ * c / (Q * L ^ 2 + 1) :=
     ⟨min w (min 1 (τ * c / (Q * L ^ 2 + 1))), by positivity, by simp⟩

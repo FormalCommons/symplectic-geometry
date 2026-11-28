@@ -46,7 +46,7 @@ The operator is the composite `π^{0,1}_i ∘ Φ_J ∘ ∇` of three bounded ope
 
 * the Sobolev realization `IsCovariantDerivativeOn.sobolevL` of the connection, from
   `W^{k+1,2}(L)` to `W^{k,2}` of `L`-valued one-forms;
-* the action `TauCeti.SobolevSection.contMDiffHomMulL` of the smooth field
+* the action `TauCeti.SobolevSection.bundleMapL` of the smooth field
   `Φ_J = TauCeti.SmoothAlmostComplexStructure.zeroOnePartL J` of `(0,1)`-projections for `J`,
   a smooth section of the endomorphism bundle of the `L`-valued one-forms
   (`TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`);
@@ -64,7 +64,7 @@ Only the middle factor depends on `J`. So `D_J` is continuous in `J`, from the `
 (`SymplecticGeometry.continuous_twistOneDelBarSobolev`): the section of `(0,1)`-projections is
 continuous in `J` (`TauCeti.SmoothAlmostComplexStructure.continuous_zeroOnePartSection`), and
 the action of a smooth hom section on Sobolev sections is continuous in the section for the
-frame topology (`TauCeti.SobolevSection.tendsto_contMDiffHomMulL_of_tendsto`).
+frame topology (`TauCeti.SobolevSection.tendsto_bundleMapL_of_tendsto`).
 
 Tau Ceti's realization `TauCeti.IsRealCauchyRiemannOperator.sobolevSuccL`
 (`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Basic.lean`) is not used: it
@@ -130,7 +130,8 @@ does not apply to `D_J`, and the estimate is proved here.
   compact error term. There are `C` and a compact operator
   `K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every `w`. It
   follows from the a priori estimate and Rellich's theorem
-  `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`.
+  `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`, by Tau Ceti's
+  `ContinuousLinearMap.exists_compact_estimate_of_norm_le_mul_add_norm`.
 * `SymplecticGeometry.isClosed_range_twistOneDelBarSobolev` and
   `SymplecticGeometry.finiteDimensional_ker_twistOneDelBarSobolev`: for `J` tamed together with
   `i` by a two-form, `D_J` has closed range and finite-dimensional kernel at every order, by
@@ -194,17 +195,17 @@ def twistOneDelBarSobolev :
     SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
       zeroOneSobolevSections (twistCoreAtlas 1) volume 2 k :=
   (zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k).comp
-    ((SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-        (J.contMDiff_zeroOnePartL le_rfl)).comp
+    ((SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+        (J.contMDiff_zeroOnePartL le_rfl) volume 2 k).comp
       (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
         (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k))
 
 theorem twistOneDelBarSobolev_def :
     twistOneDelBarSobolev J k = (zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k).comp
-      ((SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-          (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-          (J.contMDiff_zeroOnePartL le_rfl)).comp
+      ((SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+          (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+          (J.contMDiff_zeroOnePartL le_rfl) volume 2 k).comp
         (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
           (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k)) :=
   (rfl)
@@ -212,9 +213,9 @@ theorem twistOneDelBarSobolev_def :
 /-- The operator applied to a Sobolev section, as the three operators applied in turn. -/
 theorem twistOneDelBarSobolev_apply (w : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1)) :
     twistOneDelBarSobolev J k w = zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k
-      (SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-        (J.contMDiff_zeroOnePartL le_rfl)
+      (SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+        (J.contMDiff_zeroOnePartL le_rfl) volume 2 k
         (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
           (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k w)) :=
   (rfl)
@@ -244,9 +245,24 @@ theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
     exact isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
       (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k s i
   -- The chart data of `Φ_J ∇s` are the readings of the section `x ↦ Φ_J x (∇s x)`.
-  have hΦ := SobolevSection.chartValueL_contMDiffHomMulL_ae_coord_self
-    (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
-    hcov i
+  -- The atlas `(twistCoreAtlas 1).tangentHom.ofBaseSet _` of the image is the atlas itself by the
+  -- eta rule for structures, so Tau Ceti's lemma has this type.
+  have hΦ : (twistCoreAtlas 1).tangentHom.sectionChartData.chartValueL volume 2 k i
+        (SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+          (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+          (J.contMDiff_zeroOnePartL le_rfl) volume 2 k
+          (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
+            (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k
+              (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)) :
+          ((twistCoreAtlas 1).tangentHom.ofBaseSet
+            (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet).sectionChartData.SobolevData
+            volume 2 k)
+      =ᵐ[volume.restrict ((twistCoreAtlas 1).tangentHom.image i)]
+        (twistCoreAtlas 1).tangentHom.coord i fun x ↦
+          J.zeroOnePartL x (twistOneConnection s x) :=
+    SobolevSection.chartValueL_bundleMapL_ae_coord (A := (twistCoreAtlas 1).tangentHom)
+      (h := (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet)
+      (hΦ := J.contMDiff_zeroOnePartL le_rfl) hcov i
   simp only [FiniteBundleAtlas.image_tangentHom, SmoothAlmostComplexStructure.zeroOnePartL_apply]
     at hΦ
   rw [twistOneDelBarSobolev_apply]
@@ -279,11 +295,11 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
         TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) x
   let U' (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e' x).open_baseSet⟩
   have hΦ : Continuous fun J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) ↦
-      SobolevSection.contMDiffHomMulL (twistCoreAtlas 1).tangentHom
-        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet volume 2 k
-        (J.zeroOnePartSection (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber)).contMDiff :=
+      SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+        (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+        (J.zeroOnePartSection (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber)).contMDiff volume 2 k :=
     continuous_iff_continuousAt.2 fun J₀ ↦
-      SobolevSection.tendsto_contMDiffHomMulL_of_tendsto
+      SobolevSection.tendsto_bundleMapL_of_tendsto
         (fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩)
         (@Continuous.tendsto _ _ (SmoothAlmostComplexStructure.frameTopology e U hU)
           (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' fun _ ↦ subset_rfl) _
@@ -291,7 +307,7 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
             fun _ ↦ subset_rfl) J₀)
   rw [funext (twistOneDelBarSobolev_def · k)]
   refine continuous_const.clm_comp ((hΦ.congr fun J ↦ ?_).clm_comp continuous_const)
-  exact SobolevSection.contMDiffHomMulL_congr _ _ (funext J.zeroOnePartSection_apply)
+  exact SobolevSection.bundleMapL_congr _ _ (funext J.zeroOnePartSection_apply)
 
 /-- **Continuity in `J` on the structures tamed by `σ`.** The restriction of
 `continuous_twistOneDelBarSobolev` to the almost complex structures tamed by a two-form `σ`, with
@@ -595,8 +611,7 @@ theorem exists_eLpNormWkp_coord_smul_le
   have hcl := A.closure_image_subset_target i
   -- `χ` read in the chart vanishes on the chart image off the compact set `K`.
   set K : Set ℂ := A.chart i '' tsupport χ
-  have hK : IsCompact K := (isClosed_tsupport χ).isCompact.image_of_continuousOn
-    ((A.chart i).continuousOn.mono (hχi.trans (A.dom_subset_chart_source i)))
+  have hK : IsCompact K := A.isCompact_chart_image_of_isClosed (isClosed_tsupport χ) hχi
   have hKW : K ⊆ A.image i := fun y hy ↦ A.mem_image.2 (image_mono hχi hy)
   set χ' : ℂ → ℂ := fun y ↦ (χ ((A.chart i).symm y) : ℂ)
   have hχ' : ContDiffOn ℝ ∞ χ' (A.chart i).target :=
@@ -770,14 +785,9 @@ theorem exists_compact_estimate_twistOneDelBarSobolev
     ∃ (C : ℝ) (K : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
         SobolevSection (twistCoreAtlas 1) volume 2 k),
       IsCompactOperator K ∧ ∀ w, ‖w‖ ≤ C * ‖twistOneDelBarSobolev J k w‖ + ‖K w‖ := by
-  have := (twistCoreAtlas 1).compactSpace
   obtain ⟨C, hC⟩ := exists_norm_le_twistOneDelBarSobolev J k hJ hi
-  refine ⟨max C 0, max C 0 • (twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k,
-    ?_, fun w ↦ ?_⟩
-  · rw [FunLike.coe_smul]
-    exact (SobolevSection.isCompactOperator_lowerOrderL _ _ _ k).smul _
-  rw [smul_apply, norm_smul, Real.norm_of_nonneg (le_max_right _ _), ← mul_add]
-  exact (hC w).trans (mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity))
+  exact ContinuousLinearMap.exists_compact_estimate_of_norm_le_mul_add_norm
+    (SobolevSection.isCompactOperator_lowerOrderL _ _ _ k) hC
 
 /-- **Closed range of `D_J`.** Let a two-form `σ` tame both `J` and the standard structure `i` of
 the sphere. For every order `k`, the range of `twistOneDelBarSobolev J k` is closed in the space

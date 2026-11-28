@@ -10,6 +10,7 @@ public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 public import TauCeti.Topology.OpenPartialHomeomorph.Basic
 public import TauCeti.Topology.VectorBundle.Trivialization
 public import TauCeti.Topology.VectorBundle.ZeroSection
+import TauCeti.Data.Set.Image
 
 /-!
 # A chart of the total space at a point of the zero section
@@ -302,8 +303,8 @@ theorem localChart_zero (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) 
 theorem localChart_preimage_singleton_zeroSection (hS : IsOpen S) (hSc : S ⊆ c.target)
     (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0) (h0 : (0 : Q) ∈ S) :
     e.localChart c S ⁻¹' {zeroSection P E b} = {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := by
-  rw [← localChart_zero hSe hb hcb h0, ← image_singleton,
-    (isOpenEmbedding_localChart hS hSc hSe).injective.preimage_image]
+  rw [← localChart_zero hSe hb hcb h0,
+    (isOpenEmbedding_localChart hS hSc hSe).injective.preimage_singleton]
 
 section LocalHomology
 

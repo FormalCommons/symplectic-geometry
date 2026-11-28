@@ -18,7 +18,8 @@ on:
 # step); the workflow cache-upload,
 # which is not this one and holds the key that this one must not have, puts
 # it into a bucket. Every run reads that bucket, which needs no key; see the
-# step that does.
+# step that does. A run that found no save of the dependencies does the same
+# with the Tau Ceti modules, as the artifact `lake-cache-tauceti`.
 permissions:
   contents: read
   actions: read
@@ -199,10 +200,16 @@ jobs:
           exit $fail
       # elan, then the latest save of the built dependencies, or Mathlib's
       # build cache and Tau Ceti's without one; see the workflow
-      # cache-dependencies.
+      # cache-dependencies. Without a save, the run also takes from the
+      # bucket the Tau Ceti modules that an earlier run handed over
+      # (`bucket`), and its last steps hand over its own: the mappings of
+      # all that its build covered, and the archives that the bucket's file
+      # does not name; see the action and tauceti-bucket.sh.
       - name: set up Lean and restore the built dependencies
         id: setup
         uses: ./.github/actions/setup-lean
+        with:
+          bucket: true
       # main's latest build of the library: the latest save of the workflow
       # cache-library, which follows main (`-inc-`) and is a few commits
       # behind, or without one the latest save of any kind. Lake takes a
@@ -360,16 +367,7 @@ jobs:
           }
           # The commits whose mappings this run may read beside main's,
           # latest first.
-          commits=
-          if [ "$OWN_REPO" = true ]; then
-            if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-              commits=$(timeout 60 gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --jq '.[].sha' | tail -n 20 | tac) ||
-                echo "::warning::could not ask GitHub for the commits of pull request $PR"
-            elif [[ $QUEUE_REF =~ ^refs/heads/gh-readonly-queue/main/pr-([0-9]+)-[0-9a-f]{40}$ ]]; then
-              commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/pulls/${BASH_REMATCH[1]}" --jq '.head.sha') ||
-                echo "::warning::could not ask GitHub for the head commit of pull request ${BASH_REMATCH[1]}"
-            fi
-          fi
+          commits=$(.github/own-commits.sh)
           if [ -n "$commits" ]; then
             if at=$(python3 -I .github/lake-cache-address.py fc-pr "$(cat lean-toolchain)" | sed -n 2p) && [ -n "$at" ]; then
               for c in $commits; do
@@ -456,6 +454,42 @@ jobs:
         with:
           name: lake-cache
           path: ${{ runner.temp }}/lake-staged
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      # The Tau Ceti modules, in a run that found no save of the dependencies
+      # and so built them itself (see the setup action): the mappings of all
+      # of them, and the archives of those that the file from the bucket did
+      # not have. cache-upload puts them beside the library's, under the same
+      # rules; a run of the merge queue thereby makes them main's, which the
+      # runs after a move read until main has its save of the dependencies.
+      # If either step fails, only the bucket goes without.
+      - name: stage the Tau Ceti modules for the bucket
+        id: tauceti
+        if: >-
+          steps.build.outcome == 'success' && steps.setup.outputs.tauceti-mappings == 'true' &&
+          (github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository)
+        continue-on-error: true
+        timeout-minutes: 10
+        # The first four are for the script's second look into the bucket.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWN_REPO: 'true'
+          PR: ${{ github.event.pull_request.number }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+        run: >-
+          .github/tauceti-bucket.sh stage "$RUNNER_TEMP/tauceti-mappings.jsonl"
+          "$RUNNER_TEMP/tauceti-bucket" "$RUNNER_TEMP/tauceti-handover"
+      - name: hand the Tau Ceti modules to cache-upload
+        if: steps.tauceti.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: actions/upload-artifact@v7
+        with:
+          name: lake-cache-tauceti
+          path: ${{ runner.temp }}/tauceti-handover
           if-no-files-found: error
           retention-days: 1
           compression-level: 0

@@ -174,7 +174,7 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
   have hσ : ∀ ξ η, SmoothBundleForm.eval₂ σ (Z x) (D ξ) (D η) =
       SmoothBundleForm.eval₂ σ (Z x) ξ η := fun ξ η ↦
     (congrArg (fun y ↦ SmoothBundleForm.eval₂ σ y (D ξ) (D η)) (hψ0 x hz)).symm.trans
-      (SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val hψ hψω p ξ η)
+      (SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtypeVal hψ hψω p ξ η)
   -- evaluate on `(v, 0)` and `(0, a)`
   obtain ⟨⟨u, a'⟩, hua⟩ : ∃ q, q = T (D (T.symm (0, a))) := ⟨_, rfl⟩
   rw [← hua]

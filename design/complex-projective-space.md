@@ -381,12 +381,13 @@ the real structures of Tau Ceti (`instIsManifoldReal`):
 - `mkNonzero 𝕜 n : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) → ℙ 𝕜 (Fin (n + 1) → 𝕜)`,
   $v\mapsto[v]$, with `mkNonzero_apply` and `surjective_mkNonzero`.
 - `contMDiff_mkNonzero` (every order), `isSubmersion_mkNonzero`
-  (`IsSubmersion 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) ∞`), from the local
-  sections $z\mapsto$ `Fin.insertNth j 1 z` over the affine charts and
-  `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`.
+  (`IsSubmersion 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) ∞`), from
+  `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`: the real
+  derivative at $v$ is Tau Ceti's `Projectivization.mfderivMk v`, which is
+  onto.
 - `ker_mfderiv_mkNonzero`: the kernel at $v$ is the real subspace
-  `(𝕜 ∙ (v : _)).restrictScalars ℝ`, by invariance under scalars and
-  dimension.
+  `(𝕜 ∙ (v : _)).restrictScalars ℝ`, by Tau Ceti's
+  `Projectivization.ker_mfderivMk`.
 - `affineLift 𝕜 j : (Fin n → 𝕜) → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)`,
   $w\mapsto$ `Fin.insertNth j 1 w`, the section of `mkNonzero` over the
   affine chart of `j`, with `coe_affineLift`, `mkNonzero_comp_affineLift`
@@ -491,9 +492,9 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
 - `mpullback_unitary_fubiniStudyForm (U : Matrix.unitaryGroup (Fin (n + 1)) ℂ)`:
   invariance under `Projectivization.mapDiffeomorph
   (Matrix.UnitaryGroup.toLinearEquiv U) ∞` (part 4, first sentence).
-- `compatible_fubiniStudyForm : (fubiniStudyForm n).Compatible J_P`, upstairs:
-  `mkNonzero` is holomorphic, $\rho$ is $J_0$-invariant, and
-  $\rho(v,iv)>0$ for $v\notin\mathbb Cz$ (the kernel of `ker_mfderiv_mkNonzero`).
+- `compatible_fubiniStudyForm : (fubiniStudyForm n).Compatible J_P`, from
+  Tau Ceti's `ComplexProjectiveSpace.compatible_fubiniStudyForm`, pulled back
+  along the holomorphic `(diffeomorphProjectivization n).symm`.
 - `isKahler_fubiniStudyForm : (fubiniStudyForm n).IsKahler J_P`, with
   `nijenhuis_ofComplexManifold` (part 3, first two sentences).
 - `mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1))`: along the

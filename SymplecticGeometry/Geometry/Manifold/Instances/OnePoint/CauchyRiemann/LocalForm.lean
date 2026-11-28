@@ -31,6 +31,7 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffRepresentative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
@@ -59,7 +60,7 @@ when, in every chart, `L y` is complex linear for `K y` at almost every point of
 
 The proof reads each factor of `D_J = π^{0,1}_i ∘ Φ_J ∘ ∇` in the chart. The chart data of
 `Φ_J ∇w` are the chart reading of the field `zeroOnePartL J` applied to `L`
-(`TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_self`). Tau Ceti's
+(`TauCeti.SobolevSection.chartValueL_bundleMapL_ae_self`). Tau Ceti's
 `TauCeti.zeroOnePartSobolevL_eq_zero_iff` says that `D_J w = 0` exactly when these data are
 complex linear almost everywhere in every chart. Taming gives `K 1 ≠ -i`
 (`TauCeti.SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames`), and then the
@@ -236,7 +237,7 @@ theorem twistOneDelBarSobolev_eq_zero_iff {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (On
   -- The chart data of `Φ_J ∇w` are the reading of `Φ_J` applied to those of `∇w`, which are
   -- `Du + Γ u` for any weak derivative `Du`.
   have hΦ (i : Fin (twistCoreAtlas 1).n) := by
-    have := SobolevSection.chartValueL_contMDiffHomMulL_ae_self
+    have := SobolevSection.chartValueL_bundleMapL_ae_self
       (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
       (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
         (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 0 w) i
@@ -408,9 +409,9 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
         (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
         (ψ.toOpenPartialHomeomorph z) ∧
       (∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx
-          (VectorBundleOrientation.reindex (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+          (VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
             (VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber) x) =
-        Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+        Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self)
           (complexOrientation ℂ)) ∧
       ∃ c : OnePoint ℂ → ℂ, ContinuousAt c z ∧ c z ≠ 0 ∧
         ∀ x (v : (twistCore (𝕜 := ℂ) 1).Fiber x),
@@ -686,7 +687,7 @@ theorem twistOneDelBarSobolev_eq_zero_iff_of_chartValueL_ae_eq {k k' : ℕ}
   -- `Φ_J` applied to `Du + Γ u`, for the chart data `u` of `w` and a weak derivative `Du` of them.
   have hΦ {l : ℕ} (v : SobolevSection (twistCoreAtlas 1) volume 2 (l + 1))
       (i : Fin (twistCoreAtlas 1).n) := by
-    have := SobolevSection.chartValueL_contMDiffHomMulL_ae_self
+    have := SobolevSection.chartValueL_bundleMapL_ae_self
       (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
       (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
         (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 l v) i

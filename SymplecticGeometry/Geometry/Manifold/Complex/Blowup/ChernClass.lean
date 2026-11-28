@@ -199,7 +199,7 @@ theorem firstChernClass_normalComplexStructure_divisorRealEmbedding {hn : (∞ :
       divisorNormalEquiv c ℓ (ν ℓ w) = Complex.I • divisorNormalEquiv c ℓ w := by
     rw [hν, SmoothEmbedding.normalComplexStructure_apply,
       divisorNormalEquiv_normalComplexStructureAt]
-  rw [SymplecticGeometry.Bundle.firstChernClass_congr _
+  rw [TauCeti.firstChernClass_eq_of_fiberwise
       (ν.continuous_fiberEquivOfCommuteI _ he ℂ (continuous_divisorNormalEquiv c)),
     Projectivization.firstChernClass_tautological]
 
@@ -218,7 +218,7 @@ theorem firstChernClass_restrict_divisor :
             ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber)) =
       (n : ℤ) • Projectivization.hyperplaneClass (Fin (n + 1) → ℂ) := by
   have := Complex.fact_finrank_real_eq_two_mul_finrank (Fin n → ℂ)
-  have := Complex.finrank_real_complex_eq_two_mul_finrank_fact
+  have := Complex.fact_finrank_real_eq_two_mul_finrank ℂ
   -- `ι^* c₁(T Blowup c) = c₁(Tℙ) + c₁(ν) = (n + 1) h - h`.
   rw [(divisorRealEmbedding c).firstChernClass_pullback_eq_add (hn := by simp)
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)

@@ -7,8 +7,13 @@ module
 
 public import Mathlib.Topology.Instances.Matrix
 public import Mathlib.Analysis.Complex.Basic
-public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Orthogonal.Unitary
+public import TauCeti.Algebra.Star.Unitary
+public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Orthogonal.Basic
 public import TauCeti.LinearAlgebra.Matrix.OfReal
+public import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
+import SymplecticGeometry.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
+import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Orthogonal.Unitary
+import TauCeti.Topology.Algebra.Star.Unitary
 
 /-!
 # The real points of the unitary group
@@ -16,8 +21,9 @@ public import TauCeti.LinearAlgebra.Matrix.OfReal
 The orthogonal group `O(n)` sits inside the unitary group `U(n)` as the unitary matrices with
 real entries. Tau Ceti describes this group inside `GL ι ℂ`
 (`TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`: the unitary elements of `O(n, ℂ)` are the
-real orthogonal matrices). This file carries it over to a subgroup of `Matrix.unitaryGroup ι ℂ`,
-through Mathlib's `unitarySubgroupUnitsEquiv`.
+real orthogonal matrices). This file reads it as a subgroup of `Matrix.unitaryGroup ι ℂ`: it is
+Tau Ceti's unitary part `Subgroup.unitaryPart` of the complex orthogonal group
+`TauCeti.GLOrthogonal ι ℂ`.
 
 ## Main definitions
 
@@ -31,7 +37,10 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff_exists`: `U` lies in it iff `U` is the complex image
   of a real orthogonal matrix.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff`: `U` lies in it iff its entries are real.
-* `Matrix.UnitaryGroup.map_ofReal_mem_realSubgroup`: a real orthogonal matrix lies in it.
+* `Matrix.UnitaryGroup.realSubgroup_eq_range`: it is the range of Tau Ceti's embedding
+  `TauCeti.orthogonalComplexMatrix`.
+* `Matrix.UnitaryGroup.orthogonalComplexMatrix_mem_realSubgroup`: the image of a real
+  orthogonal matrix under `TauCeti.orthogonalComplexMatrix` lies in it.
 * `Matrix.UnitaryGroup.isClosed_realSubgroup`: it is closed.
 * `Matrix.UnitaryGroup.map_re_conjTranspose_mul_self`: `Re (Uᴴ U) = 1` for a unitary `U`.
 
@@ -49,15 +58,12 @@ namespace Matrix.UnitaryGroup
 variable (ι : Type*) [Fintype ι] [DecidableEq ι]
 
 /-- The real points of the unitary group: the orthogonal group `O(n)` as a subgroup of
-`unitaryGroup ι ℂ`, namely the image of the unitary elements of Tau Ceti's complex orthogonal
-group `GLOrthogonal ι ℂ` under `unitarySubgroupUnitsEquiv`. -/
+`unitaryGroup ι ℂ`, namely Tau Ceti's unitary part of the complex orthogonal group
+`GLOrthogonal ι ℂ`, the unitary matrices whose unit is complex orthogonal. -/
 def realSubgroup : Subgroup (unitaryGroup ι ℂ) :=
-  ((TauCeti.GLOrthogonal ι ℂ).subgroupOf (unitarySubgroup (GL ι ℂ))).map
-    (unitarySubgroupUnitsEquiv (M := Matrix ι ι ℂ)).toMonoidHom
+  (TauCeti.GLOrthogonal ι ℂ).unitaryPart
 
-theorem realSubgroup_def : realSubgroup ι =
-    ((TauCeti.GLOrthogonal ι ℂ).subgroupOf (unitarySubgroup (GL ι ℂ))).map
-      (unitarySubgroupUnitsEquiv (M := Matrix ι ι ℂ)).toMonoidHom :=
+theorem realSubgroup_def : realSubgroup ι = (TauCeti.GLOrthogonal ι ℂ).unitaryPart :=
   (rfl)
 
 variable {ι}
@@ -66,8 +72,8 @@ variable {ι}
 `Uᵀ U = 1`. -/
 theorem mem_realSubgroup_iff_transpose_mul_self_eq_one {U : unitaryGroup ι ℂ} :
     U ∈ realSubgroup ι ↔ (U : Matrix ι ι ℂ)ᵀ * U = 1 := by
-  rw [realSubgroup_def, Subgroup.mem_map_equiv, Subgroup.mem_subgroupOf,
-    TauCeti.GLOrthogonal.mem_iff, val_unitarySubgroupUnitsEquiv_symm_apply_coe]
+  rw [realSubgroup_def, Subgroup.mem_unitaryPart, TauCeti.GLOrthogonal.mem_iff,
+    Unitary.val_toUnits_apply]
 
 /-- A unitary matrix is a real point of the unitary group iff it is the complex image of a real
 orthogonal matrix. -/
@@ -100,21 +106,30 @@ theorem mem_realSubgroup_iff {U : unitaryGroup ι ℂ} :
     rw [mem_realSubgroup_iff_transpose_mul_self_eq_one, ← hconj, ← star_eq_conjTranspose]
     exact Unitary.star_mul_self_of_mem U.prop
 
-/-- The complex image of a real orthogonal matrix is a real point of the unitary group. -/
-theorem map_ofReal_mem_realSubgroup {O : Matrix ι ι ℝ} (hO : O ∈ orthogonalGroup ι ℝ) :
-    (⟨O.map ((↑) : ℝ → ℂ), map_ofReal_mem_unitaryGroup hO⟩ : unitaryGroup ι ℂ) ∈
-      realSubgroup ι :=
-  mem_realSubgroup_iff_exists.mpr ⟨O, hO, rfl⟩
+variable (ι) in
+/-- The real points of the unitary group are the range of Tau Ceti's embedding
+`TauCeti.orthogonalComplexMatrix : O(n) →* U(n)`. -/
+theorem realSubgroup_eq_range :
+    realSubgroup ι = (TauCeti.orthogonalComplexMatrix (n := ι)).range := by
+  ext U
+  rw [mem_realSubgroup_iff_exists, MonoidHom.mem_range]
+  constructor
+  · rintro ⟨O, hO, hOU⟩
+    exact ⟨⟨O, hO⟩, Subtype.ext <| by rw [TauCeti.coe_orthogonalComplexMatrix, ← hOU]⟩
+  · rintro ⟨O, rfl⟩
+    exact ⟨O, O.property, (TauCeti.coe_orthogonalComplexMatrix O).symm⟩
+
+/-- The complex image `TauCeti.orthogonalComplexMatrix O` of a real orthogonal matrix `O` is a
+real point of the unitary group. -/
+theorem orthogonalComplexMatrix_mem_realSubgroup (O : orthogonalGroup ι ℝ) :
+    TauCeti.orthogonalComplexMatrix O ∈ realSubgroup ι :=
+  realSubgroup_eq_range ι ▸ ⟨O, rfl⟩
 
 variable (ι) in
 /-- The real points of the unitary group form a closed subset. -/
 theorem isClosed_realSubgroup : IsClosed (realSubgroup ι : Set (unitaryGroup ι ℂ)) := by
-  have : (realSubgroup ι : Set (unitaryGroup ι ℂ)) =
-      {U : unitaryGroup ι ℂ | (U : Matrix ι ι ℂ).map Complex.im = 0} := by
-    ext U
-    exact mem_realSubgroup_iff
-  rw [this]
-  exact isClosed_eq (continuous_subtypeVal.matrix_map Complex.continuous_im) continuous_const
+  rw [realSubgroup_def]
+  exact Subgroup.isClosed_unitaryPart TauCeti.GLOrthogonal.isClosed
 
 /-- The real part `Re (Uᴴ U)` of the Gram matrix of a unitary matrix is the identity. -/
 theorem map_re_conjTranspose_mul_self (U : unitaryGroup ι ℂ) :

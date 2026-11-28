@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
-import Mathlib.Geometry.Manifold.IntegralCurve.Transform
+import TauCeti.Geometry.Manifold.IntegralCurve.Basic
 import TauCeti.Geometry.Manifold.Boundary.BoundaryFlow.Basic
 import TauCeti.Geometry.Manifold.Boundary.BoundaryFlow.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
@@ -29,7 +29,7 @@ the integral curve of `Y` on `(-ε, 0]` that ends at `x`.
 
 The curves come from Tau Ceti's forward flow `Ψ` of the inward field `-Y` along the whole
 boundary (`TauCeti.IsOutwardPointingField.exists_contMDiffOn_boundaryFlow`), defined on an open
-set `O ⊆ W × ℝ` containing `∂W × {0}`; run backward, by Mathlib's `IsMIntegralCurveOn.comp_mul`,
+set `O ⊆ W × ℝ` containing `∂W × {0}`; run backward, by Tau Ceti's `IsMIntegralCurveOn.comp_neg`,
 they are integral curves of `Y`. Since `∂W` is compact, `O` contains `∂W × (-η, η)` for some
 `η > 0` (`SymplecticGeometry.exists_symmStrip_le`). By Tau Ceti's flow-out theorem
 `TauCeti.isLocalDiffeomorphAt_flowOut_boundary`, the flow-out `(x, t) ↦ Ψ x t` is a local
@@ -76,7 +76,7 @@ collar, inside any given open neighbourhood of the boundary, without σ-compactn
 public section
 
 open Set Filter Function Topology SymplecticGeometry
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Pointwise
 
 namespace TauCeti
 
@@ -178,33 +178,26 @@ theorem exists_eq_of_isOutwardPointing_of_subset [CompactSpace ↥((𝓡∂ (n +
     hηO (show (t, x) ∈ symmStrip _ η from
       mem_symmStrip_iff.2 (abs_lt.2 ⟨by linarith [ht.1], ht.2⟩))
   -- The flow-out `(x, t) ↦ Ψ x t` is a local diffeomorphism at each `(x, 0)`.
-  have hYneg : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞
-      (fun x ↦ (⟨x, (-Y) x⟩ : TangentBundle (𝓡∂ (n + 1)) W)) :=
-    fun x ↦ (hY.contMDiff x).neg_section
   have hloc (a : (𝓡∂ (n + 1)).boundary W) :=
-    isLocalDiffeomorphAt_flowOut_boundary (-Y) hYneg (a := a)
-      (by simpa using hY.isOutwardPointing a.property) (hO.mem_nhds (hO0 a a.property))
+    isLocalDiffeomorphAt_flowOut_boundary (-Y) hY.contMDiff_neg (a := a)
+      (hY.isOutwardPointing_neg_neg a a.property) (hO.mem_nhds (hO0 a a.property))
       fun x _ t hxt ht ↦ ⟨(hΨ x t hxt ht).2.1, (hΨ x t hxt ht).2.2.1⟩
   obtain ⟨ε, hε, hεη, c, hc, hcU⟩ := exists_eq_of_isLocalDiffeomorphAt hloc
     (fun x ↦ by simpa only [val_zero_apply] using (hΨ x 0 (hxO x ⟨le_rfl, hη⟩) le_rfl).2.1)
     hU hbU hη
   -- The curves `Ψ x` are integral curves of `-Y` on `[0, ε)`.
   have hcurve (x : (𝓡∂ (n + 1)).boundary W) : IsMIntegralCurveOn (Ψ x) (-Y) (Ico 0 ε) :=
-    fun t ht ↦ by
+    .of_forall_mem_nhdsWithin fun t ht ↦ by
       obtain ⟨r, htr, hr⟩ := exists_between ht.2
       have hr' : r ∈ Ico 0 η := ⟨ht.1.trans htr.le, hr.trans_le hεη⟩
-      exact ((hΨ x r (hxO x hr') hr'.1).2.2.1 t ⟨ht.1, htr.le⟩).mono_of_mem_nhdsWithin
-        (mem_nhdsWithin.2 ⟨Iio r, isOpen_Iio, htr, fun s hs ↦ ⟨hs.2.1, hs.1.le⟩⟩)
+      exact ⟨Icc 0 r, mem_nhdsWithin.2 ⟨Iio r, isOpen_Iio, htr, fun s hs ↦ ⟨hs.2.1, hs.1.le⟩⟩,
+        ⟨ht.1, htr.le⟩, (hΨ x r (hxO x hr') hr'.1).2.2.1⟩
   -- Run backward, they are integral curves of `Y` on `(-ε, 0]`.
   refine ⟨ε, fun p ↦ Ψ p.2 (-p.1), c, hε, fun x ↦ ?_, fun x ↦ ?_, fun q ↦ ?_, hcU⟩
   · simpa using (hΨ x 0 (hxO x ⟨le_rfl, hη⟩) le_rfl).2.1
-  · have hsub : Ioc (-ε) 0 ⊆ {t | t * -1 ∈ Ico 0 ε} := fun s hs ↦
+  · have hsub : Ioc (-ε) 0 ⊆ -Ico 0 ε := fun s hs ↦
       ⟨by simpa using hs.2, by simpa using neg_lt.1 hs.1⟩
-    convert ((hcurve x).comp_mul (-1)).mono hsub using 1
-    · ext s
-      simp only [comp_apply, mul_neg_one]
-    · ext y
-      simp
+    simpa only [neg_neg] using (hcurve x).comp_neg.mono hsub
   · rw [hc q, normalRay_coe_apply,
       max_eq_left (mul_nonneg hε.le (q.2 : EuclideanHalfSpace 1).property), neg_mul]
     simp only [neg_neg]

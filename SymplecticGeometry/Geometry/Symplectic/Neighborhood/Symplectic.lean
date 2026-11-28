@@ -235,7 +235,7 @@ private theorem mfderiv_symplecticNormalRepresentative_eq {hσ₀ : σ₀.IsNond
         mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q u)) :
     mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q u) = 0 := by
   -- `dψ` preserves the forms at `f₀ q`.
-  have hpt := SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq ψ.contMDiff hψσ ⟨f₀ q, h⟩
+  have hpt := SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtypeVal_eq ψ.contMDiff hψσ ⟨f₀ q, h⟩
   rw [hψq] at hpt
   -- The tangent vector `df₁ (dφ u)` pairs to zero with the tangent space of `f₁`.
   refine (hasSymplecticTangentImages_iff.1 h₁) (φ q) _ fun x ↦ ?_

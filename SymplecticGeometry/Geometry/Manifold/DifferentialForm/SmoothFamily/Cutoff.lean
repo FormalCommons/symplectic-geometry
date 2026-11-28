@@ -27,7 +27,7 @@ The family on `M` is built with `TauCeti.RoughForm.extendByZeroOfOpens`. Multipl
 family on `U` by a smooth function on `M` with support in `U`, after extending it by zero to `M`,
 gives a smooth family on `M` (`SymplecticGeometry.IsSmoothFamily.fun_smul_extendByZeroOfOpens`).
 Its proof restricts the family to `⊤ : Opens M`, where it is Tau Ceti's extension by zero
-(`TauCeti.RoughForm.mpullback_subtype_val_extendByZeroOfOpens_eq_extendByZero`), and applies
+(`TauCeti.RoughForm.mpullback_subtypeVal_extendByZeroOfOpens_eq_extendByZero`), and applies
 `SymplecticGeometry.IsSmoothFamily.extendByZero_smul` there.
 
 ## References
@@ -71,7 +71,7 @@ theorem fun_smul_extendByZeroOfOpens {U : Opens M} {α : N → SmoothForm I U F 
       (notMem_tsupport_iff_eventuallyEq.mp fun h ↦ hx (hfU h))
   refine hα.extendByZero_smul le_top (hf.comp contMDiff_subtypeVal) hzero fun t ↦ ?_
   rw [SmoothForm.coe_mpullback, hβ, ← RoughForm.extendByZeroOfOpens_fun_smul,
-    RoughForm.mpullback_subtype_val_extendByZeroOfOpens_eq_extendByZero]
+    RoughForm.mpullback_subtypeVal_extendByZeroOfOpens_eq_extendByZero]
   simp only [Function.comp_apply]
 
 variable [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]

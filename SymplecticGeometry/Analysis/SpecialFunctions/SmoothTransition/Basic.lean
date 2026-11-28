@@ -50,6 +50,10 @@ and composing with a smooth shift give, for `c < b ≤ d`, a smooth monotone map
 identity up to `c`, equal to `d` from `b` on, at most `d`, and with positive derivative on
 `(-∞, b)` (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`).
 
+For `p < q` and `κ > 0`, the step `x ↦ κ * smoothTransition ((x - p) / (q - p))` from `0` to `κ`
+is a smooth monotone function that is `0` up to `p`, `κ` from `q` on, positive after `p`, and
+has positive derivative on `(p, q)` (`Real.exists_contDiff_monotone_eqOn_zero_Iic_deriv_pos_Ioo`).
+
 It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]`,
 takes its values in the open interval `(a - ε, b + ε)`, and is constant outside it
 (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`). It is `t ↦ m + f t * (t - m)` for
@@ -320,6 +324,30 @@ theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b d : ℝ} (hcb :
       ((hφ.differentiable (by simp)) (g x)).hasDerivAt
     rw [(hφd'.comp x hgd).deriv]
     exact mul_pos (hφ' _ hgx) (by nlinarith [hσm.deriv_nonneg (x := x)])
+
+/-- For `p < q` and `0 < κ` there is a smooth monotone function `f : ℝ → ℝ` with values in
+`[0, κ]` that is `0` on `(-∞, p]`, `κ` on `[q, ∞)` and positive on `(p, ∞)`, and whose
+derivative is positive on `(p, q)`. It is `x ↦ κ * smoothTransition ((x - p) / (q - p))`. -/
+theorem exists_contDiff_monotone_eqOn_zero_Iic_deriv_pos_Ioo {p q κ : ℝ} (hpq : p < q)
+    (hκ : 0 < κ) :
+    ∃ f : ℝ → ℝ, ContDiff ℝ ∞ f ∧ Monotone f ∧ (∀ x, f x ∈ Icc 0 κ) ∧
+      EqOn f (fun _ ↦ 0) (Iic p) ∧ EqOn f (fun _ ↦ κ) (Ici q) ∧ (∀ x, p < x → 0 < f x) ∧
+      ∀ x ∈ Ioo p q, 0 < deriv f x := by
+  have hpq' : 0 < q - p := sub_pos.2 hpq
+  have hσ : ContDiff ℝ ∞ fun x ↦ smoothTransition ((x - p) / (q - p)) :=
+    smoothTransition.contDiff.comp (by fun_prop)
+  refine ⟨fun x ↦ κ * smoothTransition ((x - p) / (q - p)), contDiff_const.mul hσ,
+    fun x y hxy ↦ mul_le_mul_of_nonneg_left (smoothTransition.monotone
+      (div_le_div_of_nonneg_right (by linarith) hpq'.le)) hκ.le,
+    fun x ↦ ⟨mul_nonneg hκ.le (smoothTransition.nonneg _),
+      mul_le_of_le_one_right hκ.le (smoothTransition.le_one _)⟩,
+    fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx ↦ ?_⟩
+  · simp [smoothTransition.zero_of_nonpos
+      (div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 (mem_Iic.1 hx)) hpq'.le)]
+  · simp [smoothTransition.one_of_one_le ((one_le_div hpq').2 (sub_le_sub_right (mem_Ici.1 hx) p))]
+  · exact mul_pos hκ (smoothTransition.pos_of_pos (div_pos (sub_pos.2 hx) hpq'))
+  · rw [deriv_const_mul _ ((hσ.differentiable (by simp)) x)]
+    exact mul_pos hκ (smoothTransition.deriv_comp_sub_div_pos hx)
 
 end Real
 
