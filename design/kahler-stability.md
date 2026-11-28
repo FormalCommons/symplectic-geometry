@@ -766,8 +766,10 @@ the source, first half).
   LieComplexification I₀ H₀ IC₀ Gc₀`,
   with `H₀` and `Gc₀` the identity components of the stabilizers of `x`
   in `G` and `Gc`, closed subgroups made Lie groups by
-  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` (`I₀`, `IC₀` their
-  models). Its `toHom` is `C.toHom` restricted (it maps `H₀` into `Gc₀`,
+  `TauCeti.Lie.EmbeddedLieSubgroupData.ambientConnectedComponentOfOneStabilizer`
+  (`Geometry/Lie/Subgroup/IdentityComponent.lean`), Tau Ceti's
+  `EmbeddedLieSubgroupData.ofIsClosed` for these subgroups (`I₀`, `IC₀`
+  their models). Its `toHom` is `C.toHom` restricted (it maps `H₀` into `Gc₀`,
   being continuous and `H₀` connected); `cplx` is `C.cplx` on the Lie
   algebra of `Gc₀`, read as `𝔤c_x` through
   `EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_eq_isotropy`
