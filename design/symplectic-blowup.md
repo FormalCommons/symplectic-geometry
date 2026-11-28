@@ -582,8 +582,9 @@ and `hψ₂`.
   family of symplectic forms: shrink both to $(\lambda',\varepsilon')$
   inside the ball where $\psi_1=\psi_2=\psi_0$, where the forms agree
   (`isSmoothFamily_normalizedBlowupForm`).
-- `deRhamHom_eq_iff`: the classes agree if $\lambda_1=\lambda_2$, and only
-  then when `1 ≤ n` (evaluation on a line of $Z$, `integralTopForm_blowupForm_line`)
+- `deRhamHom_normalizedBlowupForm_eq_iff`: the classes agree if $\lambda_1=\lambda_2$, and only
+  then when `1 ≤ n` (the real image of the exceptional class is nonzero,
+  `Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero`)
   or when `n = 0` and `M` is compact (total area, from
   `liouvilleMeasure_form_add` through `Normalized/Weight.lean`).
 - `exists_diffeotopy_of_based_family`: if $\lambda_1=\lambda_2=\lambda$ and
