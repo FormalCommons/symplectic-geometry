@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Algebra.GroupAction.OrbitRelQuotient
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.LevelAction
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
-import SymplecticGeometry.Geometry.Lie.Complexification
+import SymplecticGeometry.Geometry.Lie.Complexification.Polar
 import Mathlib.Analysis.Convex.Deriv
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
