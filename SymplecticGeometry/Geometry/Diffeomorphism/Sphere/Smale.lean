@@ -26,8 +26,8 @@ import TauCeti.Topology.Homotopy.DeformationRetract
 The group `Diff⁺(S²)` of `ComplexStructure.lean` is a group of diffeomorphisms of the Riemann
 sphere `OnePoint ℂ`. This file deforms it onto its rotations, and carries it, its rotations and
 the deformation to the unit sphere `S²` of `EuclideanSpace ℝ (Fin 3)`, by conjugation along a
-fixed diffeomorphism. This proves Smale's theorem: `SO(3)` is a strong deformation retract of
-`Diff⁺(S²)`.
+fixed diffeomorphism. This proves Smale's theorem: `Diff⁺(S²)` retracts onto `SO(3)` by a
+homotopy that keeps every rotation fixed.
 
 ## The round sphere and its rotations
 
@@ -409,9 +409,10 @@ noncomputable def roundDiffPlusPolarHomotopy :
     (ContinuousMap.ext fun φ ↦ diffPlusHomeomorphRoundDiffPlus.apply_symm_apply φ)
     (by rw [roundDiffPlusPolarRetraction])
 
-/-- **Smale's theorem.** The rotations `SO(3)`, restricted to the unit sphere `S²` of `ℝ³`, are a
-strong deformation retract of the group `Diff⁺(S²)` of orientation-preserving smooth
-diffeomorphisms of `S²`, with the weak Whitney `C^∞` topology: there are a continuous map
+/-- **Smale's theorem.** Give the smooth diffeomorphisms of the unit sphere `S²` of `ℝ³` that
+preserve its orientation, `Diff⁺(S²) = roundDiffPlus`, the weak Whitney `C^∞` topology. Then
+`Diff⁺(S²)` deformation retracts, in the strong sense, onto its subgroup of rotations `SO(3)`
+(restricted to `S²`): there are a continuous map
 `r : Diff⁺(S²) → Diff⁺(S²)` with values in `SO(3)` and a homotopy from the identity to `r` that
 fixes every element of `SO(3)` at all times.
 
@@ -505,9 +506,9 @@ instance pathConnectedSpace_roundDiffPlus : PathConnectedSpace roundDiffPlus := 
 theorem specialOrthogonalToRoundDiffPlus_one : specialOrthogonalToRoundDiffPlus 1 = 1 :=
   Subtype.ext (map_one rotationHom)
 
-/-- **The fundamental group of `Diff⁺(S²)`.** The fundamental group of the group of
-orientation-preserving diffeomorphisms of the unit sphere of `ℝ³`, at the identity, is `ℤ/2ℤ`,
-as that of `SO(3)` is. -/
+/-- **The fundamental group of `Diff⁺(S²)`.** At the identity, the fundamental group of
+`roundDiffPlus`, the smooth diffeomorphisms of the unit sphere of `ℝ³` that preserve its
+orientation, is `ℤ/2ℤ`, like that of `SO(3)`. -/
 noncomputable def roundDiffPlusFundamentalGroupMulEquiv :
     FundamentalGroup roundDiffPlus 1 ≃* Multiplicative (ZMod 2) :=
   ((FundamentalGroup.homeomorphMulEquivOfEq (Homeomorph.refl _)
