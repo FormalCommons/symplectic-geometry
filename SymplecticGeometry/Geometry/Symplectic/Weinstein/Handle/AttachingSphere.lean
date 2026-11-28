@@ -671,13 +671,9 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
         ((isOpen_extChartAt_source p).mem_nhds (hzeq ▸ hLW (hus u).le).1.2)).mdifferentiableAt
         one_ne_zero
     have hw : mvfderiv 𝓘(ℝ, E) h (σ u) (X (σ u)) ≠ 0 := by
-      have h00 : hW.flow 0 (σ u) = σ u := Flow.map_zero_apply _ _
-      have hcurve := Manifold.hasDerivAt_comp_curve (γ := fun t ↦ hW.flow t (σ u))
-        (by rwa [h00]) (hW.isMIntegralCurve_flow (σ u) 0)
-      have := hd.unique hcurve
-      beta_reduce at this
-      rw [h00] at this
-      exact this ▸ hd0.ne
+      have hcurve := hW.hasDerivAt_comp_flow (g := h) (t := 0) (by rwa [Flow.map_zero_apply])
+      rw [Flow.map_zero_apply] at hcurve
+      exact hd.unique hcurve ▸ hd0.ne
     rintro ⟨v, hv⟩
     exact hw (hv ▸ TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (K := 𝓘(ℝ))
       (.of_forall hc) v)

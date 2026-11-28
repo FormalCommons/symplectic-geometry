@@ -170,15 +170,16 @@ open ContinuousLinearMap
 open scoped ContDiff Topology
 
 /-- **Uniform derivative bounds for a family of first-order systems.** Let `Ψ : X → (E →L[𝕜] F)`
-be `C^r`, let `S ⊆ X` be compact and let `D` be a real number. There is a constant `K` such that
-for every `h : E → F` that is `C^r` at `w₀` and solves `fderiv 𝕜 h w = Ψ (γ (w, h w))` near `w₀`,
+be `C^r`, let `S ⊆ X` be compact and let `D` be a real number. There is a constant `K ≥ 0` such
+that for every `h : E → F` that is `C^r` at `w₀` and solves `fderiv 𝕜 h w = Ψ (γ (w, h w))` near
+`w₀`,
 where `γ : E × F → X` is `C^r` at `(w₀, h w₀)` with `γ (w₀, h w₀) ∈ S` and
 `‖iteratedFDeriv 𝕜 i γ (w₀, h w₀)‖ ≤ D ^ i` for `1 ≤ i ≤ r`, the derivatives of `h` at `w₀` of
 order `1 ≤ j ≤ r + 1` have norm at most `K`. -/
 theorem exists_forall_norm_iteratedFDeriv_le_of_fderiv_eq_comp {X : Type*}
     [NormedAddCommGroup X] [NormedSpace 𝕜 X] {Ψ : X → E →L[𝕜] F} {r : ℕ}
     (hΨ : ContDiff 𝕜 r Ψ) {S : Set X} (hS : IsCompact S) (D : ℝ) :
-    ∃ K : ℝ, ∀ {h : E → F} {γ : E × F → X} {w₀ : E},
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ {h : E → F} {γ : E × F → X} {w₀ : E},
       ContDiffAt 𝕜 r h w₀ → ContDiffAt 𝕜 r γ (w₀, h w₀) →
       (∀ᶠ w in 𝓝 w₀, fderiv 𝕜 h w = Ψ (γ (w, h w))) → γ (w₀, h w₀) ∈ S →
       (∀ i, 1 ≤ i → i ≤ r → ‖iteratedFDeriv 𝕜 i γ (w₀, h w₀)‖ ≤ D ^ i) →
@@ -187,7 +188,7 @@ theorem exists_forall_norm_iteratedFDeriv_le_of_fderiv_eq_comp {X : Type*}
     hS (Set.subset_univ _)
   set D' := max |D| 1
   refine ⟨firstOrderSystemConst (r + 1) * (1 + r ! * M * D' ^ r) ^ (r + 1),
-    fun {h γ w₀} hh hγ heq hγS hD j hj₁ hj ↦ ?_⟩
+    by positivity, fun {h γ w₀} hh hγ heq hγS hD j hj₁ hj ↦ ?_⟩
   have hD' : 1 ≤ D' := le_max_right _ _
   have hA (i : ℕ) (hi : i < j) :
       ‖iteratedFDeriv 𝕜 i (Ψ ∘ γ) (w₀, h w₀)‖ ≤ r ! * M * D' ^ r := by
@@ -209,7 +210,7 @@ theorem exists_forall_norm_iteratedFDeriv_le_of_fderiv_eq_comp {X : Type*}
 
 /-- **Uniform derivative bounds for a family of second-order systems.** Let
 `Ψ : A × B × (E →L[𝕜] F) → (E →L[𝕜] E →L[𝕜] F)` be `C^r`, let `S ⊆ A × B × (E →L[𝕜] F)` be
-compact and let `C` be a real number. There is a constant `K` such that for every `τ : E → F`
+compact and let `C` be a real number. There is a constant `K ≥ 0` such that for every `τ : E → F`
 that is `C^(r+2)` at `w₀` and solves `D²τ(w) = Ψ (a w, b (τ w), Dτ(w))` near `w₀`, where
 `a : E → A` is `C^r` at `w₀` and `b : F → B` is `C^r` at `τ w₀`, with derivatives of order
 `1 ≤ i ≤ r` of norm at most `C` there, and `(a w₀, b (τ w₀), Dτ(w₀)) ∈ S`, the derivatives of `τ`
@@ -217,7 +218,7 @@ at `w₀` of order `1 ≤ j ≤ r + 1` have norm at most `K`. -/
 theorem exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq
     {Ψ : A × B × (E →L[𝕜] F) → E →L[𝕜] E →L[𝕜] F} {r : ℕ} (hΨ : ContDiff 𝕜 r Ψ)
     {S : Set (A × B × (E →L[𝕜] F))} (hS : IsCompact S) (C : ℝ) :
-    ∃ K : ℝ, ∀ {τ : E → F} {a : E → A} {b : F → B} {w₀ : E},
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ {τ : E → F} {a : E → A} {b : F → B} {w₀ : E},
       ContDiffAt 𝕜 (r + 2) τ w₀ → ContDiffAt 𝕜 r a w₀ → ContDiffAt 𝕜 r b (τ w₀) →
       (∀ᶠ w in 𝓝 w₀, fderiv 𝕜 (fderiv 𝕜 τ) w = Ψ (a w, b (τ w), fderiv 𝕜 τ w)) →
       (a w₀, b (τ w₀), fderiv 𝕜 τ w₀) ∈ S →
@@ -231,8 +232,8 @@ theorem exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq
     have h1 : ContDiff 𝕜 r fun q : A × B × (E →L[𝕜] F) ↦ q.2.2 := contDiff_snd.snd
     exact (contDiff_const.clm_comp h1).add (contDiff_const.clm_comp hΨ)
   set D := max C 1
-  obtain ⟨K, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_eq_comp hΨ' hS D
-  refine ⟨K, fun {τ a b w₀} hτ ha hb heq hS₀ haC hbC j hj₁ hj ↦ ?_⟩
+  obtain ⟨K, hK0, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_eq_comp hΨ' hS D
+  refine ⟨K, hK0, fun {τ a b w₀} hτ ha hb heq hS₀ haC hbC j hj₁ hj ↦ ?_⟩
   set h : E → F × (E →L[𝕜] F) := fun w ↦ (τ w, fderiv 𝕜 τ w)
   -- `γ` is written with `Function.comp` so that Tau Ceti's lemmas on `f ∘ Prod.fst` and
   -- `f ∘ Prod.snd` apply to its components.
