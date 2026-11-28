@@ -86,13 +86,12 @@ theorem rescale [T2Space M] (hW : IsWeinsteinStructure ω X f) (hpos : ∀ x, 0 
   have hne (x : M) : h x + mvfderiv 𝓘(ℝ, E) h x (X x) ≠ 0 := (hden x).ne'
   -- The factor `a = h / (h + dh(X))` is smooth, with values in `(0, 1]`.
   have ha : Continuous fun x ↦ h x / (h x + mvfderiv 𝓘(ℝ, E) h x (X x)) :=
-    (h.contMDiff.div₀ (h.contMDiff.add
-      ((h.contMDiff.contMDiff_mvfderiv_apply (by simp)).comp X.contMDiff)) hne).continuous
+    (contMDiff_div_self_add_mvfderiv hne).continuous
   have ha₀ (x : M) : 0 < h x / (h x + mvfderiv 𝓘(ℝ, E) h x (X x)) := div_pos (hpos x) (hden x)
   have ha₁ (x : M) : h x / (h x + mvfderiv 𝓘(ℝ, E) h x (X x)) ≤ 1 :=
     (div_le_one (hden x)).2 (by linarith [hX x])
   have hY : rescaledField X h = fun x ↦ (h x / (h x + mvfderiv 𝓘(ℝ, E) h x (X x))) • X x :=
-    funext (rescaledField_apply X h)
+    rescaledField_def X h
   exact
     { isSymplectic := isSymplectic_rescaledForm hW.isSymplectic hW.isLiouvilleVectorField
         (fun x ↦ (hpos x).ne') hne
