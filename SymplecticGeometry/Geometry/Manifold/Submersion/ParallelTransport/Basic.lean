@@ -109,6 +109,8 @@ under a reparametrization `γ ∘ φ`, for which a lift of `γ` composed with `�
   one time to another.
 * `TauCeti.IsEhresmannConnection.parallelTransport_eq`: it follows every differentiable horizontal
   lift over the curve between the two times.
+* `TauCeti.IsEhresmannConnection.isHorizontalMap_parallelTransport`: for a proper map, the
+  transports of a point from a fixed time form a horizontal curve.
 * `TauCeti.IsEhresmannConnection.parallelTransport_parallelTransport`,
   `TauCeti.IsEhresmannConnection.bijOn_parallelTransport`: for a proper map, transport composes
   along consecutive time intervals, and is a bijection between fibres.
@@ -705,6 +707,20 @@ theorem apply_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
   have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
   rw [hD.parallelTransport_eq_of_comp_eq hn' (hf.of_le h2) (hγ.of_le h2)
     (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc, ← hγc, comp_apply]
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. If `x` lies over `γ s`, the curve `t ↦` (transport of `x` along `γ`
+from `s` to `t`) is horizontal. -/
+theorem isHorizontalMap_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P}
+    (hx : f x = γ s) : IsHorizontalMap 𝓘(ℝ, ℝ) D fun t ↦ hD.parallelTransport γ s t x := by
+  obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
+  have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
+  convert hh using 1
+  funext t
+  exact hD.parallelTransport_eq_of_comp_eq hn' (hf.of_le h2) (hγ.of_le h2)
+    (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc s t
 
 /-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
 `γ` a `C^(n+1)` curve in `B`. On the fibre over `γ s`, parallel transport along `γ` from `s` to
