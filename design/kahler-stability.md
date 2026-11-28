@@ -863,9 +863,9 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   (`isSemistable_iff_bddBelow_kempfNessFunction`) (Theorem 8.5 there).
 - `tendsto_smul_zero_of_momentWeight_pos`: if
   `momentWeight C (projectivizationMoment I φ) [v] λ > 0`, then `v` lies in
-  the sum of the eigenspaces of one sign of the Hermitian matrix
-  `-Complex.I • dρ λ`, so `ρ (C.expI (t • λ')) v → 0` with antitone norm,
-  for `λ'` equal to `λ` or `-λ` as the sign decides (Lemma 8.4 there).
+  the sum of the eigenspaces of positive eigenvalues of the Hermitian matrix
+  `-Complex.I • dρ λ`, so `ρ (C.expI (t • λ)) v → 0` with antitone norm
+  (Lemma 8.4 there).
   The moment along `C.expI (t • λ)` is a weighted mean of the eigenvalues
   of the components of `v`, with weights `exp (2 t a) ‖v_a‖ ^ 2`.
 - `exists_mem_nonzeroPeriods_tendsto_smul_zero` (Theorem 12.4 there): if
@@ -874,7 +874,7 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   with antitone norm. By the previous two items and
   `isSemistable_iff_momentWeight_nonpos` for `ℙ ℂ V`, which is compact,
   connected and modelled on `𝓘(ℝ, Fin n → ℂ)`, as `tendsto_limitPoint`
-  needs; `nonzeroPeriods` is closed under negation.
+  needs.
 
 **`KempfNess/HolomorphicSlice.lean`** (Steps 2–5 of the source). Let `e` be
 the chart of `exists_equivariant_holomorphic_chart`, and `T ⊆ E'` the
