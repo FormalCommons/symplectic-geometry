@@ -335,9 +335,9 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
             C * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) (D.reading k x s) z := by
   set J₀ : StdSpace ι →L[ℝ] StdSpace ι :=
     LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
-  obtain ⟨A₁, hA₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
+  obtain ⟨A₁, hA₁0, hA₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
   obtain ⟨A₂, hA₂⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
-  refine ⟨|A₁| * A₂, fun {k} hk x s z hz hs ↦ ?_⟩
+  refine ⟨A₁ * A₂, fun {k} hk x s z hz hs ↦ ?_⟩
   set g := D.reading k x s
   set JJ := J.chartPushforward (D.chart k x).toOpenPartialHomeomorph
   have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
@@ -358,10 +358,10 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
   have : 0 ≤ jetNormAt ℝ (r + 1) g z := jetNormAt_nonneg _ _ _
   have : 0 ≤ jetNormAt ℝ r (fun w ↦ JJ w - J₀) z := jetNormAt_nonneg _ _ _
   calc A₁ * (1 + ‖z‖) * jetNormAt ℝ r (fun w ↦ JJ w - J₀) z * jetNormAt ℝ (r + 1) g z
-      ≤ |A₁| * (1 + ‖z‖) * (A₂ * (√k)⁻¹ * (1 + ‖z‖)) * jetNormAt ℝ (r + 1) g z := by
+      ≤ A₁ * (1 + ‖z‖) * (A₂ * (√k)⁻¹ * (1 + ‖z‖)) * jetNormAt ℝ (r + 1) g z := by
         gcongr
-        exacts [le_abs_self _, hA₂ hk x hz]
-    _ = |A₁| * A₂ * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) g z := by
+        exact hA₂ hk x hz
+    _ = A₁ * A₂ * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) g z := by
         ring
 
 /-- **`∂̄` of sections extended by zero against the model `∂̄`.** On a boundaryless manifold, for

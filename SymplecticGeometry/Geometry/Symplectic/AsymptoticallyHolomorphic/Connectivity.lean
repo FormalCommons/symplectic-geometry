@@ -10,14 +10,17 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.ComplexNegativity
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.Morse.Hessian
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHessian
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.ContMDiff.Log
@@ -73,11 +76,21 @@ are compact, and the perturbed function lies below one of its regular values
 
 These are the first steps of the Morse theory of `log |s_k|²` away from the zero set.
 
+The two bounds of the first step, read at a zero `x` of `s k` and for `η > 0`, give
+transversality: there the first term of the maximum vanishes, so the rescaled `(1,0)`-part is at
+least `η`, while the rescaled `(0,1)`-part is `O(k ^ (-1/2))`. For `k` large the `(0,1)`-part
+has the smaller operator norm, and `ContinuousLinearMap.surjective_add_of_norm_lt` makes their sum
+`powerConnection α k (s k) x` surjective. At a zero this is the linearization of `s k`
+(`CovariantDerivative.apply_eq_sectionLinearization`), so the linearization is surjective
+(`SymplecticGeometry.IsUniformlyTransverse.eventually_surjective_sectionLinearization`), which is
+the transversality hypothesis of the tube and Morse–Bott results on the zero set.
+
 ## References
 
 * [D. Auroux, *Asymptotically holomorphic families of symplectic submanifolds*][Auroux1997],
   Proposition 2 and §5.1
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.4
+* [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996]
 -/
 
 public section
@@ -128,6 +141,39 @@ theorem IsUniformlyTransverse.le_norm_of_mem_criticalPoints
   rcases le_max_iff.1 (hk x) with h | h
   · exact h
   · exact absurd h hlt.not_ge
+
+/-- **Uniformly transverse sequences are transverse to the zero section for `k` large.** Let `M`
+be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α` a connection form,
+and `D` rescaled unitary charts of radius `ρ₀ > 0`. If `s` is asymptotically holomorphic for `D`
+and uniformly transverse with constant `η > 0`, then for `k` large, at every zero `x` of `s k`
+where `s k` is differentiable, the linearization of `s k` at `x` is surjective. -/
+theorem IsUniformlyTransverse.eventually_surjective_sectionLinearization
+    (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M,
+      MDifferentiableAt I (I.prod 𝓘(ℝ, PowerModel k))
+        (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y)) x → s k x = 0 →
+      Function.Surjective (sectionLinearization (F := PowerModel k) I id (s k) x) := by
+  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
+  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
+  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hdiff hx
+  have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
+    rcases le_max_iff.1 (hk x) with h | h
+    · rw [hx, norm_zero] at h
+      exact absurd h hη.not_ge
+    · exact h
+  have hlt : ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
+      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ :=
+    lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
+  rw [← (powerConnection α k).apply_eq_sectionLinearization hdiff hx,
+    ← J.oneZeroPart_add_zeroOnePart (powerConnection α k (s k) x)]
+  exact ContinuousLinearMap.surjective_add_of_norm_lt (PowerBundle.finrank_eq_one P k x)
+    (J.oneZeroPart_apply_almostComplexStructure _)
+    (SmoothAlmostComplexStructure.isZeroOneForm_iff.1
+      (SmoothAlmostComplexStructure.isZeroOneForm_zeroOnePart _)) hlt
 
 omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]

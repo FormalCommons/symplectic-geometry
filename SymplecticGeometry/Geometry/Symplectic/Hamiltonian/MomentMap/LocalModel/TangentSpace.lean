@@ -13,7 +13,8 @@ public import TauCeti.LinearAlgebra.LinearMap.Comp
 # The tangent space of `G ×_K (A × V)` at `[1, 0]` and the linear normal form
 
 Let `D : SymplecticGeometry.LocalModelData K V A` be the data of the local model, with descended
-form `ω = D.descendedForm` on `Y = G ×_K (A × V)` and projection `π : G × (A × V) → Y`. This file
+form `ω`, Tau Ceti's `TauCeti.CotangentBundle.balancedProductInducedForm`, on `Y = G ×_K (A × V)`
+and projection `π : G × (A × V) → Y`. This file
 identifies the tangent space of `Y` at `[1, 0]`, with `ω` and the action of `K`, with the linear
 normal form model `(𝔪 × 𝔪*) × (𝔮 × V)` of Tau Ceti's `MomentMap/LinearNormalForm.lean`.
 
@@ -84,7 +85,7 @@ with `LinearMap.inl` and `LinearMap.inr`. The fibre map is `K`-equivariant becau
 
 public section
 
-open TauCeti TauCeti.Lie TauCeti.Manifold
+open TauCeti TauCeti.Lie TauCeti.Manifold TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -198,7 +199,10 @@ theorem eval₂_descendedForm_linearModelEquiv (x₁ x₂ : (D.𝔪 × Module.Du
     letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
     haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
       (IZ := 𝓘(ℝ, A × V)) (F := F)
-    SmoothBundleForm.eval₂ D.descendedForm
+    SmoothBundleForm.eval₂
+        (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
+          D.mpullback_smul_mpullback_snd_constSmooth
+          D.isMomentMap_mpullback_snd_constSmooth)
         (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V)))
         (D.linearModelEquiv x₁) (D.linearModelEquiv x₂) =
       (cotangentSymplecticForm.prod ((D.τ.kirillovSymplecticForm D.isCompl_𝔮).prod D.σ)) x₁ x₂ := by
@@ -208,7 +212,7 @@ theorem eval₂_descendedForm_linearModelEquiv (x₁ x₂ : (D.𝔪 × Module.Du
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
   rw [linearModelEquiv_apply, linearModelEquiv_apply, mkTangentMap_apply, mkTangentMap_apply]
-  exact (D.eval₂_descendedForm_mfderiv ((1 : G), ((0 : A), (0 : V))) _ _).trans
+  exact (D.eval₂_balancedProductInducedForm_mfderiv_mk ((1 : G), ((0 : A), (0 : V))) _ _).trans
     (D.eval₂_form_one_zero_linearModelMap ((tangentSpaceProdEquiv _).apply_symm_apply _)
       ((tangentSpaceProdEquiv _).apply_symm_apply _))
 
