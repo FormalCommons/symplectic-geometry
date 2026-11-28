@@ -12,10 +12,12 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.D
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.RealImage
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import TauCeti.LinearAlgebra.Complex.Orientation
@@ -65,6 +67,11 @@ can use it with no conversion.
   restriction of `e` to the exceptional divisor is the Euler class of the tautological line, and
   `SymplecticGeometry.Blowup.exceptionalClass_restrict_divisor`: in integral cohomology it is
   `-h`, minus the hyperplane class `Projectivization.hyperplaneClass`.
+* `SymplecticGeometry.Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero`:
+  for `1 ≤ n` the real image of `e` in `H²(Blowup c; ℝ)` is not zero: its restriction to the
+  divisor is minus the hyperplane class (`exceptionalClass_restrict_divisor`), whose real image is
+  nonzero
+  (`Projectivization.singularCohomologyRealImageAddMonoidHom_hyperplaneClass_ne_zero`).
 
 ## References
 
@@ -352,6 +359,28 @@ theorem exceptionalClass_restrict_divisor :
       -Projectivization.hyperplaneClass (Fin (n + 1) → ℂ) := by
   rw [exceptionalClass_restrict_divisor_eq_complexEulerClass, Projectivization.hyperplaneClass_def,
     neg_neg]
+
+/-- **The real exceptional class is nonzero when `1 ≤ n`**: for the blowup of a manifold of
+complex dimension `n + 1 ≥ 2`, the real image of the exceptional class `e` in `H²(Blowup c; ℝ)`
+is not zero. -/
+theorem singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero (hn : 1 ≤ n) :
+    (TopCat.of (Blowup c)).singularCohomologyRealImageAddMonoidHom 2 (exceptionalClass c) ≠ 0 := by
+  intro h
+  -- An injective linear map `ℂ² → ℂⁿ⁺¹`, which exists as `1 ≤ n`.
+  set f : Fin (n + 1) → Fin 2 := fun i ↦ if (i : ℕ) = 0 then 0 else 1
+  have hf : Function.Surjective f := by
+    intro j
+    fin_cases j
+    · exact ⟨0, by simp [f]⟩
+    · exact ⟨⟨1, by omega⟩, by simp [f]⟩
+  set ι := LinearMap.funLeft ℂ ℂ f
+  have hι : Function.Injective ι := LinearMap.funLeft_injective_of_surjective _ _ _ hf
+  -- On the divisor, `e` restricts to minus the hyperplane class, read in `ULift ℤ`.
+  refine Projectivization.singularCohomologyRealImageAddMonoidHom_hyperplaneClass_ne_zero ι hι ?_
+  rw [← neg_eq_zero, ← map_neg (TopCat.singularCohomologyRealImageAddMonoidHom _ 2),
+    ← map_neg (ModuleCat.Hom.hom _), ← exceptionalClass_restrict_divisor c,
+    Iso.hom_inv_id_apply,
+    TopCat.singularCohomologyRealImageAddMonoidHom_naturality, h, map_zero]
 
 end Blowup
 
