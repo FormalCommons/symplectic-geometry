@@ -48,6 +48,9 @@ can use it with no conversion.
 
 ## Main results
 
+* `SymplecticGeometry.Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul`:
+  a curve that `lift c` reads near `0` as the lift of the line `t ↦ t • v` crosses the exceptional
+  divisor with normal velocity `v`.
 * `SymplecticGeometry.Blowup.exceptionalClass_restrict_compl`: `e` vanishes on the complement of
   the exceptional divisor, and `SymplecticGeometry.Blowup.exceptionalClass_pairing_compl`: it
   pairs to zero with every homology class pushed forward from that complement.
@@ -117,6 +120,41 @@ theorem divisorNormalEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
   rw [divisorNormalEquiv_def, ContinuousLinearEquiv.trans_apply,
     SmoothEmbedding.normalSpaceEquivOfComp_normalClass,
     BlowupModel.normalSpaceZeroSectionRealEquiv_normalClass, tangentSpaceCast_apply]
+
+/-- **A curve along a lifted line crosses the exceptional divisor with normal velocity `v`.**
+Let `v ≠ 0`, and `g : ℂ → Blowup c` a curve with `g 0 = divisorRealEmbedding c [v]`, with real
+derivative `A` at `0`, and such that `lift c ∘ g` agrees near `0` with the lift
+`BlowupModel.curveLift (· • v)` of the line `t ↦ t • v`. Then `divisorNormalEquiv c [v]` sends the
+normal class of `A z` to `z • v`, for every `z : ℂ`. -/
+theorem divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
+    {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) {g : ℂ → Blowup c}
+    {A : ℂ →L[ℝ] Fin (n + 1) → ℂ}
+    (hA : HasMFDerivAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) g 0 A)
+    (hg0 : g 0 = divisorRealEmbedding c (Projectivization.mk ℂ v hv))
+    (hg : lift c ∘ g =ᶠ[nhds 0] BlowupModel.curveLift (· • v)) (z : ℂ) :
+    divisorNormalEquiv c (Projectivization.mk ℂ v hv)
+        ((divisorRealEmbedding c).isImmersion.normalClassL (Projectivization.mk ℂ v hv) hn
+          (A z)) =
+      ⟨z • v, by
+        rw [Projectivization.submodule_mk]
+        exact Submodule.smul_mem _ z (Submodule.mem_span_singleton_self v)⟩ := by
+  have hL : HasMFDerivAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) (g 0)
+      (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
+        (divisorRealEmbedding c (Projectivization.mk ℂ v hv))) := by
+    rw [hg0]
+    exact ((isLocalDiffeomorphAt_lift_divisorRealEmbedding c _).mdifferentiableAt
+      (by simp)).hasMFDerivAt
+  have h := ((hL.comp 0 hA).congr_of_eventuallyEq_abuse hg.symm).mfderiv
+  refine (congrArg _ (Manifold.IsImmersion.normalClassL_apply _ _ _ _)).trans
+    ((divisorNormalEquiv_normalClass c _ _).trans (Subtype.ext ?_))
+  -- `h` says that `mfderiv (curveLift (· • v)) 0` is `mfderiv (lift c) _ ∘L A`. Its value at `z`
+  -- is the image of `A z` by unfolding the application of a composition: `comp_apply` does not
+  -- elaborate, since the tangent space at `curveLift (· • v) 0` has no `Module ℝ` instance under
+  -- that name.
+  exact (congrArg (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) BlowupModel.blowdown
+      (BlowupModel.zeroSection (Projectivization.mk ℂ v hv)))
+      (DFunLike.congr_fun h z).symm).trans
+    (BlowupModel.mfderiv_blowdown_mfderiv_curveLift_smul hv z)
 
 /-- The isomorphisms `divisorNormalEquiv c ℓ` form a continuous map from the total space of the
 normal bundle of the exceptional divisor to that of the tautological line. -/

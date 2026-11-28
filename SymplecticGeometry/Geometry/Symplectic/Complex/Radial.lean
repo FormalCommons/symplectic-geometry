@@ -14,7 +14,6 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
-import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.Deriv
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
@@ -31,6 +30,7 @@ import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Primitive
 import TauCeti.Analysis.Normed.Group.Basic
 import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
+import TauCeti.Analysis.Calculus.InverseFunctionTheorem.DomRestrict
 
 /-!
 # Radial potential forms on `ℂⁿ ∖ 0`
@@ -456,8 +456,15 @@ positive derivative there. As `h` is increasing, this is the shell between the s
 noncomputable def radialShell (h : ℝ → ℝ) (hs : ContDiffOn ℝ ∞ h (Ioi 0))
     (hd : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv h s) : Opens (ι → ℂ) :=
   ⟨{w | ‖complexToRealEuclidean ι w‖ ^ 2 ∈ h '' Ioi 0},
-    ((hs.of_le (by simp)).isOpen_image_of_deriv_ne_zero isOpen_Ioi fun t ht ↦
-      (hd t ht).ne').preimage (contDiff_norm_sq_complexToRealEuclidean (n := 0)).continuous⟩
+    (by
+      simpa [Set.range_domRestrict] using
+        (TauCeti.isOpenMap_domRestrict_of_hasStrictFDerivAt_of_isInvertible isOpen_Ioi
+          (fun t ht ↦ ((hs.contDiffAt (isOpen_Ioi.mem_nhds ht)).hasStrictDerivAt_deriv
+            (by simp)).hasStrictFDerivAt)
+          (fun t ht ↦ ContinuousLinearMap.isInvertible_toSpanSingleton_iff.2
+            (hd t ht).ne')).isOpen_range :
+        IsOpen (h '' Ioi 0)).preimage
+      (contDiff_norm_sq_complexToRealEuclidean (n := 0)).continuous⟩
 
 /-- A point is in the shell of `h` if and only if its squared norm `∑ᵢ ‖wᵢ‖²` is a value of `h`
 on `(0, ∞)`. -/
