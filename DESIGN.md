@@ -529,8 +529,9 @@ the library.
   is the image of $[\omega]$ under Tau Ceti's de Rham homomorphism
   `TauCeti.deRhamHom` (`Geometry/Manifold/SmoothSingular/SingularCohomology.lean`);
   the definition uses no de Rham theorem, and *Asymptotically holomorphic
-  sections* proves the de Rham theorem as a prerequisite, to read the lift as
-  a de Rham class. The Hermitian line bundle of §7.4 has a unitary
+  sections* reads the lift as a de Rham class through Tau Ceti's de Rham
+  theorem `TauCeti.bijective_deRhamHom`
+  (`Geometry/Manifold/SmoothSingular/DeRham/Equiv.lean`). The Hermitian line bundle of §7.4 has a unitary
   connection whose curvature is $-2\pi i\omega$, as on the page;
   *Asymptotically holomorphic sections* rescales to Auroux's $\Omega=2\pi\omega$ inside its
   proofs only.
