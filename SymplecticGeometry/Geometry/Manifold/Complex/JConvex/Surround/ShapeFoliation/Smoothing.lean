@@ -163,7 +163,7 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
       (hsliceR (L p, r) ⟨hLmem p hp, hr'⟩)
   obtain ⟨δ₀, hδ₀, hconv⟩ := exists_forall_isConvexShapeAt_smoothedMax (P := ℝ)
     (K := Icc b ℓ₁) isCompact_Icc (M := fun p r ↦ M r + q p) (A := fun p r ↦ χ' (L p, r))
-    (r₁ := r₁) (r₂ := r₂) (fun p _ ↦ hM2 p) (fun p _ ↦ hA2 p)
+    (r₁ := r₁) (r₂ := r₂) (fun p _ _ _ ↦ (hM2 p).contDiffAt) (fun p _ _ _ ↦ (hA2 p).contDiffAt)
     (fun p hp r hr' ↦ (hMc r hr').add_const (hqb.trans (hqm hp.1))) hAc
     (fun _ _ _ _ ↦ (hFM.contDiffAt.continuousAt_iteratedDeriv_prod_right
       (by exact_mod_cast le_top)).continuousWithinAt)
@@ -257,7 +257,8 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
     · rw [← hdM, ← hdA]
       exact deriv_smoothedMax_le_max hdiffM hdiffA
     · rw [← hd2M, ← hd2A]
-      exact min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax (hM2 x.1) (hA2 x.1) hδ.le x.2
+      exact min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax (hM2 x.1).contDiffAt
+        (hA2 x.1).contDiffAt hδ.le
 
 /-- **The piece of a strictly increasing family of `i`-convex shapes next to `ℓ₀`.** Let
 `χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[ℓ₀, a] × [r₁, r₂]`, with
