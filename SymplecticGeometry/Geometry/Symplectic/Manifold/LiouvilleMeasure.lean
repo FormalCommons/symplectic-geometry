@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
+public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
@@ -13,7 +15,10 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Measure
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
+import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import TauCeti.Geometry.Manifold.Measure.Atlas
+import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -31,10 +36,19 @@ compactly supported function `f`:
 
 (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_smul_volumeForm`). It is the case of the
 symplectic volume form of `TauCeti.integralTopForm_smul_eq_integral_measure`, and holds in every
-dimension, including dimension `0`. With `f = 1` and Tau Ceti's
-`TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, it shows that the
+dimension, including dimension `0`. With `f = 1`, on a compact manifold it says that the integral
+of `σⁿ / n!` is the Liouville measure of the whole manifold
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm`). So on a compact surface,
+two nondegenerate closed two-forms with the same de Rham class and the same symplectic orientation
+have the same total Liouville measure (`TauCeti.SmoothTwoForm.liouvilleMeasure_univ_eq_of_mk_eq`).
+With Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, the
+case `f = 1` shows that the
 symplectic volume of a nonempty compact manifold is positive
-(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`).
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`). Together with Tau
+Ceti's Stokes theorem `TauCeti.integralTopForm_eq_zero_of_mem_exactForms`, this shows that a
+nondegenerate two-form on a nonempty closed manifold of positive dimension is not exact
+(`TauCeti.SmoothTwoForm.IsNondegenerate.notMem_exactForms`): otherwise its volume form, a wedge
+power of it, would be exact too.
 
 It also computes Liouville integrals in symplectic coordinates. A partial diffeomorphism
 `Φ : N → M` that pulls `σ` back to a two-form `τ` on its source carries the Liouville measure of
@@ -108,6 +122,35 @@ theorem IsNondegenerate.integralTopForm_smul_volumeForm (h : σ.IsNondegenerate)
   exact integralTopForm_smul_eq_integral_measure _ ((σ.volumeForm n).isSmoothForm.of_le bot_le)
     (signBasis_orientationAt_mul_nonneg_of_iff _
       fun _ c ↦ h.orientation_eq_orientationAt_volumeOrientation_iff hn.out c) hf hc
+
+/-- **The symplectic volume is the total Liouville measure.** On a compact manifold modelled on a
+space of dimension `2 * n`, the integral of the volume form `σⁿ / n!` of a fiberwise
+nondegenerate two-form `σ` against its symplectic orientation is the Liouville measure of the
+whole manifold. -/
+theorem IsNondegenerate.integralTopForm_volumeForm [CompactSpace M] (h : σ.IsNondegenerate) :
+    integralTopForm (h.volumeOrientation hn.out) (σ.volumeForm n).val =
+      (σ.liouvilleMeasure n).real Set.univ := by
+  simpa only [one_smul, integral_const, smul_eq_mul, mul_one] using
+    h.integralTopForm_smul_volumeForm (n := n) (f := fun _ ↦ (1 : ℝ)) continuous_const
+      (HasCompactSupport.of_compactSpace _)
+
+/-- **Cohomologous nondegenerate forms on a surface have the same area.** On a compact
+boundaryless Hausdorff manifold of dimension `2`, two fiberwise nondegenerate closed two-forms
+`σ` and `τ` with the same de Rham class and the same symplectic orientation give the whole
+manifold the same Liouville measure. -/
+theorem liouvilleMeasure_univ_eq_of_mk_eq [BoundarylessManifold I M] [T2Space M]
+    [CompactSpace M] [hk : Fact (finrank ℝ E = 2 * 1)] {τ : SmoothTwoForm I M}
+    (hσ : σ.IsNondegenerate) (hτ : τ.IsNondegenerate) (hσc : σ ∈ closedForms I M 2)
+    (hτc : τ ∈ closedForms I M 2) (ho : hσ.volumeOrientation hk.out = hτ.volumeOrientation hk.out)
+    (h : deRhamCohomology.mk I 2 ⟨σ, hσc⟩ = deRhamCohomology.mk I 2 ⟨τ, hτc⟩) :
+    σ.liouvilleMeasure 1 Set.univ = τ.liouvilleMeasure 1 Set.univ := by
+  have harea := congrArg (deRhamCohomology.integral (hσ.volumeOrientation hk.out)) h
+  rw [deRhamCohomology.integral_mk, deRhamCohomology.integral_mk] at harea
+  have e₁ := hσ.integralTopForm_volumeForm (n := 1)
+  have e₂ := hτ.integralTopForm_volumeForm (n := 1)
+  rw [volumeForm_one] at e₁ e₂
+  rw [e₁, ho, e₂] at harea
+  exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 harea
 
 /-! ### Null sets in charts -/
 
@@ -234,11 +277,28 @@ theorem IsNondegenerate.integralTopForm_volumeForm_pos [CompactSpace M] [Nonempt
   borelize M
   have : Fact (finrank ℝ E = 2 * n) := ⟨hn⟩
   have := h.isOpenPosMeasure_liouvilleMeasure (n := n)
-  have h1 := h.integralTopForm_smul_volumeForm (n := n) (f := fun _ ↦ (1 : ℝ)) continuous_const
-    (HasCompactSupport.of_compactSpace _)
-  simp only [one_smul] at h1
-  rw [h1, integral_const, smul_eq_mul, mul_one]
+  rw [h.integralTopForm_volumeForm, measureReal_def]
   exact ENNReal.toReal_pos (isOpen_univ.measure_pos _ Set.univ_nonempty).ne' (measure_ne_top _ _)
+
+/-- **A nondegenerate two-form on a closed manifold is not exact.** On a nonempty compact
+Hausdorff boundaryless manifold modelled on a space of dimension `2 * n` with `n ≠ 0`, a fiberwise
+nondegenerate two-form `σ` is not the exterior derivative of a one-form. In particular a
+symplectic form on such a manifold has a nonzero de Rham class. If `σ` were exact, then so would
+be its volume form `σⁿ / n!`, whose integral would then vanish by Stokes' theorem, while it is
+positive. The hypothesis `n ≠ 0` is needed: on a manifold of dimension `0`, every two-form is
+zero, hence exact, and nondegenerate. -/
+theorem IsNondegenerate.notMem_exactForms [CompactSpace M] [Nonempty M] [T2Space M]
+    [BoundarylessManifold I M] (h : σ.IsNondegenerate) (hn : finrank ℝ E = 2 * n) (hn₀ : n ≠ 0) :
+    σ ∉ exactForms I M 2 := by
+  intro hσ
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hn₀
+  have hvol : σ.volumeForm (m + 1) ∈ exactForms I M (2 * (m + 1)) := by
+    have hw := Submodule.smul_mem _ ((m + 1).factorial : ℝ)⁻¹
+      (SmoothForm.wedgePow_succ_mem_exactForms hσ m)
+    rwa [wedgePow_eq_factorial_smul_volumeForm, smul_smul, inv_mul_cancel₀ (by positivity),
+      one_smul] at hw
+  exact (h.integralTopForm_volumeForm_pos hn).ne'
+    (integralTopForm_eq_zero_of_mem_exactForms _ hvol)
 
 end Volume
 

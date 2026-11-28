@@ -22,7 +22,6 @@ import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
 import SymplecticGeometry.Geometry.Manifold.Flow.Chart
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
-import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Geometry.Manifold.Morse.Linearization
 import SymplecticGeometry.Analysis.ODE.LyapunovPerron.ParameterDerivative
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
@@ -155,7 +154,7 @@ a nondegenerate critical point is isolated by Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.eventually_notMem_criticalPoints`.
 The disc is built in the extended chart `e` at `p`. The dichotomy for the linearization `A`
 (`TauCeti.IsGradientLike.exists_projection_exponential_bounds`, in
-`SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization`) gives a projection `P`
+`SymplecticGeometry.Geometry.Manifold.Morse.Linearization`) gives a projection `P`
 onto the stable subspace, and `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_infty`,
 applied to the smooth field read in `e` with a confinement radius within the chart target, gives
 the graph map `g`, `C^1` on a ball and `C^m` on a smaller ball for each `m`, and the confined

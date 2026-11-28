@@ -16,7 +16,7 @@ import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.RegularValue.SublevelBoundary
-import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
+import SymplecticGeometry.Geometry.Manifold.Morse.Linearization
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
