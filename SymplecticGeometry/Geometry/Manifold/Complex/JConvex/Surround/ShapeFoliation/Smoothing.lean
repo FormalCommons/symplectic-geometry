@@ -46,7 +46,7 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   nondecreasing, `0` near `ℓ₀` and with `q' > 0` on `[a₁, a]`, and `λ` is a smooth monotone map
   that is the identity up to a point of `(ℓ₀, a₁)`, equal to `a` from a point `a'' ∈ (a₁, a)`
   on, and with positive derivative below `a''`
-  (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le`). The members are shapes
+  (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`). The members are shapes
   by `SymplecticGeometry.IsConvexShapeAt.add_const`, since `q ≥ 0` on `[ℓ₀, ∞)`; the
   `ℓ`-derivative `∂χ/∂ℓ (λ ℓ) · λ' ℓ + q' ℓ` is positive, by its first term below `a''` and by
   its second on `[a'', a]`. The family is `χ` near `ℓ = ℓ₀` and `χ a + q ℓ` near `ℓ = a`, where
@@ -310,7 +310,7 @@ theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ}
   have ha'a'' : a' < a'' := by linarith [ha', ha'']
   have ha₁a'' : a₁ < a'' := by linarith [ha'']
   obtain ⟨L, hLs, hLm, hLid, hLa, hLle, hL'⟩ :=
-    Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le ha'a''
+    Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici ha'a''
       (show a'' ≤ a by linarith [ha''])
   have hLℓ₀ : L ℓ₀ = ℓ₀ := hLid (mem_Iic.2 hℓa'.le)
   have hLmem : ∀ ℓ ∈ Icc ℓ₀ a, L ℓ ∈ Icc ℓ₀ a := fun ℓ hℓ ↦
