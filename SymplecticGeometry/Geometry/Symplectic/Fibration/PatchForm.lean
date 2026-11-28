@@ -102,7 +102,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchM
         (∀ x, τ'.smoothFiberComponent x = σ) ∧
         SmoothTwoForm.IsVerticallyClosed 𝓘(ℝ, EB) Prod.fst τ' ∧
         (∀ z ∈ U ×ˢ (univ : Set F),
-          τ'.val z = mpullback (𝓘(ℝ, EB).prod IF) IM (A.patchMap IB b' b₀) τ.val z) ∧
+          τ'.val z = mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val z) ∧
         ∀ c ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source, extChartAt IB b₀ c ∈ U →
           ∀ y : F, ∀ᶠ p in 𝓝 ((A.trivAt b').toOpenPartialHomeomorph.symm (c, y)),
             mpullback IM (𝓘(ℝ, EB).prod IF)
@@ -110,7 +110,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchM
   set e := A.trivAt b'
   set φ := extChartAt IB b₀
   set W := φ.target ∩ φ.symm ⁻¹' e.baseSet
-  set ψ := A.patchMap IB b' b₀
+  set ψ := (A.trivAt b').patchMap IB b₀
   set μ := mpullback (𝓘(ℝ, EB).prod IF) IM ψ τ.val
   set νs : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F) :=
     SmoothForm.mpullback Prod.snd contMDiff_snd σ
@@ -207,7 +207,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchM
       (hUo.mem_nhds (by rw [hΦp₀]; exact ⟨hcU, mem_univ _⟩))] with p hp hpU
     -- `ψ ∘ Φ` is the identity near `p`.
     have hid : ψ ∘ Φ =ᶠ[𝓝 p] id := Filter.eventually_of_mem (hS.mem_nhds hp) fun q hq ↦
-      A.patchMap_extChartAt_proj_snd hq.1 hq.2
+      (A.trivAt b').patchMap_extChartAt_proj_prodMk_snd hq.1 hq.2
     have hpW : (Φ p).1 ∈ W :=
       hεW (Metric.ball_subset_ball (by linarith) (show (Φ p).1 ∈ _ from hpU.1))
     have hψ : MDifferentiableAt (𝓘(ℝ, EB).prod IF) IM ψ (Φ p) :=

@@ -91,14 +91,14 @@ def HasExactMixedCurl (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) : 
   ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
     ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
       mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
-        (A.patchMap IB b' b₀) τ.val) bs i j (extChartAt IB b₀ b) y w
+        ((A.trivAt b').patchMap IB b₀) τ.val) bs i j (extChartAt IB b₀ b) y w
 
 theorem hasExactMixedCurl_def (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) :
     A.HasExactMixedCurl IB IF τ bs ↔
       ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
           mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
-            (A.patchMap IB b' b₀) τ.val) bs i j (extChartAt IB b₀ b) y w :=
+            ((A.trivAt b').patchMap IB b₀) τ.val) bs i j (extChartAt IB b₀ b) y w :=
   Iff.rfl
 
 end MapFiber.Atlas
@@ -130,7 +130,7 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
           fun y ↦ (hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b₀ b, y)).2) ↔
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
           mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
-            (A.patchMap IB b' b₀) τ.val) bs i j (extChartAt IB b₀ b) y w := by
+            ((A.trivAt b').patchMap IB b₀) τ.val) bs i j (extChartAt IB b₀ b) y w := by
   obtain ⟨U, hU, hbU, τ', hfib, hτ'c, hτ'ψ, hτ'τ⟩ :=
     hA.exists_isVerticallyClosed_eq_mpullback_patchMap hτ hτσ hb
   have hnd : SmoothTwoForm.IsVerticallyNondegenerate 𝓘(ℝ, EB) Prod.fst τ' :=
@@ -143,7 +143,7 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
   have hmix (k : ι) (y : F) (w : TangentSpace IF y) :
       (fun x' ↦ RoughForm.mixedComponent τ'.val bs k x' y ![w]) =ᶠ[𝓝 (extChartAt IB b₀ b)]
         fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-          (A.patchMap IB b' b₀) τ.val) bs k x' y ![w] :=
+          ((A.trivAt b').patchMap IB b₀) τ.val) bs k x' y ![w] :=
     Filter.eventually_of_mem (hU.mem_nhds hbU) fun x' hx' ↦ by
       simp only [RoughForm.mixedComponent_apply, hτ'ψ (x', y) ⟨hx', mem_univ y⟩]
   have h := hD'.exists_isHamiltonianVectorField_curvature_iff bs

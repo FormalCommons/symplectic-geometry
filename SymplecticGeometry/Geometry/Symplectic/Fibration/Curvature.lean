@@ -668,7 +668,7 @@ theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_patchMap
     [IsManifold IB ∞ B] (hA : A.IsContMDiff ∞ IB IF IM) (b' b₀ : B) (τ : SmoothTwoForm IM M) :
     ContMDiffOn (𝓘(ℝ, EB).prod IF) ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
       (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z
-        (mpullback (𝓘(ℝ, EB).prod IF) IM (A.patchMap IB b' b₀) τ.val z))
+        (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val z))
       (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
         univ) := by
   exact fun z hz ↦ ((SmoothForm.contMDiff τ _).mpullback_form
@@ -682,13 +682,14 @@ theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_patchMap
     {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0)
     {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M} (h : A.RestrictsTo σ τ) {b' b₀ : B} {x : EB}
     (hx : x ∈ (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) :
-    RoughForm.fiberComponent (mpullback (𝓘(ℝ, EB).prod IF) IM (A.patchMap IB b' b₀) τ.val) x =
+    RoughForm.fiberComponent
+        (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val) x =
       σ.val := by
   funext y
   have hψ := (hA.contMDiffAt_patchMap (q := (x, y)) hx).mdifferentiableAt hn
   rw [RoughForm.fiberComponent_def,
     ← mpullback_comp_at (f := Prod.mk x) (mdifferentiableAt_const.prodMk mdifferentiableAt_id) hψ,
-    A.patchMap_comp_prodMk hx.2, MapFiber.Atlas.restrictsTo_iff.1 h b' _ hx.2]
+    (A.trivAt b').patchMap_comp_prodMk hx.2, MapFiber.Atlas.restrictsTo_iff.1 h b' _ hx.2]
 
 /-- For a `C^n` atlas, `2 ≤ n`, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at
 `b₀`, the pull-back of a vertically closed two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is
@@ -697,11 +698,11 @@ vertically closed for `Prod.fst` over the patch of the points `x` of the target 
 theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap
     {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : 2 ≤ n)
     {τ : SmoothTwoForm IM M} (h : SmoothTwoForm.IsVerticallyClosed IB proj τ) (b' b₀ : B) :
-    (mpullback (𝓘(ℝ, EB).prod IF) IM (A.patchMap IB b' b₀) τ.val).IsVerticallyClosedOn
+    (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val).IsVerticallyClosedOn
       𝓘(ℝ, EB) Prod.fst
       (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
         univ) := by
-  set ψ := A.patchMap IB b' b₀
+  set ψ := (A.trivAt b').patchMap IB b₀
   have hW :=
     ((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet (IB := IB) b₀).prod
       (isOpen_univ (X := F))
@@ -717,7 +718,7 @@ theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap
   -- Over the patch, `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`.
   have heq : proj ∘ ψ =ᶠ[𝓝 q] (extChartAt IB b₀).symm ∘ Prod.fst :=
     Filter.eventually_of_mem (hW.mem_nhds hq) fun z hz ↦
-      A.proj_patchMap hz.1.2
+      (A.trivAt b').proj_patchMap hz.1.2
   have hφ : MDifferentiableAt 𝓘(ℝ, EB) IB (extChartAt IB b₀).symm q.1 :=
     ((contMDiffOn_extChartAt_symm (n := n) b₀).contMDiffAt
       ((isOpen_extChartAt_target b₀).mem_nhds hq.1.1)).mdifferentiableAt hn0
