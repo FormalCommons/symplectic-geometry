@@ -161,13 +161,10 @@ theorem eulerChar_eq (h : IsLefschetzFibration ω J π) {y : ℙ ℂ (Fin 2 → 
     FiniteCWType.of_isManifold _ 𝓘(ℝ, Fin (dim I π' j) → ℝ)
   have e₀' : Piece I π' (.inl 0) ≃ₜ {x // π x = y} := e₀
   have e₁' : Piece I π' (.inl 1) ≃ₜ {x // π x = y} := e₁
-  -- The index of each piece is the Morse index of `μ ∘ π'` at any of its points.
-  have hidx (j) : hMB.index j = index I π' j :=
-    (hMB.manifoldMorseIndex_eq_index (by simp) j (hMB.nonempty j).some).symm.trans
-      (h'.manifoldMorseIndex_momentPullback hreg j _)
   rw [hMB.eulerChar_eq_sum_neg_one_pow_index_mul_eulerChar, Fintype.sum_sum_type,
     Fin.sum_univ_two, e₀'.eulerChar_eq, e₁'.eulerChar_eq]
-  simp only [hidx, index_inl, index_inr, eulerChar_of_contractibleSpace]
+  simp only [h'.index_isMorseBottFamily_momentPullback hreg hconn', index_inl, index_inr,
+    eulerChar_of_contractibleSpace]
   rw [← criticalSet_smul g π, Set.ncard_eq_toFinset_card', Set.toFinset_card]
   simp
   ring
