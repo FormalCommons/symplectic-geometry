@@ -47,7 +47,8 @@ pair.
   with faces in `U` that have the same class in the homology of `(M, U)` differ by a smooth
   boundary and a smooth chain of `U`.
 * `TauCeti.range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app`: a smooth simplex
-  whose faces are smooth simplices of `U` has its faces in `U`, as `TopPair.relClass` asks.
+  whose faces are smooth simplices of `U` has its faces in `U`, as `TopPair.relClass` asks, and
+  `TauCeti.exists_δ_eq_smoothSingularSubcomplexMap_app_of_range_subset`: conversely.
 
 ## References
 
@@ -94,6 +95,32 @@ theorem range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app {k 
   TopPair.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app
     (TopPair.ofSubset (X := TopCat.of M) (U : Set M)) σ.val (fun j ↦ (t j).val)
     (fun j ↦ δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app (ht j)) i
+
+/-- **Faces of a smooth simplex in an open subset.** If each face of the underlying singular
+simplex of a smooth simplex `σ` of `M` has its image in an open subset `U`, then the faces of `σ`
+are the images of smooth simplices `t i` of `U` under the inclusion. This is the converse of
+`range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app`. -/
+theorem exists_δ_eq_smoothSingularSubcomplexMap_app_of_range_subset {k : ℕ}
+    (σ : SmoothSimplex I M (k + 1))
+    (hσ : ∀ i, Set.range ((TopCat.of M).toSSetObjEquiv _
+      ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
+        Set.range (TopPair.ofSubset (X := TopCat.of M) (U : Set M)).map) :
+    ∃ t : Fin (k + 2) → SmoothSimplex I U k, ∀ i,
+      (smoothSingularSubcomplex I M : SSet).δ i σ =
+        (smoothSingularSubcomplexMap (Subtype.val : U → M) contMDiff_subtypeVal).app _ (t i) := by
+  let P := TopPair.ofSubset (X := TopCat.of M) (U : Set M)
+  have hτ (i : Fin (k + 2)) :
+      P.liftSimplex _ (hσ i) ∈ (smoothSingularSubcomplex I U).obj _ := by
+    rw [← smoothSingularSubcomplex_preimage_subtypeVal (I := I) U]
+    -- The inclusion of `U` is the map of the pair `P`.
+    change (TopCat.toSSet.map P.map).app _ (P.liftSimplex _ (hσ i)) ∈
+      (smoothSingularSubcomplex I M).obj _
+    exact Set.mem_of_eq_of_mem (P.toSSet_map_app_liftSimplex _ (hσ i))
+      ((smoothSingularSubcomplex I M : SSet).δ i σ).property
+  refine ⟨fun i ↦ ⟨P.liftSimplex _ (hσ i), hτ i⟩, fun i ↦ ?_⟩
+  -- The inclusion of `U` into `M` is the map of the pair `P`.
+  exact (Subtype.ext ((coe_smoothSingularSubcomplexMap_app _ _).trans
+    (by exact P.toSSet_map_app_liftSimplex _ (hσ i)))).symm
 
 end Faces
 
@@ -193,30 +220,15 @@ private lemma exists_d_sub_ιChainComplex_eq_chainComplexMap (U : Opens M) {n : 
           ((smoothSingularSubcomplex I M : SSet).ιChainComplex (R := R) σ).hom r) =
         (SSet.chainComplexMap (smoothSingularSubcomplexMap (Subtype.val : U → M)
           (contMDiff_subtypeVal (I := I))) R).f n z' := by
-  let P := TopPair.ofSubset (X := TopCat.of M) (U : Set M)
   -- The faces of `σ`, as smooth simplices of `U`.
-  have hτ (i : Fin (n + 2)) :
-      P.liftSimplex _ (hσ i) ∈ (smoothSingularSubcomplex I U).obj _ := by
-    rw [← smoothSingularSubcomplex_preimage_subtypeVal (I := I) U]
-    -- The inclusion of `U` is the map of the pair `P`.
-    change (TopCat.toSSet.map P.map).app _ (P.liftSimplex _ (hσ i)) ∈
-      (smoothSingularSubcomplex I M).obj _
-    exact Set.mem_of_eq_of_mem (P.toSSet_map_app_liftSimplex _ (hσ i))
-      ((smoothSingularSubcomplex I M : SSet).δ i σ).property
-  let τ (i : Fin (n + 2)) : SmoothSimplex I U n := ⟨P.liftSimplex _ (hσ i), hτ i⟩
-  have hτσ (i : Fin (n + 2)) : (smoothSingularSubcomplexMap (Subtype.val : U → M)
-      (contMDiff_subtypeVal (I := I))).app _ (τ i) =
-      (smoothSingularSubcomplex I M : SSet).δ i σ :=
-    -- The inclusion of `U` into `M` is the map of the pair `P`.
-    Subtype.ext ((coe_smoothSingularSubcomplexMap_app _ _).trans
-      (by exact P.toSSet_map_app_liftSimplex _ (hσ i)))
+  obtain ⟨τ, hτσ⟩ := exists_δ_eq_smoothSingularSubcomplexMap_app_of_range_subset σ hσ
   have e : (smoothSingularSubcomplex I M : SSet).ιChainComplex (R := R) σ ≫
       ((smoothSingularSubcomplex I M : SSet).chainComplex R).d (n + 1) n =
       ∑ i : Fin (n + 2), (-1 : ℤ) ^ i.val •
         ((smoothSingularSubcomplex I U : SSet).ιChainComplex (R := R) (τ i) ≫
         (SSet.chainComplexMap (smoothSingularSubcomplexMap (Subtype.val : U → M)
           (contMDiff_subtypeVal (I := I))) R).f n) := by
-    simp [hτσ]
+    simp [← hτσ]
   refine ⟨-∑ i : Fin (n + 2), (-1 : ℤ) ^ i.val •
     ((smoothSingularSubcomplex I U : SSet).ιChainComplex (R := R) (τ i)).hom r, ?_⟩
   simp only [map_sub, map_neg, map_sum, map_zsmul, HomologicalComplex.iCycles_d_apply, zero_sub]

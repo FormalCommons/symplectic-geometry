@@ -25,7 +25,8 @@ pair of `P`, its faces lifted to singular simplices of `A` (`TopPair.liftSimplex
 * `TopPair.relClass_eq`: the class is `SSetPair.relClass` for any lifts of the faces.
 * `TopPair.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app`: lifts of the faces to the subspace
   give the face condition, and `TopPair.relClass_eq_of_eq_toSSet_map_app` is the class for them.
-* `TopPair.relClass_singularHomologyMap`: naturality in maps of pairs.
+* `TopPair.relClass_singularHomologyMap`: naturality in maps of pairs; for the identity map
+  `(X, B) ⟶ (X, B')` with `B ⊆ B'`, `TopPair.relClass_singularHomologyMap_ofSubsetMap_id`.
 * `TopPair.relClass_restrictScalarsHomologyMap`: the change of coefficients
   `SSetPair.restrictScalarsHomologyMap` along `g : M ⟶ f^* N` sends the class with coefficients
   in `M` to the class with coefficients in `N`, through `g`; for the cast of integers into a
@@ -152,6 +153,24 @@ lemma relClass_singularHomologyMap {P' : TopPair.{w}} (f : P ⟶ P') :
   -- unfolding `toSSetPair`, so the naturality of `SSetPair.relClass` is applied as a term.
   exact (SSetPair.relClass_homologyMap (Q := toSSetPair.obj P) R σ _ _ (toSSetPair.map f)).trans
     (relClass_eq _ _ _ _ _ _).symm
+
+/-- For `B ⊆ B'`, the identity map of pairs `(X, B) ⟶ (X, B')` carries the class in
+`Hₙ₊₁(X, B)` of a singular simplex whose faces lie in `B` to its class in `Hₙ₊₁(X, B')`. -/
+@[reassoc (attr := simp), elementwise]
+lemma relClass_singularHomologyMap_ofSubsetMap_id {X : TopCat.{w}} {B B' : Set X}
+    (h : Set.MapsTo (𝟙 X) B B') (σ : (TopCat.toSSet.obj X) _⦋n + 1⦌)
+    (hσ : ∀ i, Set.range (X.toSSetObjEquiv _ ((TopCat.toSSet.obj X).δ i σ)) ⊆
+      Set.range (ofSubset B).map) :
+    (ofSubset B).relClass R σ hσ ≫ TopPair.singularHomologyMap (ofSubsetMap (𝟙 X) h) R (n + 1) =
+      (ofSubset B').relClass R σ fun i ↦ (hσ i).trans <| (range_ofSubset_map (B := B)).trans_subset
+        fun x hx ↦ (range_ofSubset_map (B := B')).symm ▸ h hx := by
+  refine (relClass_singularHomologyMap (P := ofSubset B) R σ hσ (ofSubsetMap (𝟙 X) h)).trans ?_
+  congr 1
+  -- `ofSubsetMap_fst` cannot be rewritten in place: the `MapsTo` proof depends on the map.
+  have e : TopCat.toSSet.map (Hom.fst (ofSubsetMap (𝟙 X) h)) = 𝟙 _ :=
+    (congrArg TopCat.toSSet.map (ofSubsetMap_fst _ _)).trans (CategoryTheory.Functor.map_id _ _)
+  rw [e, NatTrans.id_app]
+  exact ConcreteCategory.id_apply _
 
 /-- The change of coefficients `SSetPair.restrictScalarsHomologyMap` along `g : M ⟶ f^* N` sends
 the class of a singular `(n + 1)`-simplex `σ` whose faces lie in the subspace, with coefficients
