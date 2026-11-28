@@ -11,6 +11,7 @@ public import TauCeti.Dynamics.Flow.LevelCrossing
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
+import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
@@ -144,8 +145,12 @@ at the regular level `a`, in the form of
 `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`
 with `g = f`, and not the continuity of `Flow.levelCrossingTime` on a connecting set.
 
-The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`, whose hypotheses are checked as for
-the smoothness.
+The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`. Its hypotheses are checked one by
+one: near `x` each orbit meets the level `a` at most once, by
+`SymplecticGeometry.IsWeinsteinStructure.eq_levelCrossingTime_iff`; the orbit of `x` reaches the
+level, by `SymplecticGeometry.IsWeinsteinStructure.mapsTo_flow_levelCrossingTime`; and
+`df(X) ≠ 0` at the point where it does, by
+`SymplecticGeometry.IsWeinsteinStructure.mvfderiv_apply_pos_flow_levelCrossingTime`.
 
 The immersion is the chain rule with Mathlib's `injective_mvfderiv_subtypeVal_sphere` for the
 inclusion of the sphere, and injectivity comes from the left inverse of the disc. That the
@@ -294,13 +299,13 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
     isRegularValue_iff_notMem_image_criticalPoints.2 fun ⟨y, hy, hya⟩ ↦
       eq_empty_iff_forall_notMem.1 hc y ⟨hy, hya.ge, hya.trans_lt (hx.1.trans_lt hx.2)⟩
   obtain ⟨s, -, hs⟩ := hW.exists_nonpos_flow_apply_eq hc hx
-  have hlct := Flow.apply_flow_levelCrossingTime ⟨s, hs⟩
   have hf := hW.isGeneralizedMorse.contMDiff
-  exact ⟨fun h ↦ h ▸ hlct, fun h ↦
-    (hW.isMIntegralCurve_flow x).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
-      (hf.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
-      (fun _ hy ↦ ⟨hf.mdifferentiableAt (by simp),
-        hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha hy⟩) h hlct⟩
+  exact ⟨fun h ↦ h ▸ Flow.apply_flow_levelCrossingTime ⟨s, hs⟩, fun h ↦
+    (Flow.levelCrossingTime_eq_of_subsingleton
+      ((hW.isMIntegralCurve_flow x).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
+        (hf.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
+        (fun _ hy ↦ ⟨hf.mdifferentiableAt (by simp),
+          hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha hy⟩)) h).symm⟩
 
 /-- **The crossing of the lower level is in the past.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a ≤ f x < c`, the orbit of `x` crosses the level `f ⁻¹' {a}` at a time
@@ -335,19 +340,17 @@ theorem mvfderiv_apply_pos_flow_levelCrossingTime
 `f ⁻¹' Ico a c`, the map `y ↦ φ (Flow.levelCrossingTime φ f a y) y`, for `φ` the flow, which
 follows the orbit of each point back to the level `f ⁻¹' {a}`, is smooth on `f ⁻¹' Ioo a c`.
 
-Since `df(X) > 0` on the level `a`, this is
-`SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`
-with `g = f`. -/
+The proof uses the implicit function theorem at the regular level `a`, through the library's
+`SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`. -/
 theorem contMDiffOn_flow_levelCrossingTime
     (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅) :
     ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞)
-      (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) (f ⁻¹' Ioo a c) := by
-  -- `f ⁻¹' Ioo a c` is empty unless `a < c`, and then the level `a` holds no critical point.
-  intro y hy
-  refine (hW.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos hW.isGeneralizedMorse.contMDiff
-    fun z hz ↦ hW.isGradientLike.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc z
-      ⟨mem_criticalPoints.2 h, hz.ge, hz.trans_lt (hy.1.trans hy.2)⟩).mono ?_ y hy
-  exact fun z hz ↦ ⟨_, hW.mapsTo_flow_levelCrossingTime hc (Ioo_subset_Ico_self hz)⟩
+      (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) (f ⁻¹' Ioo a c) := fun x hx ↦
+  (hW.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos hW.isGeneralizedMorse.contMDiff
+    (fun y hy ↦ hW.isGradientLike.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc y
+      ⟨mem_criticalPoints.2 h, hy.ge, hy.trans_lt (hx.1.trans hx.2)⟩) x
+    ⟨_, hW.mapsTo_flow_levelCrossingTime hc (Ioo_subset_Ico_self hx)⟩).mono
+      fun _ hy ↦ ⟨_, hW.mapsTo_flow_levelCrossingTime hc (Ioo_subset_Ico_self hy)⟩
 
 /-- **The kernel of the derivative of the backward map.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a < f x < c`, the derivative at `x` of the map
