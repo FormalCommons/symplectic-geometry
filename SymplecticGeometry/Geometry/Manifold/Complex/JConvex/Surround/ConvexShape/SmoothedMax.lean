@@ -35,14 +35,14 @@ is `SymplecticGeometry.smoothedMax`.
   `(smoothedAbs δ)'' (χ₁' - χ₂')² / 2` of the second derivative, of order `1 / δ`
   (`SymplecticGeometry.exists_pos_div_le_iteratedDeriv_two_smoothedAbs`), makes up for it. So
   this route, unlike the book's quadratic bridge, needs no transversality of the crossings.
-  `SymplecticGeometry.isConvexShapeAt_smoothedMax_of_imp` adds the points where the two pieces
-  are more than the width apart, where the smoothed maximum is one of them near `r`.
   It is the case of a single pair in
   `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, which gives every width up to
   some `δ₀ > 0` at once for a compact family of pairs whose values and two derivatives are
   jointly continuous in the parameter, since the margins and bounds above are then uniform.
   `SymplecticGeometry.exists_pos_forall_isConvexShapeAt_smoothedMax` is the pointwise statement
   behind both: `δ₀` depends only on the margin and the two bounds, not on the shapes.
+  `SymplecticGeometry.isConvexShapeAt_smoothedMax_of_imp` adds the points where the two pieces
+  are more than the width apart, where the smoothed maximum is one of them near `r`.
 * `SymplecticGeometry.min_le_deriv_smoothedMax_div_sub_one_div` and
   `SymplecticGeometry.min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div`: the
   smoothed maximum keeps the smaller of the two margins in (4.3), and in the case `σ = r` of

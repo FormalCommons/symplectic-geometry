@@ -198,6 +198,24 @@ theorem struweLineShape_le (hδ : 0 < δ) (r : ℝ) :
   linarith [smoothedMax_le_max_add (by positivity : 0 < δ / 4) (struweShape δ 4 0 r)
     (2 * r - 8 * δ)]
 
+/-- For `δ > 0` and `r ≥ δ`, Struwe's shape based at `4 δ` is at most `2 r`. -/
+private theorem struweShape_four_zero_le_two_mul (hδ : 0 < δ) {r : ℝ} (hr : δ ≤ r) :
+    struweShape δ 4 0 r ≤ 2 * r := by
+  rcases le_total r (4 * δ) with h | h
+  · have hm := (strictMonoOn_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0).monotoneOn
+      (mem_Ici.2 hr) (mem_Ici.2 (by linarith)) h
+    rw [struweShape_apply_mul] at hm
+    linarith
+  · linarith [struweShape_four_zero_le hδ h]
+
+/-- For `δ > 0` and `r ≥ δ`, the Struwe/line shape is at most `2 r + δ / 8`. -/
+theorem struweLineShape_le_two_mul_add (hδ : 0 < δ) {r : ℝ} (hr : δ ≤ r) :
+    struweLineShape δ r ≤ 2 * r + δ / 8 := by
+  have h := struweLineShape_le hδ r
+  have : max (struweShape δ 4 0 r) (2 * r - 8 * δ) ≤ 2 * r :=
+    max_le (struweShape_four_zero_le_two_mul hδ hr) (by linarith)
+  linarith
+
 /-- For `δ > 0`, the slope of the Struwe/line shape is at most `2` from `7 δ / 2` on. -/
 theorem deriv_struweLineShape_le (hδ : 0 < δ) {r : ℝ} (hr : 7 * δ / 2 ≤ r) :
     deriv (struweLineShape δ) r ≤ 2 := by
@@ -307,16 +325,6 @@ theorem contDiffOn_bridgeLeaf {n : ℕ∞} (hδ : 0 < δ) (η : ℝ) {G : ℝ �
     hG.prodMk (hS.add contDiffOn_const)
   exact (contDiff_smoothedMax η).comp_contDiffOn h
 
-/-- For `δ > 0` and `r ≥ δ`, Struwe's shape based at `4 δ` is at most `2 r`. -/
-private theorem struweShape_four_zero_le_two_mul (hδ : 0 < δ) {r : ℝ} (hr : δ ≤ r) :
-    struweShape δ 4 0 r ≤ 2 * r := by
-  rcases le_total r (4 * δ) with h | h
-  · have hm := (strictMonoOn_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0).monotoneOn
-      (mem_Ici.2 hr) (mem_Ici.2 (by linarith)) h
-    rw [struweShape_apply_mul] at hm
-    linarith
-  · linarith [struweShape_four_zero_le hδ h]
-
 /-- **The second bridge stage.** Let `δ > 0`, `ℓ ≥ 0`, `0 < η ≤ δ / 200`, and `t` with
 `3 ℓ + 30 δ ≤ S δ + t`, where `S = struweShape δ 4 0`. Then the bridge leaf of the standard leaf
 `r ↦ √(64 r² + ℓ²)` and the Struwe/line shape raised by `t` is an `i`-convex shape at every
@@ -350,10 +358,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} (hℓ 
   have hP30 : 3 * ℓ + 30 * δ ≤ struweLineShape δ r + t := by
     linarith [struweShape_le_struweLineShape hδ r]
   have hPle : struweLineShape δ r + t ≤ 2 * r + δ / 8 + t := by
-    have h := struweLineShape_le hδ r
-    have : max (struweShape δ 4 0 r) (2 * r - 8 * δ) ≤ 2 * r :=
-      max_le (struweShape_four_zero_le_two_mul hδ hr.le) (by linarith)
-    linarith
+    linarith [struweLineShape_le_two_mul_add hδ hr.le]
   rw [show bridgeLeaf δ η (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) t = _ from
     funext (bridgeLeaf_def δ η _ t)]
   refine isConvexShapeAt_smoothedMax_of_imp hQc hPc hη₀ (fun _ ↦ ?_) (fun h ↦ ?_) (fun h ↦ ?_)
