@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Moser
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The symplectic ball extension
@@ -141,7 +142,7 @@ theorem IsSymplecticBallFamily.exists_smoothIsotopy_isSymplectic [FiniteDimensio
     funext fun x ↦ hk (t, x)
   have hslice : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun y ↦ e (t, y)) U :=
     heU.comp (contMDiffOn_const.prodMk contMDiffOn_id) fun y hy ↦ ⟨mem_univ _, hy⟩
-  rw [hcomp, mpullback_comp_at ((contMDiff_subtypeVal (n := 1) z).mdifferentiableAt one_ne_zero)
+  rw [hcomp, mpullback_comp_at mdifferentiableAt_subtypeVal
     ((hslice _ (hrU hz)).contMDiffAt (hUo.mem_nhds (hrU hz)) |>.mdifferentiableAt
       (by simp)), SmoothForm.coe_mpullback_subtype_val_apply, mpullback_subtype_val_apply,
     (he.isSymplecticBallEmbedding t).mpullback_eq_of_mem_closedBall hr hz]
