@@ -2362,7 +2362,7 @@ birth–death points are allowed.
   `K ⊆ {g < 0}`.
   (4) The crossing times of `g ⁻¹' {0}` and of `f ⁻¹' {b}`
   (`Flow.levelCrossingTime`) are smooth where the crossing exists,
-  through Tau Ceti's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
+  through the library's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
   the crossing time of `f ⁻¹' {b}` from `g ⁻¹' {0}` is bounded, as
   `g ⁻¹' {0}` is compact.
 - **Issue 16d** (`Handle/Attachment.lean`): the theorem. On the open set
