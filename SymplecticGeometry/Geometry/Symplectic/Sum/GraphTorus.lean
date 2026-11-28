@@ -272,7 +272,7 @@ theorem symplecticNormalForm_graphTorus_horizontal {σ : SmoothTwoForm I M}
       σ.eval₂ (h (x i)) v w := by
   set f := graphTorus hh
   set Ω := σ.prod (torusSymplecticForm p)
-  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  have hn : (∞ : ℕ∞ω) ≠ 0 := ENat.coe_top_ne_zero
   set d := mfderiv (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
     (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) f x
   let a := (f.tangentPairing Ω x).comp d
@@ -341,15 +341,15 @@ theorem contMDiff_normalClass_graphTorus_horizontal (hh : ContMDiff 𝓘(ℝ) I 
     {u : ∀ x : ∀ i, AddCircle (p i), Z → TangentSpace I (h (x i))}
     (hu : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K) I.tangent ∞
       fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨h (y.1 i), u y.1 y.2⟩ : TangentBundle I M)) :
-    letI := (graphTorus hh).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    letI := (graphTorus hh).normalSpaceFiberBundle ENat.coe_top_ne_zero hP
     ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K)
       ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, P)) ∞
       fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨y.1, (graphTorus hh).isImmersion.normalClass y.1
-          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (u y.1 y.2, 0)⟩ :
+          ENat.coe_top_ne_zero (u y.1 y.2, 0)⟩ :
         TotalSpace P fun x ↦ (graphTorus hh).isImmersion.NormalSpace x
-          (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) := by
+          ENat.coe_top_ne_zero) := by
   let f := graphTorus hh
-  let := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+  let := f.normalSpaceFiberBundle ENat.coe_top_ne_zero hP
   -- The ambient vectors `(u x z, 0)` along the graph torus form a smooth map into the pulled-back
   -- tangent bundle, and taking normal classes is smooth.
   have hg : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K)
@@ -459,7 +459,7 @@ def graphTorusSymplecticFraming {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenera
       (Complex.finrank_real_eq_finrank_prod_sub hE) :=
   SymplecticFraming.ofPos (fun x ↦ (e (x i)).trans (graphTorusHorizontalNormalEquiv hh x))
     (by
-      let := (graphTorus hh).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      let := (graphTorus hh).normalSpaceFiberBundle ENat.coe_top_ne_zero
         (Complex.finrank_real_eq_finrank_prod_sub hE)
       -- The frame read at the `i`-th coordinate of a point of the torus.
       have hu : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, ℂ)) I.tangent ∞
@@ -488,7 +488,7 @@ theorem graphTorusSymplecticFraming_apply {σ : SmoothTwoForm I M} (hσ : σ.IsN
       fun y : AddCircle (p i) × ℂ ↦ (⟨h y.1, e y.1 y.2⟩ : TangentBundle I M))
     (hpos : ∀ t, 0 < σ.eval₂ (h t) (e t 1) (e t Complex.I)) (x : ∀ i, AddCircle (p i))
     (v : (zeroSlice (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
-      (∀ i, AddCircle (p i))).isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+      (∀ i, AddCircle (p i))).isImmersion.NormalSpace x ENat.coe_top_ne_zero) :
     graphTorusSymplecticFraming hσ hh hE he hpos x v =
       (graphTorus hh).isImmersion.normalClass x (by simp)
         ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm

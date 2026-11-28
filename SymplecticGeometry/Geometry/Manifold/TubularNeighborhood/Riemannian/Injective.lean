@@ -16,15 +16,17 @@ import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Noncompact
 import SymplecticGeometry.Topology.VectorBundle.Basic
+public import SymplecticGeometry.Data.ENat.Basic
 
 /-!
 # A smooth injective map of the whole normal bundle
 
 Let `f : M → N` be a smooth embedding between boundaryless manifolds, `N` Hausdorff and second
 countable, with normal bundle `ν`. This file gives a smooth map `T : ν → N`, injective on all of
-`ν`, equal to `f` on the zero section, whose normal derivative `f.normalFiberDeriv hn hdim T x`
-(the normal class of its differential at `0_x` on vertical vectors) is `c x` times the identity,
-for a function `c > 0` (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`).
+`ν`, equal to `f` on the zero section, whose normal derivative
+`f.normalFiberDeriv ENat.coe_top_ne_zero hdim T x` (the normal class of its differential at `0_x`
+on vertical vectors) is `c x` times the identity, for a function `c > 0`
+(`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`).
 
 The map is the normal exponential of an auxiliary Riemannian metric on `N`, which is a
 diffeomorphism on the bundle of open normal discs of some positive smooth radius `r`, measured in
@@ -67,19 +69,19 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 
 /-- A smooth embedding `f` extends to a smooth map `T` of its normal bundle into the target,
 injective on the whole bundle and equal to `f` on the zero section, whose normal derivative
-`f.normalFiberDeriv hn hdim T x` sends `v` to `c x • v`, where `c x > 0`. -/
+`f.normalFiberDeriv ENat.coe_top_ne_zero hdim T x` sends `v` to `c x • v`, where `c x > 0`. -/
 theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) :
-    letI := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
-    letI := f.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
+    letI := f.normalSpaceFiberBundle ENat.coe_top_ne_zero hdim
+    letI := f.normalSpaceVectorBundle ENat.coe_top_ne_zero hdim
     ∃ T : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x
-        (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) → N,
+        ENat.coe_top_ne_zero) → N,
       ContMDiff (I.prod 𝓘(ℝ, P)) J ∞ T ∧ Injective T ∧
       (∀ x, T (zeroSection P _ x) = f x) ∧
       ∃ c : M → ℝ, (∀ x, 0 < c x) ∧
-        ∀ x (v : f.isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)),
-        f.normalFiberDeriv (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim T x v = c x • v := by
-  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+        ∀ x (v : f.isImmersion.NormalSpace x ENat.coe_top_ne_zero),
+        f.normalFiberDeriv ENat.coe_top_ne_zero hdim T x v = c x • v := by
+  have hn : (∞ : ℕ∞ω) ≠ 0 := ENat.coe_top_ne_zero
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
