@@ -16,6 +16,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
@@ -323,15 +324,10 @@ theorem mdifferentiable_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlg
     MDifferentiable ((IB.prod IG).prod IN) 𝓘(ℝ, F) (fun q : ManifoldTotalSpace G P × N ↦
       A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) := by
   intro q
-  have h := SmoothForm.mdifferentiableAt_apply_vectorField A
-    (V := ![fun q : ManifoldTotalSpace G P × N ↦
+  exact A.mdifferentiableAt_apply_one (Z := fun q : ManifoldTotalSpace G P × N ↦
       (((rightFundamentalVectorField (IB.prod IG) ξ q.1 : EB × EG), (0 : EN)) :
-        TangentSpace ((IB.prod IG).prod IN) q)]) (x := q)
-    (fun i ↦ by fin_cases i; exact mdifferentiable_rightFundamentalVectorField_prod ξ q)
-  convert h using 3 with y
-  ext i
-  fin_cases i
-  rfl
+        TangentSpace ((IB.prod IG).prod IN) q))
+    (mdifferentiable_rightFundamentalVectorField_prod ξ q)
 
 variable (hA : ∀ g : G,
   SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × N ↦ (op g • x.1, x.2))
