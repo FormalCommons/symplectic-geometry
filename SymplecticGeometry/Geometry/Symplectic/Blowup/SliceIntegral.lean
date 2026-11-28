@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Area
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Geometry.Manifold.Complex.Integration
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Integral
@@ -67,7 +68,7 @@ theorem integral_curveLift_smul_profileForm_sub (hh : IsBlowupProfile l ε h)
     (hg : Topology.IsOpenEmbedding (g ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
     (ho : ∀ x ∈ U, Manifold.Orientation.IsOrientationPreservingAt
       (Manifold.Orientation.euclideanSpace 2) ((complexManifoldOrientation ℂ ℂ).reindex
-        (finCongr ((finrank_real_of_complex ℂ).symm.trans Complex.finrank_real_complex))) g x)
+        (finCongr Complex.two_mul_finrank_self)) g x)
     (hD : ∀ t : ℂ, curveLift (· • v) t ∈ closedNbhd n (l + ε) → t ∈ g '' fullSimplex 2) :
     SmoothSimplex.integral ((smoothSingularSubcomplexMap (curveLift (· • v))
         (contMDiff_curveLift_smul_real hv)).app (op ⦋2⦌) τ)
@@ -133,7 +134,7 @@ theorem integral_curveLift_smul_profileForm_sub_sub_sum_integral_δ (hh : IsBlow
     (hg : Topology.IsOpenEmbedding (g ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
     (ho : ∀ x ∈ U, Manifold.Orientation.IsOrientationPreservingAt
       (Manifold.Orientation.euclideanSpace 2) ((complexManifoldOrientation ℂ ℂ).reindex
-        (finCongr ((finrank_real_of_complex ℂ).symm.trans Complex.finrank_real_complex))) g x)
+        (finCongr Complex.two_mul_finrank_self)) g x)
     (hD : ∀ t : ℂ, curveLift (· • v) t ∈ closedNbhd n (l + ε) → t ∈ g '' fullSimplex 2)
     {β : RoughForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ℝ 1}
     (hβ : ∀ p ∉ closedNbhd n (l + ε), β p = 0)
