@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
+public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.RelativeCycle
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.Geometry.Manifold.DeRham.Relative.SingularCohomology
 import TauCeti.Algebra.Homology.Embedding.Extend
@@ -192,23 +193,6 @@ theorem kronecker_integration_homologyπ (k : ℕ) {c : 𝒮[M].X (k + 1)} {c' :
 
 end relativeDeRhamCohomology
 
-/-- If the faces of a smooth simplex `σ` of `M` are the images of smooth simplices `t i` of an
-open subset `W`, then each face of the underlying singular simplex has its image in `W`, as
-`TopPair.relClass` asks. -/
-theorem range_δ_subset_of_eq_smoothSingularSubcomplexMap_app {k : ℕ}
-    (σ : SmoothSimplex I M (k + 1)) (t : Fin (k + 2) → SmoothSimplex I W k)
-    (ht : ∀ i, (smoothSingularSubcomplex I M : SSet).δ i σ =
-      (smoothSingularSubcomplexMap (Subtype.val : W → M) contMDiff_subtypeVal).app _ (t i))
-    (i : Fin (k + 2)) :
-    Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
-      Set.range (TopPair.ofSubset (X := TopCat.of M) (W : Set M)).map := by
-  have h : (TopCat.toSSet.obj (TopCat.of M)).δ i σ.val =
-      (TopCat.toSSet.map (TopPair.ofSubset (W : Set (TopCat.of M))).map).app _ (t i).val :=
-    (congrArg Subtype.val (ht i)).trans (coe_smoothSingularSubcomplexMap_app _ _)
-  rw [h]
-  rintro _ ⟨z, rfl⟩
-  exact ⟨_, rfl⟩
-
 section SingularCohomology
 
 variable [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [IsManifold I ∞ M]
@@ -255,22 +239,20 @@ theorem singularKronecker_relativeDeRhamHom_relClass (k : ℕ)
     (TopPair.ofSubset (W : Set (TopCat.of M))).singularKronecker ℝ (k + 1)
         (relativeDeRhamHom I W (k + 1) x)
         ((TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val
-          (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) 1) =
+          (range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app σ t ht) 1) =
       integral I W k
         (SSetPair.sum_ιChainComplex_comp_chainComplexMap_f_apply (Q := smoothSingularPair I W)
           (ModuleCat.of ℝ ℝ) σ t ht 1).symm x := by
   have e : (TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val
-        (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) =
+        (range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app σ t ht) =
       SSetPair.relClass (Q := smoothSingularPair I W) (ModuleCat.of ℝ ℝ) σ t ht ≫
         SSetPair.homologyMap (smoothSingularPairι I W) (ModuleCat.of ℝ ℝ) (k + 1) := by
     have h₁ := SSetPair.relClass_homologyMap (Q := smoothSingularPair I W) (ModuleCat.of ℝ ℝ) σ t
       ht (smoothSingularPairι I W)
-    have ht' : ∀ i, (TopCat.toSSet.obj (TopCat.of M)).δ i σ.val =
-        (TopCat.toSSet.map (TopPair.ofSubset (W : Set (TopCat.of M))).map).app _ (t i).val :=
-      fun i ↦ (congrArg Subtype.val (ht i)).trans (coe_smoothSingularSubcomplexMap_app _ _)
     rw [h₁, TopPair.relClass_eq (TopPair.ofSubset (W : Set (TopCat.of M))) (ModuleCat.of ℝ ℝ)
-      σ.val (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) (fun i ↦ (t i).val)
-      ht']
+      σ.val (range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app σ t ht)
+      (fun i ↦ (t i).val)
+      fun i ↦ δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app (ht i)]
     simp only [smoothSingularPairι_right, smoothSingularPairι_left]
     -- The inclusion of a subcomplex sends a simplex to its underlying simplex, by definition of
     -- `Subfunctor.ι`; the proofs of the face conditions agree by proof irrelevance.
@@ -294,7 +276,7 @@ theorem singularKronecker_relativeDeRhamHom_mk_relClass (k : ℕ)
     (TopPair.ofSubset (W : Set (TopCat.of M))).singularKronecker ℝ (k + 1)
         (relativeDeRhamHom I W (k + 1) (mk I W k y))
         ((TopPair.ofSubset (W : Set (TopCat.of M))).relClass (ModuleCat.of ℝ ℝ) σ.val
-          (range_δ_subset_of_eq_smoothSingularSubcomplexMap_app I W σ t ht) 1) =
+          (range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app σ t ht) 1) =
       (integrationCochain y.val.1.val).hom
           (((smoothSingularSubcomplex I M : SSet).ιChainComplex (R := ModuleCat.of ℝ ℝ) σ).hom 1) -
         (integrationCochain y.val.2.val).hom
