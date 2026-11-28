@@ -22,7 +22,10 @@ the skew-Hermitian matrix `X = matrixUnitaryLieAlgebraEquiv ξ`.
 
 The smoothness of the action is proved as Tau Ceti proves `Matrix.instContMDiffSMulMulVec` for
 the matrices with the `L²` operator norm: `(A, v) ↦ A *ᵥ v` is a real bilinear map of
-finite-dimensional spaces, here composed with the inclusion of the group.
+finite-dimensional spaces, here composed with the inclusion of the group. The computation of
+the fundamental vector fields adapts Tau Ceti's `fundamentalLinearMap_symplecticGroup`, for the
+symplectic group acting on its model space: the orbit map of `y` is the inclusion into the
+matrices followed by the continuous linear map `A ↦ A *ᵥ y`, whose differential is itself.
 
 ## Main results
 
@@ -56,13 +59,9 @@ closed-subgroup charts, into `Matrix n n 𝕜` is smooth. -/
 theorem contMDiff_unitarySubgroup_coe_matrix :
     ContMDiff 𝓘(ℝ, (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n 𝕜))
         (unitarySubgroup (GL n 𝕜))).toSubmodule) 𝓘(ℝ, Matrix n n 𝕜) ∞
-      (fun k : unitarySubgroup (GL n 𝕜) ↦ ((k : GL n 𝕜) : Matrix n n 𝕜)) := by
-  have h := (Units.contMDiff_val (𝕜 := ℝ) (R := Matrix n n 𝕜) (n := ∞)).comp
-    (matrixUnitaryEmbeddedLieSubgroupData (n := n) (𝕜 := 𝕜)).subtypeVal.contMDiff_toFun
-  convert h using 1
-  funext k
-  exact (congrArg Units.val
-    ((matrixUnitaryEmbeddedLieSubgroupData (n := n) (𝕜 := 𝕜)).subtypeVal_apply k)).symm
+      (fun k : unitarySubgroup (GL n 𝕜) ↦ ((k : GL n 𝕜) : Matrix n n 𝕜)) :=
+  Units.contMDiff_val.comp
+    (matrixUnitaryEmbeddedLieSubgroupData (n := n) (𝕜 := 𝕜)).contMDiff_subtypeVal
 
 /-- The unitary group `unitarySubgroup (GL n 𝕜)` acts smoothly on column vectors,
 `g • v = g *ᵥ v`. -/
@@ -95,7 +94,11 @@ theorem fundamentalVectorField_unitarySubgroup
     ((contMDiff_unitarySubgroup_coe_matrix (n := n) (𝕜 := ℂ) 1).mdifferentiableAt (by simp)) ξ
   rw [mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply] at h
   rw [fundamentalVectorField_apply, coe_matrixUnitaryLieAlgebraEquiv_apply]
-  -- `L ∘ (↑)` is `g ↦ g • y` by definition of the action of the subgroup.
+  have hL : (fun g : unitarySubgroup (GL n ℂ) ↦ g • y) =
+      fun k : unitarySubgroup (GL n ℂ) ↦ L ((k : GL n ℂ) : Matrix n n ℂ) := by
+    ext1 k
+    simp [L, Subgroup.smul_def, Units.smul_def]
+  rw [hL]
   exact h
 
 end TauCeti.Lie

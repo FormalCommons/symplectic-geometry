@@ -181,25 +181,14 @@ namespace Projectivization
 
 variable {n : ℕ}
 
-/-- The unitary group `unitarySubgroup (GL (Fin (n + 1)) ℂ)` acts smoothly on
-`ℙ ℂ (Fin (n + 1) → ℂ)`, through its action on `GL (Fin (n + 1)) ℂ`. -/
-instance instContMDiffSMulUnitarySubgroup :
-    ContMDiffSMul 𝓘(ℝ, 𝔨[n]) 𝓘(ℝ, Fin n → ℂ) ∞ (unitarySubgroup (GL (Fin (n + 1)) ℂ))
-      (ℙ ℂ (Fin (n + 1) → ℂ)) :=
-  -- The action of the subgroup through `GL (Fin (n + 1)) ℂ` is, by definition, the action of
-  -- `Projectivization.instContMDiffSMul` through the linear action of the subgroup.
-  instContMDiffSMul
-
 /-- An element `g` of `unitarySubgroup (GL (Fin (n + 1)) ℂ)` acts on `ℙ ℂ (Fin (n + 1) → ℂ)` as
 the unitary matrix `unitarySubgroupUnitsEquiv g`. -/
 theorem unitarySubgroup_smul_eq (g : unitarySubgroup (GL (Fin (n + 1)) ℂ))
     (x : ℙ ℂ (Fin (n + 1) → ℂ)) : g • x = unitarySubgroupUnitsEquiv g • x := by
   induction x using Projectivization.ind with
   | h y hy =>
-    -- The subgroup acts through `GL (Fin (n + 1)) ℂ`.
-    change (g : GL (Fin (n + 1)) ℂ) • mk ℂ y hy = _
-    rw [smul_mk, smul_mk]
-    rfl
+    rw [Subgroup.smul_def, smul_mk, smul_mk]
+    congr 1
 
 /-- **Generators of the unitary action on `ℙ ℂ (Fin (n + 1) → ℂ)`.** The fundamental vector field
 of `ξ` at the line `[y]` is the image of `X *ᵥ y` under the differential of `mkNonzero ℂ n` at `y`,
