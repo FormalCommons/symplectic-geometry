@@ -206,13 +206,13 @@ theorem exists_jetNormAt_div_peakFunction_le (r : ℕ) (R : ℝ) :
         · exact hA z (mem_closedBall_zero_iff.2 hz)
 
 /-- **Jets of the flat `∂̄` of the quotient by the cut-off Gaussian.** For every order `r` and
-radius `R` there is a constant `C` such that, for every `k` with `R < k ^ (1 / 6)`, every field
+radius `R` there is a constant `C ≥ 0` such that, for every `k` with `R < k ^ (1 / 6)`, every field
 `J` of real-linear endomorphisms of `StdSpace ι`, every `f` and every `z` with `‖z‖ ≤ R` where `f`
 is `C^(r + 1)` and `J` is `C^r`, the `r`-jet norm at `z` of the flat `∂̄` of `f / peakFunction k`
 is at most `C` times the `r`-jet norm of the model `∂̄` of `f` for `J` plus the product of the
 `r`-jet norm of `J - J₀` and the `(r + 1)`-jet norm of `f`. -/
 theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
-    ∃ C, ∀ (k : ℕ) (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
+    ∃ C, 0 ≤ C ∧ ∀ (k : ℕ) (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
       {z : StdSpace ι}, ‖z‖ ≤ R → R < (k : ℝ) ^ (1 / 6 : ℝ) →
       ContDiffAt ℝ (r + 1 : ℕ) f z → ContDiffAt ℝ r J z →
       jetNormAt ℝ r (flatDbar fun y ↦ f y / peakFunction k y) z ≤
@@ -225,7 +225,8 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
   obtain ⟨C₁, hC₁0, hC₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
   set J₀ := LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
   set K := C₁ * (1 + |R|)
-  refine ⟨2 ^ r * |A| * (1 + K), fun k J f z hz hk hf hJ ↦ ?_⟩
+  have hK : 0 ≤ K := by positivity
+  refine ⟨2 ^ r * |A| * (1 + K), by positivity, fun k J f z hz hk hf hJ ↦ ?_⟩
   set E : StdSpace ι → ℂ := fun y ↦ Real.exp (‖y‖ ^ 2 / 4)
   set T := fun w ↦ modelDbarWith J f w - modelDbarWith (fun _ ↦ J₀) f w
   have hE : ContDiffAt ℝ r E z := contDiff_ofReal_exp_norm_sq_div_four.contDiffAt
@@ -256,7 +257,6 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
     rw [mul_assoc]
     exact mul_le_mul_of_nonneg_right h1
       (mul_nonneg (jetNormAt_nonneg _ _ _) (jetNormAt_nonneg _ _ _))
-  have hK : 0 ≤ K := by positivity
   have hP := jetNormAt_fun_smul_le hE (hD.add hT.neg)
   have hAz : jetNormAt ℝ r E z ≤ |A| :=
     (hA z (mem_closedBall_zero_iff.2 hz)).trans (le_abs_self A)
@@ -290,27 +290,28 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
 
 /-- **The flat `∂̄` of a reading divided by the cut-off Gaussian.** For every order `r` and radius
-`R` there is a constant `C` such that, for rescaled unitary charts of radius `ρ₀ > 0`, for all
+`R` there is a constant `C ≥ 0` such that, for rescaled unitary charts of radius `ρ₀ > 0`, for all
 large `k`, every centre `x`, every section `s` of `PowerBundle P k` and every `z` with `‖z‖ ≤ R`
 where the reading `f` of `s` is `C^(r + 1)`, the
 `r`-jet norm at `z` of the flat `∂̄` of `f / peakFunction k` is at most `C` times the `r`-jet norm
 of the `∂̄` reading of `s` plus `k ^ (-1 / 2)` times the `(r + 1)`-jet norm of `f`. -/
 theorem exists_jetNormAt_flatDbar_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (r : ℕ) (R : ℝ) :
-    ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
+    ∃ C, 0 ≤ C ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
       ‖z‖ ≤ R → ContDiffAt ℝ (r + 1 : ℕ) (D.reading k x s) z →
       jetNormAt ℝ r (flatDbar fun y ↦ D.reading k x s y / peakFunction k y) z ≤
         C * (jetNormAt ℝ r (D.dbarReading k x s) z +
           (k : ℝ) ^ (-1 / 2 : ℝ) * jetNormAt ℝ (r + 1) (D.reading k x s) z) := by
-  obtain ⟨C, hC⟩ := exists_jetNormAt_flatDbar_div_peakFunction_le (ι := ι) r R
-  obtain ⟨C₀, hC₀⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
-  set C' := |C₀| * (1 + |R|)
+  obtain ⟨C, hC0, hC⟩ := exists_jetNormAt_flatDbar_div_peakFunction_le (ι := ι) r R
+  obtain ⟨C₀, hC₀0, hC₀⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
+  set C' := C₀ * (1 + |R|)
+  have hC' : 0 ≤ C' := by positivity
   have h6 : ∀ᶠ k : ℕ in Filter.atTop, R < (k : ℝ) ^ (1 / 6 : ℝ) :=
     ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 6)).comp
       tendsto_natCast_atTop_atTop).eventually_gt_atTop R
   have hρ : ∀ᶠ k : ℕ in Filter.atTop, R < ρ₀ * √k :=
     (((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ₀).eventually_gt_atTop R)
-  refine ⟨|C| * (1 + |C'|), ?_⟩
+  refine ⟨C * (1 + C'), by positivity, ?_⟩
   filter_upwards [Filter.eventually_ge_atTop k₀, h6, hρ] with k hk hk6 hkρ x s z hz hf
   have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
   have hJ : ContDiffAt ℝ r (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
@@ -328,21 +329,18 @@ theorem exists_jetNormAt_flatDbar_reading_div_peakFunction_le (hρ₀ : 0 < ρ�
   set t := (k : ℝ) ^ (-1 / 2 : ℝ)
   have ha : 0 ≤ a := jetNormAt_nonneg _ _ _
   have hb : 0 ≤ b := jetNormAt_nonneg _ _ _
-  have hj0 : 0 ≤ j := jetNormAt_nonneg _ _ _
   have ht : 0 ≤ t := by positivity
   have hz' : 1 + ‖z‖ ≤ 1 + |R| := by linarith [le_abs_self R]
-  have hj' : j ≤ |C'| * t := by
+  have hj' : j ≤ C' * t := by
     refine hj.trans ?_
-    rw [abs_of_nonneg (by positivity : 0 ≤ C')]
-    calc C₀ * t * (1 + ‖z‖) ≤ |C₀| * t * (1 + |R|) := by gcongr; exact le_abs_self _
+    calc C₀ * t * (1 + ‖z‖) ≤ C₀ * t * (1 + |R|) :=
+          mul_le_mul_of_nonneg_left hz' (by positivity)
       _ = C' * t := by ring
-  calc C * (a + j * b) ≤ |C| * (a + j * b) :=
-        mul_le_mul_of_nonneg_right (le_abs_self _) (by positivity)
-    _ ≤ |C| * (a + |C'| * t * b) := by gcongr
-    _ ≤ |C| * (1 + |C'|) * (a + t * b) := by
-        have : a + |C'| * t * b ≤ (1 + |C'|) * (a + t * b) := by
-          nlinarith [abs_nonneg C', mul_nonneg ht hb]
-        calc |C| * (a + |C'| * t * b) ≤ |C| * ((1 + |C'|) * (a + t * b)) := by gcongr
+  calc C * (a + j * b) ≤ C * (a + C' * t * b) := by gcongr
+    _ ≤ C * (1 + C') * (a + t * b) := by
+        have : a + C' * t * b ≤ (1 + C') * (a + t * b) := by
+          nlinarith [mul_nonneg ht hb]
+        calc C * (a + C' * t * b) ≤ C * ((1 + C') * (a + t * b)) := by gcongr
           _ = _ := by ring
 
 end RescaledUnitaryCharts

@@ -168,11 +168,11 @@ theorem contDiffAt_modelConnection {n : ℕ∞} {f : StdSpace ι → ℂ} {z : S
     (hω.contDiffAt.smulRight ((contDiffAt_const (c := Complex.I)).mul (hf.of_le le_self_add)))
   exact h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ modelConnection_def ..)
 
-/-- **Jets of the model connection.** For every order `r` there is a constant `C` such that, for
-every `f` and at every point `z` where `f` is `C^(r + 1)`, the `r`-jet norm at `z` of the model
+/-- **Jets of the model connection.** For every order `r` there is a constant `C ≥ 0` such that,
+for every `f` and at every point `z` where `f` is `C^(r + 1)`, the `r`-jet norm at `z` of the model
 connection of `f` is at most `C * (1 + ‖z‖)` times the `(r + 1)`-jet norm of `f` at `z`. -/
 theorem exists_jetNormAt_modelConnection_le (r : ℕ) :
-    ∃ C : ℝ, ∀ (f : StdSpace ι → ℂ) {z : StdSpace ι}, ContDiffAt ℝ (r + 1 : ℕ) f z →
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (f : StdSpace ι → ℂ) {z : StdSpace ι}, ContDiffAt ℝ (r + 1 : ℕ) f z →
       jetNormAt ℝ r (modelConnection f) z ≤ C * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z := by
   set Ω : StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
     (2⁻¹ : ℝ) • (stdForm ι).toBilinForm.toContinuousBilinearMap
@@ -180,7 +180,7 @@ theorem exists_jetNormAt_modelConnection_le (r : ℕ) :
   let : NormedAddCommGroup (ℂ →L[ℝ] StdSpace ι →L[ℝ] ℂ) := ContinuousLinearMap.toNormedAddCommGroup
   let : NormedSpace ℝ (ℂ →L[ℝ] StdSpace ι →L[ℝ] ℂ) := ContinuousLinearMap.toNormedSpace
   set R := smulRightL ℝ ℝ ℝ (StdSpace ι) ℂ
-  refine ⟨1 + 2 ^ r * ‖R‖ * ‖Ω‖, fun g z hs ↦ ?_⟩
+  refine ⟨1 + 2 ^ r * ‖R‖ * ‖Ω‖, by positivity, fun g z hs ↦ ?_⟩
   set J1 := jetNormAt ℝ (r + 1) g z
   have hJ1 : 0 ≤ J1 := jetNormAt_nonneg _ _ _
   have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
@@ -399,8 +399,8 @@ theorem exists_jetNormAt_modelDbarWith_sub_le (r : ℕ) :
   let : NormedSpace ℝ ((StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] ℂ) :=
     ContinuousLinearMap.toNormedSpace
   set B := compL ℝ (StdSpace ι) (StdSpace ι) ℂ
-  obtain ⟨A, hA⟩ := exists_jetNormAt_modelConnection_le (ι := ι) r
-  refine ⟨2 ^ r * ‖B‖ * ‖c‖ * max A 0, by positivity, fun J J' f z hf hJ hJ' ↦ ?_⟩
+  obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_modelConnection_le (ι := ι) r
+  refine ⟨2 ^ r * ‖B‖ * ‖c‖ * A, by positivity, fun J J' f z hf hJ hJ' ↦ ?_⟩
   -- The difference is bilinear in `c • L` and `J - J'`, for `L` the model connection of `f`.
   have heq : (fun w ↦ modelDbarWith J f w - modelDbarWith J' f w) =
       fun w ↦ B ((c • modelConnection f) w) (J w - J' w) := by
@@ -417,10 +417,10 @@ theorem exists_jetNormAt_modelDbarWith_sub_le (r : ℕ) :
   have : 0 ≤ jetNormAt ℝ (r + 1) f z := jetNormAt_nonneg _ _ _
   calc 2 ^ r * ‖B‖ * (‖c‖ * jetNormAt ℝ r (modelConnection f) z) *
         jetNormAt ℝ r (fun w ↦ J w - J' w) z
-      ≤ 2 ^ r * ‖B‖ * (‖c‖ * (max A 0 * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z)) *
+      ≤ 2 ^ r * ‖B‖ * (‖c‖ * (A * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z)) *
           jetNormAt ℝ r (fun w ↦ J w - J' w) z := by
         gcongr
-        exact (hA f hf).trans (by gcongr; exact le_max_left A 0)
+        exact hA f hf
     _ = _ := by ring
 
 end SymplecticGeometry
