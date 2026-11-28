@@ -31,6 +31,7 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffRepresentative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
@@ -408,9 +409,9 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
         (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
         (ψ.toOpenPartialHomeomorph z) ∧
       (∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx
-          (VectorBundleOrientation.reindex (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+          (VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
             (VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber) x) =
-        Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+        Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self)
           (complexOrientation ℂ)) ∧
       ∃ c : OnePoint ℂ → ℂ, ContinuousAt c z ∧ c z ≠ 0 ∧
         ∀ x (v : (twistCore (𝕜 := ℂ) 1).Fiber x),

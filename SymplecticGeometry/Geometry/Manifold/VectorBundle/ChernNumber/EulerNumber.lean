@@ -15,6 +15,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ComplexStructure
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # The first Chern number as a count of zeros
@@ -221,7 +222,8 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
     exact hn
   -- The linearization, as a linear equivalence `Leq` onto the fibre of `J.Fiber`, and `A` as the
   -- linear equivalence `Aeq = e ∘ Leq ∘ D⁻¹`.
-  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans (by simp)
+  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans
+    Complex.two_mul_finrank_self
   obtain ⟨L, hL⟩ :=
     exists_continuousLinearEquiv_eq_sectionLinearization_of_surjective (hn.trans hF.symm) hsurj
   set Leq : TangentSpace 𝓘(ℝ, EM) z ≃ₗ[ℝ] J.Fiber z :=
@@ -354,7 +356,8 @@ theorem chernNumber_eq_sum_sign_of_transverse {s : ∀ x, V x}
                 VectorBundleOrientation.reindex (finCongr (by simp))
                   (VectorBundleOrientation.complex ℂ J.Fiber) z
           then 1 else -1 := by
-  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans (by simp)
+  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans
+    Complex.two_mul_finrank_self
   have : ∀ x, T2Space (V x) := FiberBundle.t2Space F V
   have : ∀ x, FiniteDimensional ℝ (V x) := fun x ↦ VectorBundle.finiteDimensional ℝ F V x
   have hZ : {z | s z = 0}.Finite :=

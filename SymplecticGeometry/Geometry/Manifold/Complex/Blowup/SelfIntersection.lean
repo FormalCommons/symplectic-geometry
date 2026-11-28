@@ -72,7 +72,7 @@ namespace SymplecticGeometry
 
 namespace BlowupModel
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 /-- **The exceptional divisor of the blowup of `ℂ²` at the origin has self-intersection `-1`.**
 Let `Φ` be any diffeomorphism from the model `𝓘(ℝ, Fin 1 → ℂ)` of `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` to `𝓡 2`.

@@ -106,7 +106,7 @@ variable {E : Type} {H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Fi
 
 section Number
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 variable [T2Space M] [CompactSpace M]
 
@@ -248,7 +248,7 @@ section Remodel
 
 open CategoryTheory
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 variable [I.Boundaryless]
 
