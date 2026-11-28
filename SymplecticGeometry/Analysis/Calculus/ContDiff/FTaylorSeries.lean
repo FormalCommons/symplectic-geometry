@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
+import SymplecticGeometry.Topology.ContinuousOn
 
 /-!
 # Gluing Taylor series
@@ -47,13 +48,7 @@ theorem HasFTaylorSeriesUpToOn.union (hs : HasFTaylorSeriesUpToOn n f p s)
       exacts [hs.fderivWithin m hm x h, .of_notMem_closure h]
     · rcases h₂ with h | h
       exacts [ht.fderivWithin m hm x h, .of_notMem_closure h]
-  · intro m hm x hx
-    obtain ⟨h₁, h₂⟩ := key x hx
-    apply ContinuousWithinAt.union
-    · rcases h₁ with h | h
-      exacts [hs.cont m hm x h, continuousWithinAt_of_notMem_closure h]
-    · rcases h₂ with h | h
-      exacts [ht.cont m hm x h, continuousWithinAt_of_notMem_closure h]
+  · exact fun m hm ↦ (hs.cont m hm).union_of_closure_inter_subset (ht.cont m hm) hst hts
 
 /-- Functions that agree on an open set `s` have iterated derivatives of every order that agree
 on `s`. -/
