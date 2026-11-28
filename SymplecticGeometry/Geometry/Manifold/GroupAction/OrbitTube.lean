@@ -171,12 +171,15 @@ theorem symm_mfderiv_smul {g : G} (hg : g ∈ stabilizer G x) {v : E'}
   rw [e.mfderiv_smul_eq hg hv,
     e.chart.left_inv (e.smul_mem_source g hg _ (e.chart.map_target hv))]
 
+/-- A linearizing chart is differentiable on its source, with inverse differentiable on its
+target. -/
+theorem mdifferentiable : e.chart.MDifferentiable I' 𝓘(ℝ, E') :=
+  ⟨e.contMDiffOn.mdifferentiableOn (by simp), e.contMDiffOn_symm.mdifferentiableOn (by simp)⟩
+
 /-- The inverse of a linearizing chart at `x` has derivative the identity at `0`. -/
 theorem hasMFDerivAt_symm :
     HasMFDerivAt 𝓘(ℝ, E') I' e.chart.symm 0 (ContinuousLinearMap.id ℝ E') := by
-  have hsd : MDifferentiableAt 𝓘(ℝ, E') I' e.chart.symm 0 :=
-    (e.contMDiffOn_symm.contMDiffAt (e.chart.open_target.mem_nhds e.zero_mem_target))
-      |>.mdifferentiableAt (by simp)
+  have hsd := e.mdifferentiable.mdifferentiableAt_symm e.zero_mem_target
   have hed : MDifferentiableAt I' 𝓘(ℝ, E') e.chart (e.chart.symm 0) :=
     by rw [e.symm_zero]; exact e.hasMFDerivAt.mdifferentiableAt
   refine hsd.hasMFDerivAt.congr_mfderiv (ContinuousLinearMap.ext fun w ↦ ?_)
