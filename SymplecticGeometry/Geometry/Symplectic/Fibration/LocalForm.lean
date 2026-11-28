@@ -346,14 +346,17 @@ theorem baseComponent_swap (i j : ι) (x : EB) (y : F) :
 /-- **The local form of a two-form on a product.** A two-form `τ` on `EB × F` is the sum of the
 vertical form of its fibre components `σ(x)`, of `∑ᵢ αᵢ ∧ dxᵢ` with its mixed components `αᵢ(x)`,
 and of `∑_{i<j} f_{ij} dxᵢ ∧ dxⱼ` with its base components `f_{ij}(x)`, where `dxᵢ` is the
-coordinate one-form of the basis `bs` of `EB`, pulled back along `Prod.fst`. -/
-theorem eq_verticalForm_add_sum [FiniteDimensional ℝ EB] [Fintype ι] [LinearOrder ι] :
+coordinate one-form of the basis `bs` of `EB`, pulled back along `Prod.fst`; the terms
+`pr₁^*(dxᵢ ∧ dxⱼ)` are the smooth pull-backs of smooth wedges, as in
+`add_sum_smul_mpullback_fst_wedge_apply`. -/
+theorem eq_verticalForm_add_sum [IsManifold IF ∞ F] [FiniteDimensional ℝ EB] [Fintype ι]
+    [LinearOrder ι] :
     τ = verticalForm 𝓘(ℝ, EB) τ.fiberComponent +
       ∑ i, (verticalForm 𝓘(ℝ, EB) (τ.mixedComponent bs i)).wedge
         (mpullback (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) Prod.fst (bs.coordOneForm i).val) +
       ∑ i, ∑ j with i < j, (fun z : EB × F ↦ τ.baseComponent bs i j z.1 z.2) •
-        mpullback (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) Prod.fst
-          (wedge (bs.coordOneForm i).val (bs.coordOneForm j).val) := by
+        (SmoothForm.mpullback Prod.fst contMDiff_fst
+          (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val := by
   funext z
   refine ContinuousAlternatingMap.ext_fin_two fun v₁ v₂ ↦ ?_
   -- The components along `F` of tangent vectors of `EB × F`, as tangent vectors of `F`.
@@ -364,8 +367,9 @@ theorem eq_verticalForm_add_sum [FiniteDimensional ℝ EB] [Fintype ι] [LinearO
     (FinVec.etaExpand_eq _).symm
   simp only [Pi.add_apply, ContinuousAlternatingMap.add_apply, Finset.sum_apply,
     ContinuousAlternatingMap.sum_apply, Pi.smul_apply', ContinuousAlternatingMap.smul_apply,
-    mpullback_wedge, wedge_apply_one_one, verticalForm_apply, h₁, h₂,
-    Module.Basis.mpullback_fst_coordOneForm_apply, baseComponent_def, smul_eq_mul,
+    wedge_apply_one_one, verticalForm_apply, h₁, h₂,
+    Module.Basis.mpullback_fst_coordOneForm_apply,
+    Module.Basis.mpullback_fst_wedge_coordOneForm_apply, baseComponent_def, smul_eq_mul,
     Matrix.cons_val_zero]
   refine ((τ z).apply_vecCons_prod_eq_sum bs v₁.1 v₂.1 v₁.2 v₂.2).trans ?_
   -- The fibre vectors are elements of `EF` on the left and of `TangentSpace IF z.2` on the right,
