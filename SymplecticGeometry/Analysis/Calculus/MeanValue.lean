@@ -10,6 +10,7 @@ public import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Analysis.Calculus.ContDiff.Comp
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
+import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Normed.Operator.Bilinear
 import TauCeti.Analysis.Calculus.FDeriv.Remainder
 import TauCeti.Topology.Compactness.Normed
@@ -42,6 +43,9 @@ of holonomic approximation in [EliashbergMishachev2002], Chapter 3.
 * `SymplecticGeometry.norm_fderiv_taylor_affine_sub_le`: a Taylor map whose base point
   `L y + p₀` moves affinely with `y`, and whose linear part `Γ y` moves too, has derivative at
   `x` within `‖D Γ (x)‖ ‖x - (L x + p₀)‖` of `D f (L x + p₀) ∘ L + Γ x ∘ (1 - L)`.
+* `SymplecticGeometry.norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le`: by the mean value
+  inequality along the segment from `0`, a map `h` vanishing at `0` with `‖D h‖ ≤ C ‖D g‖` on a
+  ball is bounded by `C K ‖z‖ ‖D g (z)‖` there, when `‖D g (s z)‖ ≤ K ‖D g (z)‖` for `s ∈ [0, 1]`.
 
 ## References
 
@@ -106,6 +110,35 @@ theorem norm_fderiv_taylor_affine_sub_le {f : E → F} {Γ : E → E →L[ℝ] F
   rw [h₃.fderiv,
     ← add_assoc, add_sub_cancel_left, ← ContinuousLinearMap.opNorm_flip]
   exact ContinuousLinearMap.le_opNorm _ _
+
+/-- **A primitive controlled by a derivative that does not grow towards the origin.** Let `z` lie
+in the ball `B(0, r)`, and let `g : E → G` have `‖D g (s z)‖ ≤ K ‖D g (z)‖` for `s ∈ [0, 1]`. If
+`h : E → F` is differentiable on the ball, vanishes at `0`, and has `‖D h‖ ≤ C ‖D g‖` there, then
+`‖h z‖ ≤ C K ‖z‖ ‖D g (z)‖`. -/
+theorem norm_le_mul_norm_mul_norm_fderiv_of_norm_fderiv_le {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] {g : E → G} {h : E → F} {r C K : ℝ} {z : E} (hz : z ∈ Metric.ball 0 r)
+    (hg : ∀ s ∈ Set.Icc (0 : ℝ) 1, ‖fderiv ℝ g (s • z)‖ ≤ K * ‖fderiv ℝ g z‖)
+    (hh : DifferentiableOn ℝ h (Metric.ball 0 r)) (hh0 : h 0 = 0)
+    (hhg : ∀ w ∈ Metric.ball (0 : E) r, ‖fderiv ℝ h w‖ ≤ C * ‖fderiv ℝ g w‖) :
+    ‖h z‖ ≤ C * K * ‖z‖ * ‖fderiv ℝ g z‖ := by
+  have h0 : (0 : E) ∈ Metric.ball 0 r := Metric.mem_ball_self (Metric.pos_of_mem_ball hz)
+  have hseg : segment ℝ 0 z ⊆ Metric.ball 0 r := (convex_ball 0 r).segment_subset h0 hz
+  have hmvt (B : ℝ) (hB : ∀ w ∈ segment ℝ 0 z, ‖fderiv ℝ h w‖ ≤ B) : ‖h z‖ ≤ B * ‖z‖ := by
+    simpa [hh0] using (convex_segment (0 : E) z).norm_image_sub_le_of_norm_fderiv_le
+      (fun w hw ↦ hh.differentiableAt (Metric.isOpen_ball.mem_nhds (hseg hw))) hB
+      (left_mem_segment ℝ 0 z) (right_mem_segment ℝ 0 z)
+  rcases le_or_gt 0 C with hC | hC
+  · refine (hmvt (C * K * ‖fderiv ℝ g z‖) fun w hw ↦ ?_).trans_eq (by ring)
+    obtain ⟨s, hs, rfl⟩ := (segment_eq_image' ℝ 0 z ▸ hw :)
+    simp only [zero_add, sub_zero] at hw ⊢
+    rw [mul_assoc]
+    exact (hhg _ (hseg hw)).trans (mul_le_mul_of_nonneg_left (hg s hs) hC)
+  · -- For `C < 0` the hypothesis `hhg` forces `D h = 0` and `D g = 0` on the ball.
+    have hDg : ‖fderiv ℝ g z‖ = 0 := by
+      nlinarith [(norm_nonneg _).trans (hhg z hz), norm_nonneg (fderiv ℝ g z)]
+    rw [hDg, mul_zero]
+    refine (hmvt 0 fun w hw ↦ (hhg w (hseg hw)).trans ?_).trans_eq (zero_mul _)
+    nlinarith [norm_nonneg (fderiv ℝ g w)]
 
 end SymplecticGeometry
 
