@@ -13,8 +13,9 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
-import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Geometry.Symplectic.Manifold.Moser
+import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
@@ -54,21 +55,21 @@ The proof is Moser's argument along a flow that is only partially defined.
    This set contains `f(Q)`, where all these forms equal `σ₀`.
 3. On `W`, the slices of `σ₀ + c(t) (σ₁ - σ₀)`, `c = Real.smoothTransition`, are symplectic, and
    the field `X_t = (σ_t♭)⁻¹ (-c'(t) β)` (`SymplecticGeometry.moserField`, without cutoff) is
-   smooth in `(t, x)`. It solves Moser's equation
-   `∂_t σ_t + L_{X_t} σ_t = 0`, vanishes along `f(Q)`, and has zero first jet there
+   smooth in `(t, x)`: it is the field of Tau Ceti's Moser lemma along the domain of the flow
+   (`TauCeti.SmoothTwoForm.exists_contMDiff_mpullback_timeDependentFlowOf_apply_eq`), whose flow
+   pulls `σ_t` back to `σ_s` wherever it is defined. It vanishes along `f(Q)`, and has zero first
+   jet there
    (`TauCeti.SmoothTwoForm.IsNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm`).
 4. The time-one map of `X` is a partial diffeomorphism of `W`
    (`TauCeti.timeDependentFlowPartialDiffeomorph`) whose source contains `f(Q)`. On its source it
-   pulls `σ₁` back to `σ₀` by Moser's principle along trajectories, it fixes `f(Q)`, and its
+   pulls `σ₁` back to `σ₀`, it fixes `f(Q)`, and its
    differential there is the identity. Read in `M`, it is a diffeomorphism between its source and
    its target.
 
 The proof adapts Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq` and
 `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` from a compactly supported cut-off
-flow to the local flow. Step 3 follows the construction of the Moser field in Tau
-Ceti's `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_eq` and
-`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`. Step 4, and the reading of the
+flow to the local flow. Step 4, and the reading of the
 time-one map in `M`, follow Tau Ceti's
 `TauCeti.SmoothForm.exists_partialDiffeomorph_mpullback_eq_smul_of_apply_eq`.
 
@@ -108,12 +109,12 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 
 namespace SmoothTwoForm
 
-omit [T2Space M] in
 /-- The Moser field of the path `σ₀ + c(t) (σ₁ - σ₀)`, `c = Real.smoothTransition`, for a primitive
 `β` of `σ₁ - σ₀`, on a manifold on which every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is
 nondegenerate: for a one-form `α` on `ℝ × M` with slices `c'(t) β`, the field
-`X_t = (σ_t♭)⁻¹(-c'(t) β)` of `SymplecticGeometry.moserField` is jointly smooth, solves Moser's
-equation, vanishes where `β` does, and has zero first jet where `β` has. -/
+`X_t = (σ_t♭)⁻¹(-c'(t) β)` of `SymplecticGeometry.moserField` is jointly smooth, vanishes where
+`β` does, has zero first jet where `β` has, and its time-dependent flow `φ_{s,t}` pulls `σ_t`
+back to `σ_s` wherever it is defined. -/
 private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed)
     {β : SmoothForm I M ℝ 1} (hβ : mextDeriv β.val = (σ₁ - σ₀).val)
     (hnd : ∀ x, ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate) :
@@ -132,12 +133,14 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
           (SymplecticGeometry.moserField
             (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff) α 1 t) (range I))
           (0 : E →L[ℝ] E) (extChartAt I x x)) ∧
-      ∀ t, mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E)))
-          (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff).val) +
-        mlieDerivForm (SymplecticGeometry.moserField
-            (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff) α 1 t)
-          (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
-            (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff).val) = 0 := by
+      ∀ s t x, ((s, t), x) ∈ timeDependentFlowDomain (SymplecticGeometry.moserField
+          (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff) α 1) →
+        mpullback I I (timeDependentFlowOf (SymplecticGeometry.moserField
+            (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff) α 1) s t)
+            (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+              (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff)).val x =
+          (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
+            (SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff)).val x := by
   set c : ℝ → ℝ := Real.smoothTransition
   have hc' : ContDiff ℝ ∞ (deriv c) :=
     (contDiff_infty_iff_deriv.1 Real.smoothTransition.contDiff).2
@@ -170,28 +173,24 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
     congr 1
     ext v
     simp
-  refine ⟨α', hα't, ?_⟩
-  rw [hX]
-  refine ⟨?_, fun x hx t ↦ ?_, fun x hx hjet t ↦ ?_, fun t ↦ ?_⟩
-  · exact contMDiff_interiorEquiv_symm_mpullback_prodMk σ (fun t ↦ (hσ t).isNondegenerate) α
-  · rw [IsNondegenerate.interiorEquiv_symm_apply_eq_zero_iff, hαt]
+  -- It is the field of Tau Ceti's Moser lemma along the domain of the flow, for the primitives
+  -- `c'(t) β` of the velocity.
+  obtain ⟨X, hXs, hXι, -, hXflow⟩ := exists_contMDiff_mpullback_timeDependentFlowOf_apply_eq σ α'
+    hσ (SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily_eq_mextDeriv hβ _)
+  have hXX : SymplecticGeometry.moserField σ α' 1 = X := by
+    funext t
+    refine (hσ t).isNondegenerate.interior_injective ?_
+    beta_reduce
+    rw [hXι t, hX, IsNondegenerate.interior_interiorEquiv_symm, hαt, hα't]
+    simp
+  refine ⟨α', hα't, hXX ▸ hXs, fun x hx t ↦ ?_, fun x hx hjet t ↦ ?_, hXX ▸ hXflow⟩
+  · rw [hX, IsNondegenerate.interiorEquiv_symm_apply_eq_zero_iff, hαt]
     simp [hx]
-  · refine (hσ t).isNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm ?_ ?_
+  · rw [hX]
+    refine (hσ t).isNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm ?_ ?_
     · rw [hαt, SmoothBundleForm.smul_apply, hx, smul_zero]
     · rw [hαt, SmoothForm.smul_toRoughForm, RoughForm.inChartAt_smul]
       simpa using hjet.const_smul (-deriv c t)
-  -- Moser's equation: the rate `∂_t σ_t + L_{X_t} σ_t = c'(t) dβ - c'(t) dβ` vanishes.
-  funext y
-  have hvel : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
-      (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) y = deriv c t • (σ₁ - σ₀).val y := by
-    rw [SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily, SmoothBundleForm.smul_apply]
-  have h := (hσ t).mlieDerivForm_interiorEquiv_symm
-    (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)
-  have hd : mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-      α).val = (-deriv c t) • (σ₁ - σ₀).val := by
-    rw [hαt, SmoothForm.smul_toRoughForm, mextDeriv_smul, hβ]
-  rw [hd, SmoothForm.coe_mpullback] at h
-  rw [Pi.add_apply, hvel, h, Pi.smul_apply, Pi.zero_apply, neg_smul, add_neg_cancel]
 
 /-- **Moser's argument along the local flow, as the time-one map of the Moser field.** Let `σ₀`
 be closed, `β` a primitive of `σ₁ - σ₀`, and let every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, be
@@ -220,7 +219,7 @@ theorem exists_partialDiffeomorph_eq_timeDependentFlowOf_moserField
           (HasFDerivAt (RoughForm.inChartAt β.val x) (0 : E →L[ℝ] E [⋀^Fin 1]→L[ℝ] ℝ)
             (extChartAt I x x) → mfderiv I I Φ x = ContinuousLinearMap.id ℝ (TangentSpace I x))) ∧
         ∀ x ∈ Φ.source, mpullback I I Φ σ₁.val x = σ₀.val x := by
-  obtain ⟨α, hα, hX, hX0, hXjet, hL⟩ := exists_moserField h₀ hβ hnd
+  obtain ⟨α, hα, hX, hX0, hXjet, hflow⟩ := exists_moserField h₀ hβ hnd
   set σ := SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff
   set X := SymplecticGeometry.moserField σ α 1
   -- The time-one map of the Moser flow, defined where the trajectory reaches time one.
@@ -237,12 +236,10 @@ theorem exists_partialDiffeomorph_eq_timeDependentFlowOf_moserField
     exact mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero (hX.of_le (by simp)) (hX0 x hx)
       fun u _ ↦ (hXjet x hx hjet u).fderiv
   · -- Along trajectories, Moser's principle carries `σ_{c(1)} = σ₁` back to `σ_{c(0)} = σ₀`.
-    have h := mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem (hX.of_le (by simp))
-      (σ.contMDiff.of_le (by simp)) hL
-      ((mem_timeDependentFlowPartialDiffeomorph_source_iff le_top hX).1 hx)
-    rw [SmoothForm.coe_mpullback_prodMk_lineMapFamily,
-      SmoothForm.coe_mpullback_prodMk_lineMapFamily, Real.smoothTransition.one,
-      Real.smoothTransition.zero, one_smul, zero_smul, add_zero, add_sub_cancel] at h
+    have h := hflow 0 1 x ((mem_timeDependentFlowPartialDiffeomorph_source_iff le_top hX).1 hx)
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, SmoothForm.mpullback_prodMk_lineMapFamily,
+      Real.smoothTransition.one, Real.smoothTransition.zero, one_smul, zero_smul,
+      add_zero, add_sub_cancel] at h
     rw [hΦ]
     exact h
 
@@ -297,8 +294,7 @@ theorem exists_smoothForm_relative_primitive_sub_of_eq_along (f : SmoothEmbeddin
   have hfO : range f ⊆
       {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
     rintro _ ⟨q, rfl⟩ s -
-    refine nondegenerate_bilinFormAt_add_smul_sub_of_eq ?_ (hnd q) s
-    rw [SmoothBundleForm.sub_apply, heq q, sub_self]
+    exact bilinFormAt_add_smul_sub_of_eq (heq q) s ▸ hnd q
   have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
     (SmoothForm.mpullback_eq_iff _).2 (funext fun q ↦ by
       rw [SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
