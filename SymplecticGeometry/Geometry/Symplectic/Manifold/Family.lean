@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Manifold.VectorBundle.NondegenerateMetric.Basic
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.Pullback
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Topology.Compactness.Compact
-import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -23,11 +22,11 @@ For a smooth family of two-forms on `M`, given as a smooth two-form `σ` on `N �
 `T_x M → T_x^* M` form an open subset of `N × M`. When the model space is finite-dimensional,
 having an invertible flat map at `x` is the same as being nondegenerate at `x`
 (`TauCeti.SmoothTwoForm.isInvertible_flat_iff`). In that case the points at which a single
-two-form is nondegenerate form an open set, and, for two two-forms `σ₀`, `σ₁` on
-`M`, the points at which every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is nondegenerate form an
-open subset of `M`. The latter are the
-open sets on which the Moser fields of Moser's argument are defined
-([McDuffSalamon2017], §3.2).
+two-form is nondegenerate form an open set (Tau Ceti's
+`TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), and, for two two-forms
+`σ₀`, `σ₁` on `M`, the points at which every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is
+nondegenerate form an open subset of `M`. The latter are the open sets on which the Moser
+fields of Moser's argument are defined ([McDuffSalamon2017], §3.2).
 
 Openness also holds for the family `τ + K f^* β` of the proof of Thurston's theorem on symplectic
 fibrations ([McDuffSalamon2017], Theorem 6.1.4, step 2), for a `C^1` map `f : M → B` and
@@ -49,16 +48,11 @@ point thus gives one `K₀` such that `τ + K f^* β` is nondegenerate on all of
   `M`, the set of parameters whose slice has invertible flat maps everywhere is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOfPred_isInvertible_flat_add_smul_sub`: the same openness for the
   segment `σ₀ + s (σ₁ - σ₀)`, as a set of points `(s, x)` of `ℝ × M`.
-* `TauCeti.SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt`: in finite dimensions, the set
-  of points at which a two-form is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`: in finite
   dimensions, for two-forms `σ₀`, `σ` on `M × N` with `M` compact, the set of pairs `(s, y)` of
   `ℝ × N` such that `σ₀ + s σ` is nondegenerate at every point of `M × {y}` is open.
-* `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq`: at a point where `σ₀` and
-  `σ₁` agree and `σ₀` is nondegenerate, every form `σ₀ + s (σ₁ - σ₀)` is nondegenerate, by
-  Tau Ceti's `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk`: for a
   fixed nondegenerate `σ`, the fields `(σ♭)⁻¹ α_t` of a smooth family of one-forms `α_t` depend
   smoothly on `(t, x)`.
@@ -124,17 +118,6 @@ theorem isOpen_setOfPred_isInvertible_flat_mpullback_prodMk [CompleteSpace E] {E
         SmoothForm.mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) σ)
       (SmoothForm.contMDiff_mpullback_prodMk σ p))
 
-/-- **Nondegeneracy is an open condition.** For a two-form `σ` on a finite-dimensional manifold,
-the set of points at which `σ` is nondegenerate is open. -/
-theorem isOpen_setOfPred_nondegenerate_bilinFormAt [FiniteDimensional ℝ E] (σ : SmoothTwoForm I M) :
-    IsOpen {x : M | (σ.bilinFormAt x).Nondegenerate} := by
-  simp only [← isInvertible_flat_iff]
-  -- The bundles and the base map are given explicitly, as in
-  -- `isOpen_setOfPred_isInvertible_flat_mpullback_prodMk`.
-  exact Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E) (F₂ := E →L[ℝ] ℝ)
-    (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (b := id)
-    (ϕ := σ.flat) σ.contMDiff_flat.continuous
-
 /-- **Nondegeneracy of whole slices is an open condition on the parameter.** For a smooth
 two-form `σ` on `N × M` with `M` compact, the set of parameters `t` at which the slice
 `σ_t = ι_t^* σ` has an invertible flat map at every point of `M` is open in `N`. The model space of
@@ -195,14 +178,6 @@ theorem isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul [FiniteDimens
   simp only [add_sub_cancel_left, isInvertible_flat_iff] at hO
   exact isOpen_forall_prodMk_mem continuous_id
     (hO.preimage (continuous_fst.fst.prodMk (continuous_snd.prodMk continuous_fst.snd)))
-
-/-- At a point where `σ₀` and `σ₁` agree and `σ₀` is nondegenerate, every form
-`σ₀ + s (σ₁ - σ₀)` of the line through them is nondegenerate. -/
-theorem nondegenerate_bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoForm I M} {x : M}
-    (h : (σ₁ - σ₀).val x = 0) (hσ₀ : (σ₀.bilinFormAt x).Nondegenerate) (s : ℝ) :
-    ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate := by
-  rw [bilinFormAt_add_smul_sub_of_eq (sub_eq_zero.mp h) s]
-  exact hσ₀
 
 /-- **Inverse flat maps of a fixed nondegenerate two-form along a family of one-forms.** For a
 nondegenerate two-form `σ` on `M` and a smooth one-form `α` on `N × M` with slices `α_t`, the
