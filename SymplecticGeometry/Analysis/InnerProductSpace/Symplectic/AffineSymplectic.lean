@@ -256,19 +256,6 @@ theorem stdConj_image_stdCylinder (i : ι) (R : ℝ) :
   ext z
   simp only [Set.mem_preimage, mem_stdCylinder_iff, stdConj_x, stdConj_y, Pi.neg_apply, neg_sq]
 
-/-- The determinant of the reflection `(x, y) ↦ (x, -y)` is `(-1) ^ n`. -/
-theorem det_stdConj :
-    LinearMap.det ((stdConj ι).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
-      (-1) ^ Fintype.card ι := by
-  classical
-  have h : ((stdConj ι).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
-      Matrix.toEuclideanLin (Matrix.diagonal (Sum.elim (fun _ ↦ 1) fun _ ↦ -1)) := by
-    refine LinearMap.ext fun z ↦ PiLp.ext fun j ↦ ?_
-    rcases j with j | j <;> simp [Matrix.mulVec_diagonal]
-  rw [h, Matrix.toEuclideanLin_eq_toLin_orthonormal, LinearMap.det_toLin, Matrix.det_diagonal,
-    Fintype.prod_sum_type]
-  simp
-
 /-! ### Anti-symplectic linear equivalences -/
 
 variable {Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι}
@@ -300,6 +287,12 @@ theorem det_eq_neg_one_pow_of_forall_apply_eq_neg
   rw [LinearMap.BilinForm.det_eq_pow_of_isAlt_of_compl₁₂_self_eq_smul _ (stdForm ι).isAlt
     (c := -1) (LinearMap.ext₂ fun z w ↦ by simpa using hΨ z w), finrank_stdSpace,
     Nat.mul_div_cancel_left _ two_pos]
+
+/-- The determinant of the reflection `(x, y) ↦ (x, -y)` is `(-1) ^ n`. -/
+theorem det_stdConj :
+    LinearMap.det ((stdConj ι).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
+      (-1) ^ Fintype.card ι :=
+  det_eq_neg_one_pow_of_forall_apply_eq_neg stdForm_stdConj
 
 end SymplecticGeometry
 
