@@ -47,7 +47,10 @@ chart, and the model operators of the peak functions are these at the constant s
   times `1 + ‖z‖` and the `(r + 1)`-jet norm of `f` at `z`
   (from `SymplecticGeometry.jetNormAt_bilinear_le`).
 * `SymplecticGeometry.modelDbarWith_eq_add`: changing the field of structures from `J'` to `J`
-  adds `(i / 2) L ∘ (J z - J' z)` to the model `∂̄`, for `L = modelConnection f z`.
+  adds `(i / 2) L ∘ (J z - J' z)` to the model `∂̄`, for `L = modelConnection f z`; so the
+  `r`-jet norm of the difference is at most a constant times `1 + ‖z‖`, the `r`-jet norm of
+  `J - J'` and the `(r + 1)`-jet norm of `f`
+  (`SymplecticGeometry.exists_jetNormAt_modelDbarWith_sub_le`).
 * `SymplecticGeometry.modelConnection_congr_of_eventuallyEq`,
   `SymplecticGeometry.flatDbarWith_congr_of_eventuallyEq`,
   `SymplecticGeometry.modelDbarWith_congr_of_eventuallyEq`: their values at `z` depend only on the
@@ -378,6 +381,46 @@ theorem contDiffAt_modelDbarWith {n : ℕ∞} {f : StdSpace ι → ℂ} {z : Std
     (hJ : ContDiffAt ℝ n J z) (hf : ContDiffAt ℝ (n + 1) f z) :
     ContDiffAt ℝ n (modelDbarWith J f) z :=
   hJ.complexAntilinearPartContinuousLinearMap _ (contDiffAt_modelConnection hf)
+
+/-- **Jets of a change of structure in the model `∂̄`.** For every order `r` there is a constant
+`C` such that, for all fields `J` and `J'` of real-linear endomorphisms of `StdSpace ι`, every `f`
+and every point `z` where `f` is `C^(r + 1)` and `J` and `J'` are `C^r`, the `r`-jet norm at `z` of
+the difference of the model `∂̄` of `f` for `J` and for `J'` is at most `C * (1 + ‖z‖)` times the
+`r`-jet norm of `J - J'` and the `(r + 1)`-jet norm of `f`. -/
+theorem exists_jetNormAt_modelDbarWith_sub_le (r : ℕ) :
+    ∃ C : ℝ, ∀ (J J' : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
+      {z : StdSpace ι}, ContDiffAt ℝ (r + 1 : ℕ) f z → ContDiffAt ℝ r J z → ContDiffAt ℝ r J' z →
+      jetNormAt ℝ r (fun w ↦ modelDbarWith J f w - modelDbarWith J' f w) z ≤
+        C * (1 + ‖z‖) * jetNormAt ℝ r (fun w ↦ J w - J' w) z * jetNormAt ℝ (r + 1) f z := by
+  set c : ℂ := (2⁻¹ : ℂ) * Complex.I
+  -- Instance search does not find the operator norm on this space of bilinear maps unaided.
+  let : NormedAddCommGroup ((StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] ℂ) :=
+    ContinuousLinearMap.toNormedAddCommGroup
+  let : NormedSpace ℝ ((StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] ℂ) :=
+    ContinuousLinearMap.toNormedSpace
+  set B := compL ℝ (StdSpace ι) (StdSpace ι) ℂ
+  obtain ⟨A, hA⟩ := exists_jetNormAt_modelConnection_le (ι := ι) r
+  refine ⟨2 ^ r * ‖B‖ * ‖c‖ * A, fun J J' f z hf hJ hJ' ↦ ?_⟩
+  -- The difference is bilinear in `c • L` and `J - J'`, for `L` the model connection of `f`.
+  have heq : (fun w ↦ modelDbarWith J f w - modelDbarWith J' f w) =
+      fun w ↦ B ((c • modelConnection f) w) (J w - J' w) := by
+    funext w
+    rw [modelDbarWith_eq_add J J', add_sub_cancel_left, compL_apply, Pi.smul_apply]
+  have hf' : ContDiffAt ℝ (r + 1) f z := by exact_mod_cast hf
+  have hT := jetNormAt_bilinear_le B (f := c • modelConnection f)
+    ((contDiffAt_modelConnection hf').const_smul c) (hJ.sub hJ')
+  rw [jetNormAt_smul] at hT
+  rw [heq]
+  refine hT.trans ?_
+  have : 0 ≤ ‖B‖ := opNorm_nonneg B
+  have : 0 ≤ jetNormAt ℝ r (fun w ↦ J w - J' w) z := jetNormAt_nonneg _ _ _
+  calc 2 ^ r * ‖B‖ * (‖c‖ * jetNormAt ℝ r (modelConnection f) z) *
+        jetNormAt ℝ r (fun w ↦ J w - J' w) z
+      ≤ 2 ^ r * ‖B‖ * (‖c‖ * (A * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z)) *
+          jetNormAt ℝ r (fun w ↦ J w - J' w) z := by
+        gcongr
+        exact hA f hf
+    _ = _ := by ring
 
 end SymplecticGeometry
 

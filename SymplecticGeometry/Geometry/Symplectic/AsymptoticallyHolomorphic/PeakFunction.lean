@@ -56,8 +56,12 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   closed ball of radius `2 * k ^ (1 / 6)`, and so, for every `ε > 0` and large `k`, in the ball
   of radius `ε * √k` (`SymplecticGeometry.eventually_tsupport_peakFunction_subset_ball`,
   `SymplecticGeometry.eventually_tsupport_peakFunction_mul_subset_ball`).
+* `SymplecticGeometry.contDiff_gaussian`,
+  `SymplecticGeometry.contDiff_ofReal_exp_norm_sq_div_four`:
+  the Gaussian `exp (-‖z‖ ^ 2 / 4)` and its inverse `exp (‖z‖ ^ 2 / 4)` are smooth.
 * `SymplecticGeometry.peakFunction_eqOn_ball`: on the ball of radius `k ^ (1 / 6)` the cut-off
-  Gaussian is the Gaussian `exp (-‖z‖ ^ 2 / 4)`.
+  Gaussian is the Gaussian `exp (-‖z‖ ^ 2 / 4)`; so near a point of that ball, `f / peakFunction k`
+  is `f * exp (‖z‖ ^ 2 / 4)` (`SymplecticGeometry.div_peakFunction_eventuallyEq`).
 * `SymplecticGeometry.exp_neg_one_div_four_le_norm_peakFunction`: its lower bound `exp (-1 / 4)`
   on the closed unit ball, for `k ≥ 1`.
 * `SymplecticGeometry.exists_jetNormAt_peakCutoff_norm_div_le`: the jet norms of the cut-offs
@@ -120,7 +124,7 @@ gives the factor `k ^ (-1 / 2)` at the cost of the power `(1 + ‖z‖) ^ 3`.
 public section
 
 open Metric TauCeti
-open scoped Manifold
+open scoped Manifold Topology
 
 namespace SymplecticGeometry
 
@@ -227,9 +231,14 @@ theorem peakFunction_eq_ofRealCLM_comp (k : ℕ) :
   rw [peakFunction_def, Function.comp_apply, Complex.ofRealCLM_apply, smul_eq_mul]
 
 /-- The Gaussian `exp (-‖z‖ ^ 2 / 4)` of the cut-off Gaussians is smooth. -/
-private theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
+theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
     ContDiff ℝ n fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4) :=
   Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).neg.div_const 4)
+
+/-- The inverse Gaussian `exp (‖z‖ ^ 2 / 4)`, as a complex function, is smooth. -/
+theorem contDiff_ofReal_exp_norm_sq_div_four [InnerProductSpace ℝ E] {n : ℕ∞} :
+    ContDiff ℝ n fun z : E ↦ (Real.exp (‖z‖ ^ 2 / 4) : ℂ) :=
+  Complex.ofRealCLM.contDiff.comp (Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).div_const 4))
 
 /-- The jet norms of the Gaussian `exp (-‖z‖ ^ 2 / 4)` are at most a constant times
 `exp (-‖z‖ ^ 2 / 8)`: `exists_jetNormAt_exp_neg_mul_norm_sq_le` for `a = 1 / 4`. -/
@@ -260,6 +269,15 @@ theorem peakFunction_eqOn_ball (k : ℕ) :
   rw [mem_ball_zero_iff] at hz
   have hs : 0 < (k : ℝ) ^ (1 / 6 : ℝ) := (norm_nonneg z).trans_lt hz
   rw [peakFunction_def, peakCutoff_of_le_one ((div_le_one hs).2 hz.le), one_mul]
+
+/-- Near a point of the ball of radius `k ^ (1 / 6)`, where the cut-off Gaussian is the Gaussian,
+the quotient of `f` by `peakFunction k` is `f * exp (‖·‖ ^ 2 / 4)`. -/
+theorem div_peakFunction_eventuallyEq (k : ℕ) (f : E → ℂ) {z : E}
+    (hz : ‖z‖ < (k : ℝ) ^ (1 / 6 : ℝ)) :
+    (fun y ↦ f y / peakFunction k y) =ᶠ[𝓝 z] fun y ↦ f y * Real.exp (‖y‖ ^ 2 / 4) := by
+  filter_upwards [isOpen_ball.mem_nhds (mem_ball_zero_iff.2 hz)] with y hy
+  rw [peakFunction_eqOn_ball k hy, div_eq_mul_inv, ← Complex.ofReal_inv, ← Real.exp_neg, neg_div,
+    neg_neg]
 
 /-- For `k ≥ 1`, the cut-off Gaussian has modulus at least `exp (-1 / 4)` on the closed unit
 ball. -/
