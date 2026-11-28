@@ -11,6 +11,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hermitian
 public import TauCeti.Geometry.Symplectic.WeightDecomposition
 import SymplecticGeometry.Geometry.Symplectic.Darboux.EuclideanBasis
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
@@ -342,12 +343,8 @@ theorem Invariant.isIsotropic_map (hJ : ω.Invariant J) {U : Submodule ℝ V}
 orthogonal for the associated inner product `g = ω(·, J ·)`. -/
 theorem Compatible.isCompl_orthogonal_associatedBilinForm [FiniteDimensional ℝ V]
     (hJ : ω.Compatible J) (U : Submodule ℝ V) :
-    IsCompl U ((ω.associatedBilinForm J).orthogonal U) := by
-  refine (LinearMap.BilinForm.isCompl_orthogonal_iff_disjoint
-    (fun x y h => by rw [hJ.associatedBilinForm_isSymm.eq, h])).2 ?_
-  rw [Submodule.disjoint_def]
-  exact fun x hx hx' => hJ.associatedBilinForm_self_eq_zero.1
-    (LinearMap.BilinForm.mem_orthogonal_iff.1 hx' x hx)
+    IsCompl U ((ω.associatedBilinForm J).orthogonal U) :=
+  LinearMap.BilinForm.isCompl_orthogonal_of_anisotropic hJ.positive.anisotropic U
 
 end Orthogonal
 
