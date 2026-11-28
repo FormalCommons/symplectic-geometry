@@ -26,9 +26,10 @@ The differential of `ι` is invertible at every point, also on the boundary
 (`TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.isSymplectic_mpullback`), the
 pulled-back field is smooth (`ContMDiff.mpullback_vectorField`) and `ι`-related to `X`, hence
 Liouville for `ι^*σ` (`TauCeti.IsLiouvilleVectorField.mpullback`). Along the boundary, which is
-the level (`TauCeti.boundary_scalarRegularSublevel`), outward vectors are those on which `df` is
-positive (`TauCeti.isOutwardPointing_scalarRegularSublevel_iff`), and the chain rule through `ι`
-turns `df(X) > 0` into this condition.
+the level (`TauCeti.boundary_scalarRegularSublevel`), a tangent vector of `W` points outward
+exactly when `df` is positive on its image under `dι`
+(`TauCeti.isOutwardPointing_scalarRegularSublevel_iff_mfderiv`), and `dι` sends the pulled-back
+field to `X` (`VectorField.mfderiv_apply_mpullback`), so `df(X) > 0` gives the condition.
 
 ## Main results
 
@@ -84,9 +85,8 @@ theorem isStrongFilling_scalarRegularSublevel (hn : finrank ℝ E = n + 1)
       fun x ↦ (hinv x).surjective).isSymplectic_mpullback hσ hι fun x ↦ (hinv x).injective,
     isOpen_univ, subset_univ _, .intro hY fun x hx ↦ ?_, fun x _ ↦ ?_⟩
   · rw [boundary_scalarRegularSublevel hc hn (by simp) hf] at hx
-    rw [isOutwardPointing_scalarRegularSublevel_iff (hf.of_le (by simp)) hn hc hx,
-      ← Function.comp_def f Subtype.val, VectorField.mvfderiv_comp_apply_mpullback
-        ((hf x).mdifferentiableAt (by simp)) (hinv x)]
+    rw [isOutwardPointing_scalarRegularSublevel_iff_mfderiv (hf.of_le (by simp)) hn hc hx,
+      VectorField.mfderiv_apply_mpullback (hinv x)]
     exact hXf x hx
   · exact congrFun (isLiouvilleVectorField_iff.1 <| IsLiouvilleVectorField.mpullback hι
       (hX.of_le (by simp)) hXσ (hY.mdifferentiable (by simp))
