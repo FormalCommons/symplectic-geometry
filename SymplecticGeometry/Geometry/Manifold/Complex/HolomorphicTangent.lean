@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
@@ -104,10 +105,13 @@ theorem continuous_ofComplexManifoldTangentEquiv (n : ℕ∞) :
   unfold ofComplexManifoldTangentEquiv
   refine Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteI _ _ _ G
     ((TangentBundle.restrictScalarsHomeomorph ℝ (𝕜' := ℂ) M).symm.continuous.congr fun p ↦ ?_)
-  rw [TangentBundle.restrictScalarsHomeomorph_symm_apply]
-  -- The identifications `tangentSpaceCastModel` of tangent spaces with `E` are the identity by
-  -- definition, and Mathlib states no evaluation lemma for them.
-  rfl
+  rw [TangentBundle.restrictScalarsHomeomorph_symm_apply, tangentSpaceCastModel_symm_apply,
+    tangentSpaceCastModel_apply]
+  -- `rw` and `simp` cannot work on this goal: on its left side, `⟨p.proj, p.snd⟩` puts
+  -- `p.snd : TangentSpace 𝓘(ℝ, E) p.proj` where `TangentSpace 𝓘(ℂ, E) p.proj` is expected. That
+  -- type-checks only because both tangent spaces are `E` by definition, and no lemma identifies
+  -- them, so the goal is closed by a term that relies on this definitional identification.
+  exact congrArg _ (ContinuousLinearEquiv.refl_apply ℝ E p.snd).symm
 
 end TauCeti.SmoothAlmostComplexStructure
 
