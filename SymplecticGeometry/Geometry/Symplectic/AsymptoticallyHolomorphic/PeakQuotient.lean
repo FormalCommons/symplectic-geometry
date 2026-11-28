@@ -66,12 +66,13 @@ difference.
   and a flat `∂̄` of order `k ^ (-1 / 2)`, uniformly in the centre and the section; and
   `IsAsymptoticallyHolomorphic.exists_forall_norm_reading_div_peakFunction_le`:
   in the same namespace, the same for an asymptotically holomorphic sequence.
-* `RescaledUnitaryCharts.eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian`:
+* `RescaledUnitaryCharts.eventually_div_four_le_transversalityQuantity_of_mul_gaussian`:
   for the metric `σ(·, J ·)`, if the reading of `s` is `q` times the Gaussian near a point `z` of
   the closed unit ball and the connection read there is bounded by `B`, then
-  `ε ≤ max ‖q z‖ ‖∂q(z)‖` gives `ε / 4 ≤ max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` at the image `y` of
-  `z`, for all `k` beyond a bound that does not depend on `x`, `s`, `q` or `z`. The right side is
-  the quantity of `SymplecticGeometry.IsUniformlyTransverse`.
+  `ε ≤ max ‖q z‖ ‖∂q(z)‖` gives `ε / 4 ≤ transversalityQuantity J α k s y` at the image `y` of
+  `z`, for all `k` beyond a bound that does not depend on `x`, `s`, `q` or `z`. The right side,
+  `max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)`, is the quantity of
+  `SymplecticGeometry.IsUniformlyTransverse`.
   If `‖q z‖ ≥ ε / 2` the section is large; otherwise the lower bound
   `mul_sub_le_norm_modelDel_mul_gaussian` meets the upper bound
   `RescaledUnitaryCharts.norm_modelDel_reading_le_of_inner_eq`, whose error
@@ -446,10 +447,11 @@ every centre `x`, every section `s` of `PowerBundle P k`, every `q : StdSpace ι
 with `‖z‖ ≤ 1`: if the reading of `s` agrees near `z` with `q * exp (-‖·‖ ^ 2 / 4)`, `q` is
 differentiable at `z`, the connection read in the chart has operator norm at most `B` at `z`, and
 `ε ≤ max ‖q z‖ ‖∂q(z)‖`, for `∂q(z) = flatDel q z` the flat `∂` of `q` at `z`, then at
-`y = (D.chart k x).symm z`,
-`ε / 4 ≤ max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)`, where `∂ s(y)` is the `(1,0)`-part
-`J.oneZeroPart` of `D_k s` at `y`, with its operator norm. -/
-theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
+`y = (D.chart k x).symm z` the transversality quantity
+`SymplecticGeometry.transversalityQuantity J α k s y`, which is
+`max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` with `∂ s(y)` the `(1,0)`-part `J.oneZeroPart` of `D_k s`
+at `y`, is at least `ε / 4`. -/
+theorem eventually_div_four_le_transversalityQuantity_of_mul_gaussian
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [∀ y, Nonempty (P y)]
     (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
     (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (ε B : ℝ) :
@@ -458,11 +460,10 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
       D.reading k x s =ᶠ[𝓝 z] (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) →
       DifferentiableAt ℝ q z → ‖D.connectionReading k x s z‖ ≤ B →
       ε ≤ max ‖q z‖ ‖flatDel q z‖ →
-      ε / 4 ≤ max ‖s ((D.chart k x).symm z)‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
-        ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖) := by
+      ε / 4 ≤ transversalityQuantity J α k s ((D.chart k x).symm z) := by
   rcases le_or_gt ε 0 with hε | hε
   · exact Filter.Eventually.of_forall fun k x s _ _ _ _ _ _ _ ↦
-      (by linarith : ε / 4 ≤ 0).trans (le_max_of_le_left (norm_nonneg _))
+      (by linarith : ε / 4 ≤ 0).trans (transversalityQuantity_nonneg _ _ _)
   set C := max (D.bound 1) 0
   set B' := max B 0
   have hC : 0 ≤ C := le_max_right _ _
@@ -488,12 +489,12 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
     nlinarith
   rcases le_or_gt (ε / 2) a with hqz | hqz
   · -- The section itself is large.
-    refine le_max_of_le_left ?_
+    refine le_trans ?_ (norm_le_transversalityQuantity _ _ _)
     rw [← norm_reading, hfeq.eq_of_nhds, norm_mul, Complex.norm_real,
       Real.norm_of_nonneg (Real.exp_pos _).le]
     nlinarith
   · -- Its `∂` is large: compare the two bounds on the model `∂` of the reading.
-    refine le_max_of_le_right ?_
+    refine le_trans ?_ (rpow_mul_norm_oneZeroPart_le_transversalityQuantity _ _ _)
     have hb : ε ≤ b := by
       rcases le_max_iff.1 hmax with h | h
       · linarith
