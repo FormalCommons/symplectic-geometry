@@ -55,6 +55,11 @@ of vectors of `M₂`, on a vector of `M₂` and a basis vector of `M₁`, and on
 basis vectors of `M₁` (`ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`). The part along `M₁`
 is expanded by Tau Ceti's `ContinuousAlternatingMap.apply_vecCons_eq_sum_repr`, and its double
 sum folded onto the increasing pairs by Tau Ceti's `TauCeti.sum_univ_prod_eq_sum_lt_add_swap`.
+
+A continuous alternating map of three vectors of `M₁ × M₂` is zero once it vanishes on the
+triples with two members in `M₂`, on those with two members in `M₁` followed by one in `M₂`, and on
+those with three members in `M₁` (`ContinuousAlternatingMap.eq_zero_of_forall_prod_fin_three`), as
+`AlternatingMap.eq_zero_of_forall_prod_fin_three` says for the underlying alternating map.
 -/
 
 public section
@@ -235,6 +240,17 @@ theorem apply_vecCons_prod_eq_sum (bs : Module.Basis ι R M₁) (T : (M₁ × M�
     · rfl
   rw [hsplit, hbase, hbs (0, w₁) u₂, hbs (0, w₂) u₁, Finset.sum_sub_distrib]
   abel
+
+/-- A continuous alternating map `T` of three vectors of a product `M₁ × M₂` is zero when it
+vanishes on the triples of three kinds: those whose first two members lie in `M₂` (written
+`(0, w)`), those whose first two members lie in `M₁` (written `(a, 0)`) and whose third lies in
+`M₂`, and those whose three members lie in `M₁`. -/
+theorem eq_zero_of_forall_prod_fin_three (T : (M₁ × M₂) [⋀^Fin 3]→L[R] N)
+    (hff : ∀ (w₁ w₂ : M₂) (v : M₁ × M₂), T ![(0, w₁), (0, w₂), v] = 0)
+    (hbbf : ∀ (a b : M₁) (w : M₂), T ![(a, 0), (b, 0), (0, w)] = 0)
+    (hbbb : ∀ a b c : M₁, T ![(a, 0), (b, 0), (c, 0)] = 0) : T = 0 :=
+  toAlternatingMap_injective <|
+    T.toAlternatingMap.eq_zero_of_forall_prod_fin_three hff hbbf hbbb
 
 end Prod
 

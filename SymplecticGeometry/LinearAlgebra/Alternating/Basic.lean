@@ -36,6 +36,12 @@ Adding to the first `r` arguments of an alternating map of degree `r + m` vector
 in `V` (`AlternatingMap.map_append_add_of_mem`): each term of the multilinear expansion that
 contains an added vector has `m + 1` arguments in `V`, so it vanishes by
 `AlternatingMap.map_eq_zero_of_finrank_lt`.
+
+An alternating map of three vectors of a product `M₁ × M₂` is zero once it vanishes on the
+triples with two members in `M₂`, on those with two members in `M₁` followed by one in `M₂`, and on
+those with three members in `M₁` (`AlternatingMap.eq_zero_of_forall_prod_fin_three`). Each member
+splits into its parts in `M₁` and in `M₂`; after expanding by multilinearity, every term is, up to
+the sign of a permutation of its arguments, one of these three kinds.
 -/
 
 public section
@@ -125,6 +131,44 @@ theorem map_append_add_of_mem {K W N : Type*} [Ring K] [IsDomain K] [StrongRankC
       · simpa [e, hk] using hu i
       · simpa [e, h j] using hw j
     | right j => exact absurd hk (h j)
+
+section Prod
+
+variable {M₁ M₂ N : Type*} [AddCommMonoid M₁] [Module R M₁] [AddCommMonoid M₂] [Module R M₂]
+  [AddCommGroup N] [Module R N]
+
+/-- An alternating map `f` of three vectors of a product `M₁ × M₂` is zero when it vanishes on
+the triples of three kinds: those whose first two members lie in `M₂` (written `(0, w)`), those
+whose first two members lie in `M₁` (written `(a, 0)`) and whose third lies in `M₂`, and those
+whose three members lie in `M₁`. -/
+theorem eq_zero_of_forall_prod_fin_three (f : (M₁ × M₂) [⋀^Fin 3]→ₗ[R] N)
+    (hff : ∀ (w₁ w₂ : M₂) (v : M₁ × M₂), f ![(0, w₁), (0, w₂), v] = 0)
+    (hbbf : ∀ (a b : M₁) (w : M₂), f ![(a, 0), (b, 0), (0, w)] = 0)
+    (hbbb : ∀ a b c : M₁, f ![(a, 0), (b, 0), (c, 0)] = 0) : f = 0 := by
+  have add₀ (x x' y z : M₁ × M₂) : f ![x + x', y, z] = f ![x, y, z] + f ![x', y, z] := by
+    simpa using f.toMultilinearMap.cons_add ![y, z] x x'
+  have add₁ (x y y' z : M₁ × M₂) : f ![x, y + y', z] = f ![x, y, z] + f ![x, y', z] := by
+    rw [f.map_vecCons_rotate x (y + y') z, add₀, ← f.map_vecCons_rotate x y z,
+      ← f.map_vecCons_rotate x y' z]
+  have add₂ (x y z z' : M₁ × M₂) : f ![x, y, z + z'] = f ![x, y, z] + f ![x, y, z'] := by
+    rw [← f.map_vecCons_rotate (z + z') x y, add₀, f.map_vecCons_rotate z x y,
+      f.map_vecCons_rotate z' x y]
+  have swap (x y z : M₁ × M₂) : f ![x, z, y] = -f ![x, y, z] := by
+    have h : ![x, z, y] = ![x, y, z] ∘ Equiv.swap 1 2 := by
+      funext i
+      fin_cases i <;> rfl
+    rw [h, f.map_swap _ (by decide)]
+  have split (x : M₁ × M₂) : x = (x.1, 0) + (0, x.2) := by simp
+  ext v
+  obtain ⟨x, y, z, rfl⟩ : ∃ x y z, v = ![x, y, z] :=
+    ⟨v 0, v 1, v 2, funext fun i ↦ by fin_cases i <;> rfl⟩
+  rw [split x, split y, split z, add₀, add₁, add₁, add₂, add₂, add₂, add₂]
+  simp only [hff, hbbf, hbbb, zero_apply]
+  rw [swap (x.1, 0) (z.1, 0) (0, y.2), hbbf, f.map_vecCons_rotate (x.1, 0), hff,
+    f.map_vecCons_rotate (0, x.2), hbbf, swap (0, x.2) (0, z.2) (y.1, 0), hff]
+  simp
+
+end Prod
 
 end AlternatingMap
 
