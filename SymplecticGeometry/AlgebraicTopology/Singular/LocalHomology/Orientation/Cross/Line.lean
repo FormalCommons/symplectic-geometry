@@ -299,9 +299,10 @@ private theorem singularHomologyπ_singularHomologyδ_localHomologyCross {m : �
         (mapsTo_preimage_fst_compl_union_preimage_snd_compl (0 : F) (0 : ℝ))) := by
     ext p
     refine Subtype.ext ?_
-    erw [TopPair.ofSubsetMap_snd_apply]
-    -- both are the image of `p` in `F × ℝ`
-    rfl
+    rw [coe_prodComplZeroInnerPairMap_fst_apply]
+    -- `p` is a point of `TopTriple.innerPair.obj …`, so the right side matches the left side of
+    -- `TopPair.ofSubsetMap_snd_apply` only up to unfolding, and `rw` with it does not apply.
+    exact (TopPair.ofSubsetMap_snd_apply _ _ p).symm
   have h₄ := ConcreteCategory.congr_hom
     (TopPair.singularHomologyπ_naturality (f := prodComplZeroInnerPairMap (F := F))
       (R := ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) (n := m + 1))
