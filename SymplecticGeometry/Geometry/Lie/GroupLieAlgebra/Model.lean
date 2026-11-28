@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.Adjoint.Basic
+public import TauCeti.Geometry.Lie.Tangent.LeftInvariantDerivation
 public import TauCeti.Topology.Algebra.Lie.Bracket
 
 /-!
@@ -17,6 +18,8 @@ Tau Ceti's connection forms and Maurer–Cartan form are, with values in `E`, wh
 Tau Ceti's adjoint action `TauCeti.Lie.adjointContinuousLinearMap g` acts on such forms by
 `TauCeti.SmoothForm.mapCoeff` once it is read as a map of `E`. This file gives the bracket of
 `GroupLieAlgebra I G` as a continuous bilinear map of `E`, for `TauCeti.SmoothForm.wedgeWith`.
+It also evaluates Tau Ceti's linear equivalence `groupLieAlgebraEquivModelVectorSpace` of
+`GroupLieAlgebra I G` with `E`, and its inverse: both send each vector to itself.
 
 ## Main definitions
 
@@ -25,6 +28,9 @@ Tau Ceti's adjoint action `TauCeti.Lie.adjointContinuousLinearMap g` acts on suc
 
 ## Main results
 
+* `groupLieAlgebraEquivModelVectorSpace_apply` and
+  `groupLieAlgebraEquivModelVectorSpace_symm_apply`: Tau Ceti's identification of
+  `GroupLieAlgebra I G` with `E`, and its inverse, send each vector to itself.
 * `GroupLieAlgebra.adjointContinuousLinearMap_bracketL`: the adjoint action preserves the
   bracket.
 -/
@@ -91,5 +97,26 @@ theorem adjointContinuousLinearMap_bracketL (g : G) (v w : E) :
 end Bracket
 
 end GroupLieAlgebra
+
+section ModelVectorSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+
+/-- Tau Ceti's identification `groupLieAlgebraEquivModelVectorSpace` of the Lie algebra
+`GroupLieAlgebra I G` with the model space sends each element of the Lie algebra to itself, read
+as a vector of the model space. -/
+theorem groupLieAlgebraEquivModelVectorSpace_apply (v : GroupLieAlgebra I G) :
+    groupLieAlgebraEquivModelVectorSpace v = v :=
+  (rfl)
+
+/-- The inverse of Tau Ceti's `groupLieAlgebraEquivModelVectorSpace` sends each vector of the
+model space to itself, read as an element of the Lie algebra `GroupLieAlgebra I G`. -/
+theorem groupLieAlgebraEquivModelVectorSpace_symm_apply (v : E) :
+    (groupLieAlgebraEquivModelVectorSpace (I := I) (G := G)).symm v = v :=
+  (rfl)
+
+end ModelVectorSpace
 
 end
