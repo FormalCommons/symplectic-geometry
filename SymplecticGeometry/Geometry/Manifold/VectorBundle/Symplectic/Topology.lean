@@ -30,7 +30,8 @@ parameter, and that pulling them back along a single smooth map, such as the inc
 open subset, is continuous. Near each point of an open subset, the frame coordinates of a two-form
 and of its restriction agree. A smooth family of two-forms is continuous in its parameter, and
 multiplication by a fixed smooth function is continuous. On a normed space, the value of a
-two-form at a point depends continuously on the form and the point together.
+two-form at a point depends continuously on the form and the point together, and so does the
+value of its pull-back along a smooth map from a finite-dimensional normed space.
 
 ## Main results
 
@@ -61,6 +62,10 @@ two-form at a point depends continuously on the form and the point together.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_val`: for a covering frame system of the
   two-forms on a locally compact normed space `E`, the value of a two-form at a point, in
   `E [⋀^Fin 2]→L[ℝ] ℝ`, is jointly continuous in the form and the point.
+* `Bundle.ContMDiffTwoForm.continuous_mpullback_val_of_contMDiff`: for a smooth map `g` from a
+  finite-dimensional normed space to `N` and a covering frame system of the two-forms on `N`,
+  the value at a point of the pull-back of a two-form along `g` is jointly continuous in the
+  form and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_tangentEquiv_symm`: a smooth family `τ` of
   two-forms on `M` over a manifold `N`, both with finite-dimensional models, gives a continuous
   map `t ↦ tangentEquiv.symm (τ t)` into the frame topology of any frame system.
@@ -405,6 +410,39 @@ theorem continuous_tangentEquiv_val (hcover : ∀ x, ∃ i, x ∈ W i) :
           (p.1 p.2)).trans (tangentEquiv_apply p.1 p.2).symm)
 
 end ModelSpace
+
+section ModelSpacePullback
+
+variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN}
+  [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ((⊤ : ℕ∞) : WithTop ℕ∞) N]
+  {ι : Type*}
+  (e : ι → Trivialization (EN [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (EN [⋀^Fin 2]→L[ℝ] ℝ) (fun y : N ↦ TangentSpace J y [⋀^Fin 2]→L[ℝ] Trivial N ℝ y)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (W : ι → Opens N) (hW : ∀ i, (W i : Set N) ⊆ (e i).baseSet)
+
+/-- For a covering frame system of the smooth two-forms on `N`, a finite-dimensional normed
+space `F` and a smooth map `g : F → N`, the value at `x` of the pull-back of `tangentEquiv ω`
+along `g`, an element of `F [⋀^Fin 2]→L[ℝ] ℝ`, is continuous jointly in the two-form `ω`, for
+the frame topology, and the point `x`. -/
+theorem continuous_mpullback_val_of_contMDiff {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] [FiniteDimensional ℝ F] {g : F → N}
+    (hg : ContMDiff 𝓘(ℝ, F) J ((⊤ : ℕ∞) : WithTop ℕ∞) g) (hcover : ∀ y, ∃ i, y ∈ W i) :
+    let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    Continuous (Y := F [⋀^Fin 2]→L[ℝ] ℝ)
+      fun p : ContMDiffTwoForm J ⊤ EN (TangentSpace J (M := N)) × F ↦
+        (TauCeti.SmoothForm.mpullback g hg (tangentEquiv p.1)).val p.2 := by
+  let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  let _ := trivializationAtFrameTopology 𝓘(ℝ, F) F
+  have h := (continuous_tangentEquiv_val _ _ (fun _ ↦ subset_rfl)
+    fun x ↦ ⟨x, FiberBundle.mem_baseSet_trivializationAt' x⟩).comp
+    ((continuous_tangentEquiv_symm_mpullback_of_contMDiff e W hW _ _ (fun _ ↦ subset_rfl) hg
+      hcover).prodMap continuous_id)
+  exact h.congr fun p ↦ congrArg (fun ω ↦ (ω : TauCeti.SmoothTwoForm 𝓘(ℝ, F) F).val p.2)
+    (LinearEquiv.apply_symm_apply _ _)
+
+end ModelSpacePullback
 
 end Bundle.ContMDiffTwoForm
 
