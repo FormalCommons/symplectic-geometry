@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Diffeomorphism.Congr
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
+public import SymplecticGeometry.Geometry.Diffeomorphism.OrthogonalSphere
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 import Mathlib.Topology.Algebra.OpenSubgroup
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
@@ -32,8 +33,8 @@ the weak Whitney topology when `M` is compact.
 * `Diffeomorph.map_orientationPreservingSubgroup_diffCongr`: conjugation by a diffeomorphism
   `e : M → N`, Tau Ceti's `Diffeomorph.diffCongr e`, maps the subgroup for `o` onto the subgroup
   for the orientation `o.map e hn hι` carried to `N` along `e`.
-* `TauCeti.range_orthogonalToDiffSphere_specialOrthogonalGroup_le`: the rotations `SO(n + 1)`,
-  restricted to the unit sphere `Sⁿ` by `TauCeti.orthogonalToDiffSphere n m`, preserve the
+* `TauCeti.range_specialOrthogonalToDiffSphere_le`: the rotations `SO(n + 1)`, restricted to the
+  unit sphere `Sⁿ` by `TauCeti.specialOrthogonalToDiffSphere n m`, preserve the
   outward-normal orientation `o.sphereOrientation` of every orientation `o` of `ℝⁿ⁺¹`, by Tau
   Ceti's `Orientation.isOrientationPreservingAt_unitSphereEquiv`.
 
@@ -249,23 +250,21 @@ open Metric Matrix
 /-- The rotations `SO(n + 1)` of `ℝⁿ⁺¹` restrict to diffeomorphisms of the unit sphere `Sⁿ` that
 preserve the outward-normal orientation `o.sphereOrientation` at every point, for every
 orientation `o` of `ℝⁿ⁺¹`. -/
-theorem range_orthogonalToDiffSphere_specialOrthogonalGroup_le {n : ℕ}
+theorem range_specialOrthogonalToDiffSphere_le {n : ℕ}
     [Fact (finrank ℝ (EuclideanSpace ℝ (Fin (n + 1))) = n + 1)] {m : ℕ∞ω} (hm : m ≠ 0)
     (o : _root_.Orientation ℝ (EuclideanSpace ℝ (Fin (n + 1))) (Fin (n + 1))) :
-    ((orthogonalToDiffSphere n m).comp
-      (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)).range ≤
+    (specialOrthogonalToDiffSphere n m).range ≤
       Diffeomorph.orientationPreservingSubgroup hm o.sphereOrientation := by
   rintro _ ⟨A, rfl⟩
   rw [Diffeomorph.mem_orientationPreservingSubgroup_iff]
   intro u
-  rw [MonoidHom.comp_apply, orthogonalToDiffSphere_apply,
+  rw [specialOrthogonalToDiffSphere_apply, orthogonalToDiffSphere_apply,
     LinearIsometryEquiv.unitSphereDiffHom_apply, LinearIsometryEquiv.coe_unitSphereDiffeomorph]
   refine o.isOrientationPreservingAt_unitSphereEquiv ?_ u
-  set e := UnitaryGroup.toLinearIsometryEquiv
-    (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup A)
-  have he : (e.toLinearEquiv : _ →ₗ[ℝ] _) = e.toLinearIsometry.toLinearMap :=
-    LinearMap.ext fun _ ↦ by simp
-  rw [he, UnitaryGroup.det_toLinearIsometryEquiv, Submonoid.coe_inclusion,
+  have he : ∀ e : EuclideanSpace ℝ (Fin (n + 1)) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + 1)),
+      (e.toLinearEquiv : _ →ₗ[ℝ] _) = e.toLinearIsometry.toLinearMap :=
+    fun e ↦ LinearMap.ext fun _ ↦ by simp
+  rw [he, UnitaryGroup.det_toLinearIsometryEquiv, specialOrthogonalGroup.coe_toOrthogonalGroup,
     (mem_specialOrthogonalGroup_iff.1 A.property).2]
   exact one_pos
 
