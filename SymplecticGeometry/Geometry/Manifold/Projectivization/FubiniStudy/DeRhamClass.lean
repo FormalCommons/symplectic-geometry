@@ -37,7 +37,8 @@ of `-o`, not of `o`
 (`Manifold.Orientation.evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk`, in
 the namespace `TauCeti`).
 It is the sign of `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveSpace`
-and of the exceptional class in `SymplecticGeometry.deRhamHom_normalizedBlowupForm`.
+and of the exceptional class in
+`SymplecticGeometry.IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm`.
 
 ## Main results
 
@@ -51,18 +52,17 @@ and of the exceptional class in `SymplecticGeometry.deRhamHom_normalizedBlowupFo
 
 ## Proof
 
-On `ℂP¹` both classes lie in `H²(ℂP¹; ℝ)`, where a class is determined by its value on a
-fundamental class (`TauCeti.HomologicalOrientation.evalFundamentalClass_id_injective`). On the
-fundamental class of `-o`, for the complex orientation `o`, the de Rham class of `φ` takes the
-value `∫_o φ = 1`, and the real image of `h` the value `-⟨h, [ℂP¹]⟩ = -1`
-(`Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass`). Over `ℂPⁿ` with
-`n ≥ 1`, restriction to a line is injective on `H²(-; ℝ)`
+On `ℂP¹`, for the complex orientation `o`, the integral `∫_o φ = 1` is the value of `h` on the
+fundamental class of `o` (`Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass`),
+so the surface comparison
+`TauCeti.Manifold.Orientation.deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq` gives
+`deRhamHom [φ] = -h`. Over `ℂPⁿ` with `n ≥ 1`, restriction along the line
+`Projectivization.lineEmbedding` is injective on `H²(-; ℝ)`
 (`Projectivization.injective_singularCohomologyMap_map_real`); both sides restrict to the classes
 on `ℂP¹`, since a line has area `π` (`integralTopForm_mpullback_map_fubiniStudyForm`) and `h`
-restricts to `h` (`Projectivization.hyperplaneClass_map`). For `n = 0` the space is a point.
-This is the argument of
-`SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace`
-and `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveSpace`, for a
+restricts to `h` (`Projectivization.hyperplaneClass_map`). For `n = 0` the space is a point
+(`Projectivization.subsingleton_singularCohomology_real_of_finrank_eq_one`). This reduction is
+that of `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveSpace`, for a
 fixed closed form instead of a curvature form. The corollary for the first Chern class uses
 `Projectivization.firstChernClass_tangentSpace`, `c₁(Tℂℙⁿ) = (n + 1) h`.
 
@@ -97,23 +97,12 @@ theorem deRhamHom_mk_eq_neg_hyperplaneClass_of_integralTopForm_eq_one
           (hyperplaneClass (Fin 2 → ℂ))) := by
   have hE : finrank ℝ (Fin 1 → ℂ) = 2 := by
     rw [Module.finrank_pi_fintype]; simp
-  set o := complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))
-  let e := (TopCat.of (ℙ ℂ (Fin 2 → ℂ))).singularCohomologyIntChainsIso ℝ 2
-  -- Both sides are determined by their value on the fundamental class of `-o`.
-  refine (ConcreteCategory.bijective_of_isIso e.hom).1
-    (((-o).toHomologicalOrientation hE).evalFundamentalClass_id_injective hE
-      (ModuleCat.of ℤ ℝ) ?_)
-  refine (o.evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk hE φ).trans ?_
+  refine Manifold.Orientation.deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq hE
+    (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))) φ _ ?_
   have h1 := complexManifoldEvalFundamentalClass_hyperplaneClass
   rw [complexManifoldEvalFundamentalClass_def, complexManifoldHomologicalOrientation_def,
     ← complexCurveOrientation_eq_complexManifoldOrientationOfFinrank] at h1
-  rw [← map_neg ((TopCat.of (ℙ ℂ (Fin 2 → ℂ))).singularCohomologyRealImageAddMonoidHom 2),
-    TopCat.singularCohomologyRealImageAddMonoidHom_apply, map_neg, map_neg, map_neg,
-    HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage,
-    Manifold.Orientation.toHomologicalOrientation_neg,
-    HomologicalOrientation.evalFundamentalClass_neg, LinearMap.neg_apply, ULift.neg_down,
-    Int.cast_neg, neg_neg, hφ,
-    ← HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
+  rw [hφ, ← HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
     Iso.inv_hom_id_apply]
   exact_mod_cast h1.symm
 
@@ -131,16 +120,12 @@ theorem deRhamHom_fubiniStudyForm_eq_neg_hyperplaneClass (n : ℕ) :
           (hyperplaneClass (Fin (n + 1) → ℂ))) := by
   rcases n with _ | m
   · -- `ℙ ℂ (Fin 1 → ℂ)` is a point, so its second cohomology vanishes.
-    have : Subsingleton (ℙ ℂ (Fin (0 + 1) → ℂ)) := subsingleton_of_rank_le_one (by simp)
-    have := ModuleCat.subsingleton_of_isZero
-      (isZero_singularCohomology_of_contractibleSpace (R := ModuleCat.of ℝ ℝ) (k := ℝ)
-        (M := ModuleCat.of ℝ ℝ) (TopCat.of (ℙ ℂ (Fin (0 + 1) → ℂ))) two_ne_zero)
+    have := subsingleton_singularCohomology_real_of_finrank_eq_one (V := Fin (0 + 1) → ℂ)
+      (by simp) two_ne_zero
     exact Subsingleton.elim _ _
   · -- Restrict to a projective line, on which `H²(-; ℝ)` injects.
-    let ι : (Fin 2 → ℂ) →ₗ[ℂ] Fin (m + 1 + 1) → ℂ :=
-      LinearMap.funLeft ℂ ℂ fun i ↦ if i = 0 then 0 else 1
-    have hι : Function.Injective ι := LinearMap.funLeft_injective_of_surjective _ _ _
-      fun j ↦ by fin_cases j <;> [exact ⟨0, rfl⟩; exact ⟨1, rfl⟩]
+    let ι := lineEmbedding ℂ m
+    have hι : Function.Injective ι := injective_lineEmbedding ℂ m
     have hf := contMDiff_map_restrictScalars ι hι ∞
     refine injective_singularCohomologyMap_map_real ι hι (n := 1) (by simp) one_ne_zero ?_
     have h := deRhamHom_map hf 2 (deRhamCohomology.mk _ 2 ⟨(Real.pi)⁻¹ • fubiniStudyForm (m + 1),

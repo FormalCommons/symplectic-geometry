@@ -14,6 +14,8 @@ public import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Algebra.Category.ModuleCat.Injective
 import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
+import TauCeti.AlgebraicTopology.Cohomology.Point
+import TauCeti.LinearAlgebra.Projectivization.Basic
 
 /-!
 # Linear embeddings of complex projective spaces on real second cohomology
@@ -27,6 +29,10 @@ says that restricting to a projective line is injective on `H²(ℙ ℂ W; ℝ)`
 
 * `Projectivization.injective_singularCohomologyMap_map_real`: `g^*` is injective on
   `H²(-; ℝ)`, the cohomology of real chains with real values.
+* `Projectivization.lineEmbedding`, `Projectivization.injective_lineEmbedding`: an injective
+  linear map `(Fin 2 → K) → (Fin (m + 2) → K)`, to which the result applies for `K = ℂ`.
+* `Projectivization.subsingleton_singularCohomology_real_of_finrank_eq_one`: for
+  `finrank ℂ V = 1`, the point `ℙ ℂ V` has no real cohomology in positive degrees.
 
 ## Proof
 
@@ -64,5 +70,34 @@ theorem injective_singularCohomologyMap_map_real (f : V →ₗ[ℂ] W) (hf : Fun
       (M := ModuleCat.of ℝ ℝ) (TopCat.ofHom (mapContinuousMap f hf)) 2) :=
   TopCat.injective_singularCohomologyMap_of_surjective ℝ _ 2
     (bijective_singularHomologyMap_map_two f hf hV hn).2
+
+/-- For a one-dimensional complex vector space `V`, the projective space `ℙ ℂ V` is a point, so
+its singular cohomology with real coefficients vanishes in every positive degree. -/
+theorem subsingleton_singularCohomology_real_of_finrank_eq_one (hV : finrank ℂ V = 1)
+    (hn : n ≠ 0) :
+    Subsingleton ((TopCat.of (ℙ ℂ V)).singularCohomology (ModuleCat.of ℝ ℝ) ℝ
+      (ModuleCat.of ℝ ℝ) n) := by
+  have : Nontrivial V := Module.nontrivial_of_finrank_eq_succ hV
+  have : Subsingleton (ℙ ℂ V) :=
+    subsingleton_of_rank_le_one (by rw [← Module.finrank_eq_rank, hV]; simp)
+  exact ModuleCat.subsingleton_of_isZero
+    (TauCeti.isZero_singularCohomology_of_contractibleSpace (R := ModuleCat.of ℝ ℝ) (k := ℝ)
+      (M := ModuleCat.of ℝ ℝ) (TopCat.of (ℙ ℂ V)) hn)
+
+/-- The linear map `(Fin 2 → K) → (Fin (m + 2) → K)` sending `v` to `(v 0, v 1, …, v 1)`. It is
+injective (`Projectivization.injective_lineEmbedding`), so for a division ring `K` it maps the
+projective line `ℙ K (Fin 2 → K)` injectively into `ℙ K (Fin (m + 2) → K)`. -/
+def lineEmbedding (K : Type*) [Semiring K] (m : ℕ) : (Fin 2 → K) →ₗ[K] Fin (m + 2) → K :=
+  LinearMap.funLeft K K fun i ↦ if i = 0 then 0 else 1
+
+@[simp]
+theorem lineEmbedding_apply {K : Type*} [Semiring K] {m : ℕ} (v : Fin 2 → K) (i : Fin (m + 2)) :
+    lineEmbedding K m v i = v (if i = 0 then 0 else 1) :=
+  (rfl)
+
+theorem injective_lineEmbedding (K : Type*) [Semiring K] (m : ℕ) :
+    Function.Injective (lineEmbedding K m) :=
+  LinearMap.funLeft_injective_of_surjective _ _ _
+    fun j ↦ by fin_cases j <;> [exact ⟨0, rfl⟩; exact ⟨1, rfl⟩]
 
 end Projectivization
