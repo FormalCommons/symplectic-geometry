@@ -123,8 +123,7 @@ theorem mdifferentiableAt_apply_two {φ : RoughForm I M F 2}
     (hA : MDifferentiableAt I I.tangent (fun y ↦ (A y : TangentBundle I M)) x)
     (hB : MDifferentiableAt I I.tangent (fun y ↦ (B y : TangentBundle I M)) x) :
     MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ y ![A y, B y]) x := by
-  have hev (y : M) : (fun k ↦ ![A, B] k y) = ![A y, B y] := by
-    funext k; fin_cases k <;> simp
+  have hev (y : M) : (fun k ↦ ![A, B] k y) = ![A y, B y] := (FinVec.etaExpand_eq _).symm
   simpa [hev] using mdifferentiableAt_apply_vectorField (V := ![A, B]) hφ
     (fun k ↦ by fin_cases k; exacts [hA, hB])
 

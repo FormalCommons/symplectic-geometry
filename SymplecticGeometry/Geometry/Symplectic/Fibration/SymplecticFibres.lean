@@ -13,6 +13,7 @@ import Mathlib.Topology.Maps.Proper.Basic
 import SymplecticGeometry.Geometry.Symplectic.Fibration.Connection
 import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Fibrations with symplectic fibres
@@ -177,10 +178,9 @@ theorem exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed [CompactSpace
   have hfp : IsProperMap proj := hproj.isProperMap
   have hD := hnd.isEhresmannConnection (hA.isSubmersion ENat.LEInfty.out)
   obtain ⟨x₀⟩ := (inferInstance : Nonempty M)
-  -- `proj` is onto, so `B` is connected.
-  have hsurj : Surjective proj := fun b ↦
-    ⟨(A.trivAt b).toOpenPartialHomeomorph.symm (b, (A.trivAt (proj x₀) x₀).2),
-      (A.trivAt b).proj_symm_apply' (A.mem_baseSet_trivAt b)⟩
+  -- `proj` is onto, since the model fibre is nonempty, so `B` is connected.
+  have : Nonempty F := ⟨(A.trivAt (proj x₀) x₀).2⟩
+  have hsurj := A.surjective_proj
   have : ConnectedSpace B := hsurj.connectedSpace hproj
   -- The model form is the fibre form over a chosen point `b₀`.
   set b₀ := proj x₀

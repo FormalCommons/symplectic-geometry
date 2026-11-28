@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 import SymplecticGeometry.Geometry.Symplectic.Fibration.Curvature
+import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
 import SymplecticGeometry.Topology.FiberBundle.Basic
@@ -26,10 +27,11 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
-# Coupling forms: fibre integrals on horizontal lifts, and closed forms with the same connection
+# Coupling forms: normalization and uniqueness
 
-This file gathers two ingredients of the coupling forms of McDuff–Salamon [McDuffSalamon2017],
-§6.4, and Guillemin–Lerman–Sternberg [GuilleminLermanSternberg1996], §1.4.
+This file defines the coupling two-forms of McDuff–Salamon [McDuffSalamon2017], §6.4, and
+Guillemin–Lerman–Sternberg [GuilleminLermanSternberg1996], §1.4, proves that they are unique,
+and gathers the two ingredients of that proof.
 
 ## The fibre integral of a two-form on horizontal lifts
 
@@ -104,9 +106,29 @@ smooth form `β` on `B` with `τ' - τ = proj^* β`, by Tau Ceti's
 (`TauCeti.SmoothForm.eq_descendedForm_iff`). This is the uniqueness part of McDuff–Salamon
 [McDuffSalamon2017], Theorem 6.4.1 (`TauCeti.MapFiber.Atlas.eq_add_mpullback_of_isClosed`).
 
+## Coupling two-forms
+
+A coupling two-form of the connection `hD` (`TauCeti.IsEhresmannConnection.IsCouplingTwoForm`)
+is a closed two-form `τ` on `M` that restricts to `σ` on the fibres, has `D` as its horizontal
+distribution, and whose top wedge power `τ ^ (k + 1)` has zero fibre integral; this is the
+normalization of McDuff–Salamon [McDuffSalamon2017], Theorem 6.4.1, and of
+Guillemin–Lerman–Sternberg [GuilleminLermanSternberg1996], §1.4. Since the fibre integral needs a
+smooth atlas whose coordinate changes preserve the symplectic orientation of `F`, the
+normalization is asked for under those hypotheses. By `fiberIntegral_wedgePow_eq_zero_iff`, it
+says that `fiberMean τ` vanishes (`isCouplingTwoForm_iff_fiberMean`).
+
+Let `A` be a smooth atlas with connected model fibre `F` whose coordinate changes preserve the
+symplectic orientation of a nondegenerate `σ` on `F` of dimension `2 * k`. Then two coupling
+two-forms `τ` and `τ'` of one connection, for `A` and `σ`, are equal
+(`TauCeti.IsEhresmannConnection.IsCouplingTwoForm.unique`): by `eq_add_mpullback_of_isClosed`,
+`τ' = τ + proj^* β` for a two-form `β` on `B`, so by `fiberMean_add_mpullback`, `V • β = 0`, where
+the symplectic volume `V` of `F` is positive
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`). Hence `β = 0`.
+
 ## Main definitions
 
 * `TauCeti.IsEhresmannConnection.fiberMean`: the fibre integral of `τ(w₁♯, w₂♯) σᵏ / k!`.
+* `TauCeti.IsEhresmannConnection.IsCouplingTwoForm`: coupling two-forms of a connection.
 
 ## Main results
 
@@ -127,6 +149,11 @@ smooth form `β` on `B` with `τ' - τ = proj^* β`, by Tau Ceti's
   forms with the same restriction to the fibres and the same connection is basic.
 * `TauCeti.MapFiber.Atlas.eq_add_mpullback_of_isClosed`: two such closed forms differ by the
   pull-back of a unique closed two-form on the base.
+* `TauCeti.IsEhresmannConnection.isCouplingTwoForm_iff_fiberMean`: the normalization of coupling
+  two-forms in terms of `fiberMean`.
+* `TauCeti.IsEhresmannConnection.IsCouplingTwoForm.unique`: for a fixed atlas `A` and fibre form
+  `σ`, where `A` is smooth with connected model fibre and its coordinate changes preserve the
+  symplectic orientation of a nondegenerate `σ`, a connection has at most one coupling two-form.
 
 ## References
 
@@ -484,10 +511,7 @@ theorem eq_add_mpullback_of_isClosed [ConnectedSpace F] (hA : A.IsContMDiff ∞ 
       β.IsClosed ∧ τ' = τ + SmoothForm.mpullback proj hA.contMDiff_proj β := by
   have hsub : Manifold.IsSubmersion IM IB ∞ proj := hA.isSubmersion ENat.LEInfty.out
   -- `proj` is onto, since the model fibre is nonempty.
-  obtain ⟨y₀⟩ := (inferInstance : Nonempty F)
-  have hsurj : Function.Surjective proj := fun b ↦
-    ⟨(A.trivAt b).toOpenPartialHomeomorph.symm (b, y₀),
-      (A.trivAt b).proj_symm_apply' (A.mem_baseSet_trivAt b)⟩
+  have hsurj := A.surjective_proj
   have hbasic := isBasic_sub_of_horizontalDistribution_eq hA hσ hτc hτ'c hτ hτ' hD
   have hpull : SmoothForm.mpullback proj hA.contMDiff_proj
       (SmoothForm.descendedForm hsub hsurj (τ' - τ) hbasic) = τ' - τ :=
@@ -498,3 +522,93 @@ theorem eq_add_mpullback_of_isClosed [ConnectedSpace F] (hA : A.IsContMDiff ∞ 
   rw [hβ, add_sub_cancel_left]
 
 end TauCeti.MapFiber.Atlas
+
+namespace TauCeti.IsEhresmannConnection
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*}
+  [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B] [BoundarylessManifold IB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [FiniteDimensional ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F] [CompactSpace F] [T2Space F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*}
+  [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM} {M : Type*}
+  [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M]
+  {proj : M → B} {D : Π x : M, Submodule ℝ (TangentSpace IM x)} {n : ℕ∞ω}
+  {σ : SmoothTwoForm IF F} {k : ℕ}
+
+/-- **Coupling two-forms.** A two-form `τ` on `M` is a coupling two-form of the Ehresmann
+connection `hD` on `proj : M → B`, for an atlas `A` of `proj` and a two-form `σ` on its model
+fibre `F`, when `τ` is closed, restricts to `σ` on the fibres along `A`, has `D` as its horizontal
+distribution, and is normalized: the fibre integral of `τ ^ (k + 1)`, read in degree `2 + 2 * k`,
+vanishes. The normalization is asked for whenever that fibre integral is defined, that is, when
+`A` is smooth, `σ` is nondegenerate on `F` of dimension `2 * k`, and the coordinate changes of `A`
+preserve the symplectic orientation of `σ`. -/
+structure IsCouplingTwoForm (hD : IsEhresmannConnection IM IB n proj D)
+    (A : MapFiber.Atlas F proj) (σ : SmoothTwoForm IF F) (τ : SmoothTwoForm IM M) : Prop where
+  /-- A coupling two-form is closed. -/
+  isClosed : τ.IsClosed
+  /-- A coupling two-form restricts to `σ` on the fibres. -/
+  restrictsTo : A.RestrictsTo σ τ
+  /-- The horizontal distribution of a coupling two-form is the connection. -/
+  horizontalDistribution_eq : SmoothTwoForm.horizontalDistribution IB proj τ = D
+  /-- The fibre integral of the top wedge power of a coupling two-form vanishes. -/
+  fiberIntegral_eq_zero : ∀ (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsNondegenerate) {k : ℕ}
+    (hk : finrank ℝ EF = 2 * k) {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ho : A.HasStructureGroup
+      (Diffeomorph.orientationPreservingSubgroup hn (hσ.volumeOrientation hk))),
+    A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun q ↦ SmoothForm IM M ℝ q)
+      (by ring : 2 * (k + 1) = 2 + 2 * k) (τ.wedgePow (k + 1))) = 0
+
+variable (hD : IsEhresmannConnection IM IB n proj D) {A : MapFiber.Atlas F proj}
+
+/-- **Coupling two-forms through `fiberMean`.** For a smooth atlas `A` whose coordinate changes
+preserve the symplectic orientation of a nondegenerate `σ` on `F` of dimension `2 * k`, `τ` is a
+coupling two-form of `hD` exactly when it is closed, restricts to `σ`, has `D` as its horizontal
+distribution, and `fiberMean τ b w₁ w₂` vanishes for every point `b` and all tangent vectors
+`w₁ w₂` at `b`. -/
+theorem isCouplingTwoForm_iff_fiberMean (hA : A.IsContMDiff ∞ IB IF IM)
+    (hσ : σ.IsNondegenerate) (hk : finrank ℝ EF = 2 * k) {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ho : A.HasStructureGroup
+      (Diffeomorph.orientationPreservingSubgroup hn (hσ.volumeOrientation hk)))
+    {τ : SmoothTwoForm IM M} :
+    hD.IsCouplingTwoForm A σ τ ↔ τ.IsClosed ∧ A.RestrictsTo σ τ ∧
+      SmoothTwoForm.horizontalDistribution IB proj τ = D ∧
+        ∀ b w₁ w₂, hD.fiberMean A hσ hk τ b w₁ w₂ = 0 := by
+  refine ⟨fun h ↦ ⟨h.isClosed, h.restrictsTo, h.horizontalDistribution_eq,
+    (hD.fiberIntegral_wedgePow_eq_zero_iff hA hσ hk ho h.restrictsTo
+      h.horizontalDistribution_eq).1 (h.fiberIntegral_eq_zero hA hσ hk ho)⟩,
+    fun ⟨hc, hr, hh, hz⟩ ↦ ⟨hc, hr, hh, fun _ _ k' hk' _ _ ↦ ?_⟩⟩
+  obtain rfl : k' = k := by omega
+  exact (hD.fiberIntegral_wedgePow_eq_zero_iff hA hσ hk ho hr hh).2 hz
+
+variable {hD}
+
+/-- **Uniqueness of coupling two-forms.** For a smooth atlas `A` with connected model fibre `F`
+whose coordinate changes preserve the symplectic orientation of a nondegenerate `σ` on `F` of
+dimension `2 * k`, two coupling two-forms of the same Ehresmann connection are equal. -/
+theorem IsCouplingTwoForm.unique [FiniteDimensional ℝ EM] [IM.Boundaryless] [ConnectedSpace F]
+    (hA : A.IsContMDiff ∞ IB IF IM)
+    (hσ : σ.IsNondegenerate) (hk : finrank ℝ EF = 2 * k) {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ho : A.HasStructureGroup
+      (Diffeomorph.orientationPreservingSubgroup hn (hσ.volumeOrientation hk)))
+    {τ τ' : SmoothTwoForm IM M} (h : hD.IsCouplingTwoForm A σ τ)
+    (h' : hD.IsCouplingTwoForm A σ τ') : τ = τ' := by
+  -- The two forms differ by the pull-back of a two-form `β` on `B`.
+  obtain ⟨β, ⟨-, hβ⟩, -⟩ := MapFiber.Atlas.eq_add_mpullback_of_isClosed hA hσ h.isClosed
+    h'.isClosed h.restrictsTo h'.restrictsTo
+    (h.horizontalDistribution_eq.trans h'.horizontalDistribution_eq.symm)
+  have hz := ((isCouplingTwoForm_iff_fiberMean hD hA hσ hk ho).1 h).2.2.2
+  have hz' := ((isCouplingTwoForm_iff_fiberMean hD hA hσ hk ho).1 h').2.2.2
+  have hV := hσ.integralTopForm_volumeForm_pos (M := F) hk
+  -- Adding the pull-back of `β` adds `V • β` to `fiberMean`, and the symplectic volume `V` of
+  -- `F` is positive, so `β` vanishes.
+  have hβ₀ : β = 0 := SmoothBundleForm.ext fun b v ↦ by
+    have hb := hz' b (v 0) (v 1)
+    rw [hβ, fiberMean_add_mpullback hD hA.contMDiff_proj, hz, zero_add] at hb
+    rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm,
+      (mul_eq_zero.1 hb).resolve_left hV.ne', SmoothBundleForm.zero_apply,
+      ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+  rw [hβ, hβ₀, map_zero, add_zero]
+
+end TauCeti.IsEhresmannConnection
