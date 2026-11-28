@@ -56,12 +56,25 @@ may adjust implicit arguments and instance arguments to what elaborates.
   `adjointContinuousLinearMap`). `B` gives $\mu^\sharp(x)\in\mathfrak g$
   (`B.toDual` inverted on `μ x`) and $\|\mu(x)\|^2=B(\mu^\sharp x,\mu^\sharp x)$,
   in `MomentMap/NormSq.lean`.
-- **No holomorphic charts.** The proofs use only that `σ` is closed and
+- **Holomorphic charts in one step only.** Except for the sufficiency half
+  of the polystable criterion, the proofs use only that `σ` is closed and
   that `J` is compatible with it, together with the infinitesimal
-  holomorphicity $X_{i\xi}=JX_\xi$ of the complexified action. The
-  integrability of `J`, and Tau Ceti's condition $N_J=0$, are never used.
-  The statements still take `σ.IsKahler J`, as the page does, so the
-  *Kähler* bullet of `DESIGN.md` needs no added hypothesis.
+  holomorphicity $X_{i\xi}=JX_\xi$ of the complexified action. Those
+  proofs never use the integrability of `J`, nor Tau Ceti's condition $N_J=0$,
+  and their statements take `σ.IsKahler J`, as the page does. The sufficiency
+  half of the polystable criterion needs holomorphic coordinates at a
+  zero of $\mu$ ([GeorgoulasRobbinSalamon2021], arXiv v2, Theorem 12.5),
+  so `exists_mem_nonzeroPeriods_tendsto_expI_smul` and every statement
+  that uses it (`isPolystable_of_isSemistable_of_limitPoint_mem_orbit`,
+  `isStable_of_momentWeight_neg`, the polystable and stable criteria and
+  `hilbertMumford`) also take `hJi : J.IsIntegrable`, the predicate
+  `TauCeti.SmoothAlmostComplexStructure.IsIntegrable` of
+  `Geometry/Manifold/Complex/Integrable.lean`. This is the hypothesis that
+  the *Kähler* bullet of `DESIGN.md` lets this file add; the book's Kähler
+  manifolds are integrable, and a proof of the Newlander–Nirenberg theorem
+  would remove it without changing the statements. No chart-free route is
+  known: without charts, a direction of weight `0` need not be a period,
+  and nothing shows that its limit point leaves the orbit (#8248).
 
 ## Decisions
 
@@ -233,7 +246,8 @@ may adjust implicit arguments and instance arguments to what elaborates.
   $f$, its Łojasiewicz inequality, convergence, Ness's uniqueness theorem
   and the moment limit), and
   `Stability.lean` (the boundedness and properness criteria and the
-  milestone).
+  milestone), and `HolomorphicSlice.lean` (the local criterion at a zero
+  of $\mu$, the one step that uses `hJi`).
 - `Geometry/Symplectic/Hamiltonian/MomentMap/HilbertMumford.lean`:
   weights, limit points, the slope identity, the moment-weight inequality
   and the criteria.
@@ -535,9 +549,9 @@ This is a hypothesis of the statements below, not a definition.
 *How the criteria use them.* The necessity halves and the sufficiency
 half of the stable criterion go through the following lemmas, in
 `HilbertMumford.lean` unless another file is named; the sufficiency half
-of the polystable criterion is #8142's to settle, and is used below only
-by its name, `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Let
-`Ad` be `Lie.tangentAd`.
+of the polystable criterion,
+`isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, is given after
+them, under *Sufficiency for polystability*. Let `Ad` be `Lie.tangentAd`.
 
 - `momentWeight_eq_moment_iff`: `momentWeight C μ x ξ = μ x ξ` exactly
   when `C.expI (t • ξ) • x = x` for every `t`, in the setting of
@@ -607,7 +621,7 @@ by its name, `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Let
   `mem_closure_smul_nonzeroPeriods` would not do, since its periods need
   not fix the point.
 - `isStable_of_momentWeight_neg` (the sufficiency half of the stable
-  criterion): if `momentWeight C μ p λ < 0` for every
+  criterion), with `hJi`: if `momentWeight C μ p λ < 0` for every
   `λ ∈ nonzeroPeriods I G`, then `p` is stable. It is semistable
   (`isSemistable_iff_momentWeight_nonpos`), so polystable by
   `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, whose condition
@@ -634,8 +648,10 @@ by its name, `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Let
   `isStable_of_momentWeight_neg`. The quantifiers range over all of
   `nonzeroPeriods I G`, as the page says, and the polystable criterion
   keeps the restriction to those `ξ` with `momentWeight C μ p ξ = 0`.
+  The polystable and stable criteria take `hJi`.
 - `hilbertMumford`: the milestone, in the setting of `tendsto_limitPoint`
-  with the hypotheses of `kempfNess`. For every `p`: for each
+  with the hypotheses of `kempfNess`, the invariance of `J` under `G` and
+  `hJi`. For every `p`: for each
   `ξ ∈ nonzeroPeriods I G`, `t ↦ μ (C.expI (t • ξ) • p) ξ` tends to
   `momentWeight C μ p ξ` and `t ↦ C.expI (t • ξ) • p` to `limitPoint C p ξ`
   (`tendsto_momentWeight`, `tendsto_limitPoint`); and the three criteria
@@ -644,6 +660,83 @@ by its name, `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Let
 
 Edge cases: `G` trivial has $\Lambda=\emptyset$, and every point is
 stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
+
+### Sufficiency for polystability
+
+This follows [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 12.5), with
+the holomorphic part gathered into one lemma at a zero of $\mu$. A
+semistable `p` that is not polystable has, by `isSemistable_iff` and
+`isPolystable_iff_exists_smul`, a point `x` with `μ x = 0` in the closure
+of `MulAction.orbit Gc p` and not in it; the flow of `momentNormSq` is
+not needed for this.
+
+- `exists_mem_nonzeroPeriods_tendsto_expI_smul`
+  (`KempfNess/HolomorphicSlice.lean`), the local criterion: in the setting
+  of `tendsto_limitPoint`, with the hypotheses of `kempfNess`, the
+  invariance of `J` under `G` and `hJi`, if `μ x = 0`, `x ∈ closure (MulAction.orbit Gc p)` and
+  `x ∉ MulAction.orbit Gc p`, then there are `y ∈ MulAction.orbit Gc p` and
+  `λ ∈ nonzeroPeriods I G` with
+  `Tendsto (fun t ↦ C.expI (t • λ) • y) atTop (𝓝 x)`. Edge case: for `G`
+  trivial the orbit is `{p}`, closed, so the hypotheses cannot hold. Route,
+  with `H` the stabilizer of `x` in `G`, compact:
+  (a) an `H`-equivariant chart at `x` in which `J` is constant, by
+  averaging over the Haar measure of `H` a chart in which `J` is constant
+  (`hJi`, `isIntegrable_def`), as Tau Ceti's
+  `exists_equivariant_contMDiff_chart_of_compactSpace`
+  (`Geometry/Manifold/GroupAction/CompactLinearization.lean`) does for
+  smooth charts. The average keeps `J` constant because each `h ∈ H` acts
+  on $T_xM$ by a $J$-linear map. In this chart $X_\xi$, for $\xi$ in the
+  Lie algebra $\mathfrak h$ of `H`, is linear, hence so is
+  $X_{i\xi}=JX_\xi$, and `C.expI (t • ξ)` acts linearly as long as the
+  orbit stays in the chart;
+  (b) the slice: as `μ x = 0`, $\sigma(X_\xi,X_\eta)=\pm\mu(x)([\xi,\eta])=0$,
+  so $\mathfrak g\cdot x$ and $J\mathfrak g\cdot x$ are orthogonal for $g_J$,
+  and their orthogonal complement $W\subset T_xM$ is complex and
+  `H`-invariant;
+  (c) the linear criterion: for the identity component $H_0$ of `H` acting
+  on $W$, if $0$ lies in the closure of the orbit of $w$ under
+  $H_0\exp(i\mathfrak h)$, some period $\lambda$ of $H_0$ has
+  $\exp(it\lambda)w\to0$, with $|\exp(it\lambda)w|$ decreasing, so that the
+  curve stays in the chart. It comes from
+  `isSemistable_iff_momentWeight_nonpos` applied to $H_0$ acting on the
+  projective space of $W$ with the Fubini–Study form of
+  `Geometry/Manifold/Projectivization/FubiniStudy/`, whose Kempf–Ness
+  function at $[w]$ is a positive multiple of $\log|g'w|^2-\log|w|^2$, with
+  $g'$ equal to $g$ or to $g^{-1}$ as the *Sign* bullet decides, so it is
+  unbounded below when $0$ is in the orbit closure
+  (`isSemistable_iff_bddBelow_kempfNessFunction`). A period of positive
+  weight at $[w]$ makes this function tend to $-\infty$ along it
+  (`tendsto_deriv_kempfNessFunction`), so $w$ decays along it or along its
+  negative, which is a period too. It needs $H_0\exp(i\mathfrak h)$ as a `LieComplexification` of
+  $H_0$, a closed subgroup of `Gc` (Tau Ceti's
+  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`), and the moment map
+  of a unitary representation on projective space;
+  (d) a point of `MulAction.orbit Gc p` in the slice near `x` to which
+  (c) applies, by the holomorphic slice theorem at a zero of the moment
+  map (R. Sjamaar, *Holomorphic slices, symplectic reduction and
+  multiplicities of representations*, Ann. of Math. 141 (1995), §1).
+  Its design issue, #8260, splits (a)–(d) into building issues.
+- `exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`
+  (`HilbertMumford.lean`), steps 6–7 of the source: in the setting of
+  `tendsto_limitPoint`, if `y ∈ MulAction.orbit Gc p`,
+  `λ ∈ nonzeroPeriods I G`, `C.expI (t • λ) • y → x` as `t → ∞`, `μ x = 0`
+  and `x ∉ MulAction.orbit Gc p`, then some `ξ ∈ nonzeroPeriods I G` has
+  `momentWeight C μ p ξ = 0` and `limitPoint C p ξ ∉ MulAction.orbit Gc p`.
+  Proof: `momentWeight C μ y λ = μ x λ = 0` (`tendsto_momentWeight`,
+  continuity of `μ`, `tendsto_nhds_unique`) and `limitPoint C y λ = x`
+  (`limitPoint_eq_of_tendsto`). Write `p = g • y` and
+  `g = C.toHom u * q` with `q ∈ C.parabolic λ`
+  (`exists_toHom_mul_mem_parabolic`). By `momentWeight_smul_of_mem_parabolic`,
+  `limitPoint_smul_of_mem_parabolic`, `momentWeight_toHom_smul` and
+  `limitPoint_toHom_smul`, `ξ = Ad u λ` has weight `0` at `p` and limit
+  point `C.toHom u • C.parabolicLimit λ q • x`, which lies in the orbit of
+  `x`, disjoint from that of `p`; and `ξ ∈ nonzeroPeriods I G`
+  (`tangentAd_mem_nonzeroPeriods`). It does not use `hJi`.
+- `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`, with `hJi`: if
+  `p` is semistable and `limitPoint C p ξ ∈ MulAction.orbit Gc p` for every
+  `ξ ∈ nonzeroPeriods I G` with `momentWeight C μ p ξ = 0`, then `p` is
+  polystable. Otherwise take `x` as above; the two previous items give a
+  `ξ` that contradicts the hypothesis.
 
 ### The destabilizing direction
 
@@ -814,13 +907,20 @@ proof that needs it as a `Submodule` builds it there.
   `mem_isotropy_fundamental_iff_closedOneParameterSubgroup_le`
   (`Geometry/Lie/Subgroup/Stabilizer.lean`); for decision 8,
   `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
-  `TauCeti.Lie.conj_mulInvariantExp` and `mulInvariantLogChart`.
+  `TauCeti.Lie.conj_mulInvariantExp` and `mulInvariantLogChart`; for the
+  local criterion, `TauCeti.exists_equivariant_contMDiff_chart_of_compactSpace`
+  and `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`, checked at
+  `0aaa80fd07b7`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
   and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`; for
   decision 8, `LinearMap.IsSymmetric.direct_sum_isInternal`,
   `HasStrictFDerivAt.map_nhds_eq_of_surj`, `IsClosed.mul_right_of_isCompact`
   and dominated convergence for interval integrals.
-- From other parts: none on `main` is needed. The local normal form (c)
+- From other parts, only merged files: for the local criterion of
+  *Sufficiency for polystability*, `IsIntegrable` from
+  `Geometry/Manifold/Complex/Integrable.lean` (*Nijenhuis tensor*) and the
+  Fubini–Study form of `Geometry/Manifold/Projectivization/FubiniStudy/`
+  (*Complex projective space*). The local normal form (c)
   is not Tau Ceti's weight chart of part 37 (*Equivariant normal forms*),
   which holds only at fixed points; it generalizes it along orbits.
 
@@ -881,11 +981,21 @@ Each is a few hundred lines; each is blocked by the issues it names.
        `IsPolystable.limitPoint_mem_orbit` and `IsStable.momentWeight_neg`.
        Blocked by 14 and 15.
 
-    After these come the building issues of the sufficiency half of the
-    polystable criterion, which #8142 adds; the last issue,
-    `isStable_of_momentWeight_neg`, the polystable and stable criteria and
-    `hilbertMumford`, follows them and is blocked by them and by 12.5,
-    12.6 and 12.7.
+    The sufficiency half of the polystable criterion is these issues, in
+    this order:
+    8. `exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`. Blocked by
+       14 and 15.
+    9. `exists_mem_nonzeroPeriods_tendsto_expI_smul`, in
+       `KempfNess/HolomorphicSlice.lean` and the files that its design
+       issue #8260 gives for (a)–(d), with the building issues that #8260
+       sets. Blocked by #8260 and by 12.5, whose
+       semistable criterion (c) applies to projective space.
+    10. `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Blocked by
+        12.8 and 12.9.
+
+    The last issue, `isStable_of_momentWeight_neg`, the polystable and
+    stable criteria and `hilbertMumford`, is blocked by 12.5, 12.6, 12.7
+    and 12.10.
 13. **The parabolic subgroup.** `Geometry/Lie/Subgroup/Parabolic.lean`:
     `C.parabolic ξ`, `C.parabolicLimit ξ` and `C.parabolicSubspace ξ` with
     their API, `tangentAd_expI_smul`, `isSymm_ad_cplx_lieMap`,
@@ -910,6 +1020,9 @@ Issues 1, 5, 7 and 8 can start at once; the Kempf–Ness milestone
   Lemma 7.5, Definition 7.1, and Appendices D and E.
 * [V. Guillemin and S. Sternberg][GuilleminSternberg1990], for the local
   normal form.
+* R. Sjamaar, *Holomorphic slices, symplectic reduction and
+  multiplicities of representations*, Ann. of Math. (2) 141 (1995),
+  87–129, §1, for the slice at a zero of the moment map.
 * E. Lerman, *Gradient flow of the norm squared of a moment map*, Enseign.
   Math. 51 (2005), 117–127.
 * C.-M. Marle, *Modèle d'action hamiltonienne d'un groupe de Lie sur une
