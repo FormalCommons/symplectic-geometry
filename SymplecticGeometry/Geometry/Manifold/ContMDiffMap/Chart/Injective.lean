@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
 public import Mathlib.Geometry.Manifold.MFDeriv.Defs
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Differential
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Evaluation
-import Mathlib.Analysis.Calculus.MeanValue
+import TauCeti.Analysis.Calculus.ApproximatesLinearOn.Basic
 import Mathlib.Analysis.Normed.Module.FiniteDimension
 import Mathlib.Geometry.Manifold.MFDeriv.Basic
 
@@ -24,9 +24,10 @@ topology is injective (`ContMDiffMap.eventually_injective`).
 The proof has a local and a global step.
 
 * Near a point `x₀` where the differential of `g` is injective, the chart derivative `A` of `g`
-  at `x₀` satisfies `‖v‖ ≤ K * ‖A v‖`. If the chart derivative of a map stays within
-  `(2 * K)⁻¹` of `A` on a ball, then by the mean value inequality the map minus `A` is
-  `(2 * K)⁻¹`-Lipschitz there, so the map is injective on the ball. Chart derivatives are
+  at `x₀` is `K`-antilipschitz. If the chart derivative of a map stays within `(2 * K)⁻¹` of
+  `A` on a ball, then the map minus `A` is `(2 * K)⁻¹`-Lipschitz there (Tau Ceti's
+  `Convex.approximatesLinearOn_of_nnnorm_fderiv_sub_le`), so the map is injective on the ball
+  (`AntilipschitzWith.add_sub_lipschitzWith`). Chart derivatives are
   jointly continuous in the map and the point, so one ball serves all maps near `g`
   (`ContMDiffMap.exists_mem_nhds_eventually_injOn`).
 * Off the diagonal, `g x ≠ g y`, and evaluation is jointly continuous, so nearby maps still
@@ -79,7 +80,6 @@ theorem exists_mem_nhds_eventually_injOn (hn : 1 ≤ n) {g : C^n⟮I, M; J, N⟯
     exact hg
   obtain ⟨K, hK0, hK⟩ :=
     (A : E →ₗ[ℝ] F).exists_antilipschitzWith (LinearMap.ker_eq_bot.mpr hA)
-  have hKA (v : E) : ‖v‖ ≤ K * ‖A v‖ := A.bound_of_antilipschitz hK v
   have hc : (0 : ℝ) < (2 * (K : ℝ))⁻¹ := by positivity
   -- Nearby maps at nearby chart points stay in the target chart, with derivatives near `A`.
   have hev : ∀ᶠ p : C^n⟮I, M; J, N⟯ × E in 𝓝 g ×ˢ 𝓝 (φ x₀),
@@ -108,21 +108,18 @@ theorem exists_mem_nhds_eventually_injOn (hn : 1 ≤ n) {g : C^n⟮I, M; J, N⟯
       ‖fderiv ℝ (ψ ∘ f ∘ φ.symm) w - A‖ ≤ (2 * (K : ℝ))⁻¹ := by
     rw [← fderivWithin_of_isOpen hφo (hft w hw), ← dist_eq_norm]
     exact (Metric.mem_ball.mp (hfd w hw)).le
-  have hmv := (convex_ball (φ x₀) r).norm_image_sub_le_of_norm_fderiv_le' hD hB ha.2 hb.2
-  have hfab : (ψ ∘ f ∘ φ.symm) (φ b) = (ψ ∘ f ∘ φ.symm) (φ a) := by
-    simp only [Function.comp_apply, φ.left_inv ha.1, φ.left_inv hb.1, hab]
-  rw [hfab, sub_self, zero_sub, norm_neg] at hmv
-  have hle := (hKA (φ b - φ a)).trans (mul_le_mul_of_nonneg_left hmv K.coe_nonneg)
-  have hK0' : (K : ℝ) ≠ 0 := (NNReal.coe_pos.mpr hK0).ne'
-  have h0 : ‖φ b - φ a‖ = 0 := by
-    have : (K : ℝ) * ((2 * (K : ℝ))⁻¹ * ‖φ b - φ a‖) = ‖φ b - φ a‖ / 2 := by
-      field_simp [hK0']
-    linarith [norm_nonneg (φ b - φ a)]
-  exact φ.injOn ha.1 hb.1 (sub_eq_zero.mp (norm_eq_zero.mp h0)).symm
+  have happ : ApproximatesLinearOn (ψ ∘ f ∘ φ.symm) A (Metric.ball (φ x₀) r) (2 * K)⁻¹ :=
+    (convex_ball _ _).approximatesLinearOn_of_nnnorm_fderiv_sub_le hD fun w hw ↦ by
+      rw [← NNReal.coe_le_coe]; simpa using hB w hw
+  have hinj := ((hK.domRestrict (Metric.ball (φ x₀) r)).add_sub_lipschitzWith
+    happ.lipschitzWith_sub (by gcongr; exact lt_two_mul_self hK0)).injective
+  exact φ.injOn ha.1 hb.1 (congrArg Subtype.val (@hinj ⟨_, ha.2⟩ ⟨_, hb.2⟩ (by
+    simp [φ.left_inv ha.1, φ.left_inv hb.1, hab])))
 
 /-- On a compact boundaryless manifold modelled on a finite-dimensional real space, maps close
 enough, in the weak Whitney topology, to an injective `C^n` map `g`, with `1 ≤ n`, whose
-differential is injective at every point, are injective. -/
+differential is injective at every point, are injective, provided the target `N` is
+Hausdorff. -/
 theorem eventually_injective [CompactSpace M] [T2Space N] (hn : 1 ≤ n) {g : C^n⟮I, M; J, N⟯}
     (hg : Injective g) (hg' : ∀ x, Injective (mfderiv I J g x)) :
     ∀ᶠ f : C^n⟮I, M; J, N⟯ in 𝓝 g, Injective f := by
