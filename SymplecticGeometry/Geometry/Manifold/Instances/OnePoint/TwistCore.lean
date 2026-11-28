@@ -25,6 +25,7 @@ degree `k`:
 * the instances `ContinuousSMul ℝ` on its fibres, `ContMDiffVectorBundle n ℂ _ 𝓘(ℝ, ℂ)` for
   every `n` (from Tau Ceti's `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`), and
   `MemTrivializationAtlas` for its local trivializations `(twistCore k).localTriv y`;
+* `OnePoint.twistTransition_ne_zero`: the transition functions do not vanish on chart overlaps;
 * `OnePoint.twistCore_localTriv_symmL_apply`: over the chart at `y`, the real frame of the
   trivialization at `y` is multiplication by a transition function;
 * `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars;
@@ -45,6 +46,14 @@ noncomputable section
 namespace OnePoint
 
 variable {k : ℤ}
+
+/-- The transition functions of `𝒪(k)` do not vanish on the chart overlaps. -/
+theorem twistTransition_ne_zero {𝕜 : Type*} [NontriviallyNormedField 𝕜] [ProperSpace 𝕜]
+    (k : ℤ) {x y p : OnePoint 𝕜} (hx : p ∈ (chartAt 𝕜 x).source)
+    (hy : p ∈ (chartAt 𝕜 y).source) : twistTransition k x y p ≠ 0 := by
+  have h := twistTransition_mul_twistTransition k hx hy hx (x := x) (y := y) (z := x)
+  rw [twistTransition_self] at h
+  exact right_ne_zero_of_mul_eq_one h
 
 /-- The fibres of `𝒪(k)` on the Riemann sphere carry the topology of `ℂ`, for which multiplication
 by real scalars is continuous. -/
@@ -131,10 +140,7 @@ theorem contMDiff_div_smul_twistCore_hom {k : ℤ} {n : ℕ∞ω}
   have hb : p ∈ (trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x₀).baseSet := by
     rw [← he, he', twistCore_localTriv_baseSet]; exact hp
   -- The transition function does not vanish on the chart; `field_simp` uses this below.
-  have ht : twistTransition k p x₀ p ≠ 0 := fun h ↦ by
-    have := twistTransition_mul_twistTransition k (mem_chart_source ℂ p) hp
-      (mem_chart_source ℂ p) (x := p) (y := x₀) (z := p)
-    simp [h] at this
+  have ht : twistTransition k p x₀ p ≠ 0 := twistTransition_ne_zero k (mem_chart_source ℂ p) hp
   ext v
   simp only [ContinuousLinearMap.inCoordinates, Function.comp_apply, ContinuousLinearMap.comp_apply,
     smul_apply, ContinuousLinearMap.coe_restrictScalars', ContinuousLinearEquiv.coe_coe]
