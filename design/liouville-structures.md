@@ -97,7 +97,7 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   used as the representation; the completion of a Liouville domain is shown
   to be one of the latter (`isLiouvilleCompletion_completion`).
 - **The Liouville collar at a boundary.** Tau Ceti's flows
-  (`TauCeti.flowOf`) and collars (`Liouville/Collar.lean`) need a
+  (`TauCeti.flowOf`) and collars (`Liouville/Collar/Basic.lean`) need a
   boundaryless model, and its smooth collars come without an existence
   theorem. The part therefore proves a collar theorem driven by the given
   field: for a smooth field `Y` pointing outward along a compact boundary,
@@ -187,9 +187,10 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
-`ContactType.lean`, `Collar.lean`, `Scaling.lean`, `StableHamiltonian.lean`,
+`ContactType.lean`, `Scaling.lean`, `StableHamiltonian.lean`,
 `Completion.lean` and `Domain.lean` have the paths of Tau Ceti files and
-extend them. No folder below has the name of a Tau Ceti file at its place:
+extend them. `Collar.lean` sits beside Tau Ceti's folder `Liouville/Collar/`
+and builds on its `Basic.lean`. No folder below has the name of a Tau Ceti file at its place:
 Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
 `Flow.lean` or `End.lean`, and because Tau Ceti has
 `Geometry/Contact/StableHamiltonian.lean` and
@@ -253,7 +254,7 @@ Expected size: 400 lines.
 
 ### `Geometry/Symplectic/Liouville/Collar.lean`
 
-In `TauCeti`, beside Tau Ceti's file, for `ω` symplectic, `hdim`, `U` and `Y`
+In `TauCeti`, beside Tau Ceti's folder `Liouville/Collar/`, for `ω` symplectic, `hdim`, `U` and `Y`
 as above with `Y` Liouville on `U` and transverse along `i`, and `α` with
 `hα : α.val = -mpullback J I i (RoughForm.interior Y ω.val)` (a hypothesis,
 since `Y` is smooth only on `U`):

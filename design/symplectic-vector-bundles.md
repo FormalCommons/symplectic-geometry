@@ -305,7 +305,7 @@ name, so that the $TM$ statements are special cases:
   `@[simp] pushforward_apply`, `pushforward_refl` and `pushforward_trans`.
   Its section is `Φₛ.clmComp (J.toEndomorphism.clmComp Φ⁻¹ₛ)`, by Tau
   Ceti's `ContMDiffSection.clmComp` with `@[simp] clmComp_apply`
-  (`Geometry/Manifold/VectorBundle/Hom.lean`). Here `Φₛ` and `Φ⁻¹ₛ` are the
+  (`Geometry/Manifold/VectorBundle/Hom/Basic.lean`). Here `Φₛ` and `Φ⁻¹ₛ` are the
   $C^n$ sections of the hom bundles from `V₁` to `V₂` and back. Tau Ceti's
   `contMDiff_hom_bundle_iff` (same file) gives `Φₛ` from `hΦ`, and needs
   only `[FiniteDimensional ℝ F₁]`. Then `Φ⁻¹ₛ` is the fibrewise inverse of
@@ -1475,7 +1475,7 @@ on complex structures are in `ContMDiffComplexStructure` and in
   `Bundle.Trivial.diffeomorphProd` and `Bundle.Trivial.contMDiffAt_mk_iff`,
   `Geometry/Manifold/VectorBundle/Trivial.lean`), Tau Ceti's
   `TauCeti.contMDiffAt_hom_bundle_iff`
-  (`Geometry/Manifold/VectorBundle/Hom.lean`) makes `Φ` and `Φ'` sections of the hom bundle from `Bundle.Trivial M W` to
+  (`Geometry/Manifold/VectorBundle/Hom/Basic.lean`) makes `Φ` and `Φ'` sections of the hom bundle from `Bundle.Trivial M W` to
   `V` that are $C^n$ at `x`. Then `ContMDiffAt.clm_bundle_inverse` and
   `ContMDiffAt.clm_bundle_comp` give the composite at `x`, a section of the
   endomorphisms of the trivial bundle, which is the map into `W →L[ℝ] W`.
@@ -1810,7 +1810,7 @@ Hausdorff σ-compact base.
     Tau Ceti's `ContinuousLinearMap.isVonNBounded_setOf_lt_one_of_pos`
     (`Topology/Algebra/Module/BilinearForm.lean`) and
     `TauCeti.contMDiff_const_bundlePairing`
-    (`Geometry/Manifold/VectorBundle/Hom.lean`). Then `g₀` is the case
+    (`Geometry/Manifold/VectorBundle/Hom/Basic.lean`). Then `g₀` is the case
     `b = (innerSL ℝ).bilinearComp c c`, in the same file:
     `Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι`, with
     `@[simp] constComplexEuclidean_inner` ($g_0(u,v)=\langle c\,u,c\,v\rangle$),
