@@ -17,12 +17,12 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.LinearAlgebra.Orientation.ShortExact
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
+public import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Orientation.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 
 /-!
 # The self-intersection number of a `J`-invariant surface

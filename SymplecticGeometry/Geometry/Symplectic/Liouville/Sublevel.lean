@@ -26,9 +26,10 @@ The differential of `ι` is invertible at every point, also on the boundary
 (`TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.isSymplectic_mpullback`), the
 pulled-back field is smooth (`ContMDiff.mpullback_vectorField`) and `ι`-related to `X`, hence
 Liouville for `ι^*σ` (`TauCeti.IsLiouvilleVectorField.mpullback`). Along the boundary, which is
-the level (`TauCeti.boundary_scalarRegularSublevel`), outward vectors are those on which `df` is
-positive (`TauCeti.isOutwardPointing_scalarRegularSublevel_iff`), and the chain rule through `ι`
-turns `df(X) > 0` into this condition.
+the level (`TauCeti.boundary_scalarRegularSublevel`), a tangent vector of `W` points outward
+exactly when `df` is positive on its image under `dι`
+(`TauCeti.isOutwardPointing_scalarRegularSublevel_iff_mfderiv`), and `dι` sends the pulled-back
+field to `X` (`VectorField.mfderiv_apply_mpullback`), so `df(X) > 0` gives the condition.
 
 ## Main results
 

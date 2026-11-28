@@ -11,12 +11,9 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 /-!
 # The dimension of a normal space
 
-For a smooth embedding `f : M → N` and a point `x` of `M`, the differential
-`T_x M → T_{f x} N` and Tau Ceti's normal class map `T_{f x} N → ν_x` form the short exact
-sequence `0 → T_x M → T_{f x} N → ν_x → 0`: this is Tau Ceti's
-`Manifold.IsImmersion.exact_mfderiv_normalClass`, with `Manifold.IsImmersion.mfderiv_injective`
-and `Manifold.IsImmersion.normalClass_surjective`, applied to `f.isImmersion`. This file gives the
-dimension of the normal spaces in the form that Tau Ceti's normal bundle charts use.
+This file gives the dimension of the normal spaces of a smooth embedding in the form that Tau
+Ceti's normal bundle charts use. The exactness of the differential and the normal class map is
+Tau Ceti's `Manifold.IsImmersion.exact_mfderiv_normalClass`, applied to `f.isImmersion`.
 
 ## Main results
 

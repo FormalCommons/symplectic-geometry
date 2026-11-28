@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
 public import TauCeti.Topology.VectorBundle.Orientation.Basic
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Finrank
 import SymplecticGeometry.Algebra.Exact.Basic
 
 /-!
