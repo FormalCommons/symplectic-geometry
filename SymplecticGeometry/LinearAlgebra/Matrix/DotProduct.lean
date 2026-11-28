@@ -14,8 +14,8 @@ public import TauCeti.LinearAlgebra.Matrix.DotProduct
 * `Matrix.star_mulVec_dotProduct_mulVec`: a matrix with orthonormal columns, `Aᴴ * A = 1`,
   preserves the Hermitian product `star z ⬝ᵥ v`. It follows from Tau Ceti's
   `Matrix.star_dotProduct_conjTranspose_mul_mulVec`, in
-  `TauCeti/LinearAlgebra/Matrix/DotProduct.lean`, which pulls the form of `Aᴴ * A` back along
-  `A`.
+  `TauCeti/LinearAlgebra/Matrix/DotProduct.lean`, which identifies the form of `Aᴴ * A` with
+  the Hermitian product `star z ⬝ᵥ v` pulled back along `A`.
 * `Fin.star_insertNth`: the star of a tuple with an entry inserted at `j` is the star of the
   tuple with the star of the entry inserted at `j`.
 * `Matrix.insertNth_dotProduct_insertNth`: the dot product of two vectors with an entry inserted
