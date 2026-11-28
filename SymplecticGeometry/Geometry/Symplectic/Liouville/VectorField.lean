@@ -5,13 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Analysis.ODE.Linear
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Analysis.ODE.Linear
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.LocalPrimitive
@@ -40,7 +43,10 @@ at `p`, says that the linearization `A` of `Z` (Tau Ceti's `TauCeti.sectionLinea
 satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`
 (`TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`). The Lie derivative at a zero
 of the field involves only the derivative of the field (`TauCeti.mlieDerivForm_apply_of_eq_zero`),
-so no regularity of `Z` or `σ` is needed.
+so no regularity of `Z` or `σ` is needed. Along the flow of `A` the form `σ_p` then grows like
+`e ^ t`, so it vanishes on the stable subspace of `A`
+(`TauCeti.IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`, by
+`ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace`).
 
 On a finite-dimensional real normed space `V`, with a linear symplectic form `σ` seen as a
 constant form, a vector field `Z` is Liouville as soon as its derivative satisfies
@@ -139,6 +145,24 @@ theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I 
   -- Each entry of the updated pairs is computed by `Function.update` on `Fin 2`; the entries are
   -- tangent vectors at `p`, which `simp` does not match against vectors of `E`.
   congr 2 <;> funext i <;> fin_cases i <;> rfl
+
+/-- **The stable subspace at a zero of a Liouville field is isotropic.** Let `Z` be a Liouville
+vector field of a two-form `σ` on a boundaryless manifold, let `p` be a zero of `Z`, and let `A`
+be the linearization of `Z` at `p`. Then `σ_p (u, v) = 0` for all `u`, `v` in the stable
+subspace of `A`. -/
+theorem IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace [CompleteSpace E]
+    {σ : RoughForm I N ℝ 2} {Z : (x : N) → TangentSpace I x} (hZ : IsLiouvilleVectorField σ Z)
+    {p : N} (hp : Z p = 0) {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) I id Z p)
+    {u v : E} (hu : u ∈ A.stableSubspace) (hv : v ∈ A.stableSubspace) : σ p ![u, v] = 0 := by
+  subst hA
+  -- The value of `σ` at `p`, an alternating map on the tangent space `E` at `p`.
+  let σ₀ : E [⋀^Fin 2]→L[ℝ] ℝ := σ p
+  have hB (u v : E) : ContinuousAlternatingMap.flatL ℝ E ℝ σ₀ u v = σ p ![u, v] :=
+    ContinuousAlternatingMap.flatL_apply_apply σ₀ u v
+  rw [← hB]
+  refine ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace (fun u v ↦ ?_) hu hv
+  simp only [hB]
+  exact hZ.apply_sectionLinearization_add hp u v
 
 end Linearization
 
