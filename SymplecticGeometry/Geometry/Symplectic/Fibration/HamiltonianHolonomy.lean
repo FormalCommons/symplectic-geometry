@@ -630,6 +630,8 @@ theorem val_curvatureTensor_transportedCylinder_chartDisc_zero {σ : SmoothTwoFo
   have hW (w : EB) : mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm
       (chartDiscCoord IB b w₁ w₂ 0 (s, t)) w = w := by
     rw [chartDiscCoord_zero_radius, (hasMFDerivAt_extChartAt_symm_self b).mfderiv]
+    -- `ContinuousLinearMap.id_apply` does not match: the identity is of `EB`, and the map is
+    -- applied through the tangent spaces, which are `EB` by definition.
     rfl
   -- The curvature tensor on `w₁ = V₁ b` and `w₂ = V₂ b` is the curvature of `V₁ V₂`.
   have key : ∀ x, proj x = b → ∀ hfx : ContMDiffAt IM IB 2 proj x,
