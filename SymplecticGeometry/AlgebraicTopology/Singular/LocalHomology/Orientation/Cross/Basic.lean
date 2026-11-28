@@ -14,6 +14,7 @@ import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Assoc
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.CubicalPair
 import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
+import SymplecticGeometry.Topology.Constructions.SumProd
 import TauCeti.Algebra.Category.ModuleCat.SpanSingleton
 
 /-!
@@ -399,7 +400,7 @@ theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (
       localHomologyCross (x, y) z pq r n hn ≫
         localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
           ((Homeomorph.prodAssoc X Y Z : (X × Y) × Z ≃ₜ X × Y × Z) : C((X × Y) × Z, X × Y × Z))
-          (by rintro ⟨⟨a, b⟩, c⟩ h; simpa [Homeomorph.prodAssoc, and_assoc] using h) n =
+          (by rintro ⟨⟨a, b⟩, c⟩ h; simpa [and_assoc] using h) n =
       (α_ _ _ _).hom ≫
         (localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({x} : Set X) p ◁
           localHomologyCross y z q r qr hqr) ≫
