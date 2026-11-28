@@ -199,10 +199,10 @@ theorem mextDerivₗ_momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAl
   have h₁ (w : TangentSpace ((IB.prod IG).prod IF) p) :
       (fun i ↦ (Manifold.tangentSpaceProdEquiv p (![w] i)).1) =
         ![(Manifold.tangentSpaceProdEquiv p w).1] :=
-    funext fun i ↦ by fin_cases i; rfl
+    (FinVec.etaExpand_eq _).symm
   have h₂ : (fun i ↦ (Manifold.tangentSpaceProdEquiv p (![w₁, w₂] i)).1) =
       ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1] :=
-    funext fun i ↦ by fin_cases i <;> rfl
+    (FinVec.etaExpand_eq _).symm
   have hd : MDifferentiableAt IF 𝓘(ℝ, EG →L[ℝ] ℝ) (momentMapCLM μ hμs) p.2 :=
     (momentMapCLM μ hμs).contMDiff.mdifferentiableAt (by simp)
   rw [momentPairing_def, mextDerivₗ_apply, SmoothForm.coe_wedgeWith,
