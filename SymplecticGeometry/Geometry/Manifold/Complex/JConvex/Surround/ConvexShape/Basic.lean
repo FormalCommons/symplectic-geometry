@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Calculus.FDeriv.Prod
+import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
@@ -731,12 +732,6 @@ theorem shapeGraphOverR_eq_neg_shapeGraph_swap (ρ : ℝ → ℝ) (q : ℝ × �
     shapeGraphOverR ρ q = -shapeGraph ρ q.swap := by
   rw [shapeGraphOverR_def, shapeGraph_def, Prod.fst_swap, Prod.snd_swap, neg_sub]
 
-/-- `shapeGraphOverR ρ` is minus `shapeGraph ρ` composed with the exchange of the two
-coordinates. -/
-theorem shapeGraphOverR_eq_neg_comp_swap (ρ : ℝ → ℝ) :
-    shapeGraphOverR ρ = -(shapeGraph ρ ∘ Prod.swap) :=
-  funext (shapeGraphOverR_eq_neg_shapeGraph_swap ρ)
-
 /-- `shapeGraphOverR ρ` is minus `shapeGraph ρ` composed with the continuous linear equivalence
 `prodComm` that exchanges the two coordinates; the form to differentiate through. -/
 theorem shapeGraphOverR_eq_neg_comp_prodComm (ρ : ℝ → ℝ) :
@@ -755,17 +750,17 @@ theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
 theorem contDiffAt_shapeGraphOverR {ρ : ℝ → ℝ} {n : WithTop ℕ∞} {s t : ℝ}
     (hρ : ContDiffAt ℝ n ρ (√s)) (hs : 0 < s) (ht : 0 < t) :
     ContDiffAt ℝ n (shapeGraphOverR ρ) (s, t) := by
-  rw [shapeGraphOverR_eq_neg_comp_swap]
-  exact ((contDiffAt_shapeGraph hρ ht hs).comp (f := Prod.swap) (s, t)
-    (contDiff_snd.prodMk contDiff_fst).contDiffAt).neg
+  rw [shapeGraphOverR_eq_neg_comp_prodComm]
+  exact ((contDiffAt_shapeGraph hρ ht hs).comp (s, t)
+    (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ).contDiff.contDiffAt).neg
 
 /-- `shapeGraphOverR ρ` is differentiable at `(s, t)` with `s, t > 0` if `ρ` is differentiable
 at `√s`. -/
 theorem differentiableAt_shapeGraphOverR {ρ : ℝ → ℝ} {s t : ℝ} (hρ : DifferentiableAt ℝ ρ (√s))
     (hs : 0 < s) (ht : 0 < t) : DifferentiableAt ℝ (shapeGraphOverR ρ) (s, t) := by
-  rw [shapeGraphOverR_eq_neg_comp_swap]
-  exact ((differentiableAt_shapeGraph hρ ht hs).comp (f := Prod.swap) (s, t)
-    (differentiableAt_snd.prodMk differentiableAt_fst)).neg
+  rw [shapeGraphOverR_eq_neg_comp_prodComm]
+  exact ((differentiableAt_shapeGraph hρ ht hs).comp (s, t)
+    (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ).differentiableAt).neg
 
 /-- The differential of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0`:
 `(a, b) ↦ -a ρ'(√s) / (2 √s) + b / (2 √t)`. -/
@@ -784,13 +779,9 @@ theorem fderiv_fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ 
     fderiv ℝ (fderiv ℝ (shapeGraphOverR ρ)) (s, t) (a, b) (a', b') =
       a * a' * (deriv ρ (√s) / (4 * s * √s) - iteratedDeriv 2 ρ (√s) / (4 * s)) -
         b * b' / (4 * t * √t) := by
-  have hd : fderiv ℝ (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ) =
-      fun _ ↦ (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ : ℝ × ℝ →L[ℝ] ℝ × ℝ) :=
-    funext fun _ ↦ ContinuousLinearEquiv.fderiv _
   rw [shapeGraphOverR_eq_neg_comp_prodComm, TauCeti.fderiv_fderiv_neg, neg_apply, neg_apply,
-    TauCeti.fderiv_fderiv_comp_apply (by simpa using contDiffAt_shapeGraph hρ ht hs)
-      (ContinuousLinearEquiv.prodComm ℝ ℝ ℝ).contDiff.contDiffAt]
-  simp [hd, fderiv_fderiv_shapeGraph_apply hρ ht hs]
+    ContinuousLinearEquiv.fderiv_fderiv_comp_right_apply_apply]
+  simp [fderiv_fderiv_shapeGraph_apply hρ ht hs]
   ring
 
 /-- The differential of `shapeGraphOverR ρ ∘ shape` at `p` with `s = (shape p).1 > 0` and
