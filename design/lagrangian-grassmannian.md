@@ -163,18 +163,22 @@ group as a subgroup of `GL ι ℂ`:
 `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`
 (`LinearAlgebra/Matrix/GeneralLinearGroup/Orthogonal/Unitary.lean`) says
 that `GLOrthogonal ι ℂ ⊓ unitarySubgroup (GL ι ℂ)` is the image of the real
-orthogonal group. This file carries that subgroup to `unitaryGroup ι ℂ`,
-which the stabilizer and the fibration need.
+orthogonal group. This file does not carry that statement over: it takes
+Tau Ceti's unitary part `Subgroup.unitaryPart` (`Algebra/Star/Unitary.lean`)
+of `GLOrthogonal ι ℂ`, which is already a subgroup of `unitaryGroup ι ℂ`,
+the group that the stabilizer and the fibration need.
 
 - `Matrix.UnitaryGroup.realSubgroup (ι) : Subgroup (unitaryGroup ι ℂ)`,
   Tau Ceti's `(GLOrthogonal ι ℂ).unitaryPart`.
 - API: `mem_realSubgroup_iff_exists` (`U` is in it iff `U = O.map ofReal` for
-  some `O ∈ Matrix.orthogonalGroup ι ℝ`), derived from
-  `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real` (Tau Ceti's
-  `Matrix.exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one` may
-  shorten it); `mem_realSubgroup_iff` (iff
+  some `O ∈ Matrix.orthogonalGroup ι ℝ`), proved from Tau Ceti's
+  `Matrix.exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Orthogonal/Unitary.lean`);
+  `mem_realSubgroup_iff` (iff
   `(U : Matrix ι ι ℂ).map Complex.im = 0`); `orthogonalComplexMatrix_mem_realSubgroup`;
-  `isClosed_realSubgroup`.
+  `isClosed_realSubgroup`, from Tau Ceti's `Subgroup.isClosed_unitaryPart`
+  (`Topology/Algebra/Star/Unitary.lean`) and `TauCeti.GLOrthogonal.isClosed`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Orthogonal/Basic.lean`).
 
 ### `LinearAlgebra/Matrix/OfReal.lean`
 
@@ -1036,7 +1040,9 @@ The manifold structure and the milestone.
     `TauCeti.GLSymplectic.symJ`, `TauCeti.GLSymplectic.sum`, `TauCeti.GLSymplectic.continuous_sum`,
     `Matrix.symplecticSum`, `Matrix.UnitaryGroup.sum`,
     `Matrix.UnitaryGroup.continuous_sum`, `TauCeti.GLOrthogonal`,
-    `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`,
+    `TauCeti.GLOrthogonal.isClosed`, `Subgroup.unitaryPart`,
+    `Subgroup.mem_unitaryPart`, `Subgroup.isClosed_unitaryPart`,
+    `Matrix.exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one`,
     `Matrix.realify_fromBlocks_zero`, the `CompactSpace` instance of
     `unitaryGroup`, `Matrix.unitaryReindexContinuousMulEquiv`,
     `Matrix.coe_unitaryReindexContinuousMulEquiv_apply`,

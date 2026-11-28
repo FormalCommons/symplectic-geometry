@@ -615,15 +615,9 @@ theorem singularCohomologyMap_normalSlice_relDualClass (f : SmoothEmbedding I J 
   subst hr
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := FiberBundle.mem_baseSet_trivializationAt' x
-  -- `eq_relDualClassOf_iff_forall_slice` is stated for the `ℤ`-linear structure
-  -- `ModuleCat.instLinear`: read the class for that structure, take its slice, and read it back.
   rw [TopPair.singularCohomologyMap_comp_apply,
-    relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
-    ← TopPair.singularCohomologyLinearCongr_naturality,
-    (eq_relDualClassOf_iff_forall_slice f hn hdim hf hΦ _ _).1 rfl x,
-    TopPair.singularCohomologyLinearCongr_naturality,
-    TopPair.singularCohomologyLinearCongr_apply_apply,
-    TopPair.singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply,
+    singularCohomologyMap_relDualClass_eq_of_relDualClassOf f hn hdim hf o rfl _ _ _
+      ((eq_relDualClassOf_iff_forall_slice f hn hdim hf hΦ _ _).1 rfl x),
     o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass rfl e hx]
   have h : ν.map _ (m.trans (e.continuousLinearEquivAt ℝ x hx)).toLinearEquiv =
       e.mapOrientation _ hx (o x) := by

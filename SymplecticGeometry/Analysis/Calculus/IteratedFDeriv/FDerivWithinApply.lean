@@ -25,6 +25,8 @@ its iterated derivatives at `(z, v)` by those of `g` at `z` of one order more, w
   of unique differentiability and `z ∈ s`, the `j`-th derivative of `(z, v) ↦ Dg(z) v` within
   `s ×ˢ univ` at `(z, v)` has norm at most
   `(1 + ‖v‖) * ∑ i ∈ range (j + 1), j.choose i * ‖D^{i+1} g(z)‖`.
+* `norm_iteratedFDerivWithin_fderivWithin_apply_sub_le`: the same bound for the difference of
+  two such maps, by the differences of the derivatives of `g₁` and `g₂`.
 
 The proof writes the map as `q ↦ (Dg ∘ Prod.fst) q (Prod.snd q)` and applies Mathlib's Leibniz
 bound `norm_iteratedFDerivWithin_clm_apply`; the derivatives of `Prod.snd` are bounded by Tau
@@ -79,6 +81,40 @@ theorem norm_iteratedFDerivWithin_fderivWithin_apply_le {g : E → F} {s : Set E
         · exact hAi i hi
         · exact hBk _
     _ = _ := by ring
+
+/-- The iterated derivatives of the difference of `(z, v) ↦ Dg₁(z) v` and `(z, v) ↦ Dg₂(z) v`
+within `s ×ˢ univ` at `(z, v)`, for `g₁` and `g₂` of class `C^{j+1}` on a set `s` of unique
+differentiability and `z ∈ s`, are bounded by the differences of the derivatives of `g₁` and `g₂`
+at `z` of one order more. -/
+theorem norm_iteratedFDerivWithin_fderivWithin_apply_sub_le {g₁ g₂ : E → F} {s : Set E}
+    (hs : UniqueDiffOn 𝕜 s) {j : ℕ} (hg₁ : ContDiffOn 𝕜 (j + 1) g₁ s)
+    (hg₂ : ContDiffOn 𝕜 (j + 1) g₂ s) {z : E} (hz : z ∈ s) (v : E) :
+    ‖iteratedFDerivWithin 𝕜 j (fun q : E × E ↦ fderivWithin 𝕜 g₁ s q.1 q.2) (s ×ˢ univ) (z, v) -
+        iteratedFDerivWithin 𝕜 j (fun q : E × E ↦ fderivWithin 𝕜 g₂ s q.1 q.2) (s ×ˢ univ)
+          (z, v)‖ ≤
+      (1 + ‖v‖) * ∑ i ∈ Finset.range (j + 1), (j.choose i : ℝ) *
+        ‖iteratedFDerivWithin 𝕜 (i + 1) g₁ s z - iteratedFDerivWithin 𝕜 (i + 1) g₂ s z‖ := by
+  have hS : UniqueDiffOn 𝕜 (s ×ˢ (univ : Set E)) := hs.prod uniqueDiffOn_univ
+  have hzS : (z, v) ∈ s ×ˢ (univ : Set E) := ⟨hz, mem_univ v⟩
+  have hG (g : E → F) (hg : ContDiffOn 𝕜 (j + 1) g s) :
+      ContDiffOn 𝕜 j (fun q : E × E ↦ fderivWithin 𝕜 g s q.1 q.2) (s ×ˢ univ) :=
+    ((hg.fderivWithin hs le_rfl).comp contDiffOn_fst
+      fun (q : E × E) (hq : q ∈ s ×ˢ univ) ↦ hq.1).clm_apply contDiffOn_snd
+  have hd (g : E → F) (hg : ContDiffOn 𝕜 (j + 1) g s) : DifferentiableOn 𝕜 g s :=
+    hg.differentiableOn (by simp)
+  rw [← iteratedFDerivWithin_sub_apply (hG g₁ hg₁ _ hzS) (hG g₂ hg₂ _ hzS) hS hzS,
+    iteratedFDerivWithin_congr (f := fun q : E × E ↦ fderivWithin 𝕜 (g₁ - g₂) s q.1 q.2)
+      (fun q hq ↦ by
+        simp only [Pi.sub_apply]
+        rw [fderivWithin_sub (hs _ hq.1) (hd g₁ hg₁ _ hq.1) (hd g₂ hg₂ _ hq.1)]
+        rfl) hzS]
+  refine (norm_iteratedFDerivWithin_fderivWithin_apply_le hs (hg₁.sub hg₂) hz v).trans_eq ?_
+  congr 1
+  refine Finset.sum_congr rfl fun i hi ↦ ?_
+  have hi : ((i + 1 : ℕ) : WithTop ℕ∞) ≤ j + 1 := by
+    exact_mod_cast Nat.succ_le_succ (Finset.mem_range_succ_iff.mp hi)
+  rw [← Pi.sub_def, iteratedFDerivWithin_sub_apply ((hg₁.of_le hi) _ hz)
+    ((hg₂.of_le hi) _ hz) hs hz]
 
 end SymplecticGeometry
 

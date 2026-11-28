@@ -296,6 +296,30 @@ theorem mem_horizontalDistribution_iff {x : M} {v : TangentSpace IM x} :
       ∀ η ∈ (mfderiv IM IB proj x).ker, τ.bilinFormAt x η v = 0 := by
   rw [horizontalDistribution_def, LinearMap.BilinForm.mem_orthogonal_iff]
 
+/-- Two two-forms that agree on `(η, v)` for every vertical vector `η` and every tangent vector
+`v` have the same horizontal spaces. -/
+theorem horizontalDistribution_eq_of_forall
+    (h : ∀ x, ∀ η ∈ (mfderiv IM IB proj x).ker, ∀ v : TangentSpace IM x,
+      τ₁.bilinFormAt x η v = τ₂.bilinFormAt x η v) :
+    horizontalDistribution IB proj τ₁ = horizontalDistribution IB proj τ₂ :=
+  funext fun x ↦ Submodule.ext fun v ↦ by
+    simp only [mem_horizontalDistribution_iff]
+    exact forall₂_congr fun η hη ↦ by rw [h x η hη v]
+
+/-- `τ` pairs a vertical vector with a horizontal one to zero. -/
+theorem val_eq_zero_of_mem_ker_of_mem_horizontalDistribution {x : M} {e h : TangentSpace IM x}
+    (he : e ∈ (mfderiv IM IB proj x).ker) (hh : h ∈ horizontalDistribution IB proj τ x) :
+    τ.val x ![e, h] = 0 := by
+  rw [← SmoothBundleForm.eval₂_apply, ← SmoothForm.bilinFormAt_apply]
+  exact mem_horizontalDistribution_iff.1 hh e he
+
+/-- `τ` pairs a horizontal vector with a vertical one to zero. -/
+theorem val_eq_zero_of_mem_horizontalDistribution_of_mem_ker {x : M} {h e : TangentSpace IM x}
+    (hh : h ∈ horizontalDistribution IB proj τ x) (he : e ∈ (mfderiv IM IB proj x).ker) :
+    τ.val x ![h, e] = 0 := by
+  rw [← SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_swap, SmoothBundleForm.eval₂_apply,
+    val_eq_zero_of_mem_ker_of_mem_horizontalDistribution he hh, neg_zero]
+
 /-- For a vertically nondegenerate two-form, the horizontal space at every point is a
 complement of the vertical space. -/
 theorem IsVerticallyNondegenerate.isCompl_horizontalDistribution [FiniteDimensional ℝ EM]

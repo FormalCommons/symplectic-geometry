@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Jet
 import SymplecticGeometry.Geometry.Manifold.Morse.ComplexIndex
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Geometry.Manifold.Morse.Generic.Sublevel
 import SymplecticGeometry.Topology.Compactness.Compact
 import TauCeti.Geometry.Manifold.Morse.Generic.Relative
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
@@ -40,6 +41,15 @@ that vanishes near a closed set `C` on which it is already Morse, keeping comple
 (`TauCeti.SmoothAlmostComplexStructure.exists_isMorseOn_isComplexNegativeAt`), and hence with
 Morse index at least half the real dimension at each critical point in `K`
 (`TauCeti.SmoothAlmostComplexStructure.exists_isMorseOn_finrank_div_two_le_manifoldMorseIndex`).
+
+If moreover `f⁻¹[c, ∞)` is compact and all critical values of `f` exceed `c`, the library's
+`ContMDiffMap.exists_isMorse_eqOn_preimage_Iic` gives, in any weak Whitney neighbourhood, a Morse
+function that agrees with `f` on `{f ≤ c}`, has `c` as a regular value, a compact superlevel set
+above `c` and a regular value above it, and all of whose critical points lie in `f⁻¹[c, ∞)`.
+Taking it inside the neighbourhood of
+`TauCeti.SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg` for that compact set
+adds the bound on the Morse index at every critical point
+(`TauCeti.SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic`).
 
 The condition is read in coordinates. In the extended chart at `a`, at a critical point, the
 critical Hessian is the second derivative of the coordinate expression of `f`, composed with
@@ -337,6 +347,32 @@ theorem SmoothAlmostComplexStructure.exists_isMorseOn_finrank_div_two_le_manifol
     J.exists_isMorseOn_isComplexNegativeAt hK hC hfKC hf h𝒰
   exact ⟨g, hg𝒰, hgm, hgc, hgs, fun x hxK hx ↦
     (hgJ x hxK hx).finrank_div_two_le_manifoldMorseIndex⟩
+
+/-- **Morse perturbation fixed on a sublevel set, with Morse index at least half the dimension.**
+Let `J` be a smooth almost complex structure on a Hausdorff boundaryless manifold with a
+finite-dimensional model, `f` a smooth function and `c` a real number such that the superlevel
+set `f⁻¹[c, ∞)` is compact, every critical point of `f` has value above `c`, and
+`Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v` at each critical point.
+Then every neighbourhood of `f` in the weak Whitney topology contains a Morse function `g` which
+agrees with `f` on the sublevel set `f⁻¹(-∞, c]`, such that `g - f` has compact support, whose
+Morse index at each critical point is at least `dim E / 2`, for which `c` is a regular value and
+`g⁻¹[c, ∞)` is compact, and which is bounded above by a regular value `b`. -/
+theorem SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic
+    (J : SmoothAlmostComplexStructure I M) {f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} {c : ℝ}
+    (hc : IsCompact (f ⁻¹' Ici c)) (hcrit : ∀ x ∈ criticalPoints I f, c < f x)
+    (hf : ∀ x ∈ criticalPoints I f, ∀ v : TangentSpace I x, v ≠ 0 →
+      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0)
+    {𝒰 : Set C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (h𝒰 : 𝒰 ∈ 𝓝 f) :
+    ∃ g ∈ 𝒰, IsMorse I g ∧ EqOn g f (f ⁻¹' Iic c) ∧ HasCompactSupport (fun y ↦ g y - f y) ∧
+      (∀ x ∈ criticalPoints I g, Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I g x) ∧
+      IsRegularValue I 𝓘(ℝ) g c ∧ IsCompact (g ⁻¹' Ici c) ∧
+      ∃ b, IsRegularValue I 𝓘(ℝ) g b ∧ ∀ x, g x < b := by
+  -- Every critical point of `g` lies in `f⁻¹[c, ∞)`, where complex negativity is kept.
+  obtain ⟨g, ⟨hg𝒰, hgJ⟩, hgM, hgf, hgc, hgK, hreg, hgcomp, hb⟩ :=
+    f.exists_isMorse_eqOn_preimage_Iic hc hcrit
+      (inter_mem h𝒰 (J.eventually_criticalHessian_add_neg hc fun x _ hx ↦ hf x hx))
+  exact ⟨g, hg𝒰, hgM, hgf, hgc, fun x hx ↦
+    J.finrank_div_two_le_manifoldMorseIndex g x (hgJ x (hgK x hx).le hx), hreg, hgcomp, hb⟩
 
 end TauCeti
 

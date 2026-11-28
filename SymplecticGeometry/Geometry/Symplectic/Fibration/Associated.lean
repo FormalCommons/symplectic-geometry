@@ -85,8 +85,8 @@ do not include. The expression in terms of the curvature (`weinsteinForm_apply`)
 moment map condition and its infinitesimal equivariance, `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`, which
 Tau Ceti derives from equivariance
 (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.momentCocycle_eq_zero`).
-The norm on `𝔤` is the scoped one of
-`SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
+The connection form takes its values in the model space `EG` of `G`, which is `𝔤` by definition,
+and the moment map is paired with it through `momentMapCLM`, with values in `EG →L[ℝ] ℝ`.
 
 The associated form is Tau Ceti's descent `TauCeti.SmoothForm.descendedForm` of Weinstein's form
 along the quotient map, a surjective submersion
@@ -107,7 +107,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
-open scoped Manifold ContDiff GroupLieAlgebra
+open scoped Manifold ContDiff
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
@@ -126,16 +126,17 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 /-! ### The pairing of the moment map with the connection form -/
 
 /-- A map `μ : F → 𝔤*` with smooth components, as a smooth map to the continuous dual
-`𝔤 →L[ℝ] ℝ`: the Lie algebra is finite-dimensional, so every linear form on it is continuous. -/
+`EG →L[ℝ] ℝ` of the model space `EG`, which is `𝔤` by definition: it is finite-dimensional, so
+every linear form on it is continuous. -/
 def momentMapCLM (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) :
-    C^∞⟮IF, F; 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ), GroupLieAlgebra IG G →L[ℝ] ℝ⟯ where
+    C^∞⟮IF, F; 𝓘(ℝ, EG →L[ℝ] ℝ), EG →L[ℝ] ℝ⟯ where
   val v := LinearMap.toContinuousLinearMap (μ v)
   property := contMDiff_toContinuousLinearMap_of_contMDiff_apply hμs
 
 @[simp]
 theorem momentMapCLM_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
-    (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) (v : F) (ξ : GroupLieAlgebra IG G) :
+    (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) (v : F) (ξ : EG) :
     momentMapCLM μ hμs v ξ = μ v ξ :=
   (rfl)
 
@@ -144,21 +145,21 @@ variable [IsManifold IF ∞ F] [LieGroup IG ∞ G] [ContMDiffFiberBundle ∞ G P
 /-- The **pairing** `⟨μ, A⟩` of a map `μ : F → 𝔤*` with smooth components and a `𝔤`-valued
 one-form `A` on the total space of `P`: the real one-form on `P × F` whose value at `(x, v)` on a
 tangent vector `(a, b)` is `μ(v)(A_x a)` (`momentPairing_apply`). It is the paired wedge, along
-the evaluation of `𝔤 →L[ℝ] ℝ` on `𝔤`, of the zero-form `(x, v) ↦ μ(v)` with the pull-back of `A`
+the evaluation of `EG →L[ℝ] ℝ` on `EG`, of the zero-form `(x, v) ↦ μ(v)` with the pull-back of `A`
 along the first projection. -/
 def momentPairing (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) :
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) :
     SmoothForm ((IB.prod IG).prod IF) (ManifoldTotalSpace G P × F) ℝ 1 :=
-  SmoothForm.wedgeWith (ContinuousLinearMap.id ℝ (GroupLieAlgebra IG G →L[ℝ] ℝ))
+  SmoothForm.wedgeWith (ContinuousLinearMap.id ℝ (EG →L[ℝ] ℝ))
     (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.ofFunction (momentMapCLM μ hμs)))
     (SmoothForm.mpullback Prod.fst contMDiff_fst A)
 
 theorem momentPairing_def (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) :
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) :
     momentPairing μ hμs A =
-      SmoothForm.wedgeWith (ContinuousLinearMap.id ℝ (GroupLieAlgebra IG G →L[ℝ] ℝ))
+      SmoothForm.wedgeWith (ContinuousLinearMap.id ℝ (EG →L[ℝ] ℝ))
         (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.ofFunction (momentMapCLM μ hμs)))
         (SmoothForm.mpullback Prod.fst contMDiff_fst A) :=
   (rfl)
@@ -166,7 +167,7 @@ theorem momentPairing_def (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
 /-- The pairing `⟨μ, A⟩` at `(x, v)` on a tangent vector `(a, b)` is `μ(v)(A_x a)`. -/
 theorem momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1)
     (p : ManifoldTotalSpace G P × F) (w : TangentSpace ((IB.prod IG).prod IF) p) :
     (momentPairing μ hμs A).val p ![w] = μ p.2 (A.val p.1 ![w.1]) := by
   rw [momentPairing_def, SmoothForm.wedgeWith_flip, SmoothForm.wedgeWith_apply_zero_right]
@@ -185,7 +186,7 @@ vectors `w₁ = (a₁, b₁)` and `w₂ = (a₂, b₂)` at `(x, v)`:
 `b` of the component `μ_ξ`. -/
 theorem mextDerivₗ_momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1)
     (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p) :
     (mextDerivₗ ((IB.prod IG).prod IF) 1 (momentPairing μ hμs A)).val p ![w₁, w₂] =
       mvfderiv IF (fun v ↦ μ v (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])) p.2
@@ -201,7 +202,7 @@ theorem mextDerivₗ_momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAl
   have h₂ : (fun i ↦ (Manifold.tangentSpaceProdEquiv p (![w₁, w₂] i)).1) =
       ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1] :=
     funext fun i ↦ by fin_cases i <;> rfl
-  have hd : MDifferentiableAt IF 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ) (momentMapCLM μ hμs) p.2 :=
+  have hd : MDifferentiableAt IF 𝓘(ℝ, EG →L[ℝ] ℝ) (momentMapCLM μ hμs) p.2 :=
     (momentMapCLM μ hμs).contMDiff.mdifferentiableAt (by simp)
   rw [momentPairing_def, mextDerivₗ_apply, SmoothForm.coe_wedgeWith,
     SmoothForm.mextDeriv_wedgeWith_zero_one_apply, ← mextDerivₗ_apply, ← mextDerivₗ_apply,
@@ -220,7 +221,7 @@ with smooth components and a `𝔤`-valued one-form `A` on the total space of `P
 for its pull-back along the projection to `F`. -/
 def weinsteinForm (σ : SmoothTwoForm IF F) (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) :
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) :
     SmoothForm ((IB.prod IG).prod IF) (ManifoldTotalSpace G P × F) ℝ 2 :=
   SmoothForm.mpullback Prod.snd contMDiff_snd σ +
     mextDerivₗ ((IB.prod IG).prod IF) 1 (momentPairing μ hμs A)
@@ -228,7 +229,7 @@ def weinsteinForm (σ : SmoothTwoForm IF F) (μ : F → Module.Dual ℝ (GroupLi
 theorem weinsteinForm_def (σ : SmoothTwoForm IF F)
     (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) :
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) :
     weinsteinForm σ μ hμs A =
       SmoothForm.mpullback Prod.snd contMDiff_snd σ +
         mextDerivₗ ((IB.prod IG).prod IF) 1 (momentPairing μ hμs A) :=
@@ -242,38 +243,58 @@ vector field of `ξ` on `F` and `F_A` the curvature of `A`. -/
 theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG IF ∞ G F]
     {σ : SmoothTwoForm IF F} {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)}
     (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v) {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1)
     (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p) :
     (weinsteinForm σ μ hμs A).val p ![w₁, w₂] =
       σ.val p.2 ![(Manifold.tangentSpaceProdEquiv p w₁).2 +
-            fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]) p.2,
+            fundamentalVectorField (I := IG) (G := G) IF
+              (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]) p.2,
           (Manifold.tangentSpaceProdEquiv p w₂).2 +
-            fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2] +
-        μ p.2 ((gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val p.1
+            fundamentalVectorField (I := IG) (G := G) IF
+              (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2] +
+        μ p.2 ((gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val p.1
           ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1]) := by
   -- Infinitesimal equivariance: `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`.
   have hc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero p.2)
     (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
     (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
-  simp only [InfinitesimalAction.fundamental_apply, LinearMap.neg_apply] at hc
+  simp only [LinearMap.neg_apply] at hc
+  rw [InfinitesimalAction.fundamental_apply (I' := IF) (M := F)
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]),
+    InfinitesimalAction.fundamental_apply (I' := IF) (M := F)
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])] at hc
   rw [weinsteinForm_def, SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
     mextDerivₗ_momentPairing_apply,
-    gaugeCurvature_val _ (fun a b ↦ by rw [lieL_apply, lieL_apply, lie_skew]), lieL_apply, map_add,
-    hμ.toIsMomentMap.mvfderiv_apply_of_neg, hμ.toIsMomentMap.mvfderiv_apply_of_neg,
-    InfinitesimalAction.fundamental_apply, InfinitesimalAction.fundamental_apply,
+    gaugeCurvature_val _ (fun a b ↦ GroupLieAlgebra.bracketL_swap b a)]
+  -- `μ p.2` is linear on `𝔤`, not on the model space `EG` where the values of `A` lie: split the
+  -- sum through `momentMapCLM`, which is linear on `EG`.
+  simp only [← momentMapCLM_apply μ hμs]
+  rw [map_add]
+  simp only [momentMapCLM_apply]
+  rw [hμ.toIsMomentMap.mvfderiv_apply_of_neg (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]),
+    hμ.toIsMomentMap.mvfderiv_apply_of_neg (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]),
+    GroupLieAlgebra.bracketL_apply (I := IG) (G := G)
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]),
+    InfinitesimalAction.fundamental_apply (I' := IF) (M := F)
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]),
+    InfinitesimalAction.fundamental_apply (I' := IF) (M := F)
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]),
     ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
     SmoothForm.eval₂_mpullback_snd, SmoothBundleForm.eval₂_add_left,
     SmoothBundleForm.eval₂_add_right, SmoothBundleForm.eval₂_add_right, hc,
-    SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField IF _ p.2)
+    SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField (I := IG) (G := G) IF
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]) p.2)
       (Manifold.tangentSpaceProdEquiv p w₂).2,
-    SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField IF _ p.2)
+    SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField (I := IG) (G := G) IF
+      (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2)
       (Manifold.tangentSpaceProdEquiv p w₁).2]
   ring
 
 /-- **Weinstein's form is closed** when `σ` is. -/
 theorem isClosed_weinsteinForm {σ : SmoothTwoForm IF F} (hσ : σ.IsClosed)
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) :
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) :
     (weinsteinForm σ μ hμs A).IsClosed :=
   (hσ.mpullback Prod.snd contMDiff_snd).add (SmoothForm.isClosed_mextDerivₗ _)
 
@@ -287,9 +308,9 @@ theorem mpullback_smul_momentPairing
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
     (hμG : ∀ (g : G) (v : F) (ξ : GroupLieAlgebra IG G),
       μ (g⁻¹ • v) ξ = μ v (adjointContinuousLinearMap g ξ))
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) A = SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) A)
+      (contMDiff_const_smul (op g)) A = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A)
     (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2))
       (AssociatedBundle.contMDiff_op_smul_inv_smul g) (momentPairing μ hμs A) =
@@ -298,7 +319,7 @@ theorem mpullback_smul_momentPairing
       (AssociatedBundle.contMDiff_op_smul_inv_smul (IB := IB) (IG := IG) (IF := IF) g)
       (SmoothForm.mpullback Prod.fst contMDiff_fst A) =
       SmoothForm.mpullback Prod.fst contMDiff_fst
-        (SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) A) := by
+        (SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A) := by
     rw [← hA g]
     exact SmoothForm.mpullback_mpullback_of_comp_eq _ _ _ _ (by rfl) A
   have h2 : SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2))
@@ -313,7 +334,7 @@ theorem mpullback_smul_momentPairing
   rw [momentPairing_def]
   -- The pull-back of the wedge is stated in degree `0 + 1`, which is `1` only by unfolding.
   refine (SmoothForm.mpullback_wedgeWith (k := 0) (l := 1)
-    (ContinuousLinearMap.id ℝ (GroupLieAlgebra IG G →L[ℝ] ℝ)) _
+    (ContinuousLinearMap.id ℝ (EG →L[ℝ] ℝ)) _
     (AssociatedBundle.contMDiff_op_smul_inv_smul (IB := IB) (IG := IG) (IF := IF) (P := P)
       (F := F) g) _ _).trans ?_
   rw [h1, h2]
@@ -323,7 +344,10 @@ theorem mpullback_smul_momentPairing
   simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
     ContinuousLinearMap.id_apply, SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction,
     RoughForm.ofFunction_apply, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-    momentMapCLM_apply, hμG, adjointContinuousLinearMap_adjointContinuousLinearMap_inv]
+    momentMapCLM_apply]
+  -- The factor `Ad(g)` on `μ` cancels the factor `Ad(g⁻¹)` on `A`.
+  refine (hμG g p.2 _).trans ?_
+  rw [← GroupLieAlgebra.adjointL_apply, GroupLieAlgebra.adjointL_adjointL_inv]
 
 /-- **Weinstein's form is invariant** under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` of `G`
 on `P × F`, for a connection form `A`, a two-form `σ` invariant under `G` and an equivariant moment
@@ -333,7 +357,7 @@ theorem mpullback_smul_weinsteinForm [CompleteSpace EF] {σ : SmoothTwoForm IF F
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
     {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2))
       (AssociatedBundle.contMDiff_op_smul_inv_smul g) (weinsteinForm σ μ hμs A) =
@@ -361,7 +385,7 @@ diagonal action. This is the second hypothesis of the descent theorem
 theorem weinsteinForm_apply_eq_zero_of_fundamental [CompleteSpace EF] {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) (p : ManifoldTotalSpace G P × F)
     (w : Fin 2 → TangentSpace ((IB.prod IG).prod IF) p) (j : Fin 2) (ξ : GroupLieAlgebra IG G)
     (hw : w j =
@@ -377,7 +401,8 @@ theorem weinsteinForm_apply_eq_zero_of_fundamental [CompleteSpace EF] {σ : Smoo
       rw [Manifold.tangentSpaceProdEquiv_apply]
       exact h
     rw [weinsteinForm_apply hμ, h', hA.apply_rightFundamentalVectorField, neg_add_cancel,
-      hA.gaugeCurvature_apply_rightFundamentalVectorField, map_zero, add_zero]
+      hA.gaugeCurvature_apply_rightFundamentalVectorField, ← momentMapCLM_apply μ hμs, map_zero,
+      add_zero]
     exact (σ.val p.2).map_coord_zero 0 rfl
   have hw01 : w = ![w 0, w 1] := (FinVec.etaExpand_eq _).symm
   obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
@@ -400,7 +425,7 @@ def associatedForm (σ : SmoothTwoForm IF F) {μ : F → Module.Dual ℝ (GroupL
     (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) :
     SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) ℝ 2 :=
   SmoothForm.descendedForm (AssociatedBundle.isSubmersion_chartedMk ENat.LEInfty.out)
@@ -413,7 +438,7 @@ theorem associatedForm_def (σ : SmoothTwoForm IF F)
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) :
     associatedForm σ hμ hσG hA =
       SmoothForm.descendedForm (AssociatedBundle.isSubmersion_chartedMk ENat.LEInfty.out)
@@ -430,7 +455,7 @@ theorem mpullback_chartedMk_associatedForm {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) :
     SmoothForm.mpullback (AssociatedBundle.chartedMk G F P)
       (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF) (associatedForm σ hμ hσG hA) =
@@ -443,7 +468,7 @@ theorem eq_associatedForm_iff {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A)
     {τ : SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) ℝ 2} :
     τ = associatedForm σ hμ hσG hA ↔
@@ -458,7 +483,7 @@ theorem isClosed_associatedForm {σ : SmoothTwoForm IF F} (hσ : σ.IsClosed)
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) :
     (associatedForm σ hμ hσG hA).IsClosed :=
   SmoothForm.isClosed_descendedForm_iff.2 (isClosed_weinsteinForm hσ A)
@@ -470,7 +495,7 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P) :
     SmoothForm.mpullback (fun v : F ↦ AssociatedBundle.chartedMk G F P (x, v))
       (AssociatedBundle.contMDiff_chartedMk_right ∞ IB IG IF x) (associatedForm σ hμ hσG hA) =
@@ -485,9 +510,14 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
   rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair, weinsteinForm_apply hμ,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right, (A.val x).map_coord_zero 0 rfl,
-    ((gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val x).map_coord_zero
-      0 rfl,
+    ((gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val x).map_coord_zero
+      0 rfl]
+  -- The zero of the model space `EG` is the zero of the Lie algebra.
+  rw [show fundamentalVectorField (I := IG) (G := G) IF (0 : EG) = 0 from
     fundamentalVectorField_zero]
+  -- `μ v` vanishes at the zero of `𝔤`; the zero here is that of `EG`, on which `momentMapCLM` is
+  -- linear.
+  rw [← momentMapCLM_apply μ hμ.toIsMomentMap.contMDiff_of_neg, map_zero]
   simp
 
 /-- **Weinstein's construction.** Let `P` be a smooth principal `G`-bundle with a connection form
@@ -505,7 +535,7 @@ theorem exists_isClosed_mpullback_eq_weinsteinForm {σ : SmoothTwoForm IF F} (h�
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
     {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) :
     ∃ τ : SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) ℝ 2,
       τ.IsClosed ∧
@@ -517,12 +547,14 @@ theorem exists_isClosed_mpullback_eq_weinsteinForm {σ : SmoothTwoForm IF F} (h�
       ∀ (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p),
         (weinsteinForm σ μ hμs A).val p ![w₁, w₂] =
           σ.val p.2 ![(Manifold.tangentSpaceProdEquiv p w₁).2 +
-                fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
+                fundamentalVectorField (I := IG) (G := G) IF
+                  (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
                   p.2,
               (Manifold.tangentSpaceProdEquiv p w₂).2 +
-                fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
+                fundamentalVectorField (I := IG) (G := G) IF
+                  (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
                   p.2] +
-            μ p.2 ((gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val p.1
+            μ p.2 ((gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val p.1
               ![(Manifold.tangentSpaceProdEquiv p w₁).1,
                 (Manifold.tangentSpaceProdEquiv p w₂).1]) :=
   ⟨associatedForm σ hμ hσG hA, isClosed_associatedForm hσ hμ hσG hA,

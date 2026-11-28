@@ -137,17 +137,19 @@ omit [I.Boundaryless] [CompactSpace G] [T2Space G] [ConnectedSpace G] [CompactSp
 /-- At a semistable point `p`, the infimum of `‖μ‖²` over the orbit of `p` is `0`, for a
 nonnegative form `B` and a continuous `‖μ‖²`. -/
 theorem IsSemistable.iInf_momentNormSq_smul_eq_zero {hB : B.Nondegenerate} {p : M}
-    (hp : IsSemistable C μ p) (hpos : B.IsNonneg) (hf : Continuous (momentNormSq B hB μ)) :
-    ⨅ a : Gc, momentNormSq B hB μ (a • p) = 0 := by
-  have hbdd : BddBelow (range fun a : Gc ↦ momentNormSq B hB μ (a • p)) :=
+    (hp : IsSemistable C μ p) (hpos : B.IsNonneg)
+    (hf : Continuous (momentNormSq μ (B.toDual hB).symm)) :
+    ⨅ a : Gc, momentNormSq μ (B.toDual hB).symm (a • p) = 0 := by
+  have hbdd : BddBelow (range fun a : Gc ↦ momentNormSq μ (B.toDual hB).symm (a • p)) :=
     bddBelow_range_momentNormSq_comp hpos (· • p)
   obtain ⟨y, hy, hy0⟩ := isSemistable_iff.1 hp
   have hsub : closure (MulAction.orbit Gc p) ⊆
-      {z | ⨅ a : Gc, momentNormSq B hB μ (a • p) ≤ momentNormSq B hB μ z} :=
+      {z | ⨅ a : Gc, momentNormSq μ (B.toDual hB).symm (a • p) ≤
+        momentNormSq μ (B.toDual hB).symm z} :=
     closure_minimal (by rintro _ ⟨a, rfl⟩; exact ciInf_le hbdd a)
       (isClosed_le continuous_const hf)
   refine le_antisymm ?_ (le_ciInf fun _ ↦ momentNormSq_nonneg hpos)
-  simpa [momentNormSq_def, hy0] using hsub hy
+  simpa [momentNormSq_apply, hy0] using hsub hy
 
 variable {hB : B.Nondegenerate}
 
@@ -162,20 +164,22 @@ theorem moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClos
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) (hBp : B.toQuadraticMap.PosDef)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p x : M}
-    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x))
     {g : ℝ → Gc}
-    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p)
+    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p t =
+      (g t)⁻¹ • p)
     (hgd : ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
-      (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t)
+      (-2 * momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) t)
     (hL : BddBelow ((fun t ↦ kempfNessFunction C μ p (g t)) '' Ici 0)) : μ x = 0 := by
   have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hI := (tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p).1
   rw [momentNormSq_neg'] at hI
-  set c := momentNormSq B hB μ x
+  set c := momentNormSq μ (B.toDual hB).symm x
   -- `‖μ‖²` is at least `c` along the flow.
-  have hle (t : ℝ) (ht : 0 ≤ t) : c ≤ momentNormSq B hB μ ((g t)⁻¹ • p) := by
+  have hle (t : ℝ) (ht : 0 ≤ t) : c ≤ momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p) := by
     rw [← hgx]
     exact le_comp_maximalIntegralCurve_neg_mgradient hf hI hx.mapClusterPt ht
   -- `Φ_p ∘ g` is bounded below on `[0, ∞)` and its derivative there is at most `-2 c`.
@@ -198,15 +202,17 @@ theorem mem_lowerBounds_range_kempfNessFunction (h : IsComplexifiedAction C J)
     (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
     (hpos : B.IsNonneg)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p x : M}
-    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x))
     (hx0 : μ x = 0) {g : ℝ → Gc}
     (hg : HasLeftTrivializedDerivOn g
       (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))) univ)
-    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p)
+    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p t =
+      (g t)⁻¹ • p)
     {L : ℝ} (hL : L ∈ lowerBounds ((fun t ↦ kempfNessFunction C μ p (g t)) '' Ici 0)) :
     L ∈ lowerBounds (range (kempfNessFunction C μ p)) := by
   rintro _ ⟨a, rfl⟩
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hI := (tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p).1
   rw [momentNormSq_neg'] at hI
@@ -232,7 +238,8 @@ theorem mem_lowerBounds_range_kempfNessFunction (h : IsComplexifiedAction C J)
   have hN : Antitone N := antitoneOn_univ.1
     (antitoneOn_polar_symm_fst_inv_mul h hμ hgm hBs hBG hg hg₁ convex_univ)
   have hlow (t : ℝ) (ht : 0 ≤ t) :
-      L - √(momentNormSq B hB μ ((g t)⁻¹ • p)) * √(N 0) ≤ kempfNessFunction C μ p a := by
+      L - √(momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) * √(N 0) ≤
+        kempfNessFunction C μ p a := by
     have hdec : g₁ t = g t * C.expI (C.polar.symm ((g t)⁻¹ * g₁ t)).1 *
         C.toHom (C.polar.symm ((g t)⁻¹ * g₁ t)).2 := by
       rw [mul_assoc, C.expI_mul_toHom_polar_symm, mul_inv_cancel_left]
@@ -241,16 +248,17 @@ theorem mem_lowerBounds_range_kempfNessFunction (h : IsComplexifiedAction C J)
     rw [← hdec] at hcv
     have hLt := hL ⟨t, ht, rfl⟩
     have hsq : √(N t) ≤ √(N 0) := Real.sqrt_le_sqrt (hN ht)
-    have := mul_le_mul_of_nonneg_left hsq (Real.sqrt_nonneg (momentNormSq B hB μ ((g t)⁻¹ • p)))
+    have := mul_le_mul_of_nonneg_left hsq
+      (Real.sqrt_nonneg (momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)))
     linarith [hup t ht]
   -- As `t → ∞`, `‖μ ((g t)⁻¹ • p)‖²` tends to `‖μ x‖² = 0`.
-  have hfx : Tendsto (fun t ↦ momentNormSq B hB μ ((g t)⁻¹ • p)) atTop
-      (𝓝 (momentNormSq B hB μ x)) := by
+  have hfx : Tendsto (fun t ↦ momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) atTop
+      (𝓝 (momentNormSq μ (B.toDual hB).symm x)) := by
     simpa only [hgx] using tendsto_comp_maximalIntegralCurve_neg_mgradient hf hI hx.mapClusterPt
-  have hx0' : momentNormSq B hB μ x = 0 := by simp [momentNormSq_def, hx0]
+  have hx0' : momentNormSq μ (B.toDual hB).symm x = 0 := by simp [momentNormSq_apply, hx0]
   rw [hx0'] at hfx
-  have hlim : Tendsto (fun t ↦ L - √(momentNormSq B hB μ ((g t)⁻¹ • p)) * √(N 0)) atTop
-      (𝓝 L) := by
+  have hlim : Tendsto (fun t ↦ L - √(momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) * √(N 0))
+      atTop (𝓝 L) := by
     have := ((Real.continuous_sqrt.tendsto 0).comp hfx).mul_const (√(N 0))
     simpa using this.const_sub L
   exact le_of_tendsto hlim ((eventually_ge_atTop 0).mono hlow)

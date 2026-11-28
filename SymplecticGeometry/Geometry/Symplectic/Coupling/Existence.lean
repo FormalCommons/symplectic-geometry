@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -179,7 +179,7 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
       ((2 * Real.pi)⁻¹ * ((t : ℝ) - a)) • α +
         SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t) := by
-  refine SmoothBundleForm.ext_fin_one fun p v ↦ ?_
+  refine SmoothBundleForm.ext_eval₁ fun p v ↦ ?_
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
   simp only [mfderiv_prodMk_left_apply, SmoothBundleForm.add_apply,
     SmoothBundleForm.smul_apply, SmoothForm.coe_mpullback, ContinuousAlternatingMap.add_apply,

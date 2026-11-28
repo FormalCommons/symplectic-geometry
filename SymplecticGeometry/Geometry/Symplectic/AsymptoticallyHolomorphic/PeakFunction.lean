@@ -10,12 +10,14 @@ public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelDbar
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
-import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import TauCeti.Analysis.InnerProductSpace.SquaredDistance
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -56,8 +58,12 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   closed ball of radius `2 * k ^ (1 / 6)`, and so, for every `ε > 0` and large `k`, in the ball
   of radius `ε * √k` (`SymplecticGeometry.eventually_tsupport_peakFunction_subset_ball`,
   `SymplecticGeometry.eventually_tsupport_peakFunction_mul_subset_ball`).
+* `SymplecticGeometry.contDiff_gaussian`,
+  `SymplecticGeometry.contDiff_ofReal_exp_norm_sq_div_four`:
+  the Gaussian `exp (-‖z‖ ^ 2 / 4)` and its inverse `exp (‖z‖ ^ 2 / 4)` are smooth.
 * `SymplecticGeometry.peakFunction_eqOn_ball`: on the ball of radius `k ^ (1 / 6)` the cut-off
-  Gaussian is the Gaussian `exp (-‖z‖ ^ 2 / 4)`.
+  Gaussian is the Gaussian `exp (-‖z‖ ^ 2 / 4)`; so near a point of that ball, `f / peakFunction k`
+  is `f * exp (‖z‖ ^ 2 / 4)` (`SymplecticGeometry.div_peakFunction_eventuallyEq`).
 * `SymplecticGeometry.exp_neg_one_div_four_le_norm_peakFunction`: its lower bound `exp (-1 / 4)`
   on the closed unit ball, for `k ≥ 1`.
 * `SymplecticGeometry.exists_jetNormAt_peakCutoff_norm_div_le`: the jet norms of the cut-offs
@@ -76,6 +82,16 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.modelDbar_smul`: the model `∂̄` is additive and commutes with complex
   scalars; `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a complex
   coordinate vanishes.
+* `SymplecticGeometry.conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`,
+  `SymplecticGeometry.wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`: read through the
+  real isometry `e = TauCeti.complexToRealEuclideanIsometry ι : ℂⁿ → StdSpace ι`, which carries
+  multiplication by `i` to `J₀`, the flat `∂̄` of `f` and the complex-linear part of `df` for `J₀`
+  are Tau Ceti's Wirtinger derivatives `TauCeti.conjWirtingerDeriv` and `TauCeti.wirtingerDeriv`
+  of `f ∘ e`. Their norms agree
+  (`SymplecticGeometry.norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry`,
+  `SymplecticGeometry.norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry`), and so do those
+  of the derivatives of the two `∂̄` in a fixed direction
+  (`SymplecticGeometry.norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`).
 * `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
   for the model `∂̄`, and its form for a product with a complex coordinate.
 * `SymplecticGeometry.modelDbar_gaussian`, `SymplecticGeometry.modelDbar_coord_mul_gaussian`: the
@@ -120,7 +136,7 @@ gives the factor `k ^ (-1 / 2)` at the cost of the power `(1 + ‖z‖) ^ 3`.
 public section
 
 open Metric TauCeti
-open scoped Manifold
+open scoped Manifold Topology
 
 namespace SymplecticGeometry
 
@@ -227,9 +243,14 @@ theorem peakFunction_eq_ofRealCLM_comp (k : ℕ) :
   rw [peakFunction_def, Function.comp_apply, Complex.ofRealCLM_apply, smul_eq_mul]
 
 /-- The Gaussian `exp (-‖z‖ ^ 2 / 4)` of the cut-off Gaussians is smooth. -/
-private theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
+theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
     ContDiff ℝ n fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4) :=
   Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).neg.div_const 4)
+
+/-- The inverse Gaussian `exp (‖z‖ ^ 2 / 4)`, as a complex function, is smooth. -/
+theorem contDiff_ofReal_exp_norm_sq_div_four [InnerProductSpace ℝ E] {n : ℕ∞} :
+    ContDiff ℝ n fun z : E ↦ (Real.exp (‖z‖ ^ 2 / 4) : ℂ) :=
+  Complex.ofRealCLM.contDiff.comp (Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).div_const 4))
 
 /-- The jet norms of the Gaussian `exp (-‖z‖ ^ 2 / 4)` are at most a constant times
 `exp (-‖z‖ ^ 2 / 8)`: `exists_jetNormAt_exp_neg_mul_norm_sq_le` for `a = 1 / 4`. -/
@@ -260,6 +281,15 @@ theorem peakFunction_eqOn_ball (k : ℕ) :
   rw [mem_ball_zero_iff] at hz
   have hs : 0 < (k : ℝ) ^ (1 / 6 : ℝ) := (norm_nonneg z).trans_lt hz
   rw [peakFunction_def, peakCutoff_of_le_one ((div_le_one hs).2 hz.le), one_mul]
+
+/-- Near a point of the ball of radius `k ^ (1 / 6)`, where the cut-off Gaussian is the Gaussian,
+the quotient of `f` by `peakFunction k` is `f * exp (‖·‖ ^ 2 / 4)`. -/
+theorem div_peakFunction_eventuallyEq (k : ℕ) (f : E → ℂ) {z : E}
+    (hz : ‖z‖ < (k : ℝ) ^ (1 / 6 : ℝ)) :
+    (fun y ↦ f y / peakFunction k y) =ᶠ[𝓝 z] fun y ↦ f y * Real.exp (‖y‖ ^ 2 / 4) := by
+  filter_upwards [isOpen_ball.mem_nhds (mem_ball_zero_iff.2 hz)] with y hy
+  rw [peakFunction_eqOn_ball k hy, div_eq_mul_inv, ← Complex.ofReal_inv, ← Real.exp_neg, neg_div,
+    neg_neg]
 
 /-- For `k ≥ 1`, the cut-off Gaussian has modulus at least `exp (-1 / 4)` on the closed unit
 ball. -/
@@ -496,6 +526,94 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
     (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero
       (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
   simp
+
+/-! ### The flat operators against the Wirtinger derivatives
+
+Read through the real isometry `e = complexToRealEuclideanIsometry ι` from `ℂⁿ` to
+`StdSpace ι`, which carries multiplication by `i` to `J₀`, a function `f` on `StdSpace ι` becomes
+the function `f ∘ e` on `EuclideanSpace ℂ ι`, and its flat `∂̄` and complex-linear part for `J₀`
+become Tau Ceti's Wirtinger derivatives of `f ∘ e`, with the same norms. -/
+
+section Wirtinger
+
+/-- **The flat `∂̄` is the conjugate Wirtinger derivative**: for the isometry
+`e = complexToRealEuclideanIsometry ι`, the conjugate Wirtinger derivative of `f ∘ e` at `u`,
+applied to `v`, is the flat `∂̄` of `f` at `e u`, applied to `e v`. -/
+theorem conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply (f : StdSpace ι → ℂ)
+    (u v : EuclideanSpace ℂ ι) :
+    conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u v =
+      flatDbar f (complexToRealEuclideanIsometry ι u) (complexToRealEuclideanIsometry ι v) := by
+  rw [conjWirtingerDeriv_apply, flatDbar_apply, LinearIsometryEquiv.comp_right_fderiv,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
+    stdComplexStructure_complexToRealEuclideanIsometry]
+  simp [Complex.real_smul, mul_add]
+
+/-- For the isometry `e = complexToRealEuclideanIsometry ι`, the conjugate Wirtinger derivative
+of `f ∘ e` at `u` has the norm of the flat `∂̄` of `f` at `e u`. -/
+theorem norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → ℂ)
+    (u : EuclideanSpace ℂ ι) :
+    ‖conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u‖ =
+      ‖flatDbar f (complexToRealEuclideanIsometry ι u)‖ := by
+  have h : ContinuousLinearMap.restrictScalarsₛₗLI
+      (conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u) =
+      flatDbar f (complexToRealEuclideanIsometry ι u) ∘L
+        ((complexToRealEuclideanIsometry ι).toContinuousLinearEquiv :
+          EuclideanSpace ℂ ι →L[ℝ] StdSpace ι) := by
+    ext v
+    simp [ContinuousLinearMap.restrictScalarsₛₗLI_apply,
+      conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+  rw [← ContinuousLinearMap.restrictScalarsₛₗLI.norm_map, h]
+  exact (flatDbar f _).opNorm_comp_linearIsometryEquiv _
+
+/-- For the isometry `e = complexToRealEuclideanIsometry ι` and a direction `b`, the derivative
+at `u` of `y ↦ ∂̄(f ∘ e)(y) b`, the conjugate Wirtinger derivative, has the norm of the
+derivative at `e u` of `z ↦ flatDbar f z (e b)`. -/
+theorem norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply
+    (f : StdSpace ι → ℂ) (u b : EuclideanSpace ℂ ι) :
+    ‖fderiv ℝ (fun y ↦ conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) y b) u‖ =
+      ‖fderiv ℝ (fun z ↦ flatDbar f z (complexToRealEuclideanIsometry ι b))
+        (complexToRealEuclideanIsometry ι u)‖ := by
+  simp_rw [conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+  simpa only [norm_iteratedFDeriv_one, Function.comp_def] using
+    (complexToRealEuclideanIsometry ι).norm_iteratedFDeriv_comp_right
+      (fun z ↦ flatDbar f z (complexToRealEuclideanIsometry ι b)) u 1
+
+/-- **The complex-linear part for `J₀` is the Wirtinger derivative**: for the isometry
+`e = complexToRealEuclideanIsometry ι`, the Wirtinger derivative of `f ∘ e` at `u`, applied to
+`v`, is the complex-linear part `TauCeti.complexLinearPart`, for `J₀` and multiplication by `i`,
+of `df` at `e u`, applied to `e v`. -/
+theorem wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply (f : StdSpace ι → ℂ)
+    (u v : EuclideanSpace ℂ ι) :
+    wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u v =
+      complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ)
+        (complexToRealEuclideanIsometry ι v) := by
+  rw [wirtingerDeriv_apply, complexLinearPart_apply, LinearIsometryEquiv.comp_right_fderiv,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
+  simp [AlmostComplexStructure.ofComplexModule_apply, Complex.real_smul]
+
+/-- For the isometry `e = complexToRealEuclideanIsometry ι`, the Wirtinger derivative of `f ∘ e`
+at `u` has the norm of the complex-linear part, for `J₀` and multiplication by `i`, of `df` at
+`e u`. -/
+theorem norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → ℂ)
+    (u : EuclideanSpace ℂ ι) :
+    ‖wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u‖ =
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ))‖ := by
+  have h : (wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u).restrictScalars ℝ =
+      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ)) ∘L
+        ((complexToRealEuclideanIsometry ι).toContinuousLinearEquiv :
+          EuclideanSpace ℂ ι →L[ℝ] StdSpace ι) := by
+    ext v
+    simp [wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+  rw [← (wirtingerDeriv _ u).norm_restrictScalars (𝕜' := ℝ), h]
+  exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ _
+
+end Wirtinger
 
 /-- The **model `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: the model `∂̄`
 `SymplecticGeometry.modelDbarWith` for the constant structure `J₀ = stdComplexStructure ι`, that

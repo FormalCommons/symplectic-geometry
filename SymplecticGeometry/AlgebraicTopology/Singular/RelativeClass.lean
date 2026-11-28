@@ -21,6 +21,8 @@ pair of `P`, its faces lifted to singular simplices of `A` (`TopPair.liftSimplex
 
 * `TopPair.relClass`: the class of a singular simplex whose faces lie in the subspace.
 * `TopPair.relClass_eq`: the class is `SSetPair.relClass` for any lifts of the faces.
+* `TopPair.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app`: lifts of the faces to the subspace
+  give the face condition, and `TopPair.relClass_eq_of_eq_toSSet_map_app` is the class for them.
 * `TopPair.relClass_singularHomologyMap`: naturality in maps of pairs.
 * `TopPair.relClass_localHomologyRestriction`: compatibility with the restriction
   `Hₙ₊₁(M, M ∖ T) ⟶ Hₙ₊₁(M, M ∖ S)` for `S ⊆ T`.
@@ -71,6 +73,15 @@ lemma liftSimplex_eq_iff {m : ℕ} (x : (TopCat.toSSet.obj P.fst) _⦋m⦌)
     (mono_iff_injective _).1 inferInstance
   rw [← hinj.eq_iff, toSSet_map_app_liftSimplex, eq_comm]
 
+/-- If the faces of a singular `(n + 1)`-simplex `σ` of the ambient space are the images of
+singular simplices `t i` of the subspace, then each face of `σ` has its image in the subspace. -/
+lemma range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app {n : ℕ}
+    (σ : (TopCat.toSSet.obj P.fst) _⦋n + 1⦌) (t : Fin (n + 2) → (TopCat.toSSet.obj P.snd) _⦋n⦌)
+    (ht : ∀ i, (TopCat.toSSet.obj P.fst).δ i σ = (TopCat.toSSet.map P.map).app _ (t i))
+    (i : Fin (n + 2)) :
+    Set.range (P.fst.toSSetObjEquiv _ ((TopCat.toSSet.obj P.fst).δ i σ)) ⊆ Set.range P.map :=
+  (P.isEmbedding_map.isInducing.mem_range_toSSet_map_app_iff _ _).1 ⟨t i, (ht i).symm⟩
+
 variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
   [CategoryWithHomology C] (R : C) {n : ℕ} (σ : (TopCat.toSSet.obj P.fst) _⦋n + 1⦌)
   (hσ : ∀ i, Set.range (P.fst.toSSetObjEquiv _ ((TopCat.toSSet.obj P.fst).δ i σ)) ⊆
@@ -98,6 +109,15 @@ lemma relClass_eq (t : Fin (n + 2) → (TopCat.toSSet.obj P.snd) _⦋n⦌)
     funext fun i ↦ (P.liftSimplex_eq_iff _ (hσ i) (t i)).2 (ht i).symm
   rw [relClass_def]
 
+/-- The class of a singular simplex `σ` whose faces are the images of singular simplices `t i` of
+the subspace is `SSetPair.relClass` for these `t i`; the face condition that `relClass` asks for
+is `range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app`. -/
+lemma relClass_eq_of_eq_toSSet_map_app (t : Fin (n + 2) → (TopCat.toSSet.obj P.snd) _⦋n⦌)
+    (ht : ∀ i, (TopCat.toSSet.obj P.fst).δ i σ = (TopCat.toSSet.map P.map).app _ (t i)) :
+    P.relClass R σ (P.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app σ t ht) =
+      SSetPair.relClass (Q := toSSetPair.obj P) R σ t ht :=
+  P.relClass_eq R σ _ t ht
+
 variable {P}
 
 include hσ in
@@ -108,10 +128,10 @@ lemma range_toSSetObjEquiv_δ_toSSet_map_app_subset {P' : TopPair.{w}} (f : P �
     Set.range (P'.fst.toSSetObjEquiv _
         ((TopCat.toSSet.obj P'.fst).δ i ((TopCat.toSSet.map (Hom.fst f)).app _ σ))) ⊆
       Set.range P'.map := by
-  refine (P'.isEmbedding_map.isInducing.mem_range_toSSet_map_app_iff _ _).1
-    ⟨(TopCat.toSSet.map (Hom.snd f)).app _ (P.liftSimplex _ (hσ i)), ?_⟩
-  exact (SSetPair.δ_app_right_eq_hom_app (Q := toSSetPair.obj P) (toSSetPair.map f) σ i _
-    (P.toSSet_map_app_liftSimplex _ (hσ i)).symm).symm
+  exact P'.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app _
+    (fun j ↦ (TopCat.toSSet.map (Hom.snd f)).app _ (P.liftSimplex _ (hσ j)))
+    (fun j ↦ SSetPair.δ_app_right_eq_hom_app (Q := toSSetPair.obj P) (toSSetPair.map f) σ j _
+      (P.toSSet_map_app_liftSimplex _ (hσ j)).symm) i
 
 /-- **Naturality of the class of a singular simplex** in maps of pairs. -/
 @[reassoc (attr := simp)]

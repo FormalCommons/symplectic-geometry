@@ -64,6 +64,13 @@ structure `J.restrictOpen`
 (`SymplecticGeometry.IsUniformlyTransverse.isComplexNegativeAt_logNormSq`),
 by `TauCeti.SmoothAlmostComplexStructure.IsComplexNegativeAt.comp_subtypeVal`.
 
+On a Hausdorff manifold, given `ε > 0` such that no point with `0 < ‖s k x‖² ≤ ε` is critical,
+this function can then be made Morse without changing it on `{‖s k‖² ≤ ε}` and without losing the
+index bound, by a compactly supported change; `log ε` stays a regular value, the bands above it
+are compact, and the perturbed function lies below one of its regular values
+(`SymplecticGeometry.IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq`, from
+`TauCeti.SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic`).
+
 These are the first steps of the Morse theory of `log |s_k|²` away from the zero set.
 
 ## References
@@ -160,9 +167,13 @@ private theorem criticalHessian_add_criticalHessian_eq [I.Boundaryless]
     rw [(D.chart k x).criticalHessian_apply_eq_fderiv_fderiv (by simp) hsrc hg hcrit, hfg, hx0]
   have hJv : stdComplexStructure ι (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) =
       mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) := by
-    refine (D.chartPushforward_zero hk x _).symm.trans (Eq.trans (α := StdSpace ι) ?_
-      (J.mfderiv_apply_eq_chartPushforward_apply (D.chart k x) hsrc v).symm)
-    rw [hx0]
+    have h : J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x x)
+        (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) =
+          mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) := by
+      rw [J.chartPushforward_toOpenPartialHomeomorph]
+      exact (D.chart k x).pushforwardEndomorphism_mfderiv_apply J hsrc v
+    rw [hx0] at h
+    exact (D.chartPushforward_zero hk x _).symm.trans h
   rw [hH, hH, hJv]
 
 omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
@@ -299,6 +310,65 @@ theorem IsUniformlyTransverse.isComplexNegativeAt_logNormSq [I.Boundaryless]
     (hsm k)).contMDiffAt.log (pow_ne_zero 2 (norm_ne_zero_iff.2 hs0))
   exact (hk x ((hsm k).mdifferentiableAt (by simp)) hs0 hcrit).comp_subtypeVal
     (hf.of_le (by simp)) hcrit
+
+/-- **A Morse perturbation of `log |s_k|²` on `{s_k ≠ 0}` with index at least half the
+dimension.** In the setting of
+`SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a Hausdorff
+boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large and every
+`ε > 0` such that `y ↦ log ‖s k y‖²` has no critical point `x` with `0 < ‖s k x‖² ≤ ε`, there is a
+Morse function `g` on `U = nonzeroOpens (hsm k)` which agrees with `f = logNormSq (hsm k)` where
+`‖s k‖² ≤ ε`, such that `g - f` has compact support, whose Morse index at each critical point is
+at least `dim M / 2`, for which `log ε` is a regular value, such that each band
+`g⁻¹[log ε, b]` is compact, and which has a regular value `b` with `{g ≤ b}` all of `U`. -/
+theorem IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq [I.Boundaryless] [T2Space M]
+    (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s)
+    (hsm : ∀ k : ℕ, ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y))) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ ε : ℝ, 0 < ε →
+      (∀ x : M, 0 < ‖s k x‖ ^ 2 → ‖s k x‖ ^ 2 ≤ ε →
+        x ∉ criticalPoints I (fun y ↦ Real.log (‖s k y‖ ^ 2))) →
+      ∃ g : C^∞⟮I, nonzeroOpens (hsm k); 𝓘(ℝ), ℝ⟯, IsMorse I g ∧
+        (∀ x : nonzeroOpens (hsm k), ‖s k x‖ ^ 2 ≤ ε → g x = logNormSq (hsm k) x) ∧
+        HasCompactSupport (fun x ↦ g x - logNormSq (hsm k) x) ∧
+        (∀ x ∈ criticalPoints I g, Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I g x) ∧
+        IsRegularValue I 𝓘(ℝ) g (Real.log ε) ∧
+        (∀ b, IsCompact (g ⁻¹' Set.Icc (Real.log ε) b)) ∧
+        ∃ b, IsRegularValue I 𝓘(ℝ) g b ∧ {x | g x ≤ b} = Set.univ := by
+  filter_upwards [ht.criticalHessian_logNormSq_add_neg D hJ hα hρ₀ hη hs hsm]
+    with k hk ε hε hcrit
+  have hpos (x : nonzeroOpens (hsm k)) : 0 < ‖s k x‖ ^ 2 :=
+    pow_pos (norm_pos_iff.2 (mem_nonzeroOpens.1 x.property)) 2
+  have hle (x : nonzeroOpens (hsm k)) :
+      Real.log ε ≤ logNormSq (hsm k) x ↔ ε ≤ ‖s k x‖ ^ 2 := by
+    rw [logNormSq_apply, Real.log_le_log_iff hε (hpos x)]
+  -- The superlevel set `{log ε ≤ f}` is `{ε ≤ ‖s k‖²}`, a compact subset of `M` inside `U`.
+  have hS : IsCompact {y : M | ε ≤ ‖s k y‖ ^ 2} :=
+    (isClosed_le continuous_const ((contMDiff_norm_sq_bundle I ∞ (PowerModel k)
+      (PowerBundle P k)).comp (hsm k)).continuous).isCompact
+  have hSU : {y : M | ε ≤ ‖s k y‖ ^ 2} ⊆ nonzeroOpens (hsm k) := fun y hy ↦
+    mem_nonzeroOpens.2 fun h ↦ by simp [h] at hy; linarith
+  have hK : IsCompact (logNormSq (hsm k) ⁻¹' Set.Ici (Real.log ε)) := by
+    have he : logNormSq (hsm k) ⁻¹' Set.Ici (Real.log ε) =
+        Subtype.val ⁻¹' {y : M | ε ≤ ‖s k y‖ ^ 2} := Set.ext fun x ↦ hle x
+    rw [he, Subtype.isCompact_iff, Set.image_preimage_eq_inter_range, Subtype.range_coe,
+      Set.inter_eq_left.2 hSU]
+    exact hS
+  have hcrit' (x : nonzeroOpens (hsm k)) (hx : x ∈ criticalPoints I (logNormSq (hsm k))) :
+      Real.log ε < logNormSq (hsm k) x := by
+    rw [coe_logNormSq, mem_criticalPoints_comp_subtypeVal] at hx
+    refine lt_of_not_ge fun h ↦ hcrit x (hpos x) ?_ hx
+    rwa [logNormSq_apply, Real.log_le_log_iff (hpos x) hε] at h
+  obtain ⟨g, -, hgM, hgf, hgc, hgi, hreg, hgK, b, hb, hgb⟩ :=
+    (J.restrictOpen (nonzeroOpens (hsm k))).exists_isMorse_eqOn_preimage_Iic hK hcrit' hk
+      Filter.univ_mem
+  refine ⟨g, hgM, fun x hx ↦ hgf ?_, hgc, hgi, hreg, fun b ↦ hgK.of_isClosed_subset
+    (isClosed_Icc.preimage (map_continuous g)) (Set.preimage_mono Set.Icc_subset_Ici_self),
+    b, hb, Set.eq_univ_of_forall fun x ↦ (hgb x).le⟩
+  rw [Set.mem_preimage, Set.mem_Iic, logNormSq_apply]
+  exact Real.log_le_log (hpos x) hx
 
 end SymplecticGeometry
 

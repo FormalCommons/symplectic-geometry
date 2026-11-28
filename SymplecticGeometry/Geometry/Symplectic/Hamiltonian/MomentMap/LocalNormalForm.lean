@@ -77,7 +77,7 @@ them by `LinearEquiv.ofFinrankEq`, the data are `SymplecticGeometry.LocalModelDa
 `T` is that of `SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint`.
 
 As a consequence, for a nondegenerate `Ad`-invariant form `B` on `𝔤`, the norm square
-`SymplecticGeometry.momentNormSq` of `μ` is a real polynomial in suitable coordinates around
+`TauCeti.momentNormSq` of `μ` is a real polynomial in suitable coordinates around
 every point, which is what the Łojasiewicz inequality for it needs. Pick a complement `𝔠` of `𝔥`
 in `𝔤`. The map `s (w, p) = [exp w, p]` from `𝔠 × (A × V)` to `Y` is a local diffeomorphism at
 `0` (`SymplecticGeometry.LocalModelData.isLocalDiffeomorphAt_mk_mulInvariantExp_submodule`), and so
@@ -493,8 +493,8 @@ group `G` act smoothly on `M`, let `σ` be a closed nondegenerate `G`-invariant 
 coadjoint-equivariant moment map `μ`, and let `B` be a nondegenerate `Ad`-invariant bilinear form
 on `𝔤`. Then every `x : M` lies in the source of a smooth partial diffeomorphism `e` from `M` to
 a Euclidean space `ℝ^d` in which the norm square `y ↦ B^∨ (μ y) (μ y)` (`momentNormSq`) is a real
-polynomial `P` in the coordinates: `momentNormSq B hB μ y = P (e y)` for every `y` in the source
-of `e`. -/
+polynomial `P` in the coordinates: `momentNormSq μ (B.toDual hB).symm y = P (e y)` for every `y` in
+the source of `e`. -/
 theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
     (hσ : σ.IsNondegenerate)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
@@ -504,7 +504,8 @@ theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
     (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (x : M) :
     ∃ (d : ℕ) (e : PartialDiffeomorph I' 𝓘(ℝ, EuclideanSpace ℝ (Fin d)) M
       (EuclideanSpace ℝ (Fin d)) ∞) (P : MvPolynomial (Fin d) ℝ),
-      x ∈ e.source ∧ ∀ y ∈ e.source, momentNormSq B hB μ y = MvPolynomial.eval (e y) P := by
+      x ∈ e.source ∧ ∀ y ∈ e.source,
+        momentNormSq μ (B.toDual hB).symm y = MvPolynomial.eval (e y) P := by
   have hx : IsClosed (stabilizer G x : Set G) := isClosed_stabilizer
     (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
   have : CompactSpace (stabilizer G x) := isCompact_iff_compactSpace.1 hx.isCompact
@@ -578,7 +579,8 @@ theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
   have hy' : Ψ (r (s (e₀ y))) = y := hΦ.localInverse_right_inv hy
   rw [he_apply]
   conv_lhs => rw [← hy']
-  rw [momentNormSq_def, hΨμ, hrsy, hs_def, D.dualForm_descendedMomentMap_mk hB hBG]
+  rw [momentNormSq_toDual_symm_eq_dualForm, hΨμ, hrsy, hs_def,
+    D.dualForm_descendedMomentMap_mk hB hBG]
   have hb : ((EuclideanSpace.basisFun _ ℝ).repr (L (e₀ y))).ofLp = (L (e₀ y)).ofLp :=
     funext (EuclideanSpace.basisFun_repr _ ℝ _)
   simpa [hb] using (hP (L (e₀ y))).symm
