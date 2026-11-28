@@ -17,6 +17,8 @@ import TauCeti.Analysis.Real.Sqrt
 
 * `Real.hasDerivAt_sqrt_sub` and `Real.deriv_sqrt_sub`: the map `r ↦ √(a r² - c)` has
   derivative `a r / √(a r² - c)` at each `r` with `a r² - c ≠ 0`.
+* `Real.deriv_sqrt_mul_sq_add_le`: for `0 ≤ a` and `0 ≤ c`, the slope of `r ↦ √(a r² + c)` is at
+  most `√a` wherever `a r² + c > 0`.
 * `Real.iteratedDeriv_two_sqrt_sub`: its second derivative is `-a c / √(a r² - c)³` at each
   `r` with `a r² - c > 0`. `Real.iteratedDeriv_two_sqrt_quadratic` is the case `c = -ℓ²`:
   the second derivative of `r ↦ √(ℓ² + a r²)` is `a ℓ² / √(ℓ² + a r²)³` where
@@ -53,6 +55,16 @@ theorem hasDerivAt_sqrt_sub {a c r : ℝ} (h : a * r ^ 2 - c ≠ 0) :
 theorem deriv_sqrt_sub {a c r : ℝ} (h : a * r ^ 2 - c ≠ 0) :
     deriv (fun r ↦ √(a * r ^ 2 - c)) r = a * r / √(a * r ^ 2 - c) :=
   (hasDerivAt_sqrt_sub h).deriv
+
+/-- For `0 ≤ a` and `0 ≤ c`, the slope of `r ↦ √(a r² + c)` at each `r` with `a r² + c > 0` is
+at most `√a`. -/
+theorem deriv_sqrt_mul_sq_add_le {a c r : ℝ} (ha : 0 ≤ a) (hc : 0 ≤ c) (h : 0 < a * r ^ 2 + c) :
+    deriv (fun r ↦ √(a * r ^ 2 + c)) r ≤ √a := by
+  have e : (fun r ↦ √(a * r ^ 2 + c)) = fun r ↦ √(a * r ^ 2 - -c) := by
+    simp only [sub_neg_eq_add]
+  rw [e, deriv_sqrt_sub (by rw [sub_neg_eq_add]; exact h.ne'), sub_neg_eq_add,
+    div_le_iff₀ (sqrt_pos.2 h), ← sqrt_mul ha]
+  exact le_sqrt_of_sq_le (by nlinarith [mul_nonneg ha hc])
 
 /-- The second derivative of `r ↦ √(a r² - c)` at each `r` with `a r² - c > 0` is
 `-a c / √(a r² - c)³`. -/

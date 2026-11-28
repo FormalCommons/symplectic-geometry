@@ -1170,7 +1170,7 @@ containing `ι '' closedBall 0 1`:
       `Ioi δ`, with `G r = c₀ + S r` on `Ioc δ (9 * δ / 2)`, `ℓ ≤ G r`
       for `δ < r`, `G r = √(64 * r ^ 2 + ℓ ^ 2)` for `ℓ / 4 ≤ r`, and
       `|deriv G r| ≤ M` on `Icc (3 * δ) (ℓ / 4)`. Then for
-      `η ∈ Ioc 0 (min (δ / 200) (6 * δ / (2 + M)))`, `8 * δ ≤ t` and
+      `η ∈ Ioc 0 (6 * δ / (2 + M))`, any `t` and
       `δ < r`, `r ↦ smoothedMax η (G r) (P t r)` is a convex shape at
       `r`. On `Ioo δ (7 * δ / 2)` it is `G` plus the constant
       `smoothedMax η 0 (t - c₀)` (`struweShape_add`,
@@ -1183,9 +1183,9 @@ containing `ι '' closedBall 0 1`:
       from `(t - 8 * δ + δ + 2 * r) ^ 2 ≥ ℓ ^ 2 + 64 * r ^ 2`, which
       gives `r ≤ (t - 7 * δ) / 6`, while `r ≥ ℓ / 4 ≥ 6 * δ`. Where the
       two meet beyond `9 * δ / 2`, `η * (2 + M) ≤ 2 * r`. Also
-      `bridgeLeaf_eq_of_eq_struweShape`: for `t = 8 * δ` the leaf is `G`
-      (`P (8 * δ) ≤ G - η`, as `c₀ = G δ - S δ ≥ ℓ` and
-      `9 * δ + δ / 8 + η < ℓ`), and `bridgeLeaf_sqrt_eq`: if
+      `bridgeLeaf_eq_of_le`: for `t ≤ 8 * δ` and `η ≤ 3 * δ` the leaf is `G`
+      (`P t ≤ 2 * r + 8 * δ + δ / 8 ≤ G - η`, as `G ≥ ℓ ≥ 4 * r` below
+      `ℓ / 4` and `G ≥ 8 * r` beyond), and `bridgeLeaf_sqrt_eq`: if
       `S δ + t ≥ 3 * ℓ + η`, the standard leaf may be replaced by `G`
       (`G` and the standard leaf are at most `√5 * ℓ` on `Ioc δ (ℓ / 4)`,
       being increasing, and agree beyond).
