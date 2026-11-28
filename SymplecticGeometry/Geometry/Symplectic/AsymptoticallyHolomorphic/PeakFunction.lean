@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
+import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
@@ -49,6 +50,10 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.modelDbarWith` for the constant structure `J₀`. The smoothness of both,
   and the linearity and Leibniz rule of `modelDbar`, come from those of `flatDbarWith` and
   `modelDbarWith`.
+* `SymplecticGeometry.flatDel`, `SymplecticGeometry.modelDel`: the flat and the model `∂`, the
+  complex-linear parts for `J₀` of `df_z` and of the model connection. With the flat and the
+  model `∂̄` they add up to `df_z` and to the model connection
+  (`SymplecticGeometry.flatDel_add_flatDbar`, `SymplecticGeometry.modelDel_add_modelDbar`).
 * `SymplecticGeometry.gaussianConnectionForm`: the form `v ↦ -(⟪z, v⟫ + i ω₀(z, v)) / 2`, which
   is the model connection of the Gaussian `exp (-‖z‖ ^ 2 / 4)` at `z` divided by its value
   (`SymplecticGeometry.modelConnection_gaussian`). It is complex linear for `J₀`
@@ -91,10 +96,9 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
 * `SymplecticGeometry.conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`,
   `SymplecticGeometry.wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`: read through the
   real isometry `e = TauCeti.complexToRealEuclideanIsometry ι : ℂⁿ → StdSpace ι`, which carries
-  multiplication by `i` to `J₀`, the flat `∂̄` of `f` and the complex-linear part of `df` for `J₀`
-  are Tau Ceti's Wirtinger derivatives `TauCeti.conjWirtingerDeriv` and `TauCeti.wirtingerDeriv`
-  of `f ∘ e`. Their norms agree
-  (`SymplecticGeometry.norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry`,
+  multiplication by `i` to `J₀`, the flat `∂̄` and the flat `∂` of `f` are Tau Ceti's Wirtinger
+  derivatives `TauCeti.conjWirtingerDeriv` and `TauCeti.wirtingerDeriv` of `f ∘ e`. Their norms
+  agree (`SymplecticGeometry.norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry`,
   `SymplecticGeometry.norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry`), and so do those
   of the derivatives of the two `∂̄` in a fixed direction
   (`SymplecticGeometry.norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`).
@@ -533,12 +537,59 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
       (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
   simp
 
+/-! ### The flat `∂` -/
+
+/-- The **flat `∂`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
+complex-linear part `TauCeti.complexLinearPart` of `df_z`, for `J₀ = stdComplexStructure ι` and
+multiplication by `i` on `ℂ`, that is `v ↦ ½ (df_z v - i df_z (J₀ v))`. It is the `(1,0)`
+counterpart of the flat `∂̄` `SymplecticGeometry.flatDbar`. -/
+noncomputable def flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
+  LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ))
+
+theorem flatDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDel f z =
+      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+  (rfl)
+
+/-- As a real-linear map, the flat `∂` of `f` at `z` is Tau Ceti's complex-linear part
+`TauCeti.complexLinearPart` of `df_z`, for `J₀` and multiplication by `i`. -/
+theorem coe_flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    (flatDel f z : StdSpace ι →ₗ[ℝ] ℂ) =
+      complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ) := by
+  rw [flatDel_def, LinearMap.coe_toContinuousLinearMap]
+
+theorem flatDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    flatDel f z v =
+      (2⁻¹ : ℝ) • (fderiv ℝ f z v - Complex.I * fderiv ℝ f z (stdComplexStructure ι v)) := by
+  rw [flatDel_def, LinearMap.coe_toContinuousLinearMap', complexLinearPart_apply]
+  simp [AlmostComplexStructure.ofComplexModule_apply]
+
+/-- The differential of `f` at `z` is the sum of its flat `∂` and its flat `∂̄`. -/
+theorem flatDel_add_flatDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDel f z + flatDbar f z = fderiv ℝ f z := by
+  ext v
+  rw [add_apply, flatDel_apply, flatDbar_apply, ← smul_add, sub_add_add_cancel, ← two_smul ℝ,
+    smul_smul, inv_mul_cancel₀ two_ne_zero, one_smul]
+
+/-- The flat `∂` commutes with complex scalars. -/
+@[simp]
+theorem flatDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDel (c • f) z = c • flatDel f z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_flatDel, ContinuousLinearMap.toLinearMap_smul, coe_flatDel, fderiv_const_smul_field,
+    Pi.smul_apply, ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
+
 /-! ### The flat operators against the Wirtinger derivatives
 
 Read through the real isometry `e = complexToRealEuclideanIsometry ι` from `ℂⁿ` to
 `StdSpace ι`, which carries multiplication by `i` to `J₀`, a function `f` on `StdSpace ι` becomes
-the function `f ∘ e` on `EuclideanSpace ℂ ι`, and its flat `∂̄` and complex-linear part for `J₀`
-become Tau Ceti's Wirtinger derivatives of `f ∘ e`, with the same norms. -/
+the function `f ∘ e` on `EuclideanSpace ℂ ι`, and its flat `∂̄` and flat `∂` become Tau
+Ceti's Wirtinger derivatives of `f ∘ e`, with the same norms. -/
 
 section Wirtinger
 
@@ -584,34 +635,26 @@ theorem norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply
     (complexToRealEuclideanIsometry ι).norm_iteratedFDeriv_comp_right
       (fun z ↦ flatDbar f z (complexToRealEuclideanIsometry ι b)) u 1
 
-/-- **The complex-linear part for `J₀` is the Wirtinger derivative**: for the isometry
+/-- **The flat `∂` is the Wirtinger derivative**: for the isometry
 `e = complexToRealEuclideanIsometry ι`, the Wirtinger derivative of `f ∘ e` at `u`, applied to
-`v`, is the complex-linear part `TauCeti.complexLinearPart`, for `J₀` and multiplication by `i`,
-of `df` at `e u`, applied to `e v`. -/
+`v`, is the flat `∂` of `f` at `e u`, applied to `e v`. -/
 theorem wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply (f : StdSpace ι → ℂ)
     (u v : EuclideanSpace ℂ ι) :
     wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u v =
-      complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ)
-        (complexToRealEuclideanIsometry ι v) := by
-  rw [wirtingerDeriv_apply, complexLinearPart_apply, LinearIsometryEquiv.comp_right_fderiv,
-    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
-  simp [AlmostComplexStructure.ofComplexModule_apply, Complex.real_smul]
+      flatDel f (complexToRealEuclideanIsometry ι u) (complexToRealEuclideanIsometry ι v) := by
+  rw [wirtingerDeriv_apply, flatDel_apply, LinearIsometryEquiv.comp_right_fderiv,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
+    stdComplexStructure_complexToRealEuclideanIsometry]
+  simp [Complex.real_smul, mul_sub]
 
 /-- For the isometry `e = complexToRealEuclideanIsometry ι`, the Wirtinger derivative of `f ∘ e`
-at `u` has the norm of the complex-linear part, for `J₀` and multiplication by `i`, of `df` at
-`e u`. -/
+at `u` has the norm of the flat `∂` of `f` at `e u`. -/
 theorem norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → ℂ)
     (u : EuclideanSpace ℂ ι) :
     ‖wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u‖ =
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ))‖ := by
+      ‖flatDel f (complexToRealEuclideanIsometry ι u)‖ := by
   have h : (wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u).restrictScalars ℝ =
-      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ)) ∘L
+      flatDel f (complexToRealEuclideanIsometry ι u) ∘L
         ((complexToRealEuclideanIsometry ι).toContinuousLinearEquiv :
           EuclideanSpace ℂ ι →L[ℝ] StdSpace ι) := by
     ext v
@@ -688,6 +731,56 @@ theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differ
     (hg : DifferentiableAt ℝ g z) :
     modelDbar (fun y ↦ f y * g y) z = f z • modelDbar g z + g z • flatDbar f z := by
   simp only [modelDbar_def, flatDbar_def, modelDbarWith_mul hf hg]
+
+/-! ### The model `∂` -/
+
+/-- The **model `∂`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
+complex-linear part `TauCeti.complexLinearPart` of the model connection
+`SymplecticGeometry.modelConnection f z`, for `J₀ = stdComplexStructure ι` and multiplication by
+`i` on `ℂ`. It is the `(1,0)` counterpart of the model `∂̄` `SymplecticGeometry.modelDbar`. -/
+noncomputable def modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
+  LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+    (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ))
+
+theorem modelDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel f z =
+      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+  (rfl)
+
+/-- As a real-linear map, the model `∂` of `f` at `z` is Tau Ceti's complex-linear part
+`TauCeti.complexLinearPart` of the model connection of `f` at `z`, for `J₀` and multiplication
+by `i`. -/
+theorem coe_modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    (modelDel f z : StdSpace ι →ₗ[ℝ] ℂ) =
+      complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ) := by
+  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap]
+
+theorem modelDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    modelDel f z v = (2⁻¹ : ℝ) •
+      (modelConnection f z v - Complex.I * modelConnection f z (stdComplexStructure ι v)) := by
+  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap', complexLinearPart_apply]
+  simp [AlmostComplexStructure.ofComplexModule_apply]
+
+/-- The model connection of `f` at `z` is the sum of its model `∂` and its model `∂̄`. -/
+theorem modelDel_add_modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel f z + modelDbar f z = modelConnection f z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [ContinuousLinearMap.toLinearMap_add, coe_modelDel, modelDbar_def, modelDbarWith_def,
+    complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
+    LinearMap.coe_toContinuousLinearMap, complexLinearPart_add_complexAntilinearPart]
+
+/-- The model `∂` commutes with complex scalars. -/
+@[simp]
+theorem modelDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel (c • f) z = c • modelDel f z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_modelDel, ContinuousLinearMap.toLinearMap_smul, coe_modelDel, modelConnection_smul,
+    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
 
 /-- The derivative of the Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function. -/
 private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
