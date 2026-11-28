@@ -82,6 +82,7 @@ directions, the polar decomposition with its Gauss lemma, and the example `Circl
 * `SymplecticGeometry.LieComplexification.isSelfAdjoint_ad_cplx_lieMap`: for an `ad`-invariant
   `B`, the operator `ad (cplx (lieMap ξ))` is self-adjoint for `complexifyForm B`, in the form
   that Tau Ceti's `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` takes.
+* `SymplecticGeometry.LieComplexification.self_add_conj`: `x + conj x = 2 • lieMap (re x)`.
 * `SymplecticGeometry.LieComplexification.conj_lie`,
   `SymplecticGeometry.LieComplexification.conj_lie_cplx_lieMap`: `conj` preserves brackets, so
   it anticommutes with `ad (cplx (lieMap ξ))`.
@@ -402,6 +403,13 @@ theorem im_conj (x : GroupLieAlgebra IC Gc) : C.im (C.conj x) = -C.im x := by
 @[simp]
 theorem conj_conj (x : GroupLieAlgebra IC Gc) : C.conj (C.conj x) = x :=
   C.ext_re_im (by simp) (by simp)
+
+/-- The analogue of `Complex.add_conj`: `x + conj x = 2 • lieMap (re x)`. -/
+theorem self_add_conj (x : GroupLieAlgebra IC Gc) :
+    x + C.conj x = (2 : ℝ) • C.lieMap (C.re x) := by
+  nth_rw 1 [← C.lieMap_re_add_cplx_lieMap_im x]
+  rw [conj_apply]
+  module
 
 @[simp]
 theorem conj_lieMap (ξ : GroupLieAlgebra I G) : C.conj (C.lieMap ξ) = C.lieMap ξ :=
