@@ -89,13 +89,11 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   [TopologicalSpace M] [ChartedSpace H M] {f g : M → ℝ} {x : M}
 
-/-- The critical Hessian of the zero function vanishes. -/
+/-- The critical Hessian of the zero function vanishes, the case `c = 0` of
+`TauCeti.criticalHessian_const`. -/
 @[simp]
-theorem criticalHessian_zero : criticalHessian I (0 : M → ℝ) x = 0 := by
-  have h : (0 : M → ℝ) ∘ (extChartAt I x).symm = fun _ ↦ 0 := rfl
-  rw [criticalHessian_def, h, fderiv_fun_const, Pi.zero_def, fderiv_const_apply]
-  -- The two sides differ only in reading `E` as the tangent space at `x`.
-  rfl
+theorem criticalHessian_zero : criticalHessian I (0 : M → ℝ) x = 0 :=
+  criticalHessian_const 0
 
 /-- At an interior point where `f` and `g` are `C²`, the critical Hessian of `f + g` is the sum
 of their critical Hessians. -/
