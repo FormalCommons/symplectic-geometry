@@ -205,10 +205,10 @@ private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
     (_, _) (_, _)).trans Prod.dist_eq).trans_le ?_
   rw [dist_eq_norm, dist_eq_norm]
   exact max_le_max
-    (norm_iteratedFDerivWithin_comp_fst_sub_le (hsm f fun z hz ↦ (hsrc hz).1)
+    (SymplecticGeometry.norm_iteratedFDerivWithin_comp_fst_sub_le (hsm f fun z hz ↦ (hsrc hz).1)
       (hsm f₀ fun z hz ↦ (hsrc hz).2) hs (by exact_mod_cast Nat.le_succ j) hws)
-    (norm_iteratedFDerivWithin_fderivWithin_apply_sub_le hs (hsm f fun z hz ↦ (hsrc hz).1)
-      (hsm f₀ fun z hz ↦ (hsrc hz).2) hws w.2)
+    (SymplecticGeometry.norm_iteratedFDerivWithin_fderivWithin_apply_sub_le hs
+      (hsm f fun z hz ↦ (hsrc hz).1) (hsm f₀ fun z hz ↦ (hsrc hz).2) hws w.2)
 
 /-- The bundled tangent map `f ↦ f.tangentMap`, from `C^∞⟮I, M; I', M'⟯` to
 `C^∞⟮I.tangent, TM; I'.tangent, TM'⟯`, is continuous for the weak Whitney topologies. -/

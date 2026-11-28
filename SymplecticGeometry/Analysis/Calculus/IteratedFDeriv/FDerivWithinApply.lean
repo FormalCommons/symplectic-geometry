@@ -38,6 +38,8 @@ public section
 
 open Set
 
+namespace SymplecticGeometry
+
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
@@ -133,3 +135,7 @@ theorem norm_iteratedFDerivWithin_fderivWithin_apply_sub_le {g₁ g₂ : E → F
     exact_mod_cast Nat.succ_le_succ (Finset.mem_range_succ_iff.mp hi)
   rw [← Pi.sub_def, iteratedFDerivWithin_sub_apply ((hg₁.of_le hi) _ hz)
     ((hg₂.of_le hi) _ hz) hs hz]
+
+end SymplecticGeometry
+
+end

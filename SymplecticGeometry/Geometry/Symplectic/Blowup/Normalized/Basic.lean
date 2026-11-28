@@ -133,7 +133,7 @@ The symplectic form is called `σ`, since `ω` is a token once the scope `ContDi
 definition asks for `0 < δ`, without which the open ball is empty and `ψ₀` gives no chart at
 `p₀`.
 
-The form `ω̃_{ψ,l,ε}` is glued by `SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq`, which
+The form `ω̃_{ψ,l,ε}` is glued by `SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq`, which
 glues a form on the blowup, here the pull-back of `σ` by the blowdown, with a form on an open
 subset, here the image of the lift; the forms are compared through Tau Ceti's
 `SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff`. The image of `closedNbhd n (l + ε)` is
@@ -771,7 +771,7 @@ private theorem exists_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProf
             (profileForm n l ε h)) := by
   set Φ := hψ.ballLiftPartialDiffeomorph
   set D := Φ.toDiffeomorphSourceTarget
-  refine SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq hψ.outerOpens.isOpen
+  refine SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq hψ.outerOpens.isOpen
     hψ.outerOpens_union_targetOpens _ _ fun x hx ↦ ?_
   · have hD := hψ.mpullback_toDiffeomorphSourceTarget_blowdown
     set η := SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
@@ -930,7 +930,7 @@ theorem isSymplectic_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfil
         (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy)), ?_⟩⟩
       exact (Blowup.mem_offDivisorOpens _).2 fun hZ ↦
         hz (hψ.exceptionalDivisor_subset_ballLiftPartialDiffeomorph_target hZ)
-  refine (SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtype_val hcover).2 ?_
+  refine (SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtypeVal hcover).2 ?_
   refine Fin.forall_fin_two.2 ⟨?_, ?_⟩
   -- `![U, W] 0` is `U` only by unfolding `Matrix.vecCons`. The form's type depends on it, so
   -- `simp only [Matrix.cons_val_zero]` cannot rewrite it, and `change` states the goal on `U`.
@@ -978,7 +978,7 @@ theorem exists_mextDeriv_eq_normalizedBlowupForm_sub {h₀ h₁ : ℝ → ℝ}
   have hK := hψ.closedNbhd_subset_source hψ.weight_add_width_lt
   obtain ⟨α, hα, hα0⟩ := exists_mextDeriv_eq_profileForm_sub n hh₀ hh₁
   -- The push-forward of `α` vanishes at the points of the image of the lift off `Φ '' L(l + ε)`.
-  obtain ⟨β, hβW, hβT⟩ := SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq
+  obtain ⟨β, hβW, hβT⟩ := SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq
     hψ.outerOpens.isOpen hψ.outerOpens_union_targetOpens 0
     (SmoothForm.mpullback D.symm D.symm.contMDiff
       (SmoothForm.mpullback (Subtype.val : hψ.sourceOpens → BlowupModel n) contMDiff_subtypeVal α))

@@ -106,7 +106,7 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
     rw [IsSmoothFamily.sliceAlong_val, hχW x hx, hβ₁, SmoothForm.coe_mpullback,
       mpullback_subtype_val_apply]
   obtain ⟨τ, hτW, hτV⟩ :=
-    SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq hW hWV η σ hσ
+    SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq hW hWV η σ hσ
   have hnd : ∀ y, (τ.bilinFormAt y).Nondegenerate := fun y ↦ by
     by_cases hy : y ∈ V
     · have hσnd : SmoothTwoForm.IsNondegenerate σ := hβ.isNondegenerate_sliceAlong hχ hχI hβnd

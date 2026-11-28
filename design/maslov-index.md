@@ -563,10 +563,8 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   ends `realImage` are chart subspaces `Matrix.lagrangianChart S₀`,
   `lagrangianChart S₁` of symmetric matrices,
   `pathMaslovIndex (δ.map continuous_unitaryFrame) (V₀ ι)` is Tau Ceti's
-  `transverseMaslovIndex` of `realImagePath δ`. Proof: by
-  `Matrix.UnitaryGroup.relativeMaslovIndex_realImagePath` the transverse index is the difference
-  of the Souriau indices of `δ` and of a frame of the chart segment, and the
-  latter vanishes by the zero axiom, the segment staying transverse to `V₀`.
+  `transverseMaslovIndex` of `realImagePath δ`. Proof: `ℒ.pathMaslovIndex_map_unitaryFrame`
+  and Tau Ceti's `TauCeti.TotallyRealPath.transverseMaslovIndex_eq_maslovIndex`.
 - Loops: `ℒ.pathMaslovIndex_eq_maslovIndex (γ : Path Λ Λ) (V) :
   pathMaslovIndex γ V = maslovIndex γ`, for every `V`; and with
   `ℒ.maslovIndex_eq_sub_div_pi` the form of the milestone's loops clause,
@@ -677,11 +675,10 @@ an element of `ℒ ι`.
   `ℒ.pathMaslovIndex_eq_crossing_sum` below, with
   `HasDerivWithinAt Z (Z' t₀) (Icc 0 1) t₀` at some `t₀ ∈ Icc 0 1` and a
   nondegenerate form there, `γ t ⊓ V = ⊥` for `t ≠ t₀` near `t₀` in
-  `Icc 0 1`. Proof: `γ` is extended to `ℝ` by `Set.IccExtend`. On each side
-  of `t₀` that `Icc 0 1` reaches, `Z` is a frame of the extension near `t₀`,
-  and its derivative within `Icc 0 1` is a one-sided one (the two sets agree
-  near `t₀` on that side), so the one-sided forms below give the times before
-  and after `t₀`.
+  `Icc 0 1`. Proof: Tau Ceti's
+  `ContinuousLinearMap.eventually_nhdsWithin_Icc_diff_nondegenerate_of_crossingForm_nondegenerate`,
+  applied to the projected forms as in the one-sided forms below, gives it in
+  `𝓝[Icc 0 1 \ {t₀}] t₀`, which the inclusion of `I` in `ℝ` carries to `I`.
 - `ℒ.eventually_nhdsLT_not_crossing_of_regular`,
   `ℒ.eventually_nhdsGT_not_crossing_of_regular` and
   `ℒ.eventually_nhdsNE_not_crossing_of_regular`: the same for a family

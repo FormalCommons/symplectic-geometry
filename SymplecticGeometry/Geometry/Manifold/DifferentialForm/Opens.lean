@@ -36,9 +36,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 
 * A form on `U` extends by zero to a form on `M` (`TauCeti.RoughForm.extendByZeroOfOpens`)
   whose restriction to `U` is the form, so every form on `U` is the restriction of a form on `M`
-  (`TauCeti.mpullback_subtype_val_surjective`). Its restriction to any open subset `W` is Tau
+  (`TauCeti.mpullback_subtypeVal_surjective`). Its restriction to any open subset `W` is Tau
   Ceti's `TauCeti.RoughForm.extendByZero W` of the form
-  (`TauCeti.RoughForm.mpullback_subtype_val_extendByZeroOfOpens_eq_extendByZero`). It commutes
+  (`TauCeti.RoughForm.mpullback_subtypeVal_extendByZeroOfOpens_eq_extendByZero`). It commutes
   with multiplication by a function on `M` (`TauCeti.RoughForm.extendByZeroOfOpens_fun_smul`), is
   supported in the image of the support of a compactly supported form on a Hausdorff manifold
   (`TauCeti.RoughForm.tsupport_extendByZeroOfOpens_subset`), and has the exterior derivative of
@@ -49,41 +49,41 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   (`TauCeti.IsSmoothForm.fun_smul_extendByZeroOfOpens`).
 * Restricting to an open subset `W` and then to an open subset `V ≤ W` is restricting to `V`
   (Tau Ceti's `TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
-  `TauCeti.SmoothForm.mpullback_inclusion_mpullback_subtype_val` for smooth forms).
+  `TauCeti.SmoothForm.mpullback_inclusion_mpullback_subtypeVal` for smooth forms).
 * A closed smooth form on `U` agrees, on a set whose closure lies in `U`, with a smooth form on
   `M` that is closed there (`TauCeti.exists_isSmoothForm_eq_on_of_closure_subset`): extend the
   form to `M` arbitrarily and cut it off with Tau Ceti's
   `TauCeti.RoughForm.exists_isSmoothForm_eventuallyEq_nhdsSet`.
 * Let `W` be an open set with `W ∪ U = univ`. A smooth form on `M` and a smooth form on `U` that
   agree on `U ∩ W` glue to a smooth form on `M`, equal to the first on `W`, whose restriction to
-  `U` is the second (`TauCeti.SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq`).
+  `U` is the second (`TauCeti.SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq`).
 * At a point of `U`, a form and its restriction have the same regularity
-  (`TauCeti.contMDiffAt_mpullback_subtype_val_iff`), since `Subtype.val` is a local
+  (`TauCeti.contMDiffAt_mpullback_subtypeVal_iff`), since `Subtype.val` is a local
   diffeomorphism.
 * A form that is `C^n` on `U` restricts to a `C^n` form on `U`
-  (`TauCeti.isSmoothForm_mpullback_subtype_val_of_contMDiffOn`).
+  (`TauCeti.isSmoothForm_mpullback_subtypeVal_of_contMDiffOn`).
 * The product `f • μ` of a form `μ` whose restriction to `U` is `C^n` with a `C^n` function `f`
   whose support lies in `U` is a `C^n` form on `M`
-  (`TauCeti.isSmoothForm_fun_smul_of_mpullback_subtype_val`).
+  (`TauCeti.isSmoothForm_fun_smul_of_mpullback_subtypeVal`).
 * For a form `γ` and a vector field `Z` that are both `C^n` on `U`, the restriction of `ι_Z γ`
   to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
   `ι_Z γ` need not be smooth on all of `M`. For a smooth form `γ`, this restriction is the smooth
   form `TauCeti.SmoothForm.restrictInterior γ Z hZ`.
 * A smooth map `ψ` between open subsets that pulls the restriction of a two-form `σ'` back to the
   restriction of a two-form `σ` preserves the forms on tangent vectors at each point
-  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`). The same holds for a smooth
+  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtypeVal_eq`). The same holds for a smooth
   map `ψ : U → M'` that pulls `σ'` itself back to the restriction of `σ`
-  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val`).
+  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtypeVal`).
 * Two forms on `M` agree at a point of `U` if their restrictions to `U`, pulled back to `M'`
   along the inverse of a diffeomorphism `Φ` from `U` onto `M'`, agree at its image
-  (`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq`).
+  (`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtypeVal_apply_eq`).
 * For an injective local diffeomorphism `f`, pulling the restriction of a smooth form to the image
   of `f` back along Tau Ceti's `IsLocalDiffeomorph.diffeomorphOfInjective` is pulling the form
-  back along `f` (`TauCeti.SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val`).
+  back along `f` (`TauCeti.SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal`).
 * Restriction commutes with the exterior derivative, with no regularity assumption
-  (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
+  (`TauCeti.mpullback_subtypeVal_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
-  (`TauCeti.RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq`).
+  (`TauCeti.RoughForm.inChartAt_mpullback_subtypeVal_eventuallyEq`).
 
 The proofs of the last item adapt those of Tau Ceti's `TauCeti.mpullback_inclusion_mextDeriv` and
 `TauCeti.RoughForm.inChartAt_mpullback_inclusion_eventuallyEq`, with Tau Ceti's
@@ -178,14 +178,14 @@ theorem extendByZeroOfOpens_apply_of_notMem {U : Opens M} (ξ : RoughForm I U F 
 
 /-- Restricting to `U` the extension by zero of a form on `U` gives back the form. -/
 @[simp]
-theorem mpullback_subtype_val_extendByZeroOfOpens {U : Opens M} (ξ : RoughForm I U F k) :
+theorem mpullback_subtypeVal_extendByZeroOfOpens {U : Opens M} (ξ : RoughForm I U F k) :
     mpullback I I (Subtype.val : U → M) (extendByZeroOfOpens ξ) = ξ := by
   funext x
   rw [mpullback_subtype_val_apply, extendByZeroOfOpens_apply_of_mem ξ x.property]
 
 /-- Restricting to an open subset `W` the extension by zero of a form on `U` to `M` is Tau Ceti's
 extension by zero of the form from `U` to `W`. -/
-theorem mpullback_subtype_val_extendByZeroOfOpens_eq_extendByZero {U : Opens M} (W : Opens M)
+theorem mpullback_subtypeVal_extendByZeroOfOpens_eq_extendByZero {U : Opens M} (W : Opens M)
     (ξ : RoughForm I U F k) :
     mpullback I I (Subtype.val : W → M) (extendByZeroOfOpens ξ) = extendByZero W ξ := by
   funext x
@@ -222,14 +222,14 @@ theorem tsupport_extendByZeroOfOpens_subset [T2Space M] {U : Opens M} {ξ : Roug
 end RoughForm
 
 /-- Every form on an open subset `U` of `M` is the restriction to `U` of a form on `M`. -/
-theorem mpullback_subtype_val_surjective (U : Opens M) :
+theorem mpullback_subtypeVal_surjective (U : Opens M) :
     Function.Surjective (mpullback (F := F) (k := k) I I (Subtype.val : U → M)) :=
   fun ξ ↦
-    ⟨RoughForm.extendByZeroOfOpens ξ, RoughForm.mpullback_subtype_val_extendByZeroOfOpens ξ⟩
+    ⟨RoughForm.extendByZeroOfOpens ξ, RoughForm.mpullback_subtypeVal_extendByZeroOfOpens ξ⟩
 
 /-- At a point of an open subset `U`, a form on `M` is `C^n` exactly when its restriction to `U`
 is. -/
-theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold I 1 M] {U : Opens M}
+theorem contMDiffAt_mpullback_subtypeVal_iff [IsManifold I 1 M] {U : Opens M}
     {n : WithTop ℕ∞} (γ : RoughForm I M F k) (x : U) :
     ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) n
         (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y
@@ -243,7 +243,7 @@ variable [IsManifold I 1 M]
 /-- Restricting a smooth form on `M` to an open subset `W`, and then to an open subset `V ≤ W`,
 is restricting it to `V`. -/
 @[simp]
-theorem SmoothForm.mpullback_inclusion_mpullback_subtype_val {V W : Opens M} (h : V ≤ W)
+theorem SmoothForm.mpullback_inclusion_mpullback_subtypeVal {V W : Opens M} (h : V ≤ W)
     (σ : SmoothForm I M F k) :
     SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
         (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal σ) =
@@ -252,23 +252,23 @@ theorem SmoothForm.mpullback_inclusion_mpullback_subtype_val {V W : Opens M} (h 
     simp only [SmoothForm.coe_mpullback, TauCeti.mpullback_inclusion_mpullback_subtype_val]
 
 /-- A form on `M` that is `C^n` on an open subset `U` restricts to a `C^n` form on `U`. -/
-theorem isSmoothForm_mpullback_subtype_val_of_contMDiffOn {U : Opens M} {n : WithTop ℕ∞}
+theorem isSmoothForm_mpullback_subtypeVal_of_contMDiffOn {U : Opens M} {n : WithTop ℕ∞}
     {γ : RoughForm I M F k}
     (hγ : ContMDiffOn I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) n
       (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) U) :
     IsSmoothForm I n (mpullback I I (Subtype.val : U → M) γ) :=
-  (isSmoothForm_def n _).mpr fun x ↦ (contMDiffAt_mpullback_subtype_val_iff _ x).2
+  (isSmoothForm_def n _).mpr fun x ↦ (contMDiffAt_mpullback_subtypeVal_iff _ x).2
     (hγ.contMDiffAt (U.isOpen.mem_nhds x.property))
 
 /-- Let `W` be an open set of `M`, `μ` a form on `M` whose restriction to `W` is `C^n`, and `f` a
 `C^n` function whose topological support lies in `W`. Then `f • μ` is a `C^n` form on `M`. -/
-theorem isSmoothForm_fun_smul_of_mpullback_subtype_val {n : WithTop ℕ∞} {W : Opens M}
+theorem isSmoothForm_fun_smul_of_mpullback_subtypeVal {n : WithTop ℕ∞} {W : Opens M}
     {f : M → ℝ} (hf : ContMDiff I 𝓘(ℝ) n f) (hfW : tsupport f ⊆ W) {μ : RoughForm I M F k}
     (hμ : IsSmoothForm I n (mpullback I I (Subtype.val : W → M) μ)) :
     IsSmoothForm I n (fun x ↦ f x • μ x) := by
   rw [isSmoothForm_def]
   exact ContMDiffOn.smul_section_of_tsupport hf.contMDiffOn W.isOpen hfW fun x hx ↦
-    ((contMDiffAt_mpullback_subtype_val_iff μ ⟨x, hx⟩).1 (hμ.contMDiff _)).contMDiffWithinAt
+    ((contMDiffAt_mpullback_subtypeVal_iff μ ⟨x, hx⟩).1 (hμ.contMDiff _)).contMDiffWithinAt
 
 /-- Let `ξ` be a `C^n` form on an open subset `U` of `M` and `f` a `C^n` function on `M` whose
 topological support lies in `U`. Then the product of `f` with the extension by zero of `ξ` to `M`
@@ -277,14 +277,14 @@ theorem IsSmoothForm.fun_smul_extendByZeroOfOpens {n : WithTop ℕ∞} {U : Open
     {ξ : RoughForm I U F k} (hξ : IsSmoothForm I n ξ) {f : M → ℝ} (hf : ContMDiff I 𝓘(ℝ) n f)
     (hfU : tsupport f ⊆ U) :
     IsSmoothForm I n (fun x ↦ f x • RoughForm.extendByZeroOfOpens ξ x) :=
-  isSmoothForm_fun_smul_of_mpullback_subtype_val hf hfU
-    (by rw [RoughForm.mpullback_subtype_val_extendByZeroOfOpens]; exact hξ)
+  isSmoothForm_fun_smul_of_mpullback_subtypeVal hf hfU
+    (by rw [RoughForm.mpullback_subtypeVal_extendByZeroOfOpens]; exact hξ)
 
 /-- **Gluing a form on an open subset with a global form.** Let `M` be covered by an open set `W`
 and an open subset `V`. A smooth form `η` on `M` and a smooth form `σ` on `V` that agree at the
 points of `V ∩ W` glue to a smooth form on `M` that is `η` at the points of `W` and whose
 restriction to `V` is `σ`. -/
-theorem SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq {V : Opens M} {W : Set M}
+theorem SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq {V : Opens M} {W : Set M}
     (hW : IsOpen W) (hWV : W ∪ V = univ) (η : SmoothForm I M F k) (σ : SmoothForm I V F k)
     (h : ∀ x : V, (x : M) ∈ W → σ.val x = η.val x) :
     ∃ τ : SmoothForm I M F k, (∀ x ∈ W, τ.val x = η.val x) ∧
@@ -300,7 +300,7 @@ theorem SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq {V : Opens M} {
   have hγ : IsSmoothForm I ∞ γ := by
     refine (isSmoothForm_def _ _).2 fun y ↦ ?_
     by_cases hy : y ∈ V
-    · exact (contMDiffAt_mpullback_subtype_val_iff γ ⟨y, hy⟩).1 (hγV ▸ σ.contMDiff ⟨y, hy⟩)
+    · exact (contMDiffAt_mpullback_subtypeVal_iff γ ⟨y, hy⟩).1 (hγV ▸ σ.contMDiff ⟨y, hy⟩)
     · have hyW : y ∈ W := (hWV.symm.subset (mem_univ y)).resolve_right hy
       refine (η.contMDiff y).congr_of_eventuallyEq ?_
       filter_upwards [hW.mem_nhds hyW] with z hz
@@ -315,7 +315,7 @@ theorem isSmoothForm_mpullback_subtypeVal_interior {U : Opens M} {n : WithTop �
       (fun y ↦ TotalSpace.mk' (E [⋀^Fin (k + 1)]→L[ℝ] F) y (γ y)) U)
     (hZ : ContMDiffOn I I.tangent n (T% Z) U) :
     IsSmoothForm I n (mpullback I I (Subtype.val : U → M) (γ.interior Z)) :=
-  isSmoothForm_mpullback_subtype_val_of_contMDiffOn fun _ hx ↦
+  isSmoothForm_mpullback_subtypeVal_of_contMDiffOn fun _ hx ↦
     (RoughForm.contMDiffAt_interior (hZ.contMDiffAt (U.isOpen.mem_nhds hx))
       (hγ.contMDiffAt (U.isOpen.mem_nhds hx))).contMDiffWithinAt
 
@@ -339,7 +339,7 @@ theorem SmoothForm.coe_restrictInterior (γ : SmoothForm I M F (k + 1))
 
 /-- Near the chart image of a point of an open subset `U`, the coordinate expression of the
 restriction to `U` of a form on `M` agrees with that of the form itself. -/
-theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
+theorem RoughForm.inChartAt_mpullback_subtypeVal_eventuallyEq {U : Opens M}
     (γ : RoughForm I M F k) (x : U) :
     (mpullback I I (Subtype.val : U → M) γ).inChartAt x =ᶠ[𝓝[range I] (extChartAt I x x)]
       γ.inChartAt (x : M) := by
@@ -359,11 +359,11 @@ theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
 
 /-- Restriction to an open subset commutes with the exterior derivative, with no regularity
 assumption. -/
-theorem mpullback_subtype_val_mextDeriv {U : Opens M} (γ : RoughForm I M F k) :
+theorem mpullback_subtypeVal_mextDeriv {U : Opens M} (γ : RoughForm I M F k) :
     mpullback I I (Subtype.val : U → M) (mextDeriv γ) =
       mextDeriv (mpullback I I (Subtype.val : U → M) γ) := by
   funext x
-  have heq := RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq γ x
+  have heq := RoughForm.inChartAt_mpullback_subtypeVal_eventuallyEq γ x
   rw [mpullback_subtype_val_apply, mextDeriv_def, mextDeriv_def,
     ← Opens.extChartAt_apply U x x]
   exact (heq.extDerivWithin_eq (heq.self_of_nhdsWithin (mem_range_self _))).symm
@@ -373,8 +373,8 @@ form `ξ` on `U` is that of `ξ`, with no regularity assumption. -/
 @[simp]
 theorem RoughForm.mextDeriv_extendByZeroOfOpens_coe {U : Opens M} (ξ : RoughForm I U F k)
     (x : U) : mextDeriv (extendByZeroOfOpens ξ) (x : M) = mextDeriv ξ x := by
-  have h := congrFun (mpullback_subtype_val_mextDeriv (U := U) (extendByZeroOfOpens ξ)) x
-  rwa [mpullback_subtype_val_apply, RoughForm.mpullback_subtype_val_extendByZeroOfOpens] at h
+  have h := congrFun (mpullback_subtypeVal_mextDeriv (U := U) (extendByZeroOfOpens ξ)) x
+  rwa [mpullback_subtype_val_apply, RoughForm.mpullback_subtypeVal_extendByZeroOfOpens] at h
 
 /-- The exterior derivative commutes with extension by zero from an open subset `U` to `M`,
 provided the extension vanishes near every point outside `U`. No regularity is needed. -/
@@ -397,7 +397,7 @@ variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topolo
 /-- Let `Φ` be a diffeomorphism from an open subset `U` of `M` onto `M'`. Two forms `σ` and `τ`
 on `M` agree at a point `x` of `U` if their restrictions to `U`, pulled back to `M'` along `Φ⁻¹`,
 agree at `Φ x`. -/
-theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U : Opens M}
+theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtypeVal_apply_eq {U : Opens M}
     (Φ : U ≃ₘ⟮I, I'⟯ M') {σ τ : SmoothForm I M F k} (x : U)
     (h : (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
           (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)).val (Φ x) =
@@ -416,7 +416,7 @@ theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U 
 on `M` to the image of `f` back along the diffeomorphism of `M'` onto that image is pulling `σ`
 back along `f`. -/
 @[simp]
-theorem SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val {f : M' → M}
+theorem SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtypeVal {f : M' → M}
     (hf : IsLocalDiffeomorph I' I ∞ f) (hinj : Function.Injective f)
     (σ : SmoothForm I M F k) :
     SmoothForm.mpullback (hf.diffeomorphOfInjective hinj) (hf.diffeomorphOfInjective hinj).contMDiff
@@ -435,7 +435,7 @@ variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topolo
 /-- Let `ψ : U → M'` be a smooth map from an open subset of `M` that pulls a two-form `σ'` on `M'`
 back to the restriction of a two-form `σ` on `M`. Then at each point `x` of `U`, `σ'` at `ψ x`
 takes the same values on `dψ a` and `dψ b` as `σ` at `x` on `a` and `b`. -/
-theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val {U : Opens M}
+theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtypeVal {U : Opens M}
     {ψ : U → M'} (hψ : ContMDiff I I' ∞ ψ) {σ : SmoothForm I M F 2} {σ' : SmoothForm I' M' F 2}
     (h : SmoothForm.mpullback ψ hψ σ' = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
     (x : U) (a b : TangentSpace I x) :
@@ -448,14 +448,14 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val {U :
 of a two-form `σ'` on `M'` back to the restriction of a two-form `σ` on `M`. Then at each point
 `x` of `U`, `σ'` at `ψ x` takes the same values on `dψ a` and `dψ b` as `σ` at `x` on `a` and
 `b`. -/
-theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq {U : Opens M} {V : Opens M'}
+theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtypeVal_eq {U : Opens M} {V : Opens M'}
     {ψ : U → V} (hψ : ContMDiff I I' ∞ ψ) {σ : SmoothForm I M F 2} {σ' : SmoothForm I' M' F 2}
     (h : SmoothForm.mpullback ψ hψ (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') =
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (x : U) (a b : TangentSpace I x) :
     SmoothBundleForm.eval₂ σ' (ψ x : M') (mfderiv I I' ψ x a) (mfderiv I I' ψ x b) =
       SmoothBundleForm.eval₂ σ (x : M) a b := by
   rw [← Manifold.mfderiv_subtype_val_comp_apply, ← Manifold.mfderiv_subtype_val_comp_apply]
-  refine SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val
+  refine SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtypeVal
     (contMDiff_subtypeVal.comp hψ) ?_ x a b
   rw [SmoothForm.mpullback_comp ψ Subtype.val hψ contMDiff_subtypeVal, LinearMap.comp_apply, h]
 
@@ -471,15 +471,15 @@ theorem exists_isSmoothForm_eq_on_of_closure_subset [FiniteDimensional ℝ E] [I
     ∃ η' : RoughForm I M ℝ k, IsSmoothForm I ∞ η' ∧
       (∀ z (hz : z ∈ W), η' z = η.val ⟨z, hWU (subset_closure hz)⟩) ∧
       ∀ z ∈ W, mextDeriv η' z = 0 := by
-  obtain ⟨φ, hφ⟩ := mpullback_subtype_val_surjective U η.val
+  obtain ⟨φ, hφ⟩ := mpullback_subtypeVal_surjective U η.val
   obtain ⟨η', hη's, hη'φ, -⟩ := RoughForm.exists_isSmoothForm_eventuallyEq_nhdsSet (n := ⊤)
     U.isOpen isClosed_closure hWU (φ := φ) fun x hx ↦
-      (contMDiffAt_mpullback_subtype_val_iff φ ⟨x, hx⟩).mp (hφ ▸ η.isSmoothForm.contMDiff _)
+      (contMDiffAt_mpullback_subtypeVal_iff φ ⟨x, hx⟩).mp (hφ ▸ η.isSmoothForm.contMDiff _)
   have hnear : ∀ z ∈ W, ∀ᶠ y in 𝓝 z, η' y = φ y := fun z hz ↦
     hη'φ.filter_mono (nhds_le_nhdsSet (subset_closure hz))
   have hφz (z : U) : φ z = η.val z := by rw [← hφ, mpullback_subtype_val_apply]
   refine ⟨η', hη's, fun z hz ↦ (hnear z hz).self_of_nhds.trans (hφz ⟨z, _⟩), fun z hz ↦ ?_⟩
-  have hdφ := congrFun (mpullback_subtype_val_mextDeriv (U := U) φ) ⟨z, hWU (subset_closure hz)⟩
+  have hdφ := congrFun (mpullback_subtypeVal_mextDeriv (U := U) φ) ⟨z, hWU (subset_closure hz)⟩
   rw [mpullback_subtype_val_apply, hφ] at hdφ
   rw [mextDeriv_congr_of_eventuallyEq (hnear z hz), hdφ]
   rw [← mextDerivₗ_apply, hη, SmoothBundleForm.zero_apply]

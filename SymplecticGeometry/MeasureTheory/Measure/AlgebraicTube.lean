@@ -55,9 +55,9 @@ count over the points near the zero set.
 
 Let `R = 4 * ρ₁ + a` and let `L` be the logarithm of the largest value of `‖P‖` on
 `Metric.closedBall y R`. On every ball `B` inside `Metric.ball y R`, `L - log ‖P‖` is
-nonnegative almost everywhere, so its average over `B` is `L - V` and is also its lower average.
+nonnegative almost everywhere and integrable, and its average over `B` is `L - V`.
 Since `Metric.ball y (ρ₁ - a) ⊆ Metric.ball c ρ₁` and `Metric.ball c (4 * ρ₁) ⊆ Metric.ball y R`,
-Tau Ceti's `TauCeti.setLAverage_ball_le` compares these averages about `c` and about `y`, up to
+Tau Ceti's `TauCeti.setAverage_ball_le` compares these averages about `c` and about `y`, up to
 factors `(1 - e) ^ (2 * m)` and `(1 + e / 4) ^ (2 * m)` with `e = 1 / (K * D)`. About the zero
 `y`, `MvPolynomial.log_div_le_setAverage_log_norm_eval_sub` gives
 `V y R - V y (ρ₁ - a) ≥ log 4`, and `MvPolynomial.log_sup_sub_setAverage_log_norm_eval_le`
@@ -181,35 +181,33 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
     ((isCompact_closedBall y R).image (by fun_prop)).bddAbove
   have hM : ∀ z ∈ ball y R, ‖eval z.ofLp P‖ ≤ M := fun z hz =>
     le_csSup hbdd (mem_image_of_mem _ (ball_subset_closedBall hz))
-  -- On a ball inside `ball y R`, `log M` bounds the average of `log ‖P‖`, and the lower average
-  -- of `ofReal (log M - log ‖P‖)` is `ofReal` of their difference.
-  have k {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ ball y R) :
-      0 ≤ Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ ∧
-        ⨍⁻ z in ball x r, ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) =
-          ENNReal.ofReal (Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖) := by
-    have hae := ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hs hz)
-    exact ⟨sub_nonneg.2 (setAverage_log_norm_eval_le_of_ae_le hP hr hae),
-      setLAverage_ofReal_sub_eq (measure_ball_pos volume x hr).ne' measure_ball_lt_top.ne
-        (integrableOn_log_norm_eval_ball hP x r) hae⟩
+  -- On a ball inside `ball y R`, `log M - log ‖P‖` is integrable and a.e. nonnegative, and its
+  -- average is `log M` minus the average of `log ‖P‖`.
+  have hint {x : EuclideanSpace ℂ ι} {r : ℝ} :
+      IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball x r) :=
+    (integrableOn_const measure_ball_lt_top.ne).sub (integrableOn_log_norm_eval_ball hP x r)
+  have hle {x : EuclideanSpace ℂ ι} {r : ℝ} (hs : ball x r ⊆ ball y R) :
+      ∀ᵐ z ∂volume.restrict (ball x r), Real.log ‖eval z.ofLp P‖ ≤ Real.log M :=
+    ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hs hz)
+  have hnn {x : EuclideanSpace ℂ ι} {r : ℝ} (hs : ball x r ⊆ ball y R) :
+      0 ≤ᵐ[volume.restrict (ball x r)] fun z => Real.log M - Real.log ‖eval z.ofLp P‖ :=
+    (hle hs).mono fun _ hz => sub_nonneg.2 hz
+  have hsub {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) :
+      ⨍ z in ball x r, (Real.log M - Real.log ‖eval z.ofLp P‖) = Real.log M - V x r :=
+    setAverage_const_sub (measure_ball_pos volume x hr).ne' measure_ball_lt_top.ne
+      (integrableOn_log_norm_eval_ball hP x r)
   have hs₁ : ball y (ρ₁ - a) ⊆ ball c ρ₁ := ball_subset_ball' (by rw [dist_comm]; linarith)
   have hs₂ : ball c (4 * ρ₁) ⊆ ball y R := ball_subset_ball' (by rw [hR]; linarith)
   have hs₃ : ball c ρ₁ ⊆ ball y R := (ball_subset_ball (by linarith)).trans hs₂
-  have hs₄ : ball y (ρ₁ - a) ⊆ ball y R := hs₁.trans hs₃
-  have kY₁ := k (by linarith) hs₃
-  have kY₂ := k (by linarith) hs₂
-  have kX₁ := k hρ₁a hs₄
-  have kX₂ := k hRpos subset_rfl
+  have kX₂ : 0 ≤ Real.log M - V y R :=
+    sub_nonneg.2 (setAverage_log_norm_eval_le_of_ae_le hP hRpos (hle subset_rfl))
   have hfin : Module.finrank ℝ (EuclideanSpace ℂ ι) = 2 * m := by
     rw [finrank_real_of_complex, finrank_euclideanSpace]
-  -- The comparisons of the lower averages over nested balls.
-  have c₁ := TauCeti.setLAverage_ball_le (μ := volume)
-    (fun z => ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖)) hρ₁a hs₁
-  have c₂ := TauCeti.setLAverage_ball_le (μ := volume)
-    (fun z => ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖)) (by linarith) hs₂
-  rw [kX₁.2, kY₁.2, ← ENNReal.ofReal_mul (by positivity),
-    ENNReal.ofReal_le_ofReal_iff (mul_nonneg (by positivity) kY₁.1), hfin] at c₁
-  rw [kX₂.2, kY₂.2, ← ENNReal.ofReal_mul (by positivity),
-    ENNReal.ofReal_le_ofReal_iff (mul_nonneg (by positivity) kX₂.1), hfin] at c₂
+  -- The comparisons of the averages over nested balls.
+  have c₁ := TauCeti.setAverage_ball_le (μ := volume) hρ₁a hs₁ hint (hnn hs₃)
+  rw [hsub hρ₁a, hsub (by linarith), hfin] at c₁
+  have c₂ := TauCeti.setAverage_ball_le (μ := volume) (by linarith) hs₂ hint (hnn subset_rfl)
+  rw [hsub (by linarith), hsub hRpos, hfin] at c₂
   -- About the zero `y`, and the bound by the maximum.
   have hd := log_div_le_setAverage_log_norm_eval_sub hP hy hρ₁a (by linarith : ρ₁ - a ≤ R)
   have hlog4 : Real.log 4 ≤ Real.log (R / (ρ₁ - a)) :=
@@ -227,11 +225,11 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
     calc (1 - 2 * m * (a / ρ₁)) * (Real.log M - V y R + Real.log 4)
         ≤ ((ρ₁ - a) / ρ₁) ^ (2 * m) * (Real.log M - V y (ρ₁ - a)) :=
           mul_le_mul hγ (by simp only [hV] at hd ⊢; linarith)
-            (by linarith [kX₂.1, Real.log_nonneg (by norm_num : (1 : ℝ) ≤ 4)]) (by positivity)
+            (by linarith [kX₂, Real.log_nonneg (by norm_num : (1 : ℝ) ≤ 4)]) (by positivity)
       _ ≤ ((ρ₁ - a) / ρ₁) ^ (2 * m) * ((ρ₁ / (ρ₁ - a)) ^ (2 * m) * (Real.log M - V c ρ₁)) :=
           mul_le_mul_of_nonneg_left c₁ (by positivity)
       _ = Real.log M - V c ρ₁ := by rw [← mul_assoc, hγq, one_mul]
-  · exact c₂.trans (mul_le_mul_of_nonneg_right hβ kX₂.1)
+  · exact c₂.trans (mul_le_mul_of_nonneg_right hβ kX₂)
 
 /-- **Many complex lines through `c` meet the zero set near `c`.** Under the hypotheses of
 `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt`, the volume of the unit ball of

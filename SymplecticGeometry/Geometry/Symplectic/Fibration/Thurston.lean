@@ -215,14 +215,8 @@ theorem exists_forall_ge_isOrientedCompatible_add_smul_mpullback [FiniteDimensio
     fun b b' hb' ↦ hfib K b b' hb' ▸ hτ b b' hb', fun b b' hb' ↦ ?_, fun b x hx ↦ ?_⟩⟩
   · convert hτo b b' hb' using 2
     exact hfib K b b' hb'
-  · -- The chart identifies the tangent space of `M` with that of `B × F`.
-    have hM : Module.finrank ℝ EM = m + k := by
-      have h₁ : Module.finrank ℝ EM = Module.finrank ℝ (EB × EF) :=
-        ((hA.mdifferentiable_trivAt (n := ∞) (by simp) b).mfderiv hx).toLinearEquiv.finrank_eq
-      have h₂ := oF.card_eq
-      rw [Module.finrank_prod, hm] at h₁
-      simp only [Fintype.card_fin] at h₂
-      omega
+  · have hM : Module.finrank ℝ EM = m + k := by
+      rw [hA.finrank_eq_add (by simp) x, hm, ← oF.card_eq, Fintype.card_fin]
     exact ⟨hM, isOrientationPreservingAt_add_smul_mpullback hA hτ hτo hβ.isNondegenerate hm hK₀
       hK (hω K hK) hM hx⟩
 

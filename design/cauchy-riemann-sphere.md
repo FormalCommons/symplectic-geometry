@@ -354,13 +354,12 @@ About 200 lines.
 For bundles `V`, `W`, an atlas `A` of `V` whose chart domains also give the
 atlas `A.ofBaseSet h` of `W`, and a smooth section `Φ` of $\mathrm{Hom}(V,W)$:
 
-- `TauCeti.SobolevSection.contMDiffHomMulL A h μ p k hΦ : SobolevSection A μ p k →L[ℝ] SobolevSection (A.ofBaseSet h) μ p k`,
-  built chartwise from `TauCeti.Wkp.contDiffOnCLMApplyL` as
-  `SobolevSection.contMDiffSMulL` is from `Wkp.contDiffOnSMulL`; its
-  docstring credits that construction.
-- `chartValueL_contMDiffHomMulL_ae` and `chartValueL_contMDiffHomMulL_ae_coord`:
+- the action is Tau Ceti's `TauCeti.SobolevSection.bundleMapL A h hΦ μ p k : SobolevSection A μ p k →L[ℝ] SobolevSection (A.ofBaseSet h) μ p k`
+  (`Sobolev/BundleMap.lean`); this file computes it chartwise with
+  `TauCeti.Wkp.contDiffOnCLMApplyL`.
+- `chartValueL_bundleMapL_ae` here, and Tau Ceti's `chartValueL_bundleMapL_ae_coord`:
   the chart data are $\Phi_i u_i$.
-- `exists_norm_contMDiffHomMulL_le`: the operator norm is at most a constant,
+- `exists_norm_bundleMapL_le`: the operator norm is at most a constant,
   depending on `A`, `h`, `k`, `p`, times the maximum over charts of the
   `C^k` norms of the chart readings of `Φ` on the closed chart images. With
   linearity in `Φ` this gives continuity in `Φ` for the `C^k` atlas norm.

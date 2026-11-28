@@ -13,6 +13,7 @@ import SymplecticGeometry.Analysis.InnerProductSpace.RadialExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
+import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.Morse.UnstableSet
 
 /-!
@@ -147,7 +148,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     obtain ⟨t₀, ht₀, ht₀0⟩ :=
       ((hu.eventually (lt_mem_nhds ha)).and (eventually_le_atBot 0)).exists
     have hcont : Continuous fun t ↦ g (Φ t (ι c)) :=
-      hg.continuous.comp (Φ.continuous continuous_id continuous_const)
+      hg.continuous.comp (Φ.continuous_eval_const _)
     obtain ⟨t, -, ht⟩ := intermediate_value_Icc' (ht₀0.trans hT0) hcont.continuousOn
       ⟨hlow.le, ht₀.le⟩
     exact ⟨t, ht⟩

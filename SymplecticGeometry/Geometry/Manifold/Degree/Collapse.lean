@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 import SymplecticGeometry.Geometry.Manifold.Degree.Global
+import TauCeti.Data.Set.Image
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Sphere
 import TauCeti.Geometry.Manifold.Degree.Collapse
@@ -99,7 +100,7 @@ theorem exists_contMDiff_degree_eq_one [NeZero n]
     rw [TauCeti.Manifold.Orientation.orientationSign_of_not_isInvertible hni] at hsign
     exact zero_ne_one hsign
   have hfib' : (R ∘ f) ⁻¹' {R y} = {Classical.arbitrary M} := by
-    rw [preimage_comp, ← image_singleton (f := R), R.injective.preimage_image, hfib]
+    rw [preimage_comp, R.injective.preimage_singleton, hfib]
   refine ⟨R ∘ f, hR.comp hf, ?_⟩
   rw [TauCeti.degree_eq_orientationSign_of_preimage_eq_singleton o o'.sphereOrientation
     (hR.comp hf) (hR.comp hf).continuous.isProperMap hfib' hinv', hsign]

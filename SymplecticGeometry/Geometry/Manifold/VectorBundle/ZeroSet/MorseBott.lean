@@ -29,8 +29,8 @@ boundaryless manifold `X`, and let `s` be a `C^m` section. The function `y ↦ �
 
 At a zero `z`, every vector in the kernel of the critical Hessian of `‖s‖²` lies in the kernel of
 the linearization `L = TauCeti.sectionLinearization J id s z`
-(`TauCeti.ker_criticalHessian_norm_sq_le_ker_sectionLinearization`). Indeed, in the
-trivialization at `z` the section has fibre coordinates `φ`, and near `z` the bundle norm
+(`SymplecticGeometry.ker_criticalHessian_norm_sq_le_ker_sectionLinearization`). Indeed, in
+the trivialization at `z` the section has fibre coordinates `φ`, and near `z` the bundle norm
 dominates `‖A ∘ φ‖` for a suitable injective linear map `A` into a Euclidean space
 (`exists_injective_norm_trivializationAt_le`). So
 `‖s‖² - ‖A ∘ φ‖²` has a local minimum at `z`, and its Hessian there is positive semidefinite,
@@ -57,9 +57,9 @@ derivative on `(0, ∞)` (Tau Ceti's `TauCeti.mem_criticalPoints_scalar_comp_iff
 
 ## Main results
 
-* `TauCeti.ker_criticalHessian_norm_sq_le_ker_sectionLinearization`: at a zero of a `C^m`
-  section, `2 ≤ m`, the kernel of the Hessian of `‖s‖²` lies in the kernel of the linearization
-  of `s`.
+* `SymplecticGeometry.ker_criticalHessian_norm_sq_le_ker_sectionLinearization`: at a zero of a
+  `C^m` section, `2 ≤ m`, the kernel of the Hessian of `‖s‖²` lies in the kernel of the
+  linearization of `s`.
 * `TauCeti.SmoothEmbedding.isNondegenerateCriticalSubmanifold_norm_sq_ofTransverseSection`: the
   zero set of a transverse section is a Morse–Bott critical submanifold of `‖s‖²`.
 * `TauCeti.SmoothEmbedding.manifoldMorseIndex_norm_sq_ofTransverseSection`: its Morse index is
@@ -93,7 +93,9 @@ variable {V G X F' E : Type*}
   {m : ℕ∞ω} [ContMDiffVectorBundle m F' E' J] [IsContMDiffRiemannianBundle J m F' E']
   {s : ∀ x, E' x}
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 /-- **The Hessian of `‖s‖²` at a zero of a section.** On a boundaryless manifold, let `s` be a
 section of a `C^m` real vector bundle with a `C^m` bundle metric, `2 ≤ m`, which is `C^m` at a
@@ -155,7 +157,7 @@ theorem ker_criticalHessian_norm_sq_le_ker_sectionLinearization (hm2 : 2 ≤ m) 
     (hφ2.mdifferentiableAt two_ne_zero) hz]
   simp [mvfderiv, hdφ]
 
-end TauCeti
+end SymplecticGeometry
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [FiniteDimensional ℝ V] [IsManifold J m X]

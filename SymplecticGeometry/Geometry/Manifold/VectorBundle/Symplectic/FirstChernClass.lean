@@ -69,7 +69,7 @@ theorem firstChernClass_pullback {EN HN : Type*} {N : Type} [NormedAddCommGroup 
       TopCat.singularCohomologyMap (TopCat.ofHom (f : C(N, M))) 2
         (firstChernClass G J.toContinuousComplexStructure.Fiber) := by
   rw [← SymplecticGeometry.Bundle.firstChernClass_pullback_coe]
-  exact firstChernClass_congr (J.pullbackFiberEquiv f hf)
+  exact TauCeti.firstChernClass_eq_of_fiberwise (φ := J.pullbackFiberEquiv f hf)
     (continuous_pullbackFiberEquiv G J f hf)
 
 /-- **Transport does not change the first Chern class.** The transport `Φ ∘ J ∘ Φ⁻¹` of a complex
@@ -91,7 +91,7 @@ theorem firstChernClass_pushforward
   have hc : ∀ x v, Φ x (J.toContinuousComplexStructure x v) =
       (J.pushforward Φ hΦ).toContinuousComplexStructure x (Φ x v) := fun x v ↦ by
     simp [pushforward_apply]
-  exact (firstChernClass_congr (fiberEquivOfCommute _ _ Φ hc)
+  exact (TauCeti.firstChernClass_eq_of_fiberwise (φ := fiberEquivOfCommute _ _ Φ hc)
     (continuous_fiberEquivOfCommute _ _ Φ hc hΦ.continuous)).symm
 
 /-- **Negating a complex structure negates the first Chern class.** The complex bundle of `-J`
@@ -108,7 +108,7 @@ theorem firstChernClass_neg (J : ContMDiffComplexStructure I n F V) :
       toContinuousComplexStructure_apply, toContinuousComplexStructure_apply, neg_apply,
       _root_.neg_apply]
   rw [← firstChernClass_conj (G := G) (E := J.toContinuousComplexStructure.Fiber)]
-  exact firstChernClass_congr (fiberEquivConjOfAnticommute _ _ _ hc)
+  exact TauCeti.firstChernClass_eq_of_fiberwise (φ := fiberEquivConjOfAnticommute _ _ _ hc)
     (continuous_fiberEquivConjOfAnticommute _ _ _ hc (continuous_id.congr fun _ ↦ rfl))
 
 end ContMDiffComplexStructure
@@ -134,7 +134,7 @@ theorem Tames.firstChernClass_eq {m' : ℕ∞} {ω : ContMDiffTwoForm I n F V}
   have hc : ∀ x v, Ψ x ((J.ofLE zero_le).toContinuousComplexStructure x v) =
       (J'.ofLE zero_le).toContinuousComplexStructure x (Ψ x v) := fun x v ↦ by
     simpa only [ContMDiffComplexStructure.toContinuousComplexStructure_apply] using hJ x v
-  exact (firstChernClass_congr (fiberEquivOfCommute _ _ Ψ hc)
+  exact (TauCeti.firstChernClass_eq_of_fiberwise (φ := fiberEquivOfCommute _ _ Ψ hc)
     (continuous_fiberEquivOfCommute _ _ Ψ hc hΨ.continuous)).symm
 
 end ContMDiffTwoForm

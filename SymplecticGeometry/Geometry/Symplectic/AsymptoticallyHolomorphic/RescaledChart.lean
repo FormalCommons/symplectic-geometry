@@ -490,9 +490,8 @@ theorem norm_chartPushforward_rescaledChart_sub_le [I.Boundaryless] {z : StdSpac
       LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap := by
     exact ContinuousLinearMap.ext (D.chartPushforward_zero x)
   have hdiff : ∀ y ∈ ball (0 : StdSpace ι) D.radius, DifferentiableAt ℝ (J.chartPushforward ψ) y :=
-    fun y hy ↦ ((J.contDiffOn_chartPushforward (ψ := ψ) (D.chart x).contMDiffOn
-      (D.chart x).symm.contMDiffOn).differentiableOn (by simp)).differentiableAt
-        ((D.chart x).open_target.mem_nhds (D.ball_subset_target x hy))
+    fun y hy ↦ (J.contDiffAt_chartPushforward (D.chart x)
+      (D.ball_subset_target x hy)).differentiableAt (by simp)
   rw [D.chartPushforward_rescaledChart c x (D.ball_subset_rescaledChart_target c x hz), ← h0]
   calc ‖J.chartPushforward ψ ((c : ℝ)⁻¹ • z) - J.chartPushforward ψ 0‖
       ≤ D.bound 1 * ‖(c : ℝ)⁻¹ • z - 0‖ :=

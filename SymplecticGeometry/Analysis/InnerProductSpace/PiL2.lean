@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+import TauCeti.Analysis.InnerProductSpace.Euclidean.Space
 
 /-!
 # Euclidean space: matrices, reindexing and the standard basis
@@ -26,7 +27,8 @@ of the two blocks.
 * `Matrix.piLpCongrLeft_toEuclideanLin_apply`: `e (M z) = (reindex e e M) (e z)`.
 * `Matrix.norm_star_dotProduct_sq_le`: Cauchy–Schwarz for the Hermitian product,
   `‖star z ⬝ᵥ v‖² ≤ (∑ᵢ ‖zᵢ‖²) (∑ᵢ ‖vᵢ‖²)`, from Mathlib's `norm_inner_le_norm`.
-* `Matrix.star_dotProduct_self`: `star z ⬝ᵥ z = ∑ᵢ ‖zᵢ‖²` for `z : ι → 𝕜`.
+* `Matrix.star_dotProduct_self`: `star z ⬝ᵥ z = ∑ᵢ ‖zᵢ‖²` for `z : ι → 𝕜`, Tau Ceti's
+  `EuclideanSpace.star_dotProduct_self_eq_norm_sq` written for plain coordinate vectors.
 * `Matrix.re_star_dotProduct_self`: `Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²` for `z : ι → ℂ`.
 * `EuclideanSpace.single_one_mem_sphere`: each standard basis vector has norm one.
 * `EuclideanSpace.norm_sq_sumEquivProd`: the squared norms of the two blocks of
@@ -66,7 +68,8 @@ theorem norm_star_dotProduct_sq_le {ι : Type*} [Fintype ι] (z v : ι → 𝕜)
 of `𝕜`: `star z ⬝ᵥ z = ∑ᵢ ‖zᵢ‖²`. -/
 theorem star_dotProduct_self {ι : Type*} [Fintype ι] (z : ι → 𝕜) :
     star z ⬝ᵥ z = ((∑ i, ‖z i‖ ^ 2 : ℝ) : 𝕜) := by
-  simp [dotProduct, RCLike.conj_mul]
+  have h := EuclideanSpace.star_dotProduct_self_eq_norm_sq (WithLp.toLp 2 z)
+  rwa [WithLp.ofLp_toLp, EuclideanSpace.norm_sq_eq] at h
 
 /-- The real part of the Hermitian square of a complex vector is its squared Euclidean norm:
 `Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²`. -/

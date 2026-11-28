@@ -10,6 +10,7 @@ public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Ellipsoid.NormalForm
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Williamson
 import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
+import TauCeti.Data.Multiset.Fintype
 
 /-!
 # The symplectic spectrum of an ellipsoid
@@ -159,7 +160,7 @@ theorem symplecticSpectrum_eq {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.PosD
     rw [← h, Set.image_image]
     simpa using h₀
   obtain ⟨σ, hσ⟩ := exists_perm_eq_of_image_stdEllipsoid_eq hr hr₀ (he.symm.trans he₀) himage
-  rw [hσ, ← Multiset.map_map, Multiset.map_univ_val_equiv]
+  exact Multiset.map_univ_val_eq_of_equiv σ (congrFun hσ)
 
 /-- Every element `s` of the symplectic spectrum of `Q` is a radius of a normal form of the
 ellipsoid of `Q`: a linear symplectic map carries `{z | Q z ≤ 1}` onto `E(r)`, with positive

@@ -240,10 +240,10 @@ $M-1$, with smooth real coefficients.
   `IsLocallySobolevAt.sum_smul_smulLeftCLM_iteratedLineDerivOp` (the
   coupling loses at most $M-1$ derivatives) and
   `IsLocallySobolevAt.of_sum_smul_smulLeftCLM_iteratedLineDerivOp`.
-- `Distribution.singularSupport_eq_empty_of_ellipticSystem`: if the right
-  sides are smooth on `Ω` and $P$ is elliptic at every point of `Ω`, every
-  $T_a$ is smooth. This uses the previous result for every $s$ and
-  `singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty`.
+- The smooth case, with smooth right sides and $P$ elliptic on all of `Ω`,
+  is not stated here: Tau Ceti's
+  `Distribution.waveFrontSet_subset_iUnion_waveFrontSet_sum_sum_smul_smulLeftCLM_iteratedLineDerivOp_union`
+  covers it.
 
 The coefficients are real smooth functions on the whole of
 `CoordinateSpace n`, as Tau Ceti's theorem asks. Callers extend chart
@@ -487,7 +487,7 @@ Named like Tau Ceti's file; used by `L2.lean`.
   and $\Delta\alpha=f$. In each chart, the weak equation says that the
   localization of `u`, multiplied by the fibre metric and the volume
   density, solves the transposed system of `LocalLaplacian.lean`. Then
-  `singularSupport_eq_empty_of_ellipticSystem` applies, and
+  `exists_contDiffOn_ae_eq_of_forall_integral_apply_eq` applies, and
   `eq_ofSmooth_of_localize` glues.
 - `L2Form.isLocallySobolev_one_of_forall_inner`: the $H^{-1}$ case. If
   `|⟪u, ofSmooth (Δ φ)⟫| ≤ C * √(‖ofSmooth φ‖ ^ 2 + ⟪ofSmooth (Δ φ), ofSmooth φ⟫)`
@@ -588,8 +588,6 @@ complexification:
 
 - `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
   on $\Lambda^k V$ is minus the derivation of `A` on forms.
-- `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`: Tau Ceti's
-  `wedgeCovector u` is `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
 
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
@@ -613,7 +611,7 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
   The symbol of $d^*$ with Tau Ceti's sign is
   $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$
   (Tau Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`
-  with `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`), so
+  with `TauCeti.alternatizeUncurryFin_innerSL_smulRight`), so
   this is
   $L\delta_u-\delta_u L=-(\mathcal J\varepsilon_u-\varepsilon_u\mathcal J)$,
   the constant-coefficient Kähler identity. It is proved from the Leibniz

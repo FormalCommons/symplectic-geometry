@@ -341,9 +341,8 @@ theorem isMIntegralCurve_expI_smul (h : IsComplexifiedAction C J) (ξ : GroupLie
     IsMIntegralCurve (fun t : ℝ ↦ C.expI (t • ξ) • p)
       (fun x ↦ J x (fundamentalVectorField I' ξ x)) := by
   have hγ : (fun t : ℝ ↦ C.expI (t • ξ) • p) =
-      fun t : ℝ ↦ mulInvariantExp (t • C.cplx (C.lieMap ξ)) • p := by
-    funext t
-    rw [LieComplexification.expI_def, map_smul, AlmostComplexStructure.apply_smul]
+      fun t : ℝ ↦ mulInvariantExp (t • C.cplx (C.lieMap ξ)) • p :=
+    funext fun t ↦ by rw [C.expI_smul]
   have hv : fundamentalVectorField I' (C.cplx (C.lieMap ξ)) =
       fun x ↦ J x (fundamentalVectorField I' ξ x) :=
     funext (h.fundamentalVectorField_cplx_lieMap ξ)

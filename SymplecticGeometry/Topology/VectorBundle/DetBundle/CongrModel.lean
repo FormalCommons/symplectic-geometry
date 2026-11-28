@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
-public import TauCeti.LinearAlgebra.ExteriorPower.Basic
 
 /-!
 # The determinant transport between different models, on frames and in charts
@@ -61,13 +60,8 @@ theorem congrModelEquiv_ofFrame (e : ∀ x, E x ≃L[𝕜] E' x) (x : B)
     congrModelEquiv (F₁ := F) (F' := F') e x (ofFrame φ) =
       ofFrame (((finBasis 𝕜 F').equiv (finBasis 𝕜 F) (finCongr h)).trans
         (φ.trans (e x).toLinearEquiv)) := by
-  apply (linearEquiv 𝕜 F' E' x).injective
-  apply Subtype.ext
-  rw [coe_congrModelEquiv, ofFrame_def, ofFrame_def, LinearEquiv.apply_symm_apply,
-    LinearEquiv.apply_symm_apply, exteriorPower.ιMulti_apply_coe,
-    exteriorPower.ιMulti_apply_coe, ExteriorAlgebra.map_apply_ιMulti,
-    ← TauCeti.ExteriorAlgebra.ιMulti_comp_cast h]
-  congr 1
+  rw [ofFrame_def, ofFrame_def, congrModelEquiv_ιMulti e x h.symm]
+  congr 2
   ext i
   simp [Module.Basis.equiv_apply]
 

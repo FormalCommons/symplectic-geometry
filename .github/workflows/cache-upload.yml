@@ -55,6 +55,16 @@ name: cache-upload
 # commit's name stay: the rule must hold for every upload.
 #
 # A run whose build failed staged nothing, and nothing is uploaded for it.
+#
+# The Tau Ceti modules. A run of CI that found no save of the dependencies,
+# as the runs of a move of Tau Ceti do, compiled the Tau Ceti modules that
+# the library imports, and hands them over as a second artifact,
+# `lake-cache-tauceti`. They go into the bucket by the same rules, from the
+# same runs, checked by the same script: the archives under `a/`, and the
+# mappings beside the library's, as `<commit>.tauceti.jsonl`. So once a run
+# of a move has passed and its upload is done, the move's later runs and
+# the merge queue's run for it do not compile them again; see
+# tauceti-bucket.sh for who reads which, and for what that trusts.
 on:
   workflow_run:
     workflows: [ci]
@@ -74,7 +84,8 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.event == 'merge_group' || github.event.workflow_run.event == 'pull_request')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Each of the two uploads has its own limit, below.
+    timeout-minutes: 30
     environment: lake-cache
     steps:
       # The default branch's `.github`, and nothing of the commit that was
@@ -121,14 +132,34 @@ jobs:
           RUN: ${{ github.event.workflow_run.id }}
         run: |
           set -o pipefail
-          count=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" -f name=lake-cache |
-            jq '[.artifacts[] | select(.name == "lake-cache" and (.expired | not))] | length') ||
-            { echo "::warning::could not ask GitHub for the staged build of run $RUN"; exit 0; }
+          # One list of the run's artifacts, for this step and the next.
+          timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" -F per_page=100 > "$RUNNER_TEMP/artifacts.json" ||
+            { rm -f "$RUNNER_TEMP/artifacts.json"; echo "::warning::could not ask GitHub for the staged build of run $RUN"; exit 0; }
+          count=$(jq '[.artifacts[] | select(.name == "lake-cache" and (.expired | not))] | length' "$RUNNER_TEMP/artifacts.json") ||
+            { echo "::warning::could not read GitHub's list of the artifacts of run $RUN"; exit 0; }
           [ "$count" -gt 0 ] || { echo "run $RUN handed over no staged build"; exit 0; }
           if timeout 120 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache --dir "$RUNNER_TEMP/staged"; then
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::could not download the staged build of run $RUN"
+          fi
+      # The same for the Tau Ceti modules, which few runs hand over.
+      - name: take the Tau Ceti modules of the run
+        id: tauceti
+        if: steps.counts.outputs.yes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          set -o pipefail
+          [ -s "$RUNNER_TEMP/artifacts.json" ] || { echo "no list of the artifacts of run $RUN"; exit 0; }
+          count=$(jq '[.artifacts[] | select(.name == "lake-cache-tauceti" and (.expired | not))] | length' "$RUNNER_TEMP/artifacts.json") ||
+            { echo "::warning::could not read GitHub's list of the artifacts of run $RUN"; exit 0; }
+          [ "$count" -gt 0 ] || { echo "run $RUN handed over no Tau Ceti modules"; exit 0; }
+          if timeout 300 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache-tauceti --dir "$RUNNER_TEMP/tauceti"; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::could not download the Tau Ceti modules of run $RUN"
           fi
       # The addresses come from lake-cache-address.py, which forms them as
       # Lake does from `.github/lake-config.toml`, the file CI reads with.
@@ -136,11 +167,11 @@ jobs:
       # The toolchain is read from the commit in GitHub's record, which for
       # a pull request is its head commit, and must be a release of Lean by
       # its name, so that it cannot lead the address elsewhere.
-      - name: upload
-        if: steps.staged.outputs.found == 'true'
+      - name: find the addresses
+        id: at
+        if: steps.staged.outputs.found == 'true' || steps.tauceti.outputs.found == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
           EVENT: ${{ github.event.workflow_run.event }}
           SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
@@ -154,19 +185,35 @@ jobs:
           toolchain=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/contents/lean-toolchain?ref=$SHA" -H "Accept: application/vnd.github.raw")
           address=$(python3 -I .github/lake-cache-address.py "fc-$kind" "$toolchain") ||
             { echo "::error::no address for the mappings of $SHA"; exit 1; }
+          {
+            echo "artifacts=$(sed -n 1p <<<"$address")"
+            echo "mappings=$(sed -n 2p <<<"$address")/$SHA"
+            echo "queue=$(python3 -I .github/lake-cache-address.py fc-queue "$toolchain" | sed -n 2p)"
+            echo "pr=$(python3 -I .github/lake-cache-address.py fc-pr "$toolchain" | sed -n 2p)"
+          } >> "$GITHUB_OUTPUT"
+      - name: upload
+        if: steps.staged.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+          ARTIFACTS: ${{ steps.at.outputs.artifacts }}
+          MAPPINGS: ${{ steps.at.outputs.mappings }}
+          QUEUE: ${{ steps.at.outputs.queue }}
+        run: |
+          set -euo pipefail
           [ -n "$LAKE_CACHE_KEY" ] || { echo "::error::the environment lake-cache has no secret LAKE_CACHE_KEY"; exit 1; }
           # main's latest mappings that the bucket has, for cache-upload.sh to
           # know which archives are there without asking; see there. Without
           # them it asks about all. The search looks back 100 commits, as
           # CI's fetch step does, and gives up after two minutes.
           known=$RUNNER_TEMP/known.jsonl
-          if queue=$(python3 -I .github/lake-cache-address.py fc-queue "$toolchain" | sed -n 2p) && [ -n "$queue" ] &&
+          if [ -n "$QUEUE" ] &&
             commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&per_page=100" --jq '.[].sha'); then
             SECONDS=0
             for c in $commits; do
               [ "$SECONDS" -lt 120 ] || { echo "the search for main's mappings took too long; the upload asks about every archive"; break; }
               [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
-              if curl -q -sf --connect-timeout 5 --max-time 15 -o "$known" "$queue/$c.jsonl"; then
+              if curl -q -sf --connect-timeout 5 --max-time 15 -o "$known" "$QUEUE/$c.jsonl"; then
                 echo "main's mappings at $c name the archives that are taken to be in the bucket"
                 break
               fi
@@ -174,4 +221,38 @@ jobs:
             done
           fi
           printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
-            timeout 8m .github/cache-upload.sh "$RUNNER_TEMP/staged" "$(sed -n 1p <<<"$address")" "$(sed -n 2p <<<"$address")/$SHA.jsonl" "$known"
+            timeout 8m .github/cache-upload.sh "$RUNNER_TEMP/staged" "$ARTIFACTS" "$MAPPINGS.jsonl" "$known"
+      # The run handed over a directory `staged`, as the library's, and may
+      # have handed over a file `from`: where in the bucket it found a
+      # mappings file of Tau Ceti modules, at its start or, failing that,
+      # just before it staged, as `pr <commit>` or `queue <commit>`. That
+      # line is not trusted and need not be: it only chooses which mappings
+      # file is fetched from the bucket, here, as the one whose archives are
+      # taken to be there, and that holds for every mappings file the bucket
+      # has. Without it the upload asks about every archive. This upload
+      # does not wait for the library's to pass.
+      - name: upload the Tau Ceti modules
+        if: ${{ !cancelled() && steps.tauceti.outputs.found == 'true' && steps.at.outcome == 'success' }}
+        env:
+          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+          ARTIFACTS: ${{ steps.at.outputs.artifacts }}
+          MAPPINGS: ${{ steps.at.outputs.mappings }}
+          QUEUE: ${{ steps.at.outputs.queue }}
+          PR: ${{ steps.at.outputs.pr }}
+        run: |
+          set -euo pipefail
+          [ -n "$LAKE_CACHE_KEY" ] || { echo "::error::the environment lake-cache has no secret LAKE_CACHE_KEY"; exit 1; }
+          dir=$RUNNER_TEMP/tauceti
+          [ -d "$dir/staged" ] && [ ! -L "$dir/staged" ] || { echo "::error::the run handed over no directory of Tau Ceti modules"; exit 1; }
+          known=$RUNNER_TEMP/known-tauceti.jsonl
+          rm -f "$known"
+          if [ -f "$dir/from" ] && [ ! -L "$dir/from" ] && [[ $(head -c 100 "$dir/from") =~ ^(pr|queue)\ ([0-9a-f]{40})$ ]]; then
+            case ${BASH_REMATCH[1]} in pr) at=$PR ;; queue) at=$QUEUE ;; esac
+            if [ -n "$at" ] && curl -q -sf --connect-timeout 5 --max-time 60 -o "$known" "$at/${BASH_REMATCH[2]}.tauceti.jsonl"; then
+              echo "the Tau Ceti mappings at ${BASH_REMATCH[2]} name the archives that are taken to be in the bucket"
+            else
+              rm -f "$known"
+            fi
+          fi
+          printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
+            timeout 10m .github/cache-upload.sh "$dir/staged" "$ARTIFACTS" "$MAPPINGS.tauceti.jsonl" "$known"

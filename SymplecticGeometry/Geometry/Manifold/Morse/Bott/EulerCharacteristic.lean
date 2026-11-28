@@ -9,6 +9,7 @@ public import Mathlib.Algebra.Field.ZMod
 public import TauCeti.Geometry.Manifold.Morse.Bott.Inequalities
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
 import SymplecticGeometry.Geometry.Manifold.Morse.BettiNumber
+import TauCeti.Algebra.BigOperators.AlternatingSum
 
 /-!
 # The Euler characteristic of a manifold from a Morse–Bott function
@@ -18,9 +19,11 @@ compact boundaryless manifold `M`, the piece `S j` having Morse index `r j`. The
 `χ(M) = ∑ⱼ (-1)^{r j} χ(S j)`. This is Euler's equality for Morse–Bott functions in
 characteristic two, Tau Ceti's
 `TauCeti.IsMorseBottFamily.sum_range_neg_one_pow_mul_bettiNumber_eq_sum` over `ZMod 2`, read
-through the Euler–Poincaré formula `TauCeti.eulerChar_eq_sum_range_bettiNumber` for `M` and for
-each piece, in a degree large enough for all of them. Working over `ZMod 2` needs no orientation
-of the negative normal bundles.
+through the Euler–Poincaré formula: `TauCeti.eulerChar_eq_sum_range_bettiNumber` for `M`, in a
+degree large enough for all the pieces, and `TauCeti.eulerChar_eq_finsum_finrank_singularHomology`
+for each piece, whose shifted alternating sum Tau Ceti's
+`TauCeti.sum_range_ite_neg_one_pow_mul_eq_neg_one_pow_mul_finsum` evaluates. Working over
+`ZMod 2` needs no orientation of the negative normal bundles.
 
 ## Main results
 
@@ -69,15 +72,17 @@ theorem eulerChar_eq_sum [FiniteCWType M] [∀ j, FiniteCWType (S j)] (h : IsMor
   rw [eulerChar_eq_sum_range_bettiNumber I (ZMod 2) (n := n) (Nat.le_add_right _ _),
     h.sum_range_neg_one_pow_mul_bettiNumber_eq_sum (ZMod 2) rfl hr (Nat.le_add_right _ _)]
   push_cast
-  simp_rw [Finset.sum_filter, Finset.mul_sum]
+  simp_rw [Finset.sum_filter, Finset.mul_sum, mul_ite, mul_zero]
   rw [Finset.sum_comm]
   refine Finset.sum_congr rfl fun j _ ↦ ?_
   -- The degrees below `r j` do not contribute; shift the others down by `r j`.
-  rw [eulerChar_eq_sum_range_bettiNumber (J j) (ZMod 2) (n := n - r j) (by have := hle j; omega),
-    show n + 1 = r j + (n - r j + 1) by have := hle j; omega, Finset.sum_range_add,
-    Finset.sum_eq_zero fun k hk ↦ by simp [Finset.mem_range.1 hk], zero_add, Finset.mul_sum]
-  refine Finset.sum_congr rfl fun k _ ↦ ?_
-  simp [pow_add, mul_assoc]
+  rw [sum_range_ite_neg_one_pow_mul_eq_neg_one_pow_mul_finsum
+      (t := fun m ↦ (bettiNumber (ZMod 2) (S j) m : ℤ)) (N := finrank ℝ (E' j) + 1)
+      (fun m hm ↦ by
+        rw [bettiNumber_eq_zero_of_finrank_lt (S j) (J j) (ZMod 2) (by omega), Nat.cast_zero])
+      (by have := hle j; omega),
+    eulerChar_eq_finsum_finrank_singularHomology (S j) (ZMod 2)]
+  simp_rw [bettiNumber_def]
 
 end IsMorseBottFamily
 

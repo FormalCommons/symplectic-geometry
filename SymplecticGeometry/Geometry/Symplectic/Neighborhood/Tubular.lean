@@ -118,7 +118,7 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   have heq (q : Q) : σ₁.val (g q) = σ₀.val (g q) := by
     rw [hg q]
     exact SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq ψ'.contMDiff _ _ (A q)
-      (hω₀.isNondegenerate.isSymplectomorphism_mpullback_subtype_val hω₁.isNondegenerate
+      (hω₀.isNondegenerate.isSymplectomorphism_mpullback_subtypeVal hω₁.isNondegenerate
         (hψ'f q) (A q) (hAω q)) rfl (hψ'd q)
   obtain ⟨V₀, V₁, χ, hχf, hχ⟩ := g.exists_diffeomorph_opens_of_eq_along
     (hω₀.isClosed.mpullback _ _) ((hω₁.isClosed.mpullback _ _).mpullback _ _)
