@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Congr
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
+public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
+public import Mathlib.Topology.Homotopy.Equiv
 public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Trivialization
 import SymplecticGeometry.Geometry.Diffeomorphism.Orientation
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
@@ -16,13 +18,18 @@ import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.Topology.Algebra.CliffordAlgebra.Spin.UniversalCover
 import TauCeti.Topology.Algebra.OrthogonalGroup
 import TauCeti.Topology.Algebra.UnitaryGroup
+import TauCeti.Topology.Homotopy.DeformationRetract
 
 /-!
-# Diffeomorphisms of the round 2-sphere
+# Diffeomorphisms of the round 2-sphere and Smale's theorem
 
 The group `Diff⁺(S²)` of `ComplexStructure.lean` is a group of diffeomorphisms of the Riemann
-sphere `OnePoint ℂ`. This file carries it, and its rotations, to the unit sphere `S²` of
-`EuclideanSpace ℝ (Fin 3)`, by conjugation along a fixed diffeomorphism.
+sphere `OnePoint ℂ`. This file deforms it onto its rotations, and carries it, its rotations and
+the deformation to the unit sphere `S²` of `EuclideanSpace ℝ (Fin 3)`, by conjugation along a
+fixed diffeomorphism. This proves Smale's theorem: `SO(3)` is a strong deformation retract of
+`Diff⁺(S²)`.
+
+## The round sphere and its rotations
 
 * `SymplecticGeometry.roundSphereDiffeomorph`: Tau Ceti's diffeomorphism
   `OnePoint.diffeomorphSphere v ι` for the north pole `v = (0, 0, 1)` and the isometry
@@ -46,9 +53,40 @@ sphere `OnePoint ℂ`. This file carries it, and its rotations, to the unit sphe
   (`SymplecticGeometry.range_specialOrthogonalGroup_le_roundDiffPlus`, a case of
   `TauCeti.range_orthogonalToDiffSphere_specialOrthogonalGroup_le`).
 
+## The deformation onto the rotations
+
+* `SymplecticGeometry.diffPlusPolarHomotopy`: for a covering frame system giving the tame almost
+  complex structures `𝒥` their `C^∞` topology, the deformation of `Diff⁺(S²)` onto the
+  rotations of the Riemann sphere. With `Φ : Diff⁺(S²) ≃ₜ 𝒥 × mobiusSubgroup` the trivialization
+  `SymplecticGeometry.diffPlusTrivialization`, `c` the contraction
+  `SymplecticGeometry.complexStructureContraction` of `𝒥` onto `i` and `m` the polar homotopy
+  `SymplecticGeometry.mobiusPolarHomotopy` of the Möbius group, it is
+  `(t, φ) ↦ Φ⁻¹ (c_t (Φ φ).1, m_t (Φ φ).2)`. It fixes the rotations, since `Φ g = (i, g)` for a
+  Möbius transformation `g`, and ends in them, since `σ(i) = 1`
+  (`SymplecticGeometry.uniformizingDiffeomorph_ofComplexManifold`). Its end map is
+  `SymplecticGeometry.diffPlusPolarRetraction`.
+* `SymplecticGeometry.roundDiffPlusPolarHomotopy`: the same deformation, carried to the round
+  sphere by `SymplecticGeometry.diffPlusHomeomorphRoundDiffPlus`, for the frame system of the
+  trivializations of the endomorphism bundle of `TS²` at the points of the sphere.
+* `SymplecticGeometry.exists_homotopyRel_specialOrthogonal_roundDiffPlus`: Smale's theorem.
+* `SymplecticGeometry.specialOrthogonalHomotopyEquivRoundDiffPlus`: the inclusion of `SO(3)` in
+  `roundDiffPlus` is a homotopy equivalence, by Tau Ceti's
+  `ContinuousMap.HomotopyEquiv.ofDeformationRetraction`. Its homotopy inverse is the retraction,
+  read in `SO(3)` through the embedding
+  `TauCeti.isEmbedding_orthogonalToDiffSphere_comp_inclusion` (a continuous injection of the
+  compact group `SO(3)` into the Hausdorff group of diffeomorphisms).
+* `SymplecticGeometry.pathConnectedSpace_roundDiffPlus` and
+  `SymplecticGeometry.roundDiffPlusFundamentalGroupMulEquiv`: `roundDiffPlus` is path connected,
+  and its fundamental group at the identity is `ℤ/2ℤ`, from Tau Ceti's
+  `TauCeti.Matrix.instPathConnectedSpaceSpecialOrthogonalGroup`,
+  `ContinuousMap.HomotopyEquiv.fundamentalGroupMulEquiv` and
+  `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`.
+
 ## References
 
-* [S. Smale, *Diffeomorphisms of the 2-sphere*][Smale1959] (the round sphere and its rotations).
+* [S. Smale, *Diffeomorphisms of the 2-sphere*][Smale1959], Theorems A and 6 (the statement).
+* [C. J. Earle, J. Eells, *The diffeomorphism group of a compact Riemann
+  surface*][EarleEells1967], Theorem 1 (a) (the route through complex structures).
 -/
 
 public section
@@ -173,6 +211,24 @@ theorem range_specialOrthogonalGroup_le_roundDiffPlus :
       (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)).range ≤ roundDiffPlus :=
   range_orthogonalToDiffSphere_specialOrthogonalGroup_le _ _
 
+open scoped TauCeti.DiffeomorphWeakWhitney in
+/-- The restriction of orthogonal transformations of `ℝⁿ⁺¹` to the unit sphere embeds `O(n + 1)`
+in the diffeomorphism group of `Sⁿ` with the weak Whitney topology: the map is continuous and
+injective, `O(n + 1)` is compact and the diffeomorphism group is Hausdorff. -/
+theorem _root_.TauCeti.isEmbedding_orthogonalToDiffSphere (n : ℕ) (m : ℕ∞ω) :
+    Topology.IsEmbedding (orthogonalToDiffSphere n m) :=
+  ((continuous_orthogonalToDiffSphere n m).isClosedEmbedding
+    (orthogonalToDiffSphere_injective n m)).isEmbedding
+
+open scoped TauCeti.DiffeomorphWeakWhitney in
+/-- The restriction of rotations of `ℝⁿ⁺¹` to the unit sphere embeds `SO(n + 1)` in the
+diffeomorphism group of `Sⁿ` with the weak Whitney topology. -/
+theorem _root_.TauCeti.isEmbedding_orthogonalToDiffSphere_comp_inclusion (n : ℕ) (m : ℕ∞ω) :
+    Topology.IsEmbedding ((orthogonalToDiffSphere n m).comp
+      (Submonoid.inclusion (specialUnitaryGroup_le_unitaryGroup (n := Fin (n + 1)) (α := ℝ)))) :=
+  (isEmbedding_orthogonalToDiffSphere n m).comp
+    (Topology.IsEmbedding.inclusion specialUnitaryGroup_le_unitaryGroup)
+
 /-! ### The deformation of `Diff⁺` of the Riemann sphere onto the rotations -/
 
 section DiffPlus
@@ -284,6 +340,7 @@ private theorem mem_frameDomain (x : OnePoint ℂ) : ∃ y, x ∈ frameDomain y 
 `roundDiffPlus`. -/
 noncomputable def diffPlusHomeomorphRoundDiffPlus : diffPlus ≃ₜ roundDiffPlus :=
   (Diffeomorph.diffCongrContinuousMulEquiv roundSphereDiffeomorph).toHomeomorph.subtype fun φ ↦ by
+    -- A `ContinuousMulEquiv` and its homeomorphism have the same underlying map.
     have h : (Diffeomorph.diffCongrContinuousMulEquiv roundSphereDiffeomorph).toHomeomorph φ =
         Diffeomorph.diffCongr roundSphereDiffeomorph φ :=
       Diffeomorph.diffCongrContinuousMulEquiv_apply _ φ
@@ -306,6 +363,7 @@ theorem coe_diffPlusHomeomorphRoundDiffPlus_symm_apply (φ : roundDiffPlus) :
       (Diffeomorph.diffCongr roundSphereDiffeomorph).symm φ := by
   rw [Diffeomorph.diffCongr_symm, ← Diffeomorph.diffCongrContinuousMulEquiv_apply,
     ← Diffeomorph.diffCongrContinuousMulEquiv_symm]
+  -- The inverse of a `ContinuousMulEquiv` and that of its homeomorphism have the same map.
   rfl
 
 /-- The retraction of `roundDiffPlus` onto the rotations `SO(3)`: the retraction
@@ -367,20 +425,16 @@ theorem exists_homotopyRel_specialOrthogonal_roundDiffPlus :
           (rotationHom).range}) :=
   ⟨_, coe_roundDiffPlusPolarRetraction_mem_range, ⟨roundDiffPlusPolarHomotopy⟩⟩
 
-/-- The restriction of `SO(3)` to the unit sphere is an embedding into the diffeomorphism group:
-it is continuous and injective, `SO(3)` is compact and the diffeomorphism group is Hausdorff. -/
-theorem isEmbedding_specialOrthogonalGroup_toDiffSphere :
-    Topology.IsEmbedding (rotationHom) := by
-  refine (Continuous.isClosedEmbedding ?_ ?_).isEmbedding
-  · exact (continuous_orthogonalToDiffSphere 2 ∞).comp (continuous_subtypeVal.subtype_mk _)
-  · exact (orthogonalToDiffSphere_injective 2 ∞).comp (Submonoid.inclusion_injective _)
 
 /-- The inclusion of `SO(3)` in `roundDiffPlus`, as a continuous map. -/
 noncomputable def specialOrthogonalToRoundDiffPlus :
     C(specialOrthogonalGroup (Fin 3) ℝ, roundDiffPlus) where
   toFun k := ⟨rotationHom k, range_specialOrthogonalGroup_le_roundDiffPlus ⟨k, rfl⟩⟩
-  continuous_toFun := isEmbedding_specialOrthogonalGroup_toDiffSphere.continuous.subtype_mk _
+  continuous_toFun := ((continuous_orthogonalToDiffSphere 2 ∞).comp
+    (continuous_subtypeVal.subtype_mk _)).subtype_mk _
 
+/-- The inclusion of `SO(3)` in `roundDiffPlus` sends a rotation to its restriction to the
+unit sphere. -/
 @[simp]
 theorem coe_specialOrthogonalToRoundDiffPlus_apply (k : specialOrthogonalGroup (Fin 3) ℝ) :
     (specialOrthogonalToRoundDiffPlus k :
@@ -390,20 +444,24 @@ theorem coe_specialOrthogonalToRoundDiffPlus_apply (k : specialOrthogonalGroup (
 /-- The retraction of `roundDiffPlus` onto `SO(3)`, read in `SO(3)`. -/
 noncomputable def roundDiffPlusToSpecialOrthogonal :
     C(roundDiffPlus, specialOrthogonalGroup (Fin 3) ℝ) where
-  toFun φ := isEmbedding_specialOrthogonalGroup_toDiffSphere.toHomeomorph.symm
+  toFun φ := (isEmbedding_orthogonalToDiffSphere_comp_inclusion 2 ∞).toHomeomorph.symm
     ⟨roundDiffPlusPolarRetraction φ, coe_roundDiffPlusPolarRetraction_mem_range φ⟩
   continuous_toFun :=
-    isEmbedding_specialOrthogonalGroup_toDiffSphere.toHomeomorph.symm.continuous.comp
+    (isEmbedding_orthogonalToDiffSphere_comp_inclusion 2 ∞).toHomeomorph.symm.continuous.comp
       ((continuous_subtypeVal.comp roundDiffPlusPolarRetraction.continuous).subtype_mk _)
 
+/-- The retraction of `roundDiffPlus`, read in `SO(3)` and included back, is
+`roundDiffPlusPolarRetraction`. -/
 theorem specialOrthogonalToRoundDiffPlus_roundDiffPlusToSpecialOrthogonal (φ : roundDiffPlus) :
     specialOrthogonalToRoundDiffPlus (roundDiffPlusToSpecialOrthogonal φ) =
       roundDiffPlusPolarRetraction φ := by
   refine Subtype.ext ?_
   rw [coe_specialOrthogonalToRoundDiffPlus_apply]
   exact congrArg Subtype.val
-    (isEmbedding_specialOrthogonalGroup_toDiffSphere.toHomeomorph.apply_symm_apply _)
+    ((isEmbedding_orthogonalToDiffSphere_comp_inclusion 2 ∞).toHomeomorph.apply_symm_apply _)
 
+/-- The retraction of `roundDiffPlus`, read in `SO(3)`, is a left inverse of the inclusion of
+`SO(3)`. -/
 theorem roundDiffPlusToSpecialOrthogonal_specialOrthogonalToRoundDiffPlus
     (k : specialOrthogonalGroup (Fin 3) ℝ) :
     roundDiffPlusToSpecialOrthogonal (specialOrthogonalToRoundDiffPlus k) = k := by
@@ -413,33 +471,28 @@ theorem roundDiffPlusToSpecialOrthogonal_specialOrthogonalToRoundDiffPlus
       ⟨k, rfl⟩).symm
   simp only [roundDiffPlusToSpecialOrthogonal, ContinuousMap.coe_mk, h,
     coe_specialOrthogonalToRoundDiffPlus_apply]
-  exact isEmbedding_specialOrthogonalGroup_toDiffSphere.toHomeomorph_symm_apply k
+  exact (isEmbedding_orthogonalToDiffSphere_comp_inclusion 2 ∞).toHomeomorph_symm_apply k
 
 /-- **`SO(3)` is homotopy equivalent to `Diff⁺(S²)`.** The inclusion of the rotations `SO(3)` in
 the orientation-preserving diffeomorphisms of the unit sphere of `ℝ³` is a homotopy
 equivalence. -/
 noncomputable def specialOrthogonalHomotopyEquivRoundDiffPlus :
-    ContinuousMap.HomotopyEquiv (specialOrthogonalGroup (Fin 3) ℝ) roundDiffPlus where
-  toFun := specialOrthogonalToRoundDiffPlus
-  invFun := roundDiffPlusToSpecialOrthogonal
-  left_inv := by
-    rw [show roundDiffPlusToSpecialOrthogonal.comp specialOrthogonalToRoundDiffPlus =
-      ContinuousMap.id _ from
-        ContinuousMap.ext roundDiffPlusToSpecialOrthogonal_specialOrthogonalToRoundDiffPlus]
-  right_inv := by
-    rw [show specialOrthogonalToRoundDiffPlus.comp roundDiffPlusToSpecialOrthogonal =
-      roundDiffPlusPolarRetraction from
-        ContinuousMap.ext specialOrthogonalToRoundDiffPlus_roundDiffPlusToSpecialOrthogonal]
-    exact ⟨roundDiffPlusPolarHomotopy.toHomotopy.symm⟩
+    ContinuousMap.HomotopyEquiv (specialOrthogonalGroup (Fin 3) ℝ) roundDiffPlus :=
+  .ofDeformationRetraction specialOrthogonalToRoundDiffPlus roundDiffPlusToSpecialOrthogonal
+    roundDiffPlusToSpecialOrthogonal_specialOrthogonalToRoundDiffPlus <| by
+      rw [show specialOrthogonalToRoundDiffPlus.comp roundDiffPlusToSpecialOrthogonal =
+        roundDiffPlusPolarRetraction from
+          ContinuousMap.ext specialOrthogonalToRoundDiffPlus_roundDiffPlusToSpecialOrthogonal]
+      exact ⟨roundDiffPlusPolarHomotopy.toHomotopy.symm⟩
 
 /-- The map of `specialOrthogonalHomotopyEquivRoundDiffPlus` is the inclusion of `SO(3)`. -/
 theorem specialOrthogonalHomotopyEquivRoundDiffPlus_toFun :
     specialOrthogonalHomotopyEquivRoundDiffPlus.toFun = specialOrthogonalToRoundDiffPlus :=
-  (rfl)
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_toFun _ _ _ _
 
 /-- `Diff⁺(S²)` of the round sphere is path connected: it deforms onto the path connected group
 `SO(3)`. -/
-theorem pathConnectedSpace_roundDiffPlus : PathConnectedSpace roundDiffPlus := by
+instance pathConnectedSpace_roundDiffPlus : PathConnectedSpace roundDiffPlus := by
   have h (φ : roundDiffPlus) :
       Joined φ (specialOrthogonalToRoundDiffPlus (roundDiffPlusToSpecialOrthogonal φ)) := by
     rw [specialOrthogonalToRoundDiffPlus_roundDiffPlusToSpecialOrthogonal]
@@ -458,7 +511,8 @@ as that of `SO(3)` is. -/
 noncomputable def roundDiffPlusFundamentalGroupMulEquiv :
     FundamentalGroup roundDiffPlus 1 ≃* Multiplicative (ZMod 2) :=
   ((FundamentalGroup.homeomorphMulEquivOfEq (Homeomorph.refl _)
-      specialOrthogonalToRoundDiffPlus_one.symm).trans
+      (specialOrthogonalHomotopyEquivRoundDiffPlus_toFun ▸
+        specialOrthogonalToRoundDiffPlus_one.symm)).trans
     (specialOrthogonalHomotopyEquivRoundDiffPlus.fundamentalGroupMulEquiv 1).symm).trans
     (specialOrthogonalGroupFundamentalGroupMulEquiv 3 le_rfl)
 
