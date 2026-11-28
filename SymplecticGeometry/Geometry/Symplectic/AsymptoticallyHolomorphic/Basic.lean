@@ -126,6 +126,18 @@ for the metric `σ(·, J ·)` on `M` and `C = max (D.bound 1) 0`
 A lower bound on the flat `∂` of a reading thus becomes a lower bound on the quantity that
 uniform transversality uses.
 
+At the centre `x` itself the pushed-forward structure is `J₀`, so the norm of
+`J.oneZeroPart (powerConnection α k s x) v` is that of the model `∂` of the reading at `0` on the
+image of `v` (`SymplecticGeometry.RescaledUnitaryCharts.norm_oneZeroPart_powerConnection_apply`).
+For the metric `σ(·, J ·)`, the derivative of the chart at its centre is `√(2π k)` times an
+isometry (`SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_chart_apply_self`), so
+`(2π k)^(-1/2) ‖∂ s(x)‖` is the operator norm of that model `∂`
+(`SymplecticGeometry.RescaledUnitaryCharts.rpow_mul_norm_oneZeroPart_powerConnection_eq`). The
+model `∂` is additive, and its norm is at most that of the model connection, which at `0` is the
+derivative of the reading. Hence adding a section `t` to `s` changes the quantity
+`max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` by at most `D.jetNorm k 1 t y`
+(`SymplecticGeometry.RescaledUnitaryCharts.abs_max_norm_add_sub_max_norm_le_jetNorm`).
+
 A sequence
 is uniformly transverse with constant `η`
 (`SymplecticGeometry.IsUniformlyTransverse`) when, for large `k` and every `x`, either `‖s k x‖`
@@ -582,6 +594,40 @@ theorem dbarJetNorm_sum_le {κ : Type*} {k r : ℕ} {x : M} {t : Finset κ}
 
 /-! ### Smoothness and germs of the readings -/
 
+/-- If the readings and the `∂̄` readings at `x` of two sections are smooth at `0`, so are those
+of their sum. -/
+theorem contDiffAt_reading_and_dbarReading_add {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
+    (hs : ContDiffAt ℝ ∞ (D.reading k x s) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x s) 0)
+    (ht : ContDiffAt ℝ ∞ (D.reading k x t) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x t) 0) :
+    ContDiffAt ℝ ∞ (D.reading k x (s + t)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s + t)) 0 := by
+  rw [reading_add]
+  exact ⟨hs.1.add ht.1, (hs.2.add ht.2).congr_of_eventuallyEq (D.dbarReading_add_eventuallyEq
+    (hs.1.eventually_differentiableAt (by exact_mod_cast le_top))
+    (ht.1.eventually_differentiableAt (by exact_mod_cast le_top)))⟩
+
+/-- If the reading and the `∂̄` reading at `x` of a section are smooth at `0`, so are those of
+its complex multiples. -/
+theorem contDiffAt_reading_and_dbarReading_const_smul {k : ℕ} {x : M}
+    {s : Π y, PowerBundle P k y}
+    (hs : ContDiffAt ℝ ∞ (D.reading k x s) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x s) 0) (c : ℂ) :
+    ContDiffAt ℝ ∞ (D.reading k x (c • s)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (c • s)) 0 := by
+  rw [reading_smul, funext (D.dbarReading_smul k x c s)]
+  exact ⟨hs.1.const_smul c, hs.2.const_smul c⟩
+
+/-- If the readings and the `∂̄` readings at `x` of finitely many sections are smooth at `0`, so
+are those of their sum. -/
+theorem contDiffAt_reading_and_dbarReading_sum {κ : Type*} {k : ℕ} {x : M} {t : Finset κ}
+    {s : κ → Π y, PowerBundle P k y}
+    (hs : ∀ i ∈ t, ContDiffAt ℝ ∞ (D.reading k x (s i)) 0 ∧
+      ContDiffAt ℝ ∞ (D.dbarReading k x (s i)) 0) :
+    ContDiffAt ℝ ∞ (D.reading k x (∑ i ∈ t, s i)) 0 ∧
+      ContDiffAt ℝ ∞ (D.dbarReading k x (∑ i ∈ t, s i)) 0 := by
+  refine Finset.sum_induction s (fun u ↦ ContDiffAt ℝ ∞ (D.reading k x u) 0 ∧
+    ContDiffAt ℝ ∞ (D.dbarReading k x u) 0) (fun _ _ ↦ D.contDiffAt_reading_and_dbarReading_add)
+    ?_ hs
+  rw [reading_zero, funext (D.dbarReading_zero k x)]
+  exact ⟨contDiffAt_const, contDiffAt_const⟩
+
 /-- The connection read in the chart is `C^n` at `z` where the reading of the section is
 `C^(n + 1)`. -/
 theorem contDiffAt_connectionReading {n : ℕ∞} {k : ℕ} {x : M}
@@ -793,25 +839,19 @@ holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.const_smul {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : D.IsAsymptoticallyHolomorphic s) (c : ℂ) :
     D.IsAsymptoticallyHolomorphic fun k ↦ c • s k := by
-  refine ⟨hs.1.mono fun k hk x ↦ ?_, fun r ↦ ?_⟩
-  · rw [reading_smul, funext (D.dbarReading_smul k x c (s k))]
-    exact ⟨(hk x).1.const_smul c, (hk x).2.const_smul c⟩
-  · obtain ⟨C, hC⟩ := hs.2 r
-    refine ⟨‖c‖ * C, hC.mono fun k hk x ↦ ?_⟩
-    rw [jetNorm_smul, dbarJetNorm_smul, mul_assoc]
-    exact ⟨by gcongr; exact (hk x).1, by gcongr; exact (hk x).2⟩
+  refine ⟨hs.1.mono fun k hk x ↦ D.contDiffAt_reading_and_dbarReading_const_smul (hk x) c,
+    fun r ↦ ?_⟩
+  obtain ⟨C, hC⟩ := hs.2 r
+  refine ⟨‖c‖ * C, hC.mono fun k hk x ↦ ?_⟩
+  rw [jetNorm_smul, dbarJetNorm_smul, mul_assoc]
+  exact ⟨by gcongr; exact (hk x).1, by gcongr; exact (hk x).2⟩
 
 /-- The **sum of asymptotically holomorphic sequences** is asymptotically holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.add {s t : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : D.IsAsymptoticallyHolomorphic s) (ht : D.IsAsymptoticallyHolomorphic t) :
     D.IsAsymptoticallyHolomorphic fun k ↦ s k + t k := by
-  refine ⟨(hs.1.and ht.1).mono fun k ⟨hks, hkt⟩ x ↦ ?_, fun r ↦ ?_⟩
-  · obtain ⟨hf, hdf⟩ := hks x
-    obtain ⟨hh, hdh⟩ := hkt x
-    rw [reading_add]
-    exact ⟨hf.add hh, (hdf.add hdh).congr_of_eventuallyEq (D.dbarReading_add_eventuallyEq
-      (hf.eventually_differentiableAt (by exact_mod_cast le_top))
-      (hh.eventually_differentiableAt (by exact_mod_cast le_top)))⟩
+  refine ⟨(hs.1.and ht.1).mono fun k ⟨hks, hkt⟩ x ↦
+    D.contDiffAt_reading_and_dbarReading_add (hks x) (hkt x), fun r ↦ ?_⟩
   obtain ⟨Cs, hCs⟩ := hs.2 r
   obtain ⟨Ct, hCt⟩ := ht.2 r
   refine ⟨Cs + Ct,
@@ -903,14 +943,34 @@ theorem norm_zeroOnePart_powerConnection_apply [∀ y, Nonempty (P y)]
     mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
   have h := D.zeroOnePart_powerConnection_chart_symm_apply hα hk hz hs
     (mvfderiv I (D.chart k x) x v)
-  have hv : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chart k x x)
-      (mvfderiv I (D.chart k x) x v) = v := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact (D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) (D.mem_source hk x) v
-  rw [D.apply_self hk x] at hv
-  rw [hv, D.chart_symm_zero hk x] at h
+  rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x] at h
   rw [h, ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), LinearIsometryEquiv.norm_map,
     LinearIsometryEquiv.norm_map]
+
+/-- **`∂ s` at the centre of a chart.** For `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, if the reading of
+`s` in the chart centred at `x` is differentiable at `0`, then the `(1,0)`-part
+`J.oneZeroPart` of `D_k s` at `x`, evaluated on a tangent vector `v`, has the norm of the model
+`∂` `SymplecticGeometry.modelDel` of the reading at `0` evaluated on the image of `v` under the
+derivative of the chart. -/
+theorem norm_oneZeroPart_powerConnection_apply [∀ y, Nonempty (P y)]
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {k : ℕ} (hk : k₀ ≤ k) (hk0 : k ≠ 0) {x : M}
+    {s : Π y, PowerBundle P k y} (hs : DifferentiableAt ℝ (D.reading k x s) 0)
+    (v : TangentSpace I x) :
+    ‖J.oneZeroPart (powerConnection α k s x) v‖ =
+      ‖modelDel (D.reading k x s) 0 (mvfderiv I (D.chart k x) x v)‖ := by
+  have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
+    mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+  have h := D.norm_oneZeroPart_powerConnection_chart_symm_apply hα hk hz hs
+    (mvfderiv I (D.chart k x) x v)
+  -- At the centre, the structure pushed forward by the chart is `J₀`.
+  have hJ : J.chartPushforward (D.chart k x).toOpenPartialHomeomorph 0 =
+      LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap :=
+    ContinuousLinearMap.ext (D.chartPushforward_zero hk x)
+  rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x, hJ,
+    LinearMap.coe_toContinuousLinearMap] at h
+  rw [h, modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
+    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
+    connectionReading_def]
 
 /-! ### The `(1,0)`-part of the connection away from the centre of a chart -/
 
@@ -1067,6 +1127,90 @@ theorem norm_modelDel_reading_le_of_inner_eq
         2⁻¹ * (max (D.bound 1) 0 * ‖z‖ / √k) * ‖D.connectionReading k x s z‖ :=
   D.norm_modelDel_reading_le hα hk hz hs (by positivity) fun v ↦
     (ContinuousLinearMap.le_opNorm _ v).trans_eq (by rw [norm_eq_sqrt_real_inner v, hg])
+
+/-! ### The transversality quantity at the centre of a chart -/
+
+section Riemannian
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- **The derivative of a chart at its centre, for the metric of `(σ, J)`.** Let the metric of
+`M` be `g(u, w) = σ(u, J w)`. For `k₀ ≤ k`, the derivative at `x` of the chart centred at `x`
+multiplies the norm of every tangent vector by `√(2π k)`. -/
+theorem norm_mvfderiv_chart_apply_self
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w)) {k : ℕ}
+    (hk : k₀ ≤ k) (x : M) (v : TangentSpace I x) :
+    ‖mvfderiv I (D.chart k x) x v‖ = √(2 * Real.pi * k) * ‖v‖ := by
+  rw [← Real.sqrt_sq (norm_nonneg _), ← D.eval₂_apply_self_eq_norm_sq hk x v, ← hg,
+    real_inner_self_eq_norm_sq, Real.sqrt_mul (by positivity), Real.sqrt_sq (norm_nonneg _)]
+
+variable [∀ y, Nonempty (P y)]
+
+/-- **The rescaled `∂ s` at the centre of a chart, for the metric of `(σ, J)`.** Let the metric
+of `M` be `g(u, w) = σ(u, J w)`. For `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, if the reading of `s` in
+the chart centred at `x` is differentiable at `0`, then `(2π k)^(-1/2)` times the operator norm
+of the `(1,0)`-part `J.oneZeroPart` of `D_k s` at `x` is the operator norm of the model `∂`
+`SymplecticGeometry.modelDel` of the reading at `0`: the derivative of the chart at its centre is
+`√(2π k)` times an isometry. -/
+theorem rpow_mul_norm_oneZeroPart_powerConnection_eq
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {k : ℕ} (hk : k₀ ≤ k) (hk0 : k ≠ 0) {x : M}
+    {s : Π y, PowerBundle P k y} (hs : DifferentiableAt ℝ (D.reading k x s) 0) :
+    (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s x)‖ =
+      ‖modelDel (D.reading k x s) 0‖ := by
+  have hkpos : (0 : ℝ) < 2 * Real.pi * k := by
+    have : (0 : ℝ) < k := by exact_mod_cast Nat.pos_of_ne_zero hk0
+    positivity
+  have hp : (2 * Real.pi * k) ^ (-1 / 2 : ℝ) = (√(2 * Real.pi * k))⁻¹ := by
+    rw [Real.sqrt_eq_rpow, ← Real.rpow_neg hkpos.le]
+    norm_num
+  refine le_antisymm ?_ ?_
+  · rw [hp, inv_mul_le_iff₀ (Real.sqrt_pos.2 hkpos)]
+    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+    rw [D.norm_oneZeroPart_powerConnection_apply hα hρ₀ hk hk0 hs]
+    calc _ ≤ ‖modelDel (D.reading k x s) 0‖ * ‖mvfderiv I (D.chart k x) x v‖ :=
+          ContinuousLinearMap.le_opNorm _ _
+      _ = _ := by rw [D.norm_mvfderiv_chart_apply_self hg hk]; ring
+  · have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
+      mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+    have h := D.norm_modelDel_reading_le_of_inner_eq hg hα hk hz hs
+    rwa [D.chart_symm_zero hk x, norm_zero, mul_zero, zero_div, add_zero, one_mul, mul_zero,
+      zero_mul, add_zero] at h
+
+/-- **Stability of the transversality quantity.** Let the metric of `M` be
+`g(u, w) = σ(u, J w)`, let `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, and let `s` and `t` be sections of
+`PowerBundle P k` whose readings in the chart centred at `y` are differentiable at `0`. Then the
+quantity `max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` of `SymplecticGeometry.IsUniformlyTransverse`, with
+`∂ s(y)` the `(1,0)`-part `J.oneZeroPart` of `D_k s` at `y`, changes by at most the `1`-jet norm
+`D.jetNorm k 1 t y` when `t` is added to `s`. -/
+theorem abs_max_norm_add_sub_max_norm_le_jetNorm
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {k : ℕ} (hk : k₀ ≤ k) (hk0 : k ≠ 0) {y : M}
+    {s t : Π y, PowerBundle P k y} (hs : DifferentiableAt ℝ (D.reading k y s) 0)
+    (ht : DifferentiableAt ℝ (D.reading k y t) 0) :
+    |max ‖(s + t) y‖
+        ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k (s + t) y)‖) -
+      max ‖s y‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k s y)‖)| ≤
+      D.jetNorm k 1 t y := by
+  have hst : DifferentiableAt ℝ (D.reading k y (s + t)) 0 := by
+    rw [reading_add]
+    exact hs.add ht
+  rw [D.rpow_mul_norm_oneZeroPart_powerConnection_eq hg hα hρ₀ hk hk0 hst,
+    D.rpow_mul_norm_oneZeroPart_powerConnection_eq hg hα hρ₀ hk hk0 hs, reading_add,
+    modelDel_add hs ht]
+  refine (abs_max_sub_max_le_max _ _ _ _).trans (max_le ?_ ?_)
+  · rw [Pi.add_apply]
+    refine (abs_norm_sub_norm_le _ _).trans ?_
+    rw [add_sub_cancel_left, ← D.jetNorm_zero hk t y]
+    exact D.jetNorm_mono k t y zero_le_one
+  · refine (abs_norm_sub_norm_le _ _).trans ?_
+    rw [add_sub_cancel_left, jetNorm_def]
+    refine (norm_modelDel_le _ _).trans ?_
+    rw [modelConnection_zero_eq_fderiv]
+    exact norm_fderiv_le_jetNormAt le_rfl _ _
+
+end Riemannian
 
 end RescaledUnitaryCharts
 

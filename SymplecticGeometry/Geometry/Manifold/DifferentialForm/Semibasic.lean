@@ -57,6 +57,8 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   `φ` semibasic for `f` with a two-form `ψ` that vanishes on pairs of vectors of the kernel of the
   differential of `f` vanishes on every triple whose first two vectors lie in that kernel. It is
   the case `K = ker (mfderiv f x)` of `ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem`.
+  So `φ ∧ ψ` there depends only on the values of `ψ` on such pairs
+  (`TauCeti.RoughForm.IsSemibasicAt.wedge_apply_eq_of_forall_apply_eq`).
 * `TauCeti.RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp`: the differential of `g ∘ f`, a
   function on `B` pulled back along `f`, is semibasic for `f`, a case of
   `TauCeti.RoughForm.isSemibasicAt_mpullback` (in `Pullback/Descent.lean`); and
@@ -344,6 +346,22 @@ theorem IsSemibasicAt.wedge_apply_eq_zero {φ : RoughForm I M ℝ 1} {ψ : Rough
   exact ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem _ _
     (K := (mfderiv I IB f x).ker) (fun u hu ↦ hφ.apply_eq_zero _ 0 hu)
     (fun u hu w hw ↦ hψ u w hu hw) h₁ h₂ v
+
+/-- At `x`, on triples whose first two vectors lie in the kernel of the differential of `f`, the
+wedge `φ ∧ ψ` of a one-form `φ` semibasic for `f` with a two-form `ψ` depends only on the values
+of `ψ x` on pairs of vectors of that kernel: two-forms `ψ₁` and `ψ₂` that agree there give the
+same value. -/
+theorem IsSemibasicAt.wedge_apply_eq_of_forall_apply_eq {φ : RoughForm I M ℝ 1}
+    {ψ₁ ψ₂ : RoughForm I M ℝ 2} {x : M} (hφ : IsSemibasicAt IB f φ x)
+    (hψ : ∀ u w : TangentSpace I x, mfderiv I IB f x u = 0 → mfderiv I IB f x w = 0 →
+      ψ₁ x ![u, w] = ψ₂ x ![u, w])
+    {η₁ η₂ : TangentSpace I x} (h₁ : mfderiv I IB f x η₁ = 0) (h₂ : mfderiv I IB f x η₂ = 0)
+    (v : TangentSpace I x) : φ.wedge ψ₁ x ![η₁, η₂, v] = φ.wedge ψ₂ x ![η₁, η₂, v] := by
+  have hsub : ∀ u w : TangentSpace I x, mfderiv I IB f x u = 0 → mfderiv I IB f x w = 0 →
+      (ψ₁ - ψ₂) x ![u, w] = 0 := fun u w hu hw ↦ by
+    rw [Pi.sub_apply, ContinuousAlternatingMap.sub_apply, hψ u w hu hw, sub_self]
+  rw [← sub_add_cancel ψ₁ ψ₂, wedge_add_right, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+    hφ.wedge_apply_eq_zero hsub h₁ h₂ v, zero_add]
 
 end Wedge
 
