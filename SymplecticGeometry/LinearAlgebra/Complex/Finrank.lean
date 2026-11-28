@@ -24,8 +24,8 @@ so this file states the dimension in the form `2 * r + 1 + 1`.
 * `Complex.fact_finrank_real_eq_two_mul_finrank`: the real dimension of a complex vector space
   `E` is twice its complex dimension, Mathlib's `finrank_real_of_complex`, as a `Fact`: the form
   in which complex structures on vector bundles with model fibre `E` take it.
-* `Complex.finrank_real_complex_eq_two_mul_finrank_fact`: its case `E = ℂ`, which files on
-  complex structures with model fibre `ℂ` make a local instance.
+* `Complex.two_mul_finrank_self`: `2 * finrank ℂ ℂ = 1 + 1`, which identifies the index type
+  `Fin (2 * finrank ℂ ℂ)` of real orientations of `ℂ` with `Fin 2`.
 * `Complex.finrank_real_eq_finrank_pi_succ_sub`: the real dimension `2` of `ℂ` is the difference
   of the real dimensions of `Fin (n + 1) → ℂ` and `Fin n → ℂ`.
 * `Complex.finrank_real_eq_finrank_prod_sub`: it is also the difference of the real dimensions
@@ -52,12 +52,9 @@ theorem fact_finrank_real_eq_two_mul_finrank (E : Type*) [AddCommGroup E] [Modul
     Fact (finrank ℝ E = 2 * finrank ℂ E) :=
   ⟨finrank_real_of_complex E⟩
 
-/-- The real dimension of `ℂ` is twice its complex dimension: the dimension convention of
-complex structures on vector bundles with model fibre `ℂ`, as a `Fact` to enable locally as an
-instance. -/
-theorem finrank_real_complex_eq_two_mul_finrank_fact :
-    Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) :=
-  fact_finrank_real_eq_two_mul_finrank ℂ
+/-- Twice the complex dimension of `ℂ` is `1 + 1`. -/
+theorem two_mul_finrank_self : 2 * finrank ℂ ℂ = 1 + 1 := by
+  rw [finrank_self]
 
 /-- The real dimension `2` of `ℂ` is the difference of the real dimensions of `Fin (n + 1) → ℂ`
 and `Fin n → ℂ`. -/

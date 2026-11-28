@@ -14,6 +14,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Moser's correction of a family of balls
@@ -180,7 +181,7 @@ private theorem exists_isSymplecticBallFamily_of_diffeotopy [FiniteDimensional �
         x.property).contMDiffAt (B.isOpen.mem_nhds x.property)).mdifferentiableAt (by simp)
     rw [← mpullback_subtype_val_apply (U := B)
       (mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ k' (t, z)) σ.val) x,
-      ← mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero) hd,
+      ← mpullback_comp_at mdifferentiableAt_subtypeVal hd,
       show (fun z ↦ k' (t, z)) ∘ Subtype.val = fun x : B ↦ k (t, χ (t, x)) from
         funext (hk'B t)]
     exact hO t x hxO
@@ -233,7 +234,7 @@ theorem exists_isSymplecticBallFamily_eqOn_of_mpullback_eq
         (hBU x.property)).contMDiffAt (hU.mem_nhds (hBU x.property))).mdifferentiableAt
           (by simp)
     rw [show (fun x ↦ κ (t, x)) = (fun z ↦ k (t, z)) ∘ Subtype.val from rfl,
-      mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero) hkt,
+      mpullback_comp_at mdifferentiableAt_subtypeVal hkt,
       mpullback_subtype_val_apply]
     exact h
   -- The primitives `β_t` of `κ_t^* σ - ω₀`.

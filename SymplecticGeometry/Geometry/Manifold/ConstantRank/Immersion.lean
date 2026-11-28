@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.Immersion.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # A map of constant rank as an immersion
@@ -110,7 +111,7 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
   · rw [hι]
     exact contMDiff_subtype_iff.2 (hg (e i)) u
   · rw [mfderiv_sigma, hι, mfderiv_comp u (hgd (e i) u.property)
-      ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero), mfderiv_subtype_val]
+      mdifferentiableAt_subtypeVal, mfderiv_subtype_val]
     exact (hgi (e i) u u.property).comp (tangentSpaceOpenEquiv u).injective
   · ext z
     constructor

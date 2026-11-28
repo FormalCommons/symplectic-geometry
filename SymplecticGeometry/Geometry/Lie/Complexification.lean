@@ -676,16 +676,12 @@ private theorem lieHomC_injective : Injective lieHomC :=
 /-- The imaginary part of `lieHomC`, a linear isomorphism from the Lie algebra of `Circle` to
 `ℝ`. -/
 private def imLieHom : EuclideanSpace ℝ (Fin 1) ≃ₗ[ℝ] ℝ :=
-  LinearEquiv.ofBijective (imLm ∘ₗ lieHomC) <| by
-    have hinj : Injective (imLm ∘ₗ lieHomC) := fun ξ η h ↦
-      lieHomC_injective (Complex.ext (by rw [re_lieHomC, re_lieHomC]) h)
-    refine ⟨hinj, ?_⟩
-    rwa [← LinearMap.injective_iff_surjective_of_finrank_eq_finrank]
-    simp
+  (imLm ∘ₗ lieHomC).linearEquivOfInjective
+    (fun ξ η h ↦ lieHomC_injective (Complex.ext (by rw [re_lieHomC, re_lieHomC]) h)) (by simp)
 
 private theorem imLieHom_apply (ξ : EuclideanSpace ℝ (Fin 1)) :
     imLieHom ξ = (lieHomC ξ).im :=
-  (rfl)
+  LinearMap.linearEquivOfInjective_apply _ _ ξ
 
 private theorem lieHomC_eq (ξ : EuclideanSpace ℝ (Fin 1)) :
     lieHomC ξ = (imLieHom ξ : ℂ) * I := by
