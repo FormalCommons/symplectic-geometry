@@ -92,10 +92,11 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
     {x : ManifoldTotalSpace G P}
     (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ e.baseSet) (g : G) :
     TauCeti.mpullback (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y)
-      (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
-        RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x =
-      RoughForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
-        (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val) x := by
+      (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+        (leftMaurerCartanForm IG G).val) x =
+      RoughForm.mapCoeff (show EG →L[ℝ] EG from adjointContinuousLinearMap (I := IG) g⁻¹)
+        (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+          (leftMaurerCartanForm IG G).val) x := by
   have hR :=
     (SmoothForm.mpullback_eq_iff _).1 (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
   rw [SmoothForm.coe_mapCoeff] at hR
@@ -109,8 +110,8 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
     {x : ManifoldTotalSpace G P}
     (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ e.baseSet)
     (ξ : GroupLieAlgebra IG G) :
-    (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
-        RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x
+    (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+        (leftMaurerCartanForm IG G).val) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
   rw [mpullback_apply_one, e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ,
     leftMaurerCartanForm_apply_mulInvariantVectorField]
@@ -158,7 +159,9 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
       (hθ b) (hρ.mem_of_mem_finsupport hb) g) v
     rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
-    rw [map_smul, ← h]
+    rw [map_smul]
+    -- `h` is stated in the model space `EG`, the goal in the Lie algebra; they agree by definition.
+    exact congrArg (ρ b (p x) • ·) h
   · rw [hA]
     exact ρ.sum_finsupport_smul_eq_of_forall_eq (Set.mem_univ _)
       fun b hb ↦ mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField
