@@ -11,7 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import Mathlib.Geometry.Manifold.VectorBundle.Hom
 import all TauCeti.Topology.VectorBundle.Complex.Structure
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousLinearEquiv
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Invertible
 
 /-!

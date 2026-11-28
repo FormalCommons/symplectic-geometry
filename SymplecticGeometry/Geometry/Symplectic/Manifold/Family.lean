@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.NondegenerateMetric.Basic
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.Pullback
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Topology.Compactness.Compact
+import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -55,9 +56,9 @@ point thus gives one `K₀` such that `τ + K f^* β` is nondegenerate on all of
 * `TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`: in finite
   dimensions, for two-forms `σ₀`, `σ` on `M × N` with `M` compact, the set of pairs `(s, y)` of
   `ℝ × N` such that `σ₀ + s σ` is nondegenerate at every point of `M × {y}` is open.
-* `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`,
-  `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq`: at a point where `σ₀` and
-  `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` has the bilinear form of `σ₀`.
+* `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq`: at a point where `σ₀` and
+  `σ₁` agree and `σ₀` is nondegenerate, every form `σ₀ + s (σ₁ - σ₀)` is nondegenerate, by
+  Tau Ceti's `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk`: for a
   fixed nondegenerate `σ`, the fields `(σ♭)⁻¹ α_t` of a smooth family of one-forms `α_t` depend
   smoothly on `(t, x)`.
@@ -76,8 +77,7 @@ The proofs of `isOpen_setOfPred_isInvertible_flat_mpullback_prodMk` and
 `exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
 section along a projection, the invertible ones form an open set, and the tube lemma passes to
-the compact parameter interval. `bilinFormAt_add_smul_sub_of_eq` is Tau Ceti's private lemma of
-the same name in that file, with the same proof.
+the compact parameter interval.
 
 The passage from the open set to a bound `K₀` follows this library's
 `LinearMap.BilinForm.exists_forall_ge_nondegenerate_add_smul_comp`
@@ -196,22 +196,12 @@ theorem isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul [FiniteDimens
   exact isOpen_forall_prodMk_mem continuous_id
     (hO.preimage (continuous_fst.fst.prodMk (continuous_snd.prodMk continuous_fst.snd)))
 
-/-- At a point where `σ₀` and `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` of the line through them
-has the bilinear form of `σ₀`. -/
-theorem bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoForm I M} {x : M}
-    (h : (σ₁ - σ₀).val x = 0) (s : ℝ) :
-    (σ₀ + s • (σ₁ - σ₀)).bilinFormAt x = σ₀.bilinFormAt x := by
-  ext v w
-  simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
-    SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply, h, smul_zero,
-    add_zero]
-
 /-- At a point where `σ₀` and `σ₁` agree and `σ₀` is nondegenerate, every form
 `σ₀ + s (σ₁ - σ₀)` of the line through them is nondegenerate. -/
 theorem nondegenerate_bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoForm I M} {x : M}
     (h : (σ₁ - σ₀).val x = 0) (hσ₀ : (σ₀.bilinFormAt x).Nondegenerate) (s : ℝ) :
     ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate := by
-  rw [bilinFormAt_add_smul_sub_of_eq h s]
+  rw [bilinFormAt_add_smul_sub_of_eq (sub_eq_zero.mp h) s]
   exact hσ₀
 
 /-- **Inverse flat maps of a fixed nondegenerate two-form along a family of one-forms.** For a
