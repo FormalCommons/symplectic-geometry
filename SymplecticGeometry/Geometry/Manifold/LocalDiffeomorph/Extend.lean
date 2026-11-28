@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Extension
 
 /-!
@@ -114,17 +115,12 @@ theorem exists_localDiffeomorph_extend {u : F → M} {ι : F →L[ℝ] V} (hι :
 omit [FiniteDimensional ℝ E] in
 /-- **Centred charts.** Every point `x₀` of a boundaryless manifold lies in the source of a smooth
 partial diffeomorphism into the model space which sends `x₀` to `0`: the extended chart at `x₀`
-followed by a translation. -/
+followed by the translation by `-extChartAt I x₀ x₀` (`PartialDiffeomorph.transSubRight`). -/
 theorem exists_partialDiffeomorph_apply_eq_zero (x₀ : M) :
     ∃ c : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, x₀ ∈ c.source ∧ c x₀ = 0 := by
-  let a := extChartAt I x₀ x₀
-  let τ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E ∞ :=
-    PartialDiffeomorph.ofOpenPartialHomeomorph (Homeomorph.addRight (-a)).toOpenPartialHomeomorph
-      (by simpa using (contDiff_id.add contDiff_const : ContDiff ℝ ∞ fun v : E ↦ v + -a).contDiffOn)
-      (by simpa [Homeomorph.addRight_symm] using
-        (contDiff_id.add contDiff_const : ContDiff ℝ ∞ fun v : E ↦ v + a).contDiffOn)
-  refine ⟨(extChartPartialDiffeomorph I ∞ x₀).trans τ, ?_, ?_⟩
-  · simp [τ, mem_extChartPartialDiffeomorph_source, BoundarylessManifold.isInteriorPoint]
-  · simp [τ, coe_extChartPartialDiffeomorph, a]
+  refine ⟨(extChartPartialDiffeomorph I ∞ x₀).transSubRight (extChartAt I x₀ x₀), ?_, ?_⟩
+  · rw [PartialDiffeomorph.transSubRight_source, mem_extChartPartialDiffeomorph_source]
+    exact BoundarylessManifold.isInteriorPoint
+  · rw [PartialDiffeomorph.transSubRight_apply, coe_extChartPartialDiffeomorph, sub_self]
 
 end SymplecticGeometry
