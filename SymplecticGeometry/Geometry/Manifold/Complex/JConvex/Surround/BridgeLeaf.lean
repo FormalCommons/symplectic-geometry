@@ -270,10 +270,10 @@ theorem struweLineShape_eq_linear (hδ : 0 < δ) {r : ℝ} (hr : 9 * δ / 2 ≤ 
   rw [struweLineShape_def]
   exact smoothedMax_eq_right (by positivity) (struweShape_add_le_linear hδ hr)
 
-/-- For `δ > 0`, the Struwe/line shape is smooth on `(δ, ∞)`. -/
-theorem contDiffOn_struweLineShape (hδ : 0 < δ) :
-    ContDiffOn ℝ ∞ (struweLineShape δ) (Ioi δ) := by
-  have h : ContDiffOn ℝ ∞ (fun r ↦ (struweShape δ 4 0 r, 2 * r - 8 * δ)) (Ioi δ) :=
+/-- For `δ > 0`, the Struwe/line shape is `Cⁿ` on `(δ, ∞)`, for every `n`. -/
+theorem contDiffOn_struweLineShape {n : ℕ∞} (hδ : 0 < δ) :
+    ContDiffOn ℝ n (struweLineShape δ) (Ioi δ) := by
+  have h : ContDiffOn ℝ n (fun r ↦ (struweShape δ 4 0 r, 2 * r - 8 * δ)) (Ioi δ) :=
     (contDiffOn_struweShape hδ (by norm_num) 0).prodMk (by fun_prop)
   exact (contDiff_smoothedMax (δ / 4)).comp_contDiffOn h
 
@@ -383,8 +383,7 @@ theorem isConvexShapeAt_struweLineShape_add (hδ : 0 < δ) {t r : ℝ} (hr : δ 
     simp
   rw [e]
   refine isConvexShapeAt_smoothedMax
-    (((contDiffOn_struweShape hδ (by norm_num) t).contDiffAt (Ioi_mem_nhds hr)).of_le
-      (by simp))
+    ((contDiffOn_struweShape hδ (by norm_num) t).contDiffAt (Ioi_mem_nhds hr))
     (by fun_prop) (by positivity) (hTc hr₉ hle) (hLc hr₇) ?_
   rw [hdl]
   nlinarith
@@ -465,8 +464,7 @@ theorem bridgeLeaf_le_add_or_eq {η : ℝ} (hη : 0 < η) (G : ℝ → ℝ) (t r
 `(δ, ∞)`. -/
 theorem contDiffOn_bridgeLeaf {n : ℕ∞} (hδ : 0 < δ) (η : ℝ) {G : ℝ → ℝ}
     (hG : ContDiffOn ℝ n G (Ioi δ)) (t : ℝ) : ContDiffOn ℝ n (bridgeLeaf δ η G t) (Ioi δ) := by
-  have hS : ContDiffOn ℝ n (struweLineShape δ) (Ioi δ) :=
-    (contDiffOn_struweLineShape hδ).of_le (by exact_mod_cast le_top)
+  have hS : ContDiffOn ℝ n (struweLineShape δ) (Ioi δ) := contDiffOn_struweLineShape hδ
   have h : ContDiffOn ℝ n (fun r ↦ (G r, struweLineShape δ r + t)) (Ioi δ) :=
     hG.prodMk (hS.add contDiffOn_const)
   exact (contDiff_smoothedMax η).comp_contDiffOn h
@@ -489,7 +487,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
   have hAc : ContDiffAt ℝ 2 (sqrtAddLeaf L δ ℓ) r :=
     (contDiffOn_sqrtAddLeaf L hδ.le ℓ).contDiffAt (Ioi_mem_nhds hr)
   have hPc : ContDiffAt ℝ 2 (fun x ↦ struweLineShape δ x + t) r :=
-    (((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)).add
+    ((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).add
       contDiffAt_const
   set w := √(r ^ 2 - δ ^ 2)
   have hw₀ : 0 < w := sqrt_pos.2 (by nlinarith)
@@ -585,7 +583,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} (hℓ 
     rw [hQe]
     exact (by fun_prop : ContDiffAt ℝ 2 (fun x ↦ 64 * x ^ 2 - -ℓ ^ 2) r).sqrt hpos.ne'
   have hS2 : ContDiffAt ℝ 2 (struweLineShape δ) r :=
-    ((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)
+    (contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)
   have hPc : ContDiffAt ℝ 2 (fun x ↦ struweLineShape δ x + t) r :=
     hS2.add contDiffAt_const
   -- The standard leaf lies between `8 r` and `8 r + ℓ`, with slope at most `8`.
@@ -706,7 +704,7 @@ theorem isConvexShapeAt_bridgeLeaf_of_eq_struweShape (hδ : 0 < δ) {ℓ M c₀ 
     ring
   have hG2r : ContDiffAt ℝ 2 G r := hG2.contDiffAt (Ioi_mem_nhds hr)
   have hPc : ContDiffAt ℝ 2 (fun x ↦ struweLineShape δ x + t) r :=
-    (((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)).add
+    ((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).add
       contDiffAt_const
   -- Beyond `ℓ / 4`, `G` is the standard leaf: at least `8 r`, with slope at most `8`.
   have hG8 : ℓ / 4 ≤ r → 8 * r ≤ G r := fun h ↦
@@ -1057,8 +1055,7 @@ theorem contDiffAt_bridgeLeaf_sqrtAddLeaf (L : ℝ) (hδ : 0 < δ) (ℓ₀ : ℝ
     (t := fun ℓ ↦ 65 * δ / 8 - struweShape δ 4 0 δ + (bridgeHeight L δ ℓ₀ -
       (65 * δ / 8 - struweShape δ 4 0 δ)) * smoothTransition ((ℓ - 7 * δ) / (δ / 2)))
     hδ contDiffAt_const (by positivity)
-    ((contDiffOn_uncurry_sqrtAddLeaf L hδ.le).contDiffAt
-      ((isOpen_univ.prod isOpen_Ioi).mem_nhds ⟨trivial, hp⟩))
+    (contDiffAt_uncurry_sqrtAddLeaf L hδ.le hp)
     (contDiffAt_const.add (contDiffAt_const.mul (smoothTransition.contDiffAt.comp _
       ((contDiffAt_id.sub contDiffAt_const).div_const _)))) hp
 

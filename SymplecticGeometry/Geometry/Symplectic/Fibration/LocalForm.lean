@@ -115,8 +115,8 @@ since it inverts the flat maps of the smooth family `σ`.
   function `σ(x)(Xᵢ(x), Xⱼ(x))` on `F` is smooth.
 * `TauCeti.SmoothTwoForm.contMDiff_baseComponent`: the base components `f_{ij}` of a smooth `τ`
   are smooth jointly in `x` and the point of `F`.
-* `TauCeti.SmoothTwoForm.fderiv_mixedComponent_sub_fderiv_mixedComponent`: the curl
-  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` of the mixed components, on a vector `w` tangent to `F`, is
+* `TauCeti.SmoothTwoForm.mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv`: the mixed curl
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)`, on a vector `w` tangent to `F`, is
   `d_F f_{ij}(x)(w) - dτ((∂ᵢ, 0), (∂ⱼ, 0), (0, w))`.
 
 ## Implementation notes
@@ -924,10 +924,9 @@ variable [CompleteSpace EB] [CompleteSpace EF]
 components `αₖ` and base components `f_{ij}` for the basis `bs`, and a vector `w` tangent to `F`
 at `y`, `∂ᵢαⱼ(x)(w) - ∂ⱼαᵢ(x)(w) = d_F f_{ij}(x)(w) - dτ((bs i, 0), (bs j, 0), (0, w))`, where
 `∂ₖ` differentiates in `x` along `bs k`. -/
-theorem fderiv_mixedComponent_sub_fderiv_mixedComponent (i j : ι) (x : EB) (y : F)
+theorem mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv (i j : ι) (x : EB) (y : F)
     (w : TangentSpace IF y) :
-    fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
-        fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) =
+    RoughForm.mixedCurl τ.val bs i j x y w =
       mvfderiv IF (RoughForm.baseComponent τ.val bs i j x) y w -
         mextDeriv τ.val (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] := by
   have hα (k : ι) : (fun x' ↦ RoughForm.mixedComponent τ.val bs k x' y ![w]) =
@@ -938,7 +937,7 @@ theorem fderiv_mixedComponent_sub_fderiv_mixedComponent (i j : ι) (x : EB) (y :
   have hf : RoughForm.baseComponent τ.val bs i j x =
       fun y' ↦ τ.val (x, y') ![(bs i, 0), (bs j, 0)] :=
     funext fun _ ↦ RoughForm.baseComponent_def ..
-  rw [hα, hα, fderiv_fun_neg, fderiv_fun_neg, neg_apply, neg_apply, hf,
+  rw [RoughForm.mixedCurl_def, hα, hα, fderiv_fun_neg, fderiv_fun_neg, neg_apply, neg_apply, hf,
     SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv]
   abel
 
