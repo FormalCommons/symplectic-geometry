@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Sphere
+public import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Basic
 import TauCeti.Topology.Algebra.UnitaryGroup
 
 /-!
@@ -52,12 +53,11 @@ restriction `TauCeti.orthogonalToDiffSphere n m` of `O(n + 1)`, on the subgroup 
 noncomputable def specialOrthogonalToDiffSphere :
     specialOrthogonalGroup (Fin (n + 1)) ℝ →*
       Diff (𝓡 n) (sphere (0 : EuclideanSpace ℝ (Fin (n + 1))) 1) m :=
-  (orthogonalToDiffSphere n m).comp (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)
+  (orthogonalToDiffSphere n m).comp specialOrthogonalGroup.toOrthogonalGroup
 
 theorem specialOrthogonalToDiffSphere_def :
     specialOrthogonalToDiffSphere n m =
-      (orthogonalToDiffSphere n m).comp
-        (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup) :=
+      (orthogonalToDiffSphere n m).comp specialOrthogonalGroup.toOrthogonalGroup :=
   (rfl)
 
 /-- The restriction of a rotation to the unit sphere is its restriction as an orthogonal
@@ -65,23 +65,23 @@ transformation. -/
 @[simp]
 theorem specialOrthogonalToDiffSphere_apply (A : specialOrthogonalGroup (Fin (n + 1)) ℝ) :
     specialOrthogonalToDiffSphere n m A =
-      orthogonalToDiffSphere n m (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup A) :=
+      orthogonalToDiffSphere n m (specialOrthogonalGroup.toOrthogonalGroup A) :=
   (rfl)
 
 /-- The restriction of rotations of `ℝⁿ⁺¹` to the unit sphere is injective. -/
 theorem specialOrthogonalToDiffSphere_injective :
     Function.Injective (specialOrthogonalToDiffSphere n m) := by
   rw [specialOrthogonalToDiffSphere_def, MonoidHom.coe_comp]
-  exact (orthogonalToDiffSphere_injective n m).comp
-    (Submonoid.inclusion_injective specialUnitaryGroup_le_unitaryGroup)
+  refine (orthogonalToDiffSphere_injective n m).comp fun A B h ↦ Subtype.ext ?_
+  simpa using congrArg Subtype.val h
 
 /-- The restriction of rotations of `ℝⁿ⁺¹` to the unit sphere is continuous for the weak Whitney
 topology. -/
 theorem continuous_specialOrthogonalToDiffSphere :
     Continuous (specialOrthogonalToDiffSphere n m) := by
   rw [specialOrthogonalToDiffSphere_def, MonoidHom.coe_comp]
-  exact (continuous_orthogonalToDiffSphere n m).comp
-    (continuous_inclusion specialUnitaryGroup_le_unitaryGroup)
+  refine (continuous_orthogonalToDiffSphere n m).comp (continuous_induced_rng.2 ?_)
+  simpa [Function.comp_def] using continuous_subtypeVal
 
 /-- The restriction of rotations of `ℝⁿ⁺¹` to the unit sphere is a closed embedding of
 `SO(n + 1)` in the diffeomorphism group of `Sⁿ` with the weak Whitney topology. -/

@@ -112,11 +112,10 @@ theorem range_specialOrthogonalToDiffSphere_le {n : ℕ}
   rw [specialOrthogonalToDiffSphere_apply, orthogonalToDiffSphere_apply,
     LinearIsometryEquiv.unitSphereDiffHom_apply, LinearIsometryEquiv.coe_unitSphereDiffeomorph]
   refine o.isOrientationPreservingAt_unitSphereEquiv ?_ u
-  set e := UnitaryGroup.toLinearIsometryEquiv
-    (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup A)
-  have he : (e.toLinearEquiv : _ →ₗ[ℝ] _) = e.toLinearIsometry.toLinearMap :=
-    LinearMap.ext fun _ ↦ by simp
-  rw [he, UnitaryGroup.det_toLinearIsometryEquiv, Submonoid.coe_inclusion,
+  have he : ∀ e : EuclideanSpace ℝ (Fin (n + 1)) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + 1)),
+      (e.toLinearEquiv : _ →ₗ[ℝ] _) = e.toLinearIsometry.toLinearMap :=
+    fun e ↦ LinearMap.ext fun _ ↦ by simp
+  rw [he, UnitaryGroup.det_toLinearIsometryEquiv, specialOrthogonalGroup.coe_toOrthogonalGroup,
     (mem_specialOrthogonalGroup_iff.1 A.property).2]
   exact one_pos
 
