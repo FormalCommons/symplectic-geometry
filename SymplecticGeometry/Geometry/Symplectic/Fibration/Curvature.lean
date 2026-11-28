@@ -128,6 +128,9 @@ exactly when `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` is the differential of a smooth f
   trivializations differs by the derivative of the coordinate change.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_iff_forall_exists`: for an atlas whose
   coordinate changes preserve `σ`, Hamiltonian curvature can be checked in one chart per point.
+* `TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField`: for a
+  Hamiltonian `f` of the curvature read in a chart `e`, the contraction of `τ` with the curvature
+  is `df` composed with the derivative of the fibre coordinate of `e`, on vertical vectors.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_of_curvature_eq_zero`: a connection with
   vanishing curvature has Hamiltonian curvature.
 * `TauCeti.IsEhresmannConnection.curvatureIn_local`: the curvature of two constant fields in a
@@ -421,6 +424,63 @@ theorem hasHamiltonianCurvature_iff_forall_exists (hn : 1 ≤ n)
   rwa [SmoothForm.mem_diffeomorphStabilizer.1 hψH] at h
 
 end CurvatureIn
+
+/-! ### The curvature against vertical vectors, from a Hamiltonian -/
+
+section HamiltonianApply
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpace EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
+  [ChartedSpace HB B] [IsManifold IB 2 B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*} [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  [IsManifold IF ∞ F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [CompleteSpace EM] {HM : Type*}
+  [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M]
+  [ChartedSpace HM M] [IsManifold IM ∞ M]
+  {proj : M → B} {D : Π x : M, Submodule ℝ (TangentSpace IM x)} {n : ℕ∞ω}
+  (hD : IsEhresmannConnection IM IB n proj D)
+
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
+
+/-- **The curvature against a vertical vector, from a Hamiltonian.** Let `hD` be a `C^n`
+Ehresmann connection, `1 ≤ n`, and let `τ` restrict to `σ` on the fibres of a smooth atlas `A`.
+Let `b` be in the base set of the chart `e = A.trivAt b'`, and `v₁ v₂` fields on `B`, `C^1` at
+`b`, whose curvature read in `e` on the fibre over `b` is a Hamiltonian vector field of
+`f : F → ℝ`, in Tau Ceti's sign (`ι_X σ = df`). Then at every point `x` over `b` and for every
+vertical vector `w` at `x`, `τ(Ω, w)`, where `Ω` is the curvature of `v₁ v₂` at `x`, is the
+derivative of `f` at `(e x).2` along the image of `w` under the derivative of the fibre
+coordinate of `e`. This is a converse to
+`TauCeti.IsEhresmannConnection.isHamiltonianVectorField_curvatureIn_of_isClosed`. -/
+theorem apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField (hn : 1 ≤ n)
+    {A : MapFiber.Atlas F proj} (hA : A.IsContMDiff ∞ IB IF IM) {σ : SmoothTwoForm IF F}
+    {τ : SmoothTwoForm IM M} (hτ : A.RestrictsTo σ τ) {b' b : B} (hb : b ∈ (A.trivAt b').baseSet)
+    {v₁ v₂ : Π b : B, TangentSpace IB b} (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) b)
+    (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) b) {f : F → ℝ}
+    (hX : σ.IsHamiltonianVectorField f (hD.curvatureIn IF (A.trivAt b') b v₁ v₂))
+    {x : M} (hx : proj x = b) {w : TangentSpace IM x} (hw : w ∈ (mfderiv IM IB proj x).ker) :
+    τ.val x ![hD.curvature v₁ v₂ x, w] =
+      mvfderiv IF f (A.trivAt b' x).2 (mfderiv IM IF (fun y ↦ (A.trivAt b' y).2) x w) := by
+  subst hx
+  set e := A.trivAt b'
+  have hker := hD.curvature_mem_ker hn ((hA.contMDiff_proj x).of_le (by simp)) hv₁ hv₂
+  -- The curvature read in `e` at `(e x).2` is the image of the curvature at `x`. The tangent
+  -- spaces of `F` at the fibre coordinates of `x` and of `e⁻¹ (proj x, (e x).2)` agree only by
+  -- definition, so the point is generalized before it is replaced.
+  have hc : (hD.curvatureIn IF e (proj x) v₁ v₂ (e x).2 : EF) =
+      mfderiv IM IF (fun y ↦ (e y).2) x (hD.curvature v₁ v₂ x) := by
+    have key : ∀ x', x' = x → (mfderiv IM IF (fun y ↦ (e y).2) x' (hD.curvature v₁ v₂ x') : EF) =
+        mfderiv IM IF (fun y ↦ (e y).2) x (hD.curvature v₁ v₂ x) := by
+      rintro _ rfl
+      rfl
+    rw [curvatureIn_def]
+    exact key _ (e.symm_apply_mk_proj (e.mem_source.2 hb))
+  -- On vertical vectors, `τ` is the pull-back of `σ` by the fibre coordinate of `e`.
+  rw [hτ.apply_eq_mpullback_snd_trivAt hA hb (fun i ↦ by fin_cases i; exacts [hker, hw]),
+    mpullback_apply_pair, ← hc, ← SmoothBundleForm.eval₂_apply,
+    SmoothTwoForm.isHamiltonianVectorField_iff.1 hX]
+
+end HamiltonianApply
 
 /-! ### Closed two-forms -/
 
