@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Compl
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Pseudoholomorphic
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 
 /-!
 # Complexified linear actions on complex projective space
