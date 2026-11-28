@@ -588,9 +588,11 @@ theorem continuous_uniformizingDiffeomorph (hcover : ∀ x, ∃ i, x ∈ U i) :
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
   -- The frame system of `𝒪(1)` given by the trivializations at all points.
   let e' := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber
-  let U' := FiberBundle.baseSetOpensAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber
-  have hU' := FiberBundle.baseSetOpensAt_subset_baseSet ℂ (twistCore (𝕜 := ℂ) 1).Fiber
-  have hcover' := FiberBundle.exists_mem_baseSetOpensAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber
+  let U' (x : OnePoint ℂ) := (e' x).baseSetOpens
+  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun x ↦
+    (e' x).coe_baseSetOpens.subset
+  have hcover' :=
+    FiberBundle.exists_mem_baseSetOpens_trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber
   let _ := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
     e' U' hU'
   have := ContMDiffSection.continuousSMul_frameTopology_ofNormedAlgebra (𝕜' := ℂ)

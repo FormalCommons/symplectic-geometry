@@ -471,12 +471,10 @@ private theorem exists_preconnectedSpace_continuous_twistOneDelBarSobolev (hi : 
       Continuous fun J : {J // σ.Tames J} ↦ twistOneDelBarSobolev J.val k := by
   let e := trivializationAt (ℂ →L[ℝ] ℂ)
     (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
-  let U := FiberBundle.baseSetOpensAt (ℂ →L[ℝ] ℂ)
-    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
-  have hU := FiberBundle.baseSetOpensAt_subset_baseSet (ℂ →L[ℝ] ℂ)
-    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
-  have hcover := FiberBundle.exists_mem_baseSetOpensAt (ℂ →L[ℝ] ℂ)
-    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
+  let U (x : OnePoint ℂ) := (e x).baseSetOpens
+  have hU : ∀ x, (U x : Set (OnePoint ℂ)) ⊆ (e x).baseSet := fun x ↦
+    (e x).coe_baseSetOpens.subset
+  have hcover : ∀ x, ∃ y, x ∈ U y := FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
   have := hi.isNondegenerate.contractibleSpace_tames e U hU hcover
   exact ⟨_, inferInstance, continuous_twistOneDelBarSobolev_tames e U hU hcover σ k⟩

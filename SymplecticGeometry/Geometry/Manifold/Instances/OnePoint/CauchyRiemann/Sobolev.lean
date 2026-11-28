@@ -294,22 +294,20 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
     (fun x : OnePoint ℂ ↦
       (TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) →L[ℝ]
         TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x)
-  let U' := FiberBundle.baseSetOpensAt ((ℂ →L[ℝ] ℂ) →L[ℝ] ℂ →L[ℝ] ℂ)
-    (fun x : OnePoint ℂ ↦
-      (TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) →L[ℝ]
-        TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x)
+  let U' (x : OnePoint ℂ) := (e' x).baseSetOpens
+  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun x ↦
+    (e' x).coe_baseSetOpens.subset
   have hΦ : Continuous fun J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) ↦
       SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
         (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
         (J.zeroOnePartSection (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber)).contMDiff volume 2 k :=
     continuous_iff_continuousAt.2 fun J₀ ↦
       SobolevSection.tendsto_bundleMapL_of_tendsto
-        (FiberBundle.exists_mem_baseSetOpensAt _ _)
+        (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)
         (@Continuous.tendsto _ _ (SmoothAlmostComplexStructure.frameTopology e U hU)
-          (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U'
-            (FiberBundle.baseSetOpensAt_subset_baseSet _ _)) _
+          (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' hU') _
           (SmoothAlmostComplexStructure.continuous_zeroOnePartSection e U hU hcover e' U'
-            (FiberBundle.baseSetOpensAt_subset_baseSet _ _)) J₀)
+            hU') J₀)
   rw [funext (twistOneDelBarSobolev_def · k)]
   refine continuous_const.clm_comp ((hΦ.congr fun J ↦ ?_).clm_comp continuous_const)
   exact SobolevSection.bundleMapL_congr _ _ (funext J.zeroOnePartSection_apply)

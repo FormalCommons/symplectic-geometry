@@ -260,10 +260,11 @@ theorem continuous_ratioMap {ι : Type*}
   intro _
   -- Check continuity on the base set of the trivialization at each point.
   let e' := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber
-  let U' := FiberBundle.baseSetOpensAt ℂ (twistCore (𝕜 := ℂ) k).Fiber
-  have hU' := FiberBundle.baseSetOpensAt_subset_baseSet ℂ (twistCore (𝕜 := ℂ) k).Fiber
+  let U' (x : OnePoint ℂ) := (e' x).baseSetOpens
+  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun x ↦
+    (e' x).coe_baseSetOpens.subset
   refine ContMDiffMap.continuous_of_forall_continuous_restrict_manifold U'
-    (FiberBundle.exists_mem_baseSetOpensAt ℂ _) fun x ↦ ?_
+    (FiberBundle.exists_mem_baseSetOpens_trivializationAt ℂ _) fun x ↦ ?_
   -- There, `[s : t]` is `projMk` composed with the pair of coordinates of `s` and `t`.
   let c (s : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) :=
     (e' x).frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U' x) (hU' x) s
