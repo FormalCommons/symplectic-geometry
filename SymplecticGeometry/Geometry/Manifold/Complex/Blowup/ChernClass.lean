@@ -264,8 +264,8 @@ private theorem firstChernClass_tangent_of_pos (hn0 : 0 < n) :
       rwa [TopPair.ofSubset_map] at h
     rw [ha_def, map_sub, map_add, map_nsmul, h₁, h₂, nsmul_zero, add_zero, sub_self]
   obtain ⟨m, hm⟩ := (divisorRealEmbedding c).exists_eq_zsmul_dualClass_of_restrict_compl
-    (Iff.mpr WithTop.coe_ne_zero ENat.top_ne_zero) (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-    (by rw [range_divisorRealEmbedding]; exact isClosed_exceptionalDivisor c)
+    ENat.coe_top_ne_zero (Complex.finrank_real_eq_finrank_pi_succ_sub n)
+    (isClosed_range_divisorRealEmbedding c)
     (divisorNormalOrientation c) Complex.finrank_real_complex (a := a)
     -- As for `h₂`, `exact` accepts the coerced ambient space of the pair.
     (by rw [range_divisorRealEmbedding, TopPair.ofSubset_map]; exact hcompl)

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
@@ -46,7 +47,9 @@ reindexes the canonical orientation once, for every such `E` and `M`:
 * `SymplecticGeometry.orientationAt_complexCurveOrientation`: at every point it is Tau Ceti's
   complex orientation `TauCeti.complexOrientation E` of the model, reindexed to `Fin 2`;
 * `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the standard
-  orientation `TauCeti.Manifold.Orientation.complex`;
+  orientation `TauCeti.Manifold.Orientation.complex`, and so is Tau Ceti's
+  `complexManifoldOrientation ℂ ℂ` reindexed along `Complex.two_mul_finrank_self`
+  (`SymplecticGeometry.reindex_complexManifoldOrientation_complex`);
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
 More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
@@ -199,6 +202,14 @@ theorem complexCurveOrientation_complex :
   ext x
   rw [complexCurveOrientation_def, Manifold.Orientation.orientationAt_complex]
   exact orientationAt_reindex_complexManifoldOrientation_complex _ x
+
+/-- Tau Ceti's complex orientation `complexManifoldOrientation ℂ ℂ` of `ℂ`, reindexed from
+`Fin (2 * finrank ℂ ℂ)` to `Fin 2` along `Complex.two_mul_finrank_self`, is the standard
+orientation `Manifold.Orientation.complex` of `ℂ`. -/
+theorem reindex_complexManifoldOrientation_complex :
+    (complexManifoldOrientation ℂ ℂ).reindex (finCongr Complex.two_mul_finrank_self) =
+      Manifold.Orientation.complex :=
+  (complexCurveOrientation_def _).symm.trans complexCurveOrientation_complex
 
 /-- A biholomorphism `Φ : M → N` of complex curves (a `C^n` diffeomorphism for the complex
 models, `n ≠ 0`) carries `complexCurveOrientation` of `M` to that of `N` at every point. -/
