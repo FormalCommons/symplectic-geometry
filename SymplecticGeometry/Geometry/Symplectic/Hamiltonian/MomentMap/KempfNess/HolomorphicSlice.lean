@@ -11,11 +11,16 @@ public import Mathlib.Analysis.InnerProductSpace.Orthogonal
 public import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.RepresentationTheory.Continuous.Unitary.Basic
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
 import Mathlib.Analysis.InnerProductSpace.Projection.Basic
+import Mathlib.Analysis.Normed.Module.FiniteDimension
+import Mathlib.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.HolomorphicChart
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stabilizer
 import TauCeti.RepresentationTheory.Continuous.InvariantComplement
 
 /-!
-# The normal space of the complex orbit at a zero of the moment map
+# The normal space of the complex orbit and the slice operator at a zero of the moment map
 
 Suppose that `G` is a Lie group acting on `M`, which carries a two-form `σ`, an almost complex
 structure `J` and a metric with `g(u, w) = σ(u, J w)`, and let `W = 𝔤 · x` be the orbit
@@ -56,10 +61,26 @@ quotient `W^σ ⧸ (W ∩ W^σ)` of the `σ_x`-orthogonal of `W`, which `J x` do
 later steps of the proof need a `J x`-invariant subspace of `T_x M` on which `H` acts, which is
 why `S` is taken as the `g`-orthogonal complement of `T` instead.
 
+In a linearizing chart `e` at `x` (`SymplecticGeometry.LinearizingChart`), the **slice operator**
+at `v` (`SymplecticGeometry.sliceOperator`) is `(Z, w) ↦ X_Z (e.symm v) - d(e.symm)_v w` on the
+product of the Lie algebra of `Gc` and `S`. Step 2 of the proof of Theorem 12.5 of
+[GeorgoulasRobbinSalamon2021] computes its kernel for `v ∈ S` near `0`, when `J` is constant in
+`e` (`SymplecticGeometry.ker_sliceOperator_eq`): it consists of the pairs
+`(C.lieMap ξ + C.cplx (C.lieMap η), A_ξ v + J x (A_η v))` with `ξ, η` in the isotropy algebra
+`𝔥` of `x`. These pairs lie in the kernel by `SymplecticGeometry.fundamentalVectorField_chart_symm`
+and form a space of dimension `2 dim 𝔥`. At `v = 0` they make up the whole kernel, since `S` meets
+`T` only in `0` and the isotropy algebra of `x` in `Gc` is `C.lieMap 𝔥 ⊕ C.cplx (C.lieMap 𝔥)`
+(`SymplecticGeometry.mem_ker_sliceOperator_zero_iff`). The source argues that the operator is onto
+near `0`; here the same count is made through the kernel: read through the inverse of
+`d(e.symm)_v`, the operator depends continuously on `v`, so its rank can only go up near `0`
+(Mathlib's `isOpen_setOfPred_nat_le_rank`), and the dimension of its kernel can only go down
+(`SymplecticGeometry.eventually_finrank_ker_sliceOperator_le`).
+
 ## Main definitions
 
 * `SymplecticGeometry.complexOrbitTangent I G J x`: the subspace `W + J x W` of `T_x M`.
 * `SymplecticGeometry.complexOrbitNormal I G J x`: its orthogonal complement for the metric.
+* `SymplecticGeometry.sliceOperator IC Gc e S v`: the slice operator of a linearizing chart.
 
 ## Main results
 
@@ -77,6 +98,7 @@ why `S` is taken as the `g`-orthogonal complement of `T` instead.
   differentials at `x` of the elements of the stabilizer.
 * `SymplecticGeometry.isotropyLinearization_apply_mem_complexOrbitNormal`: `S` is invariant under
   the linearized isotropy action.
+* `SymplecticGeometry.ker_sliceOperator_eq`: the kernel of the slice operator near `0`.
 
 ## References
 
@@ -91,7 +113,7 @@ public section
 noncomputable section
 
 open Set Manifold MulAction TauCeti _root_.Bundle
-open scoped Manifold ContDiff RealInnerProductSpace
+open scoped Manifold ContDiff RealInnerProductSpace Topology
 
 namespace SymplecticGeometry
 
@@ -369,6 +391,285 @@ theorem isotropyLinearization_apply_mem_complexOrbitNormal [T2Space G] [T2Space 
     (isClosed_complexOrbitNormal J x) fun t ↦
       mfderiv_smul_apply_mem_complexOrbitNormal hσG hJG hg
         (mulInvariantExp_smul_mem_stabilizer ξ t) hv
+
+/-! ### The slice operator -/
+
+section SliceOperator
+
+variable {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [MulAction Gc M] [ContMDiffSMul IC I' ∞ Gc M]
+
+omit [FiniteDimensional ℝ E] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+variable (IC Gc) in
+/-- The **slice operator** of a linearizing chart `e` at `x` and a subspace `S` of `T_x M` at
+`v : E'`: the linear map `(Z, w) ↦ X_Z (e.symm v) - d(e.symm)_v w` from the product of the Lie
+algebra of `Gc` and `S` to the tangent space of `M` at `e.symm v`, where `X_Z` is the
+fundamental vector field of `Z` and `S` is read in the model space `E' = T_x M` of `e`. Its
+kernel consists of the infinitesimal motions along the orbit of `Gc` through `e.symm v` that
+the chart reads as motions in `S`. -/
+def sliceOperator {x : M} (e : LinearizingChart G I' x) (S : Submodule ℝ (TangentSpace I' x))
+    (v : E') : GroupLieAlgebra IC Gc × S →ₗ[ℝ] TangentSpace I' (e.chart.symm v) :=
+  ((InfinitesimalAction.fundamental IC Gc I' M).eval (e.chart.symm v)).coprod
+    (-((mfderiv 𝓘(ℝ, E') I' e.chart.symm v).toLinearMap ∘ₗ S.subtype))
+
+omit [TopologicalSpace G] [FiniteDimensional ℝ E]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+theorem sliceOperator_apply {x : M} (e : LinearizingChart G I' x)
+    (S : Submodule ℝ (TangentSpace I' x)) (v : E') (p : GroupLieAlgebra IC Gc × S) :
+    sliceOperator IC Gc e S v p =
+      fundamentalVectorField I' p.1 (e.chart.symm v) -
+        mfderiv 𝓘(ℝ, E') I' e.chart.symm v (p.2 : TangentSpace I' x) := by
+  simp only [sliceOperator, LinearMap.coprod_apply, InfinitesimalAction.eval_apply,
+    InfinitesimalAction.fundamental_apply, LinearMap.neg_apply, sub_eq_add_neg]
+  -- The composition of `d(e.symm)_v` with the inclusion of `S`, applied to `p.2`:
+  -- `LinearMap.comp_apply` does not rewrite it, since `S` lies in `T_x M` and `d(e.symm)_v`
+  -- acts on the model space.
+  rfl
+
+omit [TopologicalSpace G] [FiniteDimensional ℝ E]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+/-- **The kernel of the slice operator is lower semicontinuous in dimension.** For a linearizing
+chart `e` at `x`, a subspace `S` of `T_x M` and `v₀` in the target of `e`, the kernel of the
+slice operator at `v` has dimension at most that at `v₀`, for every `v` near `v₀`: read through
+the inverse of `d(e.symm)_v`, the slice operator is `(Z, w) ↦ Y_Z v - w`, with `Y_Z` the
+pull-back of `X_Z` by `e.symm`, which is continuous in `v`, and the rank of a continuous family of
+linear maps can only go up nearby. -/
+theorem eventually_finrank_ker_sliceOperator_le [FiniteDimensional ℝ E'] [FiniteDimensional ℝ EC]
+    {x : M} (e : LinearizingChart G I' x) (S : Submodule ℝ (TangentSpace I' x)) {v₀ : E'}
+    (hv₀ : v₀ ∈ e.chart.target) :
+    ∀ᶠ v in 𝓝 v₀, Module.finrank ℝ (LinearMap.ker (sliceOperator IC Gc e S v)) ≤
+      Module.finrank ℝ (LinearMap.ker (sliceOperator IC Gc e S v₀)) := by
+  set L := sliceOperator IC Gc e S
+  -- On the target of `e`, the differential of `e.symm` is invertible, and composing `L v` with
+  -- its inverse does not change the kernel.
+  have hinv (v : E') (hv : v ∈ e.chart.target) :
+      (mfderiv 𝓘(ℝ, E') I' e.chart.symm v).IsInvertible := by
+    have h := (PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ e.toPartialDiffeomorph.symm
+      (by simpa using hv)).isInvertible_mfderiv (by simp)
+    rwa [LinearizingChart.coe_toPartialDiffeomorph_symm] at h
+  let L' (v : E') : (GroupLieAlgebra IC Gc × S) →ₗ[ℝ] E' :=
+    (mfderiv 𝓘(ℝ, E') I' e.chart.symm v).inverse.toLinearMap ∘ₗ L v
+  have hker (v : E') (hv : v ∈ e.chart.target) : LinearMap.ker (L' v) = LinearMap.ker (L v) :=
+    LinearMap.ker_comp_of_ker_eq_bot _
+      (LinearMap.ker_eq_bot.2 (Function.LeftInverse.injective (hinv v hv).self_apply_inverse))
+  -- The same operators on a normed space `ℝⁿ ≃ 𝔤c × S`, as continuous linear maps.
+  let ψ := (Module.finBasis ℝ (GroupLieAlgebra IC Gc × S)).equivFun.symm
+  let L'' (v : E') : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →L[ℝ] E' :=
+    LinearMap.toContinuousLinearMap (L' v ∘ₗ ψ.toLinearMap)
+  have hrank (v : E') : LinearMap.range
+      (L'' v : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →ₗ[ℝ] E') =
+        LinearMap.range (L' v) := by
+    simp only [L'', LinearMap.coe_toContinuousLinearMap]
+    exact LinearMap.range_comp_of_range_eq_top _ ψ.range
+  -- `L'' v p` is `Y v - c`, with `Y` the pull-back of a fundamental vector field.
+  have hcont : ContinuousOn L'' e.chart.target := by
+    refine continuousOn_clm_apply.2 fun p ↦ ?_
+    let Y : E' → E' :=
+      VectorField.mpullback 𝓘(ℝ, E') I' e.chart.symm (fundamentalVectorField I' (ψ p).1)
+    let c : E' := ((ψ p).2 : TangentSpace I' x)
+    have hY : ContinuousOn Y e.chart.target := fun v hv ↦ by
+      have h := ContMDiffAt.mpullback_vectorField_preimage (m := 0) (n := ∞)
+        ((contMDiff_fundamentalVectorField (I := IC) (n := ∞) (by simp) (ψ p).1) _)
+        (e.contMDiffOn_chart_symm.contMDiffAt (e.chart.open_target.mem_nhds hv)) (hinv v hv)
+        (by simp)
+      exact (contMDiffAt_vectorSpace_iff_contDiffAt.1 h).continuousAt.continuousWithinAt
+    refine (hY.sub (continuousOn_const (c := c))).congr fun v hv ↦ ?_
+    -- Unfold `L''` to the inverse of the differential applied to the slice operator.
+    change (mfderiv 𝓘(ℝ, E') I' e.chart.symm v).inverse (L v (ψ p)) = _
+    rw [sliceOperator_apply, map_sub]
+    exact congrArg (_ - ·) ((hinv v hv).inverse_apply_self (c : TangentSpace 𝓘(ℝ, E') v))
+  -- The rank of `L' v` is at least that of `L' v₀` near `v₀`.
+  set r := Module.finrank ℝ (LinearMap.range (L' v₀))
+  have hopen := hcont.isOpen_inter_preimage e.chart.open_target (isOpen_setOfPred_nat_le_rank r)
+  have h₀ : v₀ ∈ e.chart.target ∩ L'' ⁻¹' {f | (r : Cardinal) ≤
+      (f : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →ₗ[ℝ] E').rank} := by
+    refine ⟨hv₀, ?_⟩
+    -- Unfold the membership to a statement about the range of `L'' v₀`.
+    change (r : Cardinal) ≤ Module.rank ℝ (LinearMap.range _)
+    rw [hrank v₀, Module.finrank_eq_rank]
+  filter_upwards [hopen.mem_nhds h₀] with v ⟨hvt, hvr⟩
+  have hvr' : r ≤ Module.finrank ℝ (LinearMap.range (L' v)) := by
+    have h : (r : Cardinal) ≤ Module.rank ℝ (LinearMap.range
+        (L'' v : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →ₗ[ℝ] E')) := hvr
+    rwa [← Module.finrank_eq_rank, Nat.cast_le, hrank v] at h
+  have h1 := LinearMap.finrank_range_add_finrank_ker (L' v)
+  have h2 := LinearMap.finrank_range_add_finrank_ker (L' v₀)
+  rw [hker v hvt] at h1
+  rw [hker v₀ hv₀] at h2
+  omega
+
+variable [T2Space Gc] [T2Space M] [I'.Boundaryless] [FiniteDimensional ℝ E']
+
+omit [FiniteDimensional ℝ E'] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+/-- In a linearizing chart `e` at `x` in which `J` is constant, equal to `J x`, the slice
+operator at `v` vanishes on `(C.lieMap ξ + C.cplx (C.lieMap η), A_ξ v + J x (A_η v))` for `ξ, η`
+in the isotropy algebra of `x`, where `A` is the linearized isotropy action
+(`TauCeti.isotropyLinearization`): this is `SymplecticGeometry.fundamentalVectorField_chart_symm`.
+-/
+theorem sliceOperator_apply_eq_zero {C : LieComplexification I G IC Gc}
+    {J : SmoothAlmostComplexStructure I' M} (hC : IsComplexifiedAction C J) {x : M}
+    (e : LinearizingChart G I' x)
+    (hJ : ∀ z ∈ e.chart.source, ∀ v : TangentSpace I' z,
+      mfderiv I' 𝓘(ℝ, E') e.chart z (J z v) = J x (mfderiv I' 𝓘(ℝ, E') e.chart z v))
+    (S : Submodule ℝ (TangentSpace I' x))
+    (ξ η : (InfinitesimalAction.fundamental I G I' M).isotropy x) {v : E'}
+    (hv : v ∈ e.chart.target) (w : S)
+    (hw : (w : TangentSpace I' x) = isotropyLinearization I' x ξ v +
+      (J.toEndomorphism x ∘L isotropyLinearization I' x η : E' →L[ℝ] E') v) :
+    sliceOperator IC Gc e S v (C.lieMap ξ + C.cplx (C.lieMap η), w) = 0 := by
+  rw [sliceOperator_apply, hw, fundamentalVectorField_chart_symm hC e hJ ξ η hv]
+  exact sub_eq_zero.2 (map_add (mfderiv 𝓘(ℝ, E') I' e.chart.symm v) _ _).symm
+
+omit [T2Space M] [I'.Boundaryless] in
+/-- **The kernel of the slice operator at `0`.** For a complexified action, with `-μ` an
+equivariant moment map for `σ`, the metric `g(u, w) = σ(u, J w)` and `μ x = 0`, the kernel of
+the slice operator of a linearizing chart at `x` and the complex orbit normal space `S`, at `0`,
+consists of the pairs `(C.lieMap ξ + C.cplx (C.lieMap η), 0)` with `ξ, η` in the isotropy algebra
+of `x`: an `X_Z x` in `S` is `0`, since `S` meets the orbit tangent space of `Gc` only in `0`. -/
+theorem mem_ker_sliceOperator_zero_iff {C : LieComplexification I G IC Gc}
+    {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} (hC : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (e : LinearizingChart G I' x) (p : GroupLieAlgebra IC Gc × complexOrbitNormal I G J x) :
+    p ∈ LinearMap.ker (sliceOperator IC Gc e (complexOrbitNormal I G J x) 0) ↔
+      ∃ ξ η : (InfinitesimalAction.fundamental I G I' M).isotropy x,
+        p.1 = C.lieMap ξ + C.cplx (C.lieMap η) ∧ p.2 = 0 := by
+  obtain ⟨Z, w⟩ := p
+  have hiso := hC.isotropy_eq_map_lieMap_sup_of_moment_eq_zero hμ hg hx
+  rw [LinearMap.mem_ker, sliceOperator_apply, sub_eq_zero, e.hasMFDerivAt_symm.mfderiv,
+    e.symm_zero]
+  -- `ContinuousLinearMap.id_apply` does not rewrite once the identity of `E'` is applied to a
+  -- vector of `T_x M`; the identity applied to `w` is `w` by definition.
+  change fundamentalVectorField I' Z x = (w : TangentSpace I' x) ↔ _
+  constructor
+  · intro hp
+    have hw : (w : TangentSpace I' x) = 0 := by
+      have hT : (w : TangentSpace I' x) ∈ complexOrbitTangent I G J x := by
+        rw [← hC.orbitTangent_eq_complexOrbitTangent x, ← hp,
+          ← InfinitesimalAction.fundamental_apply]
+        exact (InfinitesimalAction.fundamental IC Gc I' M).mem_orbitTangent x Z
+      exact Submodule.disjoint_def.1 (isCompl_complexOrbitTangent (G := G) J x).disjoint _ hT
+        w.property
+    have hZ : Z ∈ ((InfinitesimalAction.fundamental IC Gc I' M).isotropy x).toSubmodule := by
+      rw [LieSubalgebra.mem_toSubmodule, InfinitesimalAction.mem_isotropy_iff,
+        InfinitesimalAction.fundamental_apply]
+      exact hp.trans hw
+    rw [hiso] at hZ
+    obtain ⟨_, ⟨a, ha, rfl⟩, _, ⟨_, ⟨b, hb, rfl⟩, rfl⟩, rfl⟩ := Submodule.mem_sup.1 hZ
+    exact ⟨⟨a, ha⟩, ⟨b, hb⟩, rfl, Subtype.ext hw⟩
+  · rintro ⟨ξ, η, rfl, rfl⟩
+    have hZ : C.lieMap ξ + C.cplx (C.lieMap η) ∈
+        ((InfinitesimalAction.fundamental IC Gc I' M).isotropy x).toSubmodule := by
+      rw [hiso]
+      exact Submodule.add_mem_sup ⟨ξ, ξ.property, rfl⟩ ⟨_, ⟨η, η.property, rfl⟩, rfl⟩
+    rw [LieSubalgebra.mem_toSubmodule, InfinitesimalAction.mem_isotropy_iff,
+      InfinitesimalAction.fundamental_apply] at hZ
+    exact hZ.trans rfl
+
+
+/-- **The kernel of the slice operator** (Step 2 of the proof of Theorem 12.5 of
+[GeorgoulasRobbinSalamon2021]). Let the action of the complexification `Gc` on `M` be a
+complexified action of that of `G` for `C` and `J`, let `-μ` be an equivariant moment map for
+`σ`, let the metric be `g(u, w) = σ(u, J w)`, let the stabilizer of `x` preserve `σ` and `J`,
+and let `μ x = 0`. Let `e` be a linearizing chart at `x` in which `J` is constant, equal to
+`J x`, and `S` the complex orbit normal space at `x`. Then for every `v ∈ S` near `0`, the
+kernel of the slice operator `(Z, w) ↦ X_Z (e.symm v) - d(e.symm)_v w` on the product of the
+Lie algebra of `Gc` and `S` consists of the pairs
+`(C.lieMap ξ + C.cplx (C.lieMap η), A_ξ v + J x (A_η v))` with `ξ, η` in the isotropy algebra
+of `x`, where `A` is the linearized isotropy action (`TauCeti.isotropyLinearization`).
+
+These pairs lie in the kernel (`SymplecticGeometry.sliceOperator_apply_eq_zero`), they form a
+space of dimension `2 dim 𝔥`, which at `v = 0` is the whole kernel
+(`SymplecticGeometry.mem_ker_sliceOperator_zero_iff`), and the dimension of the kernel cannot
+go up near `0` (`SymplecticGeometry.eventually_finrank_ker_sliceOperator_le`). -/
+theorem ker_sliceOperator_eq {C : LieComplexification I G IC Gc} {σ : SmoothTwoForm I' M}
+    {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+    (hC : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M}
+    (hσG : ∀ g ∈ stabilizer G x, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
+    (hJG : ∀ g ∈ stabilizer G x, ∀ v : TangentSpace I' x,
+      mfderiv I' I' (fun y : M ↦ g • y) x (J x v) =
+        J (g • x) (mfderiv I' I' (fun y : M ↦ g • y) x v))
+    (hx : μ x = 0) (e : LinearizingChart G I' x)
+    (hJ : ∀ z ∈ e.chart.source, ∀ v : TangentSpace I' z,
+      mfderiv I' 𝓘(ℝ, E') e.chart z (J z v) = J x (mfderiv I' 𝓘(ℝ, E') e.chart z v)) :
+    ∀ᶠ v in 𝓝 (0 : E'), v ∈ complexOrbitNormal I G J x →
+      ∀ p, p ∈ LinearMap.ker (sliceOperator IC Gc e (complexOrbitNormal I G J x) v) ↔
+        ∃ ξ η : (InfinitesimalAction.fundamental I G I' M).isotropy x,
+          p.1 = C.lieMap ξ + C.cplx (C.lieMap η) ∧
+          (p.2 : TangentSpace I' x) = isotropyLinearization I' x ξ v +
+            (J.toEndomorphism x ∘L isotropyLinearization I' x η : E' →L[ℝ] E') v := by
+  have : T2Space G := I.t2Space_of_lieGroup ∞
+  have := C.finiteDimensional
+  set S := complexOrbitNormal I G J x
+  set 𝔥 := (InfinitesimalAction.fundamental I G I' M).isotropy x
+  set A : 𝔥 →ₗ[ℝ] E' →L[ℝ] E' := isotropyLinearization I' x
+  set Jx : E' →L[ℝ] E' := J.toEndomorphism x
+  -- The parametrization `(ξ, η) ↦ (C.lieMap ξ + C.cplx (C.lieMap η), A_ξ v + J x (A_η v))`, an
+  -- injective linear map into the domain of the slice operator.
+  have hAS (v : E') (hv : v ∈ S) (ξ η : 𝔥) : A ξ v + (Jx ∘L A η) v ∈ S :=
+    S.add_mem (isotropyLinearization_apply_mem_complexOrbitNormal hσG hJG hg ξ hv)
+      (apply_mem_complexOrbitNormal hg
+        (isotropyLinearization_apply_mem_complexOrbitNormal hσG hJG hg η hv))
+  let Φ (v : E') (hv : v ∈ S) : (𝔥 × 𝔥) →ₗ[ℝ] GroupLieAlgebra IC Gc × S :=
+    { toFun := fun q ↦ (C.lieMap q.1 + C.cplx (C.lieMap q.2), ⟨_, hAS v hv q.1 q.2⟩)
+      map_add' := fun q q' ↦ by
+        refine Prod.ext ?_ (Subtype.ext ?_)
+        · simp only [Prod.fst_add, Prod.snd_add, AddMemClass.coe_add, map_add]
+          abel
+        · simp only [Prod.fst_add, Prod.snd_add, map_add, add_apply, ContinuousLinearMap.comp_add,
+            Submodule.coe_add]
+          abel
+      map_smul' := fun c q ↦ by
+        refine Prod.ext ?_ (Subtype.ext ?_)
+        · simp [smul_add]
+        · simp only [Prod.smul_fst, Prod.smul_snd, map_smul, smul_apply,
+            ContinuousLinearMap.comp_smul, RingHom.id_apply, Submodule.coe_smul]
+          exact (smul_add c _ _).symm }
+  have hΦ (v : E') (hv : v ∈ S) (q : 𝔥 × 𝔥) :
+      Φ v hv q = (C.lieMap q.1 + C.cplx (C.lieMap q.2), ⟨_, hAS v hv q.1 q.2⟩) := rfl
+  have hfin (v : E') (hv : v ∈ S) :
+      Module.finrank ℝ (LinearMap.range (Φ v hv)) = Module.finrank ℝ (𝔥 × 𝔥) := by
+    refine LinearMap.finrank_range_of_inj fun q q' hq ↦ ?_
+    have h1 := congrArg Prod.fst hq
+    rw [hΦ v hv, hΦ v hv] at h1
+    have hre := congrArg C.re h1
+    have him := congrArg C.im h1
+    simp only [map_add, C.re_lieMap, C.re_cplx_lieMap, C.im_lieMap, C.im_cplx_lieMap, add_zero,
+      zero_add] at hre him
+    exact Prod.ext (Subtype.ext hre) (Subtype.ext him)
+  -- At `v = 0` the kernel is the range of the parametrization.
+  have hker0 : LinearMap.ker (sliceOperator IC Gc e S 0) ≤ LinearMap.range (Φ 0 S.zero_mem) := by
+    intro p hp
+    obtain ⟨ξ, η, h1, h2⟩ := (mem_ker_sliceOperator_zero_iff hC hμ hg hx e p).1 hp
+    refine ⟨(ξ, η), Prod.ext h1.symm (Subtype.ext ?_)⟩
+    rw [hΦ 0 S.zero_mem, h2]
+    -- The second component of `Φ 0 (ξ, η)` is `A_ξ 0 + J x (A_η 0)`, read in `E'` rather than
+    -- `T_x M`, where `map_zero` applies.
+    change A ξ 0 + (Jx ∘L A η) 0 = 0
+    rw [map_zero, map_zero, add_zero]
+  filter_upwards [eventually_finrank_ker_sliceOperator_le (IC := IC) (Gc := Gc) e S
+    e.zero_mem_target,
+    e.chart.open_target.mem_nhds e.zero_mem_target] with v hvle hvt hv
+  have hrange : LinearMap.range (Φ v hv) ≤ LinearMap.ker (sliceOperator IC Gc e S v) := by
+    rintro _ ⟨q, rfl⟩
+    exact sliceOperator_apply_eq_zero hC e hJ S q.1 q.2 hvt _ rfl
+  have heq := Submodule.eq_of_le_of_finrank_le hrange (by
+    rw [hfin v hv, ← hfin 0 S.zero_mem]
+    exact hvle.trans (Submodule.finrank_mono hker0))
+  intro p
+  rw [← heq, LinearMap.mem_range]
+  constructor
+  · rintro ⟨q, rfl⟩
+    exact ⟨q.1, q.2, rfl, rfl⟩
+  · rintro ⟨ξ, η, h1, h2⟩
+    exact ⟨(ξ, η), Prod.ext h1.symm (Subtype.ext h2.symm)⟩
+
+end SliceOperator
 
 end SymplecticGeometry
 
