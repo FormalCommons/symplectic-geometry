@@ -15,6 +15,7 @@ import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Prod
 import TauCeti.Analysis.Calculus.ParametricIntegral.Basic
+import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Weighted
 import TauCeti.Geometry.Manifold.ContMDiff.PartialDeriv
 import TauCeti.Topology.Algebra.ConstMulAction
 
@@ -32,13 +33,20 @@ derivatives of the maps `y ↦ σ k (φ (k⁻¹ • y))`, and specializes this a
 the action, with `σ` the isotropy representation at `x`: if `φ` has derivative the identity at
 `x`, so has `A`. (If moreover `φ x = 0`, then `A x = 0`, since the integrand vanishes at `x`.)
 
-The proofs read `A` in the chart `extChartAt I y` at each point `y` and differentiate under the
-integral sign there; since `σ` is only continuous in `k`, they use that the derivatives in the
-chart variable of the integrand are jointly continuous in that variable and in `k`
-(Tau Ceti's `ContMDiffOn.continuousOn_iteratedFDeriv_partial` and
-`TauCeti.contDiffOn_integral_smul_of_continuousOn_iteratedFDeriv`). This follows the analytic
-step of Tau Ceti's `TauCeti.exists_equivariant_contMDiff_chart_of_compactSpace`, which does it
-for `φ = extChartAt I x - extChartAt I x x` at the fixed point `x` only.
+Since `σ` is only continuous in `k`, the integrand is not jointly smooth in `(y, k)`. For
+smoothness, the substitution `k ↦ k⁻¹` writes `A y` as `∫ k, σ k⁻¹ (φ (k • y))` against the image
+of `μ` under inversion, a jointly `C^n` function of `(y, k)` paired with the continuous weight
+`k ↦ σ k⁻¹`, and Tau Ceti's `IsCompact.contMDiffAt_parametric_setIntegral_clm` applies. For the
+derivative, the proof reads `A` in the chart `extChartAt I y` at each point `y` and
+differentiates under the integral sign there, using that the derivative in the chart variable of
+the integrand is jointly continuous in that variable and in `k` (Tau Ceti's
+`ContMDiffOn.continuousOn_iteratedFDeriv_partial` and
+`TauCeti.hasFDerivAt_integral_smul_of_continuousOn_fderiv`). That chart step adapts the proof of
+Tau Ceti's private lemma `contDiffOn_and_hasFDerivAt_chart_average` (in
+`TauCeti/Geometry/Manifold/GroupAction/CompactLinearization.lean`, used for
+`TauCeti.exists_equivariant_contMDiff_chart_of_compactSpace`), which treats only `φ = χ - χ x`
+for a chart `χ` at a fixed point `x`, with `U` the source of `χ` and `μ` the Haar probability
+measure, to a general `φ`, open set `U` and finite measure `μ`.
 
 ## Main results
 
@@ -67,7 +75,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   {EG : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG]
-  {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG} [IG.Boundaryless]
+  {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG}
   {G : Type*} [Group G] [TopologicalSpace G] [IsTopologicalGroup G] [CompactSpace G]
   [ChartedSpace HG G] [MeasurableSpace G] [BorelSpace G] [MulAction G M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {n : ℕ∞}
@@ -75,22 +83,20 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {μ : Measure G} [IsFiniteMeasure μ] {σ : ContRepresentation ℝ G F} {φ : M → F} {U : Set M}
 
 include IG in
-/-- The equivariant average read in the chart `extChartAt I y₀`: on the open set of chart points
-whose orbit lies in `U`, it is `C^n`, and it has there the derivative obtained by differentiating
-under the integral sign. -/
-private theorem integral_apply_inv_smul_extChartAt
-    (hσ : Continuous σ) (hU : IsOpen U) (hφ : ContMDiffOn I 𝓘(ℝ, F) n φ U) (y₀ : M) :
+/-- The equivariant average read in the chart `extChartAt I y₀`, for `1 ≤ n`: on the open set of
+chart points whose orbit lies in `U`, the integrands are `C^n`, their derivatives are jointly
+continuous in the chart point and in `k`, and the average has the derivative obtained by
+differentiating under the integral sign. -/
+private theorem integral_apply_inv_smul_extChartAt [IG.Boundaryless]
+    (hσ : Continuous σ) (hU : IsOpen U) (hφ : ContMDiffOn I 𝓘(ℝ, F) n φ U) (hn : 1 ≤ n) (y₀ : M) :
     IsOpen ((extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U}) ∧
     (∀ k : G, ContDiffOn ℝ n (fun w ↦ σ k (φ (k⁻¹ • (extChartAt I y₀).symm w)))
       ((extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U})) ∧
-    ContDiffOn ℝ n (fun w ↦ ∫ k, σ k (φ (k⁻¹ • (extChartAt I y₀).symm w)) ∂μ)
-      ((extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U}) ∧
-    (1 ≤ n → ContinuousOn
+    ContinuousOn
       (fun p : E × G ↦ fderiv ℝ (fun w ↦ σ p.2 (φ (p.2⁻¹ • (extChartAt I y₀).symm w))) p.1)
       (((extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U}) ×ˢ
-        univ)) ∧
-    (1 ≤ n → ∀ w ∈ (extChartAt I y₀).target ∩
-        (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U},
+        univ) ∧
+    (∀ w ∈ (extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U},
       HasFDerivAt (fun w ↦ ∫ k, σ k (φ (k⁻¹ • (extChartAt I y₀).symm w)) ∂μ)
         (∫ k, fderiv ℝ (fun w ↦ σ k (φ (k⁻¹ • (extChartAt I y₀).symm w))) w ∂μ) w) := by
   have hsmul := ContMDiffSMul.contMDiff_smul (I := IG) (I' := I) (n := n) (G := G) (M := M)
@@ -124,25 +130,26 @@ private theorem integral_apply_inv_smul_extChartAt
   let Φ : E × G → F := fun p ↦ σ p.2 (Ψ (p.1, p.2⁻¹))
   have hΦV (k : G) : ContDiffOn ℝ n (fun w ↦ Φ (w, k)) V :=
     (σ k).contDiff.comp_contDiffOn (hΨV k⁻¹)
-  have hΦcont (m : ℕ) (hm : (m : ℕ∞) ≤ n) : ContinuousOn
-      (fun p : E × G ↦ iteratedFDeriv ℝ m (fun w ↦ Φ (w, p.2)) p.1) (V ×ˢ univ) :=
-    continuousOn_iteratedFDeriv_partial_clm_apply (F := fun p ↦ Ψ (p.1, p.2⁻¹))
+  have hΦcont (m : ℕ) (hm : m ≤ 1) : ContinuousOn
+      (fun p : E × G ↦ iteratedFDeriv ℝ m (fun w ↦ Φ (w, p.2)) p.1) (V ×ˢ univ) := by
+    have hm' : (m : WithTop ℕ∞) ≤ n :=
+      by exact_mod_cast (show (m : ℕ∞) ≤ 1 by exact_mod_cast hm).trans hn
+    exact continuousOn_iteratedFDeriv_partial_clm_apply (F := fun p ↦ Ψ (p.1, p.2⁻¹))
       (L := fun k ↦ σ k) (hσ.comp continuous_snd).continuousOn
-      (fun p hp ↦ ((hΨV p.2⁻¹).contDiffAt (hV.mem_nhds hp.1)).of_le (by exact_mod_cast hm))
-      ((hΨ.continuousOn_iteratedFDeriv_partial hW (by exact_mod_cast hm)).comp
+      (fun p hp ↦ ((hΨV p.2⁻¹).contDiffAt (hV.mem_nhds hp.1)).of_le hm')
+      ((hΨ.continuousOn_iteratedFDeriv_partial hW hm').comp
         (continuous_fst.prodMk continuous_snd.inv).continuousOn fun p hp ↦ hVW hp.1 p.2⁻¹)
-  have hDcont (hn : 1 ≤ n) : ContinuousOn
+  have hDcont : ContinuousOn
       (fun p : E × G ↦ fderiv ℝ (fun w ↦ Φ (w, p.2)) p.1) (V ×ˢ univ) :=
     continuousOn_iteratedFDeriv_zero_partial_iff.1
-      (continuousOn_iteratedFDeriv_fderiv_partial (hΦcont 1 hn))
-  refine ⟨hV, hΦV, ?_, hDcont, fun hn w hw ↦ ?_⟩
-  · simpa only [one_smul] using contDiffOn_integral_smul_of_continuousOn_iteratedFDeriv
-      (g := fun _ ↦ (1 : ℝ)) (integrable_const (1 : ℝ)) (μ := μ) hV hΦV hΦcont
-  · have hn' : (1 : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
-    simpa only [one_smul] using hasFDerivAt_integral_smul_of_continuousOn_fderiv
-      (g := fun _ ↦ (1 : ℝ)) (integrable_const (1 : ℝ)) (μ := μ) hV
-      (continuousOn_iteratedFDeriv_zero_partial_iff.1 (hΦcont 0 (by simp)))
-      (fun k ↦ (hΦV k).differentiableOn (zero_lt_one.trans_le hn').ne') (hDcont hn) hw
+      (continuousOn_iteratedFDeriv_fderiv_partial (hΦcont 1 le_rfl))
+  have hn' : (1 : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
+  refine ⟨hV, hΦV, hDcont, fun w hw ↦ ?_⟩
+  simpa only [one_smul] using hasFDerivAt_integral_smul_of_continuousOn_fderiv
+    (g := fun _ ↦ (1 : ℝ)) (integrable_const (1 : ℝ)) (μ := μ) hV
+    (continuousOn_iteratedFDeriv_zero_partial_iff.1 (hΦcont 0 (by simp)))
+    (fun k ↦ (hΦV k).differentiableOn (zero_lt_one.trans_le hn').ne') hDcont hw
+
 
 omit [I.Boundaryless] [TopologicalSpace G] [IsTopologicalGroup G] [CompactSpace G] [BorelSpace G]
   [IsFiniteMeasure μ] in
@@ -161,25 +168,30 @@ measure on `G`, and `φ : M → F` be `C^n` on an open set `U`. Then
 theorem ContMDiffOn.integral_apply_inv_smul (hσ : Continuous σ) (hU : IsOpen U)
     (hφ : ContMDiffOn I 𝓘(ℝ, F) n φ U) :
     ContMDiffOn I 𝓘(ℝ, F) n (fun y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ) {y | ∀ k : G, k • y ∈ U} := by
+  have : T1Space G := IG.t1Space G
+  have hsmul := ContMDiffSMul.contMDiff_smul (I := IG) (I' := I) (n := n) (G := G) (M := M)
   intro y₀ hy₀
-  have : ContinuousSMul G M :=
-    ⟨(ContMDiffSMul.contMDiff_smul (I := IG) (I' := I) (n := n) (G := G) (M := M)).continuous⟩
-  obtain ⟨hV, -, hA, -, -⟩ := integral_apply_inv_smul_extChartAt (IG := IG)
-    (μ := μ) hσ hU hφ y₀
-  have hmem : extChartAt I y₀ y₀ ∈
-      (extChartAt I y₀).target ∩ (extChartAt I y₀).symm ⁻¹' {y | ∀ k : G, k • y ∈ U} :=
-    ⟨mem_extChartAt_target y₀, by simpa [extChartAt_to_inv] using hy₀⟩
-  refine (ContMDiffAt.congr_of_eventuallyEq ?_
-    (integral_apply_inv_smul_eventuallyEq_extChartAt (I := I) y₀)).contMDiffWithinAt
-  exact ((hA.contDiffAt (hV.mem_nhds hmem)).contMDiffAt).comp y₀ contMDiffAt_extChartAt
+  -- After the substitution `k ↦ k⁻¹`, the integrand is `σ k⁻¹ (φ (k • y))`: a jointly `C^n`
+  -- function of `(y, k)` paired with the continuous weight `k ↦ σ k⁻¹`.
+  have hΦ (k : G) (_ : k ∈ univ) : ContMDiffAt (I.prod IG) 𝓘(ℝ, F) n
+      (uncurry fun y (k : G) ↦ φ (k • y)) (y₀, k) :=
+    (hφ.contMDiffAt (hU.mem_nhds (hy₀ k))).comp (y₀, k)
+      (hsmul.comp (contMDiff_snd.prodMk contMDiff_fst)).contMDiffAt
+  have h := isCompact_univ.contMDiffAt_parametric_setIntegral_clm
+    (μ := μ.map (MeasurableEquiv.inv G)) (ContinuousLinearMap.apply ℝ F) (measure_ne_top _ _) hΦ
+    (g := fun k ↦ (σ k⁻¹ : F →L[ℝ] F)) (hσ.comp continuous_inv).continuousOn
+  refine (h.congr_of_eventuallyEq (.of_forall fun y ↦ ?_)).contMDiffWithinAt
+  simp only [Measure.restrict_univ, integral_map_equiv]
+  simp
 
 include IG in
 /-- **The derivative of the equivariant average.** Under the hypotheses of
 `ContMDiffOn.integral_apply_inv_smul`, with `1 ≤ n`, at a point `y` whose orbit lies in `U`, the
 derivative of `y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ` is the integral over `k` of the derivatives
 `σ k ∘ dφ_{k⁻¹ • y} ∘ d(k⁻¹ • ·)_y` of the integrands. -/
-theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul (hσ : Continuous σ) (hU : IsOpen U)
-    (hφ : ContMDiffOn I 𝓘(ℝ, F) n φ U) (hn : 1 ≤ n) {y : M} (hy : ∀ k : G, k • y ∈ U) :
+theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul [IG.Boundaryless]
+    (hσ : Continuous σ) (hU : IsOpen U) (hφ : ContMDiffOn I 𝓘(ℝ, F) n φ U) (hn : 1 ≤ n) {y : M}
+    (hy : ∀ k : G, k • y ∈ U) :
     HasMFDerivAt I 𝓘(ℝ, F) (fun y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ) y
       ((∫ k, (σ k).comp ((mfderiv I 𝓘(ℝ, F) φ (k⁻¹ • y)).comp
         (mfderiv I I (fun z : M ↦ k⁻¹ • z) y)) ∂μ : E →L[ℝ] F)) := by
@@ -188,8 +200,8 @@ theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul (hσ : Continuous σ) (
   have hn' : (1 : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
   have hn0 : (n : WithTop ℕ∞) ≠ 0 := (zero_lt_one.trans_le hn').ne'
   have : IsManifold I 1 M := .of_le hn'
-  obtain ⟨hV, hΦ, -, hDcont, hA⟩ := integral_apply_inv_smul_extChartAt
-    (IG := IG) (μ := μ) hσ hU hφ y
+  obtain ⟨hV, hΦ, hDcont, hA⟩ := integral_apply_inv_smul_extChartAt
+    (IG := IG) (μ := μ) hσ hU hφ hn y
   set χ := extChartAt I y
   have hmem : χ y ∈ χ.target ∩ χ.symm ⁻¹' {y | ∀ k : G, k • y ∈ U} :=
     ⟨mem_extChartAt_target y, by simpa [χ, extChartAt_to_inv] using hy⟩
@@ -218,8 +230,8 @@ theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul (hσ : Continuous σ) (
     exact h₁.mfderiv.symm.trans h₂.mfderiv
   have hDint : Integrable D μ :=
     integrableOn_univ.1 <| ContinuousOn.integrableOn_compact' isCompact_univ MeasurableSet.univ <|
-      (hDcont hn).comp (continuousOn_const.prodMk continuousOn_id) fun k _ ↦ ⟨hmem, mem_univ k⟩
-  have h := (HasMFDerivAt.comp y (hA hn _ hmem).hasMFDerivAt hχ)
+      hDcont.comp (continuousOn_const.prodMk continuousOn_id) fun k _ ↦ ⟨hmem, mem_univ k⟩
+  have h := (HasMFDerivAt.comp y (hA _ hmem).hasMFDerivAt hχ)
     |>.congr_of_eventuallyEq_abuse (integral_apply_inv_smul_eventuallyEq_extChartAt (I := I) y)
   have heq : (∫ k, (σ k).comp ((mfderiv I 𝓘(ℝ, F) φ (k⁻¹ • y)).comp
       (mfderiv I I (fun z : M ↦ k⁻¹ • z) y)) ∂μ : E →L[ℝ] F) =
@@ -245,7 +257,8 @@ action, `σ` a continuous representation on the model space `E`, a Banach space,
 derivative of `k • ·` at `x`, `μ` a probability measure on `G`, and `φ : M → E` a `C^n` map,
 `1 ≤ n`, on an open neighbourhood `U` of `x`, with derivative the identity at `x`. Then
 `y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ` also has derivative the identity at `x`. -/
-theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul_of_smul_eq [CompleteSpace E]
+theorem ContMDiffOn.hasMFDerivAt_integral_apply_inv_smul_of_smul_eq [IG.Boundaryless]
+    [CompleteSpace E]
     [IsProbabilityMeasure μ]
     {σ : ContRepresentation ℝ G E} {φ : M → E} (hσ : Continuous σ) (hU : IsOpen U)
     (hφ : ContMDiffOn I 𝓘(ℝ, E) n φ U) (hn : 1 ≤ n) {x : M} (hx : ∀ k : G, k • x = x)
