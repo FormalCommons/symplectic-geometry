@@ -35,6 +35,8 @@ version on any manifold, but for the real version only on a preconnected one
 
 * `SymplecticGeometry.rescaledEDist_triangle` and `SymplecticGeometry.rescaledDist_triangle`: the
   triangle inequality, the latter on a preconnected manifold.
+* `SymplecticGeometry.sqrt_mul_rescaledDist`: the rescaled distances for two powers are
+  proportional.
 * `SymplecticGeometry.rescaledEDist_ne_top` and `SymplecticGeometry.ofReal_rescaledDist`: on a
   preconnected manifold, the rescaled distance is finite, and its real version recovers it.
 
@@ -94,6 +96,16 @@ theorem rescaledEDist_comm (k : ℕ) (x y : M) : rescaledEDist I k x y = rescale
 
 theorem rescaledDist_comm (k : ℕ) (x y : M) : rescaledDist I k x y = rescaledDist I k y x := by
   rw [rescaledDist_def, rescaledDist_def, rescaledEDist_comm]
+
+/-- **Changing the power in the rescaled distance.** The rescaled distances for two powers `k`
+and `l` are proportional: `√l * d_k(x, y) = √k * d_l(x, y)`. -/
+theorem sqrt_mul_rescaledDist (k l : ℕ) (x y : M) :
+    √l * rescaledDist I k x y = √k * rescaledDist I l x y := by
+  have hπ : (0 : ℝ) ≤ 2 * Real.pi := by positivity
+  rw [rescaledDist_def, rescaledDist_def, rescaledEDist_def, rescaledEDist_def,
+    ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_ofReal (Real.sqrt_nonneg _),
+    ENNReal.toReal_ofReal (Real.sqrt_nonneg _), Real.sqrt_mul hπ, Real.sqrt_mul hπ]
+  ring
 
 /-- The triangle inequality for the rescaled distance. -/
 theorem rescaledEDist_triangle (k : ℕ) (x y z : M) :
