@@ -21,7 +21,7 @@ for two forms: forms that agree on `W × M` have the same orthogonal of `W`
 the converse holds when `W` and its orthogonal span `M`
 (`LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`). A surjective linear map that carries one
 form to another maps orthogonals onto orthogonals
-(`LinearMap.BilinForm.map_orthogonal_of_surjective`). In finite dimension, a reflexive form whose
+(`LinearMap.BilinForm.map_orthogonal_of_surjective`). In finite dimension, a form whose
 quadratic form is anisotropic, such as a positive definite symmetric form, makes every subspace
 complementary to its orthogonal (`LinearMap.BilinForm.isCompl_orthogonal_of_anisotropic`).
 -/
@@ -95,15 +95,20 @@ section Field
 
 variable {K V : Type*} [Field K] [AddCommGroup V] [Module K V] [FiniteDimensional K V]
 
-/-- In finite dimension, if `B` is reflexive and its quadratic form `x ↦ B x x` is anisotropic,
-then every subspace `W` is complementary to its `B`-orthogonal. This applies to a symmetric form
-whose quadratic form is positive definite, through `QuadraticMap.PosDef.anisotropic`. -/
-theorem isCompl_orthogonal_of_anisotropic {B : LinearMap.BilinForm K V} (hB : B.IsRefl)
+/-- In finite dimension, if the quadratic form `x ↦ B x x` of `B` is anisotropic, then every
+subspace `W` is complementary to its `B`-orthogonal. This applies to a symmetric form whose
+quadratic form is positive definite, through `QuadraticMap.PosDef.anisotropic`. -/
+theorem isCompl_orthogonal_of_anisotropic {B : LinearMap.BilinForm K V}
     (hBa : B.toQuadraticMap.Anisotropic) (W : Submodule K V) : IsCompl W (B.orthogonal W) := by
-  refine (isCompl_orthogonal_iff_disjoint hB).2
-    (Submodule.disjoint_def.2 fun v hv hv' ↦ hBa v ?_)
-  rw [LinearMap.BilinMap.toQuadraticMap_apply]
-  exact mem_orthogonal_iff.1 hv' v hv
+  have hd : Disjoint W (B.orthogonal W) := Submodule.disjoint_def.2 fun v hv hv' ↦ hBa v <| by
+    rw [LinearMap.BilinMap.toQuadraticMap_apply]
+    exact mem_orthogonal_iff.1 hv' v hv
+  refine ⟨hd, codisjoint_iff.2 (Submodule.eq_top_of_finrank_eq ?_)⟩
+  have h₁ := Submodule.finrank_sup_add_finrank_inf_eq W (B.orthogonal W)
+  have h₂ := finrank_add_finrank_orthogonal' (B := B) W
+  have h₃ := Submodule.finrank_le (W ⊔ B.orthogonal W)
+  rw [hd.eq_bot, finrank_bot] at h₁
+  omega
 
 end Field
 

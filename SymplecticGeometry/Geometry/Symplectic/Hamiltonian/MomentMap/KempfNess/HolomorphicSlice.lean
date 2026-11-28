@@ -398,6 +398,7 @@ theorem complexOrbitSliceMap_def (J : SmoothAlmostComplexStructure I' M) (x : M)
   (rfl)
 
 omit [FiniteDimensional ℝ E] in
+@[simp]
 theorem complexOrbitSliceMap_apply (J : SmoothAlmostComplexStructure I' M) (x : M)
     (K : Submodule ℝ (GroupLieAlgebra I G)) (a : K × K × complexOrbitNormal I G J x) :
     complexOrbitSliceMap I G J x K a =
@@ -425,23 +426,19 @@ theorem bijective_complexOrbitSliceMap {σ : SmoothTwoForm I' M}
       (InfinitesimalAction.fundamental I G I' M).orbitTangent x := by
     rw [← InfinitesimalAction.fundamental_apply]
     exact InfinitesimalAction.mem_orbitTangent _ x ξ
-  -- An element of `K` whose fundamental vector field vanishes at `x` is `0`.
-  have hKX {α : K} (h : fundamentalVectorField I' (α : GroupLieAlgebra I G) x = 0) : α = 0 := by
-    have hα : (α : GroupLieAlgebra I G) ∈
-        ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule := by
-      rw [LieSubalgebra.mem_toSubmodule, InfinitesimalAction.mem_isotropy_iff,
-        InfinitesimalAction.fundamental_apply]
-      exact h
-    exact Subtype.ext (Submodule.disjoint_def.1 hK.disjoint _ hα α.property)
-  -- Every fundamental vector field at `x` is that of an element of `K`.
+  -- `α ↦ X_α x` identifies `K` with the orbit tangent space, through `𝔤 ⧸ 𝔥`.
+  let eK := (Submodule.quotientEquivOfIsCompl _ K hK).symm.trans
+    ((InfinitesimalAction.fundamental I G I' M).quotIsotropyEquivOrbitTangent x)
+  have heK (α : K) :
+      (eK α : TangentSpace I' x) = fundamentalVectorField I' (α : GroupLieAlgebra I G) x := by
+    simp [eK, InfinitesimalAction.fundamental_apply]
+  have hKX {α : K} (h : fundamentalVectorField I' (α : GroupLieAlgebra I G) x = 0) : α = 0 :=
+    eK.map_eq_zero_iff.1 (Subtype.ext ((heK α).trans h))
   have hXK (ξ : GroupLieAlgebra I G) :
       ∃ α : K, fundamentalVectorField I' (α : GroupLieAlgebra I G) x =
         fundamentalVectorField I' ξ x := by
-    obtain ⟨h, α, hh, hα, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hK.codisjoint ξ
-    rw [LieSubalgebra.mem_toSubmodule, InfinitesimalAction.mem_isotropy_iff,
-      InfinitesimalAction.fundamental_apply] at hh
-    refine ⟨⟨α, hα⟩, ?_⟩
-    rw [fundamentalVectorField_add, Pi.add_apply, hh, zero_add]
+    obtain ⟨α, hα⟩ := eK.surjective ⟨_, hW ξ⟩
+    exact ⟨α, (heK α).symm.trans (congrArg Subtype.val hα)⟩
   refine ⟨?_, fun u ↦ ?_⟩
   · rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
     rintro ⟨α, β, v⟩ h0
@@ -495,6 +492,7 @@ def complexOrbitSliceEquiv {σ : SmoothTwoForm I' M}
     (K × K × complexOrbitNormal I G J x) ≃ₗ[ℝ] TangentSpace I' x :=
   LinearEquiv.ofBijective _ (bijective_complexOrbitSliceMap hμ hg hx hK)
 
+@[simp]
 theorem complexOrbitSliceEquiv_apply {σ : SmoothTwoForm I' M}
     {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
