@@ -60,6 +60,9 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
   representation.
 * `SymplecticGeometry.LocalModelData.isCompl_𝔥_sup`,
   `SymplecticGeometry.LocalModelData.isCompl_𝔪_sup`: `𝔤 = 𝔥 ⊕ (𝔪 ⊕ 𝔮)` and `𝔤 = 𝔪 ⊕ (𝔥 ⊕ 𝔮)`.
+* `SymplecticGeometry.LocalModelData.map_projectionOnto_lieAnnihilator_eq_top`,
+  `SymplecticGeometry.LocalModelData.lieAnnihilator_inf_ker_projectionOnto`: the projection
+  `𝔤 → 𝔪` along `𝔥 ⊕ 𝔮` maps `𝔤_τ` onto `𝔪`, and its kernel meets `𝔤_τ` in `𝔥`.
 * `SymplecticGeometry.LocalModelData.adjointRepresentation_mem_𝔥`: `𝔥` is invariant under the
   adjoint action of `K`.
 * `SymplecticGeometry.LocalModelData.contMDiff_covector_apply`: the components of `ν` are smooth.
@@ -172,6 +175,21 @@ theorem isCompl_𝔥_sup : IsCompl D.𝔥 (D.𝔪 ⊔ D.𝔮) :=
 theorem isCompl_𝔪_sup : IsCompl D.𝔪 (D.𝔥 ⊔ D.𝔮) :=
   D.disjoint_𝔥_𝔪.symm.isCompl_sup_right_of_isCompl_sup_left
     (sup_comm D.𝔥 D.𝔪 ▸ D.𝔥_sup_𝔪 ▸ D.isCompl_𝔮)
+
+/-- The projection `𝔤 → 𝔪` along `𝔥 ⊕ 𝔮` maps the coadjoint stabilizer `𝔤_τ` onto `𝔪`. -/
+theorem map_projectionOnto_lieAnnihilator_eq_top :
+    (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule.map
+      (Submodule.projectionOnto _ _ D.isCompl_𝔪_sup) = ⊤ :=
+  eq_top_iff.2 fun m _ ↦
+    ⟨m, D.𝔪_le_lieAnnihilator m.property, Submodule.projectionOnto_apply_left _ m⟩
+
+/-- The kernel of the projection `𝔤 → 𝔪` along `𝔥 ⊕ 𝔮` meets the coadjoint stabilizer `𝔤_τ`
+in `𝔥`: `(𝔥 ⊕ 𝔪) ∩ (𝔥 ⊕ 𝔮) = 𝔥`. -/
+theorem lieAnnihilator_inf_ker_projectionOnto :
+    (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule ⊓
+      LinearMap.ker (Submodule.projectionOnto _ _ D.isCompl_𝔪_sup) = D.𝔥 := by
+  rw [Submodule.ker_projectionOnto, ← D.𝔥_sup_𝔪, sup_inf_assoc_of_le _ le_sup_left,
+    D.isCompl_𝔪_sup.inf_eq_bot, sup_bot_eq]
 
 /-! ### The action of `K` on the splitting -/
 

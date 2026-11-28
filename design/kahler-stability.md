@@ -354,12 +354,11 @@ so no statement takes it.
   `re` and `im` on `cplx`, `C.re (A x) = -⁅ξ, C.im x⁆` and
   `C.im (A x) = ⁅ξ, C.re x⁆`; then the `ad`-invariance of `B`
   (`TauCeti.Lie.lieInvariant_iff_adjoint_invariant`) gives
-  `Bc (A x) y = Bc x (A y)`. With `Bc` as the inner product of a local
-  `InnerProductSpace.ofCore` on the model space `EC`, Mathlib's
-  `LinearMap.IsSymmetric.direct_sum_isInternal`
-  (`Analysis/InnerProductSpace/Spectrum.lean`) splits `EC` into
-  eigenspaces of `A`.
-- `parabolicSubspace_sup_range_lieMap : C.parabolicSubspace ξ ⊔ LinearMap.range C.lieMap = ⊤`.
+  `Bc (A x) y = Bc x (A y)`. Then Tau Ceti's
+  `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top`
+  (`Analysis/InnerProductSpace/Spectral/Relative.lean`), for the positive
+  definite form `Bc`, spans the Lie algebra of `Gc` by eigenspaces of `A`.
+- `parabolicSubspace_sup_range_lieMap : C.parabolicSubspace ξ ⊔ LinearMap.range C.lieMap.toLinearMap = ⊤`.
   Proof: the conjugation `τ x := C.lieMap (C.re x) - C.cplx (C.lieMap (C.im x))`
   anticommutes with `A` (by the same formulas), so it maps the eigenspace
   of `λ` to that of `-λ`. For `x` in the eigenspace of `λ > 0`,
@@ -1089,7 +1088,9 @@ proof that needs it as a `Submodule` builds it there.
   `mem_isotropy_fundamental_iff_closedOneParameterSubgroup_le`
   (`Geometry/Lie/Subgroup/Stabilizer.lean`); for decision 8,
   `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
-  `TauCeti.Lie.conj_mulInvariantExp` and `mulInvariantLogChart`; for the
+  `TauCeti.Lie.conj_mulInvariantExp`,
+  `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` and
+  `mulInvariantLogChart`; for the
   local criterion, `TauCeti.exists_equivariant_contMDiff_chart_of_isCompact_stabilizer`,
   `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`,
   `Subgroup.ambientConnectedComponentOfOne`, `tangentRepresentation`,
@@ -1100,8 +1101,8 @@ proof that needs it as a `Submodule` builds it there.
   `unitaryAction`, checked at `0aaa80fd07b7`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
   and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`; for
-  decision 8, `LinearMap.IsSymmetric.direct_sum_isInternal`,
-  `HasStrictFDerivAt.map_nhds_eq_of_surj`, `IsClosed.mul_right_of_isCompact`
+  decision 8, `HasStrictFDerivAt.map_nhds_eq_of_surj`,
+  `IsClosed.mul_right_of_isCompact`
   and dominated convergence for interval integrals; for the local
   criterion, `HasStrictFDerivAt.toOpenPartialHomeomorph` and
   `ODE_solution_unique_of_mem_Icc`.

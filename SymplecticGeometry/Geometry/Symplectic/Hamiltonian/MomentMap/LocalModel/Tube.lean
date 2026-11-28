@@ -57,9 +57,10 @@ along the zero section.
 * `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorphAt`: the equivariant map
   `Ψ : Y → M` with `Ψ [g, 0] = g • x`, smooth and a local diffeomorphism at the classes `[g, p]`
   with `p` in an open `H`-invariant neighbourhood of `0`, and with differential `T` at `[1, 0]`.
-* `SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_descendedForm`,
-  `SymplecticGeometry.LocalModelData.eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm`: such a
-  `Ψ₀` pulls `σ` back to `ω` at every point `[g, 0]`, as forms and on pairs of tangent vectors.
+* `SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_balancedProductInducedForm`,
+  `SymplecticGeometry.LocalModelData.eval₂_mfderiv_mk_zero_eq_eval₂_balancedProductInducedForm`:
+  such a `Ψ₀` pulls `σ` back to `ω` at every point `[g, 0]`, as forms and on pairs of tangent
+  vectors.
 * `SymplecticGeometry.LocalModelData.mpullback_subtypeVal_apply_mk_zero_eq`: the same for the
   restrictions to an open set of `Y` that contains the zero section and on which `Ψ₀` is smooth.
 
@@ -185,7 +186,7 @@ on `M` invariant under the action of `G`, and let `Ψ₀ : Y → M` be a `G`-equ
 `Ψ₀ [1, 0] = x`, differentiable at `[1, 0]`, whose differential `dΨ₀` at `[1, 0]` satisfies
 `σ_x (dΨ₀ u, dΨ₀ v) = ω_{[1, 0]} (u, v)`. Then the pullback of `σ` along `Ψ₀` is `ω` at every
 point `[g, 0]` of the zero section. -/
-theorem mpullback_apply_mk_zero_eq_descendedForm :
+theorem mpullback_apply_mk_zero_eq_balancedProductInducedForm :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
@@ -259,10 +260,10 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
 omit [FiniteDimensional ℝ E'] [I'.Boundaryless] [T2Space M] in
 /-- **The tube map pulls `σ` back to the descended form along the zero section**, on pairs of
 tangent vectors: in the setting of
-`SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_descendedForm`, for every `g ∈ G`
-and all tangent vectors `u`, `v` of `Y` at `[g, 0]`,
+`SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_balancedProductInducedForm`, for
+every `g ∈ G` and all tangent vectors `u`, `v` of `Y` at `[g, 0]`,
 `σ_{Ψ₀ [g, 0]} (dΨ₀ u, dΨ₀ v) = ω_{[g, 0]} (u, v)`. -/
-theorem eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm :
+theorem eval₂_mfderiv_mk_zero_eq_eval₂_balancedProductInducedForm :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
@@ -314,15 +315,16 @@ theorem eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm :
   have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
     (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
   rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, ← mpullback_apply_pair,
-    D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ hΨ1 hdiff hT g]
+    D.mpullback_apply_mk_zero_eq_balancedProductInducedForm hσ hΨ hΨ1 hdiff hT g]
 
 omit [FiniteDimensional ℝ E'] [I'.Boundaryless] [T2Space M] in
 /-- **The tube map pulls `σ` back to the descended form along the zero section**, on an open set:
-in the setting of `SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_descendedForm`,
-let `U` be an open set of `Y` that contains the zero section and on which `Ψ₀` is smooth (this
-replaces the differentiability of `Ψ₀` at `[1, 0]`). Then
-the pullbacks of `σ` along `Ψ₀` restricted to `U`, and of `ω` along the inclusion of `U`, agree at
-every point `[g, 0]`. This is the hypothesis `heq` of
+in the setting of
+`SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_balancedProductInducedForm`, let `U`
+be an open set of `Y` that contains the zero section and on which `Ψ₀` is smooth (this replaces
+the differentiability of `Ψ₀` at `[1, 0]`). Then the pullbacks of `σ` along `Ψ₀` restricted to
+`U`, and of `ω` along the inclusion of `U`, agree at every point `[g, 0]`. This is the hypothesis
+`heq` of
 `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_of_eq_along` for the zero section. -/
 theorem mpullback_subtypeVal_apply_mk_zero_eq :
     letI := D.fiberDistribMulAction
@@ -373,7 +375,7 @@ theorem mpullback_subtypeVal_apply_mk_zero_eq :
         ((0 : A), (0 : V))) :=
     (contMDiffAt_subtype_iff.1 (hΨU ⟨_, hU 1⟩)).mdifferentiableAt (by simp)
   rw [SmoothForm.coe_mpullback_subtype_val_apply, SmoothForm.coe_mpullback_comp_subtypeVal_apply]
-  exact D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ hΨ1 hdiff hT g
+  exact D.mpullback_apply_mk_zero_eq_balancedProductInducedForm hσ hΨ hΨ1 hdiff hT g
 
 end LocalModelData
 
