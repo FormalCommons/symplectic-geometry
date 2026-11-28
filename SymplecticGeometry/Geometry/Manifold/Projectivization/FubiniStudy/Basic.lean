@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Analysis.Calculus.FDeriv.LogNormSq
 import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -144,26 +145,20 @@ theorem mextDerivₗ_fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1)
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
     (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)).val z ![v] =
       2 * (star (z : Fin (n + 1) → ℂ) ⬝ᵥ v).re / ∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2 := by
-  have hd : HasFDerivAt (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2))
-      ((‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2)⁻¹ •
-        (2 • (innerSL ℝ (complexToRealEuclidean (Fin (n + 1)) z)).comp
-          (complexToRealEuclidean (Fin (n + 1)) : (Fin (n + 1) → ℂ) →L[ℝ] _)))
-      (z : Fin (n + 1) → ℂ) :=
-    ((complexToRealEuclidean (Fin (n + 1))).hasFDerivAt.norm_sq).log
-      (norm_sq_complexToRealEuclidean_pos z).ne'
   have hf : (fun y ↦ (fubiniStudyPotential n).val y 0) =
       (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) ∘ Subtype.val :=
     funext fun y ↦ by
       rw [fubiniStudyPotential_apply, Function.comp_apply, norm_sq_complexToRealEuclidean]
-  rw [mextDerivₗ_zero_apply, hf, Manifold.mvfderiv_modelSpace_comp_subtype_val_apply, hd.fderiv]
-  -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
-  -- maps apply to it.
+  have hz : complexToRealEuclidean (Fin (n + 1)) z ≠ 0 := fun h ↦ by
+    simpa [h] using norm_sq_complexToRealEuclidean_pos z
+  rw [mextDerivₗ_zero_apply, hf, Manifold.mvfderiv_modelSpace_comp_subtype_val_apply]
+  -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the derivative applies to it.
   revert v
   intro (w : Fin (n + 1) → ℂ)
-  simp only [smul_apply, ContinuousLinearMap.comp_apply,
-    ContinuousLinearEquiv.coe_coe, innerSL_apply_apply, inner_complexToRealEuclidean,
-    norm_sq_complexToRealEuclidean, smul_eq_mul, nsmul_eq_mul, Nat.cast_ofNat]
-  field_simp
+  rw [fderiv_log_norm_sq_apply ℝ (complexToRealEuclidean (Fin (n + 1))).differentiableAt hz,
+    ContinuousLinearEquiv.fderiv]
+  simp only [ContinuousLinearEquiv.coe_coe, RCLike.re_to_real, inner_complexToRealEuclidean,
+    norm_sq_complexToRealEuclidean]
 
 open TauCeti.ComplexManifold in
 /-- The Fubini–Study primitive is `(1/4) J* d log |z|²`, where `J*` is the almost complex
