@@ -6,6 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
+public import TauCeti.Geometry.Lie.Subgroup.OneParameter
+
+import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 
 /-!
 # Periods of the exponential of a Lie group
@@ -32,6 +35,22 @@ multiplication by nonzero integers.
 * `SymplecticGeometry.nsmul_mem_nonzeroPeriods`, `SymplecticGeometry.zsmul_mem_nonzeroPeriods`:
   `nonzeroPeriods I G` is invariant under multiplication by nonzero natural numbers and integers.
 * `SymplecticGeometry.neg_mem_nonzeroPeriods`: `nonzeroPeriods I G` is invariant under negation.
+* `TauCeti.Lie.closedOneParameterSubgroup_eq_bot_iff`: the closed one-parameter subgroup `T_ξ`
+  of `ξ` is trivial exactly when `ξ = 0`.
+* `TauCeti.Lie.IsTorus.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`: a nontrivial
+  torus contains `T_λ` for some `λ ∈ nonzeroPeriods I G`.
+* `SymplecticGeometry.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`: in a compact Lie
+  group, for each `ξ ≠ 0` some `λ ∈ nonzeroPeriods I G` has `T_λ ≤ T_ξ`.
+
+## Implementation notes
+
+Together with Tau Ceti's `TauCeti.Lie.mem_isotropy_fundamental_iff_closedOneParameterSubgroup_le`,
+the last result turns a nonzero element of an isotropy algebra into a nonzero period in the
+same isotropy algebra, for the stable case of the Hilbert–Mumford criterion of
+[GeorgoulasRobbinSalamon2021]. Its proof is that of Tau Ceti's
+`TauCeti.Lie.IsTorus.exists_closedOneParameterSubgroup_eq`, with an involution of the torus
+(`TauCeti.Lie.IsTorus.exists_sq_eq_one_ne_one`) in place of a topological generator: if `exp X`
+is that involution, with `X` in the Lie algebra of the torus, then `λ = 2 • X` is a period.
 
 ## References
 
@@ -107,6 +126,48 @@ theorem zsmul_mem_nonzeroPeriods {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ nonzer
     exact nsmul_mem_nonzeroPeriods hξ (by exact_mod_cast hn)
   · rw [neg_zsmul, natCast_zsmul, neg_mem_nonzeroPeriods_iff]
     exact nsmul_mem_nonzeroPeriods hξ (by simpa using hn)
+
+section ClosedOneParameterSubgroup
+
+open Lie
+
+variable [IsTopologicalGroup G]
+
+/-- The closed one-parameter subgroup `T_ξ` is trivial exactly when `ξ = 0`. -/
+@[simp]
+theorem _root_.TauCeti.Lie.closedOneParameterSubgroup_eq_bot_iff {ξ : GroupLieAlgebra I G} :
+    closedOneParameterSubgroup ξ = ⊥ ↔ ξ = 0 := by
+  refine ⟨fun h ↦ forall_mulInvariantExp_smul_eq_one_iff.1 fun t ↦ ?_, fun h ↦ by simp [h]⟩
+  simpa [h] using mulInvariantExp_smul_mem_closedOneParameterSubgroup ξ t
+
+variable [FiniteDimensional ℝ E]
+
+/-- A nontrivial torus `T` contains the closed one-parameter subgroup of a nonzero period: some
+`λ ∈ nonzeroPeriods I G` has `T_λ ≤ T`. -/
+theorem _root_.TauCeti.Lie.IsTorus.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le
+    {T : Subgroup G} (hT : IsTorus T) (hT1 : T ≠ ⊥) :
+    ∃ l ∈ nonzeroPeriods I G, closedOneParameterSubgroup l ≤ T := by
+  -- An involution `k = exp X` of `T`, with `X` in the Lie algebra of `T`, gives `l = 2 • X`.
+  obtain ⟨k, hkT, hk2, hk1⟩ := hT.exists_sq_eq_one_ne_one I hT1
+  obtain ⟨X, hX, rfl⟩ := (Set.ext_iff.1 (hT.image_lieExp_lieSubalgebraOfSubgroup (I := I)) k).2 hkT
+  rw [lieExp_eq_mulInvariantExp] at hk2 hk1
+  refine ⟨(2 : ℝ) • _, ⟨fun h ↦ hk1 ?_, by rw [two_smul, ← two_nsmul, mulInvariantExp_nsmul, hk2]⟩,
+    (closedOneParameterSubgroup_le hT.isClosed).2 fun t ↦ ?_⟩
+  · rw [(smul_eq_zero.1 h).resolve_left two_ne_zero, mulInvariantExp_zero]
+  · rw [smul_smul, ← map_smul, ← lieExp_eq_mulInvariantExp]
+    exact (mem_lieSubalgebraOfSubgroup hT.isClosed).1 hX _
+
+variable [CompactSpace G]
+
+/-- In a compact Lie group, for `ξ ≠ 0` some `λ ∈ nonzeroPeriods I G` has its closed
+one-parameter subgroup inside that of `ξ`: `T_λ ≤ T_ξ`. -/
+theorem exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le {ξ : GroupLieAlgebra I G}
+    (hξ : ξ ≠ 0) :
+    ∃ l ∈ nonzeroPeriods I G, closedOneParameterSubgroup l ≤ closedOneParameterSubgroup ξ :=
+  (isTorus_closedOneParameterSubgroup ξ).exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le
+    (closedOneParameterSubgroup_eq_bot_iff.not.2 hξ)
+
+end ClosedOneParameterSubgroup
 
 end SymplecticGeometry
 
