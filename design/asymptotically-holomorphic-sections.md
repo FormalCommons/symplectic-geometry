@@ -493,7 +493,7 @@ and the prerequisites, placed by topic.
   kernel is a symplectic subspace, and the orientation of the kernel that
   $F$ induces (as for transverse zero sets) agrees with the symplectic one.
   Main results:
-  `surjective_of_norm_lt` (`Basic.lean`), `isSymplectic_ker_of_norm_lt`,
+  `surjective_of_norm_lt` (`AlmostComplex.lean`), `isSymplectic_ker_of_norm_lt`,
   `orientation_ker_eq_of_norm_lt` (`Symplectic.lean`).
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph
   of maximal degree at most $\Delta$ is $(\Delta+1)$-colourable

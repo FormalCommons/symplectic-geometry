@@ -536,15 +536,14 @@ theorem mfderiv_transportedCylinder_zero_apply (hΔ : IsSmoothDisc IB γ Δ) {s 
   have hι : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun r : ℝ ↦ (r, (0 : ℝ), θ)) s
       (ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)) :=
     hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ))
-  have h₁ := hC.hasMFDerivAt.comp s hι
-  -- Along the line, the cylinder is constant on `[0, 1]`.
-  have h₂ : HasMFDerivWithinAt 𝓘(ℝ, ℝ) IM
-      (hD.transportedCylinder e Δ c ∘ fun r : ℝ ↦ (r, (0 : ℝ), θ)) (Icc 0 1) s 0 :=
-    (hasMFDerivWithinAt_const (e.toOpenPartialHomeomorph.symm (x, c θ)) _ _).congr_mono
-      (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ)
-      (transportedCylinder_zero_of_isSmoothDisc hΔ ⟨s, hs⟩ θ) subset_rfl
+  -- Along the line, the cylinder agrees on `[0, 1]` with a constant map.
   have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
-    (uniqueDiffOn_Icc zero_lt_one s hs)).eq h₁.hasMFDerivWithinAt h₂
+    (uniqueDiffOn_Icc zero_lt_one s hs)).mfderiv_eq_of_eqOn
+    (f := hD.transportedCylinder e Δ c ∘ fun r : ℝ ↦ (r, (0 : ℝ), θ))
+    (g := fun _ ↦ e.toOpenPartialHomeomorph.symm (x, c θ)) hs
+    (hC.comp s hι.mdifferentiableAt) mdifferentiableAt_const
+    fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ
+  rw [(hC.hasMFDerivAt.comp s hι).mfderiv, mfderiv_const] at h
   -- The value of `(mfderiv C p).comp inl` at `1` is that of `mfderiv C p` at `(1, 0, 0)`.
   exact DFunLike.congr_fun h 1
 
