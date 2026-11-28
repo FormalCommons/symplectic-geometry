@@ -109,7 +109,7 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
   -- A smooth planar isothermal chart for `A` at `Φ x`.
   obtain ⟨e, hxe, -, -, hes, hesymm, hlin⟩ :=
     Beltrami.exists_centered_smooth_isothermal_chart
-      (J.contDiffOn_chartPushforward Φ.contMDiffOn Φ.symm.contMDiffOn) Φ.open_target
+      (J.contDiffOn_chartPushforward_toOpenPartialHomeomorph Φ) Φ.open_target
       (Φ.map_source hx) fun p hp ↦ hA p hp
   let D : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ℂ ℂ ∞ :=
     PartialDiffeomorph.ofOpenPartialHomeomorph e hes hesymm
