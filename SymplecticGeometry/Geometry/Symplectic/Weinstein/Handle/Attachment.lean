@@ -67,7 +67,9 @@ The move itself changes time along each orbit through `g ⁻¹' {0}` by a functi
 `g ⁻¹' {0}`, by fact (1), and `τ x = T y * μ s`, where `T y` is the time from `y` to
 `f ⁻¹' {b}` and `μ` is a bump that vanishes before a time `-δ` and equals `1` at time `0`
 (`exists_contDiff_bump_neg_one_lt_mul_deriv`); `τ` is `0` off these orbits. It is nonnegative,
-and it vanishes on `{f ≤ a}` when `δ` is the margin of `exists_pos_forall_lt_flow_apply`.
+and it vanishes on `{f ≤ a}` when `δ` is the margin of `exists_pos_forall_lt_flow_apply`. It
+vanishes on the stable sets in `K` too: they are invariant under `Φ` and lie in `{g < 0}`, so no
+orbit through them meets `g ⁻¹' {0}`.
 When `μ` has compact support, so does `τ`: its support lies in the compact set of points `Φ s y`
 with `s` in `tsupport μ` and `y` on `g ⁻¹' {0}`, which is inside the open set of orbits crossing
 `g ⁻¹' {0}`. There `τ` is built from the smooth crossing times and crossing point of fact (4), so
@@ -109,6 +111,8 @@ time that varies from orbit to orbit and with critical points inside `{g < 0}`.
 * `SymplecticGeometry.IsWeinsteinStructure.attachmentTime_nonneg`,
   `SymplecticGeometry.IsWeinsteinStructure.attachmentTime_eq_zero_of_le`: `0 ≤ τ`, and `τ = 0` on
   `{f ≤ a}`.
+* `SymplecticGeometry.IsWeinsteinStructure.attachmentTime_eq_zero_of_isInvariant`: `τ = 0` on a
+  set invariant under `Φ` on which `g` does not vanish, such as a stable set in `{g < 0}`.
 * `SymplecticGeometry.IsWeinsteinStructure.hasCompactSupport_attachmentTime`,
   `SymplecticGeometry.IsWeinsteinStructure.contMDiff_attachmentTime`: `τ` has compact support and
   is smooth, for a compact level `g ⁻¹' {0}` and a smooth bump `μ` with compact support.
@@ -119,8 +123,8 @@ time that varies from orbit to orbit and with critical points inside `{g < 0}`.
   `SymplecticGeometry.IsWeinsteinStructure.lt_apply_flow_attachmentTime`: the time change
   `x ↦ Φ (τ x) x` maps `{g ≤ 0}` into `{f ≤ b}` and `{0 < g}` into `{b < f}`.
 * `SymplecticGeometry.IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq`: for a Weinstein
-  cobordism, a diffeomorphism `x ↦ Φ (τ x) x`, fixing `{f ≤ a}`, carries `{g ≤ 0}` onto
-  `{f ≤ b}`.
+  cobordism, a diffeomorphism `x ↦ Φ (τ x) x`, fixing `{f ≤ a}` and the stable sets in `K`,
+  carries `{g ≤ 0}` onto `{f ≤ b}`.
 
 ## References
 
@@ -132,9 +136,9 @@ time that varies from orbit to orbit and with critical points inside `{g < 0}`.
   the boundary and the skeleton, carries a regular sublevel into a given neighbourhood of the
   lower boundary and the skeleton. Here the inverse of `Ψ`, which also moves points along the
   orbits and fixes `{f ≤ a}`, carries `{f ≤ b}` onto a domain `{g ≤ 0}` given in advance, and
-  `Ψ` is a diffeomorphism of the whole manifold, not of the cobordism. The theorem does not
-  state that `τ` vanishes on the stable sets, the counterpart of the book's identity near the
-  skeleton, although the `τ` built in its proof does.
+  `Ψ` is a diffeomorphism of the whole manifold, not of the cobordism. The theorem states that
+  `τ` vanishes on the stable sets, so that `Ψ` fixes the skeleton pointwise; the book asks for
+  the identity on a neighbourhood of it.
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
   §3, Theorem 3.1 (moving sublevels along the flow of a rescaled gradient field).
 -/
@@ -306,6 +310,14 @@ theorem attachmentTime_of_forall_ne {x : M} (hx : ∀ t, g (hW.flow t x) ≠ 0) 
   refine indicator_of_notMem ?_ _
   rintro ⟨t, ht⟩
   exact hx t ht
+
+/-- **The time function vanishes on invariant sets off `g ⁻¹' {0}`.** If a set `s` is invariant
+under the flow and `g` does not vanish on `s`, then `hW.attachmentTime g b μ` vanishes on `s`:
+no orbit through `s` meets `g ⁻¹' {0}`. The stable sets of the critical points are such sets
+(`Flow.isInvariant_stableSet`) when they lie in `{g < 0}`. -/
+theorem attachmentTime_eq_zero_of_isInvariant {s : Set M} (hs : IsInvariant hW.flow s)
+    (hsg : ∀ y ∈ s, g y ≠ 0) {x : M} (hx : x ∈ s) : hW.attachmentTime g b μ x = 0 :=
+  hW.attachmentTime_of_forall_ne fun t ↦ hsg _ (hs t hx)
 
 /-- **The time function on the orbits of `g ⁻¹' {0}`.** If the orbit of `x` under the flow `Φ`
 meets `g ⁻¹' {0}`, then, with `c = Flow.levelCrossingTime Φ g 0 x`, the time function at `x` is
@@ -555,8 +567,9 @@ Weinstein cobordism between the regular levels `a < b`, with flow `Φ`, and let 
 function such that `X` points out of `{g ≤ 0}` along `g ⁻¹' {0}` (`0 < dg(X)` there),
 `{g ≤ 0}` lies in `{f < b}`, and `{g < 0}` contains `{f ≤ a}` and the stable sets of the critical
 points of `f` in `f ⁻¹' Icc a b`. Then there are a smooth compactly supported function `τ ≥ 0`,
-vanishing on `{f ≤ a}`, and a diffeomorphism `Ψ` of `M` with `Ψ x = Φ (τ x) x`, that carries
-`{g ≤ 0}` onto `{f ≤ b}`. -/
+vanishing on `{f ≤ a}` and on the stable sets of the critical points of `f` in `f ⁻¹' Icc a b`,
+and a diffeomorphism `Ψ` of `M` with `Ψ x = Φ (τ x) x`, that carries `{g ≤ 0}` onto `{f ≤ b}`.
+So `Ψ` fixes `{f ≤ a}` and each of these stable sets pointwise. -/
 theorem exists_diffeomorph_image_sublevel_eq (hW : IsWeinsteinCobordism ω X f a b) {g : M → ℝ}
     (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
     (hgX : ∀ x, g x = 0 → 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
@@ -564,7 +577,9 @@ theorem exists_diffeomorph_image_sublevel_eq (hW : IsWeinsteinCobordism ω X f a
       hW.isWeinsteinStructure.flow.stableSet p ⊆ {x | g x < 0})
     (hgb : ∀ x, g x ≤ 0 → f x < b) :
     ∃ τ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) τ ∧ (∀ x, 0 ≤ τ x) ∧
-      (∀ x, f x ≤ a → τ x = 0) ∧ HasCompactSupport τ ∧
+      (∀ x, f x ≤ a → τ x = 0) ∧
+      (∀ x ∈ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b,
+        hW.isWeinsteinStructure.flow.stableSet p, τ x = 0) ∧ HasCompactSupport τ ∧
       ∃ Ψ : M ≃ₘ^(⊤ : ℕ∞)⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M,
         (∀ x, Ψ x = hW.isWeinsteinStructure.flow (τ x) x) ∧
         Ψ '' {x | g x ≤ 0} = {x | f x ≤ b} := by
@@ -591,9 +606,15 @@ theorem exists_diffeomorph_image_sublevel_eq (hW : IsWeinsteinCobordism ω X f a
     (hτc.isCompact_range hτ.continuous).isBounded hpos
   have hΨ (x : M) : Ψ x = hS.flow (hS.attachmentTime g b μ x) x := by
     rw [globalFlowTimeChangeDiffeomorph_apply, hS.flow_def]
+  -- The stable sets are invariant under the flow and lie in `{g < 0}`, so `τ` vanishes there.
+  have hτK (x : M) (hx : x ∈ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b,
+      hS.flow.stableSet p) : hS.attachmentTime g b μ x = 0 := by
+    obtain ⟨p, hp, hxp⟩ := mem_iUnion₂.1 hx
+    exact hS.attachmentTime_eq_zero_of_isInvariant (Flow.isInvariant_stableSet _ p)
+      (fun y hy ↦ (hK (subset_union_right (mem_biUnion hp hy))).ne) hxp
   refine ⟨hS.attachmentTime g b μ, hτ,
     hS.attachmentTime_nonneg (fun y hy ↦ hgb y hy.le) fun s ↦ (hμI s).1,
-    fun x hx ↦ hS.attachmentTime_eq_zero_of_le hδa hμδ hx, hτc, Ψ, hΨ, ?_⟩
+    fun x hx ↦ hS.attachmentTime_eq_zero_of_le hδa hμδ hx, hτK, hτc, Ψ, hΨ, ?_⟩
   -- `Ψ` maps `{g ≤ 0}` into `{f ≤ b}` and `{0 < g}` into `{b < f}`, and it is a bijection.
   ext z
   constructor
