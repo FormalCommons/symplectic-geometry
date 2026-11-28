@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
+import SymplecticGeometry.Combinatorics.SeparatedSet
 import SymplecticGeometry.Combinatorics.SimpleGraph.GreedyColoring
 import TauCeti.Analysis.Normed.Module.CoveringNumber
 
@@ -32,8 +33,9 @@ covered by the local count. Each count is proved for the extended distance `resc
 then deduced for the real one `rescaledDist` on a preconnected manifold.
 
 Finally it builds the net of centres. Since the size of a separated set is bounded for each `k`,
-a separated set that cannot be enlarged exists; every point is then at `d_k` less than `r₀` from
-one of its points, so lies in the image of a closed unit ball of the chart at that point
+a separated set that cannot be enlarged exists (`Finset.exists_separated_forall_exists_lt`);
+every point is then at `d_k` less than `r₀` from one of its points, so lies in the image of a
+closed unit ball of the chart at that point
 (`RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_rescaledEDist_lt`), once `√2 * r₀ ≤ 1`. The
 colouring is the greedy one of `Finset.exists_coloring_le_of_card_le_mul_pow`, fed by the count.
 
@@ -376,32 +378,10 @@ theorem exists_separated_chart_cover_coloring [CompactSpace M] [T2Space M]
     rw [hr₀_def]
     gcongr
     exact (min_le_right _ _).trans (le_mul_of_one_le_right hρ₁.le hk1)
-  set Sep : Finset M → Prop := fun S ↦ ∀ x ∈ S, ∀ x' ∈ S, x ≠ x' → r₀ ≤ rescaledDist I k x x'
-  -- A maximal separated set exists, since the separated sets have bounded size.
-  obtain ⟨S, hS, hmax⟩ : ∃ S, Sep S ∧ ∀ y : M, ∃ x ∈ S, rescaledDist I k x y < r₀ := by
-    by_contra! h
-    have hn (m : ℕ) : ∃ S, Sep S ∧ S.card = m := by
-      induction m with
-      | zero => exact ⟨∅, by simp [Sep], rfl⟩
-      | succ m ih =>
-        obtain ⟨S, hS, rfl⟩ := ih
-        obtain ⟨y, hy⟩ := h S hS
-        have hyS : y ∉ S := fun hyS ↦ by
-          have := hy y hyS
-          rw [rescaledDist_self] at this
-          exact hr₀.not_ge this
-        refine ⟨insert y S, ?_, Finset.card_insert_of_notMem hyS⟩
-        simp only [Sep, Finset.mem_insert]
-        rintro x (rfl | hx) x' (rfl | hx') hne
-        · exact absurd rfl hne
-        · exact rescaledDist_comm (I := I) k x x' ▸ hy x' hx'
-        · exact hy x hx
-        · exact hS x hx x' hx' hne
-    obtain ⟨S, hS, hcard⟩ := hn (⌊A * (1 + √k) ^ n⌋₊ + 1)
-    have h := hA hk S hS
-    rw [hcard] at h
-    push_cast at h
-    linarith [Nat.lt_floor_add_one (A * (1 + √(k : ℝ)) ^ n)]
+  -- A separated set that cannot be enlarged, since the separated sets have bounded size.
+  obtain ⟨S, hS, hmax⟩ := Finset.exists_separated_forall_exists_lt (rescaledDist_comm (I := I) k)
+    (fun x ↦ by rw [rescaledDist_self]; exact hr₀)
+    (K := ⌊A * (1 + √(k : ℝ)) ^ n⌋₊) fun S hS ↦ Nat.le_floor (hA hk S hS)
   have hcount (y : M) {r : ℝ} (hr : 0 ≤ r) :
       ((S.filter fun x ↦ rescaledDist I k x y ≤ r).card : ℝ) ≤ B' * (1 + r) ^ n :=
     (hB hk S hS y hr).trans (by gcongr; exact le_max_left _ _)
