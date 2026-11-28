@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Analysis.Convex.Mul
 import Mathlib.Analysis.Normed.Module.Convex
 import Mathlib.Analysis.Normed.Operator.Bilinear
+import Mathlib.Analysis.Normed.Operator.NormedSpace
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Positivity
 
@@ -27,8 +28,10 @@ convex combination of two functionals or of two vectors that satisfy it and adds
 
 * `ContinuousLinearMap.mul_norm_le_opNorm_of_mul_le_apply`: `c ‖v‖ ≤ ‖ℓ‖`.
 * `ContinuousLinearMap.mul_opNorm_le_norm_of_mul_le_apply`: `c ‖ℓ‖ ≤ ‖v‖`.
-* `ContinuousLinearMap.div_four_mul_norm_sq_add_opNorm_sq_le`: a bound
-  `κ * (‖a‖² + (ℓ e)²) ≤ r` for every `e` with `‖e‖ ≤ 1` gives `κ / 4 * (‖a‖² + ‖ℓ‖²) ≤ r`.
+* `ContinuousLinearMap.eq_zero_iff_eq_zero_of_mul_le_apply`: if `c > 0`, then `ℓ = 0` exactly
+  when `v = 0`.
+* `ContinuousLinearMap.mul_norm_sq_add_opNorm_sq_le_of_forall_norm_le_one`: a bound
+  `κ * (‖a‖² + (ℓ e)²) ≤ r` for every `e` with `‖e‖ ≤ 1` gives `κ * (‖a‖² + ‖ℓ‖²) ≤ r`.
 * `ContinuousLinearMap.norm_sub_le_of_mul_le_apply`: if `ℓ` and `ℓ'` both satisfy the inequality
   for the same `v` and `c > 0`, then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`.
 * `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`: for a real linear
@@ -114,22 +117,36 @@ theorem mul_opNorm_le_norm_of_mul_le_apply (h : c * (‖v‖ ^ 2 + ‖ℓ‖ ^ 2
   · refine le_of_mul_le_mul_right ?_ h0
     nlinarith [sq_nonneg ‖v‖]
 
+/-- If `c (‖v‖² + ‖ℓ‖²) ≤ ℓ v` with `c > 0`, then `ℓ = 0` if and only if `v = 0`. -/
+theorem eq_zero_iff_eq_zero_of_mul_le_apply {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+    {ℓ : V →L[ℝ] ℝ} {v : V} (hc : 0 < c) (h : c * (‖v‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ ℓ v) :
+    ℓ = 0 ↔ v = 0 :=
+  ⟨fun hℓ ↦ (norm_le_zero_iff (a := v)).1 <| nonpos_of_mul_nonpos_right
+      (by simpa [hℓ] using mul_norm_le_opNorm_of_mul_le_apply h) hc,
+    fun hv ↦ (norm_le_zero_iff (a := ℓ)).1 <| nonpos_of_mul_nonpos_right
+      (by simpa [hv] using mul_opNorm_le_norm_of_mul_le_apply h) hc⟩
+
 /-- If `κ * (‖a‖² + (ℓ e)²) ≤ r` for every `e` with `‖e‖ ≤ 1`, where `κ ≥ 0`, then
-`κ / 4 * (‖a‖² + ‖ℓ‖²) ≤ r`. -/
-theorem div_four_mul_norm_sq_add_opNorm_sq_le {V F : Type*} [NormedAddCommGroup V]
+`κ * (‖a‖² + ‖ℓ‖²) ≤ r`. -/
+theorem mul_norm_sq_add_opNorm_sq_le_of_forall_norm_le_one {V F : Type*} [NormedAddCommGroup V]
     [NormedSpace ℝ V] [SeminormedAddCommGroup F] {ℓ : V →L[ℝ] ℝ} {a : F} {κ r : ℝ} (hκ : 0 ≤ κ)
     (h : ∀ e : V, ‖e‖ ≤ 1 → κ * (‖a‖ ^ 2 + ℓ e ^ 2) ≤ r) :
-    κ / 4 * (‖a‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ r := by
-  -- The norm of `ℓ` is attained, up to a factor `2`, at a vector of norm at most `1`.
-  have hℓ : κ * (‖a‖ ^ 2 + ‖ℓ‖ ^ 2 / 4) ≤ r := by
-    rcases (norm_nonneg ℓ).eq_or_lt with h0 | h0
-    · simpa [← h0] using h 0 (by simp)
-    obtain ⟨e, he, hlt⟩ := ℓ.exists_lt_apply_of_lt_opNorm (half_lt_self h0)
-    rw [Real.norm_eq_abs] at hlt
-    refine le_trans ?_ (h e he.le)
-    gcongr
-    nlinarith [norm_nonneg ℓ, abs_nonneg (ℓ e), sq_abs (ℓ e)]
-  nlinarith [sq_nonneg ‖a‖, sq_nonneg ‖ℓ‖, mul_nonneg hκ (sq_nonneg ‖a‖)]
+    κ * (‖a‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ r := by
+  rcases hκ.eq_or_lt with rfl | hκ
+  · simpa using h 0 (by simp)
+  have hr : ‖a‖ ^ 2 ≤ r / κ := by
+    rw [le_div_iff₀ hκ, mul_comm]
+    simpa using h 0 (by simp)
+  -- Each value of `ℓ` on the unit sphere is at most `√(r / κ - ‖a‖²)` in absolute value.
+  have hℓ : ‖ℓ‖ ≤ √(r / κ - ‖a‖ ^ 2) := by
+    refine ℓ.opNorm_le_of_unit_norm (Real.sqrt_nonneg _) fun e he ↦ ?_
+    rw [Real.norm_eq_abs, ← Real.sqrt_sq_eq_abs]
+    refine Real.sqrt_le_sqrt ?_
+    rw [le_sub_iff_add_le, add_comm, le_div_iff₀ hκ, mul_comm]
+    exact h e he.le
+  have := pow_le_pow_left₀ (norm_nonneg ℓ) hℓ 2
+  rw [Real.sq_sqrt (sub_nonneg.2 hr), le_sub_iff_add_le, le_div_iff₀ hκ] at this
+  linarith
 
 /-- If `ℓ` and `ℓ'` both satisfy `c (‖v‖² + ‖·‖²) ≤ · v` for the same vector `v`, with `c > 0`,
 then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`. -/

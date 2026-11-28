@@ -12,6 +12,7 @@ public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 import Mathlib.LinearAlgebra.Dual.Lemmas
+import SymplecticGeometry.Analysis.Normed.Operator.Functional
 
 /-!
 # Continuous bilinear forms
@@ -446,14 +447,7 @@ theorem ker_eq_ker_of_mul_norm_sq_add_norm_sq_le {F : Type*} [NormedAddCommGroup
     [NormedSpace ℝ F] {A : E →L[ℝ] F} {B : E →L[ℝ] F →L[ℝ] ℝ} {c : ℝ} (hc : 0 < c)
     (h : ∀ v, c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)) : B.ker = A.ker := by
   ext v
-  simp only [LinearMap.mem_ker, coe_coe]
-  constructor <;> intro hv <;> have h := h v
-  · rw [hv, zero_apply, norm_zero] at h
-    have : ‖A v‖ ^ 2 ≤ 0 := by nlinarith [sq_nonneg ‖A v‖]
-    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (le_antisymm this (sq_nonneg _)))
-  · rw [hv, map_zero, norm_zero] at h
-    have : ‖B v‖ ^ 2 ≤ 0 := by nlinarith [sq_nonneg ‖B v‖]
-    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (le_antisymm this (sq_nonneg _)))
+  simpa using eq_zero_iff_eq_zero_of_mul_le_apply hc (h v)
 
 /-- In finite dimension, a symmetric continuous bilinear form `B` takes as values `B w` every
 continuous linear form `ℓ` that vanishes on the kernel of `B`. -/
@@ -486,14 +480,8 @@ theorem apply_eq_zero_of_apply_eq_zero_of_mul_norm_sq_add_norm_sq_le [FiniteDime
     simp [hT']
   have hw' : B' w + T' = 0 := by rw [hw, neg_add_cancel]
   -- Then `β w = 0`, so `B w + T = 0`, and `(B w + T) e = T e` since `B w e = B e w = 0`.
-  have hβ : β w = 0 := by
-    have := h' w
-    rw [hw', norm_zero, zero_apply] at this
-    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (by nlinarith [sq_nonneg ‖β w‖]))
-  have hBT : B w + T = 0 := by
-    have := h w
-    rw [hβ, map_zero, norm_zero] at this
-    exact norm_eq_zero.1 (pow_eq_zero_iff two_ne_zero |>.1 (by nlinarith [sq_nonneg ‖B w + T‖]))
+  have hβ : β w = 0 := (eq_zero_iff_eq_zero_of_mul_le_apply hc' (h' w)).1 hw'
+  have hBT : B w + T = 0 := (eq_zero_iff_eq_zero_of_mul_le_apply hc (h w)).2 hβ
   simpa [hB w e, hBe] using congrArg (· e) hBT
 
 end ContinuousLinearMap
