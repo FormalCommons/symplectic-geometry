@@ -97,9 +97,8 @@ theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
         (leftMaurerCartanForm I G) := by
   refine SmoothBundleForm.ext fun g v ↦ ?_
   have hv : v = ![v 0] := (FinVec.etaExpand_eq v).symm
-  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, hv]
-  refine ((congrArg ((leftMaurerCartanForm I G).val (g * h)) (by ext i; fin_cases i; rfl)).trans
-    (leftMaurerCartanForm_apply_mfderiv_mul_right g h (v 0))).trans ?_
+  rw [hv, SmoothForm.mpullback_apply_one]
+  refine (leftMaurerCartanForm_apply_mfderiv_mul_right g h (v 0)).trans ?_
   -- `Ad(h⁻¹)` is typed on `GroupLieAlgebra I G`, so `rw` cannot match `mapCoeff (F := E)`.
   exact ((DFunLike.congr_fun (congrFun (SmoothForm.coe_mapCoeff (F := E) (G := E)
     (adjointContinuousLinearMap (I := I) h⁻¹) (leftMaurerCartanForm I G)) g) _).trans
