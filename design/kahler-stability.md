@@ -528,13 +528,12 @@ This is a hypothesis of the statements below, not a definition.
   `C.expI (t • ξ) • x`; by continuity of the action of `Gc` and
   `limitPoint_eq_of_tendsto`.
 - `tendsto_kempfNessFunction_expI_neg_smul_div`:
-  `Φ_p (C.expI (-(s • ξ))) / s → -momentWeight C μ p ξ` as `s → ∞`. By
-  `kempfNessFunction_expI` the quotient is
-  `-∫ t in 0..1, μ (C.expI ((t * s) • ξ) • p) ξ`, and dominated convergence
-  (`intervalIntegral.tendsto_integral_filter_of_dominated_convergence`, with
-  the bound from compactness of `M`) and `tendsto_momentWeight` give the
-  limit. It does not use the slope identity.
-- `abs_kempfNessFunction_expI_mul_toHom_le`: if `√(momentNormSq μ (B.toDual hB).symm y) ≤ L`
+  `Φ_p (C.expI (-(s • ξ))) / s → -momentWeight C μ p ξ` as `s → ∞`. The
+  upper bound is `kempfNessFunction_expI_neg_smul_le`; for the lower bound,
+  the derivative `hasDerivAt_kempfNessFunction_expI_neg_smul` tends to
+  `-momentWeight C μ p ξ` (`tendsto_momentWeight`), and
+  `Convex.mul_sub_le_image_sub_of_le_deriv` bounds the growth from some time on.
+- `abs_kempfNessFunction_expI_mul_toHom_le` (in `KempfNess/Function.lean`): if `√(momentNormSq μ (B.toDual hB).symm y) ≤ L`
   for all `y`, then `|Φ_p (C.expI η * C.toHom u)| ≤ L * √(B η η)` for every
   `p`, from `kempfNessFunction_expI_mul_toHom` and
   `abs_apply_le_sqrt_momentNormSq_mul_sqrt`.
