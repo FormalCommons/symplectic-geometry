@@ -61,8 +61,8 @@ an open subset `U` of `V` inside the target of `e` that is invariant under every
 
 The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
 (`SymplecticGeometry.LinearizingChart.symm_mfderiv_smul`) and the derivative of `e.symm` at `0`
-(`SymplecticGeometry.LinearizingChart.hasMFDerivAt_symm`) adapt steps of the proof of Tau Ceti's
-`TauCeti.exists_equivariant_slice_of_isCompact_stabilizer`, stated on their own.
+(`SymplecticGeometry.LinearizingChart.hasMFDerivAt_chart_symm`) adapt steps of the proof of Tau
+Ceti's `TauCeti.exists_equivariant_slice_of_isCompact_stabilizer`, stated on their own.
 
 A linearizing chart is stored as a smooth partial diffeomorphism
 (`SymplecticGeometry.LinearizingChart.toPartialDiffeomorph`), so Mathlib's and Tau Ceti's
@@ -200,6 +200,11 @@ theorem hasMFDerivAt_chart :
     HasMFDerivAt I' 𝓘(ℝ, E') e.chart x (ContinuousLinearMap.id ℝ E') :=
   e.hasMFDerivAt
 
+/-- A linearizing chart at `x` has differential the identity at `x`. -/
+@[simp]
+theorem mfderiv_chart_self : mfderiv I' 𝓘(ℝ, E') e.chart x = ContinuousLinearMap.id ℝ E' :=
+  e.hasMFDerivAt_chart.mfderiv
+
 /-- The source of a linearizing chart at `x` is invariant under the stabilizer of `x`. -/
 theorem smul_mem_chart_source {g : G} (hg : g ∈ stabilizer G x) {z : M}
     (hz : z ∈ e.chart.source) : g • z ∈ e.chart.source :=
@@ -253,20 +258,26 @@ theorem symm_mfderiv_smul {g : G} (hg : g ∈ stabilizer G x) {v : E'}
     e.chart.left_inv (e.smul_mem_chart_source hg (e.chart.map_target hv))]
 
 /-- The inverse of a linearizing chart at `x` has derivative the identity at `0`. -/
-theorem hasMFDerivAt_symm :
+theorem hasMFDerivAt_chart_symm :
     HasMFDerivAt 𝓘(ℝ, E') I' e.chart.symm 0 (ContinuousLinearMap.id ℝ E') := by
   refine (e.mdifferentiableAt_chart_symm e.zero_mem_target).hasMFDerivAt.congr_mfderiv
     (ContinuousLinearMap.ext fun w ↦ ?_)
   -- `de_x` is the identity, and it undoes the derivative of `e.symm` at `0`.
   have h := e.toPartialDiffeomorph.mfderiv_apply_mfderiv_symm_apply (by simp) e.zero_mem_target w
   rwa [coe_toPartialDiffeomorph, coe_toPartialDiffeomorph_symm, e.symm_zero,
-    e.hasMFDerivAt_chart.mfderiv] at h
+    e.mfderiv_chart_self] at h
+
+/-- The inverse of a linearizing chart at `x` has differential the identity at `0`. -/
+@[simp]
+theorem mfderiv_chart_symm_zero :
+    mfderiv 𝓘(ℝ, E') I' e.chart.symm 0 = ContinuousLinearMap.id ℝ E' :=
+  e.hasMFDerivAt_chart_symm.mfderiv
 
 /-- The inverse of a linearizing chart at `x`, restricted to a subspace `V`, has derivative the
 inclusion of `V` at `0`. -/
-theorem hasMFDerivAt_symm_comp_subtype (V : Submodule ℝ E') :
+theorem hasMFDerivAt_chart_symm_comp_subtype (V : Submodule ℝ E') :
     HasMFDerivAt 𝓘(ℝ, V) I' (fun v : V ↦ e.chart.symm (v : E')) 0 V.subtypeL := by
-  have h := e.hasMFDerivAt_symm.comp (0 : V) V.subtypeL.hasMFDerivAt
+  have h := e.hasMFDerivAt_chart_symm.comp (0 : V) V.subtypeL.hasMFDerivAt
   exact h.congr_mfderiv (ContinuousLinearMap.id_comp _)
 
 section FundamentalVectorField
@@ -442,7 +453,7 @@ theorem contMDiff_sliceMap : ContMDiff 𝓘(ℝ, V) I' ∞ U.sliceMap :=
 inclusion of `V`. -/
 theorem hasMFDerivAt_sliceMap {z : U} (hz : (z : V) = 0) :
     HasMFDerivAt 𝓘(ℝ, V) I' U.sliceMap z V.subtypeL := by
-  have h := e.hasMFDerivAt_symm_comp_subtype V
+  have h := e.hasMFDerivAt_chart_symm_comp_subtype V
   rw [← hz] at h
   refine (U.contMDiff_sliceMap z |>.mdifferentiableAt (by simp)).hasMFDerivAt.congr_mfderiv
     (ContinuousLinearMap.ext fun v ↦ ?_)
@@ -567,7 +578,7 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm (hz : (z : V) = 
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
       mfderiv (I.prod 𝓘(ℝ, V)) I' (fun p : G × V ↦ p.1 • e.chart.symm (p.2 : E')) (1, 0)
         (ξ, v) := by
-  have hσ := e.hasMFDerivAt_symm_comp_subtype V
+  have hσ := e.hasMFDerivAt_chart_symm_comp_subtype V
   refine (U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v).trans
     (Eq.trans ?_ (mfderiv_smul_slice_apply hσ.mdifferentiableAt ξ v).symm)
   rw [hσ.mfderiv, ZeroMemClass.coe_zero, e.symm_zero]
