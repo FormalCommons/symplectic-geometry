@@ -211,19 +211,17 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
 
 /-! ### The flat `∂` -/
 
-/-- The **flat `∂`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
-complex-linear part `TauCeti.complexLinearPart` of `df_z`, for `J₀ = stdComplexStructure ι` and
-multiplication by `i` on `ℂ`, that is `v ↦ ½ (df_z v - i df_z (J₀ v))`. It is the `(1,0)`
-counterpart of the flat `∂̄` `SymplecticGeometry.flatDbar`. -/
+/-- The **flat `∂`** of a complex function `f` on `StdSpace ι` at `z`: the operator
+`TauCeti.complexLinearPartContinuousLinearMap` for `J₀ = stdComplexStructure ι` and
+multiplication by `i` on `ℂ`, applied to `df_z`, that is `v ↦ ½ (df_z v - i df_z (J₀ v))`. It
+is the `(1,0)` counterpart of the flat `∂̄` `SymplecticGeometry.flatDbar`. -/
 noncomputable def flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ))
+  complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
+    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z)
 
 theorem flatDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    flatDel f z =
-      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+    flatDel f z = complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z) :=
   (rfl)
 
 /-- As a real-linear map, the flat `∂` of `f` at `z` is Tau Ceti's complex-linear part
@@ -233,21 +231,19 @@ theorem coe_flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
       complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  rw [flatDel_def, LinearMap.coe_toContinuousLinearMap]
+  rw [flatDel_def, complexLinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap]
 
 theorem flatDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     flatDel f z v =
       (2⁻¹ : ℝ) • (fderiv ℝ f z v - Complex.I * fderiv ℝ f z (stdComplexStructure ι v)) := by
-  rw [flatDel_def, LinearMap.coe_toContinuousLinearMap', complexLinearPart_apply]
+  rw [flatDel_def, complexLinearPartContinuousLinearMap_apply_apply, complexLinearPart_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
 
 /-- The differential of `f` at `z` is the sum of its flat `∂` and its flat `∂̄`. -/
 theorem flatDel_add_flatDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDel f z + flatDbar f z = fderiv ℝ f z := by
-  apply ContinuousLinearMap.coe_injective
-  rw [ContinuousLinearMap.toLinearMap_add, coe_flatDel, flatDbar_eq,
-    complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
-    complexLinearPart_add_complexAntilinearPart]
+  rw [flatDel_def, flatDbar_eq,
+    complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
 
 /-- The flat `∂` commutes with complex scalars. -/
 @[simp]

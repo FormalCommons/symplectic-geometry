@@ -25,6 +25,9 @@ at two points through the identity of the model space: `tangentSpaceCast_apply` 
 each vector to itself. Tau Ceti's `TauCeti.tangentSpaceCast_self` covers only the case of a single
 point, while `Filter.EventuallyEq.mfderiv_eq` inserts the cast between two points that are equal
 only propositionally; rewriting with `tangentSpaceCast_apply` removes it there.
+In the same way, `tangentSpaceCastModel_apply` and `tangentSpaceCastModel_symm_apply` evaluate
+Mathlib's `tangentSpaceCastModel I x`, which identifies the tangent space at `x` with the model
+space, and its inverse.
 
 Last, three instances compare smoothness exponents in `ℕ∞ω` as a `Fact`: `ENat.fact_le_refl`
 (`m ≤ m`), `ENat.fact_le_infty` (`m ≤ ∞`, from Mathlib's `ENat.LEInfty m`) and
@@ -63,6 +66,18 @@ This is not a `simp` lemma: for `x ≠ y` its right-hand side is a vector of `Ta
 a place that expects one of `TangentSpace I y`, so rewriting with it stops other lemmas, such as
 `map_smul`, from matching. Use it explicitly, with `rw` or `simp only`. -/
 theorem tangentSpaceCast_apply (x y : M) (v : TangentSpace I x) : tangentSpaceCast I x y v = v :=
+  (rfl)
+
+/-- The identification `tangentSpaceCastModel I x` of the tangent space at `x` with the model space
+sends each tangent vector to itself, read as a vector of the model space. -/
+theorem tangentSpaceCastModel_apply (x : M) (v : TangentSpace I x) :
+    tangentSpaceCastModel I x v = v :=
+  (rfl)
+
+/-- The inverse of `tangentSpaceCastModel I x` sends each vector of the model space to itself,
+read as a tangent vector at `x`. -/
+theorem tangentSpaceCastModel_symm_apply (x : M) (v : E) :
+    (tangentSpaceCastModel I x).symm v = v :=
   (rfl)
 
 end tangentSpaceCast
