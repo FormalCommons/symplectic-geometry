@@ -35,7 +35,7 @@ one-forms of holonomic approximation over the cubes of `c` (`Relative/CoreApprox
 ## Main results
 
 * `SymplecticGeometry.isSmoothFamily_stagePath`: the path of a stage is a smooth family over
-  `L × [0, 1]` when its data are smooth families over normed spaces.
+  `L × [0, 1]` when its data are smooth families, over a manifold `L` and a normed space `S`.
 * `SymplecticGeometry.continuous_tangentEquiv_symm_stagePath`: the path of a stage is
   continuous into the frame topology of a covering frame system when `τ` and `α` are, the
   one-forms are a smooth family read through a continuous map, and the parameter space of the
@@ -72,21 +72,23 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 section Smooth
 
-variable {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+variable {EL HL L : Type*} [NormedAddCommGroup EL] [NormedSpace ℝ EL] [TopologicalSpace HL]
+  {J : ModelWithCorners ℝ EL HL} [TopologicalSpace L] [ChartedSpace HL L] [IsManifold J ∞ L]
 
-/-- The path of a stage is a smooth family over `L × [0, 1]` when `τ` and `α` are smooth families
-over `L`, `B'` is a smooth family over `S` and `s : L → S` is smooth. -/
+/-- The path of a stage is a smooth family over `L × [0, 1]`, for a manifold `L` of parameters,
+when `τ` and `α` are smooth families over `L`, `B'` is a smooth family over `S` and `s : L → S`
+is smooth. -/
 theorem isSmoothFamily_stagePath {e : (S × unitInterval) × M → M}
     (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e) {ρ : M → ℝ}
-    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) {s : L → S} (hs : ContMDiff 𝓘(ℝ, L) 𝓘(ℝ, S) ∞ s)
-    {τ α : L → SmoothTwoForm I M} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
-    (hα : IsSmoothFamily 𝓘(ℝ, L) α) {B' : S → SmoothForm I M ℝ 1}
+    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) {s : L → S} (hs : ContMDiff J 𝓘(ℝ, S) ∞ s)
+    {τ α : L → SmoothTwoForm I M} (hτ : IsSmoothFamily J τ)
+    (hα : IsSmoothFamily J α) {B' : S → SmoothForm I M ℝ 1}
     (hB' : IsSmoothFamily 𝓘(ℝ, S) B') :
-    IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) (stagePath he hρ s τ α B') := by
+    IsSmoothFamily (J.prod (𝓡∂ 1)) (stagePath he hρ s τ α B') := by
   have hA := (collaredFirstHalf (n := ∞) le_rfl).contMDiff
   have hC : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t ↦ (collaredSecondHalf (n := ∞) le_rfl t : ℝ) :=
     contMDiff_subtypeVal_Icc.comp (collaredSecondHalf (n := ∞) le_rfl).contMDiff
-  have hs' : ContMDiff (𝓘(ℝ, L).prod (𝓡∂ 1)) 𝓘(ℝ, S) ∞ fun p : L × unitInterval ↦ s p.1 :=
+  have hs' : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ, S) ∞ fun p : L × unitInterval ↦ s p.1 :=
     hs.comp contMDiff_fst
   -- The first term: `τ l` pulled back along the isotopy run at the speed `A`.
   have h₁ := (hτ.comp Prod.fst contMDiff_fst).mpullback_family
@@ -118,8 +120,8 @@ variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ S] {Λ : Type*} [Topol
   (W : ι → TopologicalSpace.Opens M) (hW : ∀ j, (W j : Set M) ⊆ (fr j).baseSet)
 
 /-- The path of a stage is continuous into the frame topology of a covering frame system of the
-two-forms on `M`, when `τ` and `α` are, `s : Λ → S` is continuous, `S` is finite-dimensional and
-`B'` is a smooth family over `S`. -/
+two-forms on `M`, when `M` and `S` have finite-dimensional models, `τ` and `α` are continuous into
+that topology, `s : Λ → S` is continuous and `B'` is a smooth family over `S`. -/
 theorem continuous_tangentEquiv_symm_stagePath (hcover : ∀ x, ∃ j, x ∈ W j)
     {e : (S × unitInterval) × M → M}
     (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e) {ρ : M → ℝ}
@@ -303,7 +305,7 @@ theorem BandCore.exists_stage_continuous_family (c : BandCore I g a₀ a b) (hg 
     c.exists_approximation_continuous_family fr W hW hg hcover hP₀ hτ hα hnd hB hs hN haN hτN
       hτP₀
   -- The parameter of the approximation, `s' l = (s l, fun i ↦ σ i l)`.
-  set s' : P → S × ((i : c.ι) → Fin (n i) → ℝ) := fun l ↦ (s l, fun i ↦ σ i l) with hs'_def
+  set s' : P → S × ((i : c.ι) → Fin (n i) → ℝ) := fun l ↦ (s l, fun i ↦ σ i l)
   have hs' : Continuous s' := hs.prodMk (continuous_pi hσ)
   obtain ⟨φ, hφ, ρ, hρ, V, N', -, hφ₀, hV, hVa, hVN₁, hφV, hN', hbN', -, hρN', hHnd⟩ :=
     exists_stagePath c hg isCompact_univ hs' (fun l _ ↦ hnd l) hΦ hΦd hΦ₀ hN₁ haN₁ hΦN₁ hU
