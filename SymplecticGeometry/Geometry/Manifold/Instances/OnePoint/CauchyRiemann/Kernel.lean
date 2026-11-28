@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
@@ -373,7 +374,8 @@ theorem isPseudoholomorphicAt_div_of_mem_twistOneKernel {s t : OnePoint ℂ → 
   -- Near `x`, `s` is the quotient times `t`.
   let t' : Π p, (twistCore (𝕜 := ℂ) 1).Fiber p := t
   have hst : ∀ᶠ p in 𝓝 x, ((fun p ↦ s p / t p) • t') p = s p := by
-    filter_upwards [OnePoint.eventually_ne_zero_twistCore 1 htx hx] with p hp
+    filter_upwards [VectorBundle.eventually_ne_zero ℝ (b := id)
+      (E := (twistCore (𝕜 := ℂ) 1).Fiber) (s := t) htx.continuousAt hx] with p hp
     -- The fibres of `𝒪(1)` are `ℂ`, with its multiplication as scalar action.
     exact div_mul_cancel₀ (s p) hp
   have hD := isRealCauchyRiemannOperator_twistOneDelBar J

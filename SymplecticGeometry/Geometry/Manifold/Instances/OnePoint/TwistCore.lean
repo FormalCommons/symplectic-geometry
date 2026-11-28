@@ -29,8 +29,6 @@ degree `k`:
 * `OnePoint.twistTransition_ne_zero`: the transition functions do not vanish on chart overlaps;
 * `OnePoint.mdifferentiableAt_div_twistCore`: the quotient of two sections of `𝒪(k)` that are
   real differentiable at a point is real differentiable there where the denominator is nonzero;
-* `OnePoint.eventually_ne_zero_twistCore`: a section of `𝒪(k)` that is real differentiable and
-  nonzero at a point is nonzero near it;
 * `OnePoint.contMDiffAt_div_twistCore`: the same for sections that are `C^n` at a point, by the
   same reading in coordinates, adapted to `C^n` from the differentiability step of Tau Ceti's
   `TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul`;
@@ -125,21 +123,6 @@ theorem mdifferentiableAt_div_twistCore (k : ℤ) {s t : OnePoint ℂ → ℂ} {
   have hb : p ∈ e.baseSet := by simpa [e] using hp
   rw [e.coordRatio_eq_div_of_mem hb, twistCore_localTriv_apply, twistCore_localTriv_apply]
   exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
-
-/-- A section `t` of `𝒪(k)` that is real differentiable at `x` and does not vanish at `x` does
-not vanish near `x`. -/
-theorem eventually_ne_zero_twistCore (k : ℤ) {t : OnePoint ℂ → ℂ} {x : OnePoint ℂ}
-    (ht : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
-      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) x)
-    (hx : t x ≠ 0) : ∀ᶠ p in 𝓝 x, t p ≠ 0 := by
-  set e := (twistCore (𝕜 := ℂ) k).localTriv x
-  have hxe : x ∈ e.baseSet := by simp [e]
-  -- The coordinate of `t` in the trivialization at `x` is continuous at `x` and nonzero there.
-  have hc := ((e.mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t hxe).1 ht).continuousAt
-  have hc0 : (e ⟨x, t x⟩).2 ≠ 0 :=
-    (e.snd_apply_ne_zero_iff ℝ (v := TotalSpace.mk' ℂ x (t x)) hxe).2 hx
-  filter_upwards [hc.eventually_ne hc0, e.open_baseSet.mem_nhds hxe] with p hp hpe
-  exact (e.snd_apply_ne_zero_iff ℝ (v := TotalSpace.mk' ℂ p (t p)) hpe).1 hp
 
 /-- The quotient `p ↦ s p / t p` of two sections of `𝒪(k)` that are `C^n` at `x` for the real
 structure is `C^n` at `x` if `t x ≠ 0`. The quotient is a function, since `s p` and `t p` lie in
