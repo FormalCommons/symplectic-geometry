@@ -591,7 +591,7 @@ them, under *Sufficiency for polystability*. Let `Ad` be `Lie.tangentAd`.
   With `q` and `x` from the previous item, `x` is fixed by every
   `C.expI (t • ξ)`, so `C.expI (t • ξ) • q • x` is the conjugate of `q` at time
   `t` acting on `x`, so `limitPoint C p ξ = C.parabolicLimit ξ q • x`
-  (`tendsto_parabolicLimit`, `limitPoint_eq_of_tendsto`), and `x = q⁻¹ • p`. Its
+  (`limitPoint_smul_of_mem_parabolic_of_tendsto`), and `x = q⁻¹ • p`. Its
   semistability part is `IsPolystable.isSemistable`.
 - `IsStable.momentWeight_neg` (the necessity half of the stable criterion):
   if `p` is stable and `ξ ≠ 0`, then `momentWeight C μ p ξ < 0`. The weight
@@ -831,7 +831,9 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   `Projectivization.mapDiffeomorph` at the linear equivalence `ρ g`), with the
   library's `fubiniStudyForm n` and `ofComplexManifold`; the invariance of
   both under `G` (`mpullback_unitary_fubiniStudyForm`); and
-  `isComplexifiedAction_projectivization`. The fundamental vector field of
+  `isComplexifiedAction_projectivization`, stated for any smooth linear
+  action whose action on `V` is a complexified action for multiplication by
+  `Complex.I`, which for `ρ` is the condition on `dρ`. The fundamental vector field of
   `ξ` at `[y]` is the image of `dρ ξ • y` under the differential of the
   projection, which identifies it with the generator of Tau Ceti's
   `TauCeti.ComplexProjectiveSpace.unitaryAction` at `dρ ξ`, an

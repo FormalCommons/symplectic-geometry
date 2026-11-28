@@ -135,11 +135,11 @@ private theorem exists_jetNormAt_stdForm_sub_le (r : ℕ) (Cτ : ℝ) :
   have hB1 : ContDiffAt ℝ r (⇑(B 1)) w₀ := (B 1).contDiff.contDiffAt
   refine ⟨hB1.add hg.neg, ?_⟩
   have hjτ : jetNormAt ℝ r τ w₀ ≤ (1 + r * |Cτ|) * (1 + ‖z‖) :=
-    jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
-      hCτ (j + 1) (by omega) (by omega)
+    (jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
+      hCτ (j + 1) (by omega) (by omega)).trans (by gcongr; exact le_abs_self _)
   have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) w₀ ≤ (r + 1) * |Cτ| :=
-    jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
-      hCτ (j + 1) (by omega) (by omega)
+    (jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
+      hCτ (j + 1) (by omega) (by omega)).trans (by gcongr; exact le_abs_self _)
   refine (jetNormAt_add_le (g := -g) hB1 hg.neg).trans ?_
   rw [jetNormAt_neg]
   have h1 : jetNormAt ℝ r (⇑(B 1)) w₀ ≤ ‖B 1‖ * (1 + ‖w₀‖) := by
