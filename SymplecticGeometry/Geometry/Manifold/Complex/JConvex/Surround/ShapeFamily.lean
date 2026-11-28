@@ -97,6 +97,15 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   smooth on `(δ, ∞)`, continuous on `[δ, ∞)` with slope tending to `+∞` at `δ`, and strictly
   increasing on `[δ, ∞)` (`SymplecticGeometry.strictMonoOn_surroundFamily`); its leaf `-8 δ` is
   `√(64 r² - 64 δ²)` (`SymplecticGeometry.surroundFamily_neg_eight_mul`).
+  Far out every leaf is the standard leaf `√(64 r² + ℓ |ℓ|)`: the leaves `ℓ ≤ 7 δ` from
+  `(2 + L) δ` on (`SymplecticGeometry.surroundFamily_eq_sqrt_of_le`), and all leaves from
+  `(t₁ + 2 δ) / 6` and the radius where `F` is standard on
+  (`SymplecticGeometry.surroundFamily_eq_sqrt`), for `t₁ = bridgeHeight L δ ℓ₀`. When `t₁` and
+  `ℓ₀` are small and `F 1` lies above `1` and above the other leaves `F ℓ`, every leaf lies below
+  the leaf `1` (`SymplecticGeometry.surroundFamily_le_surroundFamily_one`): near the cylinder the
+  bridge leaves are below `1` or equal to `F ℓ` (`SymplecticGeometry.bridgeFamily_le_or_eq`), and
+  further out below the standard leaf `ℓ` or equal to `F ℓ`
+  (`SymplecticGeometry.bridgeFamily_le_sqrt_or_eq`).
 
 ## References
 
@@ -850,6 +859,104 @@ theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
       (fun ℓ h ↦ hF2 ℓ (Icc_subset_Icc_right hℓₜ h))
       (fun ℓ h ↦ (hFS ℓ (Icc_subset_Icc_right hℓₜ h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
       hFℓ hFs hFd hℓ hr
+
+/-- **The low leaves of the glued family are standard far out.** For `L, δ > 0`, from `(2 + L) δ`
+on, every leaf `ℓ ≤ 7 δ` of the glued family is the standard leaf `√(64 r² + ℓ |ℓ|)`, whatever
+`ℓ₀`, `M` and `F` are. In particular the leaves near the bottom leaf `-8 δ`, on both sides of it,
+are standard from `(2 + L) δ` on. -/
+theorem surroundFamily_eq_sqrt_of_le (hL : 0 < L) (hδ : 0 < δ) (hℓ : ℓ ≤ 7 * δ) {r : ℝ}
+    (hr : (2 + L) * δ ≤ r) : surroundFamily L δ ℓ₀ M F ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|) := by
+  rcases le_or_gt ℓ 0 with h0 | h0
+  · rw [surroundFamily_of_nonpos h0, sqrtSubLeaf_of_ge hL hδ hr, abs_of_nonpos h0]
+    ring_nf
+  · rw [surroundFamily_of_pos_of_le h0 hℓ, struweSwitchLeaf_of_ge hL hδ ⟨h0.le, hℓ⟩ hr,
+      abs_of_pos h0, ← sq]
+
+/-- **The far part of the glued family is standard.** Let `L, δ > 0`, `15 δ / 2 < ℓ₀`, `M ≥ 0`,
+`2 ℓ₀ ≤ ℓₜ` and `t₁ = bridgeHeight L δ ℓ₀`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be the
+standard leaf `r ↦ √(64 r² + ℓ²)` from `R` on. Then for `ℓ ≤ ℓₜ` and
+`r ≥ max R ((t₁ + 2 δ) / 6)` the leaf `ℓ` of the glued family is `√(64 r² + ℓ |ℓ|)` at `r`.
+(The cutoff region `r < (2 + L) δ` of the leaves `ℓ ≤ 7 δ` ends below `(t₁ + 2 δ) / 6`.) -/
+theorem surroundFamily_eq_sqrt {R ℓₜ r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hℓ₀ : 15 * δ / 2 < ℓ₀)
+    (hM : 0 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, R ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2)) (hℓ : ℓ ≤ ℓₜ)
+    (hr : max R ((bridgeHeight L δ ℓ₀ + 2 * δ) / 6) ≤ r) :
+    surroundFamily L δ ℓ₀ M F ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|) := by
+  have ht₁ := add_le_bridgeHeight L hδ ℓ₀
+  have hLδ : 0 ≤ L * δ := by positivity
+  have hr₁ := (le_max_right _ _).trans hr
+  rcases le_or_gt ℓ (7 * δ) with h7 | h7
+  · exact surroundFamily_eq_sqrt_of_le hL hδ h7 (by linarith)
+  rw [abs_of_pos (by linarith), ← sq]
+  rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
+  · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
+    exact bridgeFamily_eq_sqrt hL hδ hℓ₀ hM (fun ℓ h ↦ hFs ℓ (Icc_subset_Icc_right hℓₜ h)) h2 hr
+  · rw [surroundFamily_of_lt hδ.le h7 h2]
+    exact hFs ℓ ⟨by linarith, hℓ⟩ r ((le_max_left _ _).trans hr)
+
+/-- **The leaves of the glued family lie below its top leaf.** Let `L, δ > 0`, `15 δ / 2 < ℓ₀`,
+`M ≥ 0` and `t₁ = bridgeHeight L δ ℓ₀` with `2 t₁ + 9 (2 ℓ₀) ≤ 1`, and let `γ' ≤ 1 / 16`.
+Let `F 1` be at least `1` on `(δ, ∞)` and the standard leaf `r ↦ √(64 r² + 1)` from `γ'` on, and
+let `F ℓ ≤ F 1` on `(δ, ∞)` for `ℓ ∈ [ℓ₀, 1]`. Then for `ℓ ∈ [-8 δ, 1]` and `r > δ` the leaf `ℓ`
+of the glued family is at most its leaf `1` at `r`.
+
+The leaves `ℓ ≤ 7 δ` lie below the leaf `7 δ`, which is a bridge leaf. Below `(t₁ + 2 δ) / 6`
+each bridge leaf is at most `2 t₁ + 9 (2 ℓ₀) ≤ 1` or equal to `F ℓ`; beyond, it is at most the
+standard leaf `ℓ` or equal to `F ℓ`; and the standard leaf `ℓ ≤ 2 ℓ₀ ≤ 1 / 9` lies below `F 1`,
+which is the standard leaf `1` from `γ'` on and at least `1 > √(1 / 4 + ℓ²)` before. -/
+theorem surroundFamily_le_surroundFamily_one {γ' r : ℝ} (hL : 0 < L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M)
+    (hsmall : 2 * bridgeHeight L δ ℓ₀ + 9 * (2 * ℓ₀) ≤ 1) (hγ' : γ' ≤ 1 / 16)
+    (hF₁ : ∀ r, δ < r → 1 ≤ F 1 r) (hF₁s : ∀ r, γ' ≤ r → F 1 r = √(64 * r ^ 2 + 1))
+    (hFle : ∀ ℓ ∈ Icc ℓ₀ 1, ∀ r, δ < r → F ℓ r ≤ F 1 r) (hℓ : ℓ ∈ Icc (-8 * δ) 1)
+    (hr : δ < r) : surroundFamily L δ ℓ₀ M F ℓ r ≤ surroundFamily L δ ℓ₀ M F 1 r := by
+  have ht₁ := add_le_bridgeHeight L hδ ℓ₀
+  have hLδ : 0 ≤ L * δ := by positivity
+  rw [surroundFamily_of_lt (ℓ := 1) hδ.le (by linarith) (by linarith)]
+  -- The standard leaf `ℓ ∈ [0, 2 ℓ₀]` lies below `F 1` at `r`.
+  have hstd {ℓ : ℝ} (hℓ : ℓ ∈ Icc 0 (2 * ℓ₀)) : √(64 * r ^ 2 + ℓ ^ 2) ≤ F 1 r := by
+    have hℓ1 : ℓ ^ 2 ≤ 1 := by nlinarith [hℓ.1, hℓ.2]
+    rcases le_or_gt γ' r with hγr | hγr
+    · rw [hF₁s r hγr]
+      exact sqrt_le_sqrt (by linarith)
+    · exact (sqrt_le_one.2 (by nlinarith [hℓ.1, hℓ.2])).trans (hF₁ r hr)
+  -- So does each bridge leaf.
+  have hbridge {ℓ : ℝ} (hℓ : ℓ ∈ Icc (7 * δ) (2 * ℓ₀)) : bridgeFamily L δ ℓ₀ M F ℓ r ≤ F 1 r := by
+    have hFℓ {ℓ : ℝ} (h : ℓ₀ < ℓ ∧ bridgeFamily L δ ℓ₀ M F ℓ r = F ℓ r) (h2 : ℓ ≤ 2 * ℓ₀) :
+        bridgeFamily L δ ℓ₀ M F ℓ r ≤ F 1 r :=
+      h.2 ▸ hFle ℓ ⟨h.1.le, by linarith⟩ r hr
+    rcases lt_or_ge r ((bridgeHeight L δ ℓ₀ + 2 * δ) / 6) with h | h
+    · rcases bridgeFamily_le_or_eq hL.le hδ hℓ₀ hM F ⟨by linarith [hℓ.1], hℓ.2⟩ hr.le h with
+        h' | h'
+      · linarith [hF₁ r hr]
+      · exact hFℓ h' hℓ.2
+    · rcases bridgeFamily_le_sqrt_or_eq (ℓ := ℓ) hL hδ hℓ₀ hM F h with h' | h'
+      · exact h'.trans (hstd ⟨by linarith [hℓ.1], hℓ.2⟩)
+      · exact hFℓ h' hℓ.2
+  -- The leaves `ℓ ∈ [0, 7 δ]` lie below the leaf `7 δ`, a bridge leaf.
+  have hsw {ℓ : ℝ} (hℓ : ℓ ∈ Icc 0 (7 * δ)) : surroundFamily L δ ℓ₀ M F ℓ r ≤ F 1 r := by
+    rw [surroundFamily_eq_struweSwitchLeaf hδ.le hℓ]
+    calc struweSwitchLeaf L δ ℓ r ≤ struweSwitchLeaf L δ (7 * δ) r :=
+          (strictMonoOn_struweSwitchLeaf L hδ.le hr).monotoneOn hℓ.1
+            (mem_Ici.2 (by linarith)) hℓ.2
+      _ = bridgeFamily L δ ℓ₀ M F (7 * δ) r := (bridgeFamily_seven_mul_eqOn L hδ ℓ₀ M F hr).symm
+      _ ≤ F 1 r := hbridge ⟨le_rfl, by linarith⟩
+  obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
+  rcases le_or_gt ℓ 0 with h0 | h0
+  · -- The leaves `ℓ ∈ [-8 δ, 0]` lie below the leaf `0`.
+    rw [surroundFamily_of_nonpos h0]
+    calc sqrtSubLeaf L δ ℓ r ≤ sqrtSubLeaf L δ 0 r :=
+          (strictMonoOn_sqrtSubLeaf L hδ.le hr).monotoneOn ⟨hℓ₁, h0⟩
+            ⟨by linarith, le_rfl⟩ h0
+      _ = surroundFamily L δ ℓ₀ M F 0 r := by rw [surroundFamily_of_nonpos le_rfl]
+      _ ≤ F 1 r := hsw ⟨le_rfl, by linarith⟩
+  rcases le_or_gt ℓ (7 * δ) with h7 | h7
+  · exact hsw ⟨h0.le, h7⟩
+  rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
+  · rw [surroundFamily_eqOn_bridgeFamily hδ ⟨h7.le, h2⟩ hr]
+    exact hbridge ⟨h7.le, h2⟩
+  · rw [surroundFamily_of_lt hδ.le h7 h2]
+    exact hFle ℓ ⟨by linarith, hℓ₂⟩ r hr
 
 end surroundFamily
 
