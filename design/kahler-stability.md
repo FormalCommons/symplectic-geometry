@@ -585,16 +585,19 @@ them, under *Sufficiency for polystability*. Let `Ad` be `Lie.tangentAd`.
   `momentWeight C μ x ξ = 0 = μ x ξ`, and `momentWeight_eq_moment_iff`
   concludes. It holds for every `ξ`, not only for periods.
 - `IsPolystable.limitPoint_mem_orbit` (the necessity half of the polystable
-  criterion), in the setting of `tendsto_limitPoint`: if `p` is polystable
+  criterion), in the setting of `momentWeight_smul_of_mem_parabolic`, with
+  `G` compact and `M` Hausdorff: if `p` is polystable
   and `momentWeight C μ p ξ = 0`, then `limitPoint C p ξ ∈ MulAction.orbit Gc p`.
-  With `q` and `x` from the previous item, `limitPoint C x ξ = x`
-  (`limitPoint_eq_of_tendsto` for the constant curve), so
-  `limitPoint C p ξ = C.parabolicLimit ξ q • x`
-  (`limitPoint_smul_of_mem_parabolic`), and `x = q⁻¹ • p`. Its
+  With `q` and `x` from the previous item, `x` is fixed by every
+  `C.expI (t • ξ)`, so `C.expI (t • ξ) • q • x` is the conjugate of `q` at time
+  `t` acting on `x`, so `limitPoint C p ξ = C.parabolicLimit ξ q • x`
+  (`tendsto_parabolicLimit`, `limitPoint_eq_of_tendsto`), and `x = q⁻¹ • p`. Its
   semistability part is `IsPolystable.isSemistable`.
 - `IsStable.momentWeight_neg` (the necessity half of the stable criterion):
   if `p` is stable and `ξ ≠ 0`, then `momentWeight C μ p ξ < 0`. The weight
-  is `≤ 0` by `IsSemistable.momentWeight_nonpos`. If it were `0`, take `q`
+  is `≤ 0` since `p` is polystable: with `p = q • x` and `μ x = 0`,
+  `momentWeight_smul_of_mem_parabolic` and `momentWeight_le` give
+  `momentWeight C μ p ξ = momentWeight C μ x ξ ≤ 0`. If it were `0`, take `q`
   and `x` as above: `X_ξ` vanishes at `x` (`expI_smul_smul_eq_self_iff`),
   and the stabilizer of `x` in `Gc` is discrete, since that of `p` is and
   `x = q⁻¹ • p` (`MulAction.discreteTopology_stabilizer_smul_iff`). As
