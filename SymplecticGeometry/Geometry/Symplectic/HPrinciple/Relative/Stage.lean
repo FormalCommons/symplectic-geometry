@@ -106,6 +106,62 @@ theorem isSmoothFamily_stagePath {e : (S × unitInterval) × M → M}
 
 end Smooth
 
+section Continuous
+
+open _root_.Bundle
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ S] {Λ : Type*} [TopologicalSpace Λ]
+  {ι : Type*}
+  (fr : ι → Trivialization (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (E [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (fr j)]
+  (W : ι → TopologicalSpace.Opens M) (hW : ∀ j, (W j : Set M) ⊆ (fr j).baseSet)
+
+/-- The path of a stage is continuous into the frame topology of a covering frame system of the
+two-forms on `M`, when `τ` and `α` are, `s : Λ → S` is continuous, `S` is finite-dimensional and
+`B'` is a smooth family over `S`. -/
+theorem continuous_tangentEquiv_symm_stagePath (hcover : ∀ x, ∃ j, x ∈ W j)
+    {e : (S × unitInterval) × M → M}
+    (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e) {ρ : M → ℝ}
+    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) {s : Λ → S} (hs : Continuous s)
+    {τ α : Λ → SmoothTwoForm I M}
+    (hτ : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (τ l))
+    (hα : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (α l))
+    {B' : S → SmoothForm I M ℝ 1} (hB' : IsSmoothFamily 𝓘(ℝ, S) B') :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+    Continuous fun p ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (stagePath he hρ s τ α B' p) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let _ := ContMDiffSection.continuousSMul_frameTopology (𝕜 := ℝ) (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let F : C^∞⟮(𝓘(ℝ, S).prod (𝓡∂ 1)).prod I, (S × unitInterval) × M; I, M⟯ := ⟨e, he⟩
+  have hT := Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod fr W hW fr W hW
+    F hcover
+  have hA := (collaredFirstHalf (n := ∞) le_rfl).contMDiff.continuous
+  have hC : Continuous fun t ↦ (collaredSecondHalf (n := ∞) le_rfl t : ℝ) :=
+    continuous_subtypeVal.comp (collaredSecondHalf (n := ∞) le_rfl).contMDiff.continuous
+  -- The first term, `τ l` pulled back along the isotopy run at the speed `A`.
+  have h₁ := hT.comp ((hτ.comp continuous_fst).prodMk
+    ((hs.comp continuous_fst).prodMk (hA.comp continuous_snd)))
+  -- The correction `α l - τ l + d (B' (s l))`, pulled back along the end of the isotopy.
+  have h₂ := hT.comp (((hα.sub hτ).comp continuous_fst).prodMk
+    ((hs.comp continuous_fst).prodMk (continuous_const : Continuous fun _ : Λ × unitInterval ↦ (1 : unitInterval))))
+  have h₃ := ((hB'.mextDeriv.mpullback_family (f := fun q : S × M ↦ e ((q.1, 1), q.2))
+    (he.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd))).continuous_tangentEquiv_symm
+      fr W hW).comp (hs.comp (continuous_fst (X := Λ) (Y := unitInterval)))
+  refine (h₁.add ((hC.comp continuous_snd).smul
+    ((Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_smul fr W hW ⟨ρ, hρ⟩).comp
+      (h₂.add h₃)))).congr fun p ↦ ?_
+  simp only [Pi.add_apply, Pi.smul_apply', Pi.sub_apply, Function.comp_apply, stagePath_def,
+    map_add, map_sub, map_smul,
+    LinearEquiv.apply_symm_apply, F, ContMDiffMap.coeFn_mk]
+  abel_nf
+
+end Continuous
+
 section Stage
 
 variable [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [SigmaCompactSpace M]
