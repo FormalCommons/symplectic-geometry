@@ -364,17 +364,17 @@ theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAc
 an equivariant moment map for `σ`, the metric `g(u, w) = σ(u, J w)` and a symmetric, nonnegative,
 nondegenerate, `Ad`-invariant form `B` on the Lie algebra of the connected group `G`,
 `w_μ(p, ξ) ≤ √(B ξ ξ) * √(‖μ (g • p)‖²)` for every `ξ` and every `g : Gc`, where `‖μ x‖²` is
-`momentNormSq B hB μ x`: both norms are those of `B`. -/
+`momentNormSq μ (B.toDual hB).symm x`: both norms are those of `B`. -/
 theorem momentWeight_le_mul_norm (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate} (hBs : B.IsSymm)
     (hpos : B.IsNonneg) (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     (p : M) (ξ : GroupLieAlgebra I G) (g : Gc) :
-    momentWeight C μ p ξ ≤ √(B ξ ξ) * √(momentNormSq B hB μ (g • p)) := by
+    momentWeight C μ p ξ ≤ √(B ξ ξ) * √(momentNormSq μ (B.toDual hB).symm (g • p)) := by
   set w := momentWeight C μ p ξ
   set K := √(B ξ ξ)
-  set S := √(momentNormSq B hB μ (g • p))
+  set S := √(momentNormSq μ (B.toDual hB).symm (g • p))
   -- The curve `a t = g * exp (-i t ξ)`, with constant left-trivialized derivative
   -- `-cplx (lieMap ξ)`, whose imaginary part is `-ξ`.
   set a : ℝ → Gc := fun t ↦ g * C.expI (-(t • ξ))
