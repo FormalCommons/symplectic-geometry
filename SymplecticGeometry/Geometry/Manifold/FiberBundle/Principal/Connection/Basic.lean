@@ -73,9 +73,10 @@ form are a smooth Ehresmann connection on `π`.
 
 ## Implementation notes
 
-The norm on `𝔤` that `SmoothForm` needs is the scoped one of
-`SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`; statements of this file need
-`open scoped GroupLieAlgebra`.
+The forms take their values in the model space `EG` of `G`, which is `𝔤` by definition and
+carries the norm that `SmoothForm` needs, as Tau Ceti's connection forms
+(`TauCeti.PrincipalBundle.IsConnectionForm`) do. The adjoint action enters as
+`GroupLieAlgebra.adjointL IG g : EG →L[ℝ] EG`.
 
 ## References
 

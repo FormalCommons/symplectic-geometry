@@ -22,8 +22,9 @@ import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 For a Lie group `G`, write `𝔤 = GroupLieAlgebra IG G`. The **curvature** of a smooth
 `𝔤`-valued one-form `A` on a manifold `M` is the `𝔤`-valued two-form
 `F_A = d A + ½ [A ∧ A]`, where `[A ∧ A]` is the wedge of `A` with itself paired by the bracket
-of `𝔤` (`TauCeti.lieL`). This is Tau Ceti's `TauCeti.gaugeCurvature` for the bracket
-`lieL ℝ 𝔤 𝔤`, and on a pair of tangent vectors it is `F_A(v, w) = d A(v, w) + [A v, A w]`
+of `𝔤` (`GroupLieAlgebra.bracketL`). This is Tau Ceti's `TauCeti.gaugeCurvature` for the bracket
+`GroupLieAlgebra.bracketL IG G`, and on a pair of tangent vectors it is
+`F_A(v, w) = d A(v, w) + [A v, A w]`
 (`TauCeti.gaugeCurvature_val`). The definition needs no principal bundle, and its naturality
 and the structure equation hold for any bracket
 (`SymplecticGeometry/Geometry/Manifold/DifferentialForm/GaugeCurvature.lean`). This file proves
@@ -43,9 +44,9 @@ the properties of the curvature of a connection form on the total space of a pri
 
 ## Implementation notes
 
-The norm on `𝔤` is the scoped one of `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`,
-and the bracket of `𝔤` needs the local instance `LieGroup.minSmoothness_of_isRCLikeNormedField`;
-statements of this file need `open scoped GroupLieAlgebra` and that instance.
+The forms take their values in the model space `EG`, which is `𝔤` by definition, and the
+bracket is read on `EG` as `GroupLieAlgebra.bracketL IG G`; it needs the local instance
+`LieGroup.minSmoothness_of_isRCLikeNormedField`.
 
 ## References
 

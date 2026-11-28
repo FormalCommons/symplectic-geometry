@@ -38,6 +38,10 @@ these local forms into a connection form on the whole total space, as soon as th
 
 ## Implementation notes
 
+The Maurer–Cartan form is Tau Ceti's `TauCeti.leftMaurerCartanForm`, with values in the model
+space `EG`, and its behaviour under right translations is
+`TauCeti.leftMaurerCartanForm_apply_mfderiv_mul_right`.
+
 The local lemmas follow from two facts about the fibre coordinate that hold for any form,
 `Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
 `Bundle.Trivialization.mfderiv_snd_rightFundamentalVectorField` (`Principal/Trivialization.lean`),
