@@ -42,7 +42,7 @@ design files (`design/sphere-diffeomorphisms.md`,
   written out where it is used, with no definition, since it has no API of
   its own beyond `Diffeomorph.trans` and `Diffeomorph.symm`.
 - **The product** is `Prod.fst : S × OnePoint ℂ → S`, with the atlas
-  `productAtlas S` whose every chart is the identity trivialization.
+  `productAtlas S (OnePoint ℂ)` whose every chart is the identity trivialization.
 - **Circle bundles.** A principal circle bundle over `S` is, as in the
   `example` of `Geometry/Manifold/FiberBundle/Principal/Connection/Circle.lean`,
   the unitary frame bundle `Fiber ℂ F V ℂ` of a Hermitian line bundle `V`.
@@ -304,7 +304,7 @@ About 450 lines; the issue may split the openness lemma off.
 
 ### `Geometry/Manifold/FiberBundle/SphereBundle/Basic.lean`
 
-- `productAtlas S`, with `isContMDiff_productAtlas` and
+- `productAtlas S (OnePoint ℂ)`, with `isContMDiff_productAtlas` and
   `hasStructureGroup_productAtlas` (every coordinate change is `1`).
 - `OnePoint.circleAction`: the action of `Circle` on `OnePoint ℂ` by
   Möbius rotations, jointly smooth, by elements of `mobiusSubgroup`, and

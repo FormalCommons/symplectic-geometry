@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Lie.Exponential.Units.Compatibility
 public import TauCeti.Geometry.Lie.Functor
 public import TauCeti.Geometry.Lie.Interior
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
-import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 
 /-!
 # The exponential of the Lie group of units of a normed algebra
@@ -24,7 +23,8 @@ finite-dimensional Lie group into `Rˣ`, `R` finite-dimensional, carries the exp
 exponential of the algebra at the derivative of `ρ` at `1`, read in `R`
 (`ContMDiffMonoidMorphism.coe_map_mulInvariantExp`), by the library's
 `ContMDiffMonoidMorphism.map_mulInvariantExp`, once that derivative is identified with the Lie
-algebra map of `ρ` (`ContMDiffMonoidMorphism.mfderiv_coe_apply_one`).
+algebra map of `ρ` (`ContMDiffMonoidMorphism.mfderiv_coe_apply_one`, in
+`SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom`).
 
 The Lie algebra `GroupLieAlgebra 𝓘(ℝ, R) Rˣ` is `R` by definition, but `rw` and `simp` do not
 see through `GroupLieAlgebra`. The statements therefore read a tangent vector `v` in `R` through
@@ -37,10 +37,6 @@ sides are terms of `R`, to which the lemmas about `R` apply.
   in `R`.
 * `coe_mulInvariantExp_eq_exp_complex`: `(mulInvariantExp v : ℂ) = Complex.exp v` on `ℂˣ`, with
   `v` read in `ℂ`.
-* `ContMDiffMonoidMorphism.contMDiff_coe`: for a smooth homomorphism `ρ` into `Rˣ`, the map
-  `g ↦ (ρ g : R)` is smooth.
-* `ContMDiffMonoidMorphism.mfderiv_coe_apply_one`: for a smooth homomorphism `ρ` into `Rˣ`, the
-  derivative at `1` of `g ↦ (ρ g : R)` is `ρ.groupLieAlgebraLieHom`, read in `R`.
 * `ContMDiffMonoidMorphism.coe_map_mulInvariantExp`: `(ρ (mulInvariantExp ξ) : R) = exp (dρ ξ)`
   for a smooth homomorphism `ρ` into `Rˣ`, with `dρ` the derivative at `1` of `g ↦ (ρ g : R)`.
 
@@ -80,42 +76,10 @@ theorem coe_mulInvariantExp_eq_exp_complex (v : GroupLieAlgebra 𝓘(ℝ, ℂ) �
 
 section Homomorphism
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {R : Type*} [NormedRing R] [NormedAlgebra ℝ R] [CompleteSpace R]
-
-/-- For a smooth homomorphism `ρ : G → Rˣ`, the map `g ↦ (ρ g : R)` is smooth. -/
-theorem ContMDiffMonoidMorphism.contMDiff_coe (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) :
-    ContMDiff I 𝓘(ℝ, R) ∞ (fun g ↦ (ρ g : R)) :=
-  Units.contMDiff_val.comp ρ.contMDiff_toFun
-
-/-- For a smooth homomorphism `ρ : G → Rˣ`, the map `g ↦ (ρ g : R)` is differentiable at `1`. -/
-theorem ContMDiffMonoidMorphism.mdifferentiableAt_coe_one
-    (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) :
-    MDifferentiableAt I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 :=
-  (ρ.contMDiff_coe 1).mdifferentiableAt (by simp)
-
-variable [CompleteSpace E] [LieGroup I ∞ G]
-
-/-- **The Lie algebra map of a homomorphism into `Rˣ`, read in `R`.** For a smooth homomorphism
-`ρ : G → Rˣ` and `ξ` in the Lie algebra of `G`, the derivative at `1` of `g ↦ (ρ g : R)` at `ξ`
-is `ρ.groupLieAlgebraLieHom ξ`, read in `R` through `groupLieAlgebraEquivModelVectorSpace`. -/
-theorem ContMDiffMonoidMorphism.mfderiv_coe_apply_one
-    (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) (ξ : GroupLieAlgebra I G) :
-    mfderiv I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 ξ =
-      (groupLieAlgebraEquivModelVectorSpace (ρ.groupLieAlgebraLieHom ξ) : R) := by
-  have hρ : HasMFDerivAt I 𝓘(ℝ, R) ρ 1 (mfderiv I 𝓘(ℝ, R) ρ 1) :=
-    (ρ.contMDiff_toFun.mdifferentiableAt (by simp)).hasMFDerivAt
-  rw [show (fun g ↦ (ρ g : R)) = Units.val ∘ ρ from rfl,
-    (((Units.hasMFDerivAt_val (𝕜 := ℝ) (ρ 1)).comp 1 hρ).congr_mfderiv
-      (ContinuousLinearMap.id_comp _)).mfderiv,
-    ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
-    ContMDiffMonoidMorphism.coe_toMonoidHom]
-  -- Both sides are `mfderiv I 𝓘(ℝ, R) ρ 1 ξ`: `groupLieAlgebraEquivModelVectorSpace` is
-  -- `LinearEquiv.refl`, but `rw` cannot use `LinearEquiv.refl_apply` here, since the tangent
-  -- space of `Rˣ` at `ρ 1` and the Lie algebra of `Rˣ` are `R` only by definition.
-  rfl
 
 attribute [local instance] ContMDiffMul.boundarylessManifold
 

@@ -838,6 +838,19 @@ theorem chart_symm_zero {k : ℕ} (hk : k₀ ≤ k) (x : M) : (D.chart k x).symm
   rw [← D.apply_self hk x]
   exact (D.chart k x).left_inv (D.mem_source hk x)
 
+/-- For `r ≤ ρ₀ * √k`, the image of the ball of radius `r` under the inverse of the chart centred
+at `x` is open. -/
+theorem isOpen_image_symm_ball {k : ℕ} (hk : k₀ ≤ k) (x : M) {r : ℝ} (hr : r ≤ ρ₀ * √k) :
+    IsOpen ((D.chart k x).symm '' ball 0 r) :=
+  (D.chart k x).toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target isOpen_ball
+    ((ball_subset_ball hr).trans (D.ball_subset_target hk x))
+
+/-- For `0 < r ≤ ρ₀ * √k`, the image of the ball of radius `r` under the inverse of the chart
+centred at `x` is a neighbourhood of `x`. -/
+theorem image_symm_ball_mem_nhds {k : ℕ} (hk : k₀ ≤ k) (x : M) {r : ℝ} (hr₀ : 0 < r)
+    (hr : r ≤ ρ₀ * √k) : (D.chart k x).symm '' ball 0 r ∈ 𝓝 x :=
+  (D.isOpen_image_symm_ball hk x hr).mem_nhds ⟨0, mem_ball_self hr₀, D.chart_symm_zero hk x⟩
+
 /-- The centre `0` lies in the target of the chart centred at `x`. -/
 theorem zero_mem_chart_target {k : ℕ} (hk : k₀ ≤ k) (x : M) :
     (0 : StdSpace ι) ∈ (D.chart k x).target := by
