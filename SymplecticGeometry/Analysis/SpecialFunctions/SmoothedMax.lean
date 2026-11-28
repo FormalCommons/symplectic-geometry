@@ -52,7 +52,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `SymplecticGeometry.exists_forall_iteratedDeriv_two_smoothedAbs_le`: the curvature of
   `smoothedAbs δ` lies between `2 (1 - s²) / δ`, with `s = smoothedSign δ t`, and `C / δ` for a
   constant `C`. The lower bound follows from `8 ψ (1 - ψ) ≤ ψ'` for `ψ = Real.smoothTransition`
-  (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`).
+  (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`). By the lower bound, where `T ≤ 2 / δ`
+  the curvature makes up for an error `(1 - s²) / 2 · g T`
+  (`SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_le`).
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
@@ -79,6 +81,12 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `SymplecticGeometry.monotoneOn_smoothedMax_width`: both grow with the width `δ > 0`.
 * `SymplecticGeometry.smoothedMax_add_add_right`: a common shift of the two arguments shifts the
   smoothed maximum.
+* The smoothed minimum `-smoothedMax δ (-a) (-b)` lies in `[min a b - δ / 2, min a b]`
+  (`SymplecticGeometry.min_sub_le_neg_smoothedMax_neg`,
+  `SymplecticGeometry.neg_smoothedMax_neg_le_min`); its first derivative is again a weighted
+  average (`SymplecticGeometry.deriv_neg_smoothedMax_neg_weighted`), and its second derivative
+  (`SymplecticGeometry.iteratedDeriv_two_neg_smoothedMax_neg`) loses the curvature term that the
+  smoothed maximum gains.
 * `SymplecticGeometry.smoothedMaxChain δ A`: the chain whose first member is `A 0` and whose
   `(i + 1)`-th member is the smoothed maximum of the `i`-th one and `A (i + 1)`. Its members are
   as smooth as the `A j`, globally or at a point (`contDiff_smoothedMaxChain`,
@@ -350,6 +358,20 @@ theorem exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt {a : ℝ} (ha :
     _ ≤ c := by
       rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
       nlinarith [abs_nonneg Q]
+
+/-- For `δ > 0`, `g ≥ 0` and `T ≤ 2 / δ`, the curvature of `smoothedAbs δ` makes up for the error
+`(1 - s²) / 2 · g T`, where `s = smoothedSign δ t`: it is at most `p g / 2`, where
+`p = (smoothedAbs δ)'' t`. -/
+theorem one_sub_smoothedSign_sq_div_two_mul_le (hδ : 0 < δ) {g T : ℝ} (hg : 0 ≤ g)
+    (hT : T ≤ 2 / δ) (t : ℝ) :
+    (1 - smoothedSign δ t ^ 2) / 2 * (g * T) ≤ iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  have hp := two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs hδ t
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ t)
+  have h1s : 0 ≤ 1 - smoothedSign δ t ^ 2 := by nlinarith
+  calc (1 - smoothedSign δ t ^ 2) / 2 * (g * T)
+      ≤ (1 - smoothedSign δ t ^ 2) / 2 * (g * (2 / δ)) := by gcongr
+    _ = 2 * (1 - smoothedSign δ t ^ 2) / δ * g / 2 := by ring
+    _ ≤ iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by gcongr
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
 theorem smoothedAbs_of_le (hδ : 0 < δ) {t : ℝ} (ht : δ ≤ t) : smoothedAbs δ t = t := by
@@ -756,6 +778,49 @@ theorem one_div_smoothedMax_le (hδ : 0 < δ) {a b : ℝ} (ha : 0 < a) (hb : 0 <
     one_div_le_one_div_of_le hb ((le_max_right _ _).trans hm)
   nlinarith [mul_le_mul_of_nonneg_left h₁ (by linarith : 0 ≤ (1 + smoothedSign δ (a - b)) / 2),
     mul_le_mul_of_nonneg_left h₂ (by linarith : 0 ≤ (1 - smoothedSign δ (a - b)) / 2)]
+
+/-! ### The smoothed minimum -/
+
+/-- For `δ > 0`, the smoothed minimum `-smoothedMax δ (-a) (-b)` is at most `min a b`. -/
+theorem neg_smoothedMax_neg_le_min (hδ : 0 < δ) (a b : ℝ) :
+    -smoothedMax δ (-a) (-b) ≤ min a b := by
+  have h := max_le_smoothedMax hδ (-a) (-b)
+  rw [max_neg_neg] at h
+  linarith
+
+/-- For `δ > 0`, the smoothed minimum `-smoothedMax δ (-a) (-b)` is at least `min a b - δ / 2`. -/
+theorem min_sub_le_neg_smoothedMax_neg (hδ : 0 < δ) (a b : ℝ) :
+    min a b - δ / 2 ≤ -smoothedMax δ (-a) (-b) := by
+  have h := smoothedMax_le_max_add hδ (-a) (-b)
+  rw [max_neg_neg] at h
+  linarith
+
+/-- The derivative of the smoothed minimum `x ↦ -smoothedMax δ (-f x) (-g x)` of two functions
+differentiable at `x`, as a weighted average: with `w = (1 + smoothedSign δ (g x - f x)) / 2`,
+which lies in `[0, 1]` (`one_add_smoothedSign_div_two_mem_Icc`), it is
+`w * f'(x) + (1 - w) * g'(x)`. -/
+theorem deriv_neg_smoothedMax_neg_weighted {f g : ℝ → ℝ} {x : ℝ}
+    (hf : DifferentiableAt ℝ f x) (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ -smoothedMax δ (-f x) (-g x)) x =
+      (1 + smoothedSign δ (g x - f x)) / 2 * deriv f x +
+        (1 - (1 + smoothedSign δ (g x - f x)) / 2) * deriv g x := by
+  rw [deriv.fun_neg, deriv_smoothedMax (f := fun x ↦ -f x) (g := fun x ↦ -g x) hf.neg hg.neg]
+  simp only [deriv.fun_neg, neg_sub_neg]
+  ring
+
+/-- The second derivative of the smoothed minimum `x ↦ -smoothedMax δ (-f x) (-g x)` of two
+functions `C²` at `x`: the term with `(smoothedAbs δ)''` of `iteratedDeriv_two_smoothedMax` now
+comes with a minus sign. -/
+theorem iteratedDeriv_two_neg_smoothedMax_neg {f g : ℝ → ℝ} {x : ℝ} (hf : ContDiffAt ℝ 2 f x)
+    (hg : ContDiffAt ℝ 2 g x) :
+    iteratedDeriv 2 (fun x ↦ -smoothedMax δ (-f x) (-g x)) x =
+      (iteratedDeriv 2 f x + iteratedDeriv 2 g x +
+        smoothedSign δ (g x - f x) * (iteratedDeriv 2 f x - iteratedDeriv 2 g x) -
+        iteratedDeriv 2 (smoothedAbs δ) (g x - f x) * (deriv f x - deriv g x) ^ 2) / 2 := by
+  rw [iteratedDeriv_fun_neg, iteratedDeriv_two_smoothedMax hf.neg hg.neg, iteratedDeriv_fun_neg,
+    iteratedDeriv_fun_neg]
+  simp only [deriv.fun_neg, neg_sub_neg]
+  ring
 
 /-! ### Chains of smoothed maxima -/
 
