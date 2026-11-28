@@ -35,12 +35,11 @@ difference.
   modelDbar f` at every point where `f` is differentiable, and
   `SymplecticGeometry.flatDbar_mul_exp_eq`: for a field `J`,
   `flatDbar q = exp (‖z‖ ^ 2 / 4) • (modelDbarWith J f - (i / 2) ∇f ∘ (J - J₀))`.
-* `SymplecticGeometry.complexLinearPart_modelConnection_mul_gaussian`: for `q`
-  differentiable at `z` and `G = exp (-‖z‖ ^ 2 / 4)`, the complex-linear part for `J₀` of the
-  model connection of `q * G` at `z` is `G z • (∂q(z) + q z • μ z)`, for `∂q(z)` the
-  complex-linear part of `dq_z` and `μ = gaussianConnectionForm`; so its operator norm is at least
-  `G z * (‖∂q(z)‖ - ‖z‖ ‖q z‖ / 2)`
-  (`SymplecticGeometry.mul_sub_le_norm_complexLinearPart_modelConnection_mul_gaussian`). The
+* `SymplecticGeometry.modelDel_mul_gaussian`: for `q` differentiable at `z` and
+  `G = exp (-‖z‖ ^ 2 / 4)`, the model `∂` of `q * G` at `z` is `G z • (∂q(z) + q z • μ z)`, for
+  `∂q(z) = flatDel q z` the flat `∂` of `q` and `μ = gaussianConnectionForm`; so its operator
+  norm is at least `G z * (‖∂q(z)‖ - ‖z‖ ‖q z‖ / 2)`
+  (`SymplecticGeometry.mul_sub_le_norm_modelDel_mul_gaussian`). The
   whole model connection of `q * G` at `z` has operator norm at most
   `G z * (‖dq_z‖ + ‖z‖ ‖q z‖ / 2)`
   (`SymplecticGeometry.norm_modelConnection_mul_gaussian_le`).
@@ -72,8 +71,8 @@ difference.
   `z`, for all `k` beyond a bound that does not depend on `x`, `s`, `q` or `z`. The right side is
   the quantity of `SymplecticGeometry.IsUniformlyTransverse`.
   If `‖q z‖ ≥ ε / 2` the section is large; otherwise the lower bound
-  `mul_sub_le_norm_complexLinearPart_modelConnection_mul_gaussian` meets the upper bound
-  `RescaledUnitaryCharts.norm_complexLinearPart_connectionReading_le_of_inner_eq`, whose error
+  `mul_sub_le_norm_modelDel_mul_gaussian` meets the upper bound
+  `RescaledUnitaryCharts.norm_modelDel_reading_le_of_inner_eq`, whose error
   terms are `O(k ^ (-1/2))`.
 
 ## References
@@ -135,70 +134,33 @@ theorem flatDbar_mul_exp_eq (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace 
     (fun _ ↦ LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) f w,
     ← modelDbar_def, add_sub_cancel_right]
 
-/-- **The complex-linear part of the model connection of a product with the Gaussian.** For `q`
-differentiable at `z` and `G = exp (-‖·‖ ^ 2 / 4)`, the complex-linear part, for `J₀` and
-multiplication by `i`, of the model connection of `q * G` at `z` is `G z` times the sum of the
-complex-linear part of `dq_z` and `q z` times the connection form `gaussianConnectionForm z`. -/
-theorem complexLinearPart_modelConnection_mul_gaussian {q : StdSpace ι → ℂ} {z : StdSpace ι}
+/-- **The model `∂` of a product with the Gaussian.** For `q` differentiable at `z` and
+`G = exp (-‖·‖ ^ 2 / 4)`, the model `∂` of `q * G` at `z` is `G z` times the sum of the flat `∂`
+of `q` at `z` and `q z` times the connection form `gaussianConnectionForm z`. -/
+theorem modelDel_mul_gaussian {q : StdSpace ι → ℂ} {z : StdSpace ι}
     (hq : DifferentiableAt ℝ q z) :
-    complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (modelConnection (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z : StdSpace ι →ₗ[ℝ] ℂ) =
-      Real.exp (-‖z‖ ^ 2 / 4) • (complexLinearPart (stdComplexStructure ι).toLinearMap
-          (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-          (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ) +
-        q z • (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ)) := by
+    modelDel (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z =
+      Real.exp (-‖z‖ ^ 2 / 4) • (flatDel q z + q z • gaussianConnectionForm z) := by
   have hG : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
     (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
-  rw [modelConnection_mul hq hG, modelConnection_gaussian]
-  have hc : IsComplexLinear (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (LinearMap.mulLeft ℝ (q z)) :=
-    isComplexLinear_of_apply fun w ↦ by
-      simp [AlmostComplexStructure.ofComplexModule_apply]
-      ring
-  have h : ((q z • (Real.exp (-‖z‖ ^ 2 / 4) • gaussianConnectionForm z) +
-      ((Real.exp (-‖z‖ ^ 2 / 4) : ℝ) : ℂ) • fderiv ℝ q z : StdSpace ι →L[ℝ] ℂ) :
-        StdSpace ι →ₗ[ℝ] ℂ) =
-      Real.exp (-‖z‖ ^ 2 / 4) • (LinearMap.mulLeft ℝ (q z) ∘ₗ
-        (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ)) +
-      Real.exp (-‖z‖ ^ 2 / 4) • (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ) := by
-    ext v
-    simp [Complex.real_smul]
-    ring
-  rw [h, complexLinearPart_add, complexLinearPart_smul, complexLinearPart_smul,
-    hc.complexLinearPart_comp, complexLinearPart_gaussianConnectionForm, smul_add, add_comm,
-    show LinearMap.mulLeft ℝ (q z) ∘ₗ (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) =
-      q z • (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) from LinearMap.ext fun v ↦ by simp]
+  rw [modelDel_mul hq hG, modelDel_gaussian]
+  ext v
+  simp only [add_apply, smul_apply, smul_eq_mul, Complex.real_smul]
+  ring
 
-/-- **A lower bound on the complex-linear part of the model connection of a product with the
-Gaussian.** For `q` differentiable at `z` and `G = exp (-‖·‖ ^ 2 / 4)`, the operator norm of the
-complex-linear part, for `J₀` and multiplication by `i`, of the model connection of `q * G` at `z`
-is at least `G z * (‖∂q(z)‖ - ‖z‖ ‖q z‖ / 2)`, for `∂q(z)` the complex-linear part of `dq_z`. -/
-theorem mul_sub_le_norm_complexLinearPart_modelConnection_mul_gaussian {q : StdSpace ι → ℂ}
-    {z : StdSpace ι} (hq : DifferentiableAt ℝ q z) :
-    Real.exp (-‖z‖ ^ 2 / 4) *
-        (‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-          (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-          (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ))‖ - ‖z‖ * ‖q z‖ / 2) ≤
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (modelConnection (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z :
-          StdSpace ι →ₗ[ℝ] ℂ))‖ := by
-  set A := LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ))
-  have h : LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (modelConnection (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z : StdSpace ι →ₗ[ℝ] ℂ)) =
-      Real.exp (-‖z‖ ^ 2 / 4) • (A + q z • gaussianConnectionForm z) := by
-    rw [complexLinearPart_modelConnection_mul_gaussian hq]
-    ext v
-    simp [A]
-  rw [h, norm_smul, Real.norm_of_nonneg (Real.exp_pos _).le]
+/-- **A lower bound on the model `∂` of a product with the Gaussian.** For `q` differentiable at
+`z` and `G = exp (-‖·‖ ^ 2 / 4)`, the operator norm of the model `∂` of `q * G` at `z` is at
+least `G z * (‖∂q(z)‖ - ‖z‖ ‖q z‖ / 2)`, for `∂q(z)` the flat `∂` of `q` at `z`. -/
+theorem mul_sub_le_norm_modelDel_mul_gaussian {q : StdSpace ι → ℂ} {z : StdSpace ι}
+    (hq : DifferentiableAt ℝ q z) :
+    Real.exp (-‖z‖ ^ 2 / 4) * (‖flatDel q z‖ - ‖z‖ * ‖q z‖ / 2) ≤
+      ‖modelDel (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z‖ := by
+  rw [modelDel_mul_gaussian hq, norm_smul, Real.norm_of_nonneg (Real.exp_pos _).le]
   refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
   have h1 : ‖q z • gaussianConnectionForm z‖ ≤ ‖z‖ * ‖q z‖ / 2 := by
     rw [norm_smul, mul_comm, mul_div_right_comm]
     exact mul_le_mul_of_nonneg_right (norm_gaussianConnectionForm_le z) (norm_nonneg _)
-  have h2 := norm_sub_norm_le A (-(q z • gaussianConnectionForm z))
+  have h2 := norm_sub_norm_le (flatDel q z) (-(q z • gaussianConnectionForm z))
   rw [norm_neg, sub_neg_eq_add] at h2
   linarith
 
@@ -210,9 +172,7 @@ theorem norm_modelConnection_mul_gaussian_le {q : StdSpace ι → ℂ} {z : StdS
     ‖modelConnection (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z‖ ≤
       Real.exp (-‖z‖ ^ 2 / 4) * (‖fderiv ℝ q z‖ + ‖z‖ * ‖q z‖ / 2) := by
   have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
-    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
-      ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
-      one_ne_zero z
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
   rw [modelConnection_mul hq hGd, modelConnection_gaussian]
   refine (norm_add_le _ _).trans ?_
   rw [norm_smul, norm_smul, norm_smul, Complex.norm_real,
@@ -490,8 +450,8 @@ metric of `M` be `g(u, w) = σ(u, J w)`, and `ρ₀ > 0`. For every `ε` and `B`
 every centre `x`, every section `s` of `PowerBundle P k`, every `q : StdSpace ι → ℂ` and every `z`
 with `‖z‖ ≤ 1`: if the reading of `s` agrees near `z` with `q * exp (-‖·‖ ^ 2 / 4)`, `q` is
 differentiable at `z`, the connection read in the chart has operator norm at most `B` at `z`, and
-`ε ≤ max ‖q z‖ ‖∂q(z)‖`, for `∂q(z)` the complex-linear part of `dq_z` for `J₀` and multiplication
-by `i`, then at `y = (D.chart k x).symm z`,
+`ε ≤ max ‖q z‖ ‖∂q(z)‖`, for `∂q(z) = flatDel q z` the flat `∂` of `q` at `z`, then at
+`y = (D.chart k x).symm z`,
 `ε / 4 ≤ max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)`, where `∂ s(y)` is the `(1,0)`-part
 `J.oneZeroPart` of `D_k s` at `y`, with its operator norm. -/
 theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
@@ -502,10 +462,7 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
       (z : StdSpace ι), ‖z‖ ≤ 1 →
       D.reading k x s =ᶠ[𝓝 z] (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) →
       DifferentiableAt ℝ q z → ‖D.connectionReading k x s z‖ ≤ B →
-      ε ≤ max ‖q z‖ ‖LinearMap.toContinuousLinearMap (complexLinearPart
-          (stdComplexStructure ι).toLinearMap
-          (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-          (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ))‖ →
+      ε ≤ max ‖q z‖ ‖flatDel q z‖ →
       ε / 4 ≤ max ‖s ((D.chart k x).symm z)‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
         ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖) := by
   rcases le_or_gt ε 0 with hε | hε
@@ -529,9 +486,7 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
   have hs : DifferentiableAt ℝ (D.reading k x s) z := (hq.mul hGd).congr_of_eventuallyEq hfeq
   set G := Real.exp (-‖z‖ ^ 2 / 4)
   set a := ‖q z‖
-  set b := ‖LinearMap.toContinuousLinearMap (complexLinearPart
-    (stdComplexStructure ι).toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-    (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ))‖
+  set b := ‖flatDel q z‖
   have ha : 0 ≤ a := norm_nonneg _
   have hz0 : 0 ≤ ‖z‖ := norm_nonneg _
   -- On the closed unit ball the Gaussian is at least `3 / 4`.
@@ -544,15 +499,15 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
     rw [← norm_reading, hfeq.eq_of_nhds, norm_mul, Complex.norm_real,
       Real.norm_of_nonneg (Real.exp_pos _).le]
     nlinarith
-  · -- Its `∂` is large: compare the two bounds on the complex-linear part of the connection.
+  · -- Its `∂` is large: compare the two bounds on the model `∂` of the reading.
     refine le_max_of_le_right ?_
     have hb : ε ≤ b := by
       rcases le_max_iff.1 hmax with h | h
       · linarith
       · exact h
-    have hlow := mul_sub_le_norm_complexLinearPart_modelConnection_mul_gaussian hq
-    rw [← modelConnection_congr_of_eventuallyEq hfeq, ← connectionReading_def] at hlow
-    have hup := D.norm_complexLinearPart_connectionReading_le_of_inner_eq hg hα hk hzb hs
+    have hlow := mul_sub_le_norm_modelDel_mul_gaussian hq
+    rw [modelDel_def, ← modelConnection_congr_of_eventuallyEq hfeq, ← modelDel_def] at hlow
+    have hup := D.norm_modelDel_reading_le_of_inner_eq hg hα hk hzb hs
     set t := C * ‖z‖ / √k
     set X := (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
       ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖

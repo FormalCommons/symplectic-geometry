@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelDbar
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
@@ -114,11 +115,12 @@ pushed-forward structure `J_z` and multiplication by `i`
 (`TauCeti.norm_complexLinearPart_apply_sub_complexLinearPart_apply_le` turns this into a bound on
 the change of the complex-linear part), and `√(σ(v, J v))` is at most `(2π k)^(-1/2)` times
 `1 + C ‖z‖ / √k` times the norm of the image of `v` in the chart
-(`SymplecticGeometry.RescaledUnitaryCharts.sqrt_eval₂_apply_le`), the complex-linear part of `∇`
-for `J₀` has operator norm at most `(1 + C ‖z‖ / √k) (2π k)^(-1/2) ‖∂ s(y)‖ + ½ C ‖z‖ / √k ‖∇‖`,
+(`SymplecticGeometry.RescaledUnitaryCharts.sqrt_eval₂_apply_le`), the model `∂` of the reading,
+`SymplecticGeometry.modelDel`, which is the complex-linear part of `∇` for `J₀`, has operator
+norm at most `(1 + C ‖z‖ / √k) (2π k)^(-1/2) ‖∂ s(y)‖ + ½ C ‖z‖ / √k ‖∇‖`,
 for the metric `σ(·, J ·)` on `M` and `C = max (D.bound 1) 0`
-(`SymplecticGeometry.RescaledUnitaryCharts.norm_complexLinearPart_connectionReading_le` and
-`SymplecticGeometry.RescaledUnitaryCharts.norm_complexLinearPart_connectionReading_le_of_inner_eq`).
+(`SymplecticGeometry.RescaledUnitaryCharts.norm_modelDel_reading_le` and
+`SymplecticGeometry.RescaledUnitaryCharts.norm_modelDel_reading_le_of_inner_eq`).
 A lower bound on the flat `∂` of a reading thus becomes a lower bound on the quantity that
 uniform transversality uses.
 
@@ -884,19 +886,18 @@ theorem norm_zeroOnePart_powerConnection_apply [∀ y, Nonempty (P y)]
 radius `ρ₀ * √k` where the reading of `s` is differentiable, `y = (D.chart k x).symm z`, and
 `A ≥ 0` with `‖∂ s(y) v‖ ≤ A √(σ(v, J v))` for every tangent vector `v` at `y`, where `∂ s` is the
 `(1,0)`-part `J.oneZeroPart` of `D_k s`. Let `∇` be the connection read in the chart at `z` and
-`C = max (D.bound 1) 0`. Then the complex-linear part `TauCeti.complexLinearPart` of `∇`, for the
-standard structure `J₀ = stdComplexStructure ι` and multiplication by `i`, has operator norm at
-most `(1 + C ‖z‖ / √k) (2π k)^(-1/2) A + ½ C ‖z‖ / √k ‖∇‖`. -/
-theorem norm_complexLinearPart_connectionReading_le [∀ y, Nonempty (P y)]
+`C = max (D.bound 1) 0`. Then the model `∂` `SymplecticGeometry.modelDel` of the reading of `s`
+at `z`, the complex-linear part of `∇` for the standard structure `J₀ = stdComplexStructure ι`
+and multiplication by `i`, has operator norm at most
+`(1 + C ‖z‖ / √k) (2π k)^(-1/2) A + ½ C ‖z‖ / √k ‖∇‖`. -/
+theorem norm_modelDel_reading_le [∀ y, Nonempty (P y)]
     (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
     {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z)
     {A : ℝ} (hA₀ : 0 ≤ A)
     (hA : ∀ v : TangentSpace I ((D.chart k x).symm z),
       ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z)) v‖ ≤
         A * √(σ.eval₂ ((D.chart k x).symm z) v (J ((D.chart k x).symm z) v))) :
-    ‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (D.connectionReading k x s z : StdSpace ι →ₗ[ℝ] ℂ))‖ ≤
+    ‖modelDel (D.reading k x s) z‖ ≤
       (1 + max (D.bound 1) 0 * ‖z‖ / √k) * ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * A) +
         2⁻¹ * (max (D.bound 1) 0 * ‖z‖ / √k) * ‖D.connectionReading k x s z‖ := by
   set L := D.connectionReading k x s z
@@ -913,7 +914,7 @@ theorem norm_complexLinearPart_connectionReading_le [∀ y, Nonempty (P y)]
     gcongr
     exact le_max_left _ _
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-  rw [LinearMap.coe_toContinuousLinearMap']
+  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap', ← connectionReading_def]
   -- For the structure `J_z` of the chart, the complex-linear part is `∂ s` read in the chart.
   have h1 : ‖complexLinearPart (Jz : StdSpace ι →ₗ[ℝ] StdSpace ι)
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (L : StdSpace ι →ₗ[ℝ] ℂ) u‖ ≤
@@ -1016,22 +1017,21 @@ end Riemannian
 of `M` be `g(u, w) = σ(u, J w)`, as for Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`. For
 `k₀ ≤ k`, `z` a point of the ball of radius `ρ₀ * √k` where the reading of `s` is
 differentiable, `y = (D.chart k x).symm z`, `∇` the connection read in the chart at `z` and
-`C = max (D.bound 1) 0`, the complex-linear part `TauCeti.complexLinearPart` of `∇`, for the
-standard structure `J₀ = stdComplexStructure ι` and multiplication by `i`, has operator norm at
-most `(1 + C ‖z‖ / √k) (2π k)^(-1/2) ‖∂ s(y)‖ + ½ C ‖z‖ / √k ‖∇‖`, where `∂ s(y)` is the
+`C = max (D.bound 1) 0`, the model `∂` `SymplecticGeometry.modelDel` of the reading of `s` at
+`z`, the complex-linear part of `∇` for the standard structure `J₀ = stdComplexStructure ι` and
+multiplication by `i`, has operator norm at most
+`(1 + C ‖z‖ / √k) (2π k)^(-1/2) ‖∂ s(y)‖ + ½ C ‖z‖ / √k ‖∇‖`, where `∂ s(y)` is the
 `(1,0)`-part `J.oneZeroPart` of `D_k s` at `y`, with its operator norm. -/
-theorem norm_complexLinearPart_connectionReading_le_of_inner_eq
+theorem norm_modelDel_reading_le_of_inner_eq
     [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [∀ y, Nonempty (P y)]
     (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
     (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
     {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z) :
-    ‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (D.connectionReading k x s z : StdSpace ι →ₗ[ℝ] ℂ))‖ ≤
+    ‖modelDel (D.reading k x s) z‖ ≤
       (1 + max (D.bound 1) 0 * ‖z‖ / √k) * ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
           ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖) +
         2⁻¹ * (max (D.bound 1) 0 * ‖z‖ / √k) * ‖D.connectionReading k x s z‖ :=
-  D.norm_complexLinearPart_connectionReading_le hα hk hz hs (by positivity) fun v ↦
+  D.norm_modelDel_reading_le hα hk hz hs (by positivity) fun v ↦
     (ContinuousLinearMap.le_opNorm _ v).trans_eq (by rw [norm_eq_sqrt_real_inner v, hg])
 
 end RescaledUnitaryCharts

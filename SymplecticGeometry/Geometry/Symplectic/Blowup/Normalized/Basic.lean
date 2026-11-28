@@ -619,6 +619,13 @@ theorem ballLiftPartialDiffeomorph_apply (y : openNbhd n r) :
   rw [ballLiftPartialDiffeomorph, IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn,
     hψ.ballLiftExt_of_mem y.property]
 
+/-- On `openNbhd n ε`, the partial diffeomorphism is the inclusion `inr` of the model piece. -/
+theorem ballLiftPartialDiffeomorph_of_mem_openNbhd {y : BlowupModel n} (hy : y ∈ openNbhd n ε) :
+    hψ.ballLiftPartialDiffeomorph y =
+      inr (gluingHomeomorph hN.blowupChart) ⟨y, hψ.mem_modelOpens hy⟩ := by
+  rw [hψ.ballLiftPartialDiffeomorph_apply ⟨y, openNbhd_mono hψ.width_lt_radius.le hy⟩,
+    hψ.ballLift_of_mem_openNbhd _ hy]
+
 @[simp]
 theorem ballLiftPartialDiffeomorph_target :
     hψ.ballLiftPartialDiffeomorph.target = range hψ.ballLift := by
@@ -634,9 +641,7 @@ theorem exceptionalDivisor_subset_image_openNbhd :
   obtain ⟨y, hy0, rfl⟩ := (Blowup.mem_exceptionalDivisor_iff _).1 hz
   have hy : (y : BlowupModel n) ∈ openNbhd n ε :=
     exceptionalDivisor_subset_openNbhd hψ.width_pos (mem_exceptionalDivisor_iff.2 hy0)
-  refine ⟨y, hy, ?_⟩
-  rw [hψ.ballLiftPartialDiffeomorph_apply ⟨y, openNbhd_mono hψ.width_lt_radius.le hy⟩,
-    hψ.ballLift_of_mem_openNbhd _ hy]
+  exact ⟨y, hy, hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hy⟩
 
 /-- The exceptional divisor of the blowup lies in the image of the lift. -/
 theorem exceptionalDivisor_subset_ballLiftPartialDiffeomorph_target :
@@ -651,8 +656,7 @@ theorem ballLiftPartialDiffeomorph_mem_exceptionalDivisor {y : BlowupModel n}
     (hy : y ∈ exceptionalDivisor n) :
     hψ.ballLiftPartialDiffeomorph y ∈ Blowup.exceptionalDivisor hN.blowupChart := by
   have hyε : y ∈ openNbhd n ε := exceptionalDivisor_subset_openNbhd hψ.width_pos hy
-  rw [hψ.ballLiftPartialDiffeomorph_apply ⟨y, openNbhd_mono hψ.width_lt_radius.le hyε⟩,
-    hψ.ballLift_of_mem_openNbhd _ hyε, Blowup.inr_mem_exceptionalDivisor_iff]
+  rw [hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hyε, Blowup.inr_mem_exceptionalDivisor_iff]
   exact mem_exceptionalDivisor_iff.1 hy
 
 /-- The lift of a normalized ball embedding is an open embedding of `openNbhd n r` into the
@@ -1007,15 +1011,15 @@ theorem isPseudoholomorphicAt_ballLiftPartialDiffeomorph {y : BlowupModel n}
   by_cases hyε : y ∈ openNbhd n ε
   · -- Near `y`, `lift ∘ ψ̃` is the identity.
     have hz : Φ y ∈ range (inr (gluingHomeomorph hN.blowupChart)) :=
-      ⟨_, ((hΦapp y hy).trans (hψ.ballLift_of_mem_openNbhd ⟨y, hy⟩ hyε)).symm⟩
+      ⟨_, (hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hyε).symm⟩
     have hl := Blowup.isLocalDiffeomorphAt_lift hN.blowupChart hz
     refine IsPseudoholomorphicAt.of_comp (v := Blowup.lift hN.blowupChart) ?_
       (Blowup.isPseudoholomorphicAt_lift _ J _ hz) (hl.isInvertible_mfderiv (by simp)).injective
       hΦ
     refine (isPseudoholomorphicAt_id _ y).congr_of_eventuallyEq ?_
     filter_upwards [(isOpen_openNbhd ε).mem_nhds hyε] with y' hy'
-    rw [Function.comp_apply, hΦapp y' (openNbhd_mono hψ.width_lt_radius.le hy'),
-      hψ.ballLift_of_mem_openNbhd _ hy', Blowup.lift_inr, id]
+    rw [Function.comp_apply, hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hy', Blowup.lift_inr,
+      id]
   · -- Off the divisor, the blowdown of the blowup composed with `ψ̃` is `ψ ∘ π`.
     set e := complexToRealEuclidean (Fin (n + 1))
     have hy0 := hψ.blowdown_ne_zero_of_notMem hyε
