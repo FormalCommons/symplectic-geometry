@@ -160,13 +160,13 @@ private theorem exists_jetNormAt_stdForm_sub_le (r : ℕ) (Cτ : ℝ) :
         nlinarith [mul_nonneg (norm_nonneg (B 1)) hz, mul_nonneg (norm_nonneg (B 1)) hw₀]
 
 /-- A step of `RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_le`: given `r` and a bound
-`Cτ`, there is a constant `K` such that for every point `w₀`, every `e : StdSpace ι → ℂ` with
+`Cτ`, there is a constant `K ≥ 0` such that for every point `w₀`, every `e : StdSpace ι → ℂ` with
 `‖e w₀‖ = 1` that is `C^r` at `w₀` and solves `de_w(v) = i θ_w(v) e(w)` near `w₀`, where
 `θ_w(v) = (ω₀(w, v) - ω₀(τ w, Dτ_w v)) / 2` for a map `τ` smooth at `w₀` whose derivatives at
 `w₀` of orders `1` to `r + 1` have norm at most `Cτ`, has `r`-jet norm at `w₀` at most
 `K * (1 + ‖w₀‖ + ‖τ w₀‖) ^ r`. -/
 private theorem exists_jetNormAt_le_of_fderiv_eq_stdForm (r : ℕ) (Cτ : ℝ) :
-    ∃ K : ℝ, ∀ {τ : StdSpace ι → StdSpace ι} {e : StdSpace ι → ℂ} {w₀ : StdSpace ι},
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ {τ : StdSpace ι → StdSpace ι} {e : StdSpace ι → ℂ} {w₀ : StdSpace ι},
       ContDiffAt ℝ ∞ τ w₀ → ContDiffAt ℝ r e w₀ → ‖e w₀‖ = 1 →
       (∀ᶠ w in 𝓝 w₀, ∀ v, fderiv ℝ e w v = Complex.I *
         ((2⁻¹ * (stdForm ι w v - stdForm ι (τ w) (fderiv ℝ τ w v)) : ℝ) : ℂ) * e w) →
@@ -179,7 +179,8 @@ private theorem exists_jetNormAt_le_of_fderiv_eq_stdForm (r : ℕ) (Cτ : ℝ) :
   set c : ℂ := Complex.I * 2⁻¹
   set a : ℝ := 2 ^ r * (‖c‖ * (‖L‖ * c₁)) * 2
   have : 0 ≤ a := by positivity
-  refine ⟨1 + r * firstOrderSystemConst r * (1 + a) ^ r, fun {τ e w₀} hτ he he0 heq hCτ ↦ ?_⟩
+  refine ⟨1 + r * firstOrderSystemConst r * (1 + a) ^ r, by positivity,
+    fun {τ e w₀} hτ he he0 heq hCτ ↦ ?_⟩
   set m := ‖w₀‖ + ‖τ w₀‖
   have hm : 0 ≤ m := by positivity
   set θ : StdSpace ι → StdSpace ι →L[ℝ] ℝ :=
@@ -469,20 +470,20 @@ theorem dbarReading_eventuallyEq_frameChange_smul_comp (hα : IsCircleConnection
 /-! ### Jet norms of the change of frame -/
 
 /-- **Jet norms of the change of frame.** Let `α` be a connection form. For every order `r` and
-every bound `Cτ` there is a constant `K` with the following property: for all `k ≥ k₀`, all points
-`x` and `y` and every `w` in `D.chartTransitionDomain k x y` at which the derivatives of orders
-`1` to `r + 1` of the transition `τ` from the chart centred at `y` to the chart centred at `x`
-have norm at most `Cτ`, the `r`-jet norm at `w` of the change of frame between the two charts is
-at most `K * (1 + ‖w‖ + ‖τ w‖) ^ r`. -/
+every bound `Cτ` there is a constant `K ≥ 0` with the following property: for all `k ≥ k₀`, all
+points `x` and `y` and every `w` in `D.chartTransitionDomain k x y` at which the derivatives of
+orders `1` to `r + 1` of the transition `τ` from the chart centred at `y` to the chart centred at
+`x` have norm at most `Cτ`, the `r`-jet norm at `w` of the change of frame between the two charts
+is at most `K * (1 + ‖w‖ + ‖τ w‖) ^ r`. -/
 theorem exists_forall_jetNormAt_frameChange_le (hα : IsCircleConnectionForm α) (r : ℕ)
     (Cτ : ℝ) :
-    ∃ K : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
       w ∈ D.chartTransitionDomain k x y →
       (∀ j, 1 ≤ j → j ≤ r + 1 → ‖iteratedFDeriv ℝ j (D.chartTransition k x y) w‖ ≤ Cτ) →
       jetNormAt ℝ r (D.frameChange k x y) w ≤
         K * (1 + ‖w‖ + ‖D.chartTransition k x y w‖) ^ r := by
-  obtain ⟨K, hK⟩ := exists_jetNormAt_le_of_fderiv_eq_stdForm (ι := ι) r Cτ
-  refine ⟨K, fun {k} hk x y w hw hCτ ↦ ?_⟩
+  obtain ⟨K, hK0, hK⟩ := exists_jetNormAt_le_of_fderiv_eq_stdForm (ι := ι) r Cτ
+  refine ⟨K, hK0, fun {k} hk x y w hw hCτ ↦ ?_⟩
   have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds hw
   exact hK (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y hw))
     (D.contDiffAt_frameChange hk hw) (D.norm_frameChange k x y w)

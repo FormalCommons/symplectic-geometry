@@ -147,11 +147,12 @@ theorem continuous_jetNormAt {r : ℕ} {f : E → F} (hf : ContDiff 𝕜 r f) :
   exact continuous_finsetSum _ fun l hl ↦ (hf.continuous_iteratedFDeriv (by
     exact_mod_cast Finset.mem_range_succ_iff.mp hl)).norm
 
-/-- The `r`-jet norm of a `C^r` function is bounded on a compact set. -/
+/-- The `r`-jet norm of a `C^r` function is bounded on a compact set by a constant `A ≥ 0`. -/
 theorem exists_jetNormAt_le_of_isCompact {r : ℕ} {f : E → F} (hf : ContDiff 𝕜 r f) {s : Set E}
-    (hs : IsCompact s) : ∃ A, ∀ z ∈ s, jetNormAt 𝕜 r f z ≤ A := by
+    (hs : IsCompact s) : ∃ A, 0 ≤ A ∧ ∀ z ∈ s, jetNormAt 𝕜 r f z ≤ A := by
   obtain ⟨A, hA⟩ := hs.exists_bound_of_continuousOn (continuous_jetNormAt hf).continuousOn
-  exact ⟨A, fun z hz ↦ (le_abs_self _).trans (hA z hz)⟩
+  exact ⟨max A 0, le_max_right _ _,
+    fun z hz ↦ ((le_abs_self _).trans (hA z hz)).trans (le_max_left _ _)⟩
 
 /-- The jet norm of order `0` is the norm of the value. -/
 @[simp]
