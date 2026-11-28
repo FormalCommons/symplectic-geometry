@@ -97,6 +97,9 @@ closedness reduces `dτ(Lᵢ, Lⱼ, (0, w))` to
 `dτ((bs i, 0), (bs j, 0), (0, w))`, which Tau Ceti's
 `TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv` expands into derivatives
 of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F`.
+Since `σ(x)(Xᵢ(x), Xⱼ(x))` is smooth on `F`, it follows that, where `τ` is vertically closed
+along the fibre over `x`, `V` is a Hamiltonian vector field of a smooth function for `σ(x)`
+exactly when `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` is the differential of a smooth function on `F`.
 
 ## Main definitions
 
@@ -120,6 +123,9 @@ of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F
   vanishing curvature has Hamiltonian curvature.
 * `TauCeti.IsEhresmannConnection.curvatureIn_local`: the curvature of two constant fields in a
   product chart, through the components of the local form.
+* `TauCeti.IsEhresmannConnection.exists_isHamiltonianVectorField_curvature_iff`: in a product
+  chart, the curvature of two constant fields is Hamiltonian on the fibre over `x` exactly when
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` has a smooth primitive on `F`.
 * `TauCeti.IsEhresmannConnection.isHamiltonianVectorField_curvatureIn_of_isClosed`: for a closed
   two-form that restricts to `σ` on the fibres, the curvature read in a chart is a Hamiltonian
   vector field of `τ(v₁♯, v₂♯)` read on the fibre.
@@ -794,6 +800,35 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     exact (congrArg (fun φ ↦ mvfderiv IF φ y w)
       (funext fun y' ↦ (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
   linear_combination -hlhs + hid - hdτ - hfAB - ha j (bs i) + ha i (bs j) + hS
+
+/-- **Hamiltonian curvature in a product chart.** In the setting of `curvatureIn_local`, suppose
+that `τ` is vertically closed along the fibre over `x`. Then the fibre component of the curvature
+of the constant fields `bs i`, `bs j` along that fibre is a Hamiltonian vector field, for `σ(x)`,
+of a smooth function on `F` exactly when the one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` is the
+differential of a smooth function on `F`. The two functions differ by `σ(x)(Xᵢ(x), Xⱼ(x))`. -/
+theorem exists_isHamiltonianVectorField_curvature_iff (hn : 1 ≤ n)
+    (hτ : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst τ.val ({x} ×ˢ Set.univ)) (i j : ι) :
+    (∃ f : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ f ∧ (τ.smoothFiberComponent x).IsHamiltonianVectorField f
+        fun y ↦ (hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)).2) ↔
+      ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
+        mvfderiv IF g y w =
+          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
+            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) := by
+  set S : F → ℝ := fun y ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y
+    (τ.mixedVectorField bs i x y) (τ.mixedVectorField bs j x y)
+  have hS : ContMDiff IF 𝓘(ℝ) ∞ S := τ.contMDiff_eval₂_mixedVectorField bs hσ i j
+  have hSd (y : F) : MDifferentiableAt IF 𝓘(ℝ) S y := (hS y).mdifferentiableAt (by simp)
+  have hloc (y : F) (w : TangentSpace IF y) :=
+    (curvatureIn_local hD bs hσ hn (hτ.mono (Set.singleton_subset_iff.2 ⟨rfl, trivial⟩)) i j).2 w
+  constructor
+  · rintro ⟨f, hf, hX⟩
+    refine ⟨f + S, hf.add hS, fun y w ↦ ?_⟩
+    rw [mvfderiv_add ((hf y).mdifferentiableAt (by simp)) (hSd y), add_apply,
+      ← SmoothTwoForm.isHamiltonianVectorField_iff.1 hX y w, hloc y w]
+    ring
+  · rintro ⟨g, hg, hdg⟩
+    refine ⟨g - S, hg.sub hS, SmoothTwoForm.isHamiltonianVectorField_iff.2 fun y w ↦ ?_⟩
+    rw [mvfderiv_sub ((hg y).mdifferentiableAt (by simp)) (hSd y), sub_apply, hdg y w, hloc y w]
 
 end Local
 
