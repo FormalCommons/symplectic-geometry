@@ -90,8 +90,8 @@ theorem exists_pos_forall_retraction_sublevel_norm_sq [CompactSpace X] [T2Space 
       ∃ (hZT : {x : X | s x = 0} ⊆ {x | ‖s x‖ ^ 2 ≤ ε})
         (r : C({x : X | ‖s x‖ ^ 2 ≤ ε}, {x : X | s x = 0})),
         (∀ z, r (ContinuousMap.inclusion hZT z) = z) ∧
-        Nonempty (((ContinuousMap.inclusion hZT).comp r).HomotopyRel (ContinuousMap.id _)
-          {y | s y = 0}) := by
+        ((ContinuousMap.inclusion hZT).comp r).HomotopicRel (ContinuousMap.id _)
+          {y | s y = 0} := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   have hf := (contMDiff_norm_sq_bundle J ∞ F' E').comp hsm
   have hZT (ε : ℝ) (hε : 0 < ε) : {x : X | s x = 0} ⊆ {x | ‖s x‖ ^ 2 ≤ ε} :=
