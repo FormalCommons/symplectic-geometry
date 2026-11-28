@@ -53,8 +53,7 @@ The logarithmic derivative is bilinear in the transition and its derivative. Whe
 derivatives of the transition at a point `w` of its domain are bounded, the equation
 `de = i θ e` is a first-order system whose jet at `(w, e w)` grows at most linearly in
 `‖w‖ + ‖τ w‖`, and `SymplecticGeometry.jetNormAt_le_of_eventually_fderiv_eq` bounds the jets of
-`e` at `w` by a polynomial in `‖w‖ + ‖τ w‖`. At `0`, where `τ 0 = z` and the derivatives of the
-transition are bounded in `ChartTransition.lean`, this is a polynomial in `‖z‖`.
+`e` at `w` by a polynomial in `‖w‖ + ‖τ w‖`.
 
 ## Main definitions
 
@@ -85,9 +84,6 @@ transition are bounded in `ChartTransition.lean`, this is a polynomial in `‖z�
   norm of the change of frame at a point `w` of the domain of the transition `τ` is at most
   `K * (1 + ‖w‖ + ‖τ w‖) ^ r`, for `K` that depends only on `r` and on a bound for the
   derivatives of `τ` at `w`.
-* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: on a
-  ball of radius `ρ₁ * √k`, the `r`-jet norm at `0` of the change of frame between the chart
-  centred at `(D.chart k x)⁻¹ z` and the chart centred at `x` is at most `C * (1 + ‖z‖) ^ r`.
 
 ## References
 
@@ -491,28 +487,6 @@ theorem exists_forall_jetNormAt_frameChange_le (hα : IsCircleConnectionForm α)
   exact hK (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y hw))
     (D.contDiffAt_frameChange hk hw) (D.norm_frameChange k x y w)
     (Filter.eventually_of_mem hW fun w hw v ↦ D.fderiv_frameChange_apply hα hk hw v) hCτ
-
-/-- **Jet norms of the change of frame at the centre.** On a boundaryless manifold, let `σ` be
-compatible with `J`, let `α` be a connection form and let `ρ₀ > 0`. There is a radius `ρ₁` with
-`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for all
-`k ≥ k₀`, all points `x` and all `z` in the ball of radius `ρ₁ * √k`, the `r`-jet norm at `0` of
-the change of frame between the chart centred at `(D.chart k x)⁻¹ z` and the chart centred at `x`
-is at most `C * (1 + ‖z‖) ^ r`. -/
-theorem exists_forall_jetNormAt_frameChange_zero_le [I.Boundaryless] (hJ : σ.Compatible J)
-    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
-      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
-        jetNormAt ℝ r (D.frameChange k x ((D.chart k x).symm z)) 0 ≤ C * (1 + ‖z‖) ^ r := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hT⟩ :=
-    D.exists_forall_norm_iteratedFDeriv_chartTransition_zero_le hJ hρ₀
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
-  obtain ⟨Cτ, hCτ⟩ := hT (r + 1)
-  obtain ⟨K, hK⟩ := D.exists_forall_jetNormAt_frameChange_le hα r Cτ
-  refine ⟨K, fun {k} hk x z hz ↦ ?_⟩
-  have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
-  have h := hK hk (D.zero_mem_chartTransitionDomain hk x hz₀) (hCτ hk x z hz)
-  rwa [D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀), norm_zero,
-    add_zero] at h
 
 end RescaledUnitaryCharts
 
