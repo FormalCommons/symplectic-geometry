@@ -41,9 +41,8 @@ field to `X` (`VectorField.mfderiv_apply_mpullback`), so `df(X) > 0` gives the c
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
   Definition 3.5.38 (strong fillings)
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §11.2, for Liouville cobordisms and domains, whose field points outward along the (positive)
-  boundary; and §11.1, for the exhaustions of a Liouville manifold by compact domains with this
-  property
+  §11.1, for Liouville cobordisms and domains, whose field points outward along the (positive)
+  boundary, and for the exhaustions of a Liouville manifold by compact domains with this property
 -/
 
 public section
