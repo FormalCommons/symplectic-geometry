@@ -168,9 +168,7 @@ theorem mvfderiv_val_horizontalLiftField_eq_of_isClosed
   -- `τ` and `τ'` have the same horizontal spaces, so `hD` is also the connection of `τ'`.
   have hdist : SmoothTwoForm.horizontalDistribution IB proj τ =
       SmoothTwoForm.horizontalDistribution IB proj τ' :=
-    funext fun y ↦ Submodule.ext fun v ↦ by
-      simp only [SmoothTwoForm.mem_horizontalDistribution_iff]
-      exact forall₂_congr fun η hη ↦ by rw [h y η hη v]
+    SmoothTwoForm.horizontalDistribution_eq_of_forall h
   have key : ∀ D (hD' : IsEhresmannConnection IM IB n proj D),
       D = SmoothTwoForm.horizontalDistribution IB proj τ' →
       τ'.val x ![hD'.curvature v₁ v₂ x, η] =
