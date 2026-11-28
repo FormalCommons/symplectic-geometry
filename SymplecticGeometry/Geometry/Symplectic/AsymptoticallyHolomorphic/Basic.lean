@@ -593,6 +593,15 @@ theorem contDiffAt_reading_and_dbarReading_add {k : ℕ} {x : M} {s t : Π y, Po
     (hs.1.eventually_differentiableAt (by exact_mod_cast le_top))
     (ht.1.eventually_differentiableAt (by exact_mod_cast le_top)))⟩
 
+/-- If the reading and the `∂̄` reading at `x` of a section are smooth at `0`, so are those of
+its complex multiples. -/
+theorem contDiffAt_reading_and_dbarReading_const_smul {k : ℕ} {x : M}
+    {s : Π y, PowerBundle P k y}
+    (hs : ContDiffAt ℝ ∞ (D.reading k x s) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x s) 0) (c : ℂ) :
+    ContDiffAt ℝ ∞ (D.reading k x (c • s)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (c • s)) 0 := by
+  rw [reading_smul, funext (D.dbarReading_smul k x c s)]
+  exact ⟨hs.1.const_smul c, hs.2.const_smul c⟩
+
 /-- If the readings and the `∂̄` readings at `x` of finitely many sections are smooth at `0`, so
 are those of their sum. -/
 theorem contDiffAt_reading_and_dbarReading_sum {κ : Type*} {k : ℕ} {x : M} {t : Finset κ}
@@ -811,13 +820,12 @@ holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.const_smul {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : D.IsAsymptoticallyHolomorphic s) (c : ℂ) :
     D.IsAsymptoticallyHolomorphic fun k ↦ c • s k := by
-  refine ⟨hs.1.mono fun k hk x ↦ ?_, fun r ↦ ?_⟩
-  · rw [reading_smul, funext (D.dbarReading_smul k x c (s k))]
-    exact ⟨(hk x).1.const_smul c, (hk x).2.const_smul c⟩
-  · obtain ⟨C, hC⟩ := hs.2 r
-    refine ⟨‖c‖ * C, hC.mono fun k hk x ↦ ?_⟩
-    rw [jetNorm_smul, dbarJetNorm_smul, mul_assoc]
-    exact ⟨by gcongr; exact (hk x).1, by gcongr; exact (hk x).2⟩
+  refine ⟨hs.1.mono fun k hk x ↦ D.contDiffAt_reading_and_dbarReading_const_smul (hk x) c,
+    fun r ↦ ?_⟩
+  obtain ⟨C, hC⟩ := hs.2 r
+  refine ⟨‖c‖ * C, hC.mono fun k hk x ↦ ?_⟩
+  rw [jetNorm_smul, dbarJetNorm_smul, mul_assoc]
+  exact ⟨by gcongr; exact (hk x).1, by gcongr; exact (hk x).2⟩
 
 /-- The **sum of asymptotically holomorphic sequences** is asymptotically holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.add {s t : ∀ k : ℕ, Π y, PowerBundle P k y}
