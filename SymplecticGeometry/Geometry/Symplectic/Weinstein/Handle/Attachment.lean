@@ -6,14 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
+public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import TauCeti.Dynamics.Flow.LevelCrossing
+import SymplecticGeometry.Analysis.Calculus.BumpFunction.SlowDescent
 import SymplecticGeometry.Dynamics.Flow.LevelCrossing
+import SymplecticGeometry.Geometry.Manifold.Flow.TimeChange
+import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import TauCeti.Topology.Compactness.Normed
 
 /-!
-# Attaching handles: orbits across a sublevel transverse to the Liouville field
+# Attaching handles: moving a sublevel onto `{f ≤ b}` along the Liouville flow
 
 Let `(ω, X, f)` be a Weinstein structure on a boundaryless Hausdorff manifold `M`, with flow
 `Φ = hW.flow`, and let `a, b` be reals. Put
@@ -21,7 +25,8 @@ Let `(ω, X, f)` be a Weinstein structure on a boundaryless Hausdorff manifold `
 together with the stable sets of the critical points in the region `f ⁻¹' Icc a b`. Let `g : M → ℝ`
 be a function whose sublevel `{g ≤ 0}` is to be moved onto `{f ≤ b}` along the orbits of `X`:
 `X` points out of it along `g ⁻¹' {0}` (`0 < dg(X)` there), it contains `K` in `{g < 0}`, and it
-lies in `{f < b}`. This file proves the facts about the orbits of `Φ` that such a move uses:
+lies in `{f < b}`. This file proves the facts about the orbits of `Φ` that such a move uses,
+and then makes the move.
 
 1. an orbit meets `g ⁻¹' {0}` at most once, going from `{g < 0}` to `{g > 0}`;
 2. the backward orbit of every point of `{f ≤ b}` enters `{g < 0}`;
@@ -74,6 +79,17 @@ the condition under which the time change by `τ` is a diffeomorphism
 (`TauCeti.globalFlowTimeChangeDiffeomorph`). Where `τ` is not differentiable, `dτ` is `0`, so the
 inequality needs no smoothness of `τ`.
 
+Let `Ψ x = Φ (τ x) x` be that time change. Off the orbits through `g ⁻¹' {0}` it is the identity,
+and there `g` has one sign along each whole orbit, so `{g ≤ 0}` and `{f ≤ b}` agree on such an
+orbit by fact (2) and the hypothesis `f < b` on `{g ≤ 0}`. On the orbit of a point `y` of
+`g ⁻¹' {0}`, `Ψ (Φ s y) = Φ (s + T y * μ s) y`, and `s ↦ s + T y * μ s` is strictly increasing
+and equals `T y` at `s = 0`. So `Ψ` carries the part `s ≤ 0` of the orbit, which is its part in
+`{g ≤ 0}` by fact (1), into `{f ≤ b}`, and the part `s > 0` into `{b < f}`, as `b` is crossed only
+once. Since `Ψ` is a bijection, it carries `{g ≤ 0}` onto `{f ≤ b}`
+(`IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq`). This is the step of Milnor's proof
+of Theorem 3.1 in which a sublevel is pushed along the flow of a gradient-like field, here with a
+time that varies from orbit to orbit and with critical points inside `{g < 0}`.
+
 ## Main definitions
 
 * `SymplecticGeometry.IsWeinsteinStructure.attachmentTime`: the time function `τ`.
@@ -99,11 +115,19 @@ inequality needs no smoothness of `τ`.
 * `SymplecticGeometry.IsWeinsteinStructure.one_add_mvfderiv_attachmentTime_pos`:
   `0 < 1 + dτ(X)` everywhere, for a bump `μ` with `-1 < T₀ * μ'`, `T₀` bounding the time from
   `g ⁻¹' {0}` to `f ⁻¹' {b}`.
+* `SymplecticGeometry.IsWeinsteinStructure.apply_flow_attachmentTime_le`,
+  `SymplecticGeometry.IsWeinsteinStructure.lt_apply_flow_attachmentTime`: the time change
+  `x ↦ Φ (τ x) x` maps `{g ≤ 0}` into `{f ≤ b}` and `{0 < g}` into `{b < f}`.
+* `SymplecticGeometry.IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq`: for a Weinstein
+  cobordism, a diffeomorphism `x ↦ Φ (τ x) x`, fixing `{f ≤ a}`, carries `{g ≤ 0}` onto
+  `{f ≤ b}`.
 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
   Section 11.1
+* J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
+  §3, Theorem 3.1 (moving sublevels along the flow of a rescaled gradient field).
 -/
 
 public section
@@ -428,7 +452,162 @@ theorem one_add_mvfderiv_attachmentTime_pos (hg : MDifferentiable 𝓘(ℝ, E) �
   · nlinarith [hμT (-c)]
   · nlinarith [hμT (-c)]
 
+/-- **The time change of the attachment keeps `{g ≤ 0}` below `b`.** Let `g` be differentiable
+with `dg(X) > 0` on `g ⁻¹' {0}` and `f < b` on `{g ≤ 0}`, let the orbit of each point of
+`g ⁻¹' {0}` meet `f ⁻¹' {b}`, and let `μ ≤ 1`. Then, with `τ = hW.attachmentTime g b μ`, the
+point `Φ (τ x) x` lies in `{f ≤ b}` for every `x` with `g x ≤ 0`. -/
+theorem apply_flow_attachmentTime_le (hg : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) g)
+    (hgX : ∀ y, g y = 0 → 0 < mvfderiv 𝓘(ℝ, E) g y (X y)) (hgb : ∀ x, g x ≤ 0 → f x < b)
+    (hgf : ∀ y, g y = 0 → ∃ t, f (hW.flow t y) = b) (hμ : ∀ s, μ s ≤ 1) {x : M}
+    (hx : g x ≤ 0) : f (hW.flow (hW.attachmentTime g b μ x) x) ≤ b := by
+  by_cases h : ∃ t, g (hW.flow t x) = 0
+  swap
+  · rw [hW.attachmentTime_of_forall_ne fun t ht ↦ h ⟨t, ht⟩, Flow.map_zero_apply]
+    exact (hgb x hx).le
+  obtain ⟨t, ht⟩ := h
+  obtain ⟨y, hy, s, rfl⟩ : ∃ y, g y = 0 ∧ ∃ s, x = hW.flow s y :=
+    ⟨_, ht, _, (Flow.map_neg_apply_map _ _ _).symm⟩
+  -- `x = Φ s y` with `s ≤ 0`, since `g > 0` after the crossing at `y`.
+  have hs : s ≤ 0 := by
+    refine le_of_not_gt fun hs ↦ hx.not_gt ?_
+    refine IsMIntegralCurve.lt_apply_of_le_apply (hW.isMIntegralCurve_flow y)
+      (hg.continuous.comp (hW.isMIntegralCurve_flow y).continuous)
+      (fun t ht ↦ ⟨hg _, hgX _ ht⟩) (s := 0) ?_ hs
+    rw [Flow.map_zero_apply, hy]
+  have hT : 0 ≤ Flow.levelCrossingTime hW.flow f b y :=
+    Flow.levelCrossingTime_nonneg_of_monotone (hW.monotone_comp_flow y) (hgb y hy.le)
+  -- So `Φ (τ x) x = Φ (T y * μ s + s) y` with `T y * μ s + s ≤ T y`.
+  rw [hW.attachmentTime_flow_apply hg hgX hy, ← Flow.map_add]
+  refine (hW.monotone_comp_flow y (?_ : _ ≤ Flow.levelCrossingTime hW.flow f b y)).trans_eq
+    (Flow.apply_flow_levelCrossingTime (hgf y hy))
+  nlinarith [mul_le_mul_of_nonneg_left (hμ s) hT]
+
+/-- **The time change of the attachment moves `{g > 0}` above `b`.** Let `b` be a regular value
+of `f`, let `g` be differentiable with `dg(X) > 0` on `g ⁻¹' {0}` and `f < b` on `{g ≤ 0}`, and
+let `{g < 0}` contain `{f ≤ a}` and the stable sets of the critical points of `f` in
+`f ⁻¹' Icc a b`. Let the time from each point of `g ⁻¹' {0}` to `f ⁻¹' {b}` lie in `[0, T₀]`,
+and let `μ` be differentiable with `μ 0 = 1` and `-1 < T₀ * μ'`. Then, with
+`τ = hW.attachmentTime g b μ`, the point `Φ (τ x) x` lies in `{b < f}` for every `x` with
+`0 < g x`. -/
+theorem lt_apply_flow_attachmentTime {a : ℝ} (hb : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f b)
+    (hg : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) g)
+    (hgX : ∀ y, g y = 0 → 0 < mvfderiv 𝓘(ℝ, E) g y (X y))
+    (hK : {x | f x ≤ a} ∪ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b, hW.flow.stableSet p ⊆
+      {x | g x < 0})
+    (hgb : ∀ x, g x ≤ 0 → f x < b) {T₀ : ℝ}
+    (hT : ∀ y, g y = 0 → Flow.levelCrossingTime hW.flow f b y ∈ Icc 0 T₀)
+    (hμ : Differentiable ℝ μ) (hμ0 : μ 0 = 1) (hμT : ∀ s, -1 < T₀ * deriv μ s) {x : M}
+    (hx : 0 < g x) : b < f (hW.flow (hW.attachmentTime g b μ x) x) := by
+  have hf := hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp)
+  by_cases h : ∃ t, g (hW.flow t x) = 0
+  swap
+  · -- Off the orbits of `g ⁻¹' {0}`, `Φ (τ x) x = x`, and `g > 0` along the whole orbit of `x`,
+    -- whereas the backward orbit of a point of `{f ≤ b}` enters `{g < 0}`.
+    rw [hW.attachmentTime_of_forall_ne fun t ht ↦ h ⟨t, ht⟩, Flow.map_zero_apply]
+    refine lt_of_not_ge fun hxb ↦ ?_
+    obtain ⟨t, -, ht⟩ := hW.exists_flow_apply_neg hg.continuous hK hxb
+    obtain ⟨u, -, hu⟩ := intermediate_value_uIcc (a := t) (b := 0)
+      ((hg.continuous.comp (hW.isMIntegralCurve_flow x).continuous).continuousOn)
+      (mem_uIcc.2 (Or.inl ⟨ht.le, by simpa only [Function.comp_apply, Flow.map_zero_apply]
+        using hx.le⟩))
+    exact h ⟨u, hu⟩
+  obtain ⟨t, ht⟩ := h
+  obtain ⟨y, hy, s, rfl⟩ : ∃ y, g y = 0 ∧ ∃ s, x = hW.flow s y :=
+    ⟨_, ht, _, (Flow.map_neg_apply_map _ _ _).symm⟩
+  -- `x = Φ s y` with `0 < s`, since `g < 0` before the crossing at `y`.
+  have hs : 0 < s := by
+    refine lt_of_not_ge fun hs ↦ ?_
+    rcases hs.lt_or_eq with hs | rfl
+    · refine hx.not_gt (IsMIntegralCurve.apply_lt_of_apply_le (hW.isMIntegralCurve_flow y)
+        (hg.continuous.comp (hW.isMIntegralCurve_flow y).continuous)
+        (fun t ht ↦ ⟨hg _, hgX _ ht⟩) (t := 0) ?_ hs)
+      rw [Flow.map_zero_apply, hy]
+    · rw [Flow.map_zero_apply, hy] at hx
+      exact hx.false
+  obtain ⟨hT0, hT₀⟩ := hT y hy
+  set T := Flow.levelCrossingTime hW.flow f b y
+  -- The reparametrization `r ↦ T * μ r + r` of the orbit of `y` is strictly increasing and takes
+  -- the value `T` at `0`, so it is above `T` at `s`.
+  have hmono : StrictMono fun r ↦ T * μ r + r := by
+    refine strictMono_of_deriv_pos fun r ↦ ?_
+    have hd : HasDerivAt (fun r ↦ T * μ r + r) (T * deriv μ r + 1) r :=
+      ((hμ r).hasDerivAt.const_mul T).add (hasDerivAt_id' r)
+    rw [hd.deriv]
+    rcases le_total 0 (deriv μ r) with hμr | hμr
+    · nlinarith [hμT r]
+    · nlinarith [hμT r]
+  have hlt : T < T * μ s + s := by simpa [hμ0] using hmono hs
+  obtain ⟨t, -, hft⟩ := hW.exists_flow_apply_eq_upper hK hy (hgb y hy.le)
+  rw [hW.attachmentTime_flow_apply hg hgX hy, ← Flow.map_add]
+  refine IsMIntegralCurve.lt_apply_of_le_apply (hW.isMIntegralCurve_flow y)
+    (hf.continuous.comp (hW.isMIntegralCurve_flow y).continuous)
+    (fun t ht ↦ ⟨hf _, hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb ht⟩) ?_ hlt
+  rw [Flow.apply_flow_levelCrossingTime ⟨t, hft⟩]
+
 end IsWeinsteinStructure
+
+namespace IsWeinsteinCobordism
+
+variable {a b : ℝ}
+
+/-- **The upper sublevel is the lower domain with handles attached.** Let `(ω, X, f)` be a
+Weinstein cobordism between the regular levels `a < b`, with flow `Φ`, and let `g` be a smooth
+function such that `X` points out of `{g ≤ 0}` along `g ⁻¹' {0}` (`0 < dg(X)` there),
+`{g ≤ 0}` lies in `{f < b}`, and `{g < 0}` contains `{f ≤ a}` and the stable sets of the critical
+points of `f` in `f ⁻¹' Icc a b`. Then there are a smooth compactly supported function `τ ≥ 0`,
+vanishing on `{f ≤ a}`, and a diffeomorphism `Ψ` of `M` with `Ψ x = Φ (τ x) x`, that carries
+`{g ≤ 0}` onto `{f ≤ b}`. -/
+theorem exists_diffeomorph_image_sublevel_eq (hW : IsWeinsteinCobordism ω X f a b) {g : M → ℝ}
+    (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
+    (hgX : ∀ x, g x = 0 → 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
+    (hK : {x | f x ≤ a} ∪ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b,
+      hW.isWeinsteinStructure.flow.stableSet p ⊆ {x | g x < 0})
+    (hgb : ∀ x, g x ≤ 0 → f x < b) :
+    ∃ τ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) τ ∧ (∀ x, 0 ≤ τ x) ∧
+      (∀ x, f x ≤ a → τ x = 0) ∧ HasCompactSupport τ ∧
+      ∃ Ψ : M ≃ₘ^(⊤ : ℕ∞)⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M,
+        (∀ x, Ψ x = hW.isWeinsteinStructure.flow (τ x) x) ∧
+        Ψ '' {x | g x ≤ 0} = {x | f x ≤ b} := by
+  set hS := hW.isWeinsteinStructure
+  have hgd : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) g := hg.mdifferentiable (by simp)
+  have ha : {x | f x ≤ a} ⊆ {x | g x < 0} := subset_union_left.trans hK
+  have hgc := hS.isCompact_preimage_zero hg.continuous ha fun x hx ↦ (hgb x hx.le).le
+  have hgf (y : M) (hy : g y = 0) : ∃ t, f (hS.flow t y) = b :=
+    (hS.exists_flow_apply_eq_upper hK hy (hgb y hy.le)).imp fun _ ht ↦ ht.2
+  -- The margin `δ`, the bound `T₀` on the time from `g ⁻¹' {0}` to `f ⁻¹' {b}`, and the bump.
+  obtain ⟨δ, hδ, hδa⟩ := hS.exists_pos_forall_lt_flow_apply hg.continuous ha
+    fun x hx ↦ (hgb x hx.le).le
+  obtain ⟨T, hT⟩ := hS.exists_forall_levelCrossingTime_mem_Ioc hW.isRegularValue_upper
+    hg.continuous hK fun x hx ↦ hgb x hx.le
+  have hTI (y : M) (hy : g y = 0) : Flow.levelCrossingTime hS.flow f b y ∈ Icc 0 (max T 0) :=
+    ⟨(hT y hy).1.le, (hT y hy).2.trans (le_max_left _ _)⟩
+  obtain ⟨μ, hμ, hμc, hμI, hμδ, -, hμ0, hμT⟩ :=
+    exists_contDiff_bump_neg_one_lt_mul_deriv hδ (le_max_right T 0)
+  have hτ := hS.contMDiff_attachmentTime hW.isRegularValue_upper hg hgX hgc hgf hμ hμc
+  have hτc := hS.hasCompactSupport_attachmentTime (b := b) hgc hμc
+  have hpos := hS.one_add_mvfderiv_attachmentTime_pos hgd hgX hTI
+    (hμ.differentiable (by simp)) hμT
+  let Ψ := globalFlowTimeChangeDiffeomorph hS.isCompleteVectorField le_top hS.contMDiff_field hτ
+    (hτc.isCompact_range hτ.continuous).isBounded hpos
+  have hΨ (x : M) : Ψ x = hS.flow (hS.attachmentTime g b μ x) x := by
+    rw [globalFlowTimeChangeDiffeomorph_apply, hS.flow_def]
+  refine ⟨hS.attachmentTime g b μ, hτ,
+    hS.attachmentTime_nonneg (fun y hy ↦ hgb y hy.le) fun s ↦ (hμI s).1,
+    fun x hx ↦ hS.attachmentTime_eq_zero_of_le hδa hμδ hx, hτc, Ψ, hΨ, ?_⟩
+  -- `Ψ` maps `{g ≤ 0}` into `{f ≤ b}` and `{0 < g}` into `{b < f}`, and it is a bijection.
+  ext z
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    rw [mem_ofPred_eq, hΨ]
+    exact hS.apply_flow_attachmentTime_le hgd hgX hgb hgf (fun s ↦ (hμI s).2) hx
+  · intro hz
+    obtain ⟨x, rfl⟩ : ∃ x, Ψ x = z := Ψ.surjective z
+    rw [mem_ofPred_eq, hΨ] at hz
+    refine ⟨x, mem_ofPred.2 (le_of_not_gt fun hx ↦ hz.not_gt ?_), rfl⟩
+    exact hS.lt_apply_flow_attachmentTime hW.isRegularValue_upper hgd hgX hK hgb hTI
+      (hμ.differentiable (by simp)) hμ0 hμT hx
+
+end IsWeinsteinCobordism
 
 end SymplecticGeometry
 
