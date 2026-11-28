@@ -10,6 +10,8 @@ public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.RegularValue
+public import TauCeti.Dynamics.Flow.Stable
+public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import TauCeti.Topology.LocallyFinite.Basic
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
@@ -23,11 +25,19 @@ import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
+import TauCeti.Dynamics.Flow.Lyapunov
+import TauCeti.Topology.OmegaLimit
 import SymplecticGeometry.Algebra.Order.Field.Basic
+import SymplecticGeometry.Dynamics.Flow.OmegaLimit
 import SymplecticGeometry.Analysis.Convex.Mul
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PullbackPartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+import Mathlib.Geometry.Manifold.Riemannian.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.Riemannian.Basic
+import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
 
 /-!
 # Gradient-like vector fields
@@ -63,6 +73,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   gradient-like for `f ∘ Φ`.
 * `TauCeti.isGradientLike_mgradient`: the gradient of `f` for any smooth metric is gradient-like
   for `f`, with `δ = 1 / 2`.
+* `TauCeti.isGradientLike_of_mul_le`: on a finite-dimensional normed space, a constant `c > 0`
+  with `c (‖X‖² + ‖df‖²) ≤ df(X)` everywhere suffices, for the metric carried over by
+  `toEuclidean`.
 * `TauCeti.isGradientLike_of_forall_exists_nhds`: on a σ-compact Hausdorff manifold the condition
   is local: a metric and a constant for which the inequality holds near each point suffice.
 * `TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`: near a point where `df(X) > 0`, the
@@ -70,6 +83,17 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`: the local hypothesis of
   `TauCeti.isGradientLike_of_forall_exists_nhds` holds at `Φ y` when, near `y`, a local
   diffeomorphism `Φ` carries a gradient-like field for `f'` to `X` and `f ∘ Φ = f'`.
+* `TauCeti.IsGradientLike.mem_criticalPoints_of_mapClusterPt_atTop` and
+  `TauCeti.IsGradientLike.mem_criticalPoints_of_mapClusterPt_atBot`: for a flow `Φ` whose orbits
+  are integral curves of `X`, the cluster points of an orbit at `+∞` and at `-∞` are critical
+  points of `f`.
+* `TauCeti.IsGradientLike.exists_flow_apply_le_or_mapClusterPt_atBot`: when `f ⁻¹' Icc a b` is
+  compact, the backward orbit of a point of `{f ≤ b}` either reaches `{f ≤ a}` or clusters at
+  `-∞`, only at critical points in `f ⁻¹' Icc a b`.
+* `TauCeti.IsGradientLike.exists_mapClusterPt_atTop_of_isCompact` and
+  `TauCeti.IsGradientLike.exists_mem_stableSet_of_isCompact`: a forward orbit from `{a ≤ f}` that
+  stays in `{f ≤ b}` clusters at `+∞`, only at critical points in `f ⁻¹' Icc a b`, and lies in
+  the stable set of one of them when they are finitely many.
 
 ## Implementation notes
 
@@ -106,10 +130,22 @@ neighbourhood `K` of `Φ y`, and the gluing by
 `TauCeti.exists_contMDiffRiemannianMetric_inner_mem_of_local` uses any metric off `K` (Tau Ceti's
 `TauCeti.nonempty_contMDiffRiemannianMetric`).
 
+The limit points of the flow are treated for any flow `Φ : Flow ℝ M` whose orbits are integral
+curves of `X`, such as Tau Ceti's `TauCeti.globalFlow` of a complete field, without any symplectic
+structure. Since `f` increases along the orbits, `-f` is a Lyapunov function, so it is constant
+along the orbit of a cluster point, by Tau Ceti's `Flow.apply_flow_eq_of_mapClusterPt_of_antitone`
+in forward time and the library's `Flow.apply_flow_eq_of_mapClusterPt_atBot_of_antitone` in
+backward time; then `df(X) = 0` there, which makes the point critical. This follows the proof of
+the library's `TauCeti.mvfderiv_eq_zero_of_mapClusterPt_atBot_globalFlow`
+(`Morse/Core/Compression.lean`). The convergence of a forward orbit with finitely many cluster
+points is Tau Ceti's `TauCeti.exists_tendsto_atTop_of_setOf_mapClusterPt_subset`.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012]
+* M. Audin and M. Damian, *Morse Theory and Floer Homology*, Springer Universitext, 2014,
+  Proposition 2.1.6.
 -/
 
 public section
@@ -321,6 +357,66 @@ theorem isGradientLike_mgradient
   refine ⟨g, fun _ ↦ 1 / 2, continuous_const, fun _ ↦ by norm_num, fun x ↦ ?_⟩
   rw [← g.norm_sq, mvfderiv_apply_mgradient, real_inner_self_eq_norm_sq]
   exact le_of_eq (by ring)
+
+/-- **A global criterion on a normed space.** On a finite-dimensional real normed space `E`, a
+field `X` is gradient-like for `f` if `c * (‖X x‖ ^ 2 + ‖df_x‖ ^ 2) ≤ df_x (X x)` for a constant
+`c > 0` and every `x`, the norms being those of `E` and the operator norm. -/
+theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0 < c)
+    (h : ∀ x, c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) ≤ fderiv ℝ f x (X x)) :
+    IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
+  -- The metric is the Euclidean one carried over by `toEuclidean`.
+  set e := toEuclidean (E := E)
+  have he : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) (∞ + 1) e :=
+    e.contDiff.contMDiff
+  have hinj (x : E) : Function.Injective
+      (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) e x) := by
+    rw [e.mfderiv_eq]
+    exact e.injective
+  set g := ((riemannianMetricVectorSpace _).ofLE le_top).pullback e he hinj
+  have hg (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g.inner x v w = inner ℝ (e v) (e w) := by
+    simp only [g]
+    rw [ContMDiffRiemannianMetric.pullback_inner, ContMDiffRiemannianMetric.ofLE_inner,
+      riemannianMetricVectorSpace_inner, e.mfderiv_eq]
+    rfl
+  obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖e v‖ ≤ L * ‖v‖ :=
+    ⟨_, e.toContinuousLinearMap.le_opNorm⟩
+  obtain ⟨K, hK0, hK⟩ : ∃ K, 0 ≤ K ∧ ∀ v, ‖v‖ ≤ K * ‖e v‖ :=
+    ⟨_, norm_nonneg _, fun v ↦ by simpa using e.symm.toContinuousLinearMap.le_opNorm (e v)⟩
+  refine ⟨g, fun _ ↦ c / (L ^ 2 + K ^ 2 + 1), continuous_const, fun _ ↦ by positivity,
+    fun x ↦ ?_⟩
+  let : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  set G := mgradient 𝓘(ℝ, E) f x
+  set D := fderiv ℝ f x
+  have hD (v : E) : mvfderiv 𝓘(ℝ, E) f x v = D v := mvfderiv_eq_fderiv_apply f x v
+  have hGG : ‖G‖ ^ 2 = ‖e G‖ ^ 2 := by
+    rw [g.norm_sq, hg, real_inner_self_eq_norm_sq]
+  have hGD : ‖G‖ ^ 2 = D G :=
+    ((mvfderiv_apply_mgradient (I := 𝓘(ℝ, E))).trans (real_inner_self_eq_norm_sq _)).symm.trans
+      (hD G)
+  -- The norm of the gradient is bounded by that of `df`, as `‖G‖² = df(G) ≤ ‖df‖ ‖G‖`.
+  have hbound (v : E) (hv : ‖e v‖ ^ 2 = D v) : ‖e v‖ ^ 2 ≤ K ^ 2 * ‖D‖ ^ 2 := by
+    have h1 : ‖e v‖ ^ 2 ≤ ‖D‖ * K * ‖e v‖ := by
+      rw [hv]
+      calc D v ≤ ‖D‖ * ‖v‖ := (le_abs_self _).trans (D.le_opNorm v)
+        _ ≤ ‖D‖ * (K * ‖e v‖) := mul_le_mul_of_nonneg_left (hK v) (norm_nonneg _)
+        _ = _ := by ring
+    have h2 : ‖e v‖ ≤ ‖D‖ * K := by
+      rcases (norm_nonneg (e v)).eq_or_lt with h0 | h0
+      · rw [← h0]; positivity
+      · nlinarith
+    have := norm_nonneg (e v)
+    nlinarith
+  have hG : ‖e G‖ ^ 2 ≤ K ^ 2 * ‖D‖ ^ 2 := hbound G (hGG.symm.trans hGD)
+  have hX : g.inner x (X x) (X x) ≤ L ^ 2 * ‖X x‖ ^ 2 := by
+    rw [hg x (X x) (X x), real_inner_self_eq_norm_sq, ← mul_pow]
+    exact pow_le_pow_left₀ (norm_nonneg _) (hL _) 2
+  rw [hGG, hD]
+  calc c / (L ^ 2 + K ^ 2 + 1) * (g.inner x (X x) (X x) + ‖e G‖ ^ 2)
+      ≤ c / (L ^ 2 + K ^ 2 + 1) * ((L ^ 2 + K ^ 2 + 1) * (‖X x‖ ^ 2 + ‖D‖ ^ 2)) := by
+        gcongr
+        nlinarith [sq_nonneg ‖X x‖, sq_nonneg ‖D‖, sq_nonneg L, sq_nonneg K]
+    _ = c * (‖X x‖ ^ 2 + ‖D‖ ^ 2) := by field_simp
+    _ ≤ D (X x) := h x
 
 section Local
 
@@ -572,6 +668,124 @@ theorem exists_nhds_mul_le_of_mvfderiv_apply_pos
     _ ≤ mvfderiv 𝓘(ℝ, E) f y (X y) := le_of_lt hPy
 
 end Local
+
+section Flow
+
+open Filter Topology
+
+variable {Φ : Flow ℝ M}
+
+namespace IsGradientLike
+
+/-- An integral curve of a gradient-like field along which `f` is constant near the time `t₀`
+passes at `t₀` through a critical point of `f`. -/
+theorem mem_criticalPoints_of_eventuallyEq_const (hX : IsGradientLike f X) {γ : ℝ → M}
+    {t₀ c : ℝ} (hγ : IsMIntegralCurveAt γ X t₀) (hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t₀))
+    (hfγ : f ∘ γ =ᶠ[𝓝 t₀] fun _ ↦ c) : γ t₀ ∈ criticalPoints 𝓘(ℝ, E) f := by
+  by_contra h
+  have := (hX.mvfderiv_apply_pos (mt mem_criticalPoints.2 h)).ne'
+  rw [mvfderiv_apply_eq_mfderiv_apply] at this
+  exact this (hγ.mfderiv_apply_eq_zero_of_eventuallyEq_const hf hfγ)
+
+/-- A point along whose orbit `f` is constant is a critical point of `f`. -/
+theorem mem_criticalPoints_of_forall_flow_apply_eq (hX : IsGradientLike f X) {z : M}
+    (hz' : IsMIntegralCurve (fun t ↦ Φ t z) X) (hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f z)
+    (hz : ∀ t, f (Φ t z) = f z) : z ∈ criticalPoints 𝓘(ℝ, E) f := by
+  have h := hX.mem_criticalPoints_of_eventuallyEq_const (hz'.isMIntegralCurveAt 0)
+    (c := f z) (by simpa only [Flow.map_zero_apply] using hf) (.of_forall hz)
+  rwa [Flow.map_zero_apply] at h
+
+/-- **Forward limit points of a gradient-like flow are critical.** If `Φ` is a flow of a
+gradient-like field `X` for a differentiable `f`, every cluster point at `+∞` of an orbit of `Φ`
+is a critical point of `f`. -/
+theorem mem_criticalPoints_of_mapClusterPt_atTop (hX : IsGradientLike f X)
+    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
+    {x z : M} (hz : MapClusterPt z atTop fun t ↦ Φ t x) : z ∈ criticalPoints 𝓘(ℝ, E) f :=
+  hX.mem_criticalPoints_of_forall_flow_apply_eq (hΦ z) (hf z) fun t ↦ neg_inj.1 <|
+    Flow.apply_flow_eq_of_mapClusterPt_of_antitone (g := -f)
+      (fun _ _ h ↦ neg_le_neg (hX.monotone_comp (hΦ x) (fun _ ↦ hf _) h))
+      hf.continuous.neg hz t
+
+/-- **Backward limit points of a gradient-like flow are critical.** If `Φ` is a flow of a
+gradient-like field `X` for a differentiable `f`, every cluster point at `-∞` of an orbit of `Φ`
+is a critical point of `f`. -/
+theorem mem_criticalPoints_of_mapClusterPt_atBot (hX : IsGradientLike f X)
+    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
+    {x z : M} (hz : MapClusterPt z atBot fun t ↦ Φ t x) : z ∈ criticalPoints 𝓘(ℝ, E) f :=
+  hX.mem_criticalPoints_of_forall_flow_apply_eq (hΦ z) (hf z) fun t ↦ neg_inj.1 <|
+    Flow.apply_flow_eq_of_mapClusterPt_atBot_of_antitone (g := -f)
+      (fun _ _ h ↦ neg_le_neg (hX.monotone_comp (hΦ x) (fun _ ↦ hf _) h))
+      hf.continuous.neg hz t
+
+/-- **Backward orbits in a compact region of a gradient-like flow.** Let `Φ` be a flow of a
+gradient-like field `X` for a differentiable `f`, and `a, b` reals with `f ⁻¹' Icc a b` compact.
+If `f x ≤ b`, then either `f (Φ t x) ≤ a` for some `t ≤ 0`, or the backward orbit of `x` has a
+cluster point at `-∞`, and every such cluster point is a critical point of `f` in
+`f ⁻¹' Icc a b`. -/
+theorem exists_flow_apply_le_or_mapClusterPt_atBot (hX : IsGradientLike f X)
+    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
+    {a b : ℝ} (hK : IsCompact (f ⁻¹' Icc a b)) {x : M} (hx : f x ≤ b) :
+    (∃ t ≤ 0, f (Φ t x) ≤ a) ∨
+      ((∃ z, MapClusterPt z atBot fun t ↦ Φ t x) ∧ ∀ z, MapClusterPt z atBot (fun t ↦ Φ t x) →
+        z ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b) := by
+  refine or_iff_not_imp_left.2 fun h ↦ ?_
+  simp only [not_exists, not_and, not_le] at h
+  have hmem : ∀ᶠ t in atBot, Φ t x ∈ f ⁻¹' Icc a b :=
+    (eventually_le_atBot 0).mono fun t ht ↦ ⟨(h t ht).le,
+      (show f (Φ t x) ≤ f x by
+        simpa only [Function.comp_apply, Flow.map_zero_apply] using
+          hX.monotone_comp (hΦ x) (fun _ ↦ hf _) ht).trans hx⟩
+  obtain ⟨z, -, hz⟩ := hK.exists_mapClusterPt_of_frequently hmem.frequently
+  exact ⟨⟨z, hz⟩, fun z hz ↦ ⟨hX.mem_criticalPoints_of_mapClusterPt_atBot hΦ hf hz,
+    (isClosed_Icc.preimage hf.continuous).mem_of_mapClusterPt hz hmem⟩⟩
+
+/-- The forward orbit of a point of `{a ≤ f}` that stays in `{f ≤ b}` lies in `f ⁻¹' Icc a b`. -/
+theorem mapsTo_flow_Ici_preimage_Icc (hX : IsGradientLike f X) {x : M}
+    (hx' : IsMIntegralCurve (fun t ↦ Φ t x) X)
+    (hf : ∀ t, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (Φ t x)) {a b : ℝ} (hx : a ≤ f x)
+    (hb : ∀ t, 0 ≤ t → f (Φ t x) ≤ b) :
+    MapsTo (fun t ↦ Φ t x) (Ici 0) (f ⁻¹' Icc a b) := fun t (ht : 0 ≤ t) ↦ ⟨by
+  exact hx.trans (by
+    simpa only [Function.comp_apply, Flow.map_zero_apply] using hX.monotone_comp hx' hf ht),
+    hb t ht⟩
+
+/-- **Forward orbits in a compact region of a gradient-like flow.** Let `Φ` be a flow of a
+gradient-like field `X` for a differentiable `f`, and `a, b` reals with `f ⁻¹' Icc a b` compact.
+If `a ≤ f x` and `f (Φ t x) ≤ b` for all `t ≥ 0`, then the forward orbit of `x` has a cluster
+point at `+∞`, and every such cluster point is a critical point of `f` in `f ⁻¹' Icc a b`. -/
+theorem exists_mapClusterPt_atTop_of_isCompact (hX : IsGradientLike f X)
+    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
+    {a b : ℝ} (hK : IsCompact (f ⁻¹' Icc a b)) {x : M} (hx : a ≤ f x)
+    (hb : ∀ t, 0 ≤ t → f (Φ t x) ≤ b) :
+    (∃ z, MapClusterPt z atTop fun t ↦ Φ t x) ∧ ∀ z, MapClusterPt z atTop (fun t ↦ Φ t x) →
+      z ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b := by
+  have hmem : ∀ᶠ t in atTop, Φ t x ∈ f ⁻¹' Icc a b :=
+    (eventually_ge_atTop 0).mono fun t ht ↦
+      hX.mapsTo_flow_Ici_preimage_Icc (hΦ x) (fun _ ↦ hf _) hx hb ht
+  obtain ⟨z, -, hz⟩ := hK.exists_mapClusterPt_of_frequently hmem.frequently
+  exact ⟨⟨z, hz⟩, fun z hz ↦ ⟨hX.mem_criticalPoints_of_mapClusterPt_atTop hΦ hf hz,
+    (isClosed_Icc.preimage hf.continuous).mem_of_mapClusterPt hz hmem⟩⟩
+
+/-- **Forward orbits in a compact region tend to a critical point.** Let `Φ` be a flow of a
+gradient-like field `X` for a differentiable `f` on a Hausdorff manifold, and `a, b` reals such
+that `f ⁻¹' Icc a b` is compact and contains finitely many critical points of `f`. If `a ≤ f x`
+and `f (Φ t x) ≤ b` for all `t ≥ 0`, then `x` lies in the stable set of one of these critical
+points. -/
+theorem exists_mem_stableSet_of_isCompact [T2Space M] (hX : IsGradientLike f X)
+    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
+    {a b : ℝ} (hK : IsCompact (f ⁻¹' Icc a b))
+    (hfin : (criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b).Finite) {x : M} (hx : a ≤ f x)
+    (hb : ∀ t, 0 ≤ t → f (Φ t x) ≤ b) :
+    ∃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b, x ∈ Φ.stableSet p := by
+  obtain ⟨p, hp, hlim⟩ := exists_tendsto_atTop_of_setOf_mapClusterPt_subset hK
+    (Φ.continuous continuous_id continuous_const).continuousOn
+    (hX.mapsTo_flow_Ici_preimage_Icc (hΦ x) (fun _ ↦ hf _) hx hb) hfin
+    (hX.exists_mapClusterPt_atTop_of_isCompact hΦ hf hK hx hb).2
+  exact ⟨p, hp, Flow.mem_stableSet.2 hlim⟩
+
+end IsGradientLike
+
+end Flow
 
 end TauCeti
 

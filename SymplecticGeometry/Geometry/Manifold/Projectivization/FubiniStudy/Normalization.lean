@@ -121,9 +121,9 @@ theorem eval₂_fubiniStudyForm_affineParam (i : Fin 2) (t v w : ℂ) :
   revert v w
   intro (v : TangentSpace 𝓘(ℝ, ℂ) t) (w : TangentSpace 𝓘(ℝ, ℂ) t)
   refine (SmoothForm.eval₂_mpullback _ _ _ _ v w).trans ?_
-  rw [← hc, mfderiv_comp t ((contMDiff_mkNonzero ℂ 1 1 _).mdifferentiableAt one_ne_zero) hmd]
-  simp only [ContinuousLinearMap.comp_apply, Function.comp_apply]
-  rw [eval₂_fubiniStudyForm_mfderiv_mkNonzero, fubiniStudyLift_apply, hd, hd, coe_affineLift]
+  rw [← SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq (contMDiff_mkNonzero ℂ 1 ∞) _ hmd
+      hc.eventuallyEq, mpullback_mkNonzero_fubiniStudyForm, fubiniStudyLift_apply, hd, hd,
+    Function.comp_apply, coe_affineLift]
   clear hd hmd hc
   -- Read `v` and `w` as complex numbers again, for the computation.
   revert v w

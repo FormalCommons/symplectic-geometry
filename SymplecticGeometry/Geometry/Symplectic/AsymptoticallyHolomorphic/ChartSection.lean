@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.F
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
+import TauCeti.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Sections extended by zero from a rescaled unitary chart
@@ -63,6 +64,12 @@ bound `SymplecticGeometry.jetNormAt_bilinear_le` bounds the `r`-jet norm of the 
 that of the model `∂̄` plus `C * (1 + ‖z‖) ^ 2 / √k` times the `(r + 1)`-jet norm of the reading,
 with `C` independent of `k`, `x` and the section.
 
+Combined with the change of chart for `∂̄`
+(`SymplecticGeometry.RescaledUnitaryCharts.dbarJetNorm_le_of_chart_change`) and the comparison of
+`d_k(x, y)` with `‖z‖`, this gives the Gaussian decay of the `∂̄` jet norms of the sections
+extended by zero, with a factor `k ^ (-1 / 2)`, for families `f k` with Gaussian jet bounds
+whose model `∂̄` has Gaussian bounds with that factor.
+
 ## Main definitions
 
 * `SymplecticGeometry.RescaledUnitaryCharts.sectionOfReading`: the section extended by zero.
@@ -79,6 +86,9 @@ with `C` independent of `k`, `x` and the section.
   with closed support in `B` and `C^n` there (`C^(n + 1)` for `∂̄`), its readings (`∂̄`
   readings) at every point are `C^n` at the centre; for smooth `f`, both are smooth
   (`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_and_dbarReading_sectionOfReading`).
+* `SymplecticGeometry.RescaledUnitaryCharts.le_mul_one_add_pow_mul_exp_of_forall_symm_le`: a
+  function on `M` vanishing off the image of a set in the comparison ball, with Gaussian bounds
+  in `‖z‖` at the points `(D.chart k x).symm z`, has Gaussian bounds in the rescaled distance.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_sectionOfReading_le`: Gaussian decay
   of the jet norms in the rescaled distance from the centre.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_le_norm_sectionOfReading`: the lower bound
@@ -86,6 +96,8 @@ with `C` independent of `k`, `x` and the section.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_dbarReading_le` and
   `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_dbarReading_sectionOfReading_le`:
   the `∂̄` reading against the model `∂̄` in the chart at the centre.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_dbarJetNorm_sectionOfReading_le`: Gaussian
+  decay of the `∂̄` jet norms, with a factor `k ^ (-1 / 2)`.
 
 ## References
 
@@ -314,14 +326,10 @@ theorem dbarReading_eq_modelDbar_add (k : ℕ) (x : M) (s : Π y, PowerBundle P 
         (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z -
           LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) := by
   ext v
-  rw [modelDbar_def, ← connectionReading_def, dbarReading_def, add_apply,
-    complexAntilinearPartContinuousLinearMap_apply_apply, LinearMap.coe_toContinuousLinearMap',
-    complexAntilinearPart_apply, complexAntilinearPart_apply, ContinuousLinearMap.comp_apply,
-    sub_apply, map_sub,
-    smul_apply]
-  simp only [ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply,
-    LinearMap.coe_toContinuousLinearMap', FunLike.coe_smul, Pi.smul_apply,
-    smul_eq_mul, Complex.real_smul]
+  rw [dbarReading_apply, add_apply, modelDbar_def, modelDbarWith_apply, ← connectionReading_def,
+    ContinuousLinearMap.comp_apply, sub_apply, map_sub, smul_apply,
+    LinearMap.coe_toContinuousLinearMap']
+  simp only [FunLike.coe_smul, Pi.smul_apply, smul_eq_mul, Complex.real_smul]
   push_cast
   ring
 
@@ -411,6 +419,52 @@ section RiemannianEDist
 
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- **Gaussian bounds at chart points give Gaussian decay in the rescaled distance.** Let `M` be
+Hausdorff, with a Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`,
+and let `ρ₁ ≤ ρ₀` be a comparison radius at `x`. Let `F` be a real function on `M` that vanishes
+outside the image under the inverse of the chart at `x` of a set `S` contained in the ball of
+radius `ρ₁ * √k`, and such that at every point `(D.chart k x).symm z` with `z ∈ S` it is at most
+`B * (1 + d) ^ n * ((1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2))`, with `B, c ≥ 0`, for `d` the rescaled
+distance `√(2π k) · d_g(x, (D.chart k x).symm z)`. Then at every point `y`,
+`F y ≤ B * max √2 1 ^ N * (1 + d) ^ (n + N) * exp (-(c / √(3 / 2) ^ 2) * d ^ 2)`, for `d` the
+rescaled distance `√(2π k) · d_g(x, y)`. -/
+theorem le_mul_one_add_pow_mul_exp_of_forall_symm_le [T2Space M]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀) {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {S : Set (StdSpace ι)} (hS : S ⊆ ball 0 (ρ₁ * √k)) {F : M → ℝ} {B c : ℝ} (n N : ℕ)
+    (hB : 0 ≤ B) (hc : 0 ≤ c) (h0 : ∀ y ∉ (D.chart k x).symm '' S, F y = 0)
+    (hF : ∀ z ∈ S, F ((D.chart k x).symm z) ≤
+      B * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
+        Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal) ^ n *
+        ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)))
+    (y : M) :
+    F y ≤ B * max √2 1 ^ N * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
+      Manifold.riemannianEDist I x y).toReal) ^ (n + N) *
+      Real.exp (-(c / √(3 / 2) ^ 2) * (ENNReal.ofReal √(2 * Real.pi * k) *
+        Manifold.riemannianEDist I x y).toReal ^ 2) := by
+  by_cases hy : y ∈ (D.chart k x).symm '' S
+  · obtain ⟨z, hzS, rfl⟩ := hy
+    have hz := hS hzS
+    set d := (ENNReal.ofReal √(2 * Real.pi * k) *
+      Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal
+    -- The rescaled distance `d` and `‖z‖` are comparable.
+    have hzd : ‖z‖ ≤ √2 * d :=
+      D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₁₀ hk x hcmp hz
+    have hdz : d ≤ √(3 / 2) * ‖z‖ := ENNReal.toReal_le_of_le_ofReal (by positivity)
+      (D.ofReal_mul_riemannianEDist_symm_mem_Icc hg hρ₁₀ hk x hcmp hz).2
+    have hgz := Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le_mul N ENNReal.toReal_nonneg
+      (by positivity : 0 < √(3 / 2)) hc hzd hdz
+    calc F ((D.chart k x).symm z)
+        ≤ B * (1 + d) ^ n * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) := hF z hzS
+      _ ≤ B * (1 + d) ^ n *
+            (max √2 1 ^ N * (1 + d) ^ N * Real.exp (-(c / √(3 / 2) ^ 2) * d ^ 2)) := by
+          gcongr
+      _ = B * max √2 1 ^ N * (1 + d) ^ (n + N) * Real.exp (-(c / √(3 / 2) ^ 2) * d ^ 2) := by
+          ring
+  · rw [h0 y hy]
+    positivity
+
 /-- **Gaussian decay of sections extended by zero.** Let `M` be a Hausdorff boundaryless manifold,
 let `σ` be compatible with `J`, let `M` carry a Riemannian metric whose inner product is
 `⟪u, w⟫ = σ(u, J w)`, let `α` be a connection form, `ρ₀ > 0` and `r` an order. Let `f k` be, for
@@ -442,48 +496,139 @@ theorem exists_jetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
   refine ⟨max C₁ 0 * max A 0 * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
   filter_upwards [hfs, hfb ρ₂ (lt_min hρ hρ₁), hA, Filter.eventually_ge_atTop k₀]
     with k hfs hball hA hk
+  intro x
+  have hsub {ρ' : ℝ} (h : ρ₂ ≤ ρ') : ball (0 : StdSpace ι) (ρ₂ * √k) ⊆ ball 0 (ρ' * √k) :=
+    ball_subset_ball (by gcongr)
+  have hfb₀ : tsupport (f k) ⊆ ball 0 (ρ₀ * √k) :=
+    hball.trans (hsub ((min_le_left _ _).trans hρρ₀))
+  refine D.le_mul_one_add_pow_mul_exp_of_forall_symm_le hg hρ₁ρ₀ hk x (hcmp hk x)
+    (hball.trans (hsub (min_le_right _ _))) (2 * r) N (by positivity) hc.le
+    (fun y hy ↦ D.jetNorm_sectionOfReading_eq_zero hk r hfb₀ hy) fun z hz ↦ ?_
+  -- Near `z`, the reading in the chart at `x` is `f k`.
+  have heq : D.reading k x (D.sectionOfReading k x (f k)) =ᶠ[𝓝 z] f k :=
+    Filter.eventually_of_mem (isOpen_ball.mem_nhds (hfb₀ hz))
+      (D.reading_sectionOfReading hk x (f k))
+  have h1 := hC₁ hk x z (hsub (min_le_left _ _) (hball hz))
+    (hfs.contDiffAt.congr_of_eventuallyEq heq)
+  rw [jetNormAt_congr_of_eventuallyEq r heq] at h1
+  set d := (ENNReal.ofReal √(2 * Real.pi * k) *
+    Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal
+  have hJ : jetNormAt ℝ r (f k) z ≤ max A 0 * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) :=
+    (hA z).trans_eq (mul_assoc _ _ _) |>.trans (by gcongr; exact le_max_left _ _)
+  calc D.jetNorm k r (D.sectionOfReading k x (f k)) ((D.chart k x).symm z)
+      ≤ C₁ * (1 + d) ^ (2 * r) * jetNormAt ℝ r (f k) z := h1
+    _ ≤ max C₁ 0 * (1 + d) ^ (2 * r) * (max A 0 * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))) := by
+        gcongr
+        · exact jetNormAt_nonneg _ _ _
+        · exact le_max_left _ _
+    _ = max C₁ 0 * max A 0 * (1 + d) ^ (2 * r) * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) := by
+        ring
+
+/-- **Gaussian decay of `∂̄` of sections extended by zero.** Let `M` be a Hausdorff boundaryless
+manifold, let `σ` be compatible with `J`, let `M` carry a Riemannian metric whose inner product
+is `⟪u, w⟫ = σ(u, J w)`, let `α` be a connection form, `ρ₀ > 0` and `r` an order. Let `f k` be,
+for large `k`, `C^(r + 1)` functions on `StdSpace ι` whose closed supports lie, for every
+`ε > 0`, in the ball of radius `ε * √k` for large `k`. Assume Gaussian bounds uniform in `k`:
+`jetNormAt ℝ (r + 1) (f k) z ≤ A * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)`, and a bound of this form,
+with other constants, times `k ^ (-1 / 2)` for the `r`-jet norm of the model `∂̄` of `f k`.
+Then there are `C`, `N'` and `c' > 0` such that for large `k` and all points `x` and `y`, the
+`r`-jet norm at `y` of `∂̄` of the section extended by zero from `f k` in the chart at `x` is at
+most `C * k ^ (-1 / 2) * (1 + d) ^ N' * exp (-c' * d ^ 2)`, for `d` the real number
+`√(2π k) · d_g(x, y)`, the rescaled Riemannian distance. -/
+theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ)
+    {f : ℕ → StdSpace ι → ℂ} (hfs : ∀ᶠ k in Filter.atTop, ContDiff ℝ (r + 1) (f k))
+    (hfb : ∀ ε > 0, ∀ᶠ k : ℕ in Filter.atTop, tsupport (f k) ⊆ ball 0 (ε * √k))
+    (hfg : ∃ A : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k in Filter.atTop, ∀ z,
+      jetNormAt ℝ (r + 1) (f k) z ≤ A * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))
+    (hdg : ∃ A : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ z,
+      jetNormAt ℝ r (modelDbar (f k)) z ≤
+        A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) :
+    ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
+      D.dbarJetNorm k r (D.sectionOfReading k x (f k)) y ≤
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + (ENNReal.ofReal √(2 * Real.pi * k) *
+          Manifold.riemannianEDist I x y).toReal) ^ N *
+          Real.exp (-c * (ENNReal.ofReal √(2 * Real.pi * k) *
+            Manifold.riemannianEDist I x y).toReal ^ 2) := by
+  obtain ⟨ρ, hρ, hρρ₀, hchg⟩ := D.dbarJetNorm_le_of_chart_change hg hJ hα hρ₀
+  obtain ⟨C₁, hC₁⟩ := hchg r
+  obtain ⟨C₂, hC₂⟩ := D.exists_jetNormAt_dbarReading_sectionOfReading_le r
+  obtain ⟨ρ₁, hρ₁, hρ₁ρ₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
+  obtain ⟨A₁, N₁, c₁, hc₁, hA₁⟩ := hfg
+  obtain ⟨A₂, N₂, c₂, hc₂, hA₂⟩ := hdg
+  set ρ₂ := min ρ ρ₁
+  set N := N₁ + N₂ + 2
+  set c := min c₁ c₂
+  have hc : 0 < c := lt_min hc₁ hc₂
+  set A := max A₂ 0 + max C₂ 0 * max A₁ 0
+  refine ⟨max C₁ 0 * A * max √2 1 ^ N, 2 * r + N, c / √(3 / 2) ^ 2, by positivity, ?_⟩
+  filter_upwards [hfs, hfb ρ₂ (lt_min hρ hρ₁), hA₁, hA₂, Filter.eventually_ge_atTop k₀]
+    with k hfs hball hA₁ hA₂ hk
   intro x y
   have hsub {ρ' : ℝ} (h : ρ₂ ≤ ρ') : ball (0 : StdSpace ι) (ρ₂ * √k) ⊆ ball 0 (ρ' * √k) :=
     ball_subset_ball (by gcongr)
   have hfb₀ : tsupport (f k) ⊆ ball 0 (ρ₀ * √k) :=
     hball.trans (hsub ((min_le_left _ _).trans hρρ₀))
-  by_cases hy : y ∈ (D.chart k x).symm '' tsupport (f k)
-  · obtain ⟨z, hz, rfl⟩ := hy
-    have hz₂ := hball hz
-    -- Near `z`, the reading in the chart at `x` is `f k`.
-    have heq : D.reading k x (D.sectionOfReading k x (f k)) =ᶠ[𝓝 z] f k :=
-      Filter.eventually_of_mem (isOpen_ball.mem_nhds (hfb₀ hz))
-        (D.reading_sectionOfReading hk x (f k))
-    have h1 := hC₁ hk x z (hsub (min_le_left _ _) hz₂) (hfs.contDiffAt.congr_of_eventuallyEq heq)
-    rw [jetNormAt_congr_of_eventuallyEq r heq] at h1
-    have hz₁ := hsub (min_le_right _ _) hz₂
-    set d := (ENNReal.ofReal √(2 * Real.pi * k) *
-      Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal
-    -- The rescaled distance `d` and `‖z‖` are comparable.
-    have hzd : ‖z‖ ≤ √2 * d :=
-      D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₁ρ₀ hk x (hcmp hk x) hz₁
-    have hdz : d ≤ √(3 / 2) * ‖z‖ := ENNReal.toReal_le_of_le_ofReal (by positivity)
-      (D.ofReal_mul_riemannianEDist_symm_mem_Icc hg hρ₁ρ₀ hk x (hcmp hk x) hz₁).2
-    have hgz := Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le_mul N ENNReal.toReal_nonneg
-      (by positivity : 0 < √(3 / 2)) hc.le hzd hdz
-    calc D.jetNorm k r (D.sectionOfReading k x (f k)) ((D.chart k x).symm z)
-        ≤ C₁ * (1 + d) ^ (2 * r) * jetNormAt ℝ r (f k) z := h1
-      _ ≤ max C₁ 0 * (1 + d) ^ (2 * r) *
-            (max A 0 * ((1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))) :=
-          mul_le_mul (mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity))
-            ((hA z).trans (by
-              rw [mul_assoc]
-              exact mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity)))
-            (jetNormAt_nonneg _ _ _) (by positivity)
-      _ ≤ max C₁ 0 * (1 + d) ^ (2 * r) * (max A 0 * (max √2 1 ^ N * (1 + d) ^ N *
-            Real.exp (-(c / √(3 / 2) ^ 2) * d ^ 2))) :=
-          mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hgz (le_max_right _ _))
-            (by positivity)
-      _ = max C₁ 0 * max A 0 * max √2 1 ^ N * (1 + d) ^ (2 * r + N) *
-            Real.exp (-(c / √(3 / 2) ^ 2) * d ^ 2) := by
-          ring
-  · rw [D.jetNorm_sectionOfReading_eq_zero hk r hfb₀ hy]
-    positivity
+  have h := D.le_mul_one_add_pow_mul_exp_of_forall_symm_le hg hρ₁ρ₀ hk x (hcmp hk x)
+    (hball.trans (hsub (min_le_right _ _))) (2 * r) N (by positivity : 0 ≤ max C₁ 0 * A *
+      (k : ℝ) ^ (-1 / 2 : ℝ)) hc.le
+    (fun y hy ↦ D.dbarJetNorm_sectionOfReading_eq_zero hk r hfb₀ hy) (fun z hz ↦ ?_) y
+  · exact h.trans_eq (by ring)
+  have hz₂ := hball hz
+  have hz₀ := hfb₀ hz
+  -- On the ball of radius `ρ₀ * √k`, the reading in the chart at `x` is `f k`.
+  have heqOn {w : StdSpace ι} (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+      D.reading k x (D.sectionOfReading k x (f k)) =ᶠ[𝓝 w] f k :=
+    Filter.eventually_of_mem (isOpen_ball.mem_nhds hw) (D.reading_sectionOfReading hk x (f k))
+  have hdiff : ∀ᶠ w in 𝓝 z,
+      DifferentiableAt ℝ (D.reading k x (D.sectionOfReading k x (f k))) w := by
+    filter_upwards [isOpen_ball.mem_nhds hz₀] with w hw
+    exact ((hfs.differentiable (by simp)) w).congr_of_eventuallyEq (heqOn hw)
+  have hdbar : ContDiffAt ℝ r (D.dbarReading k x (D.sectionOfReading k x (f k))) z :=
+    D.contDiffAt_dbarReading (D.ball_subset_target hk x hz₀)
+      (by exact_mod_cast hfs.contDiffAt.congr_of_eventuallyEq (heqOn hz₀))
+  have h1 := hC₁ hk x z (hsub (min_le_left _ _) hz₂) hdiff hdbar
+  have h2 := hC₂ hk x (f k) hz₀ (by exact_mod_cast hfs.contDiffAt)
+  -- Both terms of the comparison with the model `∂̄` have the Gaussian bound with `N` and `c`.
+  set T := (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)
+  have e₁ : (1 + ‖z‖) ^ (2 + N₁) * Real.exp (-c₁ * ‖z‖ ^ 2) ≤ T :=
+    Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le (norm_nonneg z) (by omega) (min_le_left _ _)
+  have e₂ : (1 + ‖z‖) ^ N₂ * Real.exp (-c₂ * ‖z‖ ^ 2) ≤ T :=
+    Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le (norm_nonneg z) (by omega) (min_le_right _ _)
+  have hbz : jetNormAt ℝ r (D.dbarReading k x (D.sectionOfReading k x (f k))) z ≤
+      A * (k : ℝ) ^ (-1 / 2 : ℝ) * T :=
+    calc _ ≤ jetNormAt ℝ r (modelDbar (f k)) z +
+          C₂ * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) (f k) z := h2
+      _ ≤ A₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N₂ * Real.exp (-c₂ * ‖z‖ ^ 2) +
+          max C₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 2 *
+            (A₁ * (1 + ‖z‖) ^ N₁ * Real.exp (-c₁ * ‖z‖ ^ 2)) := by
+        rw [Real.inv_sqrt_eq_rpow]
+        have hA₁z := hA₁ z
+        have hA₂z := hA₂ z
+        have hC₂0 : C₂ ≤ max C₂ 0 := le_max_left _ _
+        gcongr
+        exact jetNormAt_nonneg _ _ _
+      _ = A₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * ((1 + ‖z‖) ^ N₂ * Real.exp (-c₂ * ‖z‖ ^ 2)) +
+          max C₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) *
+            (A₁ * ((1 + ‖z‖) ^ (2 + N₁) * Real.exp (-c₁ * ‖z‖ ^ 2))) := by
+        ring
+      _ ≤ max A₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * T +
+          max C₂ 0 * (k : ℝ) ^ (-1 / 2 : ℝ) * (max A₁ 0 * T) := by
+        gcongr
+        · exact le_max_left _ _
+        · exact le_max_left _ _
+      _ = A * (k : ℝ) ^ (-1 / 2 : ℝ) * T := by ring
+  set d := (ENNReal.ofReal √(2 * Real.pi * k) *
+    Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal
+  calc D.dbarJetNorm k r (D.sectionOfReading k x (f k)) ((D.chart k x).symm z)
+      ≤ C₁ * (1 + d) ^ (2 * r) *
+          jetNormAt ℝ r (D.dbarReading k x (D.sectionOfReading k x (f k))) z := h1
+    _ ≤ max C₁ 0 * (1 + d) ^ (2 * r) * (A * (k : ℝ) ^ (-1 / 2 : ℝ) * T) := by
+        gcongr
+        · exact jetNormAt_nonneg _ _ _
+        · exact le_max_left _ _
+    _ = max C₁ 0 * A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + d) ^ (2 * r) * T := by ring
 
 /-- **Lower bound of sections extended by zero near the centre.** Let `M` be Hausdorff, with a
 Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let `ρ₀ > 0`. Let `f k` be
