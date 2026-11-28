@@ -370,12 +370,14 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
   have hA := congrArg (· ![u]) (hα.mpullback_apply_eq_mpullback_division_add (hU y)
     (D.contMDiffOn_frame hk y) hpy (hFx.mdifferentiableAt (by simp)))
   simp only [ContinuousAlternatingMap.add_apply] at hA
-  -- The model forms in the two charts. Here and below, `erw` is needed since the vectors in
-  -- `![v]` are typed in `StdSpace ι`, and in the lemmas in a tangent space of it.
+  -- The model forms in the two charts. The vectors in `![v]` are typed in `StdSpace ι`, and in
+  -- the lemmas in a tangent space of it: `mpullback_apply_one` is given the vector with that type,
+  -- and below, `erw` is still needed.
   have hmy := D.connectionForm_eq_model hk y w hwB v
-  erw [mpullback_apply_one] at hmy
+  rw [mpullback_apply_one (v := (v : TangentSpace 𝓘(ℝ, StdSpace ι) w))] at hmy
   have hmx := D.connectionForm_eq_model hk x (τ w) hτB (fderiv ℝ τ w v)
-  erw [mpullback_apply_one, hu, hpx] at hmx
+  rw [mpullback_apply_one (v := (fderiv ℝ τ w v : TangentSpace 𝓘(ℝ, StdSpace ι) (τ w))), hu,
+    hpx] at hmx
   erw [SymplecticForm.radialPrimitive_apply] at hmy hmx
   -- The derivative of `e = (g ∘ (D.chart k y)⁻¹) ^ k` read in `ℂ`.
   have he : D.frameChange k x y = fun w ↦ (((g ∘ (D.chart k y).symm) ^ k) w : ℂ) :=
@@ -387,7 +389,7 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
   have hd := mvfderiv_coe_circle_apply hgk v
   rw [mpullback_pow_circleAngularForm_apply hgs, mpullback_comp_at hsymm hg,
     ContinuousAlternatingMap.smul_apply] at hd
-  erw [mpullback_apply_one] at hd
+  rw [mpullback_apply_one (v := (v : TangentSpace 𝓘(ℝ, StdSpace ι) w))] at hd
   erw [← mvfderiv_eq_fderiv_apply]
   rw [he, hd, smul_eq_mul]
   have hkA : (k : ℝ) * mpullback I (𝓡 1) g circleAngularForm p ![u] =
