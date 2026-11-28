@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Flow.HittingTime
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import TauCeti.Geometry.Manifold.Flow.ReturnDerivative
 import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
+import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
@@ -45,8 +46,6 @@ are then `C^n` on that open set.
 
 ## Main results
 
-* `Flow.levelCrossingTime_eq_of_subsingleton`: on an orbit that meets the level at most once,
-  the crossing time is the time at which it meets it.
 * `TauCeti.levelCrossingTime_eventuallyEq_flowHittingTime`: near a point whose orbit crosses the
   level transversally, the crossing time is the hitting time of the level.
 * `TauCeti.ker_mfderiv_flow_levelCrossingTime`: in finite dimension, the derivative of the map to
@@ -72,19 +71,6 @@ public section
 
 open Filter
 open scoped ContDiff Manifold Topology
-
-namespace Flow
-
-/-- **The crossing time on an orbit that meets the level once.** If the orbit of `x` under the
-flow `φ` lies on the level `{f = c}` at the time `t`, and at no other time, then
-`Flow.levelCrossingTime φ f c x = t`. Unlike `Flow.eq_levelCrossingTime_iff`, this does not ask
-`f` to be strictly decreasing along the orbit. -/
-theorem levelCrossingTime_eq_of_subsingleton {X : Type*} [TopologicalSpace X] {φ : Flow ℝ X}
-    {f : X → ℝ} {c t : ℝ} {x : X} (hsub : {s | f (φ s x) = c}.Subsingleton)
-    (ht : f (φ t x) = c) : levelCrossingTime φ f c x = t :=
-  hsub (apply_flow_levelCrossingTime ⟨t, ht⟩) ht
-
-end Flow
 
 namespace TauCeti
 

@@ -11,6 +11,7 @@ public import TauCeti.Dynamics.Flow.LevelCrossing
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
+import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
@@ -144,8 +145,12 @@ the implicit function theorem at the regular level `a`, in the form of the libra
 `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`,
 and not the continuity of `Flow.levelCrossingTime` on a connecting set.
 
-The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`, whose hypotheses are checked as for
-the smoothness.
+The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`. Its hypotheses are checked one by
+one: near `x` each orbit meets the level `a` at most once, by
+`SymplecticGeometry.IsWeinsteinStructure.eq_levelCrossingTime_iff`; the orbit of `x` reaches the
+level, by `SymplecticGeometry.IsWeinsteinStructure.mapsTo_flow_levelCrossingTime`; and
+`df(X) ≠ 0` at the point where it does, by
+`SymplecticGeometry.IsWeinsteinStructure.mvfderiv_apply_pos_flow_levelCrossingTime`.
 
 The immersion is the chain rule with Mathlib's `injective_mvfderiv_subtypeVal_sphere` for the
 inclusion of the sphere, and injectivity comes from the left inverse of the disc. That the
