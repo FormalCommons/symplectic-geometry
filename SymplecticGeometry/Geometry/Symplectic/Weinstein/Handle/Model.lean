@@ -214,11 +214,9 @@ theorem isGradientLike_modelHandle_modelHandleField {a b : ℝ} (ha : 0 < a) (hb
   have hκ : min (2 * a) b * ‖p‖ ^ 2 ≤ fderiv ℝ (modelHandle k m a b) p (A p) := by
     rw [hD, shape_fst]
     have h1 : ‖p.1‖ ^ 2 = ∑ j, (p.1 j).re ^ 2 + ∑ j, (p.1 j).im ^ 2 := by
-      have h := norm_complexEuclideanEquivRealProd_symm_sq
-        (complexEuclideanEquivRealProd (Fin k) p.1)
-      rw [ContinuousLinearEquiv.symm_apply_apply, EuclideanSpace.real_norm_sq_eq,
-        EuclideanSpace.real_norm_sq_eq] at h
-      simpa using h
+      have h := shape_fst_add_shape_snd p
+      rw [shape_fst, shape_snd] at h
+      linarith
     have hs : 0 ≤ ∑ j, (p.1 j).re ^ 2 := by positivity
     have hy : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
     have hm₁ : min (2 * a) b ≤ 2 * a := min_le_left _ _

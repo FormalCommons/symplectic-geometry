@@ -65,7 +65,8 @@ the model functions with which the `J`-convex surrounding of a totally real disc
 model disc is the locus `t = 0`. This part computes their Levi forms and gives a criterion for
 the strict plurisubharmonicity of `f(s) + g(t)`.
 
-* `SymplecticGeometry.shape p`: the pair `(s p, t p)`;
+* `SymplecticGeometry.shape p`: the pair `(s p, t p)`, with `s + t = ‖p.1‖² + ‖p.2‖²`
+  (`SymplecticGeometry.shape_fst_add_shape_snd`);
 * `SymplecticGeometry.leviForm_shape_fst_apply`, `SymplecticGeometry.leviForm_shape_snd_apply`:
   the Levi forms of `s` and `t` are `⟪v₁, w₁⟫ / 2` and `⟪v₁, w₁⟫ / 2 + ⟪v₂, w₂⟫`. So the Levi form
   of `t` is positive definite (`SymplecticGeometry.re_leviForm_shape_snd_apply_self`,
@@ -103,7 +104,8 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
 
 ## The model handle function and the model level
 
-* `SymplecticGeometry.modelHandle k m a b`: the model handle function `b t - a s`. For `0 < b`
+* `SymplecticGeometry.modelHandle k m a b`: the model handle function `b t - a s`, which is
+  smooth (`SymplecticGeometry.contDiff_modelHandle`). For `0 < b`
   and `a < b` it is strictly plurisubharmonic everywhere
   (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelHandle`, by the criterion with
   `f' + g' = b - a` and `g' = b`). For `0 < a` and `0 < b`, the real splitting
@@ -309,6 +311,14 @@ theorem shape_snd_nonneg (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (
     0 ≤ (shape p).2 := by
   rw [shape_snd]
   positivity
+
+/-- The two shape coordinates add up to the squared norm: `s + t = ‖z‖² + ‖w‖²` at
+`p = (z, w)`. -/
+theorem shape_fst_add_shape_snd (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    (shape p).1 + (shape p).2 = ‖p.1‖ ^ 2 + ‖p.2‖ ^ 2 := by
+  rw [shape_fst, shape_snd, EuclideanSpace.norm_sq_eq p.1, ← add_assoc, ← Finset.sum_add_distrib]
+  congr 1
+  exact Finset.sum_congr rfl fun j _ ↦ by rw [Complex.sq_norm, Complex.normSq_apply]; ring
 
 /-- The complex-linear functional `(z, w) ↦ c * z j` on `ℂᵏ × ℂᵐ`. -/
 private def coordCLM (c : ℂ) (j : Fin k) :
@@ -764,21 +774,15 @@ theorem isCompact_setOfPred_shape_le (a b : ℝ) :
       (isClosed_le (continuous_fst.comp hc) continuous_const))
     ((isBounded_closedBall (x := 0) (r := √(|a| + |b|))).subset fun p hp ↦ ?_)
   obtain ⟨ha, hb⟩ := hp
+  have hn := shape_fst_add_shape_snd p
   have hs := shape_fst_nonneg p
-  have ht := shape_snd_nonneg p
-  rw [shape_fst] at hs hb
-  rw [shape_snd] at ht ha
+  have ht : ‖p.2‖ ^ 2 ≤ (shape p).2 := by
+    rw [shape_snd]
+    exact le_add_of_nonneg_left (by positivity)
   rw [mem_closedBall, dist_zero_right, Prod.norm_def, max_le_iff]
   constructor <;> refine Real.le_sqrt_of_sq_le ?_
-  · have hn : ‖p.1‖ ^ 2 = ∑ j, ((p.1 j).re ^ 2 + (p.1 j).im ^ 2) := by
-      rw [EuclideanSpace.norm_sq_eq]
-      exact Finset.sum_congr rfl fun j _ ↦ by rw [Complex.sq_norm, Complex.normSq_apply]; ring
-    rw [hn, Finset.sum_add_distrib]
-    have : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
-    have : 0 ≤ ‖p.2‖ ^ 2 := by positivity
-    linarith [le_abs_self a, le_abs_self b]
-  · have : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
-    linarith [le_abs_self a, le_abs_self b, abs_nonneg a, abs_nonneg b]
+  · linarith [sq_nonneg ‖p.2‖, le_abs_self a, le_abs_self b]
+  · linarith [le_abs_self a, le_abs_self b, abs_nonneg a, abs_nonneg b]
 
 /-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` grow with `γ ≥ 0`. -/
 theorem setOfPred_shape_le_subset_setOfPred_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
@@ -850,6 +854,13 @@ def modelHandle (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace �
 theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     modelHandle k m a b p = b * (shape p).2 - a * (shape p).1 :=
   (rfl)
+
+/-- The model handle function is smooth. -/
+theorem contDiff_modelHandle {n : WithTop ℕ∞} (a b : ℝ) :
+    ContDiff ℝ n (modelHandle k m a b) := by
+  rw [show modelHandle k m a b = fun p ↦ b * (shape p).2 - a * (shape p).1 from
+    funext (modelHandle_def a b)]
+  exact (contDiff_const.mul contDiff_shape.snd).sub (contDiff_const.mul contDiff_shape.fst)
 
 open scoped InnerProductSpace in
 /-- The differential of the model handle function `b t - a s` at `p = (x + i y, w)`:
@@ -1041,10 +1052,8 @@ theorem modelLevel_eq : modelLevel k m = fun p ↦ 1 + modelHandle k m 1 2 p := 
 
 /-- The model level is smooth. -/
 theorem contDiff_modelLevel {n : WithTop ℕ∞} : ContDiff ℝ n (modelLevel k m) := by
-  have h : modelLevel k m = fun p ↦ 1 - (shape p).1 + 2 * (shape p).2 := funext modelLevel_def
-  rw [h]
-  exact (contDiff_const.sub (contDiff_fst.comp contDiff_shape)).add
-    (contDiff_const.mul (contDiff_snd.comp contDiff_shape))
+  rw [modelLevel_eq]
+  exact contDiff_const.add (contDiff_modelHandle 1 2)
 
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`, as a function on a
 complex vector space. -/
@@ -1154,18 +1163,8 @@ open scoped InnerProductSpace in
 theorem fderiv_modelLevel_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     fderiv ℝ (modelLevel k m) p v = -(2 * ∑ j, (p.1 j).re * (v.1 j).re) +
       2 * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) := by
-  have h1 : DifferentiableAt ℝ (fun q ↦ (shape q).1) p :=
-    (contDiff_fst.comp (contDiff_shape (n := 1))).differentiable one_ne_zero p
-  have h2 : DifferentiableAt ℝ (fun q ↦ (shape q).2) p :=
-    (contDiff_snd.comp (contDiff_shape (n := 1))).differentiable one_ne_zero p
-  have h : HasFDerivAt (modelLevel k m)
-      (-fderiv ℝ (fun q ↦ (shape q).1) p + (2 : ℝ) • fderiv ℝ (fun q ↦ (shape q).2) p) p := by
-    refine ((((hasFDerivAt_const (1 : ℝ) p).sub h1.hasFDerivAt).add
-      (h2.hasFDerivAt.const_mul (2 : ℝ))).congr_of_eventuallyEq
-        (.of_forall fun q ↦ ?_)).congr_fderiv (by rw [zero_sub])
-    simp only [Pi.add_apply, Pi.sub_apply, modelLevel_def]
-  rw [h.fderiv, add_apply, neg_apply, smul_apply, smul_eq_mul, fderiv_shape_fst_apply,
-    fderiv_shape_snd_apply]
+  rw [modelLevel_eq, fderiv_const_add, fderiv_modelHandle_apply]
+  ring
 
 /-- **The model of a J-orthogonally attached disc.** The model disc `ι₀ : x ↦ (x, 0)` of
 `ℂᵏ × ℂᵐ` is attached J-orthogonally to the domain `{φ₀ ≤ 0}` of the model level
