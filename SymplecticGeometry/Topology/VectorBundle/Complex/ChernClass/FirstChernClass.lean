@@ -158,8 +158,8 @@ theorem chernClass_one_eq_firstChernClass :
       ih (E := ProjectiveBundle.tautologicalComplement ℂ G E) (by simp [hn]),
       chernClass_one_eq_complexEulerClass _ _ hS,
       ← firstChernClass_eq_complexEulerClass _ hS, ← map_add, ← firstChernClass_prod,
-      ← firstChernClass_congr (E := ⇑(ProjectiveBundle.projection ℂ G E) *ᵖ E)
-        _ ProjectiveBundle.continuous_pullbackEquivTautologicalProdComplement,
+      ← TauCeti.firstChernClass_eq_of_fiberwise (E' := ⇑(ProjectiveBundle.projection ℂ G E) *ᵖ E)
+        ProjectiveBundle.continuous_pullbackEquivTautologicalProdComplement,
       firstChernClass_pullback]
     exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ _ _
 
