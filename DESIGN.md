@@ -2174,8 +2174,9 @@ complete target and a function on the whole half-space.
   family $\beta_t$ over $[0,1]$ with $\omega_t=\omega_0+d\beta_t$; its
   extension over `ℝ` gives forms $\omega_0+d\beta_t$ that are cohomologous
   for every $t$ and, $M$ being compact, symplectic for $t$ in some
-  $(-\varepsilon,1+\varepsilon)$; on that open set of times, Tau Ceti's
-  `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_uIcc_subset` applies, and
+  $(-\varepsilon,1+\varepsilon)$; after a reparametrization of time into
+  that interval, Tau Ceti's
+  `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact` applies, and
   `Diffeotopy/Real.lean` restricts its isotopy to a `Diffeotopy`),
   `Geometry/Symplectic/Moser/Relative.lean` (the relative theorem with
   prescribed first derivative along an embedded, not necessarily compact
