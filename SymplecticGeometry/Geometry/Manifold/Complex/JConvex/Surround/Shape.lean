@@ -312,8 +312,8 @@ theorem shape_snd_nonneg (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (
   rw [shape_snd]
   positivity
 
-/-- The two shape coordinates add up to the squared norm: `s + t = ‖z‖² + ‖w‖²` at
-`p = (z, w)`. -/
+/-- The two shape coordinates add up to the sum of the squared norms of the two factors:
+`s + t = ‖z‖² + ‖w‖²` at `p = (z, w)`. -/
 theorem shape_fst_add_shape_snd (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     (shape p).1 + (shape p).2 = ‖p.1‖ ^ 2 + ‖p.2‖ ^ 2 := by
   rw [shape_fst, shape_snd, EuclideanSpace.norm_sq_eq p.1, ← add_assoc, ← Finset.sum_add_distrib]
@@ -360,6 +360,7 @@ private theorem contDiff_sum_coordCLM_re_sq {n : WithTop ℕ∞} (c : ℂ) :
   exact ContDiff.sum fun j _ ↦ contDiff_coordCLM_re_sq c j
 
 /-- The shape coordinates are smooth. -/
+@[fun_prop]
 theorem contDiff_shape {n : WithTop ℕ∞} :
     ContDiff ℝ n (shape : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → ℝ × ℝ) := by
   have h1 : ContDiff ℝ n fun p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
@@ -856,6 +857,7 @@ theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × Euclidean
   (rfl)
 
 /-- The model handle function is smooth. -/
+@[fun_prop]
 theorem contDiff_modelHandle {n : WithTop ℕ∞} (a b : ℝ) :
     ContDiff ℝ n (modelHandle k m a b) := by
   rw [show modelHandle k m a b = fun p ↦ b * (shape p).2 - a * (shape p).1 from
