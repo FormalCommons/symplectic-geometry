@@ -391,7 +391,8 @@ This is a hypothesis of the statements below, not a definition.
 - `tendsto_deriv_kempfNessFunction`: the slope identity, the limit of the
   derivative of $t\mapsto\Phi_p(\exp(-it\xi))$ is $-w_\mu(p,\xi)$.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,
-  $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for $\xi\in\Lambda$ and $g\in G^{\mathbb C}$,
+  $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for every $\xi\in\mathfrak g$ (in particular
+  $\xi\in\Lambda$) and $g\in G^{\mathbb C}$,
   with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq B hB μ (g • p))`.
 - `exists_momentWeight_pos_of_not_isSemistable`: a destabilizing
   $\xi\in\Lambda$ (the limit of the flow of $f$, and continuity of
