@@ -36,7 +36,7 @@ trivializing cover is used.
 
 This is Tau Ceti's `TopCat.lerayHirsch_bijective_of_trivializations`, for the morphism of `TopCat`
 given by `proj`. Its hypothesis on the fibre is moved from de Rham to singular classes by the
-de Rham theorem on `F` (`TauCeti.bijective_deRhamHom`), a linear equivalence, and its naturality
+de Rham theorem on `F`, as the linear equivalence `TauCeti.deRhamEquiv`, and its naturality
 along the smooth fibre inclusions (`TauCeti.deRhamHom_map`); the continuous fibre inclusions are
 Tau Ceti's fibre inclusions in `TopCat` by `Bundle.Trivialization.ofHom_fiberInclusionMap`.
 
@@ -94,15 +94,9 @@ theorem lerayHirsch_deRhamHom_bijective (hproj : Continuous proj) {κ : Type*} (
     hcover n hF fun j hj b hb d hd ↦ ?_
   rw [← Trivialization.ofHom_fiberInclusionMap (F := of F)]
   -- The de Rham theorem on `F` carries the de Rham basis to the singular one.
-  let L := LinearEquiv.ofBijective (deRhamHom IF F d) (bijective_deRhamHom IF F d)
-  have hL : (L ∘ fun i ↦ deRhamCohomology.map ((t j).fiberInclusionMap hb)
-      ((t j).contMDiff_fiberInclusionMap (ht j hj) hb) d (c d i)) =
-      fun i ↦ TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusionMap hb)) d
-        (deRhamHom IM M d (c d i)) := by
-    ext i
-    rw [Function.comp_apply, LinearEquiv.ofBijective_apply, deRhamHom_map]
-  have h := (L.linearIndependent_comp_and_top_le_span_iff _).2 (hc j hj b hb d hd)
-  rw [hL] at h
+  have h := ((deRhamEquiv IF F d).linearIndependent_comp_and_top_le_span_iff _).2
+    (hc j hj b hb d hd)
+  simp only [Function.comp_def, deRhamEquiv_apply, deRhamHom_map] at h
   exact h
 
 end TopCat
