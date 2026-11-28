@@ -18,11 +18,13 @@ An injective continuous linear map `L : V →L[R] W` sends nonzero vectors to no
 it restricts to a map `TauCeti.puncturedSpace.map L hL` from Tau Ceti's punctured space
 `TauCeti.puncturedSpace V = V ∖ {0}` to `TauCeti.puncturedSpace W`.
 
-* `TauCeti.puncturedSpace.coe_map`: the map sends `v` to `L v`; it takes the identity to the
-  identity and composites to composites (`map_id`, `map_comp`).
+* `TauCeti.puncturedSpace.map_def`, `TauCeti.puncturedSpace.coe_map`: the map sends `v` to
+  `L v`; it takes the identity to the identity and composites to composites (`map_id`,
+  `map_comp`).
 * `TauCeti.puncturedSpace.contMDiff_map`: over a nontrivially normed field `𝕜`, the map is `C^n`
   for every `n : ℕ∞ω`, by Tau Ceti's `TauCeti.ContMDiff.subtypeVal_comp_iff`.
-* `TauCeti.puncturedSpace.mfderiv_map_apply`: its derivative is `L` itself, by Tau Ceti's
+* `TauCeti.puncturedSpace.mfderiv_map`: its derivative at every point is `L` itself, with the
+  pointwise form `mfderiv_map_apply`, by Tau Ceti's
   `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`.
 -/
 
@@ -42,6 +44,11 @@ variable {R V W : Type*} [Semiring R] [AddCommMonoid V] [Module R V] [Topologica
 `L : V →L[R] W`. -/
 def map (L : V →L[R] W) (hL : Injective L) (v : puncturedSpace V) : puncturedSpace W :=
   ⟨L v, mem_puncturedSpace.2 ((map_ne_zero_iff L hL).2 (mem_puncturedSpace.1 v.property))⟩
+
+theorem map_def (L : V →L[R] W) (hL : Injective L) (v : puncturedSpace V) :
+    map L hL v =
+      ⟨L v, mem_puncturedSpace.2 ((map_ne_zero_iff L hL).2 (mem_puncturedSpace.1 v.property))⟩ :=
+  (rfl)
 
 /-- The map of punctured spaces induced by `L` sends `v` to `L v`. -/
 @[simp]
@@ -81,13 +88,19 @@ theorem contMDiff_map (L : V →L[𝕜] W) (hL : Injective L) (n : ℕ∞ω) :
     rw [subtypeVal_comp_map]
     exact L.contMDiff.comp contMDiff_subtypeVal
 
-/-- The derivative of the map of punctured spaces induced by `L` is `L`. -/
+/-- The derivative of the map of punctured spaces induced by `L`, at any point, sends a tangent
+vector `u` to `L u`. -/
 theorem mfderiv_map_apply (L : V →L[𝕜] W) (hL : Injective L) (v : puncturedSpace V)
     (u : TangentSpace 𝓘(𝕜, V) v) :
     mfderiv 𝓘(𝕜, V) 𝓘(𝕜, W) (map L hL) v u = L u := by
   have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(𝕜, V))
     (I' := 𝓘(𝕜, W)) (subtypeVal_comp_map L hL) u
   rwa [mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h
+
+/-- The derivative of the map of punctured spaces induced by `L` is `L`, at every point. -/
+theorem mfderiv_map (L : V →L[𝕜] W) (hL : Injective L) (v : puncturedSpace V) :
+    mfderiv 𝓘(𝕜, V) 𝓘(𝕜, W) (map L hL) v = L :=
+  ContinuousLinearMap.ext (mfderiv_map_apply L hL v)
 
 end TauCeti.puncturedSpace
 
