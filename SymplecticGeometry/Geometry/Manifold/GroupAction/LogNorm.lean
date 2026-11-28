@@ -12,7 +12,9 @@ public import TauCeti.Geometry.Lie.FundamentalVectorField
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
+import SymplecticGeometry.Analysis.Calculus.FDeriv.LogNormSq
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The logarithm of the norm along an orbit
@@ -35,9 +37,9 @@ coercion is `WithLp.toLp 2`, so that `‖T w‖` is the Hermitian norm of `w`.
   `ĝ` to `-2 re ⟪T w, T (X_Z w)⟫ / ‖T w‖²`, where `w = g⁻¹ • v`, `Z` is the left trivialization
   of `ĝ` and `X_Z` is the fundamental vector field of `Z`.
 
-The differential is that of `y ↦ log ‖T y‖²` at `w`, which is `y ↦ 2 re ⟪T w, T y⟫ / ‖T w‖²`,
-composed with that of the inverse orbit map `g ↦ g⁻¹ • v`, which is
-`TauCeti.mfderiv_inv_smul_apply`.
+The differential is that of `y ↦ log ‖T y‖²` at `w`, which is `y ↦ 2 re ⟪T w, T y⟫ / ‖T w‖²` by
+`SymplecticGeometry.fderiv_log_norm_sq_apply`, composed with that of the inverse orbit map
+`g ↦ g⁻¹ • v`, which is `TauCeti.mfderiv_inv_smul_apply`.
 -/
 
 public section
@@ -61,8 +63,7 @@ theorem contMDiff_log_norm_sq_inv_smul (𝕜 : Type*) [RCLike 𝕜] [InnerProduc
     {v : V} (hv : v ≠ 0) :
     ContMDiff I 𝓘(ℝ) n fun g : K ↦ Real.log (‖T (g⁻¹ • v)‖ ^ 2) := by
   intro g
-  have hw : T (g⁻¹ • v) ≠ 0 := fun h ↦
-    (smul_ne_zero_iff_ne g⁻¹).2 hv (hT (h.trans (map_zero T).symm))
+  have hw : T (g⁻¹ • v) ≠ 0 := (map_ne_zero_iff T hT).2 ((smul_ne_zero_iff_ne g⁻¹).2 hv)
   have hlog : ContDiffAt ℝ n (fun y : V ↦ Real.log (‖T y‖ ^ 2)) (g⁻¹ • v) :=
     ((T.contDiff.norm_sq 𝕜).contDiffAt).log (pow_ne_zero 2 (norm_ne_zero_iff.2 hw))
   exact hlog.contMDiffAt.comp g ((contMDiff_inv I n).smul contMDiff_const g)
@@ -81,34 +82,19 @@ theorem mfderiv_log_norm_sq_inv_smul_apply {𝕜 : Type*} [RCLike 𝕜] [InnerPr
           (T (TauCeti.fundamentalVectorField (I := I) (G := K) 𝓘(ℝ, V)
             (mfderiv I I (g⁻¹ * ·) g ĝ) (g⁻¹ • v)))) /
         ‖T (g⁻¹ • v)‖ ^ 2 : ℝ) := by
-  have hw : ‖T (g⁻¹ • v)‖ ^ 2 ≠ 0 := pow_ne_zero 2 <| norm_ne_zero_iff.2 fun h ↦
-    (smul_ne_zero_iff_ne g⁻¹).2 hv (hT (h.trans (map_zero T).symm))
-  -- The derivative of `y ↦ log ‖T y‖² = log (re ⟪T y, T y⟫)` at `g⁻¹ • v`.
-  have hlog := (RCLike.reCLM.hasFDerivAt.comp (g⁻¹ • v)
-    (T.hasFDerivAt.inner 𝕜 T.hasFDerivAt)).log (by rwa [Function.comp_apply,
-      RCLike.reCLM_apply, inner_self_eq_norm_sq])
-  simp only [Function.comp_def, RCLike.reCLM_apply, inner_self_eq_norm_sq] at hlog
+  have hw : T (g⁻¹ • v) ≠ 0 := (map_ne_zero_iff T hT).2 ((smul_ne_zero_iff_ne g⁻¹).2 hv)
   have horbit : MDifferentiableAt I 𝓘(ℝ, V) (fun h : K ↦ h⁻¹ • v) g :=
     ((contMDiff_inv I 1).smul contMDiff_const g).mdifferentiableAt one_ne_zero
+  have hlog : DifferentiableAt ℝ (fun y : V ↦ Real.log (‖T y‖ ^ 2)) (g⁻¹ • v) :=
+    (T.hasFDerivAt.log_norm_sq 𝕜 hw).differentiableAt
   have hcomp : (fun h : K ↦ Real.log (‖T (h⁻¹ • v)‖ ^ 2)) =
       (fun y : V ↦ Real.log (‖T y‖ ^ 2)) ∘ fun h : K ↦ h⁻¹ • v := rfl
-  -- The identifications of the tangent spaces of `V` and `ℝ` with `V` and `ℝ` are the identity.
-  have hV (u : TangentSpace 𝓘(ℝ, V) (g⁻¹ • v)) :
-      NormedSpace.fromTangentSpace (𝕜 := ℝ) (g⁻¹ • v) u = (u : V) := rfl
-  have hN (u : TangentSpace 𝓘(ℝ, V) (g⁻¹ • v)) : T (-u) = -T u := map_neg T u
-  have hR (x u : ℝ) : (NormedSpace.fromTangentSpace (𝕜 := ℝ) x).symm u = u := rfl
-  have hL (y : V) : ((‖T (g⁻¹ • v)‖ ^ 2)⁻¹ • (RCLike.reCLM : 𝕜 →L[ℝ] ℝ).comp
-      ((fderivInnerCLM 𝕜 (T (g⁻¹ • v), T (g⁻¹ • v))).comp (T.prod T))) y =
-        2 * RCLike.re (inner 𝕜 (T (g⁻¹ • v)) (T y)) / ‖T (g⁻¹ • v)‖ ^ 2 := by
-    simp only [smul_apply, ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.prod_apply, fderivInnerCLM_apply, RCLike.reCLM_apply, smul_eq_mul,
-      map_add]
-    rw [← inner_conj_symm (T (g⁻¹ • v)) (T y), RCLike.conj_re]
-    ring
-  rw [hcomp, mfderiv_comp_apply g hlog.differentiableAt.mdifferentiableAt horbit,
-    mfderiv_eq_fderiv, hlog.fderiv, TauCeti.mfderiv_inv_smul_apply]
-  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, hR]
-  rw [hL, hV, hN, inner_neg_right, map_neg, mul_neg, neg_mul, neg_div]
+  rw [hcomp, mfderiv_comp_apply g hlog.mdifferentiableAt horbit, mfderiv_eq_fderiv,
+    TauCeti.mfderiv_inv_smul_apply]
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    NormedSpace.fromTangentSpace_symm_apply]
+  rw [fderiv_log_norm_sq_apply 𝕜 T.differentiableAt hw, T.fderiv, map_neg, map_neg,
+    inner_neg_right, map_neg, NormedSpace.fromTangentSpace_apply, mul_neg, neg_mul, neg_div]
 
 end SymplecticGeometry
 
