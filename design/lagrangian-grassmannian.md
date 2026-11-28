@@ -166,9 +166,8 @@ that `GLOrthogonal ι ℂ ⊓ unitarySubgroup (GL ι ℂ)` is the image of the r
 orthogonal group. This file carries that subgroup to `unitaryGroup ι ℂ`,
 which the stabilizer and the fibration need.
 
-- `Matrix.UnitaryGroup.realSubgroup (ι) : Subgroup (unitaryGroup ι ℂ)`, the
-  image of `(GLOrthogonal ι ℂ).subgroupOf (unitarySubgroup (GL ι ℂ))` under
-  Mathlib's `unitarySubgroupUnitsEquiv`.
+- `Matrix.UnitaryGroup.realSubgroup (ι) : Subgroup (unitaryGroup ι ℂ)`,
+  Tau Ceti's `(GLOrthogonal ι ℂ).unitaryPart`.
 - API: `mem_realSubgroup_iff_exists` (`U` is in it iff `U = O.map ofReal` for
   some `O ∈ Matrix.orthogonalGroup ι ℝ`), derived from
   `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real` (Tau Ceti's
