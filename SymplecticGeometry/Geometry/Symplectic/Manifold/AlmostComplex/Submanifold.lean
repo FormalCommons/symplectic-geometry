@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -487,23 +488,18 @@ theorem compatible_of_compatible_restrictOpen {ι : Type*} (U : ι → Topologic
       (SmoothForm.mpullback (Subtype.val : U i → X) contMDiff_subtypeVal σ)
       (J.restrictOpen (U i))) :
     σ.Compatible J := by
-  have he : ∀ i (x : U i) (v w : TangentSpace I x),
-      (SmoothForm.mpullback (Subtype.val : U i → X) contMDiff_subtypeVal σ).eval₂ x v w =
-        σ.eval₂ x (Manifold.tangentSpaceOpenEquiv x v) (Manifold.tangentSpaceOpenEquiv x w) :=
-    fun i x v w ↦ by
-      rw [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe]
   refine ⟨invariant_iff.2 fun x v w ↦ ?_, tames_iff.2 fun x v hv ↦ ?_⟩ <;>
-    obtain ⟨i, hx⟩ := hU x
-  · have := (h i).invariant.apply ⟨x, hx⟩
-      ((Manifold.tangentSpaceOpenEquiv (I := I) ⟨x, hx⟩).symm v)
-      ((Manifold.tangentSpaceOpenEquiv (I := I) ⟨x, hx⟩).symm w)
-    simpa only [he, SmoothAlmostComplexStructure.restrictOpen_apply,
-      ContinuousLinearEquiv.apply_symm_apply] using this
-  · have := tames_iff.1 (h i).tames ⟨x, hx⟩
-      ((Manifold.tangentSpaceOpenEquiv (I := I) ⟨x, hx⟩).symm v)
-      (by simpa using hv)
-    simpa only [he, SmoothAlmostComplexStructure.restrictOpen_apply,
-      ContinuousLinearEquiv.apply_symm_apply] using this
+    obtain ⟨i, hx⟩ := hU x <;> lift x to U i using hx
+  · have := (h i).invariant.apply x ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm v)
+      ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm w)
+    simp only [eval₂_mpullback_subtypeVal, SmoothAlmostComplexStructure.restrictOpen_apply,
+      ContinuousLinearEquiv.apply_symm_apply] at this
+    simpa only [Manifold.tangentSpaceOpenEquiv_symm_apply] using this
+  · have := tames_iff.1 (h i).tames x ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm v)
+      ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm.map_ne_zero_iff.2 hv)
+    simp only [eval₂_mpullback_subtypeVal, SmoothAlmostComplexStructure.restrictOpen_apply,
+      ContinuousLinearEquiv.apply_symm_apply] at this
+    simpa only [Manifold.tangentSpaceOpenEquiv_symm_apply] using this
 
 end SmoothTwoForm
 
