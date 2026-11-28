@@ -1097,7 +1097,7 @@ containing `ι '' closedBall 0 1`:
       √(log (7 / 2))` on `Icc (7 * δ / 2) (4 * δ)`), and
       `2 * r - 8 * δ - S ≥ δ / 4` on `Ici (9 * δ / 2)`. API:
       `struweLineShape_def`, `struweLineShape_eq_struweShape` (`= S r`
-      on `Ioc δ (7 * δ / 2)`), `struweLineShape_eq_linear`
+      on `Icc δ (7 * δ / 2)`), `struweLineShape_eq_linear`
       (`= 2 * r - 8 * δ` on `Ici (9 * δ / 2)`),
       `contDiffOn_struweLineShape` (`Ioi δ`),
       `struweShape_le_struweLineShape` and `struweLineShape_le`
@@ -1107,7 +1107,7 @@ containing `ι '' closedBall 0 1`:
       `isConvexShapeAt_struweLineShape_add`: for `δ < r` and `t` with
       `2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t` and
       `r * √(log (r / δ)) + 2 * δ < struweLineShape δ r + t` when
-      `r ≤ 9 * δ / 2`, and `8 * δ < t`, `r < 8 * (t - 8 * δ)` when
+      `r ≤ 9 * δ / 2`, and `r < 8 * (t - 8 * δ)` when
       `7 * δ / 2 ≤ r`, `r ↦ struweLineShape δ r + t` is a convex shape
       at `r` (`isConvexShapeAt_struweShape_of_lt`,
       `isConvexShapeAt_linear`, `isConvexShapeAt_smoothedMax` with
@@ -1121,7 +1121,7 @@ containing `ι '' closedBall 0 1`:
     - What this needs in `Surround/SpecialShape.lean`:
       `struweShape_add` (`struweShape δ K (a + c) r = a +
       struweShape δ K c r`, by `struweShape_def`) and
-      `struweShape_eq_struweShape` (for `0 < δ`, `1 ≤ K`, `1 ≤ K'` and
+      `struweShape_eq_struweShape_apply_mul` (for `0 < δ`, `1 ≤ K`, `1 ≤ K'` and
       `δ ≤ r`, `struweShape δ K c r = struweShape δ K'
       (struweShape δ K c (K' * δ)) r`, by
       `intervalIntegral.integral_add_adjacent_intervals`): all Struwe
@@ -1231,7 +1231,7 @@ containing `ι '' closedBall 0 1`:
     Building issues, in this order, after the leaves
     `ℓ ∈ Icc 0 (7 * δ)` and `exists_convexShapeFamily_struweShape`:
     (1) in `Surround/SpecialShape.lean`, `struweShape_add` and
-    `struweShape_eq_struweShape`, and in `Surround/BridgeLeaf.lean`,
+    `struweShape_eq_struweShape_apply_mul`, and in `Surround/BridgeLeaf.lean`,
     `struweLineShape` with its API (about 250 lines); (2) the first two
     stages, with the public bounds on `sqrtAddLeaf` in
     `Surround/CutoffLeaf.lean` (about 300 lines); (3) the last stage
@@ -2362,7 +2362,7 @@ birth–death points are allowed.
   `K ⊆ {g < 0}`.
   (4) The crossing times of `g ⁻¹' {0}` and of `f ⁻¹' {b}`
   (`Flow.levelCrossingTime`) are smooth where the crossing exists,
-  through Tau Ceti's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
+  through the library's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
   the crossing time of `f ⁻¹' {b}` from `g ⁻¹' {0}` is bounded, as
   `g ⁻¹' {0}` is compact.
 - **Issue 16d** (`Handle/Attachment.lean`): the theorem. On the open set

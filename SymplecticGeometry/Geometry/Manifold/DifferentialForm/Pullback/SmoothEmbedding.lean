@@ -44,13 +44,13 @@ variable {E E' E'' H H' H'' N M M' F : Type*} [NormedAddCommGroup E] [NormedSpac
 /-- An embedding `f` followed by a diffeomorphism `ψ` pulls a form `σ'` back to the pull-back
 along `f` of `σ = ψ^* σ'`. -/
 theorem mpullback_transDiffeomorphOfBoundaryless (f : SmoothEmbedding J I ∞ N M)
-    (ψ : M ≃ₘ⟮I, I'⟯ M') (hn : 1 ≤ (∞ : ℕ∞ω)) {σ : SmoothForm I M F k}
+    (ψ : M ≃ₘ⟮I, I'⟯ M') {σ : SmoothForm I M F k}
     {σ' : SmoothForm I' M' F k} (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ) :
-    SmoothForm.mpullback (f.transDiffeomorphOfBoundaryless ψ hn)
-        (f.transDiffeomorphOfBoundaryless ψ hn).contMDiff σ' =
+    SmoothForm.mpullback (f.transDiffeomorphOfBoundaryless ψ (by simp))
+        (f.transDiffeomorphOfBoundaryless ψ (by simp)).contMDiff σ' =
       SmoothForm.mpullback f f.contMDiff σ := by
   rw [← hψ, SmoothForm.mpullback_mpullback]
-  exact SmoothForm.mpullback_congr _ _ (coe_transDiffeomorphOfBoundaryless f ψ hn) _
+  exact SmoothForm.mpullback_congr _ _ (coe_transDiffeomorphOfBoundaryless f ψ _) _
 
 end TauCeti.SmoothEmbedding
 

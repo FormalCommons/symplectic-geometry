@@ -186,15 +186,18 @@ Holonomy around loops that bound discs. About 450 lines.
   `hasHamiltonianDiscHolonomy_iff_forall_exists`: for a symplectic atlas
   one chart per loop suffices, by `parallelTransportIn_coordChange` and Tau
   Ceti's `TauCeti.SmoothForm.mul_mul_inv_mem_hamiltonianGroup`.
-- `TauCeti.IsEhresmannConnection.holonomyDiffeotopy hD e D`, for `π` proper,
-  a smooth disc `D` with centre `x` and a chart `e` of `A` at `x`: the
+- `TauCeti.IsEhresmannConnection.holonomyDiffeotopy hD hf hfp he he_symm hΔ hx`,
+  for `π` smooth and proper, a smooth disc `Δ` with centre `x` and a smooth
+  trivialization `e` with `x ∈ e.baseSet`: the
   diffeotopy `TauCeti.Diffeotopy IF ∞ F` whose slice at `s` is
-  `hD.parallelTransportIn e e (fun t ↦ D (s, t)) 0 1`. It starts at the
-  identity since $D(0,\cdot)$ is constant (`parallelTransport_const`), and is
-  jointly smooth by `exists_contMDiff_parallelTransport_param`. API:
+  `hD.parallelTransportIn e e (fun t ↦ Δ (s, t)) 0 1`. It starts at the
+  identity since $\Delta(0,\cdot)$ is constant (`parallelTransport_const`), and is
+  jointly smooth by `contMDiffOn_parallelTransport_param`. API:
   `holonomyDiffeotopy_apply`, `final_holonomyDiffeotopy` (the holonomy of
-  `γ`), `timeSlice_holonomyDiffeotopy`, and, for a symplectic connection,
-  `holonomyDiffeotopy_mem_isotopyStabilizer` (every slice preserves `σ`).
+  the boundary loop `t ↦ Δ (1, t)`), `timeSlice_holonomyDiffeotopy`, and,
+  for a symplectic connection and `e = A.trivAt b`,
+  `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`
+  (every slice preserves `σ`).
 - `period_interior_velocity_holonomyDiffeotopy` (the variation of holonomy):
   let `τ` be vertically closed and vertically nondegenerate, restrict to
   `σ`, and define the connection. Let `c : ℝ → F` be a smooth loop of
@@ -237,13 +240,13 @@ About 500 lines.
   $\tau([v_1^\sharp,v_2^\sharp],\eta)=\tau(\Omega_\Gamma(v_1,v_2),\eta)$
   because $[v_1,v_2]^\sharp$ is horizontal. Neither closedness nor vertical
   closedness is used, so the statement is more general than the page's.
-- `TauCeti.IsEhresmannConnection.curvatureIn hD e b v₁ v₂ : Π y : F, TangentSpace IF y`,
+- `TauCeti.IsEhresmannConnection.curvatureIn hD IF e b v₁ v₂ : Π y : F, TangentSpace IF y`,
   the curvature on the fibre over `b` read in the chart `e`: the image of
   `hD.curvature v₁ v₂ (e.symm (b, y))` under the derivative of
   `fun x ↦ (e x).2`. With `curvatureIn_def` and `curvatureIn_coordChange`.
 - `TauCeti.IsEhresmannConnection.HasHamiltonianCurvature hD A σ`: for every
   chart `e = A.trivAt b'`, every `b ∈ e.baseSet` and smooth `v₁ v₂`, some
-  smooth `f : F → ℝ` has `σ.IsHamiltonianVectorField f (hD.curvatureIn e b v₁ v₂)`.
+  smooth `f : F → ℝ` has `σ.IsHamiltonianVectorField f (hD.curvatureIn IF e b v₁ v₂)`.
   This is the page's condition 2 of the equivalence in Tau Ceti's sign (see
   *Signs*). With `hasHamiltonianCurvature_iff_forall_exists` (one chart per
   point suffices: symplectomorphisms carry Hamiltonian fields to

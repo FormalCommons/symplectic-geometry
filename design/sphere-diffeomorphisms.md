@@ -351,7 +351,8 @@ About 250 lines.
 Issue 5 (for `J : 𝒥`; part 45's results with
 $\sigma=\omega_{FS}$):
 
-- `exists_mem_twistOneKernel_eq_zero`: every point is the zero of some
+- From part 45's `OnePoint/CauchyRiemann/Kernel.lean`:
+  `exists_mem_twistOneKernel_eq_zero`: every point is the zero of some
   nonzero element of $E_J$; and the elements vanishing at a given
   point form a complex line.
 - `uniformizingMap J : OnePoint ℂ → OnePoint ℂ`, Decision 5, with

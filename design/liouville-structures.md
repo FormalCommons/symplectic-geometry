@@ -652,9 +652,6 @@ Expected size: 300 lines.
   `TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`, in `Completion.lean`.
 - *Hamiltonian flows*: `Geometry/Manifold/MFDeriv/Prod.lean`
   (`MDifferentiableAt.mfderiv_uncurry_apply_mk_zero`), merged, in `Completion.lean`.
-- *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
-  (`SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt`), merged, in
-  `StableHamiltonian.lean`.
 - The library: `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (`ModelWithCorners.interiorOpens`,
   `ModelWithCorners.BoundarylessManifold.interior`), merged.

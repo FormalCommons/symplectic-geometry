@@ -62,6 +62,10 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
 * `SymplecticGeometry.twistOneDelBarSobolev_surjective`: `twistOneDelBarSobolev J k` is onto.
 * `SymplecticGeometry.twistOneKernelEval_bijective`: evaluation at `0` and `∞` identifies
   `twistOneKernel J` with `ℂ × ℂ`.
+* `SymplecticGeometry.exists_mem_twistOneKernel_eq_zero`: every point is the zero of a nonzero
+  element of `twistOneKernel J`; by `SymplecticGeometry.exists_smul_eq_of_mem_twistOneKernel` and
+  `SymplecticGeometry.finrank_twistOneKernel_inf_ker_proj`, the elements vanishing there form a
+  complex line.
 * `SymplecticGeometry.twistOneKernelTransfer`: given a map `Q` to `ℂ × ℂ` that stabilizes `D_J`,
   the complex linear map from `twistOneKernel J₀` to `twistOneKernel J` sending `s` to the element
   on which `Q` is `(s 0, s ∞)`; it is bijective (`twistOneKernelTransfer_bijective`).
@@ -489,6 +493,11 @@ theorem finrank_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
   have := finrank_twistOneKernel_le hJ hi
   omega
 
+/-- `twistOneKernel J` is finite dimensional over `ℂ`, when a two-form tames `J` and `i`. -/
+theorem finiteDimensional_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    FiniteDimensional ℂ (twistOneKernel J) :=
+  Module.finite_of_finrank_pos (by rw [finrank_twistOneKernel hJ hi]; norm_num)
+
 /-- **`D_J` is onto.** Let a two-form `σ` on the sphere tame both `J` and the standard structure
 `i`. For every order `k`, every `W^{k,2}` `(0,1)`-form with values in `𝒪(1)` on the sphere is
 `D_J w` for a `W^{k+1,2}` section `w` of `𝒪(1)`. -/
@@ -504,11 +513,55 @@ sphere tame both `J` and the standard structure `i`. Then `s ↦ (s 0, s ∞)` i
 `twistOneKernel J` onto `ℂ × ℂ`. -/
 theorem twistOneKernelEval_bijective (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
     Function.Bijective (twistOneKernelEval J) := by
-  have : FiniteDimensional ℂ (twistOneKernel J) :=
-    Module.finite_of_finrank_pos (by rw [finrank_twistOneKernel hJ hi]; norm_num)
+  have := finiteDimensional_twistOneKernel hJ hi
   exact ⟨twistOneKernelEval_injective hJ hi,
     (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
       (by simp [finrank_twistOneKernel hJ hi])).1 (twistOneKernelEval_injective hJ hi)⟩
+
+/-- **Every point is the zero of a nonzero kernel element.** Let a two-form `σ` on the sphere
+tame both `J` and the standard structure `i`. Then for every point `x` of the sphere, some nonzero
+`s ∈ twistOneKernel J` vanishes at `x`. -/
+theorem exists_mem_twistOneKernel_eq_zero (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (x : OnePoint ℂ) :
+    ∃ s ∈ twistOneKernel J, s ≠ 0 ∧ s x = 0 := by
+  have := finiteDimensional_twistOneKernel hJ hi
+  -- Evaluation at `x` goes to a line, so its kernel in the plane `twistOneKernel J` is nonzero.
+  set f : twistOneKernel J →ₗ[ℂ] ℂ := (LinearMap.proj x).comp (twistOneKernel J).subtype
+  obtain ⟨s, hs, hs₀⟩ := Submodule.exists_mem_ne_zero_of_ne_bot
+    (LinearMap.ker_ne_bot_of_finrank_lt (f := f) (by simp [finrank_twistOneKernel hJ hi]))
+  refine ⟨s.val, s.property, fun h ↦ hs₀ (Subtype.ext h), ?_⟩
+  simpa [f] using LinearMap.mem_ker.1 hs
+
+/-- **Kernel elements with a common zero are proportional.** Let a two-form `σ` on the sphere tame
+both `J` and the standard structure `i`, and let `s, t ∈ twistOneKernel J` vanish at a point `x`,
+with `s ≠ 0`. Then `t` is a complex multiple of `s`. -/
+theorem exists_smul_eq_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J)
+    (hs₀ : s ≠ 0) {x : OnePoint ℂ} (hsx : s x = 0) (htx : t x = 0) :
+    ∃ c : ℂ, c • s = t := by
+  -- At a second point `y`, the section `s` does not vanish; match `t` there.
+  obtain ⟨y, hyx⟩ : ∃ y : OnePoint ℂ, y ≠ x := exists_ne x
+  have hsy : s y ≠ 0 := fun h ↦
+    hyx ((existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hs hs₀).unique h hsx)
+  refine ⟨t y / s y, ?_⟩
+  by_contra hne
+  have hu : t - (t y / s y) • s ∈ twistOneKernel J := sub_mem ht (Submodule.smul_mem _ _ hs)
+  have hu₀ : t - (t y / s y) • s ≠ 0 := sub_ne_zero.2 (Ne.symm hne)
+  have hux : (t - (t y / s y) • s) x = 0 := by simp [hsx, htx]
+  have huy : (t - (t y / s y) • s) y = 0 := by simp [div_mul_cancel₀ _ hsy]
+  exact hyx ((existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hu hu₀).unique huy hux)
+
+/-- **The kernel elements vanishing at a point form a complex line.** Let a two-form `σ` on the
+sphere tame both `J` and the standard structure `i`. Then for every point `x` of the sphere, the
+elements of `twistOneKernel J` that vanish at `x` form a subspace of complex dimension one. -/
+theorem finrank_twistOneKernel_inf_ker_proj (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (x : OnePoint ℂ) :
+    finrank ℂ ↥(twistOneKernel J ⊓
+      LinearMap.ker (LinearMap.proj x : (OnePoint ℂ → ℂ) →ₗ[ℂ] ℂ)) = 1 := by
+  obtain ⟨s, hs, hs₀, hsx⟩ := exists_mem_twistOneKernel_eq_zero hJ hi x
+  refine (finrank_eq_one_iff_of_ne_zero' (⟨s, hs, hsx⟩ : ↥(twistOneKernel J ⊓
+      LinearMap.ker (LinearMap.proj x : (OnePoint ℂ → ℂ) →ₗ[ℂ] ℂ)))
+    fun h ↦ hs₀ (congrArg Subtype.val h)).2 fun ⟨t, ht, htx⟩ ↦ ?_
+  obtain ⟨c, hc⟩ := exists_smul_eq_of_mem_twistOneKernel hJ hi hs ht hs₀ hsx htx
+  exact ⟨c, Subtype.ext hc⟩
 
 end Index
 
