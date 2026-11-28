@@ -498,7 +498,7 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
       · linarith
       · exact h
     have hlow := mul_sub_le_norm_modelDel_mul_gaussian hq
-    rw [modelDel_def, ← modelConnection_congr_of_eventuallyEq hfeq, ← modelDel_def] at hlow
+    rw [← modelDel_congr_of_eventuallyEq hfeq] at hlow
     have hup := D.norm_modelDel_reading_le_of_inner_eq hg hα hk hzb hs
     set t := C * ‖z‖ / √k
     set X := (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *

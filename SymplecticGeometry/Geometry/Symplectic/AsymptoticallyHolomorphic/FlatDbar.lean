@@ -53,9 +53,12 @@ functions.
 * `SymplecticGeometry.delFunction_eq_flatDel_comp`,
   `SymplecticGeometry.flatDel_apply_eq_delFunction`: the flat `∂` is Tau Ceti's `∂` on functions,
   `TauCeti.SmoothAlmostComplexStructure.delFunction`, for `J₀.constSmooth`;
-  `SymplecticGeometry.flatDel_add`, `SymplecticGeometry.flatDel_smul`,
-  `SymplecticGeometry.flatDel_mul`: it is additive, commutes with complex scalars and satisfies
-  the Leibniz rule.
+  `SymplecticGeometry.flatDel_add`, `SymplecticGeometry.flatDel_neg`,
+  `SymplecticGeometry.flatDel_smul`, `SymplecticGeometry.flatDel_mul`: it is additive, commutes
+  with negation and complex scalars and satisfies the Leibniz rule;
+  `SymplecticGeometry.flatDel_const`: it vanishes on constant functions;
+  `SymplecticGeometry.flatDel_congr_of_eventuallyEq`: its value at `z` depends only on the germ
+  of `f` at `z`.
 * `SymplecticGeometry.conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`,
   `SymplecticGeometry.wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`: read through the
   real isometry `e = TauCeti.complexToRealEuclideanIsometry ι : ℂⁿ → StdSpace ι`, which carries
@@ -290,9 +293,18 @@ theorem flatDel_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differen
     (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)]
 
 @[simp]
+theorem flatDel_neg (f : StdSpace ι → ℂ) (z : StdSpace ι) : flatDel (-f) z = -flatDel f z := by
+  rw [flatDel_def, flatDel_def, fderiv_neg, map_neg]
+
+@[simp]
 theorem flatDel_zero (z : StdSpace ι) : flatDel (0 : StdSpace ι → ℂ) z = 0 := by
   ext v
   simp [flatDel_apply_eq_delFunction]
+
+/-- The flat `∂` of a constant function vanishes. -/
+@[simp]
+theorem flatDel_const (c : ℂ) (z : StdSpace ι) : flatDel (fun _ ↦ c) z = 0 := by
+  simp [flatDel_def]
 
 /-- The **Leibniz rule** for the flat `∂`: for `f` and `g` differentiable at `z`, the flat `∂`
 of `f * g` at `z` is `f z` times the flat `∂` of `g` plus `g z` times the flat `∂` of `f`. -/
@@ -304,6 +316,11 @@ theorem flatDel_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differen
   simp only [smul_eq_mul] at h
   ext v
   simp [flatDel_apply_eq_delFunction, ← Pi.mul_def, h, mul_comm]
+
+/-- The flat `∂` at `z` depends only on the germ of `f` at `z`. -/
+theorem flatDel_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : flatDel f z = flatDel g z := by
+  rw [flatDel_def, flatDel_def, h.fderiv_eq]
 
 /-! ### The flat operators against the Wirtinger derivatives
 
