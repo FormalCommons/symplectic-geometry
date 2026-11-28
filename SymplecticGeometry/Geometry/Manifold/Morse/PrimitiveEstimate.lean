@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import TauCeti.Geometry.Manifold.Morse.Bott.Chart.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
+import SymplecticGeometry.Analysis.Normed.Operator.Functional
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
 import SymplecticGeometry.Geometry.Manifold.Morse.RadialEstimate
 
@@ -21,7 +22,7 @@ pushed forward by `de`. Near `e p`, both `f̃` and `f̃'` satisfy the gradient-l
 `c (‖X̃‖² + ‖Df̃‖²) ≤ Df̃ (X̃)` for the norm of the model space, with one constant `c > 0`
 (`TauCeti.IsGradientLikeAt.exists_mul_le_fderiv_comp_symm`). Two such inequalities for the same
 vector give `c ‖X̃‖ ≤ ‖Df̃‖` and `c ‖Df̃'‖ ≤ ‖X̃‖`, so the difference `H = f̃' - f̃` has
-`‖DH‖ ≤ (1 + 1 / c²) ‖Df̃‖`.
+`‖DH‖ ≤ (1 + 1 / c²) ‖Df̃‖` (`ContinuousLinearMap.norm_sub_le_of_mul_le_apply`).
 
 In a Morse–Bott chart (in particular a Morse chart, through `TauCeti.MorseChart.toMorseBottChart`),
 `f̃` is the quadratic normal form, and the radial estimate
@@ -33,11 +34,6 @@ in the proof of Proposition 9.23 (a), and of Lemma 12.9, of [CieliebakEliashberg
 
 ## Main results
 
-* `ContinuousLinearMap.mul_norm_le_norm_of_mul_le_apply` and
-  `ContinuousLinearMap.mul_norm_le_norm_apply_of_mul_le_apply`: the two bounds that one
-  gradient-like inequality `c (‖v‖² + ‖ℓ‖²) ≤ ℓ v` gives.
-* `ContinuousLinearMap.norm_sub_le_of_mul_le_apply`: two of them for the same `v` bound the
-  difference of the differentials.
 * `TauCeti.IsGradientLikeAt.exists_norm_fderiv_sub_comp_symm_le`: the gradient-like inequalities
   for `f̃` and `f̃'` and the bound on `DH`, in any chart of the maximal atlas.
 * `TauCeti.MorseBottChart.exists_abs_sub_comp_symm_le`: in a Morse–Bott chart, the gradient-like
@@ -54,42 +50,6 @@ public section
 open Set Metric Filter
 open scoped ContDiff Manifold Topology
 open TauCeti.Manifold
-
-namespace ContinuousLinearMap
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {ℓ ℓ' : E →L[ℝ] ℝ} {v : E} {c : ℝ}
-
-/-- The gradient-like inequality `c (‖v‖² + ‖ℓ‖²) ≤ ℓ v` gives `c ‖v‖ ≤ ‖ℓ‖`. -/
-theorem mul_norm_le_norm_of_mul_le_apply (hc : 0 < c) (h : c * (‖v‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ ℓ v) :
-    c * ‖v‖ ≤ ‖ℓ‖ := by
-  have h1 : ℓ v ≤ ‖ℓ‖ * ‖v‖ := (le_abs_self _).trans (ℓ.le_opNorm v)
-  rcases (norm_nonneg v).eq_or_lt with h0 | h0
-  · rw [← h0, mul_zero]; exact norm_nonneg ℓ
-  · refine le_of_mul_le_mul_right ?_ h0
-    nlinarith [sq_nonneg ‖ℓ‖]
-
-/-- The gradient-like inequality `c (‖v‖² + ‖ℓ‖²) ≤ ℓ v` gives `c ‖ℓ‖ ≤ ‖v‖`. -/
-theorem mul_norm_le_norm_apply_of_mul_le_apply (hc : 0 < c)
-    (h : c * (‖v‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ ℓ v) : c * ‖ℓ‖ ≤ ‖v‖ := by
-  have h1 : ℓ v ≤ ‖ℓ‖ * ‖v‖ := (le_abs_self _).trans (ℓ.le_opNorm v)
-  rcases (norm_nonneg ℓ).eq_or_lt with h0 | h0
-  · rw [← h0, mul_zero]; exact norm_nonneg v
-  · refine le_of_mul_le_mul_right ?_ h0
-    nlinarith [sq_nonneg ‖v‖]
-
-/-- If `ℓ` and `ℓ'` both satisfy the gradient-like inequality for the same vector `v`, with
-`c > 0`, then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`. -/
-theorem norm_sub_le_of_mul_le_apply (hc : 0 < c) (h : c * (‖v‖ ^ 2 + ‖ℓ‖ ^ 2) ≤ ℓ v)
-    (h' : c * (‖v‖ ^ 2 + ‖ℓ'‖ ^ 2) ≤ ℓ' v) : ‖ℓ' - ℓ‖ ≤ (1 + 1 / c ^ 2) * ‖ℓ‖ := by
-  have h₁ := mul_norm_le_norm_of_mul_le_apply hc h
-  have h₂ := mul_norm_le_norm_apply_of_mul_le_apply hc h'
-  have h₃ : ‖ℓ'‖ ≤ 1 / c ^ 2 * ‖ℓ‖ := by
-    rw [div_mul_eq_mul_div, one_mul, le_div_iff₀ (by positivity)]
-    nlinarith
-  calc ‖ℓ' - ℓ‖ ≤ ‖ℓ'‖ + ‖ℓ‖ := norm_sub_le _ _
-    _ ≤ _ := by linarith
-
-end ContinuousLinearMap
 
 namespace TauCeti
 
