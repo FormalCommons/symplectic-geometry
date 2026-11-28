@@ -9,7 +9,6 @@ public import Mathlib.Analysis.Complex.OperatorNorm
 public import Mathlib.Analysis.InnerProductSpace.Dual
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
-public import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.Plane

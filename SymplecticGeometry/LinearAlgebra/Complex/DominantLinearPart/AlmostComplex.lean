@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Complex.OperatorNorm
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
