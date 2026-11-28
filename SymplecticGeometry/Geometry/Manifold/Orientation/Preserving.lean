@@ -38,6 +38,12 @@ negating the target orientation where needed makes it preserve, or reverse, orie
 point (`IsLocalDiffeomorph.exists_orientation_forall_isOrientationPreservingAt`,
 `IsLocalDiffeomorph.exists_orientation_forall_isOrientationReversingAt`).
 
+Orientation preservation of `g : M → N` at `x` can be read in the preferred tangent
+trivializations at any two points whose base sets contain `x` and `g x`
+(`TauCeti.Manifold.Orientation.isOrientationPreservingAt_iff_map_eq_of_mem`). This generalizes
+Tau Ceti's `TauCeti.Manifold.Orientation.isOrientationPreservingAt_iff_map_eq`, whose source
+trivialization is the one at `x` itself, and its proof follows Tau Ceti's.
+
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
@@ -157,6 +163,46 @@ theorem _root_.IsLocalDiffeomorph.exists_orientation_forall_isOrientationReversi
   · exact ⟨-o', .inr rfl, fun x ↦ (isOrientationReversingAt_neg_right _ _ _ _).2 (h x)⟩
   · exact ⟨o', .inl rfl, h⟩
 
+
+section Trivialization
+
+variable {E' H H' M N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H] [TopologicalSpace H'] {I : ModelWithCorners ℝ E H}
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J 1 N]
+
+/-- A map `g` preserves the orientations `o` and `o'` at `x` exactly when its derivative `D` at
+`x`, read in the preferred trivializations of the tangent bundles at any points `a` and `b` whose
+base sets contain `x` and `g x`, carries the orientation of `o` at `x` to that of `o'` at
+`g x`, both read in the same trivializations. -/
+theorem isOrientationPreservingAt_iff_map_eq_of_mem (o : Manifold.Orientation I M ι)
+    (o' : Manifold.Orientation J N ι) (g : M → N) {x : M} (a : M) (b : N)
+    (D : TangentSpace I x ≃L[ℝ] TangentSpace J (g x))
+    (hDc : (D : TangentSpace I x →L[ℝ] TangentSpace J (g x)) = mfderiv I J g x)
+    (hx : x ∈ (trivializationAt E (TangentSpace I) a).baseSet)
+    (hp : g x ∈ (trivializationAt E' (TangentSpace J) b).baseSet) :
+    IsOrientationPreservingAt o o' g x ↔
+      _root_.Orientation.map ι
+          (((((trivializationAt E (TangentSpace I) a).continuousLinearEquivAt ℝ x hx).symm.trans
+            D).trans ((trivializationAt E' (TangentSpace J) b).continuousLinearEquivAt ℝ (g x)
+              hp)).toLinearEquiv)
+          ((trivializationAt E (TangentSpace I) a).mapOrientation ι hx (o.orientationAt x)) =
+        (trivializationAt E' (TangentSpace J) b).mapOrientation ι hp (o'.orientationAt (g x)) := by
+  rw [isOrientationPreservingAt_iff_of_coe_eq o o' _ x D hDc]
+  have he : ((trivializationAt E (TangentSpace I) a).continuousLinearEquivAt ℝ x hx
+      ).toLinearEquiv = (trivializationAt E (TangentSpace I) a).linearEquivAt ℝ x hx := by
+    ext v
+    simp [Bundle.Trivialization.continuousLinearEquivAt_apply]
+  have he' : ((trivializationAt E' (TangentSpace J) b).continuousLinearEquivAt ℝ (g x) hp
+      ).toLinearEquiv = (trivializationAt E' (TangentSpace J) b).linearEquivAt ℝ (g x) hp := by
+    ext v
+    simp [Bundle.Trivialization.continuousLinearEquivAt_apply]
+  simp only [ContinuousLinearEquiv.trans_toLinearEquiv, _root_.Orientation.map_trans,
+    Bundle.Trivialization.mapOrientation_apply, ContinuousLinearEquiv.toLinearEquiv_symm, he, he',
+    ← _root_.Orientation.map_symm, Equiv.symm_apply_apply]
+  exact (_root_.Orientation.map ι _).injective.eq_iff.symm
+
+end Trivialization
 end TauCeti.Manifold.Orientation
 
 end

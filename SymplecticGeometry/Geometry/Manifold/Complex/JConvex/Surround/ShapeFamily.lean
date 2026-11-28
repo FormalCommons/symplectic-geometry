@@ -87,7 +87,9 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `64 (r² - δ²)` and `64 r² - ℓ²` (`SymplecticGeometry.contDiffOn_uncurry_sqrtSubLeaf`); the
   slope of each leaf tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_sqrtSubLeaf`); and
   at each `r > δ` the leaves increase strictly with `ℓ`
-  (`SymplecticGeometry.strictMonoOn_sqrtSubLeaf`).
+  (`SymplecticGeometry.strictMonoOn_sqrtSubLeaf`), with a positive derivative in `ℓ` at every
+  `ℓ ∈ (-8 r, 0)` (`SymplecticGeometry.hasDerivAt_sqrtSubLeaf_param`,
+  `SymplecticGeometry.deriv_sqrtSubLeaf_param_pos`).
 
 * `SymplecticGeometry.surroundFamily`: the family of Proposition 4.27 over the cylinder of
   radius `δ`, glued from four pieces along `ℓ`: `sqrtSubLeaf` for `ℓ ≤ 0`, the Struwe switch
@@ -96,8 +98,12 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `(δ, ∞)` neighbouring pieces agree at the junctions `0`, `7 δ` and `2 ℓ₀`
   (`SymplecticGeometry.surroundFamily_eq_struweSwitchLeaf`,
   `SymplecticGeometry.surroundFamily_eqOn_bridgeFamily`,
-  `SymplecticGeometry.surroundFamily_eqOn_of_ge`). Leaf by leaf, for `ℓ ∈ [-8 δ, ℓₜ]` and `F`
-  with the properties that the bridge family asks of it on `[ℓ₀, ℓₜ]`, each leaf is an
+  `SymplecticGeometry.surroundFamily_eqOn_of_ge`). Where `ℓ < 0`, `δ < r` and `|ℓ| < 8 r`, the
+  family is `sqrtSubLeaf L δ`, so it is jointly smooth there
+  (`SymplecticGeometry.contDiffOn_uncurry_surroundFamily_of_neg`) and its derivative in `ℓ` is
+  positive (`SymplecticGeometry.deriv_surroundFamily_param_pos`). Leaf by leaf, for
+  `ℓ ∈ [-8 δ, ℓₜ]` and `F` with the properties that the bridge family asks of it on
+  `[ℓ₀, ℓₜ]`, each leaf is an
   `i`-convex shape at every `r > δ` (`SymplecticGeometry.isConvexShapeAt_surroundFamily`),
   smooth on `(δ, ∞)`, continuous on `[δ, ∞)` with slope tending to `+∞` at `δ`, and strictly
   increasing on `[δ, ∞)` (`SymplecticGeometry.strictMonoOn_surroundFamily`); its leaf `-8 δ` is
@@ -123,8 +129,10 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   every small enough `δ > 0`, the glued family with `L` large, `F` and `ℓ₀ = C δ` from
   `SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`, and `ℓₜ = 1`. Its leaves are
   standard from `γ` on once `t₁ + 2 δ ≤ 6 γ`, lie below the top leaf once `2 t₁ + 18 ℓ₀ ≤ 1`,
-  and the leaves near the bottom one are standard from `(2 + L) δ` on; both bounds on `t₁` hold
-  for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ` (`SymplecticGeometry.bridgeHeight_le`).
+  the leaves near the bottom one are standard from `(2 + L) δ` on, and the family is jointly
+  smooth on a neighbourhood of `[-8 δ, ℓ₃] × (δ, ∞)`, with a positive derivative in `ℓ` there,
+  for `ℓ₃ = -4 δ`; both bounds on `t₁` hold for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ`
+  (`SymplecticGeometry.bridgeHeight_le`).
 
 ## References
 
@@ -634,6 +642,49 @@ theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ <
   exact cutoffLeaf_lt_cutoffLeaf (by linarith) (by nlinarith [hℓ₂.2])
     (by nlinarith [hℓ₁.1, hℓ₁.2]) (by gcongr)
 
+/-- Where the radicand `64 (r² - δ²) + (64 δ² - ℓ²) h` is positive, `h` being the cutoff
+`smoothTransition ((r - 2 δ) / (L δ))`, the leaf `sqrtSubLeaf L δ ℓ r` has derivative
+`(1 - h) / 64 - ℓ h / √(64 (r² - δ²) + (64 δ² - ℓ²) h)` in `ℓ`. -/
+theorem hasDerivAt_sqrtSubLeaf_param (L δ : ℝ) {ℓ r : ℝ}
+    (hrad : 0 < 64 * (r ^ 2 - δ ^ 2) +
+      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ))) :
+    HasDerivAt (fun ℓ' ↦ sqrtSubLeaf L δ ℓ' r)
+      ((1 - smoothTransition ((r - 2 * δ) / (L * δ))) / 64 -
+        ℓ * smoothTransition ((r - 2 * δ) / (L * δ)) /
+          √(64 * (r ^ 2 - δ ^ 2) +
+            (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)))) ℓ := by
+  set h := smoothTransition ((r - 2 * δ) / (L * δ))
+  simp only [sqrtSubLeaf_def]
+  have hF : HasDerivAt (fun ℓ' ↦ 64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ' ^ 2) * h)
+      (-(2 * ℓ) * h) ℓ := by
+    simpa using (((hasDerivAt_const ℓ (64 * δ ^ 2)).sub (hasDerivAt_pow 2 ℓ)).mul_const
+      h).const_add (64 * (r ^ 2 - δ ^ 2))
+  refine (((((hasDerivAt_id ℓ).add_const (8 * δ)).div_const 64).mul_const (1 - h)).add
+    (hF.sqrt hrad.ne')).congr_deriv ?_
+  field_simp
+  ring
+
+/-- At `r > δ`, for `0 ≤ δ`, the leaf `sqrtSubLeaf L δ ℓ r` has a positive derivative in `ℓ` at
+every `ℓ ∈ (-8 r, 0)`. -/
+theorem deriv_sqrtSubLeaf_param_pos (L : ℝ) (hδ : 0 ≤ δ) {ℓ r : ℝ} (hr : δ < r)
+    (hℓ₁ : -8 * r < ℓ) (hℓ₂ : ℓ < 0) : 0 < deriv (fun ℓ' ↦ sqrtSubLeaf L δ ℓ' r) ℓ := by
+  have hrad : 0 < 64 * (r ^ 2 - δ ^ 2) +
+      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) :=
+    sqrtSubLeaf_radicand_pos L (by nlinarith) (by nlinarith)
+  rw [(hasDerivAt_sqrtSubLeaf_param L δ hrad).deriv]
+  set h := smoothTransition ((r - 2 * δ) / (L * δ))
+  have h0 : 0 ≤ h := smoothTransition.nonneg _
+  have h1 : h ≤ 1 := smoothTransition.le_one _
+  have hs := sqrt_pos.2 hrad
+  have h2 : ℓ * h / √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h) ≤ 0 :=
+    div_nonpos_of_nonpos_of_nonneg (mul_nonpos_of_nonpos_of_nonneg hℓ₂.le h0) hs.le
+  rcases h1.lt_or_eq with h1 | h1
+  · have : 0 < (1 - h) / 64 := by linarith
+    linarith
+  · have : ℓ * h / √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h) < 0 :=
+      div_neg_of_neg_of_pos (by rw [h1]; linarith) hs
+    linarith
+
 /-- **The leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`**
 (the part `ℓ ≤ 0` of Cieliebak–Eliashberg's family of §4.6). There is `K > 2` such that for
 every `δ > 0` there is a family `χ ℓ` of functions with:
@@ -703,6 +754,25 @@ variable {L ℓ₀ M ℓ : ℝ} {F : ℝ → ℝ → ℝ}
 theorem surroundFamily_of_nonpos (hℓ : ℓ ≤ 0) :
     surroundFamily L δ ℓ₀ M F ℓ = sqrtSubLeaf L δ ℓ := by
   rw [surroundFamily_def, ite_eq_left hℓ]
+
+/-- For `0 ≤ δ`, the glued family is smooth in `(ℓ, r)` where `ℓ < 0`, `δ < r` and `|ℓ| < 8 r`:
+there it is the family `sqrtSubLeaf L δ`. -/
+theorem contDiffOn_uncurry_surroundFamily_of_neg (hδ : 0 ≤ δ) :
+    ContDiffOn ℝ ∞ (Function.uncurry (surroundFamily L δ ℓ₀ M F))
+      ({p | δ < p.2 ∧ |p.1| < 8 * p.2} ∩ {p | p.1 < 0}) :=
+  ((contDiffOn_uncurry_sqrtSubLeaf L hδ).mono inter_subset_left).congr fun p hp ↦ by
+    rw [Function.uncurry_apply_pair, Function.uncurry_apply_pair,
+      surroundFamily_of_nonpos (le_of_lt hp.2)]
+
+/-- At `r > δ`, for `0 ≤ δ`, the leaf `surroundFamily L δ ℓ₀ M F ℓ r` has a positive derivative
+in `ℓ` at every `ℓ ∈ (-8 r, 0)`, where the family is `sqrtSubLeaf L δ`. -/
+theorem deriv_surroundFamily_param_pos (hδ : 0 ≤ δ) {r : ℝ} (hr : δ < r) (hℓ₁ : -8 * r < ℓ)
+    (hℓ₂ : ℓ < 0) : 0 < deriv (fun ℓ' ↦ surroundFamily L δ ℓ₀ M F ℓ' r) ℓ := by
+  have e : (fun ℓ' ↦ surroundFamily L δ ℓ₀ M F ℓ' r) =ᶠ[𝓝 ℓ] fun ℓ' ↦ sqrtSubLeaf L δ ℓ' r := by
+    filter_upwards [Iio_mem_nhds hℓ₂] with ℓ' hℓ'
+    rw [surroundFamily_of_nonpos (le_of_lt hℓ')]
+  rw [e.deriv_eq]
+  exact deriv_sqrtSubLeaf_param_pos L hδ hr hℓ₁ hℓ₂
 
 /-- The leaves `0 < ℓ ≤ 7 δ` of the glued family are the Struwe switch leaves. -/
 theorem surroundFamily_of_pos_of_le (hℓ₁ : 0 < ℓ) (hℓ₂ : ℓ ≤ 7 * δ) :
@@ -1062,6 +1132,8 @@ radius `δ` such that
 * the bottom leaf is `χ (-8 δ) r = √(64 r² - 64 δ²)`;
 * every leaf is the standard leaf `√(64 r² + ℓ |ℓ|)` from `γ` on, and, for some `r₀ ∈ (δ, γ)`,
   every leaf with `ℓ` close to `-8 δ` from above is standard from `r₀` on;
+* for some `ℓ₃ ∈ (-8 δ, 0)`, `(ℓ, r) ↦ χ ℓ r` is smooth on a neighbourhood of
+  `[-8 δ, ℓ₃] × (δ, ∞)`, and its derivative in `ℓ` is positive on `[-8 δ, ℓ₃] × (δ, ∞)`;
 * every leaf lies below the top leaf `χ 1` on `(δ, ∞)`, and `1 < χ 1 δ < 1 + γ`.
 
 The family is `SymplecticGeometry.surroundFamily L δ ℓ₀ M F` for a cutoff parameter `L` large
@@ -1069,7 +1141,8 @@ compared with bounds of the first two derivatives of `smoothTransition`, the fam
 point `ℓ₀ = C δ` and slope bound `M` of
 `SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`, and `δ` so small that
 `2 t₁ + 18 ℓ₀ ≤ 1` and `t₁ + 2 δ ≤ 6 γ` for the height `t₁ = bridgeHeight L δ ℓ₀` of its
-bridge leaves. The leaves near `-8 δ` are standard from `r₀ = (2 + L) δ` on. -/
+bridge leaves. The leaves near `-8 δ` are standard from `r₀ = (2 + L) δ` on, and the clause on
+the low leaves holds with `ℓ₃ = -4 δ`. -/
 theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
     ∀ᶠ δ in 𝓝[>] 0, ∃ χ : ℝ → ℝ → ℝ,
       (∀ k : ℕ, ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (χ q.1) q.2)
@@ -1082,6 +1155,9 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
       (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, γ ≤ r → χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
       (∃ r₀ ∈ Ioo δ γ, ∀ᶠ ℓ in 𝓝[≥] (-8 * δ), ∀ r, r₀ ≤ r →
         χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
+      (∃ ℓ₃ ∈ Ioo (-8 * δ) 0,
+        (∃ U ∈ 𝓝ˢ (Icc (-8 * δ) ℓ₃ ×ˢ Ioi δ), ContDiffOn ℝ ∞ (Function.uncurry χ) U) ∧
+        ∀ ℓ ∈ Icc (-8 * δ) ℓ₃, ∀ r, δ < r → 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ) ∧
       (∀ ℓ ∈ Icc (-8 * δ) 1, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
       (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, δ < r → χ ℓ r ≤ χ 1 r) ∧
       1 < χ 1 δ ∧ χ 1 δ < 1 + γ := by
@@ -1122,7 +1198,11 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
     fun ℓ h ↦ hF4 ℓ h.1
   refine ⟨surroundFamily L δ ℓ₀ M F, fun k ↦ ?_, fun ℓ hℓ ↦ ?_, fun ℓ hℓ ↦ ?_, fun ℓ hℓ ↦ ?_,
     fun ℓ hℓ r hr ↦ ?_, surroundFamily_neg_eight_mul hδ.le, fun ℓ hℓ r hr ↦ ?_,
-    ⟨(2 + L) * δ, ⟨by nlinarith, by nlinarith⟩, ?_⟩, fun ℓ hℓ ↦ ?_, fun ℓ hℓ r hr ↦ ?_, ?_⟩
+    ⟨(2 + L) * δ, ⟨by nlinarith, by nlinarith⟩, ?_⟩,
+    ⟨-4 * δ, ⟨by linarith, by linarith⟩, ⟨_, ?_, contDiffOn_uncurry_surroundFamily_of_neg hδ.le⟩,
+      fun ℓ hℓ r hr ↦ deriv_surroundFamily_param_pos hδ.le hr (by linarith [hℓ.1])
+        (by linarith [hℓ.2])⟩,
+    fun ℓ hℓ ↦ ?_, fun ℓ hℓ r hr ↦ ?_, ?_⟩
   · exact continuousOn_iteratedDeriv_surroundFamily hL₀ hδ hℓ₀ hM₀ hℓₜ
       (fun q hq ↦ hFs q ⟨hq.1.1, hq.2⟩) (hFc ℓ₀ le_rfl) (hF4 ℓ₀ le_rfl)
       (fun r hr ↦ (hFℓ _ (by linarith) r hr.le).le) (hF4 _ (by linarith)) k
@@ -1141,6 +1221,12 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
     exact hFγ ℓ h.1 r (this.trans hr)
   · filter_upwards [Ico_mem_nhdsGE (by linarith : -8 * δ < 7 * δ)] with ℓ hℓ r hr
     exact surroundFamily_eq_sqrt_of_le hL₀ hδ hℓ.2.le hr
+  · refine ((isOpen_setOf_lt_snd_and_abs_fst_lt δ).inter
+      (isOpen_lt continuous_fst continuous_const)).mem_nhdsSet.2 ?_
+    rintro ⟨ℓ, r⟩ ⟨hℓ, hr⟩
+    rw [mem_Ioi] at hr
+    exact ⟨⟨hr, (abs_of_neg (by linarith [hℓ.2])).trans_lt (by linarith [hℓ.1])⟩,
+      show ℓ < 0 by linarith [hℓ.2]⟩
   · exact tendsto_deriv_surroundFamily hL₀.le hδ hℓ₀' hM₀ hℓₜ hFS' hℓ.2
   · exact surroundFamily_le_surroundFamily_one hL₀ hδ hℓ₀' hM₀ hsmall (min_le_right _ _)
       (fun r hr ↦ (hFℓ 1 hℓ₀1 r hr.le).le)

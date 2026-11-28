@@ -9,7 +9,9 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.LocalForm
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ParameterProduct
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Closed forms over a patch with given fibre and mixed components
@@ -17,22 +19,26 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 Let `τ` be a smooth two-form on `EB × F`, in the setting of `Fibration/LocalForm.lean`: `EB` is a
 real Banach space with a basis `bs`, and `τ` has the mixed components `αᵢ(x)` and the base
 components `f_{ij}(x)`, families of one-forms and functions on `F` indexed by `x ∈ EB`. This file
-prepares the construction of a closed two-form over a patch `U ×ˢ univ` of `EB × F` with the same
-fibre and mixed components as `τ`, the local step of the existence of the coupling form of a
-symplectic connection with Hamiltonian curvature ([McDuffSalamon2017], §6.4, proof of
-Theorem 6.4.1).
+constructs a closed two-form over a patch `U ×ˢ univ` of `EB × F` with the same fibre and mixed
+components as `τ`, the local step of the existence of the coupling form of a symplectic
+connection with Hamiltonian curvature ([McDuffSalamon2017], §6.4, proof of Theorem 6.4.1).
 
-The result here chooses primitives of the curls `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` of the mixed components
+The first step chooses primitives of the curls `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` of the mixed components
 smoothly in `x`, where `∂ᵢ` differentiates along `bs i`. If, at every `x` of an open
 set `U`, the curl is the differential of a smooth function on `F`, then there is a function `f`
 on `EB × F`, smooth on `U ×ˢ univ` and vanishing on `U × {y₀}`, whose restriction to each fibre
 over `x ∈ U` is such a primitive
-(`TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_mixedCurl`).
+(`TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_mixedCurl`). The second step replaces the
+base components of `τ` by these primitives, which gives a form whose exterior derivative
+vanishes over the patch when `τ` is vertically closed there and `F` is connected
+(`TauCeti.SmoothTwoForm.exists_isClosed_local`).
 
 ## Main results
 
 * `TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_mixedCurl`: jointly smooth
   primitives of the mixed curls over an open patch, normalized at a point `y₀` of `F`.
+* `TauCeti.SmoothTwoForm.exists_isClosed_local`: a two-form, smooth and closed over the patch,
+  that agrees with `τ` whenever one of the two vectors is tangent to the fibre.
 
 ## Implementation notes
 
@@ -46,6 +52,24 @@ family of exact one-forms on `F`, so the library's
 smooth primitives `h`. Then `f_{ij} - h`, extended by zero off the patch, has the curls as fibre
 differentials, and subtracting its values at `y₀` normalizes it. Smoothness on `U ×ˢ univ` comes
 from that of `h` on `U × F` by `ContMDiff.contMDiffOn_opens_prod_of_eq`.
+
+The form of `TauCeti.SmoothTwoForm.exists_isClosed_local` is
+`φ = τ + ∑_{i<j} (f_{ij} - τ((∂ᵢ, 0), (∂ⱼ, 0))) • pr₁^*(dxᵢ ∧ dxⱼ)`. By the lemmas of
+`Fibration/LocalForm.lean` on adding such base terms, `φ` has the fibre and mixed components of
+`τ` (`TauCeti.RoughForm.add_sum_smul_mpullback_fst_wedge_apply_vertical`), and its base
+components are the `f_{ij}` (`TauCeti.RoughForm.baseComponent_add_sum_smul_mpullback_fst_wedge`).
+Closedness is checked on three kinds of triples
+(`ContinuousAlternatingMap.eq_zero_of_forall_prod_fin_three`), each in a lemma of its own.
+On two fibre vectors, `dφ` only depends on the fibre and mixed components
+(`TauCeti.RoughForm.mextDeriv_apply_eq_mextDeriv_fiberComponent_add_sum`), so it is `dτ`
+there, which vanishes. On `(∂ᵢ, 0), (∂ⱼ, 0), (0, w)`, the formula
+`TauCeti.RoughForm.mextDeriv_prod_apply_snoc_inr`, for `φ` and for `τ`, together with the formula
+for the curl, gives `d_F f_{ij}(x)(w)` minus the curl, which is zero by the choice of `f_{ij}`;
+general vectors of `EB` follow by
+`ContinuousAlternatingMap.apply_vecCons_inl_inl_inr_eq_zero_of_basis`.
+On three base vectors, `TauCeti.RoughForm.mextDeriv_prod_apply_inl_eq_zero` concludes, since the
+base components of `φ` vanish at `y₀` (and then on all pairs of vectors of `EB`, by
+`ContinuousAlternatingMap.apply_vecCons_inl_eq_zero_of_basis`).
 
 ## References
 
@@ -147,6 +171,180 @@ theorem exists_contMDiffOn_mvfderiv_eq_mixedCurl {U : Set EB} (hU : IsOpen U) {i
       mdifferentiableAt_const, mvfderiv_const, sub_zero, mvfderiv_fun_sub
       ((hfx x).mdifferentiableAt (by simp)) (hh.mdifferentiableAt (by simp)), sub_apply, hd, hη,
     mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv]
+
+
+/-- A step of `exists_isClosed_local`: a rough two-form `φ` with the fibre and mixed components
+of `τ`, differentiable at `(x, y)` where `τ` is vertically closed, has `dφ` zero at `(x, y)` on
+triples whose first two vectors are tangent to the fibre. -/
+private theorem mextDeriv_apply_vertical_vertical_eq_zero
+    {φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2} {s : Set (EB × F)}
+    (hτ : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst τ.val s) {x : EB} {y : F}
+    (hz : (x, y) ∈ s) (hφ : ContMDiffAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) 1
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (x, y))
+    (hfib : φ.fiberComponent = RoughForm.fiberComponent τ.val)
+    (hmix : φ.mixedComponent bs = RoughForm.mixedComponent τ.val bs)
+    (w₁ w₂ : TangentSpace IF y) (v : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) :
+    mextDeriv φ (x, y) ![((0 : EB), w₁), (0, w₂), v] = 0 := by
+  have hfdc : φ.fderivFiberComponent = RoughForm.fderivFiberComponent τ.val := by
+    funext x v
+    simp only [RoughForm.fderivFiberComponent_def, hfib]
+  refine (RoughForm.mextDeriv_apply_eq_mextDeriv_fiberComponent_add_sum _ bs hφ w₁ w₂ v).trans ?_
+  simp only [hfdc, hfib, hmix]
+  refine (RoughForm.mextDeriv_apply_eq_mextDeriv_fiberComponent_add_sum _ bs
+    ((τ.contMDiff (x, y)).of_le (by norm_num)) w₁ w₂ v).symm.trans ?_
+  exact RoughForm.isVerticallyClosedOn_iff.1 hτ (x, y) hz _ (mem_ker_mfderiv_fst_iff.2 rfl) _
+    (mem_ker_mfderiv_fst_iff.2 rfl) v
+
+/-- A step of `exists_isClosed_local`: a rough two-form `φ` that agrees with `τ` on pairs ending
+with a vertical vector, and whose base component along `bs i, bs j` has the curl of the mixed
+components of `τ` as fibre differential at `(x, y)`, has `dφ` zero there on
+`(bs i, 0), (bs j, 0), (0, w)`. -/
+private theorem mextDeriv_apply_basis_basis_vertical_eq_zero
+    {φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2} {x : EB} {y : F}
+    (hφ : MDifferentiableAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (x, y))
+    (hvert : ∀ (z : EB × F) (v : TangentSpace (𝓘(ℝ, EB).prod IF) z) (w : TangentSpace IF z.2),
+      φ z ![v, ((0 : EB), w)] = τ.val z ![v, ((0 : EB), w)])
+    {i j : ι} (w : TangentSpace IF y)
+    (hd : mvfderiv IF (φ.baseComponent bs i j x) y w = RoughForm.mixedCurl τ.val bs i j x y w) :
+    mextDeriv φ (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] = 0 := by
+  have e : (![(bs i, 0), (bs j, 0), ((0 : EB), w)] :
+      Fin 3 → TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) =
+      Fin.snoc (fun k ↦ (![bs i, bs j] k, 0)) ((0 : EB), w) :=
+    funext fun k ↦ by fin_cases k <;> rfl
+  have hb (ψ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) :
+      (fun y' ↦ ψ (x, y') fun k ↦ (![bs i, bs j] k, (0 : EF))) = ψ.baseComponent bs i j x := by
+    funext y'
+    rw [RoughForm.baseComponent_def]
+    exact congrArg _ (funext fun k ↦ by fin_cases k <;> rfl)
+  have hsnoc (z : EB × F) (u : Fin 1 → TangentSpace (𝓘(ℝ, EB).prod IF) z)
+      (w : TangentSpace IF z.2) :
+      φ z (Fin.snoc u (((0 : EB), w) : EB × EF)) =
+        τ.val z (Fin.snoc u (((0 : EB), w) : EB × EF)) := by
+    rw [show (Fin.snoc u ((0 : EB), w) : Fin 2 → TangentSpace (𝓘(ℝ, EB).prod IF) z) =
+      ![u 0, ((0 : EB), w)] from funext fun k ↦ by fin_cases k <;> rfl]
+    exact hvert z (u 0) w
+  have h₁ := RoughForm.mextDeriv_prod_apply_snoc_inr hφ ![bs i, bs j] w
+  have h₂ := RoughForm.mextDeriv_prod_apply_snoc_inr
+    ((τ.contMDiff (x, y)).mdifferentiableAt (by simp)) ![bs i, bs j] w
+  rw [hb, hd] at h₁
+  rw [hb] at h₂
+  have h₃ := mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv τ bs i j x y w
+  have h₄ := h₃.trans (congrArg (_ - ·) ((congrArg (mextDeriv τ.val (x, y)) e).trans h₂))
+  rw [e]
+  refine h₁.trans ?_
+  rw [h₄]
+  have key {R V : Type _} [Ring R] [AddCommGroup V] [Module R V] {A B D : V} (c : R)
+      (hc : c = 1) (hAB : A = B) : A + c • (D - (B + c • D)) = 0 := by
+    rw [hc, hAB, one_smul, one_smul]
+    abel
+  refine key _ ?_ ?_
+  · norm_num
+  · refine Finset.sum_congr rfl fun k _ ↦ ?_
+    congr 3
+    funext q
+    exact hsnoc (q, y) _ w
+
+/-- A step of `exists_isClosed_local`: under the hypotheses of
+`mextDeriv_apply_basis_basis_vertical_eq_zero` for all `i < j`, `dφ` vanishes at `(x, y)` on
+every triple `(a, 0), (b, 0), (0, w)`. -/
+private theorem mextDeriv_apply_inl_inl_vertical_eq_zero [Finite ι] [LinearOrder ι]
+    {φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2} {x : EB} {y : F}
+    (hφ : MDifferentiableAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (x, y))
+    (hvert : ∀ (z : EB × F) (v : TangentSpace (𝓘(ℝ, EB).prod IF) z) (w : TangentSpace IF z.2),
+      φ z ![v, ((0 : EB), w)] = τ.val z ![v, ((0 : EB), w)])
+    (w : TangentSpace IF y)
+    (hd : ∀ i j, i < j →
+      mvfderiv IF (φ.baseComponent bs i j x) y w = RoughForm.mixedCurl τ.val bs i j x y w)
+    (a b : EB) : mextDeriv φ (x, y) ![(a, 0), (b, 0), ((0 : EB), w)] = 0 :=
+  (mextDeriv φ (x, y)).apply_vecCons_inl_inl_inr_eq_zero_of_basis bs w
+    (fun i j hij ↦ mextDeriv_apply_basis_basis_vertical_eq_zero τ bs hφ hvert w (hd i j hij)) a b
+
+/-- A step of `exists_isClosed_local`: a rough two-form `φ`, `C²` over `U ×ˢ univ`, whose
+exterior derivative vanishes there on the triples `(a, 0), (b, 0), (0, w)` and whose base
+components vanish over `U × {y₀}`, has `dφ` zero over `U ×ˢ univ` on three vectors tangent to
+`EB`. -/
+private theorem mextDeriv_apply_inl_inl_inl_eq_zero [Finite ι] [LinearOrder ι]
+    [PreconnectedSpace F] {φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2} {U : Set EB}
+    (hU : IsOpen U) (hφ : ContMDiffOn (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) 2
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (U ×ˢ univ))
+    (hbbf : ∀ x ∈ U, ∀ (y : F) (a b : EB) (w : TangentSpace IF y),
+      mextDeriv φ (x, y) ![(a, 0), (b, 0), ((0 : EB), w)] = 0)
+    {y₀ : F} (hy₀ : ∀ x ∈ U, ∀ i j, i < j → φ.baseComponent bs i j x y₀ = 0)
+    {x : EB} (hx : x ∈ U) (y : F) (a b c : EB) :
+    mextDeriv φ (x, y) ![(a, 0), (b, 0), (c, 0)] = 0 := by
+  have h := RoughForm.mextDeriv_prod_apply_inl_eq_zero (n := 2) (φ := φ) hU hφ
+    (fun p hp y' a' v ↦ ?_) (x₀ := y₀) (fun p hp a' ↦ ?_) hx y ![a, b, c]
+  · refine Eq.trans (congrArg _ (funext fun k ↦ ?_)) h
+    fin_cases k <;> rfl
+  · refine Eq.trans (congrArg _ (funext fun k ↦ ?_)) (hbbf p hp y' (a' 0) (a' 1) v)
+    fin_cases k <;> rfl
+  · refine Eq.trans (congrArg _ (funext fun k ↦ ?_))
+      ((φ (p, y₀)).apply_vecCons_inl_eq_zero_of_basis bs (fun i j hij ↦ ?_) (a' 0) (a' 1))
+    · fin_cases k <;> rfl
+    · exact (RoughForm.baseComponent_def φ bs i j p y₀).symm.trans (hy₀ p hp i j hij)
+
+/-- **A closed form over a patch with the fibre and mixed components of `τ`.** Let `τ` be a
+smooth two-form on `EB × F`, with `F` connected, and `U` an open set of `EB` over which `τ` is
+vertically closed for the first projection. If, at every `x ∈ U` and for all `i j`, the one-form
+`∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` is the differential of a smooth function, where `αₖ` are the mixed
+components of `τ` for the basis `bs`, then there is a two-form `φ` on `EB × F`, smooth on
+`U ×ˢ univ`, whose exterior derivative vanishes at every point of `U ×ˢ univ`, and which agrees
+with `τ` on every pair of vectors whose second member is tangent to the fibre. In particular `φ`
+has the fibre components and the mixed components of `τ`. -/
+theorem exists_isClosed_local [FiniteDimensional ℝ EB] [Finite ι] [LinearOrder ι]
+    [ConnectedSpace F] {U : Set EB} (hU : IsOpen U)
+    (hτ : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst τ.val (U ×ˢ univ))
+    (h : ∀ i j, ∀ x ∈ U, ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
+      mvfderiv IF g y w = RoughForm.mixedCurl τ.val bs i j x y w) :
+    ∃ φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2,
+      ContMDiffOn (𝓘(ℝ, EB).prod IF)
+        ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
+        (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (U ×ˢ univ) ∧
+      (∀ z ∈ U ×ˢ univ, mextDeriv φ z = 0) ∧
+      ∀ z (v : TangentSpace (𝓘(ℝ, EB).prod IF) z) (w : TangentSpace IF z.2),
+        φ z ![v, ((0 : EB), w)] = τ.val z ![v, ((0 : EB), w)] := by
+  classical
+  obtain ⟨y₀⟩ := ‹ConnectedSpace F›.toNonempty
+  have := Fintype.ofFinite ι
+  choose f hfs hf₀ hfd using fun i j ↦
+    exists_contMDiffOn_mvfderiv_eq_mixedCurl τ bs hU (h i j) y₀
+  -- `φ = τ + ∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)`, whose base components are the primitives `f i j`.
+  let g (i j : ι) (z : EB × F) : ℝ := f i j z - RoughForm.baseComponent τ.val bs i j z.1 z.2
+  let φ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2 :=
+    τ.val + ∑ i, ∑ j with i < j, g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
+      (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val
+  have hvert := RoughForm.add_sum_smul_mpullback_fst_wedge_apply_vertical τ.val bs g
+  have hbase {i j : ι} (hij : i < j) (x : EB) : φ.baseComponent bs i j x = fun y ↦ f i j (x, y) :=
+    funext fun y ↦ (RoughForm.baseComponent_add_sum_smul_mpullback_fst_wedge τ.val bs g hij x
+      y).trans (add_sub_cancel _ _)
+  have hsm : ContMDiffOn (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (φ z)) (U ×ˢ univ) :=
+    contMDiffOn_add_sum_smul_mpullback_fst_wedge τ bs fun i j ↦
+      (hfs i j).sub (contMDiff_baseComponent τ bs i j).contMDiffOn
+  have hsmAt {z : EB × F} (hz : z ∈ U ×ˢ univ) :=
+    hsm.contMDiffAt ((hU.prod isOpen_univ).mem_nhds hz)
+  have hbbf : ∀ x ∈ U, ∀ (y : F) (a b : EB) (w : TangentSpace IF y),
+      mextDeriv φ (x, y) ![(a, 0), (b, 0), ((0 : EB), w)] = 0 := fun x hx y a b w ↦
+    mextDeriv_apply_inl_inl_vertical_eq_zero τ bs
+      ((hsmAt ⟨hx, mem_univ y⟩).mdifferentiableAt (by simp)) hvert w (fun i j hij ↦ by
+        rw [hbase hij]
+        exact hfd i j x hx y w) a b
+  refine ⟨φ, hsm, fun z hz ↦ ?_, hvert⟩
+  obtain ⟨x, y⟩ := z
+  exact ContinuousAlternatingMap.eq_zero_of_forall_prod_fin_three (mextDeriv φ (x, y))
+    (mextDeriv_apply_vertical_vertical_eq_zero τ bs hτ hz ((hsmAt hz).of_le (by norm_num))
+      (RoughForm.fiberComponent_add_sum_smul_mpullback_fst_wedge τ.val bs g)
+      (RoughForm.mixedComponent_add_sum_smul_mpullback_fst_wedge τ.val bs g))
+    (hbbf x hz.1 y)
+    (mextDeriv_apply_inl_inl_inl_eq_zero bs hU (hsm.of_le (by norm_num)) hbbf
+      (fun p hp i j hij ↦ (congrFun (hbase hij p) y₀).trans (hf₀ i j p hp)) hz.1 y)
 
 end TauCeti.SmoothTwoForm
 

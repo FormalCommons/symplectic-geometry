@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Basic
+import SymplecticGeometry.LinearAlgebra.Matrix.OrthogonalGroup.Basic
+import SymplecticGeometry.Topology.Algebra.Matrix.UnitaryGroup
 import TauCeti.Topology.Algebra.UnitaryGroup
 
 /-!
@@ -72,16 +74,16 @@ theorem specialOrthogonalToDiffSphere_apply (A : specialOrthogonalGroup (Fin (n 
 theorem specialOrthogonalToDiffSphere_injective :
     Function.Injective (specialOrthogonalToDiffSphere n m) := by
   rw [specialOrthogonalToDiffSphere_def, MonoidHom.coe_comp]
-  refine (orthogonalToDiffSphere_injective n m).comp fun A B h ↦ Subtype.ext ?_
-  simpa using congrArg Subtype.val h
+  exact (orthogonalToDiffSphere_injective n m).comp
+    specialOrthogonalGroup.toOrthogonalGroup_injective
 
 /-- The restriction of rotations of `ℝⁿ⁺¹` to the unit sphere is continuous for the weak Whitney
 topology. -/
 theorem continuous_specialOrthogonalToDiffSphere :
     Continuous (specialOrthogonalToDiffSphere n m) := by
   rw [specialOrthogonalToDiffSphere_def, MonoidHom.coe_comp]
-  refine (continuous_orthogonalToDiffSphere n m).comp (continuous_induced_rng.2 ?_)
-  simpa [Function.comp_def] using continuous_subtypeVal
+  exact (continuous_orthogonalToDiffSphere n m).comp
+    specialOrthogonalGroup.continuous_toOrthogonalGroup
 
 /-- The restriction of rotations of `ℝⁿ⁺¹` to the unit sphere is a closed embedding of
 `SO(n + 1)` in the diffeomorphism group of `Sⁿ` with the weak Whitney topology. -/
