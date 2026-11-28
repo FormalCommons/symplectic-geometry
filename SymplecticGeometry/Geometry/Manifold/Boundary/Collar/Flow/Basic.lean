@@ -178,12 +178,9 @@ theorem exists_eq_of_isOutwardPointing_of_subset [CompactSpace ↥((𝓡∂ (n +
     hηO (show (t, x) ∈ symmStrip _ η from
       mem_symmStrip_iff.2 (abs_lt.2 ⟨by linarith [ht.1], ht.2⟩))
   -- The flow-out `(x, t) ↦ Ψ x t` is a local diffeomorphism at each `(x, 0)`.
-  have hYneg : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞
-      (fun x ↦ (⟨x, (-Y) x⟩ : TangentBundle (𝓡∂ (n + 1)) W)) :=
-    fun x ↦ (hY.contMDiff x).neg_section
   have hloc (a : (𝓡∂ (n + 1)).boundary W) :=
-    isLocalDiffeomorphAt_flowOut_boundary (-Y) hYneg (a := a)
-      (by simpa using hY.isOutwardPointing a.property) (hO.mem_nhds (hO0 a a.property))
+    isLocalDiffeomorphAt_flowOut_boundary (-Y) hY.contMDiff_neg (a := a)
+      (hY.isOutwardPointing_neg_neg a a.property) (hO.mem_nhds (hO0 a a.property))
       fun x _ t hxt ht ↦ ⟨(hΨ x t hxt ht).2.1, (hΨ x t hxt ht).2.2.1⟩
   obtain ⟨ε, hε, hεη, c, hc, hcU⟩ := exists_eq_of_isLocalDiffeomorphAt hloc
     (fun x ↦ by simpa only [val_zero_apply] using (hΨ x 0 (hxO x ⟨le_rfl, hη⟩) le_rfl).2.1)

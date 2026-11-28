@@ -103,10 +103,8 @@ theorem eLpNorm_conjWirtingerDeriv_le_of_norm_le (u : 𝓢(ℂ, F)) {μ : ℂ �
     (1 - (m : ℝ≥0∞)) * eLpNorm (fun z ↦ conjWirtingerDeriv (⇑u) z 1) 2 volume ≤
       eLpNorm (fun z ↦ conjWirtingerDeriv (⇑u) z 1 + μ z • wirtingerDeriv (⇑u) z 1) 2 volume := by
   have hm₁ := SchwartzMap.memLp (SchwartzMap.conjWirtingerDerivCLM F u) 2 volume
-  have hm₂ := SchwartzMap.memLp (SchwartzMap.wirtingerDerivCLM F u) 2 volume
-  rw [funext (SchwartzMap.wirtingerDerivCLM_apply u)] at hm₂
   rw [funext (SchwartzMap.conjWirtingerDerivCLM_apply u)] at hm₁
-  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two hm₂.aestronglyMeasurable hμ hμm
+  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two hμ hμm
     (eLpNorm_wirtingerDeriv_le_eLpNorm_conjWirtingerDeriv u) hm₁.eLpNorm_ne_top
 
 /-- **`‖∂v‖₂ ≤ ‖∂̄v‖₂` for compactly supported `W^{1,2}` maps.** If `D` is a weak derivative of a
@@ -171,10 +169,8 @@ theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
       continuous_complexAntilinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
       (.of_forall fun z ↦ by
         simpa using norm_complexAntilinearPart_apply_le (D z) 1)
-  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two
-    (((continuous_eval_const 1).comp
-      continuous_complexLinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
-    hμ hμm (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
+  exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two hμ hμm
+    (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
     hQ.eLpNorm_ne_top
 
 /-- **The estimate for `∂̄ + μ ∂` on compactly supported `C¹` maps.** If `v` is a compactly

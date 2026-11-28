@@ -199,7 +199,7 @@ theorem firstChernClass_normalComplexStructure_divisorRealEmbedding {hn : (∞ :
       divisorNormalEquiv c ℓ (ν ℓ w) = Complex.I • divisorNormalEquiv c ℓ w := by
     rw [hν, SmoothEmbedding.normalComplexStructure_apply,
       divisorNormalEquiv_normalComplexStructureAt]
-  rw [SymplecticGeometry.Bundle.firstChernClass_congr _
+  rw [TauCeti.firstChernClass_eq_of_fiberwise
       (ν.continuous_fiberEquivOfCommuteI _ he ℂ (continuous_divisorNormalEquiv c)),
     Projectivization.firstChernClass_tautological]
 

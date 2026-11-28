@@ -14,6 +14,8 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
 import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import TauCeti.LinearAlgebra.BilinearForm.Similitude
+import TauCeti.LinearAlgebra.SesquilinearForm.Separating
 
 /-!
 # Affine symplectic maps, cylinders and the reflection of the standard model
@@ -31,8 +33,9 @@ symplectic width are stated.
 * `SymplecticGeometry.stdConj ι`: the reflection `(x, y) ↦ (x, -y)`, complex conjugation in the
   coordinates of `TauCeti.complexToRealEuclidean ι`. It reverses the sign of `ω₀`, so the
   anti-symplectic linear equivalences (`Ψ^* ω₀ = -ω₀`) are exactly the compositions of
-  symplectic ones with it; in particular their determinant is `(-1) ^ n`
-  (`SymplecticGeometry.det_eq_neg_one_pow_of_forall_apply_eq_neg`).
+  symplectic ones with it. Their determinant is `(-1) ^ n`
+  (`SymplecticGeometry.det_eq_neg_one_pow_of_forall_apply_eq_neg`): this is Tau Ceti's
+  `LinearMap.BilinForm.det_eq_pow_of_isAlt_of_compl₁₂_self_eq_smul` for the multiplier `-1`.
 * `TauCeti.SymplecticForm.IsSymplectomorphism.adjoint`: the adjoint of a linear symplectomorphism
   of `ω₀` is again one, which is the statement that the transpose of a symplectic matrix is
   symplectic. Likewise the transpose of an anti-symplectic linear equivalence is
@@ -253,19 +256,6 @@ theorem stdConj_image_stdCylinder (i : ι) (R : ℝ) :
   ext z
   simp only [Set.mem_preimage, mem_stdCylinder_iff, stdConj_x, stdConj_y, Pi.neg_apply, neg_sq]
 
-/-- The determinant of the reflection `(x, y) ↦ (x, -y)` is `(-1) ^ n`. -/
-theorem det_stdConj :
-    LinearMap.det ((stdConj ι).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
-      (-1) ^ Fintype.card ι := by
-  classical
-  have h : ((stdConj ι).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
-      Matrix.toEuclideanLin (Matrix.diagonal (Sum.elim (fun _ ↦ 1) fun _ ↦ -1)) := by
-    refine LinearMap.ext fun z ↦ PiLp.ext fun j ↦ ?_
-    rcases j with j | j <;> simp [Matrix.mulVec_diagonal]
-  rw [h, Matrix.toEuclideanLin_eq_toLin_orthonormal, LinearMap.det_toLin, Matrix.det_diagonal,
-    Fintype.prod_sum_type]
-  simp
-
 /-! ### Anti-symplectic linear equivalences -/
 
 variable {Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι}
@@ -292,14 +282,17 @@ theorem isSymplectomorphism_stdConj_trans_of_forall_apply_eq_neg
 theorem det_eq_neg_one_pow_of_forall_apply_eq_neg
     (hΨ : ∀ z w, stdForm ι (Ψ z) (Ψ w) = -stdForm ι z w) :
     LinearMap.det (Ψ : StdSpace ι →ₗ[ℝ] StdSpace ι) = (-1) ^ Fintype.card ι := by
-  have h := (isSymplectomorphism_trans_stdConj_of_forall_apply_eq_neg hΨ).det_eq_one
-  rw [LinearEquiv.coe_trans, LinearMap.det_comp, det_stdConj] at h
-  have h2 : ((-1 : ℝ) ^ Fintype.card ι) * (-1) ^ Fintype.card ι = 1 := by
-    rw [← mul_pow]; simp
-  calc LinearMap.det (Ψ : StdSpace ι →ₗ[ℝ] StdSpace ι)
-      = (-1) ^ Fintype.card ι * ((-1) ^ Fintype.card ι *
-          LinearMap.det (Ψ : StdSpace ι →ₗ[ℝ] StdSpace ι)) := by rw [← mul_assoc, h2, one_mul]
-    _ = (-1) ^ Fintype.card ι := by rw [h, mul_one]
+  have : (stdForm ι).toBilinForm.IsPerfPair :=
+    .of_injective (stdForm ι).nondegenerate.1.injective (stdForm ι).nondegenerate.flip.1.injective
+  rw [LinearMap.BilinForm.det_eq_pow_of_isAlt_of_compl₁₂_self_eq_smul _ (stdForm ι).isAlt
+    (c := -1) (LinearMap.ext₂ fun z w ↦ by simpa using hΨ z w), finrank_stdSpace,
+    Nat.mul_div_cancel_left _ two_pos]
+
+/-- The determinant of the reflection `(x, y) ↦ (x, -y)` is `(-1) ^ n`. -/
+theorem det_stdConj :
+    LinearMap.det ((stdConj ι).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
+      (-1) ^ Fintype.card ι :=
+  det_eq_neg_one_pow_of_forall_apply_eq_neg stdForm_stdConj
 
 end SymplecticGeometry
 

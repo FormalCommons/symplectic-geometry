@@ -11,6 +11,7 @@ public import TauCeti.Analysis.Distribution.TestFunction.LineDeriv
 public import Mathlib.MeasureTheory.Measure.Haar.Unique
 import SymplecticGeometry.Analysis.Distribution.OfFun
 import SymplecticGeometry.MeasureTheory.Function.LocallyIntegrable
+import TauCeti.MeasureTheory.Measure.Haar.NormedSpace
 
 /-!
 # Transport of distributions, line derivatives and multiplication by smooth functions
@@ -123,8 +124,7 @@ locally integrable on `U` for `μ`, is the distribution of `f ∘ e` for the ima
 theorem transportCLM_ofFun (e : E' ≃L[ℝ] E) (h : MapsTo e Ω' U) {μ : Measure E}
     (hf : LocallyIntegrableOn f U μ) :
     transportCLM e h (ofFun U f μ n) = ofFun Ω' (fun x ↦ f (e x)) (μ.map e.symm) n := by
-  have hmap : (μ.map e.symm).map e = μ := by
-    simpa using e.symm.toHomeomorph.toMeasurableEquiv.map_symm_map (μ := μ)
+  have hmap : (μ.map e.symm).map e = μ := (e.measurePreserving_map_symm μ).map_eq
   ext φ
   rw [transportCLM_apply, ofFun_apply hf,
     ofFun_apply ((hmap.symm ▸ hf).comp_homeomorph_of_mapsTo (e := e.toHomeomorph) h)]

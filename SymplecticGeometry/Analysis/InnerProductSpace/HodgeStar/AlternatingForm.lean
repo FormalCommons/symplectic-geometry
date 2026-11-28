@@ -10,7 +10,6 @@ public import TauCeti.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
-import TauCeti.Analysis.Normed.Module.Alternating.Wedge.Uncurry
 
 /-!
 # Derivations, exterior multiplication and the Hodge star on alternating forms
@@ -25,22 +24,19 @@ Hodge star on the forms. This file reads operations of `⋀ V` on the forms.
   This is the argument of Tau Ceti's
   `SmoothAlmostComplexStructure.alternatingFormEquiv_symm_neg_realAlternatingDerivation_two`, in
   every degree and for every skew-adjoint `A`.
-* Tau Ceti's exterior multiplication `wedgeCovector u` by `⟪u, ·⟫` is, on forms,
-  `alternatizeUncurryFin` of `⟪u, ·⟫ • ·`, the symbol `ε_u` of the exterior derivative at the
-  covector `⟪u, ·⟫`.
 * Summed over an orthonormal basis `b`, the sign `(-1) ^ (m (k + 2) + 1)` of Tau Ceti's
   `codifferential`, in dimension `m`, times `⋆ Alt (⋆ ∘ B)`, for `B` linear from `V` to the
   `(k + 1)`-forms and `Alt` Mathlib's `alternatizeUncurryFin`, is `-∑ i, ι_{b i} (B (b i))`, with
   `ι` the interior product: the symbol of `d*` at a general first-order term. Each term is Tau
   Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`, the symbol
-  `(-1) ^ (m (k + 2) + 1) ⋆ ε_u ⋆ = -ι_u` of `d*` at `⟪u, ·⟫`.
+  `(-1) ^ (m (k + 2) + 1) ⋆ ε_u ⋆ = -ι_u` of `d*` at `⟪u, ·⟫`, where `ε_u` is Tau Ceti's
+  `wedgeCovector u`. By Tau Ceti's `TauCeti.alternatizeUncurryFin_innerSL_smulRight`, `ε_u α`
+  is `Alt (⟪u, ·⟫ • α)`, which takes each term of the sum to that form.
 
 ## Main results
 
 * `TauCeti.alternatingFormEquiv_lieMap`: `lieMap A` on `⋀ᵏ V` is `-D_A` on forms, for a
   skew-adjoint `A`.
-* `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`: `wedgeCovector u` through
-  `alternatizeUncurryFin`.
 * `Orientation.smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar`: the symbol of `d*`
   at a linear map `B`.
 
@@ -93,15 +89,6 @@ theorem alternatingFormEquiv_lieMap {k : ℕ} {A : V →L[ℝ] V}
     ContinuousAlternatingMap.neg_apply, fderivCompContinuousLinearMap_id_apply]
   simp [alternatingFormEquiv_apply]
 
-/-- **Exterior multiplication is the symbol of `d`**: Tau Ceti's exterior multiplication
-`wedgeCovector u k` by `⟪u, ·⟫` on `k`-forms is `alternatizeUncurryFin` of `⟪u, ·⟫ • ·`. -/
-theorem wedgeCovector_eq_alternatizeUncurryFin (u : V) {k : ℕ} (α : V [⋀^Fin k]→L[ℝ] ℝ) :
-    wedgeCovector u k α = alternatizeUncurryFin ((innerSL ℝ u).smulRight α) := by
-  obtain ⟨x, rfl⟩ := (alternatingFormEquiv V k).surjective α
-  ext v
-  rw [wedgeCovector_alternatingFormEquiv, alternatingFormEquiv_wedgeLeft_apply,
-    alternatizeUncurryFin_smulRight_apply_eq_wedge]
-
 end TauCeti
 
 namespace Orientation
@@ -128,7 +115,7 @@ theorem smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar {ι : Type*}
   have hsign : (-1 : ℝ) ^ (finrank ℝ V * (k + 2) + 1) = (-1) ^ (n * (k + 2) + 1) := by
     rw [Fact.out (p := finrank ℝ V = n)]
   rw [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    LinearEquiv.coe_toContinuousLinearEquiv', ← wedgeCovector_eq_alternatizeUncurryFin, hsign,
+    LinearEquiv.coe_toContinuousLinearEquiv', alternatizeUncurryFin_innerSL_smulRight, hsign,
     o.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar _ hkl hlk,
     curryLeftFlipL_apply_apply]
 
