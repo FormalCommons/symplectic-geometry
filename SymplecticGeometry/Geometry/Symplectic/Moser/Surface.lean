@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import TauCeti.Geometry.Symplectic.Manifold.Moser.Path

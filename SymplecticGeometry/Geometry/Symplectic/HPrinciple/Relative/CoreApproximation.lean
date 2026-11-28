@@ -16,8 +16,8 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffe
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CubeCoordinates
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Topology.MetricSpace.Thickening
+import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import TauCeti.Topology.Algebra.Support
 
 /-!
@@ -382,11 +382,11 @@ theorem exists_isOpen_nondegenerate_of_cubes (c : BandCore I g a₀ a b) {Λ S :
       rw [mextDerivₗ_apply, mextDerivₗ_apply]
       exact mextDeriv_congr_of_eventuallyEq
         (Filter.eventually_of_mem (hN₁.mem_nhds hy) fun x hx ↦ hB'N₁ _ x hx)
-    refine SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq ?_
-      ((hnd l hl).nondegenerate_bilinFormAt y) r
-    have h := hτN l y (hN₁N hy)
-    simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply] at h ⊢
-    rw [hd, ← h, sub_self]
+    have heq : (α l + mextDerivₗ I 1 (B' (s l))).val y = (τ l).val y := by
+      rw [hτN l y (hN₁N hy)]
+      simp only [SmoothBundleForm.add_apply, hd]
+    exact SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq heq r ▸
+      (hnd l hl).nondegenerate_bilinFormAt y
   · obtain ⟨i, ⟨l, z⟩, ⟨hV', -, hz⟩, he⟩ := mem_iUnion.1 hp
     simp only [Prod.map_apply, id_eq, Prod.mk.injEq] at he
     obtain ⟨rfl, rfl⟩ := he

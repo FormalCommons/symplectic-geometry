@@ -1027,7 +1027,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq` (the segment between
   two forms that agree at a point is constant there).
   `IsotopyExtension/Ball/Moser.lean` imports `Ball/Basic.lean`,
-  `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean`,
+  `Moser/Family.lean`, Tau Ceti's
+  `Geometry/Symplectic/Manifold/RelativeMoser.lean`,
   *Smooth families*' `DifferentialForm/SmoothFamily/Poincare.lean`, and
   this part's `Geometry/Manifold/ContMDiff/Opens.lean`, for
   `ContMDiffOn.dite_comp_of_opens` (a family composed with a diffeotopy of

@@ -13,7 +13,6 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
-import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Symplectic.Manifold.Moser
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser

@@ -339,19 +339,18 @@ Proof, in four steps.
 3. *Moser flow.* With `c = Real.smoothTransition`, let
    `σ := SmoothForm.lineMapFamily σ₀ σ₁ c.contDiff` on `ℝ × N`. Its slices
    are closed and nondegenerate, since `c t ∈ [0, 1]`. Let `α` be the
-   one-form `-(c' ∘ Prod.fst) • Prod.snd^* β` on `ℝ × N`. The field
-   `X t := (hσ t).interiorEquiv.symm α_t` is smooth by
-   `contMDiff_interiorEquiv_symm_mpullback_prodMk`. The rate
-   $\partial_t\sigma_t+L_{X_t}\sigma_t=c'(t)\,d\beta-c'(t)\,d\beta$
-   vanishes everywhere on `N`, by Tau Ceti's
-   `IsSymplectic.mlieDerivForm_interiorEquiv_symm`. `X t` vanishes at
-   `f q`, and its chart expression has zero derivative there, by
-   `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`.
+   one-form `-(c' ∘ Prod.fst) • Prod.snd^* β` on `ℝ × N`. Tau Ceti's
+   `exists_contMDiff_mpullback_timeDependentFlowOf_apply_eq` gives a smooth
+   field `X` with `ι_{X_t} σ_t = α_t` whose flow pulls `σ_t` back to
+   `σ_s` wherever it is defined; by injectivity of the contraction, `X t`
+   is `(hσ t).interiorEquiv.symm α_t`, the Moser field without cutoff.
+   `X t` vanishes at `f q`, and its chart expression has zero derivative
+   there, by `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`.
 4. *Domain up to time one.* Let `Φ := timeDependentFlowPartialDiffeomorph
    (hn := le_top) hX 0 1` on `N`. Its source contains `f(Q)`, by
-   `mem_timeDependentFlowDomain_of_forall_eq_zero`. Along its source,
-   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` gives
-   `Φ^* σ₁ = σ₀`, since `c 0 = 0` and `c 1 = 1`. `Φ` fixes `f(Q)`
+   `mem_timeDependentFlowDomain_of_forall_eq_zero`. Along its source, the
+   flow property of step 3 gives `Φ^* σ₁ = σ₀`, since `c 0 = 0` and
+   `c 1 = 1`. `Φ` fixes `f(Q)`
    (`timeDependentFlowOf_eq_self_of_forall_eq_zero`), and its differential
    there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`).
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a

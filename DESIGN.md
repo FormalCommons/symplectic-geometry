@@ -2468,9 +2468,7 @@ complete target and a function on the whole half-space.
   boundaryless re-modelling `TauCeti.BoundarylessModel`), the
   library's `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (the interior of a manifold with boundary as a
-  boundaryless manifold), which is merged, the library's
-  `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* (openness of
-  nondegeneracy, for `StableHamiltonian.lean`), which is merged,
+  boundaryless manifold), which is merged,
   `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
   `StableHamiltonian.lean`), and *Smooth families*: its
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which is merged, for
@@ -4019,7 +4017,7 @@ behind.
 | 0 | *Linear Moser* | — (it imports `Topology/Algebra/Module/BilinearForm.lean` of *Compatible complex structures*, which imports only Mathlib and Tau Ceti and is merged) |
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
-| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`, which is merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
+| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`, which is merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which is merged) |
 | 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 0 | *Lie group actions* | — |
