@@ -10,12 +10,13 @@ public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelDbar
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
-import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import TauCeti.Analysis.InnerProductSpace.SquaredDistance
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -76,6 +77,18 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.modelDbar_smul`: the model `∂̄` is additive and commutes with complex
   scalars; `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a complex
   coordinate vanishes.
+* `SymplecticGeometry.conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`,
+  `SymplecticGeometry.wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`: read through the
+  real isometry `e = TauCeti.complexToRealEuclideanIsometry ι : ℂⁿ → StdSpace ι`, which carries
+  multiplication by `i` to `J₀`, the flat `∂̄` of `f` and the complex-linear part of `df` for `J₀`
+  are Tau Ceti's Wirtinger derivatives `TauCeti.conjWirtingerDeriv` and `TauCeti.wirtingerDeriv`
+  of `f ∘ e`. Their norms agree
+  (`SymplecticGeometry.norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry`,
+  `SymplecticGeometry.norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry`), and so do those
+  of the derivatives of `f ∘ e` and `f`
+  (`SymplecticGeometry.norm_fderiv_comp_complexToRealEuclideanIsometry`) and of the derivatives of
+  the two `∂̄` in a fixed direction
+  (`SymplecticGeometry.norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`).
 * `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
   for the model `∂̄`, and its form for a product with a complex coordinate.
 * `SymplecticGeometry.modelDbar_gaussian`, `SymplecticGeometry.modelDbar_coord_mul_gaussian`: the
@@ -496,6 +509,113 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
     (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero
       (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
   simp
+
+/-! ### The flat operators against the Wirtinger derivatives
+
+Read through the real isometry `e = complexToRealEuclideanIsometry ι` from `ℂⁿ` to
+`StdSpace ι`, which carries multiplication by `i` to `J₀`, a function `f` on `StdSpace ι` becomes
+the function `f ∘ e` on `EuclideanSpace ℂ ι`, and its flat `∂̄` and complex-linear part for `J₀`
+become Tau Ceti's Wirtinger derivatives of `f ∘ e`, with the same norms. -/
+
+section Wirtinger
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- The derivative of `f ∘ e`, for the isometry `e = complexToRealEuclideanIsometry ι`, is the
+derivative of `f` at `e u` composed with `e`. -/
+theorem fderiv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → F) (u : EuclideanSpace ℂ ι) :
+    fderiv ℝ (f ∘ complexToRealEuclideanIsometry ι) u =
+      fderiv ℝ f (complexToRealEuclideanIsometry ι u) ∘L
+        ((complexToRealEuclideanIsometry ι).toContinuousLinearEquiv :
+          EuclideanSpace ℂ ι →L[ℝ] StdSpace ι) :=
+  (complexToRealEuclideanIsometry ι).toContinuousLinearEquiv.comp_right_fderiv
+
+/-- The derivative of `f ∘ e`, for the isometry `e = complexToRealEuclideanIsometry ι`, has the
+norm of the derivative of `f` at `e u`. -/
+theorem norm_fderiv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → F)
+    (u : EuclideanSpace ℂ ι) :
+    ‖fderiv ℝ (f ∘ complexToRealEuclideanIsometry ι) u‖ =
+      ‖fderiv ℝ f (complexToRealEuclideanIsometry ι u)‖ := by
+  rw [fderiv_comp_complexToRealEuclideanIsometry]
+  exact (fderiv ℝ f _).opNorm_comp_linearIsometryEquiv _
+
+/-- **The flat `∂̄` is the conjugate Wirtinger derivative**: for the isometry
+`e = complexToRealEuclideanIsometry ι`, the conjugate Wirtinger derivative of `f ∘ e` at `u`,
+applied to `v`, is the flat `∂̄` of `f` at `e u`, applied to `e v`. -/
+theorem conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply (f : StdSpace ι → ℂ)
+    (u v : EuclideanSpace ℂ ι) :
+    conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u v =
+      flatDbar f (complexToRealEuclideanIsometry ι u) (complexToRealEuclideanIsometry ι v) := by
+  rw [conjWirtingerDeriv_apply, flatDbar_apply, fderiv_comp_complexToRealEuclideanIsometry,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
+    stdComplexStructure_complexToRealEuclideanIsometry]
+  simp [Complex.real_smul, mul_add]
+
+/-- For the isometry `e = complexToRealEuclideanIsometry ι`, the conjugate Wirtinger derivative
+of `f ∘ e` at `u` has the norm of the flat `∂̄` of `f` at `e u`. -/
+theorem norm_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → ℂ)
+    (u : EuclideanSpace ℂ ι) :
+    ‖conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u‖ =
+      ‖flatDbar f (complexToRealEuclideanIsometry ι u)‖ := by
+  have h : ContinuousLinearMap.restrictScalarsₛₗLI
+      (conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u) =
+      flatDbar f (complexToRealEuclideanIsometry ι u) ∘L
+        ((complexToRealEuclideanIsometry ι).toContinuousLinearEquiv :
+          EuclideanSpace ℂ ι →L[ℝ] StdSpace ι) := by
+    ext v
+    simp [ContinuousLinearMap.restrictScalarsₛₗLI_apply,
+      conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+  rw [← ContinuousLinearMap.restrictScalarsₛₗLI.norm_map, h]
+  exact (flatDbar f _).opNorm_comp_linearIsometryEquiv _
+
+/-- For the isometry `e = complexToRealEuclideanIsometry ι` and a direction `b`, the derivative
+at `u` of `y ↦ ∂̄(f ∘ e)(y) b`, the conjugate Wirtinger derivative, has the norm of the
+derivative at `e u` of `z ↦ flatDbar f z (e b)`. -/
+theorem norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply
+    (f : StdSpace ι → ℂ) (u b : EuclideanSpace ℂ ι) :
+    ‖fderiv ℝ (fun y ↦ conjWirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) y b) u‖ =
+      ‖fderiv ℝ (fun z ↦ flatDbar f z (complexToRealEuclideanIsometry ι b))
+        (complexToRealEuclideanIsometry ι u)‖ := by
+  simp_rw [conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+  exact norm_fderiv_comp_complexToRealEuclideanIsometry
+    (fun z ↦ flatDbar f z (complexToRealEuclideanIsometry ι b)) u
+
+/-- **The complex-linear part for `J₀` is the Wirtinger derivative**: for the isometry
+`e = complexToRealEuclideanIsometry ι`, the Wirtinger derivative of `f ∘ e` at `u`, applied to
+`v`, is the complex-linear part `TauCeti.complexLinearPart`, for `J₀` and multiplication by `i`,
+of `df` at `e u`, applied to `e v`. -/
+theorem wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply (f : StdSpace ι → ℂ)
+    (u v : EuclideanSpace ℂ ι) :
+    wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u v =
+      complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ)
+        (complexToRealEuclideanIsometry ι v) := by
+  rw [wirtingerDeriv_apply, complexLinearPart_apply, fderiv_comp_complexToRealEuclideanIsometry,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
+  simp [AlmostComplexStructure.ofComplexModule_apply, Complex.real_smul]
+
+/-- For the isometry `e = complexToRealEuclideanIsometry ι`, the Wirtinger derivative of `f ∘ e`
+at `u` has the norm of the complex-linear part, for `J₀` and multiplication by `i`, of `df` at
+`e u`. -/
+theorem norm_wirtingerDeriv_comp_complexToRealEuclideanIsometry (f : StdSpace ι → ℂ)
+    (u : EuclideanSpace ℂ ι) :
+    ‖wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u‖ =
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ))‖ := by
+  have h : (wirtingerDeriv (f ∘ complexToRealEuclideanIsometry ι) u).restrictScalars ℝ =
+      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f (complexToRealEuclideanIsometry ι u) : StdSpace ι →ₗ[ℝ] ℂ)) ∘L
+        ((complexToRealEuclideanIsometry ι).toContinuousLinearEquiv :
+          EuclideanSpace ℂ ι →L[ℝ] StdSpace ι) := by
+    ext v
+    simp [wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply]
+  rw [← (wirtingerDeriv _ u).norm_restrictScalars (𝕜' := ℝ), h]
+  exact ContinuousLinearMap.opNorm_comp_linearIsometryEquiv _ _
+
+end Wirtinger
 
 /-- The **model `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: the model `∂̄`
 `SymplecticGeometry.modelDbarWith` for the constant structure `J₀ = stdComplexStructure ι`, that
