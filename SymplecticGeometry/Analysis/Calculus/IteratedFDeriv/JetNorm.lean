@@ -30,7 +30,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 * `SymplecticGeometry.norm_iteratedFDeriv_le_jetNormAt`: each derivative of order at most `r` is
   bounded in norm by the `r`-jet norm, and its cases `SymplecticGeometry.norm_le_jetNormAt` for the
   value and `SymplecticGeometry.norm_fderiv_le_jetNormAt` for the first derivative.
-* `SymplecticGeometry.continuous_jetNormAt`: the `r`-jet norm of a `C^r` function is continuous.
+* `SymplecticGeometry.continuous_jetNormAt`: the `r`-jet norm of a `C^r` function is continuous,
+  and so bounded on compact sets (`SymplecticGeometry.exists_jetNormAt_le_of_isCompact`).
 * `SymplecticGeometry.jetNormAt_zero`: the jet norm of order `0` is `‖f z‖`.
 * `SymplecticGeometry.jetNormAt_congr_of_eventuallyEq`: the jet norm at `z` depends only on the
   germ of the function at `z`.
@@ -145,6 +146,12 @@ theorem continuous_jetNormAt {r : ℕ} {f : E → F} (hf : ContDiff 𝕜 r f) :
   simp only [funext (jetNormAt_def 𝕜 r f)]
   exact continuous_finsetSum _ fun l hl ↦ (hf.continuous_iteratedFDeriv (by
     exact_mod_cast Finset.mem_range_succ_iff.mp hl)).norm
+
+/-- The `r`-jet norm of a `C^r` function is bounded on a compact set. -/
+theorem exists_jetNormAt_le_of_isCompact {r : ℕ} {f : E → F} (hf : ContDiff 𝕜 r f) {s : Set E}
+    (hs : IsCompact s) : ∃ A, ∀ z ∈ s, jetNormAt 𝕜 r f z ≤ A := by
+  obtain ⟨A, hA⟩ := hs.exists_bound_of_continuousOn (continuous_jetNormAt hf).continuousOn
+  exact ⟨A, fun z hz ↦ (le_abs_self _).trans (hA z hz)⟩
 
 /-- The jet norm of order `0` is the norm of the value. -/
 @[simp]
