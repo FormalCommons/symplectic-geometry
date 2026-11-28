@@ -483,21 +483,19 @@ theorem apply_flow_attachmentTime_le (hg : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ
   nlinarith [mul_le_mul_of_nonneg_left (hμ s) hT]
 
 /-- **The time change of the attachment moves `{g > 0}` above `b`.** Let `b` be a regular value
-of `f`, let `g` be differentiable with `dg(X) > 0` on `g ⁻¹' {0}` and `f < b` on `{g ≤ 0}`, and
-let `{g < 0}` contain `{f ≤ a}` and the stable sets of the critical points of `f` in
-`f ⁻¹' Icc a b`. Let the time from each point of `g ⁻¹' {0}` to `f ⁻¹' {b}` lie in `[0, T₀]`,
-and let `μ` be differentiable with `μ 0 = 1` and `-1 < T₀ * μ'`. Then, with
-`τ = hW.attachmentTime g b μ`, the point `Φ (τ x) x` lies in `{b < f}` for every `x` with
+of `f`, let `g` be differentiable with `dg(X) > 0` on `g ⁻¹' {0}` and `f < b` on `g ⁻¹' {0}`,
+and let `{g < 0}` contain `{f ≤ a}` and the stable sets of the critical points of `f` in
+`f ⁻¹' Icc a b`. Let `μ 0 = 1`, and let `τ = hW.attachmentTime g b μ` be differentiable with
+`0 < 1 + dτ(X)` everywhere. Then the point `Φ (τ x) x` lies in `{b < f}` for every `x` with
 `0 < g x`. -/
 theorem lt_apply_flow_attachmentTime {a : ℝ} (hb : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f b)
     (hg : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) g)
     (hgX : ∀ y, g y = 0 → 0 < mvfderiv 𝓘(ℝ, E) g y (X y))
     (hK : {x | f x ≤ a} ∪ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b, hW.flow.stableSet p ⊆
       {x | g x < 0})
-    (hgb : ∀ x, g x ≤ 0 → f x < b) {T₀ : ℝ}
-    (hT : ∀ y, g y = 0 → Flow.levelCrossingTime hW.flow f b y ∈ Icc 0 T₀)
-    (hμ : Differentiable ℝ μ) (hμ0 : μ 0 = 1) (hμT : ∀ s, -1 < T₀ * deriv μ s) {x : M}
-    (hx : 0 < g x) : b < f (hW.flow (hW.attachmentTime g b μ x) x) := by
+    (hgb : ∀ y, g y = 0 → f y < b) (hτ : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) (hW.attachmentTime g b μ))
+    (hpos : ∀ y, 0 < 1 + mvfderiv 𝓘(ℝ, E) (hW.attachmentTime g b μ) y (X y)) (hμ0 : μ 0 = 1)
+    {x : M} (hx : 0 < g x) : b < f (hW.flow (hW.attachmentTime g b μ x) x) := by
   have hf := hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp)
   by_cases h : ∃ t, g (hW.flow t x) = 0
   swap
@@ -524,21 +522,16 @@ theorem lt_apply_flow_attachmentTime {a : ℝ} (hb : IsRegularValue 𝓘(ℝ, E)
       rw [Flow.map_zero_apply, hy]
     · rw [Flow.map_zero_apply, hy] at hx
       exact hx.false
-  obtain ⟨hT0, hT₀⟩ := hT y hy
   set T := Flow.levelCrossingTime hW.flow f b y
-  -- The reparametrization `r ↦ T * μ r + r` of the orbit of `y` is strictly increasing and takes
-  -- the value `T` at `0`, so it is above `T` at `s`.
-  have hmono : StrictMono fun r ↦ T * μ r + r := by
-    refine strictMono_of_deriv_pos fun r ↦ ?_
-    have hd : HasDerivAt (fun r ↦ T * μ r + r) (T * deriv μ r + 1) r :=
-      ((hμ r).hasDerivAt.const_mul T).add (hasDerivAt_id' r)
-    rw [hd.deriv]
-    rcases le_total 0 (deriv μ r) with hμr | hμr
-    · nlinarith [hμT r]
-    · nlinarith [hμT r]
-  have hlt : T < T * μ s + s := by simpa [hμ0] using hmono hs
-  obtain ⟨t, -, hft⟩ := hW.exists_flow_apply_eq_upper hK hy (hgb y hy.le)
-  rw [hW.attachmentTime_flow_apply hg hgX hy, ← Flow.map_add]
+  -- The reparametrization `r ↦ r + τ (Φ r y) = r + T * μ r` of the orbit of `y` is strictly
+  -- increasing and takes the value `T` at `0`, so it is above `T` at `s`.
+  have hmono : StrictMono fun r ↦ r + T * μ r := by
+    have := strictMono_add_apply_globalFlow (hW.contMDiff_field.of_le (by simp))
+      hW.isCompleteVectorField hτ hpos y
+    simpa only [← hW.flow_def, hW.attachmentTime_flow_apply hg hgX hy] using this
+  have hlt : T < s + T * μ s := by simpa [hμ0] using hmono hs
+  obtain ⟨t, -, hft⟩ := hW.exists_flow_apply_eq_upper hK hy (hgb y hy)
+  rw [hW.attachmentTime_flow_apply hg hgX hy, ← Flow.map_add, add_comm]
   refine IsMIntegralCurve.lt_apply_of_le_apply (hW.isMIntegralCurve_flow y)
     (hf.continuous.comp (hW.isMIntegralCurve_flow y).continuous)
     (fun t ht ↦ ⟨hf _, hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb ht⟩) ?_ hlt
@@ -604,8 +597,8 @@ theorem exists_diffeomorph_image_sublevel_eq (hW : IsWeinsteinCobordism ω X f a
     obtain ⟨x, rfl⟩ : ∃ x, Ψ x = z := Ψ.surjective z
     rw [mem_ofPred_eq, hΨ] at hz
     refine ⟨x, mem_ofPred.2 (le_of_not_gt fun hx ↦ hz.not_gt ?_), rfl⟩
-    exact hS.lt_apply_flow_attachmentTime hW.isRegularValue_upper hgd hgX hK hgb hTI
-      (hμ.differentiable (by simp)) hμ0 hμT hx
+    exact hS.lt_apply_flow_attachmentTime hW.isRegularValue_upper hgd hgX hK
+      (fun y hy ↦ hgb y hy.le) (hτ.mdifferentiable (by simp)) hpos hμ0 hx
 
 end IsWeinsteinCobordism
 
