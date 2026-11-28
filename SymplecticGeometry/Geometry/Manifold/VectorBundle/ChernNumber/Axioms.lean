@@ -261,8 +261,7 @@ def refl (E : SymplecticSurfaceBundle S) : E.Iso E where
 /-- The inverse of an isomorphism. -/
 def symm (Φ : E.Iso E') : E'.Iso E where
   toFun x := (Φ.toFun x).symm
-  contMDiff := (TauCeti.contMDiff_hom_bundle_iff
-    fun x ↦ ((Φ.toFun x).symm : E'.V x →L[ℝ] E.V x)).1 (contMDiff_hom_bundle_symm _ Φ.contMDiff)
+  contMDiff := TauCeti.contMDiff_bundle_symm _ Φ.contMDiff
   pushforward_eq := (ContMDiffTwoForm.pushforward_eq_iff _ _).2 fun x v w ↦ by
     rw [← Φ.bilinFormAt_apply, ContinuousLinearEquiv.apply_symm_apply,
       ContinuousLinearEquiv.apply_symm_apply]
