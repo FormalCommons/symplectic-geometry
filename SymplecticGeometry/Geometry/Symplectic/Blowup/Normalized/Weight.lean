@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
+public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
+import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Volume
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -60,6 +62,11 @@ it is pulled back to `σ` along `ψ̃ ∘ π⁻¹ ∘ F_h⁻¹ ∘ ψ⁻¹`, sin
   the diffeomorphism on the two pieces.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isSymplectomorphism_normalizedBlowupSymplectomorph`:
   it is a symplectomorphism from `ω̃_{ψ,l,ε}` to `ω̃_ψ` (McDuff–Salamon, Theorem 7.1.21 (ii)).
+* `SymplecticGeometry.IsNormalizedBallEmbedding.liouvilleMeasure_normalizedBlowupForm_add`: the
+  Liouville measure of the blowup for `ω̃_{ψ,l,ε}` is that of `M` for `σ` minus the volume of
+  `B(l)`, by `SymplecticGeometry.WeightBlowup.liouvilleMeasure_form_add` through the
+  symplectomorphism, which preserves Liouville measure
+  (`Homeomorph.measurePreserving_liouvilleMeasure`).
 
 ## Implementation notes
 
@@ -78,7 +85,7 @@ public section
 
 noncomputable section
 
-open Set Metric Topology
+open Set Metric Topology MeasureTheory Module
 open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
@@ -867,6 +874,31 @@ theorem isSymplectomorphism_normalizedBlowupSymplectomorph :
     exact (WeightBlowup.eq_form_iff _ _ _).2 ⟨hψ.mpullback_inl_weightBlowupDiffeomorph hh hε' hε'ε,
       hψ.mpullback_inr_weightBlowupDiffeomorph hh hε' hε'ε⟩
   exact hΘ.symm (by simp)
+
+include hh in
+/-- **Blowing up removes the volume of a ball.** Let `M` be Hausdorff and second countable, of
+real dimension `2 * m`, and `ψ` a normalized ball embedding of weight `l` and width `ε`. For every
+profile `h` of the blowup, the Liouville measure of the whole blowup for `ω̃_{ψ,l,ε}`, plus the
+volume of the closed ball `B(l)`, is the Liouville measure of `M` for `σ`. -/
+theorem liouvilleMeasure_normalizedBlowupForm_add {m : ℕ}
+    [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)] [SecondCountableTopology M]
+    [MeasurableSpace M] [BorelSpace M] [MeasurableSpace (Blowup hN.blowupChart)]
+    [BorelSpace (Blowup hN.blowupChart)] :
+    (hψ.normalizedBlowupForm h).liouvilleMeasure m univ +
+        volume (closedBall (0 : StdSpace (Fin (n + 1))) l) =
+      σ.liouvilleMeasure m univ := by
+  set Φ := hψ.normalizedBlowupSymplectomorph hh hψ.width_pos le_rfl
+  have hΦ : mpullback _ _ Φ (WeightBlowup.form _ hψ.weight_pos.le hψ.width_pos).val =
+      (hψ.normalizedBlowupForm h).val := by
+    rw [← SmoothForm.coe_mpullback _ Φ.contMDiff,
+      SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1
+        (hψ.isSymplectomorphism_normalizedBlowupSymplectomorph hh hψ.width_pos le_rfl)]
+  borelize (WeightBlowup (hψ.isSymplecticBallEmbedding_sqrt hψ.width_pos le_rfl)
+    hψ.weight_pos.le hψ.width_pos)
+  rw [← WeightBlowup.liouvilleMeasure_form_add (hψ.isSymplecticBallEmbedding_sqrt hψ.width_pos
+      le_rfl) hψ.weight_pos.le hψ.width_pos,
+    ← (Φ.toHomeomorph.measurePreserving_liouvilleMeasure (Φ.mdifferentiable (by simp))
+      hΦ).measure_preimage nullMeasurableSet_univ, preimage_univ]
 
 end IsNormalizedBallEmbedding
 
