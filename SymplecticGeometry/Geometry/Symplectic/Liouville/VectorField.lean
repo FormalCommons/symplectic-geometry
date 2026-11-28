@@ -123,7 +123,7 @@ theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V
   -- The form, read in the model space, is the constant map `u ↦ σ (u 0) (u 1)`.
   set W : V → V [⋀^Fin 2]→L[ℝ] ℝ := σ.constSmooth.val
   have h (y : V) (u : Fin 2 → V) : W y u = σ (u 0) (u 1) := by
-    have hu : u = ![u 0, u 1] := by ext i; fin_cases i <;> rfl
+    have hu : u = ![u 0, u 1] := (FinVec.etaExpand_eq u).symm
     rw [hu]
     exact (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (σ.constSmooth_apply y (u 0) (u 1))
   have hc : W = fun _ ↦ W x := funext fun y ↦ by ext u; rw [h, h]

@@ -12,6 +12,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CoordRatio
 
 /-!
 # The line bundles `𝒪(k)` on the Riemann sphere as real vector bundles
@@ -35,9 +36,9 @@ degree `k`:
   by `χ / σ`, for a `C^n` real function `χ` and a `C^n` section `σ` of `𝒪(k)` that does not
   vanish on the closed support of `χ`, gives a `C^n` complex valued one-form.
 
-The proof of `OnePoint.mdifferentiableAt_div_twistCore` reads the quotient as the quotient of
-coordinates in a trivialization, as in the differentiability step of Tau Ceti's
-`TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul`.
+`OnePoint.mdifferentiableAt_div_twistCore` follows from the general
+`Bundle.Trivialization.mdifferentiableAt_coordRatio`: near the point, the quotient is the ratio
+of the two sections read in the trivialization `(twistCore k).localTriv x`.
 
 Files using the real structure `open scoped VectorBundle.ComplexToReal`.
 -/
@@ -108,16 +109,16 @@ theorem mdifferentiableAt_div_twistCore (k : ℤ) {s t : OnePoint ℂ → ℂ} {
       (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) x)
     (hx : t x ≠ 0) :
     MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ s p / t p) x := by
-  -- The coordinates of `s` and `t` in the trivialization at `x`.
-  have hxx : x ∈ ((twistCore (𝕜 := ℂ) k).localTriv x).baseSet := by simp
-  have hcs := ((twistCore (𝕜 := ℂ) k).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) s
-    hxx |>.1 hs
-  have hct := ((twistCore (𝕜 := ℂ) k).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
-    hxx |>.1 ht
-  simp only [twistCore_localTriv_apply] at hcs hct
-  -- Near `x` the quotient is the quotient of the coordinates.
-  refine (hcs.div hct (by rwa [twistTransition_self, one_mul])).congr_of_eventuallyEq ?_
+  set e := (twistCore (𝕜 := ℂ) k).localTriv x
+  -- `s` and `t` as sections of `𝒪(k)`, whose fibres are `ℂ`.
+  let s' : Π p, (twistCore (𝕜 := ℂ) k).Fiber p := s
+  let t' : Π p, (twistCore (𝕜 := ℂ) k).Fiber p := t
+  -- Near `x` the quotient is the ratio of `s` to `t` read in the trivialization at `x`.
+  refine (e.mdifferentiableAt_coordRatio (σ := t') (τ := s') (by simp [e]) ht hs
+    hx).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
+  have hb : p ∈ e.baseSet := by simpa [e] using hp
+  rw [e.coordRatio_eq_div_of_mem hb, twistCore_localTriv_apply, twistCore_localTriv_apply]
   exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
 
 open scoped TauCeti.ComplexManifold in
