@@ -14,7 +14,7 @@ import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.Surface
 
 /-!
-# The symplectic orientation of a negated two-form, and of a two-form on a surface
+# The symplectic orientation: negated forms, surfaces, and symplectomorphisms
 
 Let `σ` be a fiberwise nondegenerate smooth two-form on a manifold modelled on a real vector space
 of dimension `2 * n`. Then `-σ` is nondegenerate too, and its volume form `(-σ)ⁿ / n!` is
@@ -26,6 +26,9 @@ On a surface (`n = 1`) the volume form `σ¹ / 1!` is `σ` itself (Tau Ceti's
 two-form `σ` is the orientation `TauCeti.Manifold.Orientation.ofTopForm` on which
 `σ` is positive. For the volume form of the unit sphere of an oriented three-dimensional space,
 this is the outward-normal orientation.
+
+Finally, every diffeomorphism that preserves `σ` preserves its symplectic orientation, so a
+fibre bundle atlas whose coordinate changes are symplectic is oriented for it.
 
 ## Main results
 
@@ -46,6 +49,10 @@ this is the outward-normal orientation.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_iff_isPositive`,
   `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_iff_isPositive`: on a surface, an
   orientation is the symplectic orientation of `σ` exactly when `σ` is positive for it.
+* `TauCeti.SmoothForm.diffeomorphStabilizer_le_orientationPreservingSubgroup`: a diffeomorphism
+  preserving `σ` preserves the symplectic orientation of `σ`, from Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsNondegenerate.isOrientationPreservingAt_orientation` and
+  `volumeOrientation_eq_orientation`.
 * `Orientation.volumeOrientation_sphereVolumeForm`: the symplectic orientation of the volume form
   of the unit two-sphere is its outward-normal orientation.
 
@@ -148,6 +155,27 @@ theorem IsNondegenerate.orientation_eq_of_isPositive (h : σ.IsNondegenerate)
   (h.orientation_eq_iff_isPositive hE).2 ho
 
 end SmoothTwoForm
+
+namespace SmoothForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] {σ : SmoothTwoForm I M} {n : ℕ}
+
+/-- **Symplectomorphisms preserve the symplectic orientation.** Every smooth diffeomorphism that
+pulls a fiberwise nondegenerate two-form `σ` back to itself preserves the symplectic orientation
+`volumeOrientation` of `σ` at every point. This holds in every dimension `2 * n`, `n = 0`
+included. -/
+theorem diffeomorphStabilizer_le_orientationPreservingSubgroup (h : σ.IsNondegenerate)
+    (hn : finrank ℝ E = 2 * n) :
+    diffeomorphStabilizer σ ≤
+      Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) (h.volumeOrientation hn) :=
+  fun φ hφ ↦ Diffeomorph.mem_orientationPreservingSubgroup_iff.2 fun x ↦ by
+    rw [SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_orientation]
+    exact h.isOrientationPreservingAt_orientation hn h hn φ.contMDiff
+      (mem_diffeomorphStabilizer.1 hφ) x
+
+end SmoothForm
 
 end TauCeti
 

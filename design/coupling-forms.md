@@ -309,7 +309,7 @@ turn.
   `ContinuousAlternatingMap.wedgePow`:
   `ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero`: for a
   two-form `φ` and vectors `u : Fin 2 → E`, `w : Fin (2 * k) → E` with
-  `φ ![u i, w j] = 0` for all `i j`, the value of `φ.wedgePow (k + 1)` on
+  `φ ![u 0, w j] = 0` for all `j`, the value of `φ.wedgePow (k + 1)` on
   `Fin.append u w` (cast along `2 * (k + 1) = 2 + 2 * k`) is
   `(k + 1) * φ u * φ.wedgePow k w`. Only the shuffles that give both `u i`
   to one factor survive.

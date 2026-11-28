@@ -28,7 +28,7 @@ This file is to carry out holonomic approximation over all the cubes of a band c
 band and to a closed set of parameters, by working in the chart of each cube and carrying the
 results back to the manifold.
 
-For now it contains these steps, shared by the smooth and the continuous form.
+It contains these steps, shared by the smooth and the continuous form.
 
 * The cubes are pairwise disjoint compact sets, so, in a Hausdorff manifold, small closed
   thickenings of the unit cubes in the charts still have pairwise disjoint images
@@ -66,6 +66,12 @@ For now it contains these steps, shared by the smooth and the continuous form.
   `TauCeti.mpullback_symm_mextDerivₗ` for the exterior derivative, and nondegeneracy carries back
   to `M` by `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`, since
   the chart is a local diffeomorphism (`BandCore.isLocalDiffeomorph_chart`).
+* `BandCore.exists_stageData_of_cubes` puts these steps together. From one diffeotopy, one
+  correction and one open set of nondegenerate readings per cube, of the shape that holonomic
+  approximation in each chart returns, it gives the diffeotopy `Φ`, the one-forms `B'` and the
+  open sets `N₁` and `U` that `exists_stagePath` (`Relative/StagePath.lean`) asks for. On `N₁`
+  the readings of `B'` and `B` agree, which gives `B' = B` there by
+  `TauCeti.mpullback_apply_eq_mpullback_apply_iff`, since the chart is a local diffeomorphism.
 
 ## Main declarations
 
@@ -81,6 +87,9 @@ For now it contains these steps, shared by the smooth and the continuous form.
 * `SymplecticGeometry.BandCore.exists_isOpen_nondegenerate_of_cubes`: the open set `U` of
   parameters and points at which the segments of two-forms towards the corrected forms stay
   nondegenerate.
+* `SymplecticGeometry.BandCore.exists_stageData_of_cubes`: from per-cube data of the shape that
+  holonomic approximation returns, the diffeotopy, the corrected one-forms and the open sets
+  `N₁` and `U` that `exists_stagePath` needs.
 
 ## References
 
@@ -444,6 +453,148 @@ theorem exists_isOpen_nondegenerate_of_cubes (c : BandCore I g a₀ a b) {Λ S :
       (by rw [SmoothForm.coe_mpullback])).2 ?_
     rw [hbil, hkey]
     exact hVnd i (l, z) hV' hl hz r hr
+
+open TauCeti in
+/-- **Carrying the cube data of a band core back to the manifold.** Let `c` be a band core in a
+Hausdorff manifold `M`, `N` an open set containing `{g ≤ a}`, `S` a normed space, `s : Λ → S`,
+`K P₀ ⊆ Λ`, `τ α : Λ → SmoothTwoForm I M` with `τ l` nondegenerate for `l ∈ K`, and `B` a smooth
+family over `S` of one-forms on `M` with `τ l = α l + d (B (s l))` on `N`. Let `Q` be the unit
+cube `closedBall 0 1 ×ˢ {0}` in the domain `D i` of `c.chart i`, and let `0 < δ ≤ δ' ≤ 1 / 2`
+with the images under the charts of the closed `δ'`-thickenings of `Q` pairwise disjoint
+(`BandCore.exists_pairwise_disjoint_image_cthickening`). For each cube `i` let
+
+* `h i` be a diffeotopy of `S × D i` that keeps the parameter and moves points by less than `δ`,
+  and `corr i : S × D i → D i [⋀^Fin 1]→L[ℝ] ℝ` be smooth;
+* `C i ⊆ S × D i` be compact, with its points over the open `δ`-thickening of `Q`, such that off
+  `C i` the diffeotopy `h i` is the identity and `corr i` vanishes;
+* `R i` be a set of core coordinates such that the chart sends each point `z` of the open
+  `δ`-thickening of `Q` with `z.1 ∉ R i` above `a` (item 3 of `exists_relativeSet`), and `N' i`
+  a neighbourhood of `R i` over which `h i` is the identity and `corr i` vanishes;
+* over `s l`, for `l ∈ P₀`, `h i` be the identity and `corr i` vanish;
+* `V i ⊆ Λ × D i` be open, containing `(l, (h i (1, (s l, y))).2)` for `l ∈ K` and `y ∈ Q`, such
+  that at its points `(l, z)` with `l ∈ K` and `z` in `ball 0 2` and in the open
+  `δ'`-thickening of `Q`, for every `r ∈ [0, 1]`, the reading at `z` of
+  `τ l + r • (α l + d (B (s l)) - τ l)` plus `r • d (corr i (s l, ·)) z` is nondegenerate.
+
+Then there are a smooth `Φ : (S × [0, 1]) × M → M`, a smooth family `B'` over `S` of one-forms on
+`M`, an open `N₁ ⊆ M` and an open `U ⊆ Λ × M` such that
+
+* each slice `x ↦ Φ (p, x)` is a diffeomorphism of `M`, so a local diffeomorphism, and
+  `Φ ((q, 0), x) = x`;
+* `{g ≤ a} ⊆ N₁ ⊆ N`, and on `N₁` every slice of `Φ` is the identity and `B' q = B q`;
+* for `l ∈ P₀`, `Φ ((s l, t), x) = x` and `B' (s l) = B (s l)`;
+* `K ×ˢ N₁ ⊆ U`, `(l, Φ ((s l, 1), y)) ∈ U` for `l ∈ K` and `y` in the cubes of `c`, and at each
+  `(l, y) ∈ U` with `l ∈ K` every `τ l + r • (α l + d (B' (s l)) - τ l)`, `r ∈ [0, 1]`, is
+  nondegenerate at `y`.
+
+These are the hypotheses of `exists_stagePath` on `Φ`, `B'`, `N₁` and `U`. -/
+theorem exists_stageData_of_cubes (c : BandCore I g a₀ a b) {N : Set M} (hN : IsOpen N)
+    (haN : {x | g x ≤ a} ⊆ N) {Λ S : Type*} [TopologicalSpace Λ] [NormedAddCommGroup S]
+    [NormedSpace ℝ S] {K P₀ : Set Λ} {s : Λ → S} {τ α : Λ → SmoothTwoForm I M}
+    (hnd : ∀ l ∈ K, (τ l).IsNondegenerate) {B : S → SmoothForm I M ℝ 1}
+    (hB : IsSmoothFamily 𝓘(ℝ, S) B)
+    (hτN : ∀ l, ∀ x ∈ N, (τ l).val x = (α l + mextDerivₗ I 1 (B (s l))).val x)
+    {δ δ' : ℝ} (hδδ' : δ ≤ δ') (hδ'2 : δ' ≤ 1 / 2)
+    (hδ' : Pairwise fun i j ↦
+      Disjoint (c.chart i '' cthickening δ' (closedBall 0 1 ×ˢ {0}))
+        (c.chart j '' cthickening δ' (closedBall 0 1 ×ˢ {0})))
+    (h : ∀ i, TauCeti.Diffeotopy
+      (𝓘(ℝ, S).prod 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))) ∞
+      (S × ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))))
+    (hfst : ∀ i t p, (h i (t, p)).1 = p.1) (hdist : ∀ i t p, dist (h i (t, p)) p < δ)
+    {corr : ∀ i, S × ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) →
+      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ}
+    (hcorr : ∀ i, ContDiff ℝ ∞ (corr i))
+    {C : ∀ i, Set (S × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))}
+    (hC : ∀ i, IsCompact (C i))
+    (hCδ : ∀ i, ∀ p ∈ C i, p.2 ∈ thickening δ (closedBall 0 1 ×ˢ {0}))
+    (hCfix : ∀ i, ∀ p ∉ C i, (∀ t, h i (t, p) = p) ∧ corr i p = 0)
+    {R N' : ∀ i, Set (Fin (c.dim i) → ℝ)}
+    (hR : ∀ i, ∀ z ∈ thickening δ (closedBall 0 1 ×ˢ {0}), z.1 ∉ R i → a < g (c.chart i z))
+    (hRN' : ∀ i, N' i ∈ 𝓝ˢ (R i))
+    (hN'fix : ∀ i p, p.2.1 ∈ N' i → (∀ t, h i (t, p) = p) ∧ corr i p = 0)
+    (hP₀fix : ∀ i, ∀ l ∈ P₀, ∀ z, (∀ t, h i (t, (s l, z)) = (s l, z)) ∧ corr i (s l, z) = 0)
+    {V : ∀ i, Set (Λ × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))}
+    (hV : ∀ i, IsOpen (V i))
+    (hQV : ∀ i, ∀ l ∈ K, ∀ y ∈ closedBall 0 1 ×ˢ {0}, (l, (h i (1, (s l, y))).2) ∈ V i)
+    (hVnd : ∀ i, ∀ p ∈ V i, p.1 ∈ K →
+      p.2 ∈ thickening δ' (closedBall 0 1 ×ˢ {0}) ∩ ball 0 2 → ∀ r ∈ Icc (0 : ℝ) 1,
+      (MultilinearMap.toBilinMap (@HAdd.hAdd
+        (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ)
+        (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) _ _
+        (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+          (c.chart i) (τ p.1 + r • (α p.1 + mextDerivₗ I 1 (B (s p.1)) - τ p.1)).val p.2)
+        (r • extDeriv (fun z ↦ corr i (s p.1, z)) p.2)).toMultilinearMap).Nondegenerate) :
+    ∃ (Φ : (S × unitInterval) × M → M) (B' : S → SmoothForm I M ℝ 1) (N₁ : Set M)
+      (U : Set (Λ × M)),
+      ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ Φ ∧
+      (∀ p, ∃ f : M ≃ₘ⟮I, I⟯ M, ∀ x, f x = Φ (p, x)) ∧
+      (∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ Φ (p, x)) ∧ (∀ q x, Φ ((q, 0), x) = x) ∧
+      IsSmoothFamily 𝓘(ℝ, S) B' ∧
+      IsOpen N₁ ∧ {x | g x ≤ a} ⊆ N₁ ∧ N₁ ⊆ N ∧ (∀ p, ∀ x ∈ N₁, Φ (p, x) = x) ∧
+      (∀ q, ∀ x ∈ N₁, (B' q).val x = (B q).val x) ∧
+      (∀ l ∈ P₀, ∀ t x, Φ ((s l, t), x) = x) ∧ (∀ l ∈ P₀, B' (s l) = B (s l)) ∧
+      IsOpen U ∧ K ×ˢ N₁ ⊆ U ∧ (∀ l ∈ K, ∀ y ∈ c.cubes, (l, Φ ((s l, 1), y)) ∈ U) ∧
+      ∀ p ∈ U, p.1 ∈ K → ∀ r ∈ Icc (0 : ℝ) 1,
+        ((τ p.1 + r • (α p.1 + mextDerivₗ I 1 (B' (s p.1)) - τ p.1)).bilinFormAt
+          p.2).Nondegenerate := by
+  -- Step 1: the space parts of the `C i` lie in the closed `δ'`-thickenings of the cubes.
+  have hCsnd (i : c.ι) : IsCompact (Prod.snd '' C i) := (hC i).image continuous_snd
+  have hCW (i : c.ι) : Prod.snd '' C i ⊆ cthickening δ' (closedBall 0 1 ×ˢ {0}) := by
+    rintro _ ⟨p, hp, rfl⟩
+    exact thickening_subset_cthickening _ _ (thickening_mono hδδ' _ (hCδ i p hp))
+  have hnotC (i : c.ι) {q : S} {z} (hz : z ∉ Prod.snd '' C i) : (q, z) ∉ C i :=
+    fun hqz ↦ hz (mem_image_of_mem Prod.snd hqz)
+  -- Step 5: the diffeotopy and the corrected one-forms.
+  obtain ⟨Φ, hΦ, hΦf, hΦd, hΦ₀, hΦW, hΦoff, hΦq⟩ := c.exists_diffeotopy_of_cubes h hfst hCsnd
+    (fun i t p hp ↦ (hCfix i p (hnotC i (q := p.1) hp)).1 t) hCW hδ'
+  obtain ⟨B', hB', hB'off, hB'W, hB'q⟩ := c.exists_oneForm_of_cubes hB hcorr hCsnd
+    (fun i q z hz ↦ (hCfix i (q, z) (hnotC i hz)).2) hCW hδ'
+  -- Step 6: the open set `N₁`, over which the cube data are trivial.
+  obtain ⟨N₁, -, -, hN₁, haN₁, hN₁N, hN₁C⟩ :=
+    c.exists_isOpen_compl_image_chart_notMem_interior hN haN hC hCδ hR hRN'
+  have hfix (i : c.ι) (q : S) {z} (hz : c.chart i z ∈ N₁) :
+      (∀ t, h i (t, (q, z)) = (q, z)) ∧ corr i (q, z) = 0 := by
+    by_cases hqz : (q, z) ∈ C i
+    · exact hN'fix i (q, z) (interior_subset (hN₁C i (q, z) hqz hz))
+    · exact hCfix i (q, z) hqz
+  have hΦN₁ (p : S × unitInterval) (x : M) (hx : x ∈ N₁) : Φ (p, x) = x := by
+    by_cases hxC : x ∈ ⋃ i, c.chart i '' (Prod.snd '' C i)
+    · obtain ⟨i, z, hz, rfl⟩ := mem_iUnion.1 hxC
+      rw [hΦW i p.1 p.2 z (hCW i hz), (hfix i p.1 hx).1]
+    · exact hΦoff p x hxC
+  have hB'N₁ (q : S) (x : M) (hx : x ∈ N₁) : (B' q).val x = (B q).val x := by
+    by_cases hxC : x ∈ ⋃ i, c.chart i '' (Prod.snd '' C i)
+    · obtain ⟨i, z, hz, rfl⟩ := mem_iUnion.1 hxC
+      -- The readings of `B' q` and `B q` at `z` agree, and the chart is a local diffeomorphism.
+      refine (mpullback_apply_eq_mpullback_apply_iff
+        ((c.isLocalDiffeomorph_chart i z).isInvertible_mfderiv (by simp)).surjective).1 ?_
+      rw [← sub_eq_zero, hB'W i q z (hCW i hz), (hfix i q hx).2]
+      -- The zeros are of forms on the tangent space at `z` and on the model space, equal by
+      -- definition.
+      rfl
+    · exact hB'off q x hxC
+  -- Step 7: the open set `U`.
+  obtain ⟨U, -, hU, hKU, hVU, hUnd⟩ := c.exists_isOpen_nondegenerate_of_cubes hnd hτN hN₁ hN₁N
+    hB'N₁ hcorr (fun i q z hz ↦ hB'W i q z (thickening_subset_cthickening _ _ hz)) hV hVnd
+  refine ⟨Φ, B', N₁, U, hΦ, hΦf, hΦd, hΦ₀, hB', hN₁, haN₁, hN₁N, hΦN₁, hB'N₁,
+    fun l hl t x ↦ hΦq (s l) (fun i t z ↦ (hP₀fix i l hl z).1 t) t x,
+    fun l hl ↦ hB'q (s l) fun i z ↦ (hP₀fix i l hl z).2, hU, hKU, fun l hl y hy ↦ ?_, hUnd⟩
+  -- The displaced cube points: `h i` moves points of the cube by less than `δ ≤ δ' ≤ 1 / 2`.
+  obtain ⟨i, z, hz, rfl⟩ := c.mem_cubes_iff.1 hy
+  rw [hΦW i (s l) 1 z (self_subset_cthickening _ hz)]
+  have hd : dist (h i (1, (s l, z))).2 z < δ := by
+    have h₁ := hdist i 1 (s l, z)
+    rw [Prod.dist_eq] at h₁
+    exact (le_max_right _ _).trans_lt h₁
+  refine hVU i _ (hQV i l hl z hz) ⟨mem_thickening_iff.2 ⟨z, hz, hd.trans_le hδδ'⟩, ?_⟩
+  have hz1 : ‖z‖ ≤ 1 := by
+    rw [Prod.norm_def, (mem_singleton_iff.1 hz.2), norm_zero]
+    exact max_le (mem_closedBall_zero_iff.1 hz.1) zero_le_one
+  rw [mem_ball_zero_iff]
+  have := norm_le_norm_add_norm_sub' (h i (1, (s l, z))).2 z
+  rw [← dist_eq_norm] at this
+  linarith
 
 end BandCore
 

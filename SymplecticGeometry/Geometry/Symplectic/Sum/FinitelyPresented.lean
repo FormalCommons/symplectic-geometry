@@ -5,25 +5,38 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.GroupTheory.FinitelyPresentedGroup
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Boundaryless
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import SymplecticGeometry.Geometry.Symplectic.Sum.GraphTorus
 public import SymplecticGeometry.Topology.Homotopy.AddCircle
 public import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
+public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.AddCircle
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.BasepointChange
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.GeneralPosition
+import SymplecticGeometry.Geometry.Manifold.Instances.Surface.FundamentalGroup
 import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Orientation
 import SymplecticGeometry.Geometry.Manifold.NullSet
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.SmoothEmbedding
+import SymplecticGeometry.Geometry.Symplectic.Sum.FundamentalGroup
+import SymplecticGeometry.GroupTheory.FinitelyPresentedGroup
+import SymplecticGeometry.GroupTheory.Subgroup.NormalClosure
+import SymplecticGeometry.GroupTheory.SurfaceGroup.Quotient
 import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
-# Disjoint symplectic tori in `Σ × T` for finitely many loops
+# The realization of finitely presented groups
 
-This file prepares the realization of finitely presented groups as fundamental groups of closed
-symplectic four-manifolds. Let `Σ` be a Hausdorff manifold of dimension at least two, smooth and
+This file shows that a group with a finite presentation is, up to isomorphism, `π₁` of some
+compact, connected symplectic four-manifold without boundary
+(`exists_fundamentalGroup_mulEquiv`), by Gompf's construction: sum the product of a closed
+surface with the torus `T²` with copies of the rational elliptic surface along disjoint
+symplectic tori. Most of the file builds those tori and computes the effect of the sums on `π₁`.
+
+Let `Σ` be a Hausdorff manifold of dimension at least two, smooth and
 without boundary, such as the closed surface of genus `g`
 (`SymplecticGeometry.ClosedSurface g`), and let `T = ∀ j : ι ⊕ ι, AddCircle (p j)` be the
 standard torus with one of its coordinates `i`. For finitely many based loops `γ k` at `x` in `Σ`,
@@ -82,6 +95,20 @@ their disjointness all move along the identity of the points
 (`SymplecticGeometry.ProdTorusOnModel.diffeomorph`), and the copy keeps the compactness,
 connectedness and separation of `Σ × T`.
 
+The milestone assembles these pieces. Write `G` as the group presented by `g` letters and words
+`w j` (`Group.IsFinitelyPresented.exists_one_le_mulEquiv_presentedGroup`). Through
+`ClosedSurface.fundamentalGroupMulEquiv g`, choose loops on the closed surface `F` of genus `g`
+for the generators `b k` of the surface group and for the words `w j` read in its generators
+`a k`; modulo their normal closure, `π₁(F)` is `G`
+(`TauCeti.SurfaceGroup.Orientable.quotientEquivPresentedGroup`). Their graph tori and a fibre
+torus, moved to the model `EuclideanSpace ℝ (Fin 4)`, are disjoint framed symplectic tori in
+`F × T²`. Summing with a copy of the rational elliptic surface along each of them
+(`exists_fundamentalGroup_mulEquiv_quotient_tori`, in `Sum/FundamentalGroup.lean`) gives
+`π₁(F × T²)` modulo the normal closure of their images, which `graphTorusQuotientMulEquiv`
+identifies with `G`.
+The normal closures in `F × T²` and in its copy on the model correspond
+(`SymplecticGeometry.ProdTorusOnModel.map_normalClosure_basepointChangeSubgroup_graphTorus`).
+
 ## Main definitions
 
 * `SymplecticGeometry.ProdTorusOnModel I M p L`: the product `M × T`, charted on `V`.
@@ -108,6 +135,11 @@ connectedness and separation of `Σ × T`.
   `ProdTorusOnModel I M p L` pull its form back to `ω_T`.
 * `SymplecticGeometry.ProdTorusOnModel.disjoint_range_graphTorus_iff`: they are disjoint exactly
   when the graph tori in `M × T` are.
+* `SymplecticGeometry.ProdTorusOnModel.map_normalClosure_basepointChangeSubgroup_graphTorus`: the
+  isomorphism of `π₁` that `ProdTorusOnModel.diffeomorph` induces carries the normal closure of
+  the images of the graph tori in `M × T` onto that of the embedded tori.
+* `SymplecticGeometry.exists_fundamentalGroup_mulEquiv`: a group with a finite presentation is
+  isomorphic to `π₁` of a compact, connected, symplectic four-manifold without boundary.
 
 ## References
 
@@ -481,6 +513,41 @@ theorem nonempty_symplecticFraming_graphTorus [T2Space M] [SigmaCompactSpace M]
   exact ⟨Φ.transDiffeomorph (diffeomorph I L) (isNondegenerate_prodForm I L hσ)
     (mpullback_diffeomorph_prodForm I L σ) (finrank_complex_eq_finrank_sub L hE)⟩
 
+open FundamentalGroup in
+/-- The isomorphism `π₁(M × T, x) ≃* π₁(ProdTorusOnModel I M p L, x)` of the homeomorphism
+`ProdTorusOnModel.diffeomorph` maps the normal closure of the images of `π₁(T, 0)` under the
+graph tori of the `f k` in `M × T`, each brought to `x` along a path `ψ k`, onto the normal
+closure of their images under the embedded tori in `ProdTorusOnModel I M p L`, each brought to
+`x` along any path `ψ' k`. -/
+theorem map_normalClosure_basepointChangeSubgroup_graphTorus {κ : Type*}
+    {f : κ → AddCircle (p i) → M} (hf : ∀ k, ContMDiff 𝓘(ℝ) I ∞ (f k))
+    {x : M × ∀ j, AddCircle (p j)} (ψ : ∀ k, Path (SymplecticGeometry.graphTorus (hf k) 0) x)
+    (ψ' : ∀ k, Path (graphTorus I L (hf k) 0) ((diffeomorph I L).toHomeomorph x)) :
+    (Subgroup.normalClosure (⋃ k, (basepointChangeSubgroup (ψ k)
+        (map (SymplecticGeometry.graphTorus (hf k)).toContinuousMap 0).range :
+          Set (FundamentalGroup (M × ∀ j, AddCircle (p j)) x)))).map
+      (homeomorphMulEquiv (diffeomorph I L).toHomeomorph x).toMonoidHom =
+    Subgroup.normalClosure (⋃ k, (basepointChangeSubgroup (ψ' k)
+        (map (graphTorus I L (hf k)).toContinuousMap 0).range :
+          Set (FundamentalGroup (ProdTorusOnModel I M p L)
+            ((diffeomorph I L).toHomeomorph x)))) := by
+  have hD : (homeomorphMulEquiv (diffeomorph I L).toHomeomorph x).toMonoidHom =
+      map ((diffeomorph I L (M := M) (p := p)).toHomeomorph :
+        C(M × ∀ j, AddCircle (p j), ProdTorusOnModel I M p L)) x := by
+    ext q
+    rw [MulEquiv.coe_toMonoidHom, homeomorphMulEquiv_apply, mapOfEq_rfl]
+  have hk : ∀ k, (graphTorus I L (hf k)).toContinuousMap =
+      ((diffeomorph I L (M := M) (p := p)).toHomeomorph :
+        C(M × ∀ j, AddCircle (p j), ProdTorusOnModel I M p L)).comp
+        (SymplecticGeometry.graphTorus (hf k)).toContinuousMap := fun k ↦ by
+    ext t
+    simp
+  rw [hD, Subgroup.map_normalClosure _ _
+    (hD ▸ (homeomorphMulEquiv (diffeomorph I L).toHomeomorph x).surjective), eq_comm]
+  refine (Subgroup.normalClosure_iUnion_congr fun k ↦
+    normalClosure_basepointChangeSubgroup_range_eq_of_eq_comp _ _ (hk k) _ (ψ k)).trans ?_
+  simp only [Subgroup.coe_map, image_iUnion]
+
 end ProdTorusOnModel
 
 end OnModel
@@ -517,6 +584,105 @@ example [FiniteDimensional ℝ V] {i : ι ⊕ ι} {h : AddCircle (p i) → Close
     finrank_euclideanSpace_fin⟩
 
 end ClosedSurface
+
+/-! ### The realization of finitely presented groups -/
+
+section Realization
+
+open FundamentalGroup TauCeti.SurfaceGroup.Orientable
+
+/-- Let `γ k`, for `k : Fin g ⊕ Fin r`, be loops at the base point of the closed surface of
+genus `g` whose classes correspond, under `ClosedSurface.fundamentalGroupMulEquiv g`, to the
+generators `b k` and to the words `w j` read in the generators `a k`. Then `π₁` of the surface
+modulo the normal closure of the classes of the `γ k` is the group presented by `g` letters and
+the relators `w j`. -/
+private def closedSurfaceQuotientMulEquiv {g r : ℕ} (w : Fin r → FreeGroup (Fin g))
+    (γ : Fin g ⊕ Fin r → Path (ClosedSurface.basePoint g) (ClosedSurface.basePoint g))
+    (hγ : ∀ k, ClosedSurface.fundamentalGroupMulEquiv g (fromPath (.mk (γ k))) =
+      Sum.elim (b g 0) (fun j ↦ FreeGroup.lift (a g 0) (w j)) k) :
+    FundamentalGroup (ClosedSurface g) (ClosedSurface.basePoint g) ⧸
+        Subgroup.normalClosure (range fun k ↦ fromPath (.mk (γ k))) ≃*
+      PresentedGroup (range w) :=
+  (QuotientGroup.congr _ (bWordsNormalClosure w) (ClosedSurface.fundamentalGroupMulEquiv g) (by
+    rw [Subgroup.map_normalClosure _ _ (ClosedSurface.fundamentalGroupMulEquiv g).surjective,
+      bWordsNormalClosure_def, ← range_comp, ← Set.Sum.elim_range]
+    exact congrArg _ (congrArg range (funext hγ)))).trans (quotientEquivPresentedGroup w)
+
+/-- **Gompf's realization of finitely presented groups.** Every finitely presented group `G` is
+isomorphic to the fundamental group, at any base point, of a compact, connected, Hausdorff
+symplectic manifold `M` of real dimension four, smooth and without boundary.
+
+Milestone: *Gompf's realization of finitely presented groups*. -/
+theorem exists_fundamentalGroup_mulEquiv (G : Type*) [Group G] [Group.IsFinitelyPresented G] :
+    ∃ (M : Type) (_ : TopologicalSpace M) (_ : ChartedSpace (EuclideanSpace ℝ (Fin 4)) M)
+      (_ : IsManifold (𝓡 4) ∞ M), T2Space M ∧ CompactSpace M ∧ ConnectedSpace M ∧
+      (∃ τ : SmoothTwoForm (𝓡 4) M, τ.IsSymplectic) ∧
+      ∀ y : M, Nonempty (G ≃* FundamentalGroup M y) := by
+  obtain ⟨g, r, -, w, ⟨eG⟩⟩ := Group.IsFinitelyPresented.exists_one_le_mulEquiv_presentedGroup G
+  -- Loops on the surface realizing the generators `b k` and the relators `w j`.
+  let γ : Fin g ⊕ Fin r → Path (ClosedSurface.basePoint g) (ClosedSurface.basePoint g) :=
+    fun k ↦ Quotient.out (toPath ((ClosedSurface.fundamentalGroupMulEquiv g).symm
+      (Sum.elim (b g 0) (fun j ↦ FreeGroup.lift (a g 0) (w j)) k)))
+  have hγ : ∀ k, ClosedSurface.fundamentalGroupMulEquiv g (fromPath (.mk (γ k))) =
+      Sum.elim (b g 0) (fun j ↦ FreeGroup.lift (a g 0) (w j)) k := fun k ↦ by simp [γ]
+  -- Their graph tori in `F × T²`, in general position, and a fibre torus missing them.
+  obtain ⟨p, hp⟩ : ∃ p : Unit ⊕ Unit → ℝ, ∀ i, 0 < p i := ⟨fun _ ↦ 1, fun _ ↦ one_pos⟩
+  have : ∀ i, Fact (0 < p i) := fun i ↦ ⟨hp i⟩
+  obtain ⟨h, hh, z, -, hN, hdisj, hz⟩ := exists_graphTorus_family (I := 𝓡 2) (p := p)
+    (i := .inl ()) (by simp) γ
+  obtain ⟨σ, hσ⟩ := ClosedSurface.exists_isSymplectic g
+  -- The circle maps, with the constant map at `z` for the fibre torus.
+  let hO : Option (Fin g ⊕ Fin r) → AddCircle (p (.inl ())) → ClosedSurface g :=
+    fun o ↦ o.elim (fun _ ↦ z) fun k ↦ h k
+  have hhO : ∀ o, ContMDiff 𝓘(ℝ) (𝓡 2) ∞ (hO o) := by
+    rintro (_ | k)
+    exacts [contMDiff_const, hh k]
+  -- `F × T²` on the model of the rational elliptic surface.
+  let L : (EuclideanSpace ℝ (Fin 2) × (Unit ⊕ Unit → ℝ)) ≃L[ℝ] EuclideanSpace ℝ (Fin 4) :=
+    ContinuousLinearEquiv.ofFinrankEq (by simp [Module.finrank_prod])
+  let e : (Fin 2 → ℂ) ≃L[ℝ] EuclideanSpace ℝ (Fin 4) :=
+    ContinuousLinearEquiv.ofFinrankEq (by simp [Module.finrank_pi_fintype])
+  let ι := fun o ↦ ProdTorusOnModel.graphTorus (𝓡 2) L (hhO o)
+  have hι : ∀ o, (ProdTorusOnModel.isSymplectic_prodForm (p := p) (𝓡 2) L
+      hσ).isNondegenerate.HasSymplecticTangentImages
+        (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (ι o) := fun o ↦
+    ProdTorusOnModel.hasSymplecticTangentImages_graphTorus _ _ hσ.isNondegenerate (hhO o)
+  let Φ : ∀ o, SymplecticFraming (hι o)
+      (ProdTorusOnModel.finrank_complex_eq_finrank_sub L finrank_euclideanSpace_fin) := fun o ↦
+    Classical.choice (ProdTorusOnModel.nonempty_symplecticFraming_graphTorus _ _
+      hσ.isNondegenerate (hhO o) finrank_euclideanSpace_fin)
+  have hdisjι : Pairwise fun o o' ↦ Disjoint (range (ι o)) (range (ι o')) := by
+    rintro (_ | k) (_ | l) hkl
+    · exact absurd rfl hkl
+    · exact ((ProdTorusOnModel.disjoint_range_graphTorus_iff _ _ _ _).2 (hz l)).symm
+    · exact (ProdTorusOnModel.disjoint_range_graphTorus_iff _ _ _ _).2 (hz k)
+    · exact (ProdTorusOnModel.disjoint_range_graphTorus_iff _ _ _ _).2
+        (hdisj fun hkl' ↦ hkl (congrArg some hkl'))
+  -- The sums with the rational elliptic surface.
+  obtain ⟨Y, _, _, _, hY₁, hY₂, hY₃, hY₄, hπ⟩ := exists_fundamentalGroup_mulEquiv_quotient_tori e p
+    _ (ProdTorusOnModel.isSymplectic_prodForm (p := p) (𝓡 2) L hσ) ι hι
+    (fun o ↦ ProdTorusOnModel.mpullback_graphTorus_prodForm _ _ _ σ) Φ hdisjι
+  refine ⟨Y, _, _, _, hY₁, hY₂, hY₃, hY₄, fun y ↦ ?_⟩
+  -- Compare the quotient of `π₁` of the model with that of `F × T²`.
+  let D := (ProdTorusOnModel.diffeomorph (𝓡 2) (M := ClosedSurface g) (p := p) L).toHomeomorph
+  let x₀ : ClosedSurface g × ∀ i, AddCircle (p i) := (ClosedSurface.basePoint g, 0)
+  have := ChartedSpace.locallyPathConnectedSpace (EuclideanSpace ℝ (Fin 4))
+    (ProdTorusOnModel (𝓡 2) (ClosedSurface g) p L)
+  have : PathConnectedSpace (ProdTorusOnModel (𝓡 2) (ClosedSurface g) p L) :=
+    pathConnectedSpace_iff_connectedSpace.2 inferInstance
+  have : PathConnectedSpace (ClosedSurface g × ∀ i, AddCircle (p i)) :=
+    D.symm.surjective.pathConnectedSpace D.symm.continuous
+  let ψ : ∀ o, Path (SymplecticGeometry.graphTorus (hhO o) 0) x₀ := fun o ↦
+    PathConnectedSpace.somePath _ _
+  obtain ⟨eY⟩ := hπ 0 (D x₀) y fun o ↦ PathConnectedSpace.somePath _ _
+  have hmap := ProdTorusOnModel.map_normalClosure_basepointChangeSubgroup_graphTorus (𝓡 2) L hhO
+    ψ fun o ↦ PathConnectedSpace.somePath (ι o 0) (D x₀)
+  rw [iUnion_option, union_comm] at hmap
+  exact ⟨(eG.trans ((closedSurfaceQuotientMulEquiv w γ hγ).symm.trans
+    ((graphTorusQuotientMulEquiv γ hh hN z (fun k ↦ ψ (some k)) (ψ none)).symm.trans
+      (QuotientGroup.congr _ _ (homeomorphMulEquiv D x₀) hmap)))).trans eY.symm⟩
+
+end Realization
 
 end SymplecticGeometry
 

@@ -33,7 +33,8 @@ import TauCeti.Geometry.Manifold.IntegralCurve.Regularity
 # The norm square of a moment map
 
 For a nondegenerate bilinear form `B` on the Lie algebra `𝔤` of `G` and a map
-`μ : M → 𝔤^*`, this file studies the norm square `f = SymplecticGeometry.momentNormSq B hB μ`,
+`μ : M → 𝔤^*`, this file studies the norm square
+`f = TauCeti.momentNormSq μ (B.toDual hB).symm`,
 `f y = B^∨ (μ y) (μ y)`.
 
 ## The gradient
@@ -43,7 +44,8 @@ action of `G` on `M` by fundamental vector fields, `J` is an almost complex stru
 the metric is `g(u, w) = σ(u, J w)`. For symmetric `B`, `SymplecticGeometry.mgradient_momentNormSq`
 computes the gradient of `f`.
 
-The gradient is computed from the derivative `SymplecticGeometry.mvfderiv_momentNormSq`, twice
+The gradient is computed from the derivative of the norm square of the moment map `-μ`
+(`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`, which is unchanged by the sign), twice
 that of the component `y ↦ μ y (μ♯ x)`, and the gradient `-J X_ξ` of the component `y ↦ μ y ξ`
 (`SymplecticGeometry.mgradient_moment_apply`), taken at `ξ = μ♯ x`. No `Ad`-invariance of `B`
 and no nondegeneracy of `σ` are used. With the norm square normalized as `½ ‖μ‖²` instead, the
@@ -243,14 +245,15 @@ theorem mgradient_momentNormSq
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
     (x : M) :
-    Manifold.mgradient I' (momentNormSq B hB μ) x =
+    Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) x =
       (-2 : ℝ) • J x (fundamentalVectorField I' (momentSharp B hB μ x) x) := by
-  have hd (ξ : GroupLieAlgebra I G) : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x :=
-    (hμ.contMDiff_of_neg ξ).mdifferentiableAt (by simp)
+  have hd := hμ.mvfderiv_momentNormSq (K := (B.toDual hB).symm)
+    (fun _ _ ↦ hBs.apply_toDual_symm_comm hB _ _) x
+  simp only [momentNormSq_neg', map_neg, LinearMap.neg_apply, neg_neg, LinearEquiv.coe_coe] at hd
   rw [neg_smul, ← smul_neg, ← mgradient_moment_apply hμ hg]
   refine ext_inner_right ℝ fun v ↦ ?_
-  rw [Manifold.inner_mgradient, mvfderiv_momentNormSq hBs hd, real_inner_smul_left,
-    Manifold.inner_mgradient, smul_apply, smul_eq_mul]
+  rw [Manifold.inner_mgradient, hd, real_inner_smul_left, Manifold.inner_mgradient, smul_apply,
+    smul_eq_mul, momentSharp_def]
 
 end Gradient
 
@@ -281,7 +284,7 @@ theorem mgradient_momentNormSq_eq_fundamentalVectorField (h : IsComplexifiedActi
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
     (x : M) :
-    Manifold.mgradient I' (momentNormSq B hB μ) x =
+    Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) x =
       fundamentalVectorField I' ((-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x))) x := by
   rw [mgradient_momentNormSq hμ hg hBs, fundamentalVectorField_smul, Pi.smul_apply,
     h.fundamentalVectorField_cplx_lieMap]
@@ -307,7 +310,7 @@ open scoped GroupLieAlgebra in
 Hausdorff Lie group `G` act smoothly on a manifold `M` without boundary, let `σ` be a closed
 nondegenerate `G`-invariant two-form on `M` with coadjoint-equivariant moment map `μ`, let `B` be
 a nondegenerate `Ad`-invariant bilinear form on `𝔤`, and give `M` a continuous Riemannian metric.
-Then near every point `p : M` the norm square `f = momentNormSq B hB μ` satisfies
+Then near every point `p : M` the norm square `f = momentNormSq μ (B.toDual hB).symm` satisfies
 `c * |f y - f p| ^ θ ≤ ‖grad f y‖` for some `θ ∈ [1/2, 1)` and `c > 0`. -/
 theorem exists_lojasiewicz_momentNormSq [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
     [IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x)] (hσc : σ.IsClosed)
@@ -318,8 +321,8 @@ theorem exists_lojasiewicz_momentNormSq [RiemannianBundle (fun x : M ↦ Tangent
     (hB : B.Nondegenerate)
     (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (p : M) :
     ∃ θ ∈ Ico (1 / 2 : ℝ) 1, ∃ c > 0, ∀ᶠ y in 𝓝 p,
-      c * |momentNormSq B hB μ y - momentNormSq B hB μ p| ^ θ ≤
-        ‖mgradient I' (momentNormSq B hB μ) y‖ := by
+      c * |momentNormSq μ (B.toDual hB).symm y - momentNormSq μ (B.toDual hB).symm p| ^ θ ≤
+        ‖mgradient I' (momentNormSq μ (B.toDual hB).symm) y‖ := by
   obtain ⟨d, e, P, hp, hP⟩ :=
     exists_partialDiffeomorph_momentNormSq_eq_eval hσc hσ hσG hμ hB hBG p
   obtain ⟨θ, hθ, c, hc, hL⟩ := P.exists_lojasiewicz_gradient (e p)
@@ -332,9 +335,10 @@ compact Hausdorff Lie group `G` act smoothly on a compact manifold `M` without b
 be a closed nondegenerate `G`-invariant two-form on `M` with coadjoint-equivariant moment map `μ`,
 let `B` be a nondegenerate `Ad`-invariant bilinear form on `𝔤`, and give `M` a `C¹` Riemannian
 metric. Then the maximal integral curve `γ` of `-grad f` through any `x`, for
-`f = momentNormSq B hB μ`, is defined for all `t ≥ 0` and converges as `t → ∞` to a point `p` at
-which `grad f` vanishes. Moreover, for some `θ ∈ [1/2, 1)` and `c > 0` and all large `t`, the
-Riemannian distance from `γ t` to `p` is at most `(f (γ t) - f p) ^ (1 - θ) / (c * (1 - θ))`. -/
+`f = momentNormSq μ (B.toDual hB).symm`, is defined for all `t ≥ 0` and converges as `t → ∞` to a
+point `p` at which `grad f` vanishes. Moreover, for some `θ ∈ [1/2, 1)` and `c > 0` and all large
+`t`, the Riemannian distance from `γ t` to `p` is at most
+`(f (γ t) - f p) ^ (1 - θ) / (c * (1 - θ))`. -/
 theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
     [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
     [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] (hσc : σ.IsClosed)
@@ -344,18 +348,20 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
     (hμ : σ.IsEquivariantMomentMap μ) {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
     (hB : B.Nondegenerate)
     (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (x : M) :
-    Ici 0 ⊆ maximalIntegralCurveInterval (-mgradient I' (momentNormSq B hB μ)) x ∧
-      ∃ p, mgradient I' (momentNormSq B hB μ) p = 0 ∧
-        Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x) atTop (𝓝 p) ∧
+    Ici 0 ⊆ maximalIntegralCurveInterval (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) x ∧
+      ∃ p, mgradient I' (momentNormSq μ (B.toDual hB).symm) p = 0 ∧
+        Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) x) atTop
+            (𝓝 p) ∧
         ∃ θ ∈ Ico (1 / 2 : ℝ) 1, ∃ c > 0, ∀ᶠ t in atTop,
-          riemannianEDist I' (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x t) p ≤
-            ENNReal.ofReal ((momentNormSq B hB μ
-              (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x t) -
-                momentNormSq B hB μ p) ^ (1 - θ) / (c * (1 - θ))) := by
+          riemannianEDist I'
+              (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) x t) p ≤
+            ENNReal.ofReal ((momentNormSq μ (B.toDual hB).symm
+              (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) x t) -
+                momentNormSq μ (B.toDual hB).symm p) ^ (1 - θ) / (c * (1 - θ))) := by
   have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    hμ.toIsMomentMap.contMDiff_momentNormSq_bilinForm.of_le (by norm_cast)
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
+    hμ.toIsMomentMap.contMDiff_momentNormSq.of_le (by norm_cast)
   have hL (q : M) := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG q
   -- The forward trajectory stays in the compact space `M`.
   obtain ⟨hx, p, hpc, hconv, hdist⟩ :=
@@ -369,8 +375,8 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
 
 /-- **The norm square of a moment map is integrable along a flow converging to a zero of `μ`.**
 In the setting of `tendsto_maximalIntegralCurve_momentNormSq`, if the negative gradient flow of
-`f = momentNormSq B hB μ` from `p` converges to a point `x` with `μ x = 0`, then `f` is integrable
-along it on `(0, ∞)`. -/
+`f = momentNormSq μ (B.toDual hB).symm` from `p` converges to a point `x` with `μ x = 0`, then `f`
+is integrable along it on `(0, ∞)`. -/
 theorem integrableOn_Ioi_momentNormSq_maximalIntegralCurve [CompactSpace M]
     [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
     [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] (hσc : σ.IsClosed)
@@ -380,17 +386,18 @@ theorem integrableOn_Ioi_momentNormSq_maximalIntegralCurve [CompactSpace M]
     (hμ : σ.IsEquivariantMomentMap μ) {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
     (hB : B.Nondegenerate)
     (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) {p x : M}
-    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x))
     (hx0 : μ x = 0) :
-    MeasureTheory.IntegrableOn (fun t ↦ momentNormSq B hB μ
-      (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t)) (Ioi 0) := by
+    MeasureTheory.IntegrableOn (fun t ↦ momentNormSq μ (B.toDual hB).symm
+      (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p t)) (Ioi 0) := by
   have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff ξ).of_le (by norm_cast)
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
+    hμ.toIsMomentMap.contMDiff_momentNormSq.of_le (by norm_cast)
   obtain ⟨hI, -⟩ := tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p
   obtain ⟨θ, hθ, c, hc, hL⟩ := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG x
-  have hfx : momentNormSq B hB μ x = 0 := by simp [momentNormSq_def, hx0]
+  have hfx : momentNormSq μ (B.toDual hB).symm x = 0 := by simp [momentNormSq_apply, hx0]
   simpa only [hfx, sub_zero] using
     integrableOn_Ioi_sub_comp_maximalIntegralCurve_of_lojasiewicz hf hI hx.mapClusterPt hc hθ.2 hL
 
@@ -436,16 +443,17 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
     ∃ g : ℝ → Gc, g 0 = 1 ∧
       HasLeftTrivializedDerivOn g
         (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))) univ ∧
-      (∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p) ∧
+      (∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p t =
+        (g t)⁻¹ • p) ∧
       ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
-        (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t := by
+        (-2 * momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) t := by
   have hμm := hμ.toIsMomentMap
-  set γ := maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+  set γ := maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
     hμm.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hv := contMDiff_neg_mgradient_one hf
   -- On the compact manifold `M` the flow is defined for all time, and it is `C¹`.
-  have hγ : IsMIntegralCurve γ (-mgradient I' (momentNormSq B hB μ)) :=
+  have hγ : IsMIntegralCurve γ (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) :=
     isMIntegralCurve_maximalIntegralCurve hv
   have hγc : ContMDiff 𝓘(ℝ) I' 1 γ :=
     (contMDiff_succ_of_isMIntegralCurve 1 hγ hv).of_le (by norm_num)
@@ -492,7 +500,8 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
     funext fun t ↦ by rw [← heq]
   refine ⟨g, hg0, hξg ▸ hgξ, heq, fun t ↦ ?_⟩
   refine (hgξ.hasDerivAt_kempfNessFunction C μ p h hμ hg Filter.univ_mem).congr_deriv ?_
-  rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_eq_apply_momentSharp]
+  rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_apply,
+    LinearEquiv.coe_coe, momentSharp_def]
 
 end Flow
 
@@ -674,7 +683,7 @@ where `μ♯ x` is the vector dual to `μ x` under `B`. -/
 theorem expI_smul_smul_eq_self_of_mgradient_momentNormSq_eq_zero (h : IsComplexifiedAction C J)
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
-    {x : M} (hx : Manifold.mgradient I' (momentNormSq B hB μ) x = 0) (t : ℝ) :
+    {x : M} (hx : Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) x = 0) (t : ℝ) :
     C.expI (t • momentSharp B hB μ x) • x = x := by
   -- The fundamental vector field of `-2 i μ♯ x` for `Gc` vanishes at `x`.
   have hfix := (mulInvariantExp_smul_smul_eq_iff (I' := I') (x := x)
@@ -702,14 +711,14 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
     (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
     (hBp : B.toQuadraticMap.PosDef)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
-    {x : M} (g₀ : Gc) (hx : Manifold.mgradient I' (momentNormSq B hB μ) x = 0)
-    (hy : Manifold.mgradient I' (momentNormSq B hB μ) (g₀⁻¹ • x) = 0) :
+    {x : M} (g₀ : Gc) (hx : Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) x = 0)
+    (hy : Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) (g₀⁻¹ • x) = 0) :
     ∃ u : G, u • x = g₀⁻¹ • x := by
   have hμm := hμ.toIsMomentMap
   -- The two flow curves from `x`: `g` from `1`, which stays at `x`, and `g'` from `g₀`, which
   -- stays at `y = g₀⁻¹ • x`.
   set y := g₀⁻¹ • x
-  have hfix {z : M} (hz : Manifold.mgradient I' (momentNormSq B hB μ) z = 0) (t : ℝ) :
+  have hfix {z : M} (hz : Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) z = 0) (t : ℝ) :
       (mulInvariantExp (I := IC)
         (t • (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ z))))⁻¹ • z = z := by
     rw [inv_smul_eq_iff]
@@ -836,14 +845,16 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
     (hBp : B.toQuadraticMap.PosDef)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     {p x y : M} (g₀ : Gc)
-    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
-    (hy : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) (g₀ • p)) atTop
-      (𝓝 y)) :
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x))
+    (hy : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm))
+        (g₀ • p)) atTop (𝓝 y)) :
     ∃ u : G, u • x = y := by
   -- The limits are critical points of `‖μ‖²`.
   have hcrit {q z : M}
-      (hz : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) q) atTop (𝓝 z)) :
-      mgradient I' (momentNormSq B hB μ) z = 0 := by
+      (hz : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) q)
+          atTop (𝓝 z)) :
+      mgradient I' (momentNormSq μ (B.toDual hB).symm) z = 0 := by
     obtain ⟨-, z', hz', hconv, -⟩ :=
       tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG q
     rw [momentNormSq_neg'] at hz' hconv
@@ -876,9 +887,9 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
     tendsto_natCast_atTop_atTop.comp hφ.tendsto_atTop
   -- The flow from `g₀ • p` is the flow from `p` acted on by the inverse polar decomposition.
   have hflow (t : ℝ) :
-      maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) (g₀ • p) t =
+      maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) (g₀ • p) t =
         (C.polar (C.polar.symm ((g t)⁻¹ * g₁ t)))⁻¹ •
-          maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t := by
+          maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p t := by
     rw [hg'x, hgx, C.polar.apply_symm_apply, mul_inv_rev, inv_inv, mul_smul, smul_inv_smul,
       hg₁x]
   have hsmul : Continuous fun a : Gc × M ↦ a.1 • a.2 :=
@@ -911,11 +922,12 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     (hBp : B.toQuadraticMap.PosDef)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     {p x : M}
-    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x)) :
-    momentNormSq B hB μ x = ⨅ g : Gc, momentNormSq B hB μ (g • p) := by
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x)) :
+    momentNormSq μ (B.toDual hB).symm x = ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) := by
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
-  have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
+  have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq μ (B.toDual hB).symm (g • p)) :=
     bddBelow_range_momentNormSq_comp (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) (· • p)
   refine le_antisymm (le_ciInf fun g₀ ↦ ?_) ?_
   · -- The flow from `g₀ • p` converges to some `y`, defined for all `t ≥ 0`.
@@ -926,7 +938,9 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
       exists_smul_limit_eq_of_mem_orbit h hσc hσ hσG hμ hgm hBs hBp hBG g₀ hx hy
     have hμG (v : G) (z : M) : μ (v • z) = Lie.coadjointRepresentation ℝ I G v (μ z) := by
       rw [← h.toHom_smul, h.moment_toHom_smul hμ]
-    rw [← momentNormSq_smul hBG hμG u x]
+    rw [← momentNormSq_smul (ρ := Lie.adjointRepresentation ℝ I G)
+      (by simpa only [Lie.coadjointRepresentation_def] using hμG) (hBG.toDual_symm_dual_apply hB)
+      u x]
     -- `‖μ‖²` does not increase along the flow from `g₀ • p`.
     simpa only [maximalIntegralCurve_zero] using
       TauCeti.le_comp_maximalIntegralCurve_neg_mgradient hf hI hy.mapClusterPt le_rfl
@@ -951,15 +965,17 @@ theorem bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClosed) (hσ : σ.IsNo
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     {p x : M}
-    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x))
     (hx0 : μ x = 0) {g : ℝ → Gc}
-    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p)
+    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p t =
+      (g t)⁻¹ • p)
     (hgd : ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
-      (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t) :
+      (-2 * momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) t) :
     BddBelow ((fun t ↦ kempfNessFunction C μ p (g t)) '' Ici 0) := by
   -- The derivative `t ↦ -2 ‖μ ((g t)⁻¹ • p)‖²` is integrable on `(0, ∞)`.
   have hint : MeasureTheory.IntegrableOn
-      (fun t ↦ -2 * momentNormSq B hB μ ((g t)⁻¹ • p)) (Ioi 0) := by
+      (fun t ↦ -2 * momentNormSq μ (B.toDual hB).symm ((g t)⁻¹ • p)) (Ioi 0) := by
     have := integrableOn_Ioi_momentNormSq_maximalIntegralCurve hσc hσ hσG hμ hB hBG
       (by rwa [momentNormSq_neg']) (by simp [hx0])
     simp only [momentNormSq_neg', hgx] at this
