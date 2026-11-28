@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
+import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 
@@ -54,6 +55,13 @@ difference.
   `RescaledUnitaryCharts.exists_jetNormAt_chartPushforward_sub_le`. The orders `r = 0` and `r = 1`
   bound the flat `∂̄` of the quotient and its derivative (`norm_le_jetNormAt`,
   `norm_fderiv_le_jetNormAt`).
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_norm_reading_div_peakFunction_le`: for
+  explicit bounds on the `2`-jet of the reading and on the `1`-jet of its `∂̄` reading on the ball
+  of radius `11 / 10`, the quotient meets there the hypotheses of the local transversality
+  estimate `SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le`, with a `C¹` bound `A ≥ 1`
+  and a flat `∂̄` of order `k ^ (-1 / 2)`, uniformly in the centre and the section; and
+  `IsAsymptoticallyHolomorphic.exists_forall_norm_reading_div_peakFunction_le`:
+  in the same namespace, the same for an asymptotically holomorphic sequence.
 * `RescaledUnitaryCharts.eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian`:
   for the metric `σ(·, J ·)`, if the reading of `s` is `q` times the Gaussian near a point `z` of
   the closed unit ball and the connection read there is bounded by `B`, then
@@ -353,6 +361,107 @@ theorem exists_jetNormAt_flatDbar_reading_div_peakFunction_le (hρ₀ : 0 < ρ�
         calc C * (a + C' * t * b) ≤ C * ((1 + C') * (a + t * b)) := by gcongr
           _ = _ := by ring
 
+/-- **The quotient of a reading by the cut-off Gaussian is a `C¹`-bounded function with small
+flat `∂̄`.** For rescaled unitary charts of radius `ρ₀ > 0` and every bound `B` there are `A ≥ 1`
+and `C` such that, for all large `k`, every centre `x` and every section `s` of `PowerBundle P k`
+whose reading `f` in the chart at `x` is, at each point of the ball of radius `11 / 10`, `C²` with
+`2`-jet norm at most `B`, and whose `∂̄` reading has `1`-jet norm at most `B * k ^ (-1 / 2)`
+there, the quotient `q = f / peakFunction k` satisfies, at each point of that ball: `q` is `C²`,
+`‖q‖ ≤ A`, `‖dq‖ ≤ A`, `‖flatDbar q‖ ≤ C * k ^ (-1 / 2)`, and the derivative of
+`y ↦ flatDbar q y b` has norm at most `C * k ^ (-1 / 2) * ‖b‖`. These are the hypotheses of
+`SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le`. -/
+theorem exists_forall_norm_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (B : ℝ) :
+    ∃ A, 1 ≤ A ∧ ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y),
+      (∀ z ∈ ball (0 : StdSpace ι) (11 / 10), ContDiffAt ℝ 2 (D.reading k x s) z ∧
+        jetNormAt ℝ 2 (D.reading k x s) z ≤ B ∧
+        jetNormAt ℝ 1 (D.dbarReading k x s) z ≤ B * (k : ℝ) ^ (-1 / 2 : ℝ)) →
+      ∀ z ∈ ball (0 : StdSpace ι) (11 / 10),
+        ContDiffAt ℝ 2 (fun y ↦ D.reading k x s y / peakFunction k y) z ∧
+        ‖D.reading k x s z / peakFunction k z‖ ≤ A ∧
+        ‖fderiv ℝ (fun y ↦ D.reading k x s y / peakFunction k y) z‖ ≤ A ∧
+        ‖flatDbar (fun y ↦ D.reading k x s y / peakFunction k y) z‖ ≤
+          C * (k : ℝ) ^ (-1 / 2 : ℝ) ∧
+        ∀ b, ‖fderiv ℝ (fun y ↦ flatDbar (fun y ↦ D.reading k x s y / peakFunction k y) y b) z‖ ≤
+          C * (k : ℝ) ^ (-1 / 2 : ℝ) * ‖b‖ := by
+  obtain ⟨C₁, hC₁⟩ := exists_jetNormAt_div_peakFunction_le (ι := ι) 1 (11 / 10)
+  obtain ⟨C₂, hC₂0, hC₂⟩ :=
+    D.exists_jetNormAt_flatDbar_reading_div_peakFunction_le hρ₀ 1 (11 / 10)
+  have h6 : ∀ᶠ k : ℕ in Filter.atTop, (11 / 10 : ℝ) < (k : ℝ) ^ (1 / 6 : ℝ) :=
+    ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 6)).comp
+      tendsto_natCast_atTop_atTop).eventually_gt_atTop (11 / 10 : ℝ)
+  refine ⟨max 1 (|C₁| * B), le_max_left _ _, 2 * C₂ * B, ?_⟩
+  filter_upwards [h6, hC₂] with k hk6 hk x s hs z hz
+  obtain ⟨hf, hfB, hdB⟩ := hs z hz
+  set f := D.reading k x s
+  set q := fun y ↦ f y / peakFunction k y
+  set t := (k : ℝ) ^ (-1 / 2 : ℝ)
+  have hz' : ‖z‖ ≤ 11 / 10 := (mem_ball_zero_iff.1 hz).le
+  have hq : q =ᶠ[𝓝 z] fun y ↦ f y * Real.exp (‖y‖ ^ 2 / 4) :=
+    div_peakFunction_eventuallyEq k f (hz'.trans_lt hk6)
+  have hqC : ContDiffAt ℝ 2 q z :=
+    (hf.mul contDiff_ofReal_exp_norm_sq_div_four.contDiffAt).congr_of_eventuallyEq hq
+  have hf1 : jetNormAt ℝ 1 f z ≤ B := (jetNormAt_mono f z (by norm_num)).trans hfB
+  -- The `1`-jet of `q` is bounded by `|C₁| * B`.
+  have hqJ : jetNormAt ℝ 1 q z ≤ max 1 (|C₁| * B) :=
+    calc jetNormAt ℝ 1 q z ≤ C₁ * jetNormAt ℝ 1 f z :=
+          hC₁ k f hz' hk6 (hf.of_le (by norm_num))
+      _ ≤ |C₁| * jetNormAt ℝ 1 f z :=
+          mul_le_mul_of_nonneg_right (le_abs_self _) (jetNormAt_nonneg _ _ _)
+      _ ≤ |C₁| * B := by gcongr
+      _ ≤ _ := le_max_right _ _
+  -- The `1`-jet of its flat `∂̄` is bounded by `2 * C₂ * B * t`.
+  have hdJ : jetNormAt ℝ 1 (flatDbar q) z ≤ 2 * C₂ * B * t :=
+    calc jetNormAt ℝ 1 (flatDbar q) z ≤
+          C₂ * (jetNormAt ℝ 1 (D.dbarReading k x s) z + t * jetNormAt ℝ (1 + 1) f z) :=
+          hk x s hz' hf
+      _ ≤ C₂ * (B * t + t * B) := by gcongr
+      _ = 2 * C₂ * B * t := by ring
+  have hdD : DifferentiableAt ℝ (flatDbar q) z :=
+    (contDiffAt_flatDbar (n := 1) hqC).differentiableAt one_ne_zero
+  refine ⟨hqC, (norm_le_jetNormAt 1 q z).trans hqJ,
+    (norm_fderiv_le_jetNormAt le_rfl q z).trans hqJ,
+    (norm_le_jetNormAt 1 _ z).trans hdJ, fun b ↦ ?_⟩
+  rw [fderiv_clm_apply hdD (differentiableAt_const b), fderiv_const_apply,
+    ContinuousLinearMap.comp_zero, zero_add]
+  calc ‖(fderiv ℝ (flatDbar q) z).flip b‖ ≤ ‖(fderiv ℝ (flatDbar q) z).flip‖ * ‖b‖ :=
+        ContinuousLinearMap.le_opNorm _ b
+    _ ≤ 2 * C₂ * B * t * ‖b‖ := by
+        rw [ContinuousLinearMap.opNorm_flip]
+        gcongr
+        exact (norm_fderiv_le_jetNormAt le_rfl _ z).trans hdJ
+
+/-- **The quotients of an asymptotically holomorphic sequence by the cut-off Gaussian.** Let `M`
+be a Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry the metric
+`g_J` of the pair, let `α` be a connection form and `ρ₀ > 0`, and let `s` be an asymptotically
+holomorphic sequence of sections. There are `A ≥ 1` and `C` such that, for all large `k` and
+every centre `x`, the quotient `q = f / peakFunction k` of the reading `f` of `s k` in the chart
+at `x` satisfies, at each point of the ball of radius `11 / 10`: `q` is `C²`, `‖q‖ ≤ A`,
+`‖dq‖ ≤ A`, `‖flatDbar q‖ ≤ C * k ^ (-1 / 2)`, and the derivative of `y ↦ flatDbar q y b` has
+norm at most `C * k ^ (-1 / 2) * ‖b‖`. -/
+theorem IsAsymptoticallyHolomorphic.exists_forall_norm_reading_div_peakFunction_le [T2Space M]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) :
+    ∃ A, 1 ≤ A ∧ ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M,
+      ∀ z ∈ ball (0 : StdSpace ι) (11 / 10),
+        ContDiffAt ℝ 2 (fun y ↦ D.reading k x (s k) y / peakFunction k y) z ∧
+        ‖D.reading k x (s k) z / peakFunction k z‖ ≤ A ∧
+        ‖fderiv ℝ (fun y ↦ D.reading k x (s k) y / peakFunction k y) z‖ ≤ A ∧
+        ‖flatDbar (fun y ↦ D.reading k x (s k) y / peakFunction k y) z‖ ≤
+          C * (k : ℝ) ^ (-1 / 2 : ℝ) ∧
+        ∀ b, ‖fderiv ℝ
+            (fun y ↦ flatDbar (fun y ↦ D.reading k x (s k) y / peakFunction k y) y b) z‖ ≤
+          C * (k : ℝ) ^ (-1 / 2 : ℝ) * ‖b‖ := by
+  obtain ⟨B, hB⟩ := IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le D hg hJ hα hρ₀ hs
+    (11 / 10) 2
+  obtain ⟨A, hA, C, hC⟩ := D.exists_forall_norm_reading_div_peakFunction_le hρ₀ B
+  refine ⟨A, hA, C, ?_⟩
+  filter_upwards [hB, hC] with k hBk hCk x
+  refine hCk x (s k) fun z hz ↦ ?_
+  obtain ⟨hf, -, hfB, hdB⟩ := hBk x z hz
+  exact ⟨hf.of_le (by simp), hfB,
+    (jetNormAt_mono _ z (by norm_num)).trans hdB⟩
 omit [I.Boundaryless] in
 /-- **A lower bound on the quotient by the Gaussian gives the transversality quantity.** Let the
 metric of `M` be `g(u, w) = σ(u, J w)`, and `ρ₀ > 0`. For every `ε` and `B`, for all large `k`,

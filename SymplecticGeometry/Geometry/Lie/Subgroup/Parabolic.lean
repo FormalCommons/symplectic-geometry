@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Lie.Complexification.Polar
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Formula
 import SymplecticGeometry.Geometry.Lie.Adjoint.Eigenvector
+import SymplecticGeometry.Geometry.Lie.Exponential.ImageMul
+import SymplecticGeometry.Topology.Algebra.Group.SubgroupMul
 import TauCeti.Analysis.InnerProductSpace.Spectral.Relative
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import TauCeti.Geometry.Lie.Adjoint.InvariantForm
@@ -21,7 +23,7 @@ algebra of `G`. Following Georgoulas–Robbin–Salamon, the parabolic subgroup 
 `g : Gc` whose conjugates `exp (i t ξ) g exp (-i t ξ)` converge as `t → ∞`. This file defines it
 together with its limit map and the corresponding subspace of the Lie algebra of `Gc`, gives their
 API, and shows that the subspace and the image of the Lie algebra of `G` span the Lie algebra of
-`Gc` when `G` is compact.
+`Gc` when `G` is compact. From this it proves the decomposition `Gc = P(ξ) G` for compact `G`.
 
 ## Main definitions
 
@@ -62,6 +64,20 @@ API, and shows that the subspace and the image of the Lie algebra of `G` span th
   `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` spans the Lie algebra by its eigenspaces;
   `conj` exchanges the eigenvalues `μ` and `-μ`, and `x + conj x = 2 • lieMap (re x)`
   (`self_add_conj`).
+* `SymplecticGeometry.LieComplexification.parabolic_mul_range_toHom_mem_nhds_one`: for compact
+  `G`, the set `C.parabolic ξ * Set.range C.toHom` is a neighbourhood of `1`. It contains the
+  products `exp x * exp y` with `x ∈ C.parabolicSubspace ξ` (`mulInvariantExp_mem_parabolic`) and
+  `y ∈ range C.lieMap` (`toHom_mulInvariantExp`), which form a neighbourhood of `1` by
+  `mulInvariantExp_image_mul_mulInvariantExp_image_mem_nhds_one` and
+  `parabolicSubspace_sup_range_lieMap`.
+* `SymplecticGeometry.LieComplexification.parabolic_mul_range_toHom_eq_univ`: for compact `G`,
+  `Gc = C.parabolic ξ * Set.range C.toHom` ([GeorgoulasRobbinSalamon2021], Theorem D.3). That
+  set is open by `Subgroup.isOpen_mul_of_mem_nhds_one` and closed by
+  `Subgroup.isClosed_mul_of_isOpen_of_isCompact`. Writing `g = C.polar (η, u)` with `η` in the
+  Lie algebra of `G` and `u : G`, it contains `C.toHom u`, hence the whole curve
+  `t ↦ C.polar (t • η, u)` from `C.toHom u` to `g`. Its two forms
+  `exists_mem_parabolic_mul_toHom` and `exists_toHom_mul_mem_parabolic` write every `g` as
+  `q * C.toHom u` and as `C.toHom u * q`.
 
 ## References
 
@@ -74,6 +90,7 @@ public section
 noncomputable section
 
 open Filter Topology Manifold TauCeti
+open scoped Pointwise
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -281,6 +298,68 @@ theorem parabolicSubspace_sup_range_lieMap [FiniteDimensional ℝ E] [CompactSpa
       (Submodule.mem_sup_left (Submodule.neg_mem _
         (C.mem_parabolicSubspace_of_lie_eq_smul hconj (neg_nonpos.2 hμ))))
       (Submodule.mem_sup_right (Submodule.smul_mem _ _ (LinearMap.mem_range_self _ _)))
+
+omit [FiniteDimensional ℝ EC] in
+/-- For a compact group `G` with finite-dimensional Lie algebra, the products `q * C.toHom u` of
+an element `q` of the parabolic subgroup of `ξ` and an element of the image of `G` form a
+neighbourhood of `1`. -/
+theorem parabolic_mul_range_toHom_mem_nhds_one [FiniteDimensional ℝ E] [CompactSpace G]
+    (ξ : GroupLieAlgebra I G) :
+    (C.parabolic ξ : Set Gc) * Set.range C.toHom ∈ 𝓝 (1 : Gc) := by
+  have := C.finiteDimensional
+  have : T2Space G := I.t2Space_of_lieGroup ∞
+  have : BoundarylessManifold I G := ContMDiffMul.boundarylessManifold
+  refine mem_of_superset (mulInvariantExp_image_mul_mulInvariantExp_image_mem_nhds_one
+    _ _ (C.parabolicSubspace_sup_range_lieMap ξ)) ?_
+  rintro _ ⟨_, ⟨x, hx, rfl⟩, _, ⟨_, ⟨y, rfl⟩, rfl⟩, rfl⟩
+  exact Set.mul_mem_mul (C.mulInvariantExp_mem_parabolic hx) ⟨_, C.toHom_mulInvariantExp y⟩
+
+omit [FiniteDimensional ℝ EC] in
+/-- For a compact group `G` with finite-dimensional Lie algebra, every element of `Gc` is a
+product `q * C.toHom u` of an element `q` of the parabolic subgroup of `ξ` and an element of the
+image of `G`. -/
+theorem parabolic_mul_range_toHom_eq_univ [FiniteDimensional ℝ E] [CompactSpace G]
+    (ξ : GroupLieAlgebra I G) :
+    (C.parabolic ξ : Set Gc) * Set.range C.toHom = Set.univ := by
+  have := topologicalGroup_of_lieGroup IC ∞ (G := Gc)
+  have hQ : (C.toHom.toMonoidHom.range : Set Gc) = Set.range C.toHom := MonoidHom.coe_range _
+  have hopen : IsOpen ((C.parabolic ξ : Set Gc) * Set.range C.toHom) := by
+    rw [← hQ]
+    exact Subgroup.isOpen_mul_of_mem_nhds_one _ _ (hQ ▸ C.parabolic_mul_range_toHom_mem_nhds_one ξ)
+  have hclosed : IsClosed ((C.parabolic ξ : Set Gc) * Set.range C.toHom) := by
+    rw [← hQ] at hopen ⊢
+    exact Subgroup.isClosed_mul_of_isOpen_of_isCompact _ _
+      (hQ ▸ isCompact_range C.toHom.contMDiff_toFun.continuous) hopen
+  refine Set.eq_univ_of_forall fun g ↦ ?_
+  -- The set is clopen and contains `C.toHom u`, so it contains the curve
+  -- `t ↦ C.polar (t • η, u)` from `C.toHom u` to `g = C.polar (η, u)`.
+  have hc : Continuous fun t : ℝ ↦ C.polar (t • (C.polar.symm g).1, (C.polar.symm g).2) :=
+    C.polar.continuous.comp (by fun_prop)
+  have h0 : (0 : ℝ) ∈ (fun t : ℝ ↦ C.polar (t • (C.polar.symm g).1, (C.polar.symm g).2)) ⁻¹'
+      ((C.parabolic ξ : Set Gc) * Set.range C.toHom) := by
+    rw [Set.mem_preimage, zero_smul, C.polar_zero_apply]
+    exact ⟨1, one_mem _, _, ⟨_, rfl⟩, one_mul _⟩
+  have h1 : (1 : ℝ) ∈ _ := (IsClopen.preimage ⟨hclosed, hopen⟩ hc).eq_univ ⟨0, h0⟩ ▸ Set.mem_univ 1
+  simpa only [Set.mem_preimage, one_smul, Prod.mk.eta, Diffeomorph.apply_symm_apply] using h1
+
+omit [FiniteDimensional ℝ EC] in
+/-- For a compact group `G` with finite-dimensional Lie algebra, every `g : Gc` is
+`q * C.toHom u` with `q` in the parabolic subgroup of `ξ` and `u : G`. -/
+theorem exists_mem_parabolic_mul_toHom [FiniteDimensional ℝ E] [CompactSpace G]
+    (ξ : GroupLieAlgebra I G) (g : Gc) : ∃ q ∈ C.parabolic ξ, ∃ u, g = q * C.toHom u := by
+  have hg : g ∈ (C.parabolic ξ : Set Gc) * Set.range C.toHom := by
+    rw [C.parabolic_mul_range_toHom_eq_univ ξ]
+    exact Set.mem_univ g
+  obtain ⟨q, hq, _, ⟨u, rfl⟩, h⟩ := hg
+  exact ⟨q, hq, u, h.symm⟩
+
+omit [FiniteDimensional ℝ EC] in
+/-- For a compact group `G` with finite-dimensional Lie algebra, every `g : Gc` is
+`C.toHom u * q` with `u : G` and `q` in the parabolic subgroup of `ξ`. -/
+theorem exists_toHom_mul_mem_parabolic [FiniteDimensional ℝ E] [CompactSpace G]
+    (ξ : GroupLieAlgebra I G) (g : Gc) : ∃ u, ∃ q ∈ C.parabolic ξ, g = C.toHom u * q := by
+  obtain ⟨q, hq, u, h⟩ := C.exists_mem_parabolic_mul_toHom ξ g⁻¹
+  exact ⟨u⁻¹, q⁻¹, inv_mem hq, by rw [map_inv, ← mul_inv_rev, ← h, inv_inv]⟩
 
 end LieComplexification
 
