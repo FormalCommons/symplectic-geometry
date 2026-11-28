@@ -23,8 +23,9 @@
 # So the bucket is not asked about an archive that can be sent. It was,
 # until a run handed over the Tau Ceti modules of a move for the first time:
 # 5,829 archives, about each of which the script first asked and which it
-# would then have sent, and it had not finished asking when its ten minutes
-# on a runner were over. (From a machine nearer the bucket the whole upload
+# would then have sent. Its ten minutes on a runner were over before it had
+# printed its first line, which came after the asking; where the time went
+# the log does not say. (From a machine nearer the bucket the whole upload
 # took three minutes.) Without KNOWN, every staged archive is sent, bodies
 # and all, though the bucket has most; that is rare, and several uploads
 # that each asked about 1,500 archives at once were more than Hetzner

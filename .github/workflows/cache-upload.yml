@@ -211,7 +211,7 @@ jobs:
             commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&per_page=100" --jq '.[].sha'); then
             SECONDS=0
             for c in $commits; do
-              [ "$SECONDS" -lt 120 ] || { echo "the search for main's mappings took too long; the upload asks about every archive"; break; }
+              [ "$SECONDS" -lt 120 ] || { echo "the search for main's mappings took too long; the upload sends every staged archive"; break; }
               [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
               if curl -q -sf --connect-timeout 5 --max-time 15 -o "$known" "$QUEUE/$c.jsonl"; then
                 echo "main's mappings at $c name the archives that are taken to be in the bucket"
