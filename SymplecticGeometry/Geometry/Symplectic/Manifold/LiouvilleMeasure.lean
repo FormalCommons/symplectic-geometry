@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 import TauCeti.Geometry.Manifold.Measure.Atlas
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Integrating the symplectic volume form
@@ -156,7 +157,7 @@ theorem IsSymplecticMapOn.map_comap_subtypeVal_liouvilleMeasure
     (isSymplecticMap_iff_mpullback_eq hgs).1 <| isSymplecticMapOn_univ.1 <|
       hΦ.comp ((isSymplecticMap_mpullback τ _).isSymplecticMapOn _) (fun x _ ↦ x.property)
         (fun x _ ↦ Φ.mdifferentiableAt (by simp) x.property)
-        (fun x _ ↦ contMDiff_subtypeVal.mdifferentiable one_ne_zero x)
+        (fun _ _ ↦ mdifferentiableAt_subtypeVal)
   have h : mpullback J I g σ.val =
       (SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal τ).val := by
     rw [← hpull, SmoothForm.coe_mpullback]

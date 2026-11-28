@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The blowdown of a divisor modelled on the exceptional divisor
@@ -891,7 +892,7 @@ private theorem mpullback_modelMap :
   refine SmoothTwoForm.isSymplecticMapOn_univ.1 ((Ψ.isSymplecticMapOn_symm hσ (by simp)).comp
     (((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq contMDiff_subtypeVal).2 rfl).isSymplecticMapOn
       _) (fun p _ ↦ coe_mem_target hΨ hδε p) (fun p _ ↦ hd p)
-    (fun p _ ↦ (contMDiff_subtypeVal (n := ∞) p).mdifferentiableAt (by simp)))
+    (fun _ _ ↦ mdifferentiableAt_subtypeVal))
 
 /-- **Blowing up the blowdown gives `M` back**: the diffeomorphism from the blowup of weight `l`
 and constant `δ` of the blowdown along `blowdownBall`, for `0 < δ < ε`, onto `M`. It is the
