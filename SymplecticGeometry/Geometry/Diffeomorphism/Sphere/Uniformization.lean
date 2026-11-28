@@ -10,7 +10,10 @@ public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
 public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Kernel
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
+import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Mobius
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
+import TauCeti.Geometry.Manifold.Instances.OnePoint.Automorphism
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 import TauCeti.Topology.VectorBundle.ZeroSection
@@ -69,6 +72,13 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
   Fubini–Study form tames `J`. So `uniformizingDiffeomorph` is a section of
   `SymplecticGeometry.complexStructureMap`
   (`SymplecticGeometry.complexStructureMap_uniformizingDiffeomorph`).
+* `SymplecticGeometry.eq_uniformizingDiffeomorph_iff`: a diffeomorphism `φ` of the sphere is
+  `σ(J)` exactly when `φ^* i = J` and `φ` fixes `0`, `1` and `∞`. Indeed `φ ∘ σ(J)⁻¹` pulls `i`
+  back to itself, so it is a Möbius transformation
+  (`SymplecticGeometry.pullback_ofComplexManifold_onePoint_eq_self_iff`), and a Möbius
+  transformation fixing `0`, `1` and `∞` is the identity (Tau Ceti's
+  `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`). Hence
+  `SymplecticGeometry.uniformizingDiffeomorph_ofComplexManifold`: `σ(i) = 1`.
 
 ## References
 
@@ -466,6 +476,46 @@ theorem pullback_uniformizingDiffeomorph (J : 𝒥) :
 theorem complexStructureMap_uniformizingDiffeomorph (J : 𝒥) :
     complexStructureMap (uniformizingDiffeomorph J) = J :=
   Subtype.ext ((coe_complexStructureMap _).trans (pullback_uniformizingDiffeomorph J))
+
+/-- **Uniqueness of `σ(J)`.** A diffeomorphism `φ` of the sphere is the uniformizing
+diffeomorphism `σ(J)` exactly when it pulls the complex structure `i` back to `J` and fixes `0`,
+`1` and `∞`. -/
+theorem eq_uniformizingDiffeomorph_iff (J : 𝒥)
+    {φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ((⊤ : ℕ∞) : ℕ∞ω)} :
+    φ = uniformizingDiffeomorph J ↔
+      (SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)).pullback φ = J.val ∧
+        φ (0 : ℂ) = (0 : ℂ) ∧ φ (1 : ℂ) = (1 : ℂ) ∧ φ ∞ = (∞ : OnePoint ℂ) := by
+  refine ⟨?_, fun ⟨hJ, h0, h1, hinf⟩ ↦ ?_⟩
+  · rintro rfl
+    simp
+  set σ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ((⊤ : ℕ∞) : ℕ∞ω) := ↑(uniformizingDiffeomorph J)
+  have hσ : ⇑σ = uniformizingMap J := coe_uniformizingDiffeomorph J
+  -- `σ⁻¹` fixes `0`, `1` and `∞`, since `σ` does.
+  have hσ0 : σ.symm (0 : ℂ) = (0 : ℂ) := σ.symm_apply_eq.2 (by simp [hσ])
+  have hσ1 : σ.symm (1 : ℂ) = (1 : ℂ) := σ.symm_apply_eq.2 (by simp [hσ])
+  have hσinf : σ.symm ∞ = (∞ : OnePoint ℂ) := σ.symm_apply_eq.2 (by simp [hσ])
+  -- `φ ∘ σ⁻¹` pulls `i` back to itself, so it is a Möbius transformation `g`.
+  obtain ⟨g, hg⟩ := (pullback_ofComplexManifold_onePoint_eq_self_iff (φ := σ.symm.trans φ)).1 <| by
+    rw [SmoothAlmostComplexStructure.pullback_trans, hJ,
+      SmoothAlmostComplexStructure.pullback_symm_eq_iff]
+    exact pullback_uniformizingDiffeomorph J
+  have hg' (x : OnePoint ℂ) : φ (σ.symm x) = g • x := by
+    rw [← mobiusHom_apply, ← hg, Diffeomorph.coe_trans, Function.comp_apply]
+  -- As `g` fixes `0`, `1` and `∞`, it acts as the identity.
+  have hid :=
+    (Diffeomorph.constSmul 𝓘(ℂ) (1 : WithTop ℕ∞) g).eq_refl_of_apply_zero_one_infty_eq_self
+      one_ne_zero (by simp [← hg', hσ0, h0]) (by simp [← hg', hσ1, h1])
+      (by simp [← hg', hσinf, hinf])
+  refine Diffeomorph.ext fun x ↦ ?_
+  simpa [← hg'] using congr($hid (σ x))
+
+/-- **`σ(i) = 1`.** The uniformizing diffeomorphism of the complex structure `i` of the Riemann
+sphere is the identity. -/
+@[simp]
+theorem uniformizingDiffeomorph_ofComplexManifold :
+    uniformizingDiffeomorph tameOfComplexManifold = 1 := by
+  refine Subtype.ext ((eq_uniformizingDiffeomorph_iff _).2 ?_).symm
+  simp [Diffeomorph.one_def]
 
 end SymplecticGeometry
 

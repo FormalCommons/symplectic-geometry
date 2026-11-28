@@ -35,7 +35,9 @@ of its three arguments are vertical.
   on every triple `(η₁, η₂, v)` with `η₁` and `η₂` vertical.
 * `TauCeti.RoughForm.IsVerticallyClosedOn IB proj τ s`: the same condition at the points of a
   set `s`, for a two-form of any regularity; on the whole space it is vertical closedness
-  (`TauCeti.SmoothTwoForm.isVerticallyClosedOn_univ_iff`).
+  (`TauCeti.SmoothTwoForm.isVerticallyClosedOn_univ_iff`); for a constant map it is the
+  vanishing of the exterior derivative on `s` (`TauCeti.RoughForm.isVerticallyClosedOn_const_iff`),
+  and for a smooth form, closedness (`TauCeti.SmoothTwoForm.isVerticallyClosed_const_iff`).
 * `TauCeti.SmoothTwoForm.horizontalDistribution IB proj τ`: the `τ`-orthogonal of the vertical
   spaces.
 
@@ -176,6 +178,25 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mono {τ : RoughForm IM M 
     {s t : Set M} (h : τ.IsVerticallyClosedOn IB proj s) (hts : t ⊆ s) :
     τ.IsVerticallyClosedOn IB proj t :=
   fun x hx ↦ h x (hts hx)
+
+omit [IsManifold IM ∞ M] in
+/-- Every tangent vector is vertical for a constant map, so a two-form is vertically closed on
+`s` for a constant map exactly when its exterior derivative vanishes at every point of `s`. -/
+theorem _root_.TauCeti.RoughForm.isVerticallyClosedOn_const_iff {c : B}
+    {τ : RoughForm IM M ℝ 2} {s : Set M} :
+    τ.IsVerticallyClosedOn IB (fun _ ↦ c) s ↔ ∀ x ∈ s, mextDeriv τ x = 0 := by
+  refine ⟨fun h x hx ↦ ContinuousAlternatingMap.ext fun w ↦ ?_, fun h x hx _ _ _ _ _ ↦ ?_⟩
+  · have hw : w = ![w 0, w 1, w 2] := (FinVec.etaExpand_eq w).symm
+    rw [ContinuousAlternatingMap.coe_zero, Pi.zero_apply, hw]
+    exact h x hx _ (by simp) _ (by simp) _
+  · rw [h x hx, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+
+/-- A smooth two-form is vertically closed for a constant map exactly when it is closed. -/
+theorem isVerticallyClosed_const_iff {c : B} :
+    IsVerticallyClosed IB (fun _ ↦ c) τ ↔ τ.IsClosed := by
+  rw [← isVerticallyClosedOn_univ_iff, RoughForm.isVerticallyClosedOn_const_iff,
+    SmoothForm.isClosed_iff_forall_mextDeriv_apply_eq_zero]
+  simp
 
 omit [IsManifold IM ∞ M] in
 /-- **Blending two vertically closed forms by a function of the base.** Let `τ₁` and `τ₂` be
@@ -358,8 +379,8 @@ variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
 
 /-- **The fibre forms of a vertically closed form are closed.** For a trivialization `e` of
 `proj` that is smooth with smooth inverse, a vertically closed two-form pulls back to a closed
-form along each fibre inclusion of `e`: the derivative of the pull-back is the pull-back of the
-derivative, which is evaluated on vertical vectors only. -/
+form along each fibre inclusion of `e`: the fibre inclusion sends every tangent vector to a
+vertical one, so the pull-back is vertically closed for a constant map, that is, closed. -/
 theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
     (h : IsVerticallyClosed IB proj τ) {e : Trivialization F proj}
     (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
@@ -369,24 +390,14 @@ theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
       (e.contMDiff_fiberInclusionMap he_symm hb) τ).IsClosed := by
   have hd : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF) :=
     ⟨he.mdifferentiableOn (by simp), he_symm.mdifferentiableOn (by simp)⟩
-  rw [SmoothForm.isClosed_def, SmoothForm.coe_mpullback,
-    ← mpullback_mextDeriv ((e.contMDiff_fiberInclusionMap he_symm hb).of_le (by simp))
-      ((isSmoothBundleForm_def 1 _).2 (τ.isSmoothForm.of_le (by simp)).contMDiff)]
-  funext v
-  refine ContinuousAlternatingMap.ext fun w ↦ ?_
-  rw [mpullback_apply]
+  rw [← isVerticallyClosed_const_iff (IB := IB) (c := b), ← isVerticallyClosedOn_univ_iff,
+    SmoothForm.coe_mpullback]
+  refine ((isVerticallyClosedOn_univ_iff.2 h).mono (subset_univ _)).mpullback
+    (fun v _ ↦ ((e.contMDiff_fiberInclusionMap he_symm hb).of_le (by simp)).contMDiffAt)
+    (fun _ _ ↦ (SmoothForm.contMDiff τ _).of_le (by simp)) fun v _ η _ ↦ ?_
   -- The derivative of the fibre inclusion takes vertical values.
-  have hw (i : Fin 3) : mfderiv IF IM (e.fiberInclusionMap hb) v (w i) ∈
-      (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
-    rw [← e.range_mfderiv_fiberInclusionMap hd hb v]
-    exact LinearMap.mem_range_self _ _
-  have h3 : (fun i ↦ mfderiv IF IM (e.fiberInclusionMap hb) v (w i)) =
-      ![mfderiv IF IM (e.fiberInclusionMap hb) v (w 0),
-        mfderiv IF IM (e.fiberInclusionMap hb) v (w 1),
-        mfderiv IF IM (e.fiberInclusionMap hb) v (w 2)] :=
-    (FinVec.etaExpand_eq _).symm
-  rw [h3, isVerticallyClosed_iff.1 h _ _ (hw 0) _ (hw 1), Pi.zero_apply,
-    ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+  rw [← e.range_mfderiv_fiberInclusionMap hd hb v]
+  exact LinearMap.mem_range_self _ _
 
 /-- **The fibre form of a vertically closed form is closed.** If a vertically closed two-form
 `τ` restricts to `σ` along a smooth atlas over a nonempty base, then `σ` is closed: it is the
