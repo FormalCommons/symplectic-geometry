@@ -56,6 +56,9 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
 * `SymplecticGeometry.isPseudoholomorphicOn_div_of_mem_twistOneKernel`: for `s, t` in
   `twistOneKernel J`, the quotient `s / t` is pseudoholomorphic from `J` to the standard structure
   of `ℂ` where `t ≠ 0` (`isPseudoholomorphicAt_div_of_mem_twistOneKernel` at a point).
+* `SymplecticGeometry.injective_mfderiv_div_of_mem_twistOneKernel`: for `J` tamed together with
+  `i` by a two-form and `s` not a complex multiple of `t`, the real derivative of `s / t` is
+  injective where `t ≠ 0`.
 * `SymplecticGeometry.isFredholm_twistOneDelBarSobolev` and
   `SymplecticGeometry.index_twistOneDelBarSobolev`: for such `J` and every order `k`, the Sobolev
   realization `twistOneDelBarSobolev J k` is Fredholm of real index `4`.
@@ -117,6 +120,13 @@ Leibniz rule `TauCeti.IsRealCauchyRiemannOperator.leibniz_complex`). This adapts
 `TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul` and
 `TauCeti.IsRealCauchyRiemannOperator.apply_smul_eq_zero_iff`, stated over a complex manifold, to
 an arbitrary structure `J` on the sphere.
+
+If `s` is not a complex multiple of `t` and `t x ≠ 0`, then `u = s - (s x / t x) t` is a nonzero
+kernel element with a zero at `x`, so its coordinate in the trivialization at `x` has an onto
+derivative there (`SymplecticGeometry.surjective_sectionLinearization_of_mem_twistOneKernel` and
+`TauCeti.surjective_sectionLinearization_iff`). Near `x`, `s / t = u / t + s x / t x`, and by
+`OnePoint.mvfderiv_div_twistCore_of_eq_zero` the derivative of `u / t` at `x` is `(t x)⁻¹` times
+that onto map, so the derivative of `s / t` at `x` is onto, hence injective.
 
 For the index, give the structures tamed by `σ` the `C^∞` topology in the preferred frames of the
 endomorphism bundle of the tangent bundle. There they form a contractible space
@@ -397,6 +407,51 @@ theorem isPseudoholomorphicOn_div_of_mem_twistOneKernel {s t : OnePoint ℂ → 
       (fun p ↦ s p / t p) {x | t x ≠ 0} :=
   isPseudoholomorphicOn_iff.2 fun _ hx ↦
   (isPseudoholomorphicAt_div_of_mem_twistOneKernel hs ht hx).isPseudoholomorphicWithinAt
+
+/-- **The quotient of two independent kernel elements on `𝒪(1)` has injective derivative.**
+Let a two-form `σ` on the sphere tame both `J` and the standard structure `i`, and let `s` and
+`t` be smooth sections of `𝒪(1)` with `D_J s = D_J t = 0` such that `s` is not a complex multiple
+of `t`. At a point `x` where `t x ≠ 0`, the real derivative of `p ↦ s p / t p` at `x` is
+injective. -/
+theorem injective_mfderiv_div_of_mem_twistOneKernel {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J)
+    (ht : t ∈ twistOneKernel J) (hst : ∀ c : ℂ, s ≠ c • t) {x : OnePoint ℂ} (hx : t x ≠ 0) :
+    Function.Injective (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ s p / t p) x) := by
+  -- The kernel element `u = s - (s x / t x) t` is nonzero and vanishes at `x`.
+  set c := s x / t x
+  set u := s - c • t
+  have hu : u ∈ twistOneKernel J := sub_mem hs (Submodule.smul_mem _ c ht)
+  have hu₀ : u ≠ 0 := fun h ↦ hst c (sub_eq_zero.1 h)
+  have hux : u x = 0 := by simp [u, c, div_mul_cancel₀ _ hx]
+  -- The coordinates of `u` and `t` in the trivialization at `x`.
+  set e₀ := (twistCore (𝕜 := ℂ) 1).localTriv x
+  have hxx : x ∈ e₀.baseSet := by simp [e₀]
+  have hU := (e₀.mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) u hxx).1
+    (((mem_twistOneKernel_iff J).1 hu).1.mdifferentiableAt (by simp))
+  have hT := ((e₀.mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t hxx).1
+    (((mem_twistOneKernel_iff J).1 ht).1.mdifferentiableAt (by simp))).continuousAt
+  -- The derivative of the coordinate of `u` at `x` is onto.
+  have hsurj := surjective_sectionLinearization_of_mem_twistOneKernel hJ hi hu hu₀ hux
+  rw [surjective_sectionLinearization_iff (e := e₀) continuousAt_id hxx hU hux] at hsurj
+  -- Near `x`, `s / t = u / t + c`.
+  have hf : (fun p ↦ s p / t p) =ᶠ[𝓝 x] fun p ↦ u p / t p + c := by
+    have hTx : (e₀ ⟨x, t x⟩).2 ≠ 0 := by
+      rwa [OnePoint.twistCore_localTriv_apply, OnePoint.twistTransition_self, one_mul]
+    filter_upwards [hT.eventually_ne hTx] with p hp
+    rw [OnePoint.twistCore_localTriv_apply] at hp
+    have htp : t p ≠ 0 := right_ne_zero_of_mul hp
+    simp only [u, Pi.sub_apply, Pi.smul_apply, smul_eq_mul]
+    field_simp
+    ring
+  rw [← injective_mvfderiv_iff, hf.mvfderiv_eq, mvfderiv_add_const,
+    OnePoint.mvfderiv_div_twistCore_of_eq_zero 1 hU hT hux hx]
+  -- So the derivative of `s / t`, read in `ℂ`, is onto, hence injective.
+  have hd : Function.Surjective ((t x)⁻¹ • mvfderiv 𝓘(ℝ, ℂ) (fun p ↦ (e₀ ⟨p, u p⟩).2) x) :=
+    fun y ↦ (hsurj (t x * y)).imp fun v hv ↦ by
+      simp only [id_eq] at hv
+      rw [smul_apply, hv, smul_eq_mul, inv_mul_cancel_left₀ hx]
+  -- The tangent spaces of the sphere and of `ℂ` are `ℂ` itself, hence the `rfl`.
+  exact (LinearMap.injective_iff_surjective_of_finrank_eq_finrank rfl).2 hd
 
 /-! ### Index, dimension of the kernel and surjectivity -/
 

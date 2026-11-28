@@ -6,10 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
+public import SymplecticGeometry.Geometry.Lie.Subgroup.Parabolic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
+import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
+import TauCeti.Analysis.Calculus.Deriv.Growth
+import TauCeti.LinearAlgebra.BilinearForm.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
 /-!
@@ -51,6 +56,20 @@ like `‖ξ‖ t` (`LieComplexification.sqrt_polar_symm_fst_le_add_mul`). Agains
 `Φ_p (exp (-i t ξ)) ≤ -w_μ(p, ξ) t` above, dividing by `t` and letting `t → ∞` gives the
 inequality.
 
+Weights and limit points move as expected under `G` and under the parabolic subgroup
+`C.parabolic ξ` of [GeorgoulasRobbinSalamon2021] (arXiv v2, Lemma 7.5). For `u : G` the curve
+`exp (i t Ad_u ξ) u x` is `u exp (i t ξ) x` (`LieComplexification.toHom_mul_expI_mul_inv`), and
+`μ` is equivariant, which gives `momentWeight_toHom_smul` and `limitPoint_toHom_smul`. For `q`
+in `C.parabolic ξ`, `exp (i t ξ) q x` is the conjugate `exp (i t ξ) q exp (-i t ξ)`, which
+converges, acting on `exp (i t ξ) x` (`limitPoint_smul_of_mem_parabolic`). For the weight, the
+quotient `Φ_p (exp (-i s ξ)) / s` tends to `-w_μ(p, ξ)`
+(`tendsto_kempfNessFunction_expI_neg_smul_div`, by Tau Ceti's
+`tendsto_inv_smul_atTop_of_tendsto_deriv` and the limit of the derivative), and by the cocycle
+identity `kempfNessFunction_mul` the functions for `q x` and `x` differ along `exp (-i s ξ)` by
+a bounded amount, since the conjugates of `q⁻¹` converge and so have bounded polar radius
+(`abs_kempfNessFunction_expI_mul_toHom_le`, `exists_eventually_abs_kempfNessFunction_le`); so
+`w_μ(q x, ξ) = w_μ(x, ξ)` (`momentWeight_smul_of_mem_parabolic`).
+
 ## Main definitions
 
 * `SymplecticGeometry.momentWeight C μ p ξ`: the limit of `μ (C.expI (t • ξ) • p) ξ` as
@@ -77,6 +96,15 @@ inequality.
   makes `Φ_p` unbounded below.
 * `SymplecticGeometry.momentWeight_le_mul_norm`: the moment-weight inequality
   `w_μ(p, ξ) ≤ √(B ξ ξ) * √(‖μ (g • p)‖²)`.
+* `SymplecticGeometry.momentWeight_toHom_smul`, `SymplecticGeometry.limitPoint_toHom_smul`:
+  `w_μ(u x, Ad u ξ) = w_μ(x, ξ)` and `(u x)⁺_{Ad u ξ} = u x⁺_ξ` for `u : G`.
+* `SymplecticGeometry.limitPoint_smul_of_mem_parabolic`,
+  `SymplecticGeometry.momentWeight_smul_of_mem_parabolic`: for `q` in the parabolic subgroup
+  `C.parabolic ξ`, `(q x)⁺_ξ = C.parabolicLimit ξ q • x⁺_ξ` and `w_μ(q x, ξ) = w_μ(x, ξ)`.
+* `SymplecticGeometry.tendsto_kempfNessFunction_expI_neg_smul_div`:
+  `Φ_p (C.expI (-(s • ξ))) / s → -w_μ(p, ξ)` as `s → ∞`.
+* `SymplecticGeometry.exists_eventually_abs_kempfNessFunction_le`: along a convergent curve in
+  `Gc`, `Φ_p` is eventually bounded, uniformly in `p`.
 * `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
   is nonpositive.
 
@@ -189,6 +217,23 @@ theorem momentWeight_le (h : IsComplexifiedAction C J)
     momentWeight C μ p ξ ≤ μ p ξ := by
   simpa using momentWeight_le_moment_expI_smul h hμ hg p ξ 0
 
+omit [CompactSpace M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle fun x : M ↦ TangentSpace I' x] in
+/-- **Moment weights under `G`.** For a complexified action, with `-μ` an equivariant moment map
+for `σ` and `G` connected, `w_μ(u x, Ad u ξ) = w_μ(x, ξ)` for every `u : G`. -/
+theorem momentWeight_toHom_smul [FiniteDimensional ℝ E] [ConnectedSpace G]
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) (u : G) (x : M)
+    (ξ : GroupLieAlgebra I G) :
+    momentWeight C μ (C.toHom u • x) (Lie.tangentAd (I := I) u ξ) = momentWeight C μ x ξ := by
+  have := C.finiteDimensional
+  have := FiniteDimensional.completeSpace ℝ E'
+  simp only [momentWeight_def]
+  congr 1
+  funext t
+  rw [← map_smul, ← C.toHom_mul_expI_mul_inv, smul_smul, inv_mul_cancel_right, mul_smul,
+    h.moment_toHom_smul hμ, Lie.coadjointRepresentation_apply, ← Lie.tangentAd_apply,
+    Lie.tangentAd_inv, LieEquiv.symm_apply_apply]
+
 end Weight
 
 /-! ### Limit points -/
@@ -288,6 +333,33 @@ theorem momentWeight_eq_moment_limitPoint (h : IsComplexifiedAction C J)
   exact tendsto_nhds_unique (tendsto_momentWeight h hμ hg p ξ)
     ((hc.tendsto _).comp (tendsto_limitPoint h hμ hg p ξ))
 
+/-- **Limit points under `G`.** Under the hypotheses of `tendsto_limitPoint`, with `G` connected,
+`(u x)⁺_{Ad u ξ} = u x⁺_ξ` for every `u : G`. -/
+theorem limitPoint_toHom_smul [ConnectedSpace G] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (u : G) (x : M) (ξ : GroupLieAlgebra I G) :
+    limitPoint C (C.toHom u • x) (Lie.tangentAd (I := I) u ξ) = C.toHom u • limitPoint C x ξ := by
+  have := C.finiteDimensional
+  have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := 𝓘(ℝ, E')) ∞
+  refine limitPoint_eq_of_tendsto (((tendsto_limitPoint h hμ hg x ξ).const_smul
+    (C.toHom u)).congr fun t ↦ ?_)
+  rw [← map_smul, ← C.toHom_mul_expI_mul_inv, smul_smul, smul_smul, inv_mul_cancel_right]
+
+/-- **Limit points under the parabolic subgroup.** Under the hypotheses of `tendsto_limitPoint`,
+for `q` in the parabolic subgroup `C.parabolic ξ`, the limit point `(q x)⁺_ξ` is the image of
+`x⁺_ξ` under `C.parabolicLimit ξ q`, the limit of the conjugates `exp (i t ξ) q exp (-i t ξ)`. -/
+theorem limitPoint_smul_of_mem_parabolic (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {ξ : GroupLieAlgebra I G} (q : C.parabolic ξ) (x : M) :
+    limitPoint C ((q : Gc) • x) ξ = C.parabolicLimit ξ q • limitPoint C x ξ := by
+  have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := 𝓘(ℝ, E')) ∞
+  -- `exp (i t ξ) q x` is the conjugate of `q` at time `t` acting on `exp (i t ξ) x`.
+  refine limitPoint_eq_of_tendsto (((C.tendsto_parabolicLimit ξ q).smul
+    (tendsto_limitPoint h hμ hg x ξ)).congr fun t ↦ ?_)
+  rw [smul_smul, C.expI_neg, inv_mul_cancel_right, mul_smul]
+
 end LimitPoint
 
 /-! ### The slope identity and the obstruction to semistability -/
@@ -359,6 +431,94 @@ theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAc
   have hup := kempfNessFunction_expI_neg_smul_le h hμ hg p ξ ht
   rw [mul_div_cancel₀ _ hw.ne'] at hup
   linarith [(hm ⟨_, rfl⟩).trans hup, neg_abs_le m]
+
+/-- **The asymptotic slope of the Kempf–Ness function.** Under the hypotheses of
+`tendsto_deriv_kempfNessFunction`, `Φ_p (C.expI (-(s • ξ))) / s` tends to `-w_μ(p, ξ)` as
+`s → ∞`. -/
+theorem tendsto_kempfNessFunction_expI_neg_smul_div (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) (ξ : GroupLieAlgebra I G) :
+    Tendsto (fun s : ℝ ↦ kempfNessFunction C μ p (C.expI (-(s • ξ))) / s) atTop
+      (𝓝 (-momentWeight C μ p ξ)) := by
+  simpa [div_eq_inv_mul] using tendsto_inv_smul_atTop_of_tendsto_deriv
+    (.of_forall (hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ))
+    (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
+
+omit [ConnectedSpace G] [FiniteDimensional ℝ E'] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+  [ContMDiffSMul IC I' ∞ Gc M] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+/-- **Kempf–Ness functions along a convergent curve.** On a compact manifold, with `-μ` a moment
+map for `σ`, if `k` converges along `l`, then `Φ_p (k s)` is eventually bounded along `l`,
+uniformly in `p`. -/
+theorem exists_eventually_abs_kempfNessFunction_le
+    {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (hμ : σ.IsMomentMap a fun x ↦ -μ x)
+    {α : Type*} {l : Filter α} {k : α → Gc} {g₀ : Gc} (hk : Tendsto k l (𝓝 g₀)) :
+    ∃ R, ∀ᶠ s in l, ∀ p, |kempfNessFunction C μ p (k s)| ≤ R := by
+  -- A positive definite form `B` on the Lie algebra, from an inner product on it. The norm
+  -- of `E` on the Lie algebra is opened only to state `innerProducts`.
+  open scoped GroupLieAlgebra in
+  obtain ⟨g, hg⟩ := innerProducts_nonempty (GroupLieAlgebra I G)
+  obtain ⟨hgs, hgp⟩ := mem_innerProducts.1 hg
+  let B := g.toBilinForm
+  have hBp : B.toQuadraticMap.PosDef := fun v hv ↦ by simpa [B] using hgp v hv
+  have hBs : B.IsSymm := ContinuousLinearMap.isSymm_toBilinForm_iff.2 hgs
+  have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
+  -- A bound `L` for `√(‖μ‖²)` on `M`, so `|Φ_p (k s)|` is at most `L` times the polar radius.
+  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
+    (hμ.contMDiff_momentNormSq.continuous.sqrt.continuousOn :
+      ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
+  have hL' (y : M) : √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
+    simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
+  have hc : Continuous fun g' : Gc ↦
+      L * √(B ((C.polar.symm g').1 : GroupLieAlgebra I G) (C.polar.symm g').1) :=
+    continuous_const.mul (((LinearMap.continuous_apply_self B).comp
+      (continuous_fst.comp C.polar.symm.continuous)).sqrt)
+  obtain ⟨R, hR⟩ := ((hc.tendsto g₀).comp hk).isBoundedUnder_le
+  refine ⟨R, (eventually_map.1 hR).mono fun s hs p ↦ ?_⟩
+  rw [← C.expI_mul_toHom_polar_symm (k s)]
+  exact (abs_kempfNessFunction_expI_mul_toHom_le C μ p hBs
+    (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hL' _ _).trans hs
+
+/-- **Moment weights under the parabolic subgroup.** Under the hypotheses of
+`tendsto_deriv_kempfNessFunction`, `w_μ(q x, ξ) = w_μ(x, ξ)` for every `q` in the
+parabolic subgroup `C.parabolic ξ`. -/
+theorem momentWeight_smul_of_mem_parabolic (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {ξ : GroupLieAlgebra I G} (q : C.parabolic ξ) (x : M) :
+    momentWeight C μ ((q : Gc) • x) ξ = momentWeight C μ x ξ := by
+  have := topologicalGroup_of_lieGroup IC ∞ (G := Gc)
+  -- The conjugates `k s = exp (i s ξ) q⁻¹ exp (-i s ξ)` converge, so `Φ` is bounded along them.
+  set k : ℝ → Gc := fun s ↦ C.expI (s • ξ) * (q : Gc)⁻¹ * C.expI (-(s • ξ))
+  have hk : Tendsto k atTop (𝓝 (C.parabolicLimit ξ q⁻¹)) := by
+    simpa only [Subgroup.coe_inv] using C.tendsto_parabolicLimit ξ q⁻¹
+  obtain ⟨R, hR⟩ := exists_eventually_abs_kempfNessFunction_le (C := C) hμ.toIsMomentMap hk
+  -- `Φ_{q x} (exp (-i s ξ)) = Φ_x (exp (-i s ξ)) + Φ_y (k s) - Φ_x q⁻¹` with `y = exp (i s ξ) x`.
+  have hid (s : ℝ) : kempfNessFunction C μ ((q : Gc) • x) (C.expI (-(s • ξ))) =
+      kempfNessFunction C μ x (C.expI (-(s • ξ))) +
+        (kempfNessFunction C μ ((C.expI (-(s • ξ)))⁻¹ • x) (k s) -
+          kempfNessFunction C μ x (q : Gc)⁻¹) := by
+    have h1 := kempfNessFunction_mul C μ x h hμ hg (q : Gc)⁻¹ (C.expI (-(s • ξ)))
+    have h2 := kempfNessFunction_mul C μ x h hμ hg (C.expI (-(s • ξ))) (k s)
+    rw [inv_inv] at h1
+    have he : C.expI (-(s • ξ)) * k s = (q : Gc)⁻¹ * C.expI (-(s • ξ)) := by
+      simp only [k, C.expI_neg]
+      group
+    rw [he] at h2
+    linarith
+  have hsmall : Tendsto (fun s : ℝ ↦
+      (kempfNessFunction C μ ((C.expI (-(s • ξ)))⁻¹ • x) (k s) -
+        kempfNessFunction C μ x (q : Gc)⁻¹) / s) atTop (𝓝 0) := by
+    refine squeeze_zero_norm' ?_
+      ((tendsto_const_nhds (x := R + |kempfNessFunction C μ x (q : Gc)⁻¹|)).div_atTop tendsto_id)
+    filter_upwards [hR, eventually_gt_atTop 0] with s hRs hs
+    rw [norm_div, Real.norm_of_nonneg hs.le, Real.norm_eq_abs, id_eq]
+    refine div_le_div_of_nonneg_right ((abs_sub _ _).trans (add_le_add_left ?_ _)) hs.le
+    exact hRs _
+  have := tendsto_nhds_unique (tendsto_kempfNessFunction_expI_neg_smul_div h hμ hg _ ξ)
+    (((tendsto_kempfNessFunction_expI_neg_smul_div h hμ hg x ξ).add hsmall).congr fun s ↦ by
+      rw [hid, add_div])
+  linarith
 
 /-- **The moment-weight inequality.** For a complexified action on a compact manifold, with `-μ`
 an equivariant moment map for `σ`, the metric `g(u, w) = σ(u, J w)` and a symmetric, nonnegative,
