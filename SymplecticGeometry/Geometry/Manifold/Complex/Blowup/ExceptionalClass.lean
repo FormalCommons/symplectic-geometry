@@ -53,8 +53,7 @@ can use it with no conversion.
 * `SymplecticGeometry.Blowup.orientation_map_eq_divisorNormalOrientation`: a complex-linear
   isomorphism `ℂ ≃ ℓ`, read on `ℝ²` through `Complex.orthonormalBasisOneI` and carried to the
   normal space by `divisorNormalEquiv c ℓ`, takes the standard orientation of `ℝ²` to
-  `divisorNormalOrientation c ℓ`; `orientation_map_eq_divisorNormalOrientation_mk` is the case
-  `z ↦ z • v` for `ℓ = [v]`.
+  `divisorNormalOrientation c ℓ`.
 * `SymplecticGeometry.Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul`:
   a curve that `lift c` reads near `0` as the lift of the line `t ↦ t • v` crosses the exceptional
   divisor with normal velocity `v`.
@@ -244,22 +243,6 @@ theorem orientation_map_eq_divisorNormalOrientation {ℓ : ℙ ℂ (Fin (n + 1) 
     ← reindex_complexOrientation_complex, Orientation.map_reindex, e.map_complexOrientation]
   simp only [← Orientation.reindex_trans, ContinuousLinearEquiv.toLinearEquiv_symm]
   congr 1
-
-/-- **The line through `v` orients the normal space.** For `v ≠ 0`, a real-linear isomorphism
-`m : ℝ² ≃ ν_ℓ` onto the normal space of the exceptional divisor at `ℓ = [v]` that
-`divisorNormalEquiv c ℓ` turns into `w ↦ w • v`, with `w ∈ ℝ²` read in `ℂ` by
-`Complex.orthonormalBasisOneI.repr.symm`, carries the standard orientation of `ℝ²` to
-`divisorNormalOrientation c ℓ`. -/
-theorem orientation_map_eq_divisorNormalOrientation_mk {v : Fin (n + 1) → ℂ} (hv : v ≠ 0)
-    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ]
-      (divisorRealEmbedding c).isImmersion.NormalSpace (Projectivization.mk ℂ v hv) hn)
-    (hm : ∀ w, (divisorNormalEquiv c _ (m w) : Fin (n + 1) → ℂ) =
-      Complex.orthonormalBasisOneI.repr.symm w • v) :
-    (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
-      divisorNormalOrientation c (Projectivization.mk ℂ v hv) :=
-  orientation_map_eq_divisorNormalOrientation c
-    (Projectivization.toTautological hv (Projectivization.submodule_mk v hv)) m fun w ↦
-      Subtype.ext <| by rw [hm, Projectivization.coe_toTautological_apply]
 
 variable [T2Space M] [SecondCountableTopology M]
 
