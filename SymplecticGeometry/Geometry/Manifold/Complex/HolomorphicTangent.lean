@@ -107,8 +107,10 @@ theorem continuous_ofComplexManifoldTangentEquiv (n : ℕ∞) :
     ((TangentBundle.restrictScalarsHomeomorph ℝ (𝕜' := ℂ) M).symm.continuous.congr fun p ↦ ?_)
   rw [TangentBundle.restrictScalarsHomeomorph_symm_apply, tangentSpaceCastModel_symm_apply,
     tangentSpaceCastModel_apply]
-  -- `rw [ContinuousLinearEquiv.refl_apply]` does not match on the right, where the identity of
-  -- `E` is applied to a vector typed as a tangent vector.
+  -- `rw` and `simp` cannot work on this goal: on its left side, `⟨p.proj, p.snd⟩` puts
+  -- `p.snd : TangentSpace 𝓘(ℝ, E) p.proj` where `TangentSpace 𝓘(ℂ, E) p.proj` is expected. That
+  -- type-checks only because both tangent spaces are `E` by definition, and no lemma identifies
+  -- them, so the goal is closed by a term that relies on this definitional identification.
   exact congrArg _ (ContinuousLinearEquiv.refl_apply ℝ E p.snd).symm
 
 end TauCeti.SmoothAlmostComplexStructure
