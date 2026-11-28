@@ -49,9 +49,9 @@ for a loop `c` in the model fibre, the point `C (s, t, θ)` is the transport alo
 (`TauCeti.IsEhresmannConnection.transportedCylinder`). Starting at `Δ (s, 0)` rather than at the
 centre `x` makes `C` smooth on an open set of parameters that contains `[0, 1] × ℝ × ℝ`, so
 that its derivative in `s` is an ordinary one even at `s = 0` and `s = 1`; for `s ∈ [0, 1]`
-the two starting points agree. Smoothness in the time `t` comes from writing transport from `0`
-to `t` as transport from `0` to `1` along the reparametrized curves `u ↦ Δ (s, t u)`
-(`TauCeti.IsEhresmannConnection.parallelTransport_comp`).
+the two starting points agree. Smoothness in the time `t` comes from the smoothness of
+transport in a family of curves and in its final time
+(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`).
 
 ## Main definitions
 
@@ -486,6 +486,35 @@ theorem transportedCylinder_zero_of_isSmoothDisc (hΔ : IsSmoothDisc IB γ Δ) (
     hD.transportedCylinder e Δ c (s, 0, θ) = e.toOpenPartialHomeomorph.symm (x, c θ) := by
   rw [transportedCylinder_zero, hΔ.apply_seam]
 
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
+  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
+/-- **The transported cylinder does not move in `s` at `t = 0`.** For a smooth disc `Δ` and
+`s ∈ [0, 1]`, the derivative of the transported cylinder at `(s, 0, θ)` in the direction of `s`
+vanishes. -/
+theorem mfderiv_transportedCylinder_zero_apply (hΔ : IsSmoothDisc IB γ Δ) {s : ℝ}
+    (hs : s ∈ Icc 0 1) (θ : ℝ) :
+    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, 0, θ) (1, 0, 0) = 0 := by
+  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, 0, θ)
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
+    -- `rw [zero_apply]` misses the pattern: the argument is typed as a tangent vector.
+    exact zero_apply _
+  -- The line `r ↦ (r, 0, θ)` and its derivative.
+  have hι : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun r : ℝ ↦ (r, (0 : ℝ), θ)) s
+      (ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)) :=
+    hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ))
+  have h₁ := hC.hasMFDerivAt.comp s hι
+  -- Along the line, the cylinder is constant on `[0, 1]`.
+  have h₂ : HasMFDerivWithinAt 𝓘(ℝ, ℝ) IM
+      (hD.transportedCylinder e Δ c ∘ fun r : ℝ ↦ (r, (0 : ℝ), θ)) (Icc 0 1) s 0 :=
+    (hasMFDerivWithinAt_const (e.toOpenPartialHomeomorph.symm (x, c θ)) _ _).congr_mono
+      (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ)
+      (transportedCylinder_zero_of_isSmoothDisc hΔ ⟨s, hs⟩ θ) subset_rfl
+  have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
+    (uniqueDiffOn_Icc zero_lt_one s hs)).eq h₁.hasMFDerivWithinAt h₂
+  -- The value of `(mfderiv C p).comp inl` at `1` is that of `mfderiv C p` at `(1, 0, 0)`.
+  exact DFunLike.congr_fun h 1
+
 omit [IsManifold IF ∞ F] in
 /-- **The transported cylinder is smooth.** Let `D` be a smooth Ehresmann connection on a proper
 smooth map `proj`, `Δ : ℝ × ℝ → B` smooth, `e` a trivialization of `proj` with a smooth inverse,
@@ -497,35 +526,19 @@ theorem contMDiffOn_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ pr
     (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) :
     ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ (hD.transportedCylinder e Δ c)
       {p | Δ (p.1, 0) ∈ e.baseSet} := by
-  -- Transport from `0` to `t` along `Δ (s, ·)` is transport from `0` to `1` along
-  -- `u ↦ Δ (s, t * u)`, a family of curves with parameters `(s, t)`.
-  have hΓ : ContMDiff (𝓘(ℝ, ℝ × ℝ).prod 𝓘(ℝ, ℝ)) IB ((⊤ : ℕ∞) + 1)
-      fun q : (ℝ × ℝ) × ℝ ↦ Δ (q.1.1, q.1.2 * q.2) :=
-    contMDiff_prod_modelWithCornersSelf_iff.2 ((hΔ.comp
-      (by fun_prop : ContDiff ℝ ∞ fun q : (ℝ × ℝ) × ℝ ↦ (q.1.1, q.1.2 * q.2)).contMDiff).of_le
-        (by simp))
-  have hT := hD.contMDiffOn_parallelTransport_param le_top (hf.of_le (by simp)) hfp isOpen_univ
-    hΓ.contMDiffOn 0 1
-  -- The point where the transport starts, with the parameters `(s, t)`.
+  have hT := hD.contMDiffOn_parallelTransport_param_endTime le_top (hf.of_le (by simp)) hfp
+    ((contMDiff_prod_modelWithCornersSelf_iff.2 hΔ).of_le (by simp)) 0
+  -- The parameters `(s, t)` and the point where the transport starts.
   have hv : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) (IB.prod IF) ∞
       fun p : ℝ × ℝ × ℝ ↦ (Δ (p.1, 0), c p.2.2) :=
     (hΔ.comp (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ (p.1, (0 : ℝ))).contMDiff).prodMk
       (hc.comp (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ p.2.2).contMDiff)
-  have hg : ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) (𝓘(ℝ, ℝ × ℝ).prod IM) ∞
+  have hg : ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) ((𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)).prod IM) ∞
       (fun p : ℝ × ℝ × ℝ ↦ ((p.1, p.2.1), e.toOpenPartialHomeomorph.symm (Δ (p.1, 0), c p.2.2)))
       {p | Δ (p.1, 0) ∈ e.baseSet} :=
-    (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ (p.1, p.2.1)).contMDiff.contMDiffOn.prodMk
+    ((contDiff_fst.contMDiff.prodMk (contDiff_snd.fst).contMDiff).contMDiffOn).prodMk
       (he_symm.comp hv.contMDiffOn fun _ hp ↦ e.mem_target.2 hp)
-  refine (hT.comp hg fun p hp ↦ ⟨mem_univ _, ?_⟩).congr fun p _ ↦ ?_
-  · simpa only [mul_zero] using e.proj_symm_apply' hp
-  have hslice : ContMDiff 𝓘(ℝ, ℝ) IB ∞ fun t ↦ Δ (p.1, t) :=
-    hΔ.comp (contDiff_const.prodMk contDiff_id).contMDiff
-  have h := hD.parallelTransport_comp le_top (hf.of_le (by simp)) hfp
-    (hslice.of_le (by simp)) (φ := fun u ↦ p.2.1 * u) (by fun_prop) 0 1
-  simp only [mul_zero, mul_one] at h
-  rw [transportedCylinder_def, ← h]
-  -- Both sides are the same transport, up to `Function.comp` and beta reduction.
-  rfl
+  exact (hT.comp hg fun p hp ↦ e.proj_symm_apply' hp).congr fun p _ ↦ transportedCylinder_def p
 
 omit [IsManifold IF ∞ F] in
 /-- For a smooth disc `Δ` with centre `x` and a trivialization `e` whose base set contains `x`,
@@ -540,37 +553,6 @@ theorem contMDiffAt_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ pr
     (IsOpen.mem_nhds (e.open_baseSet.preimage ?_) ?_)
   · exact hΔ.contMDiff.continuous.comp (by fun_prop)
   · exact (congrArg (· ∈ e.baseSet) (hΔ.apply_seam ⟨p.1, hp⟩)).mpr hx
-
-omit [IsManifold IF ∞ F] in
-/-- **The transported cylinder does not move in `s` at `t = 0`.** For a smooth disc `Δ` with
-centre `x`, a trivialization `e` whose base set contains `x`, and `s ∈ [0, 1]`, the derivative of
-the transported cylinder at `(s, 0, θ)` in the direction of `s` vanishes. -/
-theorem mfderiv_transportedCylinder_zero_apply (hD : IsEhresmannConnection IM IB ∞ proj D)
-    (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
-    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
-    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c)
-    {s : ℝ} (hs : s ∈ Icc 0 1) (θ : ℝ) :
-    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, 0, θ) (1, 0, 0) = 0 := by
-  have hC := (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc
-    (p := (s, 0, θ)) hs).mdifferentiableAt (by simp)
-  -- The line `r ↦ (r, 0, θ)` and its derivative.
-  have hι : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun r : ℝ ↦ (r, (0 : ℝ), θ)) s
-      (ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)) := by
-    refine hasMFDerivAt_iff_hasFDerivAt.2 ?_
-    refine ((ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)).hasFDerivAt.add_const (x := s)
-      ((0 : ℝ), (0 : ℝ), θ)).congr_of_eventuallyEq (Filter.Eventually.of_forall fun r ↦ ?_)
-    simp
-  have h₁ := hC.hasMFDerivAt.comp s hι
-  -- Along the line, the cylinder is constant on `[0, 1]`.
-  have h₂ : HasMFDerivWithinAt 𝓘(ℝ, ℝ) IM
-      (hD.transportedCylinder e Δ c ∘ fun r : ℝ ↦ (r, (0 : ℝ), θ)) (Icc 0 1) s 0 :=
-    (hasMFDerivWithinAt_const (e.toOpenPartialHomeomorph.symm (x, c θ)) _ _).congr_mono
-      (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ)
-      (transportedCylinder_zero_of_isSmoothDisc hΔ ⟨s, hs⟩ θ) subset_rfl
-  have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
-    (uniqueDiffOn_Icc zero_lt_one s hs)).eq h₁.hasMFDerivWithinAt h₂
-  -- The value of `(mfderiv C p).comp inl` at `1` is that of `mfderiv C p` at `(1, 0, 0)`.
-  exact DFunLike.congr_fun h 1
 
 end TransportedCylinder
 
