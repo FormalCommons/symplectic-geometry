@@ -93,6 +93,11 @@ where a function is not differentiable, so that the bounds alone would allow sec
 nowhere continuous. The bounds are written with explicit constants and `∀ᶠ k in Filter.atTop`.
 The zero sequence is asymptotically holomorphic; so are negatives, complex multiples, sums, and
 products with functions `g k` whose readings are smooth and satisfy the same bounds.
+Since the frame is smooth near the centre of its chart, a section whose reading at `x` is smooth
+at `0` is smooth at `x` as a map into the total space
+(`SymplecticGeometry.RescaledUnitaryCharts.contMDiffAt_of_contDiffAt_reading`); hence, for `k`
+large, the sections of an asymptotically holomorphic sequence are smooth
+(`SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic.eventually_contMDiff`).
 
 At the centre `x` of the chart, the norm of `J.zeroOnePart (powerConnection α k s x) v` is that
 of the `∂̄` reading at `0` on the image `u` of `v` under the derivative of the chart
@@ -260,6 +265,18 @@ theorem apply_chart_symm_eq_mk (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (
   rw [reading_def, LinearIsometryEquiv.symm_apply_apply,
     ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ),
     LinearIsometryEquiv.apply_symm_apply]
+
+/-- On the image of the ball of radius `ρ₀ * √k` under the inverse chart, a section is the class
+of the frame and of its reading at the chart's value. -/
+theorem apply_eq_mk_reading_chart {k : ℕ} (hk : k₀ ≤ k) (x : M) (s : Π y, PowerBundle P k y)
+    {y : M} (hy : y ∈ (D.chart k x).symm '' ball 0 (ρ₀ * √k)) :
+    s y = AssociatedBundle.mk Circle (D.frame k x y)
+      (PowerModel.toComplex.symm (D.reading k x s (D.chart k x y))) := by
+  obtain ⟨z, hz, rfl⟩ := hy
+  have h := D.apply_chart_symm_eq_mk k x s z
+  rw [PartialDiffeomorph.symm_toPartialEquiv] at h
+  rw [PartialDiffeomorph.symm_toPartialEquiv, (D.chart k x).toPartialEquiv.right_inv
+    (D.ball_subset_target hk x hz), h]
 
 @[simp]
 theorem reading_add (k : ℕ) (x : M) (s t : Π y, PowerBundle P k y) :
@@ -441,10 +458,9 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
   have hf : MDifferentiableAt I 𝓘(ℝ, PowerModel k) (g ∘ ψ) (ψ.symm z) := (hψz ▸ hgd).comp _ hψ
   have hsf : ∀ y ∈ ψ.symm '' ball 0 (ρ₀ * √k),
       s y = AssociatedBundle.mk Circle (D.frame k x y) ((g ∘ ψ) y) := by
-    rintro _ ⟨w, hw, rfl⟩
-    rw [Function.comp_apply, PartialDiffeomorph.symm_toPartialEquiv,
-      ψ.right_inv (D.ball_subset_target hk x hw), hgw, hL]
-    exact D.apply_chart_symm_eq_mk k x s w
+    intro y hy
+    rw [Function.comp_apply, hgw, hL]
+    exact D.apply_eq_mk_reading_chart hk x s hy
   -- The connection form in the frame, read in the chart, is the model.
   have hc : (k : ℝ) * mpullback I (I.prod (𝓡 1))
       (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, D.frame k x y⟩) α.val (ψ.symm z)
@@ -706,6 +722,43 @@ theorem contDiffAt_dbarReading [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M}
   have hJ : ContDiffAt ℝ n (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
     (J.contDiffAt_chartPushforward (D.chart k x) hz).of_le (by exact_mod_cast le_top)
   exact contDiffAt_modelDbarWith hJ hs
+
+/-- **A section is smooth where its reading is.** For `0 < ρ₀` and `k₀ ≤ k` with `k ≠ 0`, a
+section of `PowerBundle P k` whose reading at `x` is `C^n` at the centre `0` is `C^n` at `x`, as a
+map into the total space of the bundle. -/
+theorem contMDiffAt_of_contDiffAt_reading (hρ₀ : 0 < ρ₀) {n : ℕ∞} {k : ℕ} (hk : k₀ ≤ k)
+    (hk0 : k ≠ 0) {x : M} {s : Π y, PowerBundle P k y}
+    (hs : ContDiffAt ℝ n (D.reading k x s) 0) :
+    ContMDiffAt I (I.prod 𝓘(ℝ, PowerModel k)) n
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)) x := by
+  set ψ := D.chart k x
+  have hU : ψ.symm '' ball 0 (ρ₀ * √k) ∈ 𝓝 x :=
+    (ψ.toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target isOpen_ball
+      (D.ball_subset_target hk x)).mem_nhds
+      ⟨0, mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0))),
+        D.chart_symm_zero hk x⟩
+  -- The frame is smooth at `x`, and so is the reading composed with the chart.
+  have hF : ContMDiffAt I (I.prod (𝓡 1)) n
+      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, D.frame k x y⟩) x :=
+    ((D.contMDiffOn_frame hk x).contMDiffAt hU).of_le (by exact_mod_cast le_top)
+  set L : ℂ ≃L[ℝ] PowerModel k :=
+    (PowerModel.toComplex (k := k)).symm.toContinuousLinearEquiv.restrictScalars ℝ
+  have hL (w : ℂ) : L w = PowerModel.toComplex.symm w :=
+    ContinuousLinearEquiv.restrictScalars_apply ℝ _ w
+  have hψ : ContMDiffAt I 𝓘(ℝ, StdSpace ι) n ψ x :=
+    ((ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds (D.mem_source hk x)))).of_le
+      (by exact_mod_cast le_top)
+  have hr0 : ContMDiffAt 𝓘(ℝ, StdSpace ι) 𝓘(ℝ, ℂ) n (D.reading k x s) (ψ x) := by
+    rw [D.apply_self hk x]
+    exact hs.contMDiffAt
+  have hr : ContMDiffAt I 𝓘(ℝ, PowerModel k) n (fun y ↦ L (D.reading k x s (ψ y))) x :=
+    (L : ℂ →L[ℝ] PowerModel k).contMDiff.contMDiffAt.comp x (hr0.comp x hψ)
+  have hmk := hF.totalSpaceMk_associatedBundleMk hr
+  refine ((ManifoldTotalSpace.contMDiff_homeomorph_symm n (PowerModel k) (PowerBundle P k)
+    I).contMDiffAt.comp x hmk).congr_of_eventuallyEq ?_
+  filter_upwards [hU] with y hy
+  simp only [Function.comp_apply, Homeomorph.symm_apply_apply]
+  rw [D.apply_eq_mk_reading_chart hk x s hy, hL]
 
 /-- The connection read in the chart at `z` depends only on the germ at `z` of the reading. -/
 theorem connectionReading_congr_of_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
@@ -1022,6 +1075,17 @@ theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle
         ≤ c * (Cg * (Cs * (k : ℝ) ^ (-1 / 2 : ℝ)) + Cs * (Cg * (k : ℝ) ^ (-1 / 2 : ℝ))) := by
           gcongr
       _ = 2 * c * Cg * Cs * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
+
+/-- **Asymptotically holomorphic sequences are smooth for large `k`.** For `0 < ρ₀`, if `s` is
+asymptotically holomorphic, then for `k` large each `s k` is smooth, as a map into the total space
+of `PowerBundle P k`. -/
+theorem IsAsymptoticallyHolomorphic.eventually_contMDiff (hρ₀ : 0 < ρ₀)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) :
+    ∀ᶠ k : ℕ in Filter.atTop, ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y)) := by
+  filter_upwards [hs.1, Filter.eventually_ge_atTop k₀, Filter.eventually_ne_atTop 0]
+    with k hks hk hk0 x
+  exact D.contMDiffAt_of_contDiffAt_reading hρ₀ hk hk0 (hks x).1
 
 /-! ### The `(0,1)`-part of the connection at the centre of a chart -/
 
