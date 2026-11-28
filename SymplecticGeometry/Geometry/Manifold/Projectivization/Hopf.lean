@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Sphere.LinearIsometry
 public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 public import SymplecticGeometry.Geometry.Manifold.Instances.ComplexProjectiveSpace.Projectivization
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.Topology.Algebra.GroupAction.InvariantCore
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import TauCeti.Analysis.InnerProductSpace.Radial.Rescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
@@ -43,7 +44,9 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   (`ker_mfderiv_mkNonzero`). Its fibre over `[v]` is the punctured line of the nonzero multiples
   of `v` (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ` and `n = 1` it is the pencil
   `[z₀ : z₁]` on `ℂ² ∖ 0`. A group acting on `V` by additive maps acts on
-  `TauCeti.puncturedSpace V` (`TauCeti.puncturedSpace.instMulAction`, `coe_smul`); when it acts
+  `TauCeti.puncturedSpace V` by restriction, through
+  `TopologicalSpace.Opens.mulActionOfForallSMulMem` (`TauCeti.puncturedSpace.instMulAction`,
+  `coe_smul`); when it acts
   `𝕜`-linearly on `𝕜ⁿ⁺¹`, `mkNonzero` is equivariant (`mkNonzero_smul`).
 * `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
   the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
@@ -96,13 +99,12 @@ namespace TauCeti.puncturedSpace
 variable {G V : Type*} [Group G] [AddMonoid V] [TopologicalSpace V] [T1Space V]
   [DistribMulAction G V]
 
-/-- A group acting on `V` by additive maps acts on the punctured space `V ∖ {0}`, since
+/-- A group acting on `V` by additive maps acts on the punctured space `V ∖ {0}`, by the
+restriction `TopologicalSpace.Opens.mulActionOfForallSMulMem` of the action on `V`, since
 `g • v ≠ 0` when `v ≠ 0`. -/
-instance instMulAction : MulAction G (puncturedSpace V) where
-  smul g v := ⟨g • (v : V), mem_puncturedSpace.2 ((smul_ne_zero_iff_ne g).2
-    (mem_puncturedSpace.1 v.property))⟩
-  one_smul v := Subtype.ext (one_smul G (v : V))
-  mul_smul g h v := Subtype.ext (mul_smul g h (v : V))
+instance instMulAction : MulAction G (puncturedSpace V) :=
+  Opens.mulActionOfForallSMulMem fun g _ hv ↦
+    mem_puncturedSpace.2 ((smul_ne_zero_iff_ne g).2 (mem_puncturedSpace.1 hv))
 
 /-- The action on the punctured space is the restriction of the action on `V`. -/
 @[simp, norm_cast]
