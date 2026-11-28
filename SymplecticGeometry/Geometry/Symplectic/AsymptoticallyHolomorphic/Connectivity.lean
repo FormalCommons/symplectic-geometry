@@ -181,15 +181,15 @@ theorem IsUniformlyTransverse.le_norm_of_mem_criticalPoints
       x ∈ criticalPoints I (fun y ↦ Real.log (‖s k y‖ ^ 2)) → η ≤ ‖s k x‖ := by
   rcases le_or_gt η 0 with hη | hη
   · exact Filter.Eventually.of_forall fun k x _ _ _ ↦ hη.trans (norm_nonneg _)
-  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
-  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
-  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hdiff hx hcrit
+  filter_upwards [isUniformlyTransverse_def.1 ht,
+    D.eventually_rpow_mul_norm_zeroOnePart_powerConnection_lt hJ hα hρ₀ hs hη]
+    with k hk hsk x hdiff hx hcrit
   have heq := (isMetricCompatible_powerConnection α k).norm_oneZeroPart_eq_norm_zeroOnePart_of_log
     J (PowerBundle.finrank_eq_one P k x) hdiff hx (mem_criticalPoints.1 hcrit)
   have hlt : (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k (s k) x)‖ <
       η := by
     rw [heq]
-    exact (hCk x).trans_lt hsk
+    exact hsk x
   rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
   · exact h
   · exact absurd h hlt.not_ge
@@ -208,16 +208,11 @@ theorem IsUniformlyTransverse.eventually_norm_zeroOnePart_lt_norm_oneZeroPart
     ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M, s k x = 0 →
       ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
         ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
-  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
-  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
-  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hx
-  have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
-      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
-    rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
-    · rw [hx, norm_zero] at h
-      exact absurd h hη.not_ge
-    · exact h
-  exact lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
+  filter_upwards [isUniformlyTransverse_def.1 ht,
+    D.eventually_rpow_mul_norm_zeroOnePart_powerConnection_lt hJ hα hρ₀ hs hη] with k hk hsk x hx
+  have hle := hk x
+  rw [transversalityQuantity_of_eq_zero hx] at hle
+  exact lt_of_mul_lt_mul_left ((hsk x).trans_le hle) (by positivity)
 
 /-- **Uniformly transverse sequences are transverse to the zero section for `k` large.** Let `M`
 be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α` a connection form,
