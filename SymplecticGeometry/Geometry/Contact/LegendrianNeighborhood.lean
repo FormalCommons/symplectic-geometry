@@ -338,7 +338,6 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
   -- The differential of `ι` at `0_q`, with values in the tangent space at `g q = ι 0_q`, so that
   -- its range and `ker α` are subspaces of the same type.
   have hrange (q : L) : (sliceDeriv hf' hdim T q).range = α.kerDistribution (g q) := by
-    have : FiniteDimensional ℝ (TangentSpace I (g q)) := inferInstanceAs (FiniteDimensional ℝ E)
     refine Submodule.eq_of_le_of_finrank_eq (by rintro _ ⟨X, rfl⟩; exact (hD q).1 X) ?_
     rw [LinearMap.finrank_range_of_inj (hD q).2, finrank_tangentSpace]
     have h1 := hα.finrank_kerDistribution_add_one (g q)

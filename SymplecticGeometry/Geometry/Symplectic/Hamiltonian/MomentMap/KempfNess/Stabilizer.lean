@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Lie.Subgroup.Restrict
 public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Topology.Connected.Basic
+import SymplecticGeometry.Topology.Algebra.Group.Connected
 
 /-!
 # The stabilizer in the complexification of a zero of the moment map
@@ -34,7 +35,11 @@ that of `x` in the Lie algebra of `G`, so it is stable under `C.cplx`. As it is 
 Lie algebra of `Gc₀`, `C.cplx` gives that Lie algebra a complex structure which commutes with
 brackets, and for which the Lie algebra of `H₀`, mapped by the restriction `H₀ → Gc₀` of
 `C.toHom`, is maximal totally real. These are the complex structure and the maximal totally real
-image of a complexification of `H₀` by `Gc₀`.
+image of a complexification of `H₀` by `Gc₀`. Together with the restricted polar decomposition
+they make `Gc₀` a complexification of `H₀`, whose exponential of imaginary directions, read in
+`Gc` through the inclusions, is that of `C`. The differential at `1` of the inclusion `H₀ → G`
+maps nonzero periods of `H₀` to nonzero periods of `G`; this one inclusion holds for any embedded
+Lie subgroup (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraMap_subtype_mem_nonzeroPeriods`).
 
 ## Main results
 
@@ -58,6 +63,11 @@ image of a complexification of `H₀` by `Gc₀`.
   commutes with brackets (`SymplecticGeometry.IsComplexifiedAction.stabilizerCplx_lie`).
 * `SymplecticGeometry.IsComplexifiedAction.isMaximalTotallyReal_range_restrict`: the image of the
   Lie algebra of `H₀` under the restriction of `C.toHom` is maximal totally real for it.
+* `SymplecticGeometry.IsComplexifiedAction.stabilizerComplexification`: `Gc₀` as a
+  complexification of `H₀`, built from the restriction of `C.toHom`, `stabilizerCplx` and
+  `stabilizerPolar`.
+* `SymplecticGeometry.IsComplexifiedAction.stabilizerComplexification_expI`: its `expI`, read in
+  `Gc`, is `C.expI` of the image in the Lie algebra of `G`.
 
 ## Implementation notes
 
@@ -89,6 +99,13 @@ compatibility with brackets, and maximal total reality, are tested after the inj
 differential of the inclusion `Gc₀ → Gc`, which preserves brackets
 (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraLieHom_subtypeVal`), using the commuting
 square of `ContMDiffMonoidMorphism.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict`.
+
+The complexification of `H₀` uses the structures of
+`TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` on both identity components. `C.toHom` maps `H₀`
+into `Gc₀` because it is continuous and maps the stabilizer into the stabilizer. Its exponential
+and its periods are compared with those of `C` and `G` through
+`TauCeti.Lie.EmbeddedLieSubgroupData.coe_mulInvariantExp` and the injectivity of the differential
+of the inclusion (`TauCeti.Lie.EmbeddedLieSubgroupData.injective_groupLieAlgebraMap_subtype`).
 
 ## References
 
@@ -500,5 +517,168 @@ theorem IsComplexifiedAction.isMaximalTotallyReal_range_restrict (h : IsComplexi
       h.range_groupLieAlgebraMap_subtype_stabilizer_eq_sup hμ hg hx d]
 
 end StabilizerCplx
+
+/-! ### The complexification of the identity component of `G_x` -/
+
+section StabilizerComplexification
+
+open Lie
+
+attribute [local instance] ContMDiffMul.boundarylessManifold
+
+omit [FiniteDimensional ℝ E'] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle fun x : M ↦ TangentSpace I' x] in
+/-- For a complexified action, `C.toHom` maps the identity component of the stabilizer of `x` in
+`G` into that of the stabilizer of `x` in `Gc`: it is continuous, sends `1` to `1`, and maps the
+one stabilizer into the other. -/
+theorem IsComplexifiedAction.mapsTo_toHom_ambientConnectedComponentOfOne_stabilizer
+    [IsTopologicalGroup G] [IsTopologicalGroup Gc] (h : IsComplexifiedAction C J) (x : M) :
+    Set.MapsTo C.toHom (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+      (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne := by
+  refine Subgroup.mapsTo_ambientConnectedComponentOfOne_of_mapsTo
+    C.toHom.contMDiff_toFun.continuous (fun u hu ↦ ?_) (map_one C.toHom)
+  rw [SetLike.mem_coe, MulAction.mem_stabilizer_iff, h.toHom_smul]
+  exact hu
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [T2Space G] [IsTopologicalGroup G]
+  [IsTopologicalGroup Gc] [I.Boundaryless] [IC.Boundaryless] [T2Space M]
+  [BoundarylessManifold I' M]
+
+/-- **The complexification of the identity component of the stabilizer of a zero of the moment
+map.** In the setting of `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, let `H₀` and
+`Gc₀` be the identity components of the stabilizers of `x` in `G` and in `Gc`, each with the Lie
+group structure of a closed subgroup (`TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`), modelled
+on its Lie algebra. Then `Gc₀` is a complexification of `H₀`: its inclusion is the restriction of
+`C.toHom`, its complex structure is `C.cplx` read on the Lie algebra of `Gc₀`
+(`IsComplexifiedAction.stabilizerCplx`), and its polar decomposition is the restriction of
+`C.polar` (`IsComplexifiedAction.stabilizerPolar`). -/
+noncomputable def IsComplexifiedAction.stabilizerComplexification (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let H₀ := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+    let Gc₀ := (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne
+    let E₀ := (lieSubalgebraOfSubgroup (I := I) H₀).toSubmodule
+    let EC₀ := (lieSubalgebraOfSubgroup (I := IC) Gc₀).toSubmodule
+    let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+    let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
+    let _ := dH.chartedSpace
+    let _ := dK.chartedSpace
+    let _ := dH.lieGroup
+    let _ := dK.lieGroup
+    LieComplexification 𝓘(ℝ, E₀) H₀ 𝓘(ℝ, EC₀) Gc₀ :=
+  let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+    (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+      (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+  let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+    (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+      (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
+  let _ := dH.chartedSpace
+  let _ := dK.chartedSpace
+  let _ := dH.lieGroup
+  let _ := dK.lieGroup
+  have hmaps := h.mapsTo_toHom_ambientConnectedComponentOfOne_stabilizer x
+  { toHom := C.toHom.restrict dH dK hmaps
+    toHom_injective := ContMDiffMonoidMorphism.restrict_injective C.toHom_injective dH dK hmaps
+    cplx := h.stabilizerCplx hμ hg hx dK
+    cplx_lie := h.stabilizerCplx_lie hμ hg hx dK
+    isMaximalTotallyReal_range := h.isMaximalTotallyReal_range_restrict hμ hg hx dH dK hmaps
+    polar := h.stabilizerPolar hμ hg hx
+    polar_apply' ξ u := Subtype.ext <| by
+      rw [h.coe_stabilizerPolar_apply, Subgroup.coe_mul, dK.coe_mulInvariantExp,
+        h.groupLieAlgebraMap_subtype_stabilizerCplx, C.expI_def, C.lieMap_def]
+      congr 3
+      · exact (C.toHom.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict dH dK hmaps ξ).symm
+      · exact (C.toHom.coe_restrict_apply dH dK hmaps u).symm }
+
+/-- The inclusion of `IsComplexifiedAction.stabilizerComplexification` is the restriction of
+`C.toHom` to the identity components of the stabilizers. -/
+theorem IsComplexifiedAction.stabilizerComplexification_toHom (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+    let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
+    let _ := dH.chartedSpace
+    let _ := dK.chartedSpace
+    let _ := dH.lieGroup
+    let _ := dK.lieGroup
+    (h.stabilizerComplexification hμ hg hx).toHom =
+      C.toHom.restrict dH dK (h.mapsTo_toHom_ambientConnectedComponentOfOne_stabilizer x) :=
+  (rfl)
+
+/-- The complex structure of `IsComplexifiedAction.stabilizerComplexification` is
+`IsComplexifiedAction.stabilizerCplx`. -/
+theorem IsComplexifiedAction.stabilizerComplexification_cplx (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+    let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
+    let _ := dH.chartedSpace
+    let _ := dK.chartedSpace
+    let _ := dH.lieGroup
+    let _ := dK.lieGroup
+    (h.stabilizerComplexification hμ hg hx).cplx = h.stabilizerCplx hμ hg hx dK :=
+  (rfl)
+
+/-- The polar decomposition of `IsComplexifiedAction.stabilizerComplexification` is
+`IsComplexifiedAction.stabilizerPolar`. -/
+theorem IsComplexifiedAction.stabilizerComplexification_polar (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+    let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
+    let _ := dH.chartedSpace
+    let _ := dK.chartedSpace
+    let _ := dH.lieGroup
+    let _ := dK.lieGroup
+    (h.stabilizerComplexification hμ hg hx).polar = h.stabilizerPolar hμ hg hx :=
+  (rfl)
+
+/-- **The imaginary exponential of the complexified stabilizer.** Through the inclusions of the
+identity components `H₀ → G` and `Gc₀ → Gc`, the exponential `expI` of
+`IsComplexifiedAction.stabilizerComplexification` is that of `C`: for `ξ` in the Lie algebra of
+`H₀`, `expI ξ`, read in `Gc`, is `C.expI` of the image of `ξ` under the differential at `1` of the
+inclusion `H₀ → G`. -/
+theorem IsComplexifiedAction.stabilizerComplexification_expI (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let H₀ := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+    let E₀ := (lieSubalgebraOfSubgroup (I := I) H₀).toSubmodule
+    let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+    let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
+    let _ := dH.chartedSpace
+    let _ := dK.chartedSpace
+    let _ := dH.lieGroup
+    let _ := dK.lieGroup
+    ∀ ξ : GroupLieAlgebra 𝓘(ℝ, E₀) H₀,
+      ((h.stabilizerComplexification hμ hg hx).expI ξ : Gc) =
+        C.expI (H₀.subtype.groupLieAlgebraMap 𝓘(ℝ, E₀) I ξ) := by
+  intro H₀ E₀ dH dK _ _ _ _ ξ
+  rw [LieComplexification.expI_def, dK.coe_mulInvariantExp, h.stabilizerComplexification_cplx,
+    h.groupLieAlgebraMap_subtype_stabilizerCplx, LieComplexification.expI_def,
+    LieComplexification.lieMap_def, LieComplexification.lieMap_def,
+    h.stabilizerComplexification_toHom,
+    C.toHom.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict]
+
+end StabilizerComplexification
 
 end SymplecticGeometry

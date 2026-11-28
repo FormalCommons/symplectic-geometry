@@ -218,7 +218,7 @@ Holonomy around loops that bound discs. About 450 lines.
 
 ### `Geometry/Symplectic/Fibration/Curvature.lean`
 
-The curvature identity, the local curvature formula and the equivalence.
+The curvature identity and the local curvature formula.
 About 500 lines.
 
 - `TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_sub_mextDeriv`,
@@ -267,8 +267,15 @@ About 500 lines.
   Hamiltonian exactly
   when, in every symplectic chart over a coordinate patch,
   every $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive on `F`, at
-  every `x` (`MapFiber.Atlas.HasExactMixedCurl`, of the one-forms
-  `MapFiber.Atlas.mixedCurl`; the page's 2 ⇔ 3).
+  every `x` (the page's 2 ⇔ 3).
+
+### `Geometry/Symplectic/Fibration/HamiltonianHolonomy.lean`
+
+Hamiltonian holonomy and Hamiltonian curvature. It imports `Holonomy.lean`
+and `HamiltonianCurvature.lean`; the latter imports `Curvature.lean` through
+`PatchForm.lean`, so the equivalence, which uses
+`hasHamiltonianCurvature_iff_local`, cannot sit in `Curvature.lean`.
+
 - `hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature` (2 ⇒ 1): for a
   symplectic connection with `π` proper, take a connection two-form `τ` for
   it (`IsSymplectic.exists_restrictsTo_isVerticallyClosed`). In
@@ -298,8 +305,7 @@ About 500 lines.
   Hamiltonian.
 - The equivalence, `hasHamiltonianDiscHolonomy_tfae`: for `[CompactSpace M]`,
   `[ConnectedSpace F]` and a symplectic connection, `List.TFAE` of
-  `HasHamiltonianDiscHolonomy`, `HasHamiltonianCurvature` and
-  `MapFiber.Atlas.HasExactMixedCurl`, the local
+  `HasHamiltonianDiscHolonomy`, `HasHamiltonianCurvature` and the local
   condition of `hasHamiltonianCurvature_iff_local`. Its docstring ends with
   "Milestone: *Curvature identity for symplectic connections*."
 
@@ -466,8 +472,8 @@ lines, and waits only for what it names.
 2. **Holonomy around discs.** `Fibration/Holonomy.lean`. Waits for
    *Symplectic fibrations* (`Connection.lean`) and *Parallel transport*
    (`ParallelTransport/Smooth.lean`).
-3. **Hamiltonian holonomy and Hamiltonian curvature.** The rest of
-   `Fibration/Curvature.lean`: both directions and
+3. **Hamiltonian holonomy and Hamiltonian curvature.**
+   `Fibration/HamiltonianHolonomy.lean`: both directions and
    `hasHamiltonianDiscHolonomy_tfae` (milestone line). Waits for 1, 2 and
    *Flux homomorphism* (`Family.lean`).
 4. **Normalization and uniqueness.** In `Fibration/Coupling.lean`: the

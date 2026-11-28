@@ -7,10 +7,12 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 import SymplecticGeometry.Geometry.Manifold.GroupAction.EquivariantAverage
 import TauCeti.Geometry.Lie.Subgroup.Embedded
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.RepresentationTheory.Compact.Haar
 import TauCeti.RepresentationTheory.Continuous.Average
 import TauCeti.Topology.Algebra.ConstMulAction
@@ -24,6 +26,17 @@ proves that there is a linearizing chart `e` at `x` (`SymplecticGeometry.Lineari
 chart sending `x` to `0` with derivative the identity there, in which each `h ∈ H` acts by its
 differential `dh_x`) in which `J` is constant, equal to `J x`
 (`SymplecticGeometry.exists_equivariant_holomorphic_chart`).
+
+In a linearizing chart the fundamental vector field of an element `ξ` of the isotropy algebra
+`𝔥` of `x` is `X_ξ (e.symm v) = d(e.symm)_v (A_ξ v)`, where `A_ξ` is the linearized isotropy
+action (`TauCeti.isotropyLinearization`); this is
+`SymplecticGeometry.LinearizingChart.fundamentalVectorField_symm`, in
+`SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube`. For a complexified action of
+a complexification `Gc` of `G`, `X_{iη} = J X_η`, and `J` is `J x` in the chart, so the
+fundamental vector field of `C.lieMap ξ + C.cplx (C.lieMap η)` at `e.symm v` is
+`d(e.symm)_v (A_ξ v) + d(e.symm)_v (J x (A_η v))`
+(`SymplecticGeometry.fundamentalVectorField_chart_symm`), as in the proof of Theorem 12.5 of
+[GeorgoulasRobbinSalamon2021].
 
 The proof averages a chart in which `J` is constant over `H`. Integrability gives a chart `ψ`
 with `ψ x = 0`, derivative the identity at `x` and `dψ ∘ J = J x ∘ dψ` on its source
@@ -48,6 +61,9 @@ chart of the atlas, and the derivative of the average is computed at every point
 
 * `SymplecticGeometry.exists_equivariant_holomorphic_chart`: at a point with compact stabilizer,
   an invariant integrable almost complex structure is constant in some linearizing chart.
+* `SymplecticGeometry.fundamentalVectorField_chart_symm`: in a linearizing chart in which `J` is
+  constant, the fundamental vector field of `C.lieMap ξ + C.cplx (C.lieMap η)`, for `ξ, η` in the
+  isotropy algebra, is `v ↦ A_ξ v + J x (A_η v)`.
 * `ContMDiffOn.mfderiv_integral_apply_inv_smul_apply_eq`: the equivariant average of a map whose
   derivatives carry an almost complex structure `J` to a fixed linear map `J₀`, commuting with
   the representation, has the same property at each point where the action preserves `J`.
@@ -246,6 +262,53 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
     rw [(heA hz).mfderiv_eq]
     exact hψs.mfderiv_integral_apply_inv_smul_apply_eq (IK := IK) hσ ψ.open_source le_top hψJ
       hσJ (fun k v ↦ hJG k z v) (he₀S (hS'source (hesource.1 hz))) v
+
+/-! ### Fundamental vector fields in the chart -/
+
+section FundamentalVectorField
+
+variable {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [MulAction Gc M] [ContMDiffSMul IC I' ∞ Gc M] [T2Space M]
+
+/-- **Fundamental vector fields in a holomorphic linearizing chart.** Let the action of the
+complexification `Gc` on `M` be a complexified action of that of `G` for `C` and `J`, and let `e`
+be a linearizing chart at `x` for the action of `G` in which `J` is constant, equal to `J x` (as
+given by `SymplecticGeometry.exists_equivariant_holomorphic_chart`). For `ξ, η` in the isotropy
+algebra of `x`, `Z = C.lieMap ξ + C.cplx (C.lieMap η)` and `v` in the target of `e`, the
+fundamental vector field of `Z` at `e.symm v` is the image under the differential of `e.symm` at
+`v` of `A_ξ v`, plus that of `J x (A_η v)`, where `A` is the linearized isotropy action
+(`TauCeti.isotropyLinearization`). -/
+theorem fundamentalVectorField_chart_symm {C : LieComplexification I G IC Gc}
+    {J : SmoothAlmostComplexStructure I' M} (hC : IsComplexifiedAction C J) {x : M}
+    (e : LinearizingChart G I' x)
+    (hJ : ∀ z ∈ e.chart.source, ∀ v : TangentSpace I' z,
+      mfderiv I' 𝓘(ℝ, E') e.chart z (J z v) = J x (mfderiv I' 𝓘(ℝ, E') e.chart z v))
+    (ξ η : (InfinitesimalAction.fundamental I G I' M).isotropy x) {v : E'}
+    (hv : v ∈ e.chart.target) :
+    fundamentalVectorField I' (C.lieMap ξ + C.cplx (C.lieMap η)) (e.chart.symm v) =
+      mfderiv 𝓘(ℝ, E') I' e.chart.symm v (isotropyLinearization I' x ξ v) +
+        mfderiv 𝓘(ℝ, E') I' e.chart.symm v (J x (isotropyLinearization I' x η v)) := by
+  have hz : e.chart.symm v ∈ e.chart.source := e.chart.map_target hv
+  have hv' : v ∈ e.toPartialDiffeomorph.target := by
+    rwa [LinearizingChart.toPartialDiffeomorph_target]
+  -- `J` at `e.symm v` corresponds to `J x` under the differential of `e.symm`.
+  have hJs (w : E') : J (e.chart.symm v) (mfderiv 𝓘(ℝ, E') I' e.chart.symm v w) =
+      mfderiv 𝓘(ℝ, E') I' e.chart.symm v (J x w) := by
+    have h := J.mfderiv_symm_apply_chartPushforward_apply e.toPartialDiffeomorph hv' w
+    have hinv := e.toPartialDiffeomorph.mfderiv_apply_mfderiv_symm_apply (by simp) hv' w
+    rw [LinearizingChart.toOpenPartialHomeomorph_toPartialDiffeomorph,
+      LinearizingChart.coe_toPartialDiffeomorph_symm] at h
+    rw [LinearizingChart.coe_toPartialDiffeomorph,
+      LinearizingChart.coe_toPartialDiffeomorph_symm] at hinv
+    rw [J.chartPushforward_apply, hJ _ hz, hinv] at h
+    exact h.symm
+  rw [fundamentalVectorField_add, Pi.add_apply, hC.fundamentalVectorField_cplx_lieMap,
+    congrFun (hC.fundamentalVectorField_lieMap _) _, e.fundamentalVectorField_symm ξ hv,
+    e.fundamentalVectorField_symm η hv, hJs]
+
+end FundamentalVectorField
 
 end SymplecticGeometry
 
