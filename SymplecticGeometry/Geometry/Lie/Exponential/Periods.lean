@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 public import TauCeti.Geometry.Lie.Subgroup.OneParameter
+public import TauCeti.Geometry.Lie.Subgroup.Embedded
 import Mathlib.Analysis.LocallyConvex.BalancedCoreHull
 import Mathlib.Topology.Algebra.Group.SubmonoidClosure
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
@@ -14,6 +15,7 @@ import TauCeti.Geometry.Lie.Exponential.LocalInverse
 import SymplecticGeometry.Analysis.RCLike.Basic
 import SymplecticGeometry.Geometry.Lie.Exponential.Commute
 import SymplecticGeometry.Geometry.Lie.Subgroup.OneParameter
+import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 
 /-!
 # Periods of the exponential of a Lie group
@@ -49,6 +51,9 @@ multiplication by nonzero integers.
   torus contains `T_λ` for some `λ ∈ nonzeroPeriods I G`.
 * `SymplecticGeometry.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`: in a compact Lie
   group, for each `ξ ≠ 0` some `λ ∈ nonzeroPeriods I G` has `T_λ ≤ T_ξ`.
+* `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraMap_subtype_mem_nonzeroPeriods`: for an
+  embedded Lie subgroup `K` of `G`, the differential at `1` of the inclusion `K → G` maps
+  `nonzeroPeriods` of `K` into `nonzeroPeriods I G`.
 
 ## Implementation notes
 
@@ -265,5 +270,30 @@ theorem exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le {ξ : GroupLieAl
 end ClosedOneParameterSubgroup
 
 end SymplecticGeometry
+
+namespace TauCeti.Lie.EmbeddedLieSubgroupData
+
+open SymplecticGeometry
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
+  [BoundarylessManifold I G]
+  {K : Subgroup G} {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+
+/-- **A nonzero period of an embedded Lie subgroup is one of the ambient group.** For an embedded
+Lie subgroup structure on a subgroup `K` of `G`, the differential at `1` of the inclusion `K → G`
+maps `nonzeroPeriods` of `K` into `nonzeroPeriods I G`. -/
+theorem groupLieAlgebraMap_subtype_mem_nonzeroPeriods (d : EmbeddedLieSubgroupData I K F) :
+    let _ := d.chartedSpace
+    let _ := d.lieGroup
+    ∀ {ξ}, ξ ∈ nonzeroPeriods 𝓘(ℝ, F) K →
+      K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ ∈ nonzeroPeriods I G := by
+  intro _ _ ξ hξ
+  rw [mem_nonzeroPeriods] at hξ ⊢
+  refine ⟨(map_ne_zero_iff _ d.injective_groupLieAlgebraMap_subtype).2 hξ.1, ?_⟩
+  rw [← d.coe_mulInvariantExp, hξ.2, OneMemClass.coe_one]
+
+end TauCeti.Lie.EmbeddedLieSubgroupData
 
 end
