@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 
@@ -39,12 +40,18 @@ local notation for it.
   `SymplecticGeometry.coe_complexStructureMap`, `SymplecticGeometry.complexStructureMap_one` and
   `SymplecticGeometry.complexStructureMap_mul`: `(φ ψ)^* i = ψ^* (φ^* i)`, from Tau Ceti's
   `TauCeti.SmoothAlmostComplexStructure.pullback_trans`.
+* `SymplecticGeometry.continuous_complexStructureMap`: for any frame system, `φ ↦ φ^* i` is
+  continuous from the weak Whitney topology on `Diff⁺(S²)` (`TauCeti.DiffeomorphWeakWhitney`) to
+  Tau Ceti's `C^∞` topology `TauCeti.SmoothAlmostComplexStructure.frameTopology` on `𝒥`; it is
+  the case of the sphere of `TauCeti.SmoothAlmostComplexStructure.continuous_pullback`.
 
 ## References
 
 * [C. J. Earle, J. Eells, *The diffeomorphism group of a compact Riemann
   surface*][EarleEells1967] (the action of orientation-preserving diffeomorphisms on complex
   structures).
+* [M. W. Hirsch, *Differential Topology*][Hirsch1976], Chapter 2, §1 (the weak topology on
+  spaces of maps).
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   p. 164 (on a surface, the almost complex structures tamed by an area form are those inducing
   its orientation).
@@ -52,7 +59,7 @@ local notation for it.
 
 public section
 
-open scoped Manifold ContDiff TauCeti.ComplexManifold
+open scoped Manifold ContDiff TauCeti.ComplexManifold TauCeti.DiffeomorphWeakWhitney
 open TauCeti
 
 namespace SymplecticGeometry
@@ -132,6 +139,19 @@ theorem complexStructureMap_mul (φ ψ : diffPlus) :
       (complexStructureMap φ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)).pullback ψ := by
   rw [coe_complexStructureMap, coe_complexStructureMap, Subgroup.coe_mul, Diffeomorph.mul_def,
     SmoothAlmostComplexStructure.pullback_trans]
+
+/-- For any frame system of `End(TS²)`, the map `Diff⁺(S²) → 𝒥`, `φ ↦ φ^* i`, is continuous for
+the weak Whitney topology on `Diff⁺(S²)` and the `C^∞` topology on `𝒥`. -/
+theorem continuous_complexStructureMap {ι : Type*}
+    (e : ι → Bundle.Trivialization (ℂ →L[ℝ] ℂ) (Bundle.TotalSpace.proj (F := ℂ →L[ℝ] ℂ)
+      (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+    [∀ k, MemTrivializationAtlas (e k)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+    (hU : ∀ k, (U k : Set (OnePoint ℂ)) ⊆ (e k).baseSet) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    Continuous complexStructureMap := by
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  exact ((SmoothAlmostComplexStructure.continuous_pullback e U hU _).comp
+    continuous_subtypeVal).subtype_mk _
 
 end SymplecticGeometry
 
