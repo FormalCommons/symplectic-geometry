@@ -266,6 +266,18 @@ theorem apply_chart_symm_eq_mk (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (
     ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ),
     LinearIsometryEquiv.apply_symm_apply]
 
+/-- On the image of the ball of radius `ρ₀ * √k` under the inverse chart, a section is the class
+of the frame and of its reading at the chart's value. -/
+theorem apply_eq_mk_reading_chart {k : ℕ} (hk : k₀ ≤ k) (x : M) (s : Π y, PowerBundle P k y)
+    {y : M} (hy : y ∈ (D.chart k x).symm '' ball 0 (ρ₀ * √k)) :
+    s y = AssociatedBundle.mk Circle (D.frame k x y)
+      (PowerModel.toComplex.symm (D.reading k x s (D.chart k x y))) := by
+  obtain ⟨z, hz, rfl⟩ := hy
+  have h := D.apply_chart_symm_eq_mk k x s z
+  rw [PartialDiffeomorph.symm_toPartialEquiv] at h
+  rw [PartialDiffeomorph.symm_toPartialEquiv, (D.chart k x).toPartialEquiv.right_inv
+    (D.ball_subset_target hk x hz), h]
+
 @[simp]
 theorem reading_add (k : ℕ) (x : M) (s t : Π y, PowerBundle P k y) :
     D.reading k x (s + t) = D.reading k x s + D.reading k x t := by
@@ -446,10 +458,9 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
   have hf : MDifferentiableAt I 𝓘(ℝ, PowerModel k) (g ∘ ψ) (ψ.symm z) := (hψz ▸ hgd).comp _ hψ
   have hsf : ∀ y ∈ ψ.symm '' ball 0 (ρ₀ * √k),
       s y = AssociatedBundle.mk Circle (D.frame k x y) ((g ∘ ψ) y) := by
-    rintro _ ⟨w, hw, rfl⟩
-    rw [Function.comp_apply, PartialDiffeomorph.symm_toPartialEquiv,
-      ψ.right_inv (D.ball_subset_target hk x hw), hgw, hL]
-    exact D.apply_chart_symm_eq_mk k x s w
+    intro y hy
+    rw [Function.comp_apply, hgw, hL]
+    exact D.apply_eq_mk_reading_chart hk x s hy
   -- The connection form in the frame, read in the chart, is the model.
   have hc : (k : ℝ) * mpullback I (I.prod (𝓡 1))
       (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, D.frame k x y⟩) α.val (ψ.symm z)
@@ -712,7 +723,6 @@ theorem contDiffAt_dbarReading [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M}
     (J.contDiffAt_chartPushforward (D.chart k x) hz).of_le (by exact_mod_cast le_top)
   exact contDiffAt_modelDbarWith hJ hs
 
-attribute [local instance] finrank_real_complex_fact' in
 /-- **A section is smooth where its reading is.** For `0 < ρ₀` and `k₀ ≤ k` with `k ≠ 0`, a
 section of `PowerBundle P k` whose reading at `x` is `C^n` at the centre `0` is `C^n` at `x`, as a
 map into the total space of the bundle. -/
@@ -747,12 +757,8 @@ theorem contMDiffAt_of_contDiffAt_reading (hρ₀ : 0 < ρ₀) {n : ℕ∞} {k :
   refine ((ManifoldTotalSpace.contMDiff_homeomorph_symm n (PowerModel k) (PowerBundle P k)
     I).contMDiffAt.comp x hmk).congr_of_eventuallyEq ?_
   filter_upwards [hU] with y hy
-  obtain ⟨z, hz, rfl⟩ := hy
   simp only [Function.comp_apply, Homeomorph.symm_apply_apply]
-  have h := D.apply_chart_symm_eq_mk k x s z
-  rw [PartialDiffeomorph.symm_toPartialEquiv] at h
-  rw [PartialDiffeomorph.symm_toPartialEquiv, ψ.toPartialEquiv.right_inv
-    (D.ball_subset_target hk x hz), h, hL]
+  rw [D.apply_eq_mk_reading_chart hk x s hy, hL]
 
 /-- The connection read in the chart at `z` depends only on the germ at `z` of the reading. -/
 theorem connectionReading_congr_of_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
