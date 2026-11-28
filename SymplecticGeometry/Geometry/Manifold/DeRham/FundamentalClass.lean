@@ -72,9 +72,7 @@ The proof is local.
   the class `deRhamHom [φ]`, read through integral chains, evaluates on `[C]` to `∫_C φ`.
 * `deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq`, in the same namespace: for connected
   `C`, if `∫_C φ` is the value of an integral class `c` on the fundamental class of the homological
-  orientation of `o`, then `deRhamHom [φ]` is minus the real image of `c`. Its proof is the one
-  of `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace`, for an
-  arbitrary integral class in place of an Euler class.
+  orientation of `o`, then `deRhamHom [φ]` is minus the real image of `c`.
 
 ## References
 

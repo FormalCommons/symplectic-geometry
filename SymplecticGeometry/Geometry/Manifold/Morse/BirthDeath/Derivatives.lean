@@ -7,10 +7,12 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath.Basic
 import Mathlib.Analysis.Calculus.FDeriv.Pow
+import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Comp
 import SymplecticGeometry.Geometry.Manifold.Morse.Bott.Chart.Hessian
 
 /-!
-# The first three derivatives of a birth–death normal form
+# The first three derivatives at a birth–death critical point
 
 For a birth–death chart `φ` of `f` at `x`, with coordinates `L = φ.toMorseBottChart.coord`,
 weights `wᵢ` and cubic coordinate `i₀`, the normal form is
@@ -23,6 +25,18 @@ derivative takes the value `2` on `(e, e, e)`.
 The quadratic part of the second derivative is that of the Morse–Bott chart,
 `TauCeti.MorseBottChart.fderiv_fderiv_quadratic_apply`; the cubic term adds the rest.
 
+The same data can then be read in any chart `q` at `x` of the `C³` maximal atlas
+(`TauCeti.BirthDeathChart.exists_ker_fderiv_fderiv_eq_span_singleton_of_mem_maximalAtlas`), in
+particular in the preferred chart `extChartAt 𝓘(ℝ, E) x`
+(`TauCeti.BirthDeathChart.exists_ker_fderiv_fderiv_eq_span_singleton`). Near `q x`, `f` read in
+`q` is the normal form composed with the transition map `τ = q.symm.trans ψ` to the chart `ψ` of
+`φ`, which is `C³` with invertible derivative since both charts lie in the maximal atlas
+(`TauCeti.contDiffAt_symm_trans_of_mem_maximalAtlas`, `TauCeti.exists_hasFDerivAt_symm_trans`).
+The chain rules `SymplecticGeometry.ker_fderiv_fderiv_comp_of_fderiv_eq_zero` and
+`SymplecticGeometry.fderiv_fderiv_fderiv_comp_apply_of_fderiv_eq_zero` carry the vanishing
+differential, the one-dimensional kernel of the Hessian and the nonzero cubic term back through
+`τ`, the kernel vector being `Dτ⁻¹ e`.
+
 ## Main declarations
 
 * `TauCeti.BirthDeathChart.fderiv_fderiv_normalForm_apply`: the second derivative at `z` is
@@ -34,6 +48,11 @@ The quadratic part of the second derivative is that of the Morse–Bott chart,
   `TauCeti.BirthDeathChart.ker_fderiv_fderiv_normalForm_zero` and
   `TauCeti.BirthDeathChart.fderiv_fderiv_fderiv_normalForm_zero_coord_symm_single`: the
   derivatives at the origin.
+* `TauCeti.BirthDeathChart.exists_ker_fderiv_fderiv_eq_span_singleton_of_mem_maximalAtlas`: in
+  a chart at `x` of the `C³` maximal atlas, the differential of `f` vanishes, the kernel of its
+  Hessian is a line `ℝ ∙ e`, and its third derivative is nonzero on `(e, e, e)`.
+* `TauCeti.BirthDeathChart.exists_ker_fderiv_fderiv_eq_span_singleton`: the same in the preferred
+  chart at `x`.
 
 ## References
 
@@ -43,6 +62,9 @@ The quadratic part of the second derivative is that of the Morse–Bott chart,
 -/
 
 public section
+
+open Filter Function Set Topology
+open scoped Manifold
 
 namespace TauCeti
 
@@ -158,6 +180,83 @@ theorem fderiv_fderiv_fderiv_normalForm_zero_coord_symm_single :
       (φ.toMorseBottChart.coord.symm (Pi.single φ.cubicIndex 1))
       (φ.toMorseBottChart.coord.symm (Pi.single φ.cubicIndex 1)) = 2 := by
   simp [fderiv_fderiv_fderiv_normalForm_apply]
+
+section Chart
+
+variable {q : OpenPartialHomeomorph M E}
+
+/-- The change of coordinates `τ` from a chart `q` at `x` of the `C³` maximal atlas to the chart of
+a birth–death chart: it is `C³` at `u = q x`, sends `u` to `0` and has invertible derivative there,
+and near `u` the function `f` read in `q` is the normal form composed with `τ`. -/
+private theorem exists_coordChange (hq : q ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 3 M)
+    (hx : x ∈ q.source) : ∃ τ : E → E,
+    ContDiffAt ℝ 3 τ (q x) ∧ τ (q x) = 0 ∧ (fderiv ℝ τ (q x)).IsInvertible ∧
+      f ∘ q.symm =ᶠ[𝓝 (q x)] φ.normalForm ∘ τ := by
+  set ψ := φ.toMorseBottChart.toChart
+  have hψ : ψ ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 3 M :=
+    IsManifold.maximalAtlas_subset_of_le (by simp) φ.toMorseBottChart.mem_maximalAtlas
+  have hu : q x ∈ (q.symm.trans ψ).source := by simp [hx, ψ, φ.toMorseBottChart.mem_source]
+  have hsrc : (q.symm.trans ψ).source ∈ 𝓝 (q x) := (q.symm.trans ψ).open_source.mem_nhds hu
+  refine ⟨q.symm.trans ψ, contDiffAt_symm_trans_of_mem_maximalAtlas hq hψ hu,
+    by simp [ψ, hx, φ.toMorseBottChart.apply_self], ?_, ?_⟩
+  · obtain ⟨A, hA⟩ := exists_hasFDerivAt_symm_trans (by simp) hq hψ hu
+    exact ⟨A, hA.fderiv.symm⟩
+  · filter_upwards [hsrc] with z hz
+    exact φ.eqOn_normalForm hz.2
+
+include φ in
+/-- **Birth–death data in a chart.** Let `f` have a birth–death chart at `x`, let `q` be a chart
+at `x` of the `C³` maximal atlas, and let `F = f ∘ q.symm` be `f` read in `q`, with `u = q x`.
+Then `u` is a critical point of `F`, the kernel of the Hessian `D²F(u)` is a line `ℝ ∙ e` with
+`e ≠ 0`, and the third derivative satisfies `D³F(u)(e, e, e) ≠ 0`. -/
+theorem exists_ker_fderiv_fderiv_eq_span_singleton_of_mem_maximalAtlas
+    (hq : q ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 3 M) (hx : x ∈ q.source) :
+    ∃ e : E, e ≠ 0 ∧ fderiv ℝ (f ∘ q.symm) (q x) = 0 ∧
+      (fderiv ℝ (fderiv ℝ (f ∘ q.symm)) (q x)).ker = ℝ ∙ e ∧
+      fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ q.symm))) (q x) e e e ≠ 0 := by
+  obtain ⟨τ, hτ, hτu, ⟨D, hD⟩, heq⟩ := exists_coordChange φ hq hx
+  set u := q x
+  set e₀ := φ.toMorseBottChart.coord.symm (Pi.single φ.cubicIndex 1)
+  have hN : ContDiffAt ℝ 3 φ.normalForm (τ u) :=
+    φ.contDiff_normalForm.contDiffAt.of_le (by simp)
+  have hc : fderiv ℝ φ.normalForm (τ u) = 0 := by rw [hτu, fderiv_normalForm_zero]
+  have hDe : fderiv ℝ τ u (D.symm e₀) = e₀ := by rw [← hD]; simp
+  refine ⟨D.symm e₀, by simp [e₀], ?_, ?_, ?_⟩
+  · rw [heq.fderiv_eq, fderiv_comp u (hN.differentiableAt (by simp))
+      (hτ.differentiableAt (by simp)), hc, ContinuousLinearMap.zero_comp]
+  · rw [heq.fderiv.fderiv_eq, SymplecticGeometry.ker_fderiv_fderiv_comp_of_fderiv_eq_zero
+      (hN.of_le (by norm_num)) (hτ.of_le (by norm_num)) hc (hD ▸ D.surjective), hτu,
+      ker_fderiv_fderiv_normalForm_zero, ← hD,
+      ContinuousLinearEquiv.toLinearMap_toContinuousLinearMap, Submodule.comap_equiv_eq_map_symm,
+      Submodule.map_span, Set.image_singleton]
+    simp [e₀]
+  · have hv : fderiv ℝ (fderiv ℝ φ.normalForm) (τ u) (fderiv ℝ τ u (D.symm e₀)) = 0 := by
+      have h := Submodule.mem_span_singleton_self (R := ℝ) e₀
+      rw [← ker_fderiv_fderiv_normalForm_zero] at h
+      rwa [hDe, hτu]
+    rw [heq.fderiv.fderiv.fderiv_eq,
+      SymplecticGeometry.fderiv_fderiv_fderiv_comp_apply_of_fderiv_eq_zero hN
+        (by simp [minSmoothness_of_isRCLikeNormedField]) hτ hc hv,
+      hDe, hτu, fderiv_fderiv_fderiv_normalForm_zero_coord_symm_single]
+    norm_num
+
+include φ in
+/-- **Birth–death data in the preferred chart.** Let `f` have a birth–death chart at `x`, and let
+`F = f ∘ (extChartAt 𝓘(ℝ, E) x).symm` be `f` read in the preferred chart at `x`, with
+`u = extChartAt 𝓘(ℝ, E) x x`. Then `u` is a critical point of `F`, the kernel of the Hessian
+`D²F(u)` is a line `ℝ ∙ e` with `e ≠ 0`, and the third derivative satisfies
+`D³F(u)(e, e, e) ≠ 0`. -/
+theorem exists_ker_fderiv_fderiv_eq_span_singleton [IsManifold 𝓘(ℝ, E) 3 M] :
+    ∃ e : E, e ≠ 0 ∧
+      fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) x).symm) (extChartAt 𝓘(ℝ, E) x x) = 0 ∧
+      (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) x).symm)) (extChartAt 𝓘(ℝ, E) x x)).ker =
+        ℝ ∙ e ∧
+      fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) x).symm)))
+        (extChartAt 𝓘(ℝ, E) x x) e e e ≠ 0 := by
+  simpa using exists_ker_fderiv_fderiv_eq_span_singleton_of_mem_maximalAtlas φ
+    (IsManifold.chart_mem_maximalAtlas x) (mem_chart_source E x)
+
+end Chart
 
 end BirthDeathChart
 

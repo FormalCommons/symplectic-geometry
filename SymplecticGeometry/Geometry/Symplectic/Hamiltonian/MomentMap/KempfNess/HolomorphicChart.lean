@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.GroupAction.EquivariantAverage
 import TauCeti.Geometry.Lie.Subgroup.Embedded
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
+import SymplecticGeometry.Geometry.Manifold.GroupAction.TangentRepresentation.AlmostComplex
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.RepresentationTheory.Compact.Haar
@@ -206,11 +207,8 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
     have : ContMDiffSMul I I' 1 G M := .of_le (m := ∞) h1
     exact continuous_tangentRepresentation I hd
   let Jx : E' →L[ℝ] E' := J.toEndomorphism x
-  have hσJ (k : K) (w : E') : σ k (Jx w) = Jx (σ k w) := by
-    have h := hJG k x w
-    rw [show (k : G) • x = x from k.property] at h
-    rw [hσk k]
-    exact h
+  have hσJ (k : K) (w : E') : σ k (Jx w) = Jx (σ k w) :=
+    tangentRepresentation_apply_almostComplex hd (hJG k x) w
   -- The chart `ψ` in which `J` is constant, equal to `J x`, and its average `A`.
   obtain ⟨ψ, hxψ, hψx, hψd, hψJ⟩ := hJi.exists_partialDiffeomorph_mfderiv_apply_eq x
   let A : M → E' := fun y ↦ ∫ k, σ k (ψ (k⁻¹ • y)) ∂μ

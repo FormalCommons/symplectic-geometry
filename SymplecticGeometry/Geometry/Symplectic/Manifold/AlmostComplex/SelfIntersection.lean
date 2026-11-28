@@ -369,10 +369,8 @@ theorem selfIntersectionNumber_remodel_complexCurveOrientation
               (finrank_real_of_finrank_complex_eq_add_one hG)) hJ).Fiber (finrank_self ℂ))) := by
   rw [selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm _ f hE
       (finrank_real_of_finrank_complex_eq_add_one hG) J hJ,
-    complexManifoldEvalFundamentalClass_def,
-    HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
-    complexManifoldHomologicalOrientation_def,
-    complexCurveOrientation_eq_complexManifoldOrientationOfFinrank]
+    complexManifoldEvalFundamentalClass_eq_complexCurveOrientation,
+    HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom]
 
 end Complex
 
