@@ -78,7 +78,7 @@ theorem IsComplexLinear.complexAntilinearPart_comp_right {T : U →ₗ[𝕜] V}
 
 section ComplexScalars
 
-variable {V W : Type*} [AddCommGroup V] [Module ℝ V] [AddCommGroup W] [Module ℝ W]
+variable {V W : Type*} [AddCommMonoid V] [Module ℝ V] [AddCommGroup W] [Module ℝ W]
   [Module ℂ W] [IsScalarTower ℝ ℂ W]
 
 /-- For a real-linear map `F` into a complex module and any endomorphism `J` of its source, the
