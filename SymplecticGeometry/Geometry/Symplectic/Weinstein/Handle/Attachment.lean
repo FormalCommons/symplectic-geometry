@@ -131,8 +131,10 @@ time that varies from orbit to orbit and with critical points inside `{g < 0}`.
   diffeotopy that preserves the trajectories of a gradient-like field, and is the identity near
   the boundary and the skeleton, carries a regular sublevel into a given neighbourhood of the
   lower boundary and the skeleton. Here the inverse of `Ψ`, which also moves points along the
-  orbits and fixes `{f ≤ a}` and the stable sets, carries `{f ≤ b}` onto a domain `{g ≤ 0}`
-  given in advance, and `Ψ` is a diffeomorphism of the whole manifold, not of the cobordism.
+  orbits and fixes `{f ≤ a}`, carries `{f ≤ b}` onto a domain `{g ≤ 0}` given in advance, and
+  `Ψ` is a diffeomorphism of the whole manifold, not of the cobordism. The theorem does not
+  state that `τ` vanishes on the stable sets, the counterpart of the book's identity near the
+  skeleton, although the `τ` built in its proof does.
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
   §3, Theorem 3.1 (moving sublevels along the flow of a rescaled gradient field).
 -/
