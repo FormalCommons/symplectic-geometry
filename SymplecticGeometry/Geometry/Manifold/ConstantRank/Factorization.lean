@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Manifold.ConstantRank.Basic
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 
 /-!
 # Local factorization of a map of locally maximal rank
@@ -102,6 +103,5 @@ theorem ContMDiffOn.exists_comp_eq_of_mfderivRank_le {f : M → N} {s : Set M} {
     exact hp.comp L.surjective
   · have hloc : IsLocalDiffeomorphAt 𝓘(𝕜, F) J n Ψ.symm (j u) :=
       Ψ.symm.isLocalDiffeomorphAt 𝓘(𝕜, F) J n (hmapsTo hu)
-    obtain ⟨L, hL⟩ := hloc.isInvertible_mfderiv hn0
-    rw [mfderiv_comp u (hloc.mdifferentiableAt hn0) j.mdifferentiableAt, j.mfderiv_eq, ← hL]
-    exact L.injective.comp hj
+    exact TauCeti.injective_mfderiv_comp (hloc.isInvertible_mfderiv hn0).injective
+      (by rwa [j.mfderiv_eq])

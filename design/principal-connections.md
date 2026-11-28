@@ -142,8 +142,8 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
 
 - `Principal/Connection.lean` becomes the folder `Principal/Connection/`,
   with `Basic.lean` (connection forms, horizontal spaces, the affine
-  structure), `Existence.lean` and `Curvature.lean`,
-  so that three issues do not write one file. The comparison of curvatures
+  structure) and `Curvature.lean`,
+  so that several issues do not write one file. The comparison of curvatures
   with the circle case is in `Connection/Circle.lean`.
 - The curvature is Tau Ceti's
   `TauCeti.gaugeCurvature (GroupLieAlgebra.bracketL IG G) A`,
@@ -162,8 +162,7 @@ diffeomorphism $\Phi$ above).
 | File | Contents |
 |---|---|
 | `Geometry/Lie/MaurerCartan.lean` | the law of Tau Ceti's left Maurer–Cartan form under right translations, as smooth forms |
-| `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
-| `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
+| `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | the API of Tau Ceti's `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | the properties of the curvature of a connection form |
 | `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` | $P\times F$ as the pull-back of $P$ to $P\times_GF$; descent along $q$ |
 | `Geometry/Manifold/FiberBundle/Associated/Connection.lean` | the connection induced on $P\times_GF$ |
@@ -189,12 +188,20 @@ left-invariant fields.
 
 `A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1`.
 
-- `structure IsConnectionForm (A) : Prop` with fields
-  `mpullback_op_smul (g : G) : SmoothForm.mpullback (fun x ↦ op g • x) _ A =
-  SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A` and
-  `apply_rightFundamentalVectorField (x) (ξ) :
-  A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ`; the page's
-  $A_p(p\xi)=\xi$ and $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$.
+- Connection forms are Tau Ceti's
+  `TauCeti.PrincipalBundle.IsConnectionForm (A) : Prop`, with fields
+  `apply_rightFundamentalVectorField` and `apply_mfderiv_op_smul`; the
+  page's $A_p(p\xi)=\xi$ and $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$. The
+  library's lemmas about them are in its namespace
+  `TauCeti.PrincipalBundle.IsConnectionForm`.
+  `IsConnectionForm.mpullback_op_smul (g : G) :
+  SmoothForm.mpullback (fun x ↦ op g • x) _ A =
+  SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A` states the
+  equivariance as forms.
+- Existence over a paracompact base is Tau Ceti's
+  `TauCeti.PrincipalBundle.exists_isConnectionForm`. Its case
+  `G = Circle` gives `exists_isCircleConnectionForm`, in
+  `Principal/Connection/Circle.lean`.
 - `structure IsTensorialForm (a) : Prop`, for a `k`-form `a`: the same
   equivariance, and `isSemibasic`: it is `RoughForm.IsSemibasic` for the
   projection, vanishing whenever some argument is vertical.
@@ -219,25 +226,6 @@ left-invariant fields.
   $\alpha$, a circle connection form
   (`IsConnectionForm.existsUnique_eq_mapCoeff`, in
   `Principal/Connection/Circle.lean`).
-
-### `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean`
-
-- For an equivariant trivialization `e` of $P$ (Tau Ceti's
-  `Trivialization.IsEquivariant`), with fibre coordinate
-  $\theta_e(x)=(e\,x)_2\in G$, the form $\theta_e^*\theta_{MC}$, the
-  Maurer–Cartan form pulled back on the preimage of `e.baseSet`, satisfies
-  both conditions of `IsConnectionForm` at the points over `e.baseSet`
-  (`mpullback_op_smul_mpullback_trivialization_snd_maurerCartan`,
-  `mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField`),
-  the $\mathfrak g$-valued analogues of the merged
-  `mpullback_op_smul_mpullback_trivialization_snd` and
-  `mpullback_trivialization_snd_apply_rightFundamentalVectorField`. Both
-  conditions are affine, so a partition of unity of the base glues these
-  local forms.
-- `exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
-  [SigmaCompactSpace B] : ∃ A, IsConnectionForm A`, glued with a smooth
-  partition of unity of the base. Its case `G = Circle` gives
-  `exists_isCircleConnectionForm`, in `Principal/Connection/Circle.lean`.
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean`
 
@@ -371,7 +359,8 @@ ones it waits for.
    for nothing.
 2. **Connection forms on principal bundles**
    (`Principal/Connection/Basic.lean`). Waits for nothing.
-3. **Existence of connection forms** (`Principal/Connection/Existence.lean`).
+3. **Existence of connection forms**, now Tau Ceti's
+   `TauCeti.PrincipalBundle.exists_isConnectionForm`.
    Waits for 1 and 2.
 4. **The curvature of a connection form**
    (`Principal/Connection/Curvature.lean`). Waits for 2.
