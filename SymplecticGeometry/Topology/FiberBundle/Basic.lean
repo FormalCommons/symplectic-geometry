@@ -245,8 +245,7 @@ theorem iUnion_baseSet_trivAt : ⋃ b, (A.trivAt b).baseSet = Set.univ :=
 /-- The base sets of the trivializations of an atlas, as open sets of the base, form an open
 cover of it. -/
 theorem isOpenCover_baseSet_trivAt :
-    TopologicalSpace.IsOpenCover fun b ↦
-      (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ : TopologicalSpace.Opens B) :=
+    TopologicalSpace.IsOpenCover fun b ↦ (A.trivAt b).baseSetOpens :=
   .of_sets (fun b ↦ (A.trivAt b).open_baseSet) A.iUnion_baseSet_trivAt
 
 include A in
