@@ -999,6 +999,7 @@ theorem contDiffAt_bridgeLeaf (hδ : 0 < δ) {η t : ℝ → ℝ} {G : ℝ → �
     (((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hp)).comp p contDiffAt_snd).add
       (ht.comp p contDiffAt_fst)
   simp only [bridgeLeaf_def]
+  rw [Function.uncurry_def] at hG
   exact contDiffAt_smoothedMax he hη₀ hG hP
 
 /-- The formula of the first stage of `SymplecticGeometry.bridgeFamily` is smooth in `(ℓ, r)` at
