@@ -13,6 +13,7 @@ import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.Calculus.FDeriv.Prod
 import Mathlib.Analysis.Normed.Operator.Bilinear
 import SymplecticGeometry.Analysis.Calculus.Deriv.SecondOrderLowerBound
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.Morse.Bott
 import TauCeti.Analysis.Calculus.SecondDerivative
@@ -76,7 +77,7 @@ theorem ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le_sub {f : E × F → 
   -- Along the slice, `f` is critical with constant value `f (a₀, 0)`.
   have hdiff : ∀ᶠ a in 𝓝 a₀, DifferentiableAt ℝ f (a, 0) :=
     ((continuous_id.prodMk continuous_const).tendsto a₀).eventually
-      (hC2.mono fun q hq ↦ hq.differentiableAt (by simp))
+      (hf.eventually_differentiableAt (by simp))
   have hslice : ∀ᶠ q : E × F in 𝓝 (a₀, 0), f (q.1, 0) = f (a₀, 0) ∧ fderiv ℝ f (q.1, 0) = 0 :=
     (continuous_fst.tendsto ((a₀, 0) : E × F)).eventually
       ((TauCeti.eventually_apply_mk_zero_eq hcrit hdiff).and hcrit)
