@@ -55,7 +55,7 @@ statements.
 The file extends Tau Ceti's file of the same path, in its namespace. The multiplier of a contact
 vector field comes from Tau Ceti's
 `TauCeti.SmoothForm.IsContactForm.preservesDistribution_kerDistribution_iff` and
-`TauCeti.SmoothForm.IsContactForm.eq_mvfderiv_reebVectorField_of_mlieDerivForm_apply_eq_smul`.
+`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mlieDerivForm_eq`.
 The flow characterization states an equality of kernels, which says more than the
 inclusion `dφ_t (ker α_x) ⊆ ker α_(φ_t x)` of Tau Ceti's
 `TauCeti.SmoothForm.IsContactForm.preservesDistribution_kerDistribution_iff_mfderiv_flowOf`. Its
@@ -114,12 +114,10 @@ theorem preservesDistribution_kerDistribution_iff_mlieDerivForm_eq
     {X : (x : M) → TangentSpace I x}
     (hXd : MDifferentiable I I.tangent fun y ↦ (⟨y, X y⟩ : TangentBundle I M)) :
     PreservesDistribution I α.kerDistribution X ↔ mlieDerivForm X α.val = fun x ↦
-      mvfderiv I (fun y ↦ α.val y ![X y]) x (α.reebVectorField x) • α.val x := by
-  rw [hα.preservesDistribution_kerDistribution_iff hXd,
-    hα.isContactHamiltonianVectorField_iff_mlieDerivForm hXd]
-  refine ⟨fun ⟨_, g, hg⟩ ↦ funext fun x ↦ ?_, fun h ↦ ⟨fun _ ↦ rfl, _, h⟩⟩
-  rw [hg, ← hα.eq_mvfderiv_reebVectorField_of_mlieDerivForm_apply_eq_smul (fun _ ↦ rfl)
-    (hXd x) (congrFun hg x)]
+      mvfderiv I (fun y ↦ α.val y ![X y]) x (α.reebVectorField x) • α.val x :=
+  (hα.preservesDistribution_kerDistribution_iff hXd).trans
+    ⟨fun h ↦ h.mlieDerivForm_eq hXd,
+      fun h ↦ (hα.isContactHamiltonianVectorField_iff_mlieDerivForm hXd).2 ⟨fun _ ↦ rfl, _, h⟩⟩
 
 /-- **Contact vector fields preserve the contact hyperplanes.** For a contact form `α` on a
 boundaryless Hausdorff manifold, a `C³` vector field `X` preserves the contact structure `ker α`
@@ -263,8 +261,9 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 `R` on a boundaryless Hausdorff manifold of finite dimension, and call a smooth vector field a
 contact vector field when it preserves the contact structure `ker α`. Then:
 
-* a smooth vector field `X` is a contact vector field exactly when `L_X α = R(α(X)) α`, and
-  exactly when its local flow `φ_t` satisfies `ker (φ_t^* α)ₓ = ker αₓ` wherever it is defined;
+* a smooth vector field `X` is a contact vector field exactly when `L_X α = g α` for some
+  function `g : M → ℝ`, exactly when `L_X α = R(α(X)) α`, and exactly when its local flow `φ_t`
+  satisfies `ker (φ_t^* α)ₓ = ker αₓ` wherever it is defined;
 * the Lie algebra isomorphism `e = TauCeti.SmoothForm.contactHamiltonianLieEquiv` from the smooth
   functions with the Jacobi bracket to the contact vector fields has inverse `X ↦ α(X)`, and
   `e f` is the unique contact Hamiltonian vector field `X_f` of `f`, that is, the unique field
@@ -278,6 +277,10 @@ contact vector field when it preserves the contact structure `ker α`. Then:
 
 Milestone: *Contact vector fields and contact Hamiltonians*. -/
 theorem contactVectorFields_correspondence (hα : α.IsContactForm) :
+    (∀ X : (LieAlgebroid.tangent I M).Sections,
+      X ∈ preservesDistributionLieSubalgebra I α.kerDistribution ↔ ∃ g : M → ℝ,
+        mlieDerivForm ((LieAlgebroid.tangent I M).sectionsEquiv X) α.val =
+          fun x ↦ g x • α.val x) ∧
     (∀ X : (LieAlgebroid.tangent I M).Sections,
       X ∈ preservesDistributionLieSubalgebra I α.kerDistribution ↔
         mlieDerivForm ((LieAlgebroid.tangent I M).sectionsEquiv X) α.val = fun x ↦
@@ -321,7 +324,7 @@ theorem contactVectorFields_correspondence (hα : α.IsContactForm) :
     funext x
     rw [coe_contactHamiltonianLieEquiv_apply, contactHamiltonianLieHom_apply,
       LinearEquiv.apply_symm_apply]
-  refine ⟨fun X ↦ (mem_preservesDistributionLieSubalgebra_iff).trans
+  refine ⟨fun X ↦ ?_, fun X ↦ (mem_preservesDistributionLieSubalgebra_iff).trans
       (hα.preservesDistribution_kerDistribution_iff_mlieDerivForm_eq
         ((LieAlgebroid.tangent I M).sectionsEquiv X).mdifferentiable),
     fun X ↦ (mem_preservesDistributionLieSubalgebra_iff).trans
@@ -333,6 +336,12 @@ theorem contactVectorFields_correspondence (hα : α.IsContactForm) :
       (hf.of_le (by simp)) hX hx,
     fun f x ↦ ((hα.isContactHamiltonianVectorField_contactHamiltonianVectorField f
       ).mem_kerDistribution_iff x).not, fun f β hf₀ hβ ↦ ?_⟩
+  · rw [mem_preservesDistributionLieSubalgebra_iff,
+      hα.preservesDistribution_kerDistribution_iff
+        ((LieAlgebroid.tangent I M).sectionsEquiv X).mdifferentiable,
+      hα.isContactHamiltonianVectorField_iff_mlieDerivForm
+        ((LieAlgebroid.tangent I M).sectionsEquiv X).mdifferentiable]
+    exact ⟨fun h ↦ h.2, fun h ↦ ⟨fun _ ↦ rfl, h⟩⟩
   · rw [hXf, hα.isContactHamiltonianVectorField_iff_eq]
   · rw [hXf]
     exact (hα.isContactHamiltonianVectorField_contactHamiltonianVectorField f).mlieDerivForm_eq

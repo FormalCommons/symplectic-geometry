@@ -419,7 +419,7 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `PreservesDistribution I α.kerDistribution X ↔ mlieDerivForm X α.val = fun x ↦
   mvfderiv I (fun y ↦ α.val y ![X y]) x (α.reebVectorField x) • α.val x`,
   from Tau Ceti's `IsContactForm.preservesDistribution_kerDistribution_iff`
-  and `eq_mvfderiv_reebVectorField_of_mlieDerivForm_apply_eq_smul`.
+  and `IsContactHamiltonianVectorField.mlieDerivForm_eq`.
 - `IsContactForm.preservesDistribution_kerDistribution_iff_ker_mpullback_flowOf`
   (`[I.Boundaryless] [T2Space M]`, `X` of class `C³`): `X` preserves
   `ker α` exactly when,
@@ -460,9 +460,11 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   of `Flow/Family.lean`, with $g(t,y)=R(f_t)(y)$ and Gray's equation given by
   `IsContactHamiltonianVectorField.mlieDerivForm_eq`.
 - **Milestone theorem** `IsContactForm.contactVectorFields_correspondence (hα)`,
-  the conjunction of: the two characterizations above, for the smooth
-  fields `X : (LieAlgebroid.tangent I M).Sections` in
-  `preservesDistributionLieSubalgebra I α.kerDistribution`;
+  the conjunction of: for the smooth fields
+  `X : (LieAlgebroid.tangent I M).Sections`, membership in
+  `preservesDistributionLieSubalgebra I α.kerDistribution` is equivalent to
+  `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`, and to each
+  of the two characterizations above;
   `jacobiLieAlgebraEquiv_contactHamiltonianLieEquiv_symm_apply`; for every
   `H : C^∞⟮I, M; ℝ⟯`, that the field of `e ((α.jacobiLieAlgebraEquiv hα).symm H)`
   is the unique field `X` with `IsContactHamiltonianVectorField α H X`, that
