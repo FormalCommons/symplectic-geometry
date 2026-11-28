@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
+public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath.Basic
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import SymplecticGeometry.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
