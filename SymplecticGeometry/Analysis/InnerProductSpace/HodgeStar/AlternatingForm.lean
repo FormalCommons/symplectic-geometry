@@ -29,7 +29,9 @@ Hodge star on the forms. This file reads operations of `⋀ V` on the forms.
   `(k + 1)`-forms and `Alt` Mathlib's `alternatizeUncurryFin`, is `-∑ i, ι_{b i} (B (b i))`, with
   `ι` the interior product: the symbol of `d*` at a general first-order term. Each term is Tau
   Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`, the symbol
-  `(-1) ^ (m (k + 2) + 1) ⋆ ε_u ⋆ = -ι_u` of `d*` at `⟪u, ·⟫`.
+  `(-1) ^ (m (k + 2) + 1) ⋆ ε_u ⋆ = -ι_u` of `d*` at `⟪u, ·⟫`, where `ε_u` is Tau Ceti's
+  `wedgeCovector u`. By Tau Ceti's `TauCeti.alternatizeUncurryFin_innerSL_smulRight`, `ε_u α`
+  is `Alt (⟪u, ·⟫ • α)`, which takes each term of the sum to that form.
 
 ## Main results
 

@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
-import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 import SymplecticGeometry.Analysis.Calculus.LineDeriv.Transpose
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Basic
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
