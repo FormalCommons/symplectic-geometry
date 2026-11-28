@@ -21,12 +21,14 @@ import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.Module
 import Mathlib.Topology.Maps.Proper.Basic
 import Mathlib.Topology.UrysohnsLemma
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Prod
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import SymplecticGeometry.Topology.Compactness.Normed
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
+import TauCeti.Analysis.Calculus.ContDiff.Prod
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Convex.PartitionOfUnity
 
@@ -447,8 +449,7 @@ theorem familyFDeriv_apply (f : L × E → F) (G : L × E → E →L[ℝ] F) (q 
 theorem _root_.ContDiff.familyFDeriv {n m : WithTop ℕ∞} (hf : ContDiff ℝ m f)
     (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m) : ContDiff ℝ n (familyFDeriv f G) := by
   have h : ContDiff ℝ n fun q : L × E ↦ fderiv ℝ (fun l ↦ f (l, q.2)) q.1 :=
-    ContDiff.fderiv (f := fun (q : L × E) (l : L) ↦ f (l, q.2))
-      (hf.comp (contDiff_snd.prodMk (contDiff_snd.comp contDiff_fst))) contDiff_fst hnm
+    contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.fderiv_slice_left hnm
   rw [show SymplecticGeometry.familyFDeriv f G = fun q ↦ _ from
     funext (familyFDeriv_def f G)]
   exact contDiff_iff_contDiffAt.2 fun q ↦ h.contDiffAt.continuousLinearMapCoprod hG.contDiffAt
@@ -715,8 +716,7 @@ theorem contDiff_add_smul_fderiv_sub {m n : WithTop ℕ∞} {f : L × E → F}
       ∀ p, ‖G p + χ p • (fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p) - G p‖ =
         ‖χ p‖ * ‖fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p‖ := by
   have hd : ContDiff ℝ n fun p : L × E ↦ fderiv ℝ (fun x ↦ f (p.1, x)) p.2 :=
-    ContDiff.fderiv (f := fun (p : L × E) (x : E) ↦ f (p.1, x))
-      (hf.comp ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd)) contDiff_snd hnm
+    contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.fderiv_slice hnm
   refine ⟨hG.add (hχ.smul (hd.sub hG)), fun p hp ↦ ?_, fun p hp ↦ ?_, fun p ↦ ?_⟩
   · rw [hp, one_smul, add_sub_cancel]
   · rw [hp, sub_self, smul_zero, add_zero]
@@ -781,8 +781,7 @@ theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_param [FiniteDimensional ℝ L
   -- the derivative of `f` in the space variable
   set d : L × E → E →L[ℝ] F := fun p ↦ fderiv ℝ (fun x ↦ f (p.1, x)) p.2
   have hd : ContDiff ℝ n d :=
-    ContDiff.fderiv (f := fun (p : L × E) (x : E) ↦ f (p.1, x))
-      (hf.comp ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd)) contDiff_snd hnm
+    contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.fderiv_slice hnm
   -- the open set `W` of parameters over which the datum is `ε`-close to holonomic on `T`
   set W : Set L := {l | ∀ x ∈ T, ‖d (l, x) - G (l, x)‖ < ε}
   have hW : IsOpen W := hT.isOpen_setOfPred_forall_norm_sub_lt hd.continuous hG.continuous ε
