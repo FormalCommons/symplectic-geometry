@@ -36,8 +36,8 @@ the stabilizer of `i`, does not change `p`
   `SymplecticGeometry.diffPlusTrivialization_apply_fst`,
   `SymplecticGeometry.coe_diffPlusTrivialization_apply_snd` and
   `SymplecticGeometry.coe_diffPlusTrivialization_symm_apply` give the two maps, and
-  `SymplecticGeometry.diffPlusTrivialization_mul` says that left multiplication by a Möbius
-  transformation becomes left multiplication on the second factor.
+  `SymplecticGeometry.diffPlusTrivialization_mul` says that `Φ (g φ) = ((Φ φ).1, g (Φ φ).2)` for a
+  Möbius transformation `g`.
   `SymplecticGeometry.diffPlusTrivialization_inclusion` and
   `SymplecticGeometry.diffPlusTrivialization_uniformizingDiffeomorph` give its values
   `Φ g = (i, g)` on the Möbius group and `Φ σ(J) = (J, 1)` on the section.
@@ -130,7 +130,8 @@ theorem coe_diffPlusTrivialization_symm_apply (J : 𝒥) (g : mobiusSubgroup) :
   (rfl)
 
 /-- `diffPlusTrivialization` is equivariant: it turns left multiplication by a Möbius
-transformation `g` on `Diff⁺(S²)` into left multiplication by `g` on the second factor. -/
+transformation `g` on `Diff⁺(S²)` into left multiplication by `g` on the `mobiusSubgroup`
+component. -/
 @[simp]
 theorem diffPlusTrivialization_mul (g : mobiusSubgroup) (φ : diffPlus) :
     letI := SmoothAlmostComplexStructure.frameTopology e U hU
@@ -167,10 +168,10 @@ topology of a covering frame system, and diffeomorphisms the weak Whitney topolo
 * for each `J`, `σ(J)` is the unique diffeomorphism of the sphere that pulls `i` back to `J` and
   fixes `0`, `1` and `∞`;
 * left multiplication by an element `g` of the Möbius group `mobiusSubgroup`, the stabilizer of
-  `i`, preserves the fibres of `p`;
+  `i`, does not change `p`: `p (g φ) = p φ`;
 * there is a homeomorphism `Φ : Diff⁺(S²) ≃ₜ 𝒥 × mobiusSubgroup` with
   `Φ φ = (φ^* i, φ σ(φ^* i)⁻¹)`, whose inverse is `(J, g) ↦ g σ(J)`, and which turns left
-  multiplication by `g` into left multiplication by `g` on the second factor.
+  multiplication by `g` into left multiplication by `g` on the `mobiusSubgroup` component.
 
 Milestone: *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex
 structures*. -/

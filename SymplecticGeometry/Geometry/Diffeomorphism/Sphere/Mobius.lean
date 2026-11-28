@@ -176,7 +176,7 @@ theorem mobiusSubgroup_le_diffPlus : mobiusSubgroup ≤ diffPlus := fun φ hφ �
   rw [mem_diffPlus_iff_tames_pullback, mem_mobiusSubgroup_iff.1 hφ]
   exact OnePoint.compatible_fubiniStudyForm.tames
 
-/-- Left multiplication by a Möbius transformation preserves the fibres of `complexStructureMap`:
+/-- Left multiplication by a Möbius transformation does not change `complexStructureMap`:
 `(g φ)^* i = φ^* i`. -/
 @[simp]
 theorem complexStructureMap_inclusion_mul (g : mobiusSubgroup) (φ : diffPlus) :
