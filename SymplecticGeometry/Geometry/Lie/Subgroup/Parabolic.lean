@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.Complexification
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Formula
+import SymplecticGeometry.Geometry.Lie.Adjoint.Eigenvector
 import TauCeti.Analysis.InnerProductSpace.Spectral.Relative
-import TauCeti.Analysis.Normed.Operator.Exponential
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import TauCeti.Geometry.Lie.Adjoint.InvariantForm
 import TauCeti.Geometry.Lie.Exponential.Smoothness
@@ -54,12 +54,14 @@ API, and shows that the subspace and the image of the Lie algebra of `G` span th
 * `SymplecticGeometry.LieComplexification.tangentAd_expI_smul_of_lie_eq_smul`,
   `SymplecticGeometry.LieComplexification.mem_parabolicSubspace_of_lie_eq_smul`: on an eigenvector
   of `ad (cplx (lieMap ξ))` with eigenvalue `μ`, `Ad (C.expI (t • ξ))` is multiplication by
-  `Real.exp (t * μ)`, so the eigenvectors with `μ ≤ 0` lie in `C.parabolicSubspace ξ`.
+  `Real.exp (t * μ)`, by `TauCeti.Lie.tangentAd_mulInvariantExp_of_lie_eq_smul`, so the
+  eigenvectors with `μ ≤ 0` lie in `C.parabolicSubspace ξ`.
 * `SymplecticGeometry.LieComplexification.parabolicSubspace_sup_range_lieMap`: for compact `G`,
   `C.parabolicSubspace ξ ⊔ range C.lieMap = ⊤`. The operator `ad (cplx (lieMap ξ))` is
   self-adjoint for the form `complexifyForm B` of an invariant inner product `B`, so Tau Ceti's
   `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` spans the Lie algebra by its eigenspaces;
-  `conj` exchanges the eigenvalues `μ` and `-μ`, and `x = -conj x + 2 • lieMap (re x)`.
+  `conj` exchanges the eigenvalues `μ` and `-μ`, and `x + conj x = 2 • lieMap (re x)`
+  (`self_add_conj`).
 
 ## References
 
@@ -237,16 +239,7 @@ theorem mulInvariantExp_mem_parabolic {ξ : GroupLieAlgebra I G} {x : GroupLieAl
 theorem tangentAd_expI_smul_of_lie_eq_smul {ξ : GroupLieAlgebra I G} {x : GroupLieAlgebra IC Gc}
     {μ : ℝ} (hx : ⁅C.cplx (C.lieMap ξ), x⁆ = μ • x) (t : ℝ) :
     Lie.tangentAd (I := IC) (C.expI (t • ξ)) x = Real.exp (t * μ) • x := by
-  have h := C.tangentAd_expI_smul ξ t x
-  rw [ContinuousLinearMap.exp_apply_of_apply_eq_smul _ (μ := t * μ) ?_,
-    ← Real.exp_eq_exp_ℝ] at h
-  · -- `h` is the goal read in the model space `EC`, which `GroupLieAlgebra IC Gc` is by
-    -- definition.
-    exact h
-  · rw [smul_apply, mul_smul]
-    -- The operator is `ad` conjugated by the identity equivalence of `GroupLieAlgebra IC Gc`
-    -- with `EC`, so it sends `x` to the bracket by definition.
-    exact congrArg (t • ·) hx
+  rw [C.expI_smul, Lie.tangentAd_mulInvariantExp_of_lie_eq_smul (by rw [smul_lie, hx, smul_smul])]
 
 /-- An eigenvector of `ad (cplx (lieMap ξ))` with eigenvalue `μ ≤ 0` lies in the parabolic
 subspace of `ξ`. -/
@@ -279,9 +272,8 @@ theorem parabolicSubspace_sup_range_lieMap [FiniteDimensional ℝ E] [CompactSpa
   have hconj : ⁅C.cplx (C.lieMap ξ), C.conj x⁆ = (-μ) • C.conj x := by
     rw [neg_smul, ← map_smul, ← hx, C.conj_lie_cplx_lieMap, neg_neg]
   have hsplit : x = -C.conj x + (2 : ℝ) • C.lieMap (C.re x) := by
-    conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
-    rw [conj_apply]
-    module
+    rw [← C.self_add_conj]
+    abel
   rcases le_total μ 0 with hμ | hμ
   · exact Submodule.mem_sup_left (C.mem_parabolicSubspace_of_lie_eq_smul hx hμ)
   · rw [hsplit]
