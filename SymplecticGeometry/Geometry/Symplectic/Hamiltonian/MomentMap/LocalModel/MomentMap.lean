@@ -6,8 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Descent
-public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.MomentMap
-import SymplecticGeometry.Geometry.Lie.ProdFstMulAction
 
 /-!
 # The moment map of the local model, on `G × (A × V)` and on `G ×_K (A × V)`
@@ -21,30 +19,21 @@ with this equation, and `SymplecticGeometry.prodFstMulAction` is one. For the co
 `TauCeti.CotangentBundle.isEquivariantMomentMap_inducedForm`, in
 `SymplecticGeometry/Geometry/Symplectic/Cotangent/Bundle/Induced.lean`.
 
-The last part of the file descends this moment map to the balanced product `G ×_K (A × V)`.
-Since `ν (k • p) = Ad*_k (ν p)` for `k ∈ K`, the map `(g, p) ↦ Ad*_g (ν p)` is constant on the
-classes `[g, p] = [g k⁻¹, k • p]`, and so defines `μ_Y [g, p] = Ad*_g (ν p)`, as Tau Ceti's
-`TauCeti.BalancedProduct.liftRightTranslation` of `ν` for the coadjoint action. The projection
-`G × (A × V) → G ×_K (A × V)` is a `G`-equivariant surjective submersion which pulls the descended
-form back to the form upstairs, so Tau Ceti's
-`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.of_mpullback_eq`, with the identity for the map
-into `G × (A × V)`, makes `μ_Y` an equivariant moment map of the descended form; its components
-are smooth by `Manifold.IsSubmersion.contMDiff_comp_iff`.
+The last part of the file states, for the local model, the values of Tau Ceti's moment map
+`TauCeti.CotangentBundle.balancedProductInducedMomentMap`, `[g, p] ↦ Ad*_g (ν p)`, on the balanced
+product `G ×_K (A × V)`. Tau Ceti's
+`TauCeti.CotangentBundle.isEquivariantMomentMap_balancedProductInducedForm` makes it an
+equivariant moment map of the descended form
+`TauCeti.CotangentBundle.balancedProductInducedForm`.
 
 ## Main results
 
 * `SymplecticGeometry.isEquivariantMomentMap_localModelForm`,
   `SymplecticGeometry.LocalModelData.isEquivariantMomentMap_form`: the cases of the local model's
   form, from linear data and from `SymplecticGeometry.LocalModelData`.
-* `SymplecticGeometry.LocalModelData.descendedMomentMap`: the moment map `μ_Y` on
-  `G ×_K (A × V)`, with its value `SymplecticGeometry.LocalModelData.descendedMomentMap_mk` on
-  classes, its equivariance `SymplecticGeometry.LocalModelData.descendedMomentMap_smul`, and
-  `SymplecticGeometry.LocalModelData.descendedMomentMap_mk_zero` along the zero
-  section.
-* `SymplecticGeometry.LocalModelData.contMDiff_descendedMomentMap_apply`: its components are
-  smooth.
-* `SymplecticGeometry.LocalModelData.isEquivariantMomentMap_descendedForm`: it is an equivariant
-  moment map of the descended form `SymplecticGeometry.LocalModelData.descendedForm`.
+* `SymplecticGeometry.LocalModelData.balancedProductInducedMomentMap_smul`,
+  `SymplecticGeometry.LocalModelData.balancedProductInducedMomentMap_mk_zero`: the equivariance of
+  the moment map of the local model on `G ×_K (A × V)`, and its values along the zero section.
 
 ## References
 
@@ -118,109 +107,29 @@ theorem isEquivariantMomentMap_form [T2Space G] [I.Boundaryless]
 
 /-! ### The moment map on `G ×_K (A × V)` -/
 
-/-- **The moment map of the local model** on the balanced product `G ×_K (A × V)`:
-`[g, p] ↦ Ad*_g (D.covector p)`, that is, `[g, η, v] ↦ Ad*_g (τ + ι𝔪 η + ι𝔥 (μ_V v))`. It is
-well defined because `D.covector (k • p) = Ad*_k (D.covector p)` for `k ∈ K`. -/
-def descendedMomentMap :
-    letI := D.fiberDistribMulAction
-    BalancedProduct K K.RightTranslation (A × V) → Module.Dual ℝ (GroupLieAlgebra I G) :=
-  letI := D.fiberDistribMulAction
-  letI : MulAction G (Module.Dual ℝ (GroupLieAlgebra I G)) :=
-    MulAction.compHom _ (coadjointRepresentation ℝ I G)
-  BalancedProduct.liftRightTranslation ⟨D.covector, fun k p ↦ D.covector_smul k p⟩
-
-/-- The moment map of the local model at `[g, p]` is `Ad*_g (D.covector p)`. -/
-@[simp]
-theorem descendedMomentMap_mk (g : G) (p : A × V) :
-    letI := D.fiberDistribMulAction
-    D.descendedMomentMap (BalancedProduct.mk K (K.toRightTranslation g) p) =
-      coadjointRepresentation ℝ I G g (D.covector p) := by
-  let := D.fiberDistribMulAction
-  let : MulAction G (Module.Dual ℝ (GroupLieAlgebra I G)) :=
-    MulAction.compHom _ (coadjointRepresentation ℝ I G)
-  -- With the coadjoint action as `g • ·`, `D.descendedMomentMap` unfolds to
-  -- `liftRightTranslation` of the covectors, whose value on classes is `g • D.covector p`.
-  rw [← Module.End.smul_def, ← MulAction.compHom_smul_def]
-  exact BalancedProduct.liftRightTranslation_mk _ g p
-
 /-- The moment map of the local model is equivariant for the action `k • [g, p] = [k g, p]`
-of `G` on `G ×_K (A × V)` and the coadjoint action: `μ_Y (k • y) = Ad*_k (μ_Y y)`. -/
-theorem descendedMomentMap_smul (k : G)
+of `G` on `G ×_K (A × V)` and the coadjoint action: `μ_Y (k • y) = Ad*_k (μ_Y y)`. Unlike
+`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.apply_smul`, this needs no smooth structure. -/
+theorem balancedProductInducedMomentMap_smul (k : G)
     (y : letI := D.fiberDistribMulAction; BalancedProduct K K.RightTranslation (A × V)) :
     letI := D.fiberDistribMulAction
-    D.descendedMomentMap (k • y) = coadjointRepresentation ℝ I G k (D.descendedMomentMap y) := by
+    balancedProductInducedMomentMap G D.covectorCLM_smul (k • y) =
+      coadjointRepresentation ℝ I G k
+        (balancedProductInducedMomentMap G D.covectorCLM_smul y) := by
   let := D.fiberDistribMulAction
   induction y using BalancedProduct.induction_on_toRightTranslation with
   | h g p =>
-    rw [BalancedProduct.smul_mk_toRightTranslation, descendedMomentMap_mk, descendedMomentMap_mk,
-      map_mul, mul_apply_eq_comp]
+    rw [BalancedProduct.smul_mk_toRightTranslation, balancedProductInducedMomentMap_mk,
+      balancedProductInducedMomentMap_mk, coe_covectorCLM, map_mul, mul_apply_eq_comp]
 
 /-- Along the zero section, the moment map of the local model is `[g, 0, 0] ↦ Ad*_g τ`. -/
-theorem descendedMomentMap_mk_zero (g : G) :
+theorem balancedProductInducedMomentMap_mk_zero (g : G) :
     letI := D.fiberDistribMulAction
-    D.descendedMomentMap (BalancedProduct.mk K (K.toRightTranslation g) ((0 : A), (0 : V))) =
+    balancedProductInducedMomentMap G D.covectorCLM_smul
+        (BalancedProduct.mk K (K.toRightTranslation g) ((0 : A), (0 : V))) =
       coadjointRepresentation ℝ I G g D.τ := by
   let := D.fiberDistribMulAction
-  rw [descendedMomentMap_mk, ← Prod.zero_eq_mk, covector_zero]
-
-variable [T2Space G] [I.Boundaryless]
-
-/-- The components of the moment map of the local model are smooth on `G ×_K (A × V)`. -/
-theorem contMDiff_descendedMomentMap_apply (ξ : GroupLieAlgebra I G) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    ContMDiff 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) 𝓘(ℝ) ∞
-      fun y ↦ D.descendedMomentMap y ξ := by
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  let := prodFstMulAction G (A × V)
-  have := contMDiffSMul_prodFstMulAction (I := I) (J := 𝓘(ℝ, A × V)) (n := ∞) (G := G)
-    (N := A × V)
-  -- Upstairs, the components are those of the moment map of `D.form`, which are smooth.
-  have h := (D.isEquivariantMomentMap_form fun g q ↦ prodFstMulAction_smul g q).contMDiff ξ
-  refine (BalancedProduct.isSubmersion_mk_toRightTranslation.contMDiff_comp_iff
-    BalancedProduct.surjective_mk_toRightTranslation le_rfl).1 (h.congr fun q ↦ ?_)
-  simp only [Function.comp_apply, descendedMomentMap_mk]
-
-/-- **The moment map of the local model on `G ×_K (A × V)`.** The map
-`[g, p] ↦ Ad*_g (D.covector p)` is a coadjoint-equivariant moment map of the descended form
-`D.descendedForm` for the action `k • [g, p] = [k g, p]` of `G`. The form need not be
-nondegenerate; it is symplectic on the open set of
-`SymplecticGeometry.LocalModelData.exists_opens_isSymplectic_mpullback_descendedForm`. -/
-theorem isEquivariantMomentMap_descendedForm :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-      (IZ := 𝓘(ℝ, A × V)) (F := F)
-    haveI := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
-      (IZ := 𝓘(ℝ, A × V)) (F := F)
-    D.descendedForm.IsEquivariantMomentMap D.descendedMomentMap := by
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
-  have : CompleteSpace (ProperSMul.QuotientModelSpace F (E × (A × V))) :=
-    FiniteDimensional.completeSpace ℝ _
-  let := prodFstMulAction G (A × V)
-  have := contMDiffSMul_prodFstMulAction (I := I) (J := 𝓘(ℝ, A × V)) (n := ∞) (G := G)
-    (N := A × V)
-  have hπ := BalancedProduct.isSubmersion_mk_toRightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  -- Descend the moment map of `D.form` along the projection, with the identity for `i`.
-  refine (D.isEquivariantMomentMap_form fun g q ↦ prodFstMulAction_smul g q).of_mpullback_eq
-    contMDiff_id hπ.contMDiff ?_ BalancedProduct.surjective_mk_toRightTranslation
-    (hπ.surjective_mfderiv (by simp)) (fun _ _ ↦ rfl) (fun g q ↦ ?_)
-    D.contMDiff_descendedMomentMap_apply (funext fun q ↦ ?_)
-  · rw [mpullback_mk_descendedForm, SmoothForm.mpullback_id, LinearMap.id_apply]
-  · rw [prodFstMulAction_smul, BalancedProduct.smul_mk_toRightTranslation]
-  · simp only [Function.comp_apply, id_eq, descendedMomentMap_mk]
+  rw [balancedProductInducedMomentMap_mk, coe_covectorCLM, ← Prod.zero_eq_mk, covector_zero]
 
 end LocalModelData
 
