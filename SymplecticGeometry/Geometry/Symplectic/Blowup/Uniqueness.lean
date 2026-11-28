@@ -15,7 +15,8 @@ Fix a normalization `hN : IsNormalizedAt σ J p₀ δ ψ₀` and two normalized 
 `hψ₂ : IsNormalizedBallEmbedding hN ψ₂ r₂ l₂ ε₂`.
 This file shows that their forms `ω̃_{ψ₁,l₁,ε₁}` and `ω̃_{ψ₂,l₂,ε₂}` on `Blowup hN.blowupChart`
 are joined by a smooth family of symplectic forms, and that their de Rham classes have the same
-image in real singular cohomology when the weights agree (McDuff–Salamon, Theorem 7.1.23).
+image in real singular cohomology when the weights agree, and, for `1 ≤ n`, only then
+(McDuff–Salamon, Theorem 7.1.23).
 
 ## Main results
 
@@ -23,6 +24,8 @@ image in real singular cohomology when the weights agree (McDuff–Salamon, Theo
   normalized ball embeddings are the ends of a smooth path of symplectic forms on the blowup.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm_eq_of_weight_eq`:
   for equal weights, the classes of the two forms have the same image in real cohomology.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm_eq_iff`: for
+  `1 ≤ n`, the two images agree if and only if `l₁ = l₂`.
 
 ## Implementation notes
 
@@ -32,6 +35,11 @@ family of symplectic forms (`IsNormalizedBallEmbedding.exists_family_normalizedB
 The family of `ψ₁` ends, and the reversed family of `ψ₂` starts, at the same form, by
 `IsNormalizedBallEmbedding.normalizedBlowupForm_eq_of_eqOn`, so the two concatenate to a smooth
 family (`IsSmoothFamily.glue_collaredHalves`).
+
+For the converse, by `IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm` the two images
+differ by `π (l₁² - l₂²)` times the real image of `Blowup.exceptionalClass`, which is not zero for
+`1 ≤ n` (`Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero`); the weights
+are positive, so `l₁ = l₂`.
 
 ## References
 
@@ -117,6 +125,31 @@ theorem deRhamHom_normalizedBlowupForm_eq_of_weight_eq [SecondCountableTopology 
         (deRhamCohomology.mk _ 2 ⟨hψ₂.normalizedBlowupForm h₂,
           (hψ₂.isSymplectic_normalizedBlowupForm hh₂ hσ).isClosed.mem_closedForms⟩) := by
   rw [hψ₁.deRhamHom_normalizedBlowupForm hh₁ hσ, hψ₂.deRhamHom_normalizedBlowupForm hh₂ hσ, hl]
+
+/-- **Normalized blowup forms have equal classes exactly for equal weights.** Let `M` be
+Hausdorff, second countable and σ-compact, of complex dimension `n + 1 ≥ 2`, `σ` symplectic, and
+`ψ₁`, `ψ₂` normalized ball embeddings, for the same normalization, of weights `l₁`, `l₂`, with
+profiles `h₁`, `h₂` of the blowup. The classes of the forms `ω̃_{ψ₁,l₁,ε₁}` and `ω̃_{ψ₂,l₂,ε₂}`
+have the same image under `TauCeti.deRhamHom` in `H²(Blowup; ℝ)` if and only if `l₁ = l₂`. -/
+theorem deRhamHom_normalizedBlowupForm_eq_iff [SecondCountableTopology M]
+    [SigmaCompactSpace M] (hψ₁ : IsNormalizedBallEmbedding hN ψ₁ r₁ l₁ ε₁)
+    (hψ₂ : IsNormalizedBallEmbedding hN ψ₂ r₂ l₂ ε₂) {h₁ h₂ : ℝ → ℝ}
+    (hh₁ : IsBlowupProfile l₁ ε₁ h₁) (hh₂ : IsBlowupProfile l₂ ε₂ h₂) (hσ : σ.IsSymplectic)
+    (hn : 1 ≤ n) :
+    deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+        (deRhamCohomology.mk _ 2 ⟨hψ₁.normalizedBlowupForm h₁,
+          (hψ₁.isSymplectic_normalizedBlowupForm hh₁ hσ).isClosed.mem_closedForms⟩) =
+      deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+        (deRhamCohomology.mk _ 2 ⟨hψ₂.normalizedBlowupForm h₂,
+          (hψ₂.isSymplectic_normalizedBlowupForm hh₂ hσ).isClosed.mem_closedForms⟩) ↔
+      l₁ = l₂ := by
+  refine ⟨fun h ↦ ?_, hψ₁.deRhamHom_normalizedBlowupForm_eq_of_weight_eq hψ₂ hh₁ hh₂ hσ⟩
+  rw [hψ₁.deRhamHom_normalizedBlowupForm hh₁ hσ, hψ₂.deRhamHom_normalizedBlowupForm hh₂ hσ,
+    add_right_inj] at h
+  have h' := smul_left_injective ℝ
+    (Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero _ hn) h
+  rw [mul_right_inj' Real.pi_ne_zero] at h'
+  exact (pow_left_inj₀ hψ₁.weight_pos.le hψ₂.weight_pos.le two_ne_zero).1 h'
 
 end IsNormalizedBallEmbedding
 
