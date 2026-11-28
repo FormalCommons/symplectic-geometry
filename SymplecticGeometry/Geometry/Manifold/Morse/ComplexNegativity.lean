@@ -13,8 +13,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Jet
 import SymplecticGeometry.Geometry.Manifold.Morse.ComplexIndex
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Geometry.Manifold.Morse.Generic.Sublevel
 import SymplecticGeometry.Topology.Compactness.Compact
-import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Evaluation
 import TauCeti.Geometry.Manifold.Morse.Generic.Relative
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
@@ -38,14 +38,14 @@ that vanishes near a closed set `C` on which it is already Morse, keeping comple
 Morse index at least half the real dimension at each critical point in `K`
 (`TauCeti.SmoothAlmostComplexStructure.exists_isMorseOn_finrank_div_two_le_manifoldMorseIndex`).
 
-If moreover `f⁻¹[c, ∞)` is compact and all critical values of `f` exceed `c`, the change can be
-made to vanish on `{f ≤ c}` while the result stays above `c` off that set, so that the new
-function is Morse everywhere, `c` is a regular value of it, its superlevel set above `c` is
-compact, and it lies below one of its regular values
-(`TauCeti.SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic`). The collar above `c`
-free of critical points comes from Tau Ceti's `TauCeti.exists_mem_Ioc_forall_notMem_criticalPoints`,
-and the bound `g > c` is kept by the joint continuity of evaluation
-(`ContMDiffMap.continuous_eval_manifoldWeakWhitney`).
+If moreover `f⁻¹[c, ∞)` is compact and all critical values of `f` exceed `c`, the library's
+`ContMDiffMap.exists_isMorse_eqOn_preimage_Iic` gives, in any weak Whitney neighbourhood, a Morse
+function that agrees with `f` on `{f ≤ c}`, has `c` as a regular value, a compact superlevel set
+above `c` and a regular value above it, and all of whose critical points lie in `f⁻¹[c, ∞)`.
+Taking it inside the neighbourhood of
+`TauCeti.SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg` for that compact set
+adds the bound on the Morse index at every critical point
+(`TauCeti.SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic`).
 
 The condition is read in coordinates. In the extended chart at `a`, at a critical point, the
 critical Hessian is the second derivative of the coordinate expression of `f`, composed with
@@ -321,71 +321,26 @@ Let `J` be a smooth almost complex structure on a Hausdorff boundaryless manifol
 finite-dimensional model, `f` a smooth function and `c` a real number such that the superlevel
 set `f⁻¹[c, ∞)` is compact, every critical point of `f` has value above `c`, and
 `Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v` at each critical point.
-Then there is a Morse function `g` which agrees with `f` on the sublevel set `f⁻¹(-∞, c]`, such
-that `g - f` has compact support, whose Morse index at each critical point is at least
-`dim E / 2`, for which `c` is a regular value and `g⁻¹[c, ∞)` is compact, and which is bounded
-above by a regular value `b`. -/
+Then every neighbourhood of `f` in the weak Whitney topology contains a Morse function `g` which
+agrees with `f` on the sublevel set `f⁻¹(-∞, c]`, such that `g - f` has compact support, whose
+Morse index at each critical point is at least `dim E / 2`, for which `c` is a regular value and
+`g⁻¹[c, ∞)` is compact, and which is bounded above by a regular value `b`. -/
 theorem SmoothAlmostComplexStructure.exists_isMorse_eqOn_preimage_Iic
     (J : SmoothAlmostComplexStructure I M) {f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} {c : ℝ}
     (hc : IsCompact (f ⁻¹' Ici c)) (hcrit : ∀ x ∈ criticalPoints I f, c < f x)
     (hf : ∀ x ∈ criticalPoints I f, ∀ v : TangentSpace I x, v ≠ 0 →
-      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0) :
-    ∃ g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, IsMorse I g ∧ EqOn g f (f ⁻¹' Iic c) ∧
-      HasCompactSupport (fun y ↦ g y - f y) ∧
+      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0)
+    {𝒰 : Set C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (h𝒰 : 𝒰 ∈ 𝓝 f) :
+    ∃ g ∈ 𝒰, IsMorse I g ∧ EqOn g f (f ⁻¹' Iic c) ∧ HasCompactSupport (fun y ↦ g y - f y) ∧
       (∀ x ∈ criticalPoints I g, Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I g x) ∧
       IsRegularValue I 𝓘(ℝ) g c ∧ IsCompact (g ⁻¹' Ici c) ∧
       ∃ b, IsRegularValue I 𝓘(ℝ) g b ∧ ∀ x, g x < b := by
-  -- Above `c` there is a collar `f⁻¹[c, a]` free of critical points.
-  have hcreg : IsRegularValue I 𝓘(ℝ) f c := isRegularValue_iff_notMem_image_criticalPoints.2
-    fun ⟨x, hx, hxc⟩ ↦ (hcrit x hx).ne' hxc
-  obtain ⟨a, ⟨hca, -⟩, ha⟩ := exists_mem_Ioc_forall_notMem_criticalPoints
-    (f.contMDiff.of_le (by simp)) (lt_add_one c) (hc.of_isClosed_subset
-      (isClosed_Icc.preimage (map_continuous f)) (preimage_mono Icc_subset_Ici_self)) hcreg
-  have hnc (x : M) (hx : x ∈ criticalPoints I f) : a < f x :=
-    lt_of_not_ge fun h ↦ ha x hx ⟨(hcrit x hx).le, h⟩
-  have hC : IsClosed (f ⁻¹' Iic a) := isClosed_Iic.preimage (map_continuous f)
-  have hKa : IsCompact (f ⁻¹' Ici a) := hc.of_isClosed_subset
-    (isClosed_Ici.preimage (map_continuous f)) (preimage_mono (Ici_subset_Ici.2 hca.le))
-  -- Keep `g > c` on the compact set `f⁻¹[a, ∞)`, where `f ≥ a > c`.
-  have h𝒰 : ∀ᶠ g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯ in 𝓝 f, ∀ x ∈ f ⁻¹' Ici a, c < g x :=
-    hKa.eventually_forall_of_forall_eventually fun x hx ↦
-      (continuous_eval_manifoldWeakWhitney.continuousAt (x := (f, x))).eventually
-        (lt_mem_nhds (hca.trans_le hx))
-  have hfKC : IsMorseOn I f (f ⁻¹' Ici c ∩ f ⁻¹' Iic a) := isMorseOn_iff_criticalPoints.2
-    ⟨f.contMDiff.contMDiffOn, fun x hx hxc ↦ absurd hx.2 (hnc x hxc).not_ge⟩
-  obtain ⟨g, hg𝒰, hgK, hgc, hgs, hgi⟩ :=
-    J.exists_isMorseOn_finrank_div_two_le_manifoldMorseIndex hc hC hfKC
-      (fun x _ hx ↦ hf x hx) h𝒰
-  -- `g` agrees with `f` near each point of `f⁻¹(-∞, a]`, so has no critical point there.
-  have hgf (x : M) (hx : f x ≤ a) : (g : M → ℝ) =ᶠ[𝓝 x] f := by
-    filter_upwards [notMem_tsupport_iff_eventuallyEq.1 fun h ↦ hgs h hx] with y hy
-    simpa [sub_eq_zero] using hy
-  have hgC (x : M) (hx : f x ≤ a) : x ∉ criticalPoints I g := fun hxg ↦
-    (hnc x (((hgf x hx).mem_criticalPoints_iff (I := I)).1 hxg)).not_ge hx
-  have hgt (x : M) (hx : a < f x) : c < g x := hg𝒰 x hx.le
-  have hK (x : M) (hx : x ∈ criticalPoints I g) : c ≤ f x :=
-    (hca.trans (lt_of_not_ge fun h ↦ hgC x h hx)).le
-  have hsub : g ⁻¹' Ici c ⊆ f ⁻¹' Ici c := fun x hx ↦ by
-    rcases le_or_gt (f x) a with h | h
-    · rw [mem_preimage, ← (hgf x h).eq_of_nhds]
-      exact hx
-    · exact (hca.trans h).le
-  have hgcomp : IsCompact (g ⁻¹' Ici c) :=
-    hc.of_isClosed_subset (isClosed_Ici.preimage (map_continuous g)) hsub
-  obtain ⟨B, hB⟩ := hgcomp.bddAbove_image (map_continuous g).continuousOn
-  have hlt (x : M) : g x < max c B + 1 := by
-    rcases le_or_gt c (g x) with h | h
-    · linarith [le_max_right c B, hB (mem_image_of_mem g (show x ∈ g ⁻¹' Ici c from h))]
-    · linarith [le_max_left c B]
-  refine ⟨g, isMorseOn_univ.1 <| isMorseOn_iff_criticalPoints.2
-    ⟨g.contMDiff.contMDiffOn, fun x _ hx ↦
-      (isMorseOn_iff_criticalPoints.1 hgK).2 x (hK x hx) hx⟩,
-    fun x hx ↦ (hgf x (le_trans hx hca.le)).eq_of_nhds, hgc, fun x hx ↦ hgi x (hK x hx) hx,
-    isRegularValue_iff_notMem_image_criticalPoints.2 fun ⟨x, hx, hxc⟩ ↦ ?_, hgcomp,
-    max c B + 1, isRegularValue_iff.2 fun x hx ↦ absurd hx (hlt x).ne, hlt⟩
-  rcases le_or_gt (f x) a with h | h
-  · exact hgC x h hx
-  · exact (hgt x h).ne' hxc
+  -- Every critical point of `g` lies in `f⁻¹[c, ∞)`, where complex negativity is kept.
+  obtain ⟨g, ⟨hg𝒰, hgJ⟩, hgM, hgf, hgc, hgK, hreg, hgcomp, hb⟩ :=
+    f.exists_isMorse_eqOn_preimage_Iic hc hcrit
+      (inter_mem h𝒰 (J.eventually_criticalHessian_add_neg hc fun x _ hx ↦ hf x hx))
+  exact ⟨g, hg𝒰, hgM, hgf, hgc, fun x hx ↦
+    J.finrank_div_two_le_manifoldMorseIndex g x (hgJ x (hgK x hx).le hx), hreg, hgcomp, hb⟩
 
 end TauCeti
 

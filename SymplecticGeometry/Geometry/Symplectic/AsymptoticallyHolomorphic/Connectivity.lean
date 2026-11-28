@@ -368,8 +368,9 @@ theorem IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq [I.Boundaryless] [T2
     rw [coe_logNormSq, mem_criticalPoints_comp_subtypeVal] at hx
     refine lt_of_not_ge fun h ↦ hcrit x (hpos x) ?_ hx
     rwa [logNormSq_apply, Real.log_le_log_iff (hpos x) hε] at h
-  obtain ⟨g, hgM, hgf, hgc, hgi, hreg, hgK, b, hb, hgb⟩ :=
+  obtain ⟨g, -, hgM, hgf, hgc, hgi, hreg, hgK, b, hb, hgb⟩ :=
     (J.restrictOpen (nonzeroOpens (hsm k))).exists_isMorse_eqOn_preimage_Iic hK hcrit' hk
+      Filter.univ_mem
   refine ⟨g, hgM, fun x hx ↦ hgf ?_, hgc, hgi, hreg, fun b ↦ hgK.of_isClosed_subset
     (isClosed_Icc.preimage (map_continuous g)) (Set.preimage_mono Set.Icc_subset_Ici_self),
     b, hb, Set.eq_univ_of_forall fun x ↦ (hgb x).le⟩
