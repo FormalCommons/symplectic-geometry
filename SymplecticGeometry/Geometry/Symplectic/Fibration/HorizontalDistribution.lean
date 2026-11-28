@@ -457,6 +457,17 @@ theorem horizontalDistribution_eq_of_forall
     rw [horizontalDistribution_def, horizontalDistribution_def]
     exact LinearMap.BilinForm.orthogonal_eq_orthogonal_of_forall (h x)
 
+/-- Adding a two-form that is semibasic for `proj`, such as the pull-back of a two-form on the
+base (`TauCeti.SmoothForm.isSemibasic_mpullback`), does not change the horizontal spaces, since
+such a form vanishes when one of its arguments is vertical. -/
+theorem horizontalDistribution_add_of_isSemibasic {β : SmoothTwoForm IM M}
+    (hβ : RoughForm.IsSemibasic IB proj β.val) (τ : SmoothTwoForm IM M) :
+    horizontalDistribution IB proj (τ + β) = horizontalDistribution IB proj τ := by
+  refine horizontalDistribution_eq_of_forall fun x η hη v ↦ ?_
+  simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, Submodule.coe_add,
+    Pi.add_apply, ContinuousAlternatingMap.add_apply]
+  exact add_eq_left.2 (hβ.apply_eq_zero x _ 0 hη)
+
 /-- `τ` pairs a vertical vector with a horizontal one to zero. -/
 theorem val_eq_zero_of_mem_ker_of_mem_horizontalDistribution {x : M} {e h : TangentSpace IM x}
     (he : e ∈ (mfderiv IM IB proj x).ker) (hh : h ∈ horizontalDistribution IB proj τ x) :
