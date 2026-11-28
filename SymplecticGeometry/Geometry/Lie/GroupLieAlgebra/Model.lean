@@ -60,30 +60,32 @@ theorem bracketL_def :
     bracketL I G = lieL ℝ (GroupLieAlgebra I G) (GroupLieAlgebra I G) :=
   (rfl)
 
+/-- The bracket on the model space is the bracket of `GroupLieAlgebra I G`, carried to `E` and
+back through Mathlib's identification `tangentSpaceCastModel I 1` of the tangent space at the
+identity with `E`. -/
 theorem bracketL_apply (v w : E) :
-    bracketL I G v w = @Bracket.bracket (GroupLieAlgebra I G) (GroupLieAlgebra I G) _ v w :=
+    bracketL I G v w = tangentSpaceCastModel I (1 : G)
+      ⁅((tangentSpaceCastModel I (1 : G)).symm v : GroupLieAlgebra I G),
+        (tangentSpaceCastModel I (1 : G)).symm w⁆ :=
   lieL_apply (𝕜 := ℝ) (L := GroupLieAlgebra I G) (M := GroupLieAlgebra I G) v w
 
 /-- The bracket on the model space is antisymmetric. -/
 theorem bracketL_swap (v w : E) : bracketL I G w v = -bracketL I G v w := by
-  rw [bracketL_apply, bracketL_apply]
-  -- `v` and `w` have type `E`, so `L` would be taken to be `E` unless given.
-  exact (lie_skew (L := GroupLieAlgebra I G) w v).symm
+  rw [bracketL_apply, bracketL_apply, ← lie_skew, map_neg]
 
 /-- The bracket on the model space vanishes on equal arguments. -/
 @[simp]
 theorem bracketL_self (v : E) : bracketL I G v v = 0 := by
-  rw [bracketL_apply]
-  -- `v` has type `E`, so `L` would be taken to be `E` unless given.
-  exact lie_self (L := GroupLieAlgebra I G) v
+  rw [bracketL_apply, lie_self, map_zero]
 
 /-- The adjoint action preserves the bracket. -/
 theorem adjointContinuousLinearMap_bracketL (g : G) (v w : E) :
     (adjointContinuousLinearMap (I := I) g : E →L[ℝ] E) (bracketL I G v w) =
       bracketL I G ((adjointContinuousLinearMap (I := I) g : E →L[ℝ] E) v)
-        ((adjointContinuousLinearMap (I := I) g : E →L[ℝ] E) w) := by
-  rw [bracketL_apply]
-  exact (adjointContinuousLinearMap_lie (I := I) g v w).trans
+        ((adjointContinuousLinearMap (I := I) g : E →L[ℝ] E) w) :=
+  -- `tangentSpaceCastModel` is the identity, so Tau Ceti's lemma for `GroupLieAlgebra I G`
+  -- applies to the two sides as they are.
+  (congrArg _ (bracketL_apply v w)).trans <| (adjointContinuousLinearMap_lie (I := I) g v w).trans
     (bracketL_apply (I := I) (G := G) _ _).symm
 
 end Bracket

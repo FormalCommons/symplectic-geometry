@@ -40,7 +40,10 @@ difference.
   `G = exp (-‖z‖ ^ 2 / 4)`, the model `∂` of `q * G` at `z` is `G z • (∂q(z) + q z • μ z)`, for
   `∂q(z) = flatDel q z` the flat `∂` of `q` and `μ = gaussianConnectionForm`; so its operator
   norm is at least `G z * (‖∂q(z)‖ - ‖z‖ ‖q z‖ / 2)`
-  (`SymplecticGeometry.mul_sub_le_norm_modelDel_mul_gaussian`).
+  (`SymplecticGeometry.mul_sub_le_norm_modelDel_mul_gaussian`). The
+  whole model connection of `q * G` at `z` has operator norm at most
+  `G z * (‖dq_z‖ + ‖z‖ ‖q z‖ / 2)`
+  (`SymplecticGeometry.norm_modelConnection_mul_gaussian_le`).
 * `SymplecticGeometry.exists_jetNormAt_div_peakFunction_le`: on the closed ball of radius `R` and
   for `R < k ^ (1 / 6)`, the `r`-jet norm of `f / peakFunction k` is at most `C` times that
   of `f`.
@@ -162,17 +165,34 @@ theorem mul_sub_le_norm_modelDel_mul_gaussian {q : StdSpace ι → ℂ} {z : Std
   rw [norm_neg, sub_neg_eq_add] at h2
   linarith
 
+/-- **An upper bound on the model connection of a product with the Gaussian.** For `q`
+differentiable at `z` and `G = exp (-‖·‖ ^ 2 / 4)`, the operator norm of the model connection of
+`q * G` at `z` is at most `G z * (‖dq_z‖ + ‖z‖ ‖q z‖ / 2)`. -/
+theorem norm_modelConnection_mul_gaussian_le {q : StdSpace ι → ℂ} {z : StdSpace ι}
+    (hq : DifferentiableAt ℝ q z) :
+    ‖modelConnection (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) z‖ ≤
+      Real.exp (-‖z‖ ^ 2 / 4) * (‖fderiv ℝ q z‖ + ‖z‖ * ‖q z‖ / 2) := by
+  have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
+  rw [modelConnection_mul hq hGd, modelConnection_gaussian]
+  refine (norm_add_le _ _).trans ?_
+  rw [norm_smul, norm_smul, norm_smul, Complex.norm_real,
+    Real.norm_of_nonneg (Real.exp_pos _).le]
+  have h := mul_le_mul_of_nonneg_left (norm_gaussianConnectionForm_le z)
+    (mul_nonneg (norm_nonneg (q z)) (Real.exp_pos (-‖z‖ ^ 2 / 4)).le)
+  nlinarith
+
 /-- **Jets of the quotient by the cut-off Gaussian.** For every order `r` and radius `R` there is
-a constant `C` such that, for every `k` with `R < k ^ (1 / 6)`, every `f` and every `z` with
-`‖z‖ ≤ R` where `f` is `C^r`, the `r`-jet norm of `f / peakFunction k` at `z` is at most `C` times
-that of `f`. -/
+a constant `C ≥ 0` such that, for every `k` with `R < k ^ (1 / 6)`, every `f` and every `z`
+with `‖z‖ ≤ R` where `f` is `C^r`, the `r`-jet norm of `f / peakFunction k` at `z` is at most `C`
+times that of `f`. -/
 theorem exists_jetNormAt_div_peakFunction_le (r : ℕ) (R : ℝ) :
-    ∃ C, ∀ (k : ℕ) (f : StdSpace ι → ℂ) {z : StdSpace ι}, ‖z‖ ≤ R →
+    ∃ C, 0 ≤ C ∧ ∀ (k : ℕ) (f : StdSpace ι → ℂ) {z : StdSpace ι}, ‖z‖ ≤ R →
       R < (k : ℝ) ^ (1 / 6 : ℝ) → ContDiffAt ℝ r f z →
       jetNormAt ℝ r (fun y ↦ f y / peakFunction k y) z ≤ C * jetNormAt ℝ r f z := by
-  obtain ⟨A, hA⟩ := exists_jetNormAt_le_of_isCompact
+  obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_le_of_isCompact
     (contDiff_ofReal_exp_norm_sq_div_four (E := StdSpace ι) (n := r)) (isCompact_closedBall 0 R)
-  refine ⟨2 ^ r * A, fun k f z hz hk hf ↦ ?_⟩
+  refine ⟨2 ^ r * A, by positivity, fun k f z hz hk hf ↦ ?_⟩
   rw [jetNormAt_congr_of_eventuallyEq r (div_peakFunction_eventuallyEq k f (hz.trans_lt hk))]
   have he : (fun y ↦ f y * (Real.exp (‖y‖ ^ 2 / 4) : ℂ)) =
       fun y ↦ (Real.exp (‖y‖ ^ 2 / 4) : ℂ) • f y :=
@@ -201,13 +221,13 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
           jetNormAt ℝ r (fun w ↦ J w -
               LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z *
             jetNormAt ℝ (r + 1) f z) := by
-  obtain ⟨A, hA⟩ := exists_jetNormAt_le_of_isCompact
+  obtain ⟨A, hA0, hA⟩ := exists_jetNormAt_le_of_isCompact
     (contDiff_ofReal_exp_norm_sq_div_four (E := StdSpace ι) (n := r)) (isCompact_closedBall 0 R)
   obtain ⟨C₁, hC₁0, hC₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
   set J₀ := LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
   set K := C₁ * (1 + |R|)
   have hK : 0 ≤ K := by positivity
-  refine ⟨2 ^ r * |A| * (1 + K), by positivity, fun k J f z hz hk hf hJ ↦ ?_⟩
+  refine ⟨2 ^ r * A * (1 + K), by positivity, fun k J f z hz hk hf hJ ↦ ?_⟩
   set E : StdSpace ι → ℂ := fun y ↦ Real.exp (‖y‖ ^ 2 / 4)
   set T := fun w ↦ modelDbarWith J f w - modelDbarWith (fun _ ↦ J₀) f w
   have hE : ContDiffAt ℝ r E z := contDiff_ofReal_exp_norm_sq_div_four.contDiffAt
@@ -220,8 +240,7 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
       fun w ↦ E w • (modelDbarWith J f w + -T w) := by
     have h1 := (div_peakFunction_eventuallyEq k f (hz.trans_lt hk)).eventually_nhds
     filter_upwards [h1, hdiff] with w hw hfw
-    rw [flatDbar_def, flatDbarWith_congr_of_eventuallyEq hw, ← flatDbar_def,
-      flatDbar_mul_exp_eq_smul_modelDbar hfw, modelDbar_def]
+    rw [flatDbar_congr_of_eventuallyEq hw, flatDbar_mul_exp_eq_smul_modelDbar hfw, modelDbar_def]
     simp only [T, E, J₀, neg_sub, add_sub_cancel]
   rw [jetNormAt_congr_of_eventuallyEq r hq]
   have hD : ContDiffAt ℝ r (modelDbarWith J f) z := contDiffAt_modelDbarWith hJ hf1
@@ -239,21 +258,20 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
     exact mul_le_mul_of_nonneg_right h1
       (mul_nonneg (jetNormAt_nonneg _ _ _) (jetNormAt_nonneg _ _ _))
   have hP := jetNormAt_fun_smul_le hE (hD.add hT.neg)
-  have hAz : jetNormAt ℝ r E z ≤ |A| :=
-    (hA z (mem_closedBall_zero_iff.2 hz)).trans (le_abs_self A)
+  have hAz : jetNormAt ℝ r E z ≤ A := hA z (mem_closedBall_zero_iff.2 hz)
   set a := jetNormAt ℝ r (modelDbarWith J f) z
   set b := jetNormAt ℝ r (fun w ↦ J w - J₀) z * jetNormAt ℝ (r + 1) f z
   have ha : 0 ≤ a := jetNormAt_nonneg _ _ _
   have hb : 0 ≤ b := mul_nonneg (jetNormAt_nonneg _ _ _) (jetNormAt_nonneg _ _ _)
   calc _ ≤ 2 ^ r * jetNormAt ℝ r E z *
         jetNormAt ℝ r (fun w ↦ modelDbarWith J f w + -T w) z := hP
-    _ ≤ 2 ^ r * |A| * (a + K * b) := by
+    _ ≤ 2 ^ r * A * (a + K * b) := by
         gcongr
         · exact jetNormAt_nonneg _ _ _
         · exact hsum.trans (add_le_add le_rfl hTle)
-    _ ≤ 2 ^ r * |A| * (1 + K) * (a + b) := by
+    _ ≤ 2 ^ r * A * (1 + K) * (a + b) := by
         have : a + K * b ≤ (1 + K) * (a + b) := by nlinarith
-        calc 2 ^ r * |A| * (a + K * b) ≤ 2 ^ r * |A| * ((1 + K) * (a + b)) := by gcongr
+        calc 2 ^ r * A * (a + K * b) ≤ 2 ^ r * A * ((1 + K) * (a + b)) := by gcongr
           _ = _ := by ring
 
 namespace RescaledUnitaryCharts
@@ -346,13 +364,13 @@ theorem exists_forall_norm_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (B :
           C * (k : ℝ) ^ (-1 / 2 : ℝ) ∧
         ∀ b, ‖fderiv ℝ (fun y ↦ flatDbar (fun y ↦ D.reading k x s y / peakFunction k y) y b) z‖ ≤
           C * (k : ℝ) ^ (-1 / 2 : ℝ) * ‖b‖ := by
-  obtain ⟨C₁, hC₁⟩ := exists_jetNormAt_div_peakFunction_le (ι := ι) 1 (11 / 10)
+  obtain ⟨C₁, hC₁0, hC₁⟩ := exists_jetNormAt_div_peakFunction_le (ι := ι) 1 (11 / 10)
   obtain ⟨C₂, hC₂0, hC₂⟩ :=
     D.exists_jetNormAt_flatDbar_reading_div_peakFunction_le hρ₀ 1 (11 / 10)
   have h6 : ∀ᶠ k : ℕ in Filter.atTop, (11 / 10 : ℝ) < (k : ℝ) ^ (1 / 6 : ℝ) :=
     ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 6)).comp
       tendsto_natCast_atTop_atTop).eventually_gt_atTop (11 / 10 : ℝ)
-  refine ⟨max 1 (|C₁| * B), le_max_left _ _, 2 * C₂ * B, ?_⟩
+  refine ⟨max 1 (C₁ * B), le_max_left _ _, 2 * C₂ * B, ?_⟩
   filter_upwards [h6, hC₂] with k hk6 hk x s hs z hz
   obtain ⟨hf, hfB, hdB⟩ := hs z hz
   set f := D.reading k x s
@@ -364,13 +382,11 @@ theorem exists_forall_norm_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (B :
   have hqC : ContDiffAt ℝ 2 q z :=
     (hf.mul contDiff_ofReal_exp_norm_sq_div_four.contDiffAt).congr_of_eventuallyEq hq
   have hf1 : jetNormAt ℝ 1 f z ≤ B := (jetNormAt_mono f z (by norm_num)).trans hfB
-  -- The `1`-jet of `q` is bounded by `|C₁| * B`.
-  have hqJ : jetNormAt ℝ 1 q z ≤ max 1 (|C₁| * B) :=
+  -- The `1`-jet of `q` is bounded by `C₁ * B`.
+  have hqJ : jetNormAt ℝ 1 q z ≤ max 1 (C₁ * B) :=
     calc jetNormAt ℝ 1 q z ≤ C₁ * jetNormAt ℝ 1 f z :=
           hC₁ k f hz' hk6 (hf.of_le (by norm_num))
-      _ ≤ |C₁| * jetNormAt ℝ 1 f z :=
-          mul_le_mul_of_nonneg_right (le_abs_self _) (jetNormAt_nonneg _ _ _)
-      _ ≤ |C₁| * B := by gcongr
+      _ ≤ C₁ * B := by gcongr
       _ ≤ _ := le_max_right _ _
   -- The `1`-jet of its flat `∂̄` is bounded by `2 * C₂ * B * t`.
   have hdJ : jetNormAt ℝ 1 (flatDbar q) z ≤ 2 * C₂ * B * t :=

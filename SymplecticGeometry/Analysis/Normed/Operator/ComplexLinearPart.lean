@@ -46,10 +46,13 @@ Each value of either part is half the sum of two vectors of norm at most `‖Ψ�
 pointwise bounds follow from Tau Ceti's `TauCeti.norm_two_inv_smul_add_le`.
 
 For real-linear endomorphisms `J` and `J'` of finite-dimensional real normed spaces, with
-no complex structure, `TauCeti.complexAntilinearPartContinuousLinearMap J J'` is Tau Ceti's
-algebraic complex-antilinear part `TauCeti.complexAntilinearPart J J'`, built from
-`TauCeti.complexAntilinearPartLinearMap`, as a continuous real-linear operator on the continuous
-real-linear maps. For fields of endomorphisms and of operators that are `C^n` at a point, the
+no complex structure, `TauCeti.complexLinearPartContinuousLinearMap J J'` and
+`TauCeti.complexAntilinearPartContinuousLinearMap J J'` are Tau Ceti's algebraic parts
+`TauCeti.complexLinearPart J J'` and `TauCeti.complexAntilinearPart J J'`, built from
+`TauCeti.complexLinearPartLinearMap` and `TauCeti.complexAntilinearPartLinearMap`, as continuous
+real-linear operators on the continuous real-linear maps. They add up to the identity
+(`TauCeti.complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap`).
+For fields of endomorphisms and of operators that are `C^n` at a point, the
 field of their complex-antilinear parts is `C^n` there
 (`ContDiffAt.complexAntilinearPartContinuousLinearMap`). Changing the endomorphism of the source
 from `J₂` to `J₁` moves the value at `v` of Tau Ceti's `TauCeti.complexLinearPart` of a continuous
@@ -244,7 +247,7 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
   exact ((hf.clm_apply contDiffOn_const).add
     ((hf.clm_apply contDiffOn_const).const_smul Complex.I)).const_smul _
 
-/-! ### The algebraic complex-antilinear part as a continuous operator -/
+/-! ### The algebraic complex-linear and complex-antilinear parts as continuous operators -/
 
 namespace TauCeti
 
@@ -275,6 +278,54 @@ theorem complexAntilinearPartContinuousLinearMap_apply_apply (J : V →ₗ[ℝ] 
     complexAntilinearPartContinuousLinearMap J J' F v =
       complexAntilinearPart J J' (F : V →ₗ[ℝ] W) v := by
   rw [complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap']
+
+/-- Tau Ceti's complex-linear part `F ↦ ½ (F - J' ∘ F ∘ J)`, for real-linear endomorphisms `J`
+of `V` and `J'` of `W`, as a continuous real-linear operator on the continuous real-linear maps
+`V →L[ℝ] W` between finite-dimensional real normed spaces. It is the complex-linear counterpart
+of `TauCeti.complexAntilinearPartContinuousLinearMap`. -/
+noncomputable def complexLinearPartContinuousLinearMap (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) :
+    (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W :=
+  LinearMap.toContinuousLinearMap (LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ
+    complexLinearPartLinearMap J J' ∘ₗ ContinuousLinearMap.coeLM ℝ)
+
+/-- `TauCeti.complexLinearPartContinuousLinearMap J J'` sends `F` to
+`TauCeti.complexLinearPart J J' F`. -/
+theorem complexLinearPartContinuousLinearMap_apply (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
+    (F : V →L[ℝ] W) :
+    complexLinearPartContinuousLinearMap J J' F =
+      LinearMap.toContinuousLinearMap (complexLinearPart J J' (F : V →ₗ[ℝ] W)) := by
+  ext v
+  simp [complexLinearPartContinuousLinearMap]
+
+@[simp]
+theorem complexLinearPartContinuousLinearMap_apply_apply (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
+    (F : V →L[ℝ] W) (v : V) :
+    complexLinearPartContinuousLinearMap J J' F v = complexLinearPart J J' (F : V →ₗ[ℝ] W) v := by
+  rw [complexLinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap']
+
+/-- The continuous complex-linear and complex-antilinear parts add up to the identity: every
+`F : V →L[ℝ] W` is the sum of its two parts. -/
+@[simp]
+theorem complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap
+    (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) :
+    complexLinearPartContinuousLinearMap J J' + complexAntilinearPartContinuousLinearMap J J' =
+      1 := by
+  ext F v
+  simp only [add_apply, complexLinearPartContinuousLinearMap_apply_apply,
+    complexAntilinearPartContinuousLinearMap_apply_apply, ← LinearMap.add_apply,
+    complexLinearPart_add_complexAntilinearPart, ContinuousLinearMap.coe_coe,
+    one_apply_eq_self]
+
+/-- Every `F : V →L[ℝ] W` is the sum of its continuous complex-linear and complex-antilinear
+parts. -/
+@[simp]
+theorem complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply
+    (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →L[ℝ] W) :
+    complexLinearPartContinuousLinearMap J J' F + complexAntilinearPartContinuousLinearMap J J' F =
+      F := by
+  rw [← add_apply,
+    complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap,
+    one_apply_eq_self]
 
 /-- For a field `J` of continuous endomorphisms of `V` and a field `F` of operators `V →L[ℝ] W`,
 both `C^n` at `x`, the field of complex-antilinear parts
