@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Algebra.Category.ModuleCat.Colimits
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Class
 
 /-!
@@ -31,6 +32,8 @@ The proofs adapt those of `SSetPair.relClass₁_cycle`, `SSetPair.relClass₁_ho
 * `SSetPair.relClass_homologyMap`: naturality in maps of pairs.
 * `SSetPair.relClass_homologyδ`: its image under the connecting morphism.
 * `SSetPair.relClass_zero`: in degree one it is `SSetPair.relClass₁`.
+* `SSetPair.d_ιChainComplex_hom_apply`: with coefficients in a module, the boundary of `r • s` is
+  the image of `∑ i, (-1) ^ i • r • t i`, a chain of the subcomplex.
 
 ## References
 
@@ -147,6 +150,23 @@ lemma relClass_zero (s : Q.right _⦋1⦌) (v₀ v₁ : Q.left _⦋0⦌)
   rw [relClass_def, relClass₁_eq]
 
 end Preadditive
+
+section ModuleCat
+
+variable {k : Type w} [Ring k] (R : ModuleCat.{w} k) {Q : SSetPair.{w}} {n : ℕ}
+  (s : Q.right _⦋n + 1⦌) (t : Fin (n + 2) → Q.left _⦋n⦌)
+  (ht : ∀ i, Q.right.δ i s = Q.hom.app _ (t i))
+
+include ht in
+/-- The boundary of the chain `r • s` of a simplex `s` whose faces are the images of simplices
+`t i` of the subcomplex is the image of the chain `∑ i, (-1) ^ i • r • t i` of the subcomplex. -/
+lemma d_ιChainComplex_hom_apply (r : R) :
+    (Q.right.chainComplex R).d (n + 1) n ((Q.right.ιChainComplex (R := R) s).hom r) =
+      (SSet.chainComplexMap Q.hom R).f n
+        ((∑ i, (-1 : ℤ) ^ i.val • Q.left.ιChainComplex (R := R) (t i)).hom r) :=
+  (ConcreteCategory.congr_hom (sum_ιChainComplex_comp_chainComplexMap_f R s t ht) r).symm
+
+end ModuleCat
 
 section Abelian
 
