@@ -421,8 +421,8 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
   have hWd : MDifferentiableAt (𝓘(ℝ).prod IN) (𝓘(ℝ).prod IN).tangent
       (fun q ↦ (⟨q, Manifold.prodVectorField (constVectorField (1 : ℝ))
         (0 : Π y : N, TangentSpace IN y) q⟩ : TangentBundle (𝓘(ℝ).prod IN) (ℝ × N))) (0, n) :=
-    Manifold.mdifferentiableAt_prodVectorField hT
-      ((contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero)
+    (Manifold.contMDiff_prodVectorField_constVectorField_zero (1 : ℝ) (n := 1)).mdifferentiableAt
+      one_ne_zero
   -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`. The vector `(0, v)` at
   -- `(0, n)` is written as the image of `v` under the differential of `m ↦ (0, m)`, so that it is
   -- a tangent vector of `ℝ × N` at `(0, n)`.
