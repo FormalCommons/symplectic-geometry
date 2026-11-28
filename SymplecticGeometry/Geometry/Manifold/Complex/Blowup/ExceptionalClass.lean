@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Data.ENat.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
@@ -85,30 +86,29 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] {p₀ : M} (c : BlowupChart (n := n) M p₀)
   [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
 
-/-- The order `∞` of smoothness is not zero, as Tau Ceti's normal spaces ask. -/
-local notation "hn" => (Iff.mpr WithTop.coe_ne_zero ENat.top_ne_zero : (∞ : ℕ∞ω) ≠ 0)
-
 /-- **The normal bundle of the exceptional divisor is the tautological line.** At a point `ℓ` of
 the exceptional divisor, the isomorphism from the normal space of `divisorRealEmbedding c` onto
 the line `ℓ`: the differential of `lift c`, onto the normal space of the zero section of the
 model, followed by `BlowupModel.normalSpaceZeroSectionRealEquiv`. -/
 def divisorNormalEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    (divisorRealEmbedding c).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
+    (divisorRealEmbedding c).isImmersion.NormalSpace ℓ ENat.coe_top_ne_zero ≃L[ℝ]
       Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
   ((divisorRealEmbedding c).normalSpaceEquivOfComp (BlowupModel.zeroSectionRealEmbedding n)
-      hn hn (isInvertible_mfderiv_lift_divisorRealEmbedding c)
+      ENat.coe_top_ne_zero ENat.coe_top_ne_zero
+      (isInvertible_mfderiv_lift_divisorRealEmbedding c)
       ((lift_comp_divisorRealEmbedding c).trans
         (BlowupModel.coe_zeroSectionRealEmbedding (n := n)).symm) ℓ).trans
-    (BlowupModel.normalSpaceZeroSectionRealEquiv n hn ℓ)
+    (BlowupModel.normalSpaceZeroSectionRealEquiv n ENat.coe_top_ne_zero ℓ)
 
 /-- `divisorNormalEquiv c`, unfolded. -/
 theorem divisorNormalEquiv_def (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     divisorNormalEquiv c ℓ =
       ((divisorRealEmbedding c).normalSpaceEquivOfComp (BlowupModel.zeroSectionRealEmbedding n)
-          hn hn (isInvertible_mfderiv_lift_divisorRealEmbedding c)
+          ENat.coe_top_ne_zero ENat.coe_top_ne_zero
+          (isInvertible_mfderiv_lift_divisorRealEmbedding c)
           ((lift_comp_divisorRealEmbedding c).trans
             (BlowupModel.coe_zeroSectionRealEmbedding (n := n)).symm) ℓ).trans
-        (BlowupModel.normalSpaceZeroSectionRealEquiv n hn ℓ) :=
+        (BlowupModel.normalSpaceZeroSectionRealEquiv n ENat.coe_top_ne_zero ℓ) :=
   (rfl)
 
 /-- `divisorNormalEquiv c ℓ` sends the normal class of a tangent vector `w` of the blowup at
@@ -117,7 +117,8 @@ image of `w` under the differential of `lift c`, as a vector of the line `ℓ`. 
 @[simp]
 theorem divisorNormalEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (divisorRealEmbedding c ℓ)) :
-    divisorNormalEquiv c ℓ ((divisorRealEmbedding c).isImmersion.normalClass ℓ hn w) =
+    divisorNormalEquiv c ℓ
+        ((divisorRealEmbedding c).isImmersion.normalClass ℓ ENat.coe_top_ne_zero w) =
       ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) BlowupModel.blowdown
           (BlowupModel.zeroSection ℓ)
           (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
@@ -140,8 +141,8 @@ theorem divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
     (hg0 : g 0 = divisorRealEmbedding c (Projectivization.mk ℂ v hv))
     (hg : lift c ∘ g =ᶠ[nhds 0] BlowupModel.curveLift (· • v)) (z : ℂ) :
     divisorNormalEquiv c (Projectivization.mk ℂ v hv)
-        ((divisorRealEmbedding c).isImmersion.normalClassL (Projectivization.mk ℂ v hv) hn
-          (A z)) =
+        ((divisorRealEmbedding c).isImmersion.normalClassL (Projectivization.mk ℂ v hv)
+          ENat.coe_top_ne_zero (A z)) =
       Projectivization.toTautological hv (Projectivization.submodule_mk v hv) z := by
   have hL : HasMFDerivAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) (g 0)
       (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
@@ -166,30 +167,31 @@ theorem divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
 normal bundle of the exceptional divisor to that of the tautological line. -/
 theorem continuous_divisorNormalEquiv {K : Type*} :
     Continuous fun p : TotalSpace K
-        (fun ℓ ↦ (divisorRealEmbedding c).isImmersion.NormalSpace ℓ hn) ↦
+        (fun ℓ ↦ (divisorRealEmbedding c).isImmersion.NormalSpace ℓ ENat.coe_top_ne_zero) ↦
       (⟨p.proj, divisorNormalEquiv c p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
   have h₁ := (divisorRealEmbedding c).continuous_normalSpaceEquivOfComp_of_contMDiffAt (K := K)
-    (K' := K) (BlowupModel.zeroSectionRealEmbedding n) hn hn
+    (K' := K) (BlowupModel.zeroSectionRealEmbedding n) ENat.coe_top_ne_zero ENat.coe_top_ne_zero
     (fun ℓ ↦ (isLocalDiffeomorphAt_lift_divisorRealEmbedding c ℓ).contMDiffAt.of_le
       ENat.LEInfty.out)
     (isInvertible_mfderiv_lift_divisorRealEmbedding c) ((lift_comp_divisorRealEmbedding c).trans
       (BlowupModel.coe_zeroSectionRealEmbedding (n := n)).symm)
-  exact (BlowupModel.continuous_normalSpaceZeroSectionRealEquiv (n := n) hn).comp h₁
+  exact (BlowupModel.continuous_normalSpaceZeroSectionRealEquiv (n := n)
+    ENat.coe_top_ne_zero).comp h₁
 
 /-- **The normal orientation of the exceptional divisor.** The orientation of the normal bundle of
 `divisorRealEmbedding c` that `divisorNormalEquiv c` carries from the complex orientation
 `TauCeti.VectorBundleOrientation.complex` of the tautological line. -/
 def divisorNormalOrientation :
-    letI := (divisorRealEmbedding c).normalSpaceFiberBundle hn
+    letI := (divisorRealEmbedding c).normalSpaceFiberBundle ENat.coe_top_ne_zero
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-    letI := (divisorRealEmbedding c).normalSpaceVectorBundle hn
+    letI := (divisorRealEmbedding c).normalSpaceVectorBundle ENat.coe_top_ne_zero
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
     VectorBundleOrientation ℂ
-      (fun ℓ ↦ (divisorRealEmbedding c).isImmersion.NormalSpace ℓ hn) (Fin 2) :=
-  letI := (divisorRealEmbedding c).normalSpaceFiberBundle hn
+      (fun ℓ ↦ (divisorRealEmbedding c).isImmersion.NormalSpace ℓ ENat.coe_top_ne_zero) (Fin 2) :=
+  letI := (divisorRealEmbedding c).normalSpaceFiberBundle ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-  letI := (divisorRealEmbedding c).normalSpaceVectorBundle hn
+  letI := (divisorRealEmbedding c).normalSpaceVectorBundle ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
   letI : VectorBundle ℝ ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) :=
     VectorBundle.restrictScalars ℝ ℂ ℂ _
@@ -200,9 +202,9 @@ def divisorNormalOrientation :
 
 /-- `divisorNormalOrientation c`, unfolded. -/
 theorem divisorNormalOrientation_def :
-    letI := (divisorRealEmbedding c).normalSpaceFiberBundle hn
+    letI := (divisorRealEmbedding c).normalSpaceFiberBundle ENat.coe_top_ne_zero
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-    letI := (divisorRealEmbedding c).normalSpaceVectorBundle hn
+    letI := (divisorRealEmbedding c).normalSpaceVectorBundle ENat.coe_top_ne_zero
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
     letI : VectorBundle ℝ ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) :=
       VectorBundle.restrictScalars ℝ ℂ ℂ _
@@ -221,13 +223,14 @@ theorem divisorNormalOrientation_def :
 `divisorNormalOrientation c ℓ`. -/
 theorem orientation_map_eq_divisorNormalOrientation {ℓ : ℙ ℂ (Fin (n + 1) → ℂ)}
     (e : ℂ ≃ₗ[ℂ] Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ)
-    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] (divisorRealEmbedding c).isImmersion.NormalSpace ℓ hn)
+    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ]
+      (divisorRealEmbedding c).isImmersion.NormalSpace ℓ ENat.coe_top_ne_zero)
     (hm : ∀ w, divisorNormalEquiv c ℓ (m w) = e (Complex.orthonormalBasisOneI.repr.symm w)) :
     (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
       divisorNormalOrientation c ℓ := by
-  let := (divisorRealEmbedding c).normalSpaceFiberBundle hn
+  let := (divisorRealEmbedding c).normalSpaceFiberBundle ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-  let := (divisorRealEmbedding c).normalSpaceVectorBundle hn
+  let := (divisorRealEmbedding c).normalSpaceVectorBundle ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
   let : VectorBundle ℝ ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) :=
     VectorBundle.restrictScalars ℝ ℂ ℂ _
@@ -253,16 +256,16 @@ of the tautological line. Its coefficients are `ULift ℤ`. -/
 def exceptionalClass :
     (TopCat.of (Blowup c)).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 :=
-  (divisorRealEmbedding c).dualClass hn
+  (divisorRealEmbedding c).dualClass ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-    (by rw [range_divisorRealEmbedding]; exact isClosed_exceptionalDivisor c)
+    (isClosed_range_divisorRealEmbedding c)
     (divisorNormalOrientation c) Complex.finrank_real_complex
 
 /-- The exceptional class, unfolded. -/
 theorem exceptionalClass_def :
-    exceptionalClass c = (divisorRealEmbedding c).dualClass hn
+    exceptionalClass c = (divisorRealEmbedding c).dualClass ENat.coe_top_ne_zero
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-      (by rw [range_divisorRealEmbedding]; exact isClosed_exceptionalDivisor c)
+      (isClosed_range_divisorRealEmbedding c)
       (divisorNormalOrientation c) Complex.finrank_real_complex :=
   (rfl)
 
@@ -311,9 +314,9 @@ theorem exceptionalClass_restrict_divisor_eq_complexEulerClass :
         (exceptionalClass c) =
       complexEulerClass (r := 0) ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))
         (finrank_self ℂ) := by
-  let := (divisorRealEmbedding c).normalSpaceFiberBundle hn
+  let := (divisorRealEmbedding c).normalSpaceFiberBundle ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
-  let := (divisorRealEmbedding c).normalSpaceVectorBundle hn
+  let := (divisorRealEmbedding c).normalSpaceVectorBundle ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
   let : VectorBundle ℝ ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) :=
     VectorBundle.restrictScalars ℝ ℂ ℂ _
