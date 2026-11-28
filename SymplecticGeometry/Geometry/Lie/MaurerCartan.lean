@@ -170,7 +170,7 @@ theorem fderiv_leftMaurerCartanForm_mfderiv_sub {γ : E' → G} (hγ : ContMDiff
   have hfun (u : E') : (fun y ↦ (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)).val y
       (fun _ ↦ u)) =
       fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y u] :=
-    funext fun y ↦ (congrArg _ (by ext i; fin_cases i; rfl)).trans
+    funext fun y ↦ (congrArg _ (FinVec.etaExpand_eq _).symm).trans
       (SmoothForm.mpullback_apply_one γ hγ _ y u)
   rw [← hfun, ← hfun]
   exact (extDeriv_apply_pair_of_differentiableAt hd v w).symm.trans
