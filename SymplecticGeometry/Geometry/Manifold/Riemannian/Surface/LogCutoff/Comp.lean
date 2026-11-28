@@ -38,7 +38,6 @@ that interpolation of order `1 / Λ`.
 
 ## Main results
 
-* `TauCeti.norm_deriv_logCutoffProfile_le`: the bound on the derivative of the profile, in norm.
 * `TauCeti.sqrt_mul_norm_fderiv_logCutoffProfile_comp_le`: the first-order bound.
 * `TauCeti.exists_mul_norm_fderiv_fderiv_logCutoffProfile_comp_le`: the second-order bound.
 
@@ -51,14 +50,7 @@ public section
 
 namespace TauCeti
 
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {ε δ r A : ℝ} {ρ : F → ℝ} {p : F}
-
-/-- For `0 < 4ε ≤ δ` and `0 ≤ r`, the derivative of `logCutoffProfile ε δ` at `r` has norm at
-most `logCutoffConst / (r log (δ / ε))`. -/
-theorem norm_deriv_logCutoffProfile_le (hε : 0 < ε) (h4 : 4 * ε ≤ δ) (hr : 0 ≤ r) :
-    ‖deriv (logCutoffProfile ε δ) r‖ ≤ logCutoffConst / (r * Real.log (δ / ε)) := by
-  rw [Real.norm_of_nonneg (deriv_logCutoffProfile_nonneg hε (by linarith) _)]
-  exact deriv_logCutoffProfile_le hε h4 hr
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {ε δ A : ℝ} {ρ : F → ℝ} {p : F}
 
 /-- **The first derivative of a logarithmic cutoff composed with a function.** For
 `0 < 4ε ≤ δ`, a function `ρ` differentiable at `p`, and `0 ≤ A` with `‖Dρ(p)‖ ≤ A √(ρ p)`, the
