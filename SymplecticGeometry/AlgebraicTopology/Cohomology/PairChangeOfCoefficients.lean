@@ -92,8 +92,8 @@ theorem singularCohomologyChainCoefficientMap_id (P : TopPair.{w}) (k : Type*) [
     [Linear k C] (M : C) (n : ℕ) :
     P.singularCohomologyChainCoefficientMap k M (𝟙 R) n = 𝟙 _ := by
   simp only [singularCohomologyChainCoefficientMap, CategoryTheory.Functor.map_id,
-    NatTrans.id_app, op_id]
-  exact homologyMap_id _ _
+    NatTrans.id_app]
+  exact ChainComplex.homologyMap_linearYonedaFunctor_map_id k M _ n
 
 @[reassoc]
 theorem singularCohomologyChainCoefficientMap_comp (P : TopPair.{w}) (k : Type*) [Ring k]

@@ -7,7 +7,6 @@ module
 
 public import Mathlib.LinearAlgebra.Projection
 public import TauCeti.LinearAlgebra.Orientation.Prod
-import TauCeti.LinearAlgebra.Orientation.Basic
 
 /-!
 # Product orientations: zero-dimensional factors and block-triangular maps
@@ -15,7 +14,9 @@ import TauCeti.LinearAlgebra.Orientation.Basic
 A module of rank zero has two orientations of the empty index type, `positiveOrientation` and
 its negative. The product orientation (Tau Ceti's `Orientation.prod`) of an orientation `o` of
 `E` with the positive orientation of a zero-dimensional module `F` is the image of `o` under the
-inclusion `E ≃ E × F`, `v ↦ (v, 0)` (`Orientation.prod_positiveOrientation_right`). When both
+inclusion `E ≃ E × F`, `v ↦ (v, 0)` (`Orientation.prod_positiveOrientation_right`). This is the
+case of Tau Ceti's `Orientation.reindex_prod_of_right_eq_zero` where the second orientation is
+the positive one, so that no sign and no reindexing appear. When both
 factors have rank zero, the product of two orientations is positive exactly when they have the
 same sign (`Orientation.prod_eq_positiveOrientation_iff`).
 
@@ -47,18 +48,13 @@ theorem prod_positiveOrientation_right [Unique F] (o : Orientation R E (Fin m))
     (hm : finrank R E = m) (hn : finrank R F = 0) :
     o.prod positiveOrientation hm hn =
       o.map (Fin m) (LinearEquiv.prodUnique (R := R) (M := E) (M₂ := F)).symm := by
-  let b := Module.finBasisOfFinrankEq R E hm
-  let c := Module.finBasisOfFinrankEq R F hn
-  have hb : prod b.orientation positiveOrientation hm hn =
-      b.orientation.map (Fin m) (LinearEquiv.prodUnique (R := R) (M := E) (M₂ := F)).symm := by
-    rw [← c.orientation_isEmpty, prod_basis_orientation, ← Basis.orientation_map]
-    congr 1
-    refine Basis.eq_of_apply_eq fun k ↦ Fin.addCases (fun i ↦ ?_) (fun j ↦ j.elim0) k
-    rw [Basis.reindex_apply, finSumFinEquiv_symm_apply_castAdd, Basis.prod_apply, Basis.map_apply]
-    exact Prod.ext rfl (Subsingleton.elim _ _)
-  rcases b.orientation_eq_or_eq_neg o with rfl | rfl
-  · exact hb
-  · rw [prod_neg_left, hb, Orientation.map_neg]
+  -- The sign of the positive orientation relative to the empty basis of `F` is `1`.
+  have hc : signBasis positiveOrientation (Module.finBasisOfFinrankEq R F hn) = 1 := by
+    rw [← (Module.finBasisOfFinrankEq R F hn).orientation_isEmpty, signBasis_orientation]
+  have h := reindex_prod_of_right_eq_zero o positiveOrientation hm hn (add_zero m) rfl
+    (LinearEquiv.prodUnique (R := R) (M := E) (M₂ := F)).symm
+    fun v ↦ Prod.ext rfl (Subsingleton.elim _ _)
+  simpa [hc, finCongr_refl, reindex_refl] using h
 
 /-- For empty index types `Fin m` and `Fin n`, the product of orientations `o` and `p` is the
 positive orientation if and only if `o` and `p` are both positive or both negative. -/

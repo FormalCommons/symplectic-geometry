@@ -212,7 +212,7 @@ theorem maslovIndex_eq_iff_homotopic {A : GLSymplectic ι ℝ} {γ γ' : Path A 
       (a₁ := FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk γ))
       (a₂ := FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk γ'))
       (by rw [fundamentalGroupMulEquiv_fromPath, fundamentalGroupMulEquiv_fromPath, h])
-    exact congrArg FundamentalGroup.toPath h'
+    simpa only [FundamentalGroup.toPath_fromPath] using congrArg FundamentalGroup.toPath h'
 
 /-- Loops that are freely homotopic have the same Maslov index. -/
 theorem maslovIndex_eq_of_homotopicWith {A B : GLSymplectic ι ℝ} {γ : Path A A} {γ' : Path B B}
