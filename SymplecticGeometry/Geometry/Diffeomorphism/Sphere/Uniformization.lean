@@ -68,14 +68,15 @@ theorem vec_ne_zero_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J)
     (hs' : s ≠ 0) (ht' : t ≠ 0) (h₀ : s (0 : ℂ) = 0) (hinf : t ∞ = 0) (x : OnePoint ℂ) :
     ![s x * t (1 : ℂ), t x * s (1 : ℂ)] ≠ 0 := by
-  have u₀ := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hs hs'
-  have uinf := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi ht ht'
-  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦ one_ne_zero (OnePoint.coe_injective (u₀.unique h h₀))
-  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (uinf.unique h hinf)
+  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦
+    one_ne_zero (OnePoint.coe_injective (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hs hs' h h₀))
+  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦
+    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero hJ hi ht ht' h hinf)
   intro hv
   have hx₀ : s x = 0 := by simpa [ht₁] using congrFun hv 0
   have hxinf : t x = 0 := by simpa [hs₁] using congrFun hv 1
-  exact OnePoint.coe_ne_infty _ ((u₀.unique h₀ hx₀).trans (uinf.unique hxinf hinf))
+  exact OnePoint.coe_ne_infty _ ((eq_of_mem_twistOneKernel_of_eq_zero hJ hi hs hs' h₀ hx₀).trans
+    (eq_of_mem_twistOneKernel_of_eq_zero hJ hi ht ht' hxinf hinf))
 
 end Vector
 
@@ -171,12 +172,14 @@ theorem injective_uniformizingMap (J : 𝒥) : Function.Injective (uniformizingM
   set s := chosenSection J (0 : ℂ)
   set t := chosenSection J ∞
   have hi := OnePoint.compatible_fubiniStudyForm.tames
-  have u₀ := existsUnique_eq_zero_of_mem_twistOneKernel J.property hi hs hs'
-  have uinf := existsUnique_eq_zero_of_mem_twistOneKernel J.property hi ht ht'
-  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦ one_ne_zero (OnePoint.coe_injective (u₀.unique h h₀))
-  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (uinf.unique h hinf)
-  have ht0 : t (0 : ℂ) ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (uinf.unique h hinf)
-  have hsinf : s ∞ ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (u₀.unique h₀ h)
+  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦ one_ne_zero
+    (OnePoint.coe_injective (eq_of_mem_twistOneKernel_of_eq_zero J.property hi hs hs' h h₀))
+  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦
+    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero J.property hi ht ht' h hinf)
+  have ht0 : t (0 : ℂ) ≠ 0 := fun h ↦
+    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero J.property hi ht ht' h hinf)
+  have hsinf : s ∞ ≠ 0 := fun h ↦
+    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero J.property hi hs hs' h₀ h)
   intro x y hxy
   rw [uniformizingMap, uniformizingMap, Equiv.apply_eq_iff_eq,
     Projectivization.mk_eq_mk_iff'] at hxy
@@ -195,17 +198,16 @@ theorem injective_uniformizingMap (J : 𝒥) : Function.Injective (uniformizingM
     sub_mem (Submodule.smul_mem _ _ hs) (Submodule.smul_mem _ _ ht)
   have hwy : w y = 0 := by simp [w, mul_comm]
   have hwx : w x = 0 := by simp [w, hx₀, hxinf]; ring
-  -- It is nonzero, since `s` and `t` do not both vanish at `y`.
+  -- It is nonzero: otherwise `s y = t y = 0`, against `vec_ne_zero_of_mem_twistOneKernel`.
   have hw' : w ≠ 0 := by
     intro h
     have e0 := congrFun h (0 : ℂ)
     have einf := congrFun h ∞
     simp only [w, Pi.sub_apply, Pi.smul_apply, smul_eq_mul, h₀, hinf, mul_zero, sub_zero,
       zero_sub, Pi.zero_apply, neg_eq_zero] at e0 einf
-    have hy₀ : s y = 0 := (mul_eq_zero.1 e0).resolve_right ht0
-    have hyinf : t y = 0 := (mul_eq_zero.1 einf).resolve_right hsinf
-    exact OnePoint.coe_ne_infty _ ((u₀.unique h₀ hy₀).trans (uinf.unique hyinf hinf))
-  exact (existsUnique_eq_zero_of_mem_twistOneKernel J.property hi hw hw').unique hwx hwy
+    refine vec_ne_zero_of_mem_twistOneKernel J.property hi hs ht hs' ht' h₀ hinf y ?_
+    simp [(mul_eq_zero.1 e0).resolve_right ht0, (mul_eq_zero.1 einf).resolve_right hsinf]
+  exact eq_of_mem_twistOneKernel_of_eq_zero J.property hi hw hw' hwx hwy
 
 end SymplecticGeometry
 

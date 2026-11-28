@@ -275,6 +275,14 @@ theorem existsUnique_eq_zero_of_mem_twistOneKernel {σ : SmoothTwoForm 𝓘(ℝ,
   obtain ⟨z₀, hZ, -⟩ := exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel hJ hi hs hs₀
   exact ⟨z₀, (Set.ext_iff.1 hZ z₀).2 rfl, fun z hz ↦ (Set.ext_iff.1 hZ z).1 hz⟩
 
+/-- **Two zeros of a nonzero kernel element on `𝒪(1)` coincide.** Let a two-form `σ` on the
+sphere tame both `J` and the standard structure `i`, and let `s ≠ 0` be a smooth section of
+`𝒪(1)` with `D_J s = 0`. If `s x = 0` and `s y = 0`, then `x = y`. -/
+theorem eq_of_mem_twistOneKernel_of_eq_zero {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J)
+    (hs₀ : s ≠ 0) {x y : OnePoint ℂ} (hx : s x = 0) (hy : s y = 0) : x = y :=
+  (existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hs hs₀).unique hx hy
+
 /-- **The zero of a nonzero kernel element on `𝒪(1)` is simple.** Let a two-form
 `σ` on the sphere tame both `J` and the standard structure `i`, and let `s ≠ 0` be a smooth
 section of `𝒪(1)` with `D_J s = 0`. At a zero `z` of `s`, the linearization of `s`
