@@ -558,20 +558,17 @@ theorem mfderiv_transportedCylinder_zero_apply (hΔ : IsSmoothDisc IB γ Δ) {s 
   · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
     -- `rw [zero_apply]` misses the pattern: the argument is typed as a tangent vector.
     exact zero_apply _
-  -- The line `r ↦ (r, 0, θ)` and its derivative.
-  have hι : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun r : ℝ ↦ (r, (0 : ℝ), θ)) s
-      (ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)) :=
-    hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ))
-  -- Along the line, the cylinder agrees on `[0, 1]` with a constant map.
+  -- Along the line `r ↦ (r, 0, θ)`, whose derivative sends `1` to `(1, 0, 0)`, the cylinder
+  -- agrees on `[0, 1]` with a constant map.
   have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
-    (uniqueDiffOn_Icc zero_lt_one s hs)).mfderiv_eq_of_eqOn
-    (f := hD.transportedCylinder e Δ c ∘ fun r : ℝ ↦ (r, (0 : ℝ), θ))
-    (g := fun _ ↦ e.toOpenPartialHomeomorph.symm (x, c θ)) hs
-    (hC.comp s hι.mdifferentiableAt) mdifferentiableAt_const
-    fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ
-  rw [(hC.hasMFDerivAt.comp s hι).mfderiv, mfderiv_const] at h
-  -- The value of `(mfderiv C p).comp inl` at `1` is that of `mfderiv C p` at `(1, 0, 0)`.
-  exact DFunLike.congr_fun h 1
+    (uniqueDiffOn_Icc zero_lt_one s hs)).mfderiv_apply_eq_of_eqOn_comp hs hC
+    (hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ)))
+    (mdifferentiableAt_const (c := e.toOpenPartialHomeomorph.symm (x, c θ)))
+    (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ) 1
+  rw [mfderiv_const] at h
+  -- `inl 1` is `(1, 0, 0)` and `0 1` is `0` only up to the tangent spaces, which are the model
+  -- spaces by definition, so `rw` cannot reach them and `exact` compares them.
+  exact h
 
 omit [IsManifold IF ∞ F] in
 /-- **The transported cylinder is smooth.** Let `D` be a smooth Ehresmann connection on a proper
@@ -798,19 +795,15 @@ theorem mfderiv_transportedCylinder_one_apply (hf : ContMDiff IM IB ∞ proj)
   have hesd : MDifferentiableAt (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s) :=
     (he_symm.contMDiffAt (e.open_target.mem_nhds (e.mem_target.2 hx))).mdifferentiableAt
       (by simp)
-  have h₁ := (hCd.hasMFDerivAt.comp (s : ℝ) hι).mfderiv
   have h₂ := (hesd.hasMFDerivAt.comp (s : ℝ)
     ((hasMFDerivAt_const x (s : ℝ)).prodMk hg.hasMFDerivAt)).mfderiv
-  -- Both maps are differentiable at `s` and agree on `[0, 1]`.
+  -- Along the line, the cylinder agrees on `[0, 1]` with `r ↦ e⁻¹ (x, g r)`.
   have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
-    (uniqueDiffOn_Icc zero_lt_one s s.property)).mfderiv_eq_of_eqOn
-    (f := C ∘ fun r : ℝ ↦ (r, (1 : ℝ), θ))
-    (g := e.toOpenPartialHomeomorph.symm ∘ fun r ↦ (x, g r)) s.property
-    (hCd.comp (s : ℝ) hι.mdifferentiableAt)
+    (uniqueDiffOn_Icc zero_lt_one s s.property)).mfderiv_apply_eq_of_eqOn_comp s.property hCd hι
     (hesd.comp (s : ℝ) (mdifferentiableAt_const.prodMk hg))
-    fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩]
-  rw [h₁, h₂] at h
-  refine (DFunLike.congr_fun h 1).trans ?_
+    (fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩]) 1
+  rw [h₂] at h
+  refine h.trans ?_
   rw [hX, ← hgΦ]
   -- The tangent space of `B × F` at `(x, g s)` is `EB × EF` only by definition, so the composite
   -- and the pair are evaluated through `exact`, up to that unfolding.
