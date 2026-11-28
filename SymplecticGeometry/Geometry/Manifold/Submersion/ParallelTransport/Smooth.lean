@@ -62,8 +62,8 @@ above with the open set `U` as the manifold of parameters, and read the map on `
 (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`). Transport from `s` to `t`
 along `u ↦ Γ (a, u)` is transport from `0` to `1` along `u ↦ Γ (a, s + (t - s) * u)`
 (`TauCeti.IsEhresmannConnection.parallelTransport_comp`), a family of curves with parameters
-`(a, t)`, so for a `C^(n+1)` family transport is also `C^n` in the final time `t`
-(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`).
+`(a, t)`, so for a family that is `C^(n+1)` on `U ×ˢ univ` transport is also `C^n` in the final
+time `t` (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`).
 
 For trivializations `e e' : Bundle.Trivialization Z f` with fibre `Z`, transport is read in the
 model fibre as `TauCeti.IsEhresmannConnection.parallelTransportIn`: a point `v` goes to the
@@ -97,9 +97,9 @@ the transport in the family and `e'`.
   parameters and the points of `P`.
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`: for a family that is
   `C^(n+1)` on an open set of parameters, transport is `C^n` in the parameter and the point.
-* `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`: for a `C^(n+1)`
-  family of curves, transport up to a varying final time is `C^n` in the parameter, that time and
-  the point.
+* `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`: for a family of
+  curves that is `C^(n+1)` on an open set of parameters, transport up to a varying final time is
+  `C^n` in the parameter, that time and the point.
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportIn_param`: for a family of curves,
   transport read in two trivializations is `C^n` in the parameter and the point of `Z`.
 * `TauCeti.IsEhresmannConnection.parallelTransportInDiffeomorph`: transport read in two
@@ -431,26 +431,28 @@ theorem contMDiffOn_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff I J (
 include hD in
 /-- **Parallel transport is smooth in a family of curves and in its final time.** Let `D` be a
 `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional
-boundaryless Hausdorff manifolds, `N` a manifold of the same kind, and `Γ : N × ℝ → B` a
-`C^(n+1)` family of curves. The map `((a, t), x) ↦` transport of `x` along `u ↦ Γ (a, u)` from
-`s` to `t` is `C^n` on the set of points with `f x = Γ (a, s)`. -/
+boundaryless Hausdorff manifolds, `U` an open set of a manifold `N` of the same kind, and
+`Γ : N × ℝ → B` a family of curves that is `C^(n+1)` on `U ×ˢ univ`. The map `((a, t), x) ↦`
+transport of `x` along `u ↦ Γ (a, u)` from `s` to `t` is `C^n` on the set of points with `a ∈ U`
+and `f x = Γ (a, s)`. -/
 theorem contMDiffOn_parallelTransport_param_endTime (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
-    (hfp : IsProperMap f) {Γ : N × ℝ → B} (hΓ : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ)
-    (s : ℝ) :
+    (hfp : IsProperMap f) {U : Set N} (hU : IsOpen U) {Γ : N × ℝ → B}
+    (hΓ : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ (U ×ˢ univ)) (s : ℝ) :
     ContMDiffOn ((IN.prod 𝓘(ℝ, ℝ)).prod I) I n
       (fun p : (N × ℝ) × P ↦ hD.parallelTransport (fun u ↦ Γ (p.1.1, u)) s p.1.2 p.2)
-      {p | f p.2 = Γ (p.1.1, s)} := by
+      {p | p.1.1 ∈ U ∧ f p.2 = Γ (p.1.1, s)} := by
   -- Transport from `s` to `t` along `Γ (a, ·)` is transport from `0` to `1` along
   -- `u ↦ Γ (a, s + (t - s) * u)`, a family of curves with parameters `(a, t)`.
   have hφ : ContMDiff ((IN.prod 𝓘(ℝ, ℝ)).prod 𝓘(ℝ, ℝ)) 𝓘(ℝ, ℝ) (n + 1)
       fun q : (N × ℝ) × ℝ ↦ s + (q.1.2 - s) * q.2 :=
     contMDiff_const.add ((contMDiff_fst.snd.sub contMDiff_const).smul contMDiff_snd)
-  have hT := hD.contMDiffOn_parallelTransport_param hn hf hfp isOpen_univ
-    (hΓ.comp (contMDiff_fst.fst.prodMk hφ)).contMDiffOn 0 1
-  refine (hT.mono fun p hp ↦ ⟨mem_univ _, by simpa using hp⟩).congr fun p _ ↦ ?_
+  have hT := hD.contMDiffOn_parallelTransport_param hn hf hfp (hU.prod isOpen_univ)
+    (hΓ.comp (contMDiff_fst.fst.prodMk hφ).contMDiffOn fun q hq ↦ ⟨hq.1.1, mem_univ _⟩) 0 1
+  refine (hT.mono ?_).congr fun p hp ↦ ?_
+  · exact fun p hp ↦ ⟨⟨hp.1, mem_univ _⟩, by simpa using hp.2⟩
   have h := hD.parallelTransport_comp hn hf hfp (γ := fun u ↦ Γ (p.1.1, u))
-    (hΓ.comp (contMDiff_const.prodMk contMDiff_id)) (φ := fun u ↦ s + (p.1.2 - s) * u)
-    (by fun_prop) 0 1
+    (hΓ.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ ⟨hp.1, mem_univ _⟩)
+    (φ := fun u ↦ s + (p.1.2 - s) * u) (by fun_prop) 0 1
   simp only [mul_zero, add_zero, mul_one, add_sub_cancel] at h
   exact (congrFun h p.2).symm
 
