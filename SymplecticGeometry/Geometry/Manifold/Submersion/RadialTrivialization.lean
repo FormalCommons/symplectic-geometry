@@ -322,12 +322,11 @@ over `b₀`. -/
 private theorem apply_parallelTransport_one_zero (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
     (hfp : IsProperMap f) (hΓ : ContMDiffOn (J.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ (U ×ˢ univ))
     (hΓ₀ : ∀ b ∈ U, Γ (b, 0) = b₀) (hΓ₁ : ∀ b ∈ U, Γ (b, 1) = b) {x : P} (hx : f x ∈ U) :
-    f (hD.parallelTransport (fun u ↦ Γ (f x, u)) 1 0 x) = b₀ := by
-  have h := hD.parallelTransport_mem_preimage hn hf hfp
+    f (hD.parallelTransport (fun u ↦ Γ (f x, u)) 1 0 x) = b₀ :=
+  (hD.apply_parallelTransport hn hf hfp
     (γ := fun u ↦ Γ (f x, u))
     (hΓ.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ ⟨hx, mem_univ _⟩)
-    (hΓ₁ _ hx).symm 0
-  rwa [hΓ₀ _ hx] at h
+    (hΓ₁ _ hx).symm 0).trans (hΓ₀ _ hx)
 
 include hD in
 /-- Transport along `u ↦ Γ (b, u)` from `0` to `1` takes a point `v` of the fibre over `b₀` into
@@ -335,12 +334,11 @@ the fibre over `b ∈ U`. -/
 private theorem apply_parallelTransport_zero_one (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
     (hfp : IsProperMap f) (hΓ : ContMDiffOn (J.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ (U ×ˢ univ))
     (hΓ₀ : ∀ b ∈ U, Γ (b, 0) = b₀) (hΓ₁ : ∀ b ∈ U, Γ (b, 1) = b) {b : B} (hb : b ∈ U) {v : P}
-    (hv : f v = b₀) : f (hD.parallelTransport (fun u ↦ Γ (b, u)) 0 1 v) = b := by
-  have h := hD.parallelTransport_mem_preimage hn hf hfp
+    (hv : f v = b₀) : f (hD.parallelTransport (fun u ↦ Γ (b, u)) 0 1 v) = b :=
+  (hD.apply_parallelTransport hn hf hfp
     (γ := fun u ↦ Γ (b, u))
     (hΓ.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ ⟨hb, mem_univ _⟩)
-    (hv.trans (hΓ₀ _ hb).symm) 1
-  rwa [hΓ₁ _ hb] at h
+    (hv.trans (hΓ₀ _ hb).symm) 1).trans (hΓ₁ _ hb)
 
 variable [Nonempty (MapFiber f b₀)]
 

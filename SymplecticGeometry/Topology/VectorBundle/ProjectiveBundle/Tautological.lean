@@ -61,6 +61,8 @@ fibre `ι → 𝕜` rather than `𝕜`.
 * `Projectivization.Tautological 𝕜 V`: the tautological line over `ℙ 𝕜 V`, with its trivializations
   `Projectivization.tautologicalTrivialization` and its `FiberBundle` and `VectorBundle`
   instances.
+* `Projectivization.toTautological`: the isomorphism `z ↦ z • v` from `𝕜` onto the fibre over a
+  line spanned by a nonzero vector `v`.
 * `Projectivization.tautologicalCore 𝕜 V`: the tautological line as a finite-rank core of rank
   one, through `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq`.
 * `Projectivization.tautologicalComplZeroHomeomorph`: the complement of the zero section is
@@ -138,6 +140,25 @@ def tautologicalToProd (v : TotalSpace 𝕜 (Tautological 𝕜 V)) : ℙ 𝕜 V 
 @[simp]
 theorem tautologicalToProd_apply (v : TotalSpace 𝕜 (Tautological 𝕜 V)) :
     tautologicalToProd 𝕜 V v = (v.proj, (v.snd : V)) :=
+  (rfl)
+
+variable {𝕜 V} in
+/-- For a nonzero vector `v` spanning the line `ℓ`, the linear isomorphism `z ↦ z • v` from `𝕜`
+onto the fibre of the tautological line over `ℓ`. -/
+def toTautological {ℓ : ℙ 𝕜 V} {v : V} (hv : v ≠ 0) (h : ℓ.submodule = 𝕜 ∙ v) :
+    𝕜 ≃ₗ[𝕜] Tautological 𝕜 V ℓ :=
+  LinearEquiv.toSpanNonzeroSingleton 𝕜 V v hv ≪≫ₗ LinearEquiv.ofEq _ _ h.symm
+
+variable {𝕜 V} in
+theorem toTautological_def {ℓ : ℙ 𝕜 V} {v : V} (hv : v ≠ 0) (h : ℓ.submodule = 𝕜 ∙ v) :
+    toTautological hv h =
+      LinearEquiv.toSpanNonzeroSingleton 𝕜 V v hv ≪≫ₗ LinearEquiv.ofEq _ _ h.symm :=
+  (rfl)
+
+variable {𝕜 V} in
+@[simp]
+theorem coe_toTautological_apply {ℓ : ℙ 𝕜 V} {v : V} (hv : v ≠ 0) (h : ℓ.submodule = 𝕜 ∙ v)
+    (z : 𝕜) : (toTautological hv h z : V) = z • v :=
   (rfl)
 
 variable [TopologicalSpace V]
