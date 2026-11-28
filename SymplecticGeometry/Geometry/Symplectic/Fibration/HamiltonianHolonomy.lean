@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Holonomy
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Curvature
 public import SymplecticGeometry.Geometry.Manifold.ChartDisc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Analysis.Calculus.Deriv.Prod
@@ -80,7 +79,9 @@ curvature of [McDuffSalamon2017] is its negative.
 * `TauCeti.IsEhresmannConnection.curvatureTensor_mfderiv_chartDisc`: on the derivatives of the
   small disc `SymplecticGeometry.chartDisc` through a point of a chart, the curvature tensor is
   `2π r² φ(s) φ'(s) (1 - cos (2πt))` times its value on the images of the two vectors spanning
-  the disc, by bilinearity and antisymmetry (`LinearMap.IsAlt.apply_add_smul_add_smul`).
+  the disc, as for any alternating bilinear map
+  (`LinearMap.IsAlt.apply_mfderiv_chartDisc_fst_snd`, from Tau Ceti's
+  `LinearMap.IsAlt.apply_smul_add_smul`).
 
 ## References
 
@@ -437,21 +438,8 @@ theorem curvatureTensor_mfderiv_chartDisc (hn : 1 ≤ n) {x : P} (hf : ContMDiff
         hD.curvatureTensor hn hf
           (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ r (s, t)) w₁)
           (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ r (s, t))
-            w₂) := by
-  set L := mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ r (s, t))
-  -- The images under `L` of the derivatives of the disc in the chart, as combinations of
-  -- `L w₁` and `L w₂`.
-  have hL (α c d : ℝ) : L (α • (c • w₁ + d • w₂)) = (α * c) • L w₁ + (α * d) • L w₂ := by
-    have h := (L.map_smul α (c • w₁ + d • w₂)).trans (congrArg (α • ·)
-      ((L.map_add (c • w₁) (d • w₂)).trans (congrArg₂ (· + ·) (L.map_smul c w₁)
-        (L.map_smul d w₂))))
-    rwa [smul_add, smul_smul, smul_smul] at h
-  rw [mfderiv_chartDisc_apply_fst hz, mfderiv_chartDisc_apply_snd hz, hL, hL]
-  refine (LinearMap.IsAlt.apply_add_smul_add_smul (hD.curvatureTensor_isAlt hn hf) _ _ _ _ _
-    _).trans ?_
-  congr 1
-  linear_combination (2 * π * r ^ 2 * (sin (π * s / 2) * (π / 2 * cos (π * s / 2)))) *
-    sin_sq_add_cos_sq (2 * π * t)
+            w₂) :=
+  (hD.curvatureTensor_isAlt hn hf).apply_mfderiv_chartDisc_fst_snd hz
 
 end ChartDisc
 

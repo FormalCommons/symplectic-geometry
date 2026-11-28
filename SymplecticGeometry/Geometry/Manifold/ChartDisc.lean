@@ -5,11 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.LinearAlgebra.SesquilinearForm.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.LinearAlgebra.BilinearForm.Basic
 
 /-!
 # Small discs through a point in a chart
@@ -28,12 +30,12 @@ manifold without boundary, for `|r|` small the map stays inside any given neighb
 inside the chart, and it is then a smooth disc of Tau Ceti (`TauCeti.IsSmoothDisc`) with centre
 `b` (`exists_pos_forall_isSmoothDisc_chartDisc`). Its derivatives in `s` and in `t` are the images,
 under the derivative of the inverse chart, of the derivatives of `chartDiscCoord`
-(`mfderiv_chartDisc_apply_fst`, `mfderiv_chartDisc_apply_snd`).
+(`mfderiv_chartDisc_apply_fst`, `mfderiv_chartDisc_apply_snd`). An alternating bilinear map on
+the tangent space takes on these two derivatives an explicit multiple of its value on the images
+of `w₁` and `w₂` (`LinearMap.IsAlt.apply_mfderiv_chartDisc_fst_snd`).
 
-These are the discs on which McDuff–Salamon [McDuffSalamon2017], Exercise 6.4.9 and
-Proposition 10.2.12 (see also [McDuffSalamon2019Errata]) and Guillemin–Lerman–Sternberg
-[GuilleminLermanSternberg1996], §1.4, read the curvature of a symplectic connection off the
-holonomy around small loops.
+The discs serve the converse direction of [McDuffSalamon2017], Exercise 6.4.9 (see
+[McDuffSalamon2019Errata]), which reads the curvature of a connection off its holonomy.
 
 ## Main definitions
 
@@ -47,6 +49,8 @@ holonomy around small loops.
   centre `b`.
 * `SymplecticGeometry.mfderiv_chartDisc_apply_fst` and
   `SymplecticGeometry.mfderiv_chartDisc_apply_snd`: the derivatives of the disc in `s` and in `t`.
+* `LinearMap.IsAlt.apply_mfderiv_chartDisc_fst_snd`: an alternating bilinear map on the two
+  derivatives of the disc.
 
 ## References
 
@@ -306,3 +310,43 @@ theorem mfderiv_chartDisc_apply_snd [I.Boundaryless] {s t : ℝ}
   rw [mfderiv_chartDisc_apply hz, fderiv_chartDiscCoord_apply_snd]
 
 end SymplecticGeometry
+
+namespace LinearMap.IsAlt
+
+open SymplecticGeometry
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [I.Boundaryless] {F : Type*} [AddCommGroup F] [Module ℝ F] {b : M} {w₁ w₂ : E} {r s t : ℝ}
+
+/-- **An alternating bilinear map on the derivatives of a small disc in a chart.** Let `Ω` be an
+alternating bilinear map on the tangent space at `D_r (s, t)`, for `D_r = chartDisc I b w₁ w₂ r`
+with `D_r (s, t)` read in the target of the chart at `b`. With `W₁` and `W₂` the images of `w₁`
+and `w₂` under the derivative of the inverse chart there,
+`Ω(∂ₛD_r, ∂ₜD_r) = 2π r² φ(s) φ'(s) (1 - cos (2πt)) • Ω(W₁, W₂)`, for the profile
+`φ s = sin (πs/2)`. -/
+theorem apply_mfderiv_chartDisc_fst_snd
+    {Ω : TangentSpace I (chartDisc I b w₁ w₂ r (s, t)) →ₗ[ℝ]
+      TangentSpace I (chartDisc I b w₁ w₂ r (s, t)) →ₗ[ℝ] F} (hΩ : Ω.IsAlt)
+    (hz : chartDiscCoord I b w₁ w₂ r (s, t) ∈ (extChartAt I b).target) :
+    Ω (mfderiv 𝓘(ℝ, ℝ × ℝ) I (chartDisc I b w₁ w₂ r) (s, t) (1, 0))
+        (mfderiv 𝓘(ℝ, ℝ × ℝ) I (chartDisc I b w₁ w₂ r) (s, t) (0, 1)) =
+      (2 * π * r ^ 2 * (sin (π * s / 2) * (π / 2 * cos (π * s / 2))) *
+          (1 - cos (2 * π * t))) •
+        Ω (mfderiv 𝓘(ℝ, E) I (extChartAt I b).symm (chartDiscCoord I b w₁ w₂ r (s, t)) w₁)
+          (mfderiv 𝓘(ℝ, E) I (extChartAt I b).symm (chartDiscCoord I b w₁ w₂ r (s, t)) w₂) := by
+  set L := mfderiv 𝓘(ℝ, E) I (extChartAt I b).symm (chartDiscCoord I b w₁ w₂ r (s, t))
+  -- The images under `L` of the derivatives of the disc in the chart, as combinations of
+  -- `L w₁` and `L w₂`.
+  have hL (α c d : ℝ) : L (α • (c • w₁ + d • w₂)) = (α * c) • L w₁ + (α * d) • L w₂ := by
+    have h := (L.map_smul α (c • w₁ + d • w₂)).trans (congrArg (α • ·)
+      ((L.map_add (c • w₁) (d • w₂)).trans (congrArg₂ (· + ·) (L.map_smul c w₁)
+        (L.map_smul d w₂))))
+    rwa [smul_add, smul_smul, smul_smul] at h
+  rw [mfderiv_chartDisc_apply_fst hz, mfderiv_chartDisc_apply_snd hz, hL, hL]
+  refine (hΩ.apply_smul_add_smul _ _ _ _ _ _).trans ?_
+  congr 1
+  linear_combination (2 * π * r ^ 2 * (sin (π * s / 2) * (π / 2 * cos (π * s / 2)))) *
+    sin_sq_add_cos_sq (2 * π * t)
+
+end LinearMap.IsAlt
