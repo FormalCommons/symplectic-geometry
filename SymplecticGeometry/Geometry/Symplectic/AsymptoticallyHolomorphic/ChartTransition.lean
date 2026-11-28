@@ -292,7 +292,7 @@ centred at `x`. -/
 theorem contDiffOn_associatedBilinFormInChart [I.Boundaryless] (k : ℕ) (x : M) :
     ContDiffOn ℝ ∞ (D.associatedBilinFormInChart k x) (D.chart k x).target :=
   (ContinuousLinearMap.contDiff _).comp_contDiffOn
-    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn (D.chart k x).symm.contMDiffOn)
+    (J.contDiffOn_chartPushforward_toOpenPartialHomeomorph (D.chart k x))
 
 /-- On a boundaryless manifold, the field of forms `g_{k,x}` is smooth at each point of the target
 of the chart centred at `x`. -/
@@ -360,9 +360,7 @@ theorem norm_iteratedFDeriv_comp_chartPushforward_le [I.Boundaryless] {F : Type*
     ‖iteratedFDeriv ℝ r (L ∘ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w‖ ≤
       D.bound r * (√k)⁻¹ := by
   have hJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w :=
-    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
+    J.contDiffAt_chartPushforward (D.chart k x) (D.ball_subset_target hk x hw)
   calc _ ≤ 1 * ‖iteratedFDeriv ℝ r (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w‖ :=
         L.norm_iteratedFDeriv_comp_left_le_of_forall_norm_le zero_le_one
           (fun A ↦ (hL A).trans_eq (one_mul _).symm) hJ (by exact_mod_cast le_top)
@@ -383,9 +381,7 @@ theorem exists_jetNormAt_chartPushforward_sub_le [I.Boundaryless] (r : ℕ) :
   set S : ℝ := ∑ j ∈ Finset.range r, |D.bound (j + 1)|
   refine ⟨|D.bound 1| + r * S, fun {k} hk x z hz ↦ ?_⟩
   have hJJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
-    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hz))
+    J.contDiffAt_chartPushforward (D.chart k x) (D.ball_subset_target hk x hz)
   have hS : ∀ j < r, ‖iteratedFDeriv ℝ (j + 1) (fun w ↦
       J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w -
         LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z‖ ≤

@@ -27,7 +27,7 @@ directions of the projection `G × (A × V) → G ×_K (A × V)` (Tau Ceti's
 second, and then descends the form.
 
 By `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`, the vertical vectors at
-`(g, p)` are `(-d(L_g) ξ', X)`, where `ξ` is in the Lie algebra of `K`, `ξ' ∈ 𝔥` is its image in
+`(g, p)` are `((-ξ')^L(g), X)`, where `ξ` is in the Lie algebra of `K`, `ξ' ∈ 𝔥` is its image in
 `𝔤`, and `X = (a, ρ ξ' v)` is the fundamental vector field of `ξ` at `p = (η, v)`. Such a
 vector lies in the kernel of the form by Tau Ceti's
 `TauCeti.CotangentBundle.eval₂_inducedForm_eq_zero`, applied with `-ξ'`, whose two conditions on
@@ -150,7 +150,7 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
   refine LinearMap.ext fun w ↦ ?_
   rw [SmoothForm.bilinFormAt_apply, LinearMap.zero_apply]
   -- `ξ'` is the image of `ξ` in `𝔤`, which lies in `𝔥`; `X = (a, b)` is the infinitesimal action of
-  -- `ξ` at `(η, v)`, with `b = ρ ξ' v`. The vector `u` is `(-ξ'^L(g), X)`.
+  -- `ξ` at `(η, v)`, with `b = ρ ξ' v`. The vector `u` is `((-ξ')^L(g), X)`.
   set ξ' := K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ
   have hξ' : ξ' ∈ D.𝔥 := D.groupLieAlgebraMap_subtype_mem_𝔥 ξ
   set X : A × V := fundamentalVectorField 𝓘(ℝ, A × V) ξ (η, v) with hX
@@ -183,11 +183,7 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
     (D.ι𝔥_apply_coe _ ⟨ξ', hξ'⟩).trans (SymplecticForm.linearMomentMapCompPolar_apply _ _ _ _ _)
   rw [form_def, localModelForm_def]
   refine eval₂_inducedForm_eq_zero hf (ξ := -ξ') ?_ (fun ζ ↦ ?_) (fun w ↦ ?_) w
-  · have h : mulInvariantVectorField (-ξ') g = -mulInvariantVectorField ξ' g := by
-      have h := mulInvariantVectorField_smul (I := I) (G := G) (-1 : ℝ) ξ'
-      rw [neg_one_smul, neg_one_smul] at h
-      rw [h, Pi.neg_apply]
-    rw [hξ, h]
+  · rw [hξ]
   · rw [hξ]
     dsimp only
     refine (hd ζ X).trans ((h₁ ζ).trans ?_)

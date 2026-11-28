@@ -68,8 +68,8 @@ proof of `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear` is that
 the sections of that proof composed with `b`. The proof of
 `SymplecticGeometry.contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const` is that
 of Tau Ceti's `TauCeti.contMDiff_hom_bundle_of_inCoordinates_eq_const`
-(`TauCeti/Geometry/Manifold/VectorBundle/Hom.lean`), with the bundle of continuous linear maps
-replaced by that of continuous alternating maps.
+(`TauCeti/Geometry/Manifold/VectorBundle/Hom/Basic.lean`), with the bundle of continuous linear
+maps replaced by that of continuous alternating maps.
 -/
 
 public section

@@ -231,7 +231,7 @@ theorem omegaLimit_globalFlow_subset_union_unstableSet {X : (x : M) → TangentS
   -- The backward orbit of `y` under `Ψ` lies in `S`, and clusters only at critical points
   -- of level `v`, so it converges to one of them.
   have hu : ContinuousOn (fun t ↦ Ψ (-t) y) (Ici 0) :=
-    (Ψ.continuous continuous_neg continuous_const).continuousOn
+    ((Ψ.continuous_eval_const y).comp continuous_neg).continuousOn
   have huS : MapsTo (fun t ↦ Ψ (-t) y) (Ici 0) S := fun t (ht : 0 ≤ t) ↦ by
     simpa only [heq (-t) (neg_nonpos.2 ht)] using horb (-t)
   have hsub : {z | MapClusterPt z atTop fun t ↦ Ψ (-t) y} ⊆ criticalPoints I g ∩ g ⁻¹' {v} := by

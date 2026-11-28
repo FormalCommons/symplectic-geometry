@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Matrix.ContinuousBilinearForm
 public import TauCeti.Analysis.Matrix.HermitianSignature.Matrix
 public import TauCeti.LinearAlgebra.QuadraticForm.Isometry
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
+import TauCeti.Analysis.Matrix.HermitianSignature.Crossing
 import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
 import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 import SymplecticGeometry.Analysis.Matrix.EuclideanLin
@@ -506,41 +507,20 @@ theorem eventually_not_crossing_of_regular (γ : I → ℒ ι) (V : ℒ ι)
     (hd : HasDerivWithinAt Z Z' (Icc 0 1) t₀)
     (hreg : (lagrangianCrossingForm (Z t₀) Z' V).Nondegenerate) :
     ∀ᶠ t in 𝓝[≠] t₀, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
-  -- Extend `γ` to `ℝ`; near `t₀` on a side where `[0, 1]` reaches, the frame `Z` fits the
-  -- extension and its derivative within `[0, 1]` is a one-sided one.
-  have hZΛ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) :
-      ∀ᶠ r in 𝓝[s] (t₀ : ℝ),
-        LinearMap.range (toEuclideanLin (Z r)) = IccExtend (zero_le_one' ℝ) γ r := by
-    filter_upwards [hs] with r hr
-    rw [show r = ((⟨r, hr⟩ : I) : ℝ) from rfl, hZ, IccExtend_val]
-  have hdΛ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) : HasDerivWithinAt Z Z' s t₀ :=
-    hasDerivWithinAt_matrix.2 fun i j ↦ (hd.matrix_elem i j).mono_of_mem_nhdsWithin hs
-  have hR : ∀ᶠ r in 𝓝[≠] (t₀ : ℝ), r ∈ Icc (0 : ℝ) 1 →
-      ((IccExtend (zero_le_one' ℝ) γ r : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
-    rw [← nhdsLT_sup_nhdsGT, eventually_sup]
-    constructor
-    · -- Left of `t₀`: empty in `[0, 1]` if `t₀ = 0`.
-      rcases t₀.property.1.eq_or_lt with h | h
-      · filter_upwards [self_mem_nhdsWithin] with r hr hrI
-        exact (by linarith [hrI.1, mem_Iio.1 hr] : False).elim
-      have hI : Icc (0 : ℝ) 1 ∈ 𝓝[≤] (t₀ : ℝ) :=
-        mem_of_superset (Icc_mem_nhdsLE h) (Icc_subset_Icc_right t₀.property.2)
-      exact (eventually_nhdsLT_not_crossing_of_regular V (hZΛ hI) (hdΛ hI) hreg).mono
-        fun _ hr _ ↦ hr
-    · -- Right of `t₀`: empty in `[0, 1]` if `t₀ = 1`.
-      rcases t₀.property.2.eq_or_lt with h | h
-      · filter_upwards [self_mem_nhdsWithin] with r hr hrI
-        exact (by linarith [hrI.2, mem_Ioi.1 hr] : False).elim
-      have hI : Icc (0 : ℝ) 1 ∈ 𝓝[≥] (t₀ : ℝ) :=
-        mem_of_superset (Icc_mem_nhdsGE h) (Icc_subset_Icc_left t₀.property.1)
-      exact (eventually_nhdsGT_not_crossing_of_regular V (hZΛ hI) (hdΛ hI) hreg).mono
-        fun _ hr _ ↦ hr
-  -- Transfer from `ℝ` to `I`.
-  have htend : Tendsto (fun t : I ↦ (t : ℝ)) (𝓝[≠] t₀) (𝓝[≠] (t₀ : ℝ)) :=
-    continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun _ ht h ↦ ht (Subtype.ext h)
+  obtain ⟨W, hVW, hreg'⟩ := exists_projForm_crossingForm_nondegenerate V (hZ t₀) hreg
+  have hR :=
+    ContinuousLinearMap.eventually_nhdsWithin_Icc_diff_nondegenerate_of_crossingForm_nondegenerate
+      t₀.property (fun r hr ↦ isSymm_projForm V.isLagrangian.isIsotropic W.isLagrangian.isIsotropic
+        hVW ((hZ ⟨r, hr⟩) ▸ (γ ⟨r, hr⟩).isLagrangian.isIsotropic))
+      (hasDerivWithinAt_toContinuousLinearMap₂' fun i j ↦
+        (hasDerivWithinAt_projForm _ hd).matrix_elem i j) hreg'
+  -- Transfer from `[0, 1] ⊆ ℝ` to `I`.
+  have htend : Tendsto (fun t : I ↦ (t : ℝ)) (𝓝[≠] t₀) (𝓝[Icc 0 1 \ {(t₀ : ℝ)}] (t₀ : ℝ)) :=
+    continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun t ht ↦
+      ⟨t.property, fun h ↦ ht (Subtype.ext h)⟩
   filter_upwards [htend.eventually hR] with t ht
-  rw [← IccExtend_val zero_le_one γ t]
-  exact ht t.property
+  rw [← hZ t]
+  exact inf_eq_bot_of_nondegenerate hVW ((hZ t).symm ▸ (γ t).isLagrangian.isIsotropic) ht
 
 end LagrangianGrassmannian
 

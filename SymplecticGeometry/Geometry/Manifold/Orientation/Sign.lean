@@ -85,17 +85,9 @@ theorem _root_.Filter.EventuallyEq.orientationSign_eq {o : Manifold.Orientation 
     ⟨fun hf ↦ hf.congr_of_eventuallyEq h, fun hg ↦ hg.congr_of_eventuallyEq h.symm⟩
   have hr : IsOrientationReversingAt o o' f x ↔ IsOrientationReversingAt o o' g x :=
     ⟨fun hf ↦ hf.congr_of_eventuallyEq h, fun hg ↦ hg.congr_of_eventuallyEq h.symm⟩
-  have hf := abs_le.1 (abs_orientationSign_le_one (o := o) (o' := o') (f := f) (x := x))
-  have hg := abs_le.1 (abs_orientationSign_le_one (o := o) (o' := o') (f := g) (x := x))
-  rw [← orientationSign_eq_one_iff, ← orientationSign_eq_one_iff] at hp
-  rw [← orientationSign_eq_neg_one_iff, ← orientationSign_eq_neg_one_iff] at hr
-  obtain hv | hv | hv : orientationSign o o' f x = -1 ∨ orientationSign o o' f x = 0 ∨
-      orientationSign o o' f x = 1 := by omega
-  · rw [hv, hr.1 hv]
-  · have h₁ : orientationSign o o' g x ≠ 1 := fun h' ↦ by rw [hp.2 h'] at hv; omega
-    have h₂ : orientationSign o o' g x ≠ -1 := fun h' ↦ by rw [hr.2 h'] at hv; omega
-    omega
-  · rw [hv, hp.1 hv]
+  classical
+  rw [orientationSign_def, orientationSign_def]
+  exact if_congr hp rfl (if_congr hr rfl rfl)
 
 namespace Manifold.Orientation
 

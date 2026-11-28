@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Slice
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.RealThomClass
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Multiple
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Slice
 
 /-!
 # The real relative dual class of a submanifold
@@ -31,6 +31,20 @@ As the real canonical Thom class is the real image of the integral one, the real
 class is the real image of `relDualClass f hn hdim hf o hr`, and its image in `Hʳ(X; ℝ)` is the
 real image of `dualClass f hn hdim hf o hr`.
 
+The normal slices of the real relative dual class are the real images of the model generators.
+For a normalized tube `Φ`, a point `x : Z` and a linear isomorphism `m : Q ≃ ν_x` carrying an
+orientation `ν` of `Q` to `o x`, the class pulled back along `m` and the normal slice of `Φ` at
+`x` is the real image of `ν.modelThomGenerator hQ`
+(`TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_realRelDualClass`). This is the real
+image of the integral statement `singularCohomologyMap_normalSlice_relDualClass` of
+`DualClass/Slice.lean`, since the real relative dual class is the real image of the integral one
+and the real image commutes with maps of pairs. In rank two, with `Q = ℝ²` oriented by its
+standard basis, the generator pairs to `-1` with the class of a smooth `2`-simplex of `ℝ²` that
+is positively oriented around `0`
+(`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`), and the real image
+pairs as its cast. So the slice of the real relative dual class pairs with such a simplex to `-1`
+(`TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`).
+
 When `Z` is connected, the real canonical Thom class is a Thom class with coefficients `ℝ`
 (`TauCeti.VectorBundleOrientation.isThomClass_realCanonicalThomClass`). So, by
 `TauCeti.SmoothEmbedding.exists_eq_smul_relDualClassOf` (`DualClass/Multiple.lean`), every class
@@ -50,6 +64,12 @@ of the real image of the dual class.
   dual class is the real image of the relative dual class.
 * `TauCeti.SmoothEmbedding.singularCohomologyπ_realRelDualClass`: its image in `Hʳ(X; ℝ)` is the
   real image of the dual class.
+* `TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_realRelDualClass`: read through a
+  linear isomorphism `Q ≃ ν_x` that preserves orientation, the normal slice at `x` of the real
+  relative dual class is the real image of the model generator of `Q`.
+* `TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`: in rank
+  two, read on `(ℝ², ℝ² ∖ {0})`, it pairs to `-1` with a positively oriented smooth `2`-simplex
+  around `0`.
 * `TauCeti.SmoothEmbedding.exists_eq_smul_realRelDualClass`: for connected `Z`, every class of
   `Hʳ(X, X ∖ f(Z); ℝ)` is a real multiple of the real relative dual class.
 * `exists_eq_smul_singularCohomologyRealImageAddMonoidHom_dualClass_of_restrict_compl`, in the
@@ -61,11 +81,13 @@ of the real image of the dual class.
 * [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §6.
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
   Princeton (1974), §10 (the Thom isomorphism with coefficients in a field).
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3 (local
+  orientations and the class of a simplex in local homology).
 -/
 
 public section
 
-open Bundle CategoryTheory Module Set
+open Bundle CategoryTheory Module Set Topology
 open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothEmbedding
@@ -181,6 +203,83 @@ theorem realRelDualClass_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
   let := f.normalSpaceVectorBundle hn hdim
   rw [realRelDualClass_def, realRelDualClass_def, o.realCanonicalThomClass_neg,
     relDualClassOf_neg]
+
+/-- **The normal slices of the real relative dual class.** Let `Φ` be a normalized tube of `f`,
+`x : Z`, and `m : Q ≃ ν_x` a linear isomorphism from a real normed space `Q` of dimension `r`
+that carries an orientation `ν` of `Q` to the normal orientation `o x`. The pull-back of
+`realRelDualClass f hn hdim hf o hr` along `m` followed by the normal slice of `Φ` at `x` is
+the real image of the generator `ν.modelThomGenerator hQ` of `Hʳ(Q, Q ∖ {0}; ℤ)` selected by
+`ν`. -/
+theorem singularCohomologyMap_normalSlice_realRelDualClass (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (hf : IsClosed (range f))
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+    (hr : finrank ℝ P = r) {W : TopologicalSpace.Opens X}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (x : Z) {Q : Type} [NormedAddCommGroup Q]
+    [NormedSpace ℝ Q] [FiniteDimensional ℝ Q] (ν : Orientation ℝ Q (Fin r))
+    (hQ : finrank ℝ Q = r) (m : Q ≃L[ℝ] f.isImmersion.NormalSpace x hn)
+    (hm : ν.map (Fin r) m.toLinearEquiv = o x) :
+    TopPair.singularCohomologyMap (m.complZeroPairIso.hom ≫
+        f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) r (f.realRelDualClass hn hdim hf o hr) =
+      ((TopPair.ofSubset (X := TopCat.of Q) ({0}ᶜ : Set Q)).singularCohomologyRealImage r
+        (ν.modelThomGenerator hQ) : (TopPair.ofSubset (X := TopCat.of Q) ({0}ᶜ : Set Q)
+          ).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) r) := by
+  rw [realRelDualClass_eq_singularCohomologyRealImage,
+    ← TopPair.singularCohomologyRealImage_naturality_apply,
+    singularCohomologyMap_normalSlice_relDualClass f hn hdim hf o hr hΦ x ν hQ m hm]
+
+/-- **The value of the real dual class of a codimension-two submanifold on a normal disc.** Let
+the normal bundle have rank two, `Φ` be a normalized tube of `f`, `x : Z`, and
+`m : ℝ² ≃ ν_x` a linear isomorphism carrying the standard orientation of `ℝ²` to `o x`. Pull
+`realRelDualClass f hn hdim hf o hr` back to `(ℝ², ℝ² ∖ {0})` along `m` followed by the normal
+slice of `Φ` at `x`. Let `σ` be a smooth `2`-simplex of `ℝ²`, the restriction to `Δ²` of a map
+`g` that is an open embedding preserving the standard orientation on an open neighbourhood `U` of
+`Δ²`, with `0 ∈ g (interior Δ²)`. Then the pulled-back class, read through integral chains, pairs
+with the class of `σ` in `H₂(ℝ², ℝ² ∖ {0}; ℤ)` to `-1`.
+
+The sign is that of `TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`. -/
+theorem singularKronecker_normalSlice_realRelDualClass_relClass
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin 2))
+    (hr : finrank ℝ P = 2) {W : TopologicalSpace.Opens X}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (x : Z)
+    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] f.isImmersion.NormalSpace x hn)
+    (hm : (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
+      o x)
+    (σ : SmoothSimplex 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) 2)
+    {U : TopologicalSpace.Opens (EuclideanSpace ℝ (Fin 2))} (hU : fullSimplex 2 ⊆ U)
+    {g : EuclideanSpace ℝ (Fin 2) → EuclideanSpace ℝ (Fin 2)}
+    (hgσ : ∀ y : fullSimplex 2, g y = σ.toContinuousMap y)
+    (hg : IsOpenEmbedding (g ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
+    (ho : ∀ y ∈ U, Manifold.Orientation.IsOrientationPreservingAt
+      (Manifold.Orientation.euclideanSpace 2) (Manifold.Orientation.euclideanSpace 2) g y)
+    (h0 : 0 ∈ g '' interior (fullSimplex 2)) :
+    ((TopPair.ofSubset (X := TopCat.of (EuclideanSpace ℝ (Fin 2))) {0}ᶜ).singularKronecker ℤ 2
+        ((TopPair.ofSubset (X := TopCat.of (EuclideanSpace ℝ (Fin 2))) {0}ᶜ
+          ).singularCohomologyIntChainsIso ℝ 2 |>.hom
+          (TopPair.singularCohomologyMap (m.complZeroPairIso.hom ≫
+            f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) 2
+            (f.realRelDualClass hn hdim hf o hr)))).hom
+      ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).relClass
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (n := 1) σ.val
+        (SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl σ hU hgσ hg
+          (singleton_subset_iff.2 h0)) 1) = -1 := by
+  have hE : finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2 := finrank_euclideanSpace_fin
+  rw [singularCohomologyMap_normalSlice_realRelDualClass f hn hdim hf o hr hΦ x _ hE m hm,
+    TopPair.singularKronecker_singularCohomologyRealImage,
+    Orientation.modelThomGenerator_eq_localCohomologyClass, ModuleCat.hom_comp,
+    LinearMap.comp_apply,
+    SmoothSimplex.singularKronecker_localCohomologyClass_relClass σ hU hgσ hg ho h0, map_neg,
+    intToRealCoeff_apply, ULift.one_down, Int.cast_one]
 
 section Connected
 

@@ -130,7 +130,8 @@ does not apply to `D_J`, and the estimate is proved here.
   compact error term. There are `C` and a compact operator
   `K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every `w`. It
   follows from the a priori estimate and Rellich's theorem
-  `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`.
+  `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`, by Tau Ceti's
+  `ContinuousLinearMap.exists_compact_estimate_of_norm_le_mul_add_norm`.
 * `SymplecticGeometry.isClosed_range_twistOneDelBarSobolev` and
   `SymplecticGeometry.finiteDimensional_ker_twistOneDelBarSobolev`: for `J` tamed together with
   `i` by a two-form, `D_J` has closed range and finite-dimensional kernel at every order, by
@@ -770,14 +771,9 @@ theorem exists_compact_estimate_twistOneDelBarSobolev
     ∃ (C : ℝ) (K : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
         SobolevSection (twistCoreAtlas 1) volume 2 k),
       IsCompactOperator K ∧ ∀ w, ‖w‖ ≤ C * ‖twistOneDelBarSobolev J k w‖ + ‖K w‖ := by
-  have := (twistCoreAtlas 1).compactSpace
   obtain ⟨C, hC⟩ := exists_norm_le_twistOneDelBarSobolev J k hJ hi
-  refine ⟨max C 0, max C 0 • (twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k,
-    ?_, fun w ↦ ?_⟩
-  · rw [FunLike.coe_smul]
-    exact (SobolevSection.isCompactOperator_lowerOrderL _ _ _ k).smul _
-  rw [smul_apply, norm_smul, Real.norm_of_nonneg (le_max_right _ _), ← mul_add]
-  exact (hC w).trans (mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity))
+  exact ContinuousLinearMap.exists_compact_estimate_of_norm_le_mul_add_norm
+    (SobolevSection.isCompactOperator_lowerOrderL _ _ _ k) hC
 
 /-- **Closed range of `D_J`.** Let a two-form `σ` tame both `J` and the standard structure `i` of
 the sphere. For every order `k`, the range of `twistOneDelBarSobolev J k` is closed in the space

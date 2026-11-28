@@ -400,10 +400,10 @@ Decision 2's lemma turns into the Liouville integral.
   `WeightModel/NormalForm.lean` of *Equivariant normal forms* (#2261). The
   invariant primitives of `GroupAction/InvariantPrimitive.lean` are not
   needed.
-- From Tau Ceti: the declarations of *What there is*.
+- From Tau Ceti: the declarations of *What there is*, and
+  `DifferentiableOn.eqOn_of_frequently_ofReal_eq`.
 - From Mathlib: `DirectSum.GRing`, `DirectSum.GAlgebra`, `iteratedDeriv`,
   `integral_Ioi_of_hasDerivAt_of_tendsto`, `ProbabilityTheory.complexMGF`,
-  `AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq`,
   `QuadraticForm.sigNeg_of_equiv_weightedSumSquares`.
 
 ## Building issues

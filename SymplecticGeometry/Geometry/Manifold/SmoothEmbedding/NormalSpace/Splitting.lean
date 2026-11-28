@@ -14,6 +14,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 import SymplecticGeometry.Algebra.Exact.Basic
 import TauCeti.Topology.VectorBundle.Splitting
+import TauCeti.Topology.FiberBundle.Prod
 import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
@@ -142,15 +143,14 @@ theorem continuous_tangentNormalEquiv
         hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
         (f.tangentNormalEquiv hn r hr p.proj p.snd) := by
-  have hd := (FiberBundle.Prod.isInducing_diag E (TangentSpace I) P
-    (fun x ↦ f.isImmersion.NormalSpace x hn)).continuous
   -- The differential, as a map from the total space of `TM` to that of `f^* TN`.
   have hdf : Continuous fun p : TangentBundle I M ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
         (mfderiv I J f p.proj p.snd) :=
     Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj E (TangentSpace I),
       f.contMDiff.continuous_tangentMap (ENat.one_le_iff_ne_zero_withTop.mpr hn)⟩
-  have h := (hdf.comp (continuous_fst.comp hd)).add_totalSpace 𝕜 (hrc.comp (continuous_snd.comp hd))
+  have h := (hdf.comp FiberBundle.Prod.continuous_totalSpaceFst).add_totalSpace 𝕜
+    (hrc.comp FiberBundle.Prod.continuous_totalSpaceSnd)
   exact h.congr fun p ↦ (congrArg (TotalSpace.mk p.proj)
     (f.tangentNormalEquiv_apply hn r hr p.proj p.snd)).symm
 

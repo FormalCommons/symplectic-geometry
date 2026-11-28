@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Tactic.NoncommRing
-import TauCeti.Analysis.Calculus.FDeriv.Mul
+import TauCeti.Analysis.Normed.Algebra.CayleyChart
 
 /-!
 # The derivative of the inverse Cayley transform
@@ -18,10 +17,9 @@ differentiable at every `C` with `1 - C` invertible, with derivative
 `Ẋ ↦ 2 A (1 - C)⁻¹ Ẋ (1 - C)⁻¹`. With `A` a complex structure `J₀`, this map is the inverse
 Cayley transform at `J₀`, and this computes its differential.
 
-The proof follows Tau Ceti's `TauCeti.hasFDerivAt_cayleyParam`, which differentiates
-the other Cayley parametrization `η ↦ (1 + η)⁻¹ j (1 + η)` by the product rule and the derivative
-of the inverse. Here the derivative of `x ↦ (1 - x)⁻¹` comes from Tau Ceti's chain rule
-`HasFDerivAt.ringInverse`.
+The map is `x ↦ A * cayleyCoord 1 (-x)`, so the result follows by the chain rule from Tau Ceti's
+`TauCeti.hasFDerivAt_cayleyCoord_one`, the derivative of the Cayley coordinate at the base
+point `1`.
 
 ## Main results
 
@@ -48,22 +46,15 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {R : Type*} [NormedRing R
 theorem hasFDerivAt_mul_one_add_ringInverse (A : R) {C : R} (hC : IsUnit (1 - C)) :
     HasFDerivAt (fun x : R => A * (1 + x) * Ring.inverse (1 - x))
       ((2 : 𝕜) • mulLeftRight 𝕜 R (A * Ring.inverse (1 - C)) (Ring.inverse (1 - C))) C := by
-  obtain ⟨u, hu⟩ := hC
-  have hR : (1 - C) * Ring.inverse (1 - C) = 1 := by
-    rw [← hu, Ring.inverse_unit, Units.mul_inv]
-  have hinv : HasFDerivAt (fun x : R => Ring.inverse (1 - x)) _ C :=
-    ((hasFDerivAt_id (𝕜 := 𝕜) C).const_sub 1).ringInverse ⟨u, hu⟩
-  have hmul : HasFDerivAt (fun x : R => A * (1 + x))
-      ((ContinuousLinearMap.mul 𝕜 R A).comp (ContinuousLinearMap.id 𝕜 R)) C :=
-    (ContinuousLinearMap.mul 𝕜 R A).hasFDerivAt.comp C ((hasFDerivAt_id C).const_add 1)
-  refine (hmul.mul' hinv).congr_fderiv (ContinuousLinearMap.ext fun X => ?_)
-  have hX : X * Ring.inverse (1 - C) =
-      (1 - C) * Ring.inverse (1 - C) * X * Ring.inverse (1 - C) := by
-    rw [hR, one_mul]
-  simp only [add_apply, smul_apply, comp_apply, neg_apply, mulLeftRight_apply, id_apply, id_eq,
-    smul_eq_mul, op_smul_eq_mul, neg_mul, mul_neg, neg_neg, two_smul, mul_apply']
-  rw [mul_assoc A X, hX]
-  noncomm_ring
+  have h := (ContinuousLinearMap.mul 𝕜 R A).hasFDerivAt.comp C
+    ((TauCeti.hasFDerivAt_cayleyCoord_one (𝕜 := 𝕜) (x := -C)
+      (by rwa [← sub_eq_add_neg])).comp C (hasFDerivAt_id C).neg)
+  refine (h.congr_of_eventuallyEq (.of_forall fun x => ?_)).congr_fderiv ?_
+  · simp only [Function.comp_apply, mul_apply', TauCeti.cayleyCoord_def, sub_neg_eq_add,
+      ← sub_eq_add_neg, mul_assoc]
+  · ext X
+    simp only [comp_apply, mul_apply', neg_apply, smul_apply, mulLeftRight_apply, id_apply,
+      ← sub_eq_add_neg, neg_mul, mul_neg, neg_smul, smul_neg, neg_neg, mul_smul_comm, mul_assoc]
 
 end SymplecticGeometry
 

@@ -29,8 +29,9 @@ with a constant that also depends on the bases.
 The proof is by induction on `k`, along the proof of Tau Ceti's
 `TauCeti.Wkp.exists_value_ae_eq_mul_of_contDiffOn`: the directional derivative of `ψ u` is
 `ψ ∂ᵥu + (∂ᵥψ) u` (`TauCeti.Wkp.lineDerivL_contDiffOnSMulL`), and both terms are bounded by the
-induction hypothesis. The norm of `W^{k+1,p}(Ω)` is then recovered from the directional
-derivatives by the estimates of `SymplecticGeometry.Analysis.Sobolev.Wkp.LineDerivNorm`.
+induction hypothesis and Tau Ceti's `TauCeti.Wkp.norm_lineDerivL_apply_le`. The norm of
+`W^{k+1,p}(Ω)` is then recovered from the directional derivatives by
+`TauCeti.Wkp.norm_le_mul_norm_value_add_sum_norm_lineDerivL`.
 
 ## Main declarations
 
@@ -113,7 +114,7 @@ theorem exists_norm_contDiffOnSMulL_le (k : ℕ) :
   | succ k ih =>
     obtain ⟨C, hC0, hC⟩ := ih
     set n : ℝ := (finrank ℝ E : ℝ)
-    refine ⟨(k + 1) * (1 + n * (C * (k + 2))), by positivity,
+    refine ⟨(k + 1) * (1 + n * (C * (√2 + 1))), by positivity,
       fun {mu} _ {Omega} {p} _ {U} {psi} hU hΩ hΩU hpsi M hM u => ?_⟩
     have hM0 : ∀ x ∈ (Omega : Set E), ‖psi x‖ ≤ M := fun x hx => by
       simpa only [norm_iteratedFDerivWithin_zero] using hM 0 (Nat.zero_le _) x hx
@@ -135,26 +136,26 @@ theorem exists_norm_contDiffOnSMulL_le (k : ℕ) :
     have hval : ‖value (k + 1) w‖ ≤ M * ‖u‖ :=
       (norm_value_contDiffOnSMulL_le hU hΩ hΩU (k + 1) hpsi hM0 u).trans
         (mul_le_mul_of_nonneg_left (norm_value_le _ u) hMnn)
-    have hder : ∀ i, ‖lineDerivL (b i) k w‖ ≤ C * (k + 2) * M * ‖u‖ := fun i => by
+    have hder : ∀ i, ‖lineDerivL (b i) k w‖ ≤ C * (√2 + 1) * M * ‖u‖ := fun i => by
       rw [lineDerivL_contDiffOnSMulL]
       refine (norm_add_le _ _).trans ?_
       have h₁ := hC hU hΩ hΩU hpsi (fun j hj => hM j (by omega)) (lineDerivL (b i) k u)
       have h₂ := hC hU hΩ hΩU ((hpsi.fderivWithin hU (by simp)).clm_apply
         (contDiffOn_const (c := b i))) (hφ i) (lowerOrder k u)
-      have h₃ := norm_lineDerivL_apply_le_succ_mul (b i) k u
+      have h₃ := norm_lineDerivL_apply_le (b i) k u
       rw [b.norm_eq_one, mul_one] at h₃
       have h₄ := norm_lowerOrder_le k u
       have : 0 ≤ C * M := mul_nonneg hC0 hMnn
       calc _ ≤ C * M * ‖lineDerivL (b i) k u‖ + C * M * ‖lowerOrder k u‖ := add_le_add h₁ h₂
-        _ ≤ C * M * ((k + 1) * ‖u‖) + C * M * ‖u‖ := by gcongr
-        _ = C * (k + 2) * M * ‖u‖ := by ring
-    have hsum : ∑ i, ‖lineDerivL (b i) k w‖ ≤ n * (C * (k + 2) * M * ‖u‖) := by
+        _ ≤ C * M * (√2 * ‖u‖) + C * M * ‖u‖ := by gcongr
+        _ = C * (√2 + 1) * M * ‖u‖ := by ring
+    have hsum : ∑ i, ‖lineDerivL (b i) k w‖ ≤ n * (C * (√2 + 1) * M * ‖u‖) := by
       refine (Finset.sum_le_sum fun i _ => hder i).trans_eq ?_
       rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
     calc ‖w‖ ≤ (k + 1) * (‖value (k + 1) w‖ + ∑ i, ‖lineDerivL (b i) k w‖) :=
           norm_le_mul_norm_value_add_sum_norm_lineDerivL b k w
-      _ ≤ (k + 1) * (M * ‖u‖ + n * (C * (k + 2) * M * ‖u‖)) := by gcongr
-      _ = (k + 1) * (1 + n * (C * (k + 2))) * M * ‖u‖ := by ring
+      _ ≤ (k + 1) * (M * ‖u‖ + n * (C * (√2 + 1) * M * ‖u‖)) := by gcongr
+      _ = (k + 1) * (1 + n * (C * (√2 + 1))) * M * ‖u‖ := by ring
 
 /-! ### Smooth operator coefficients -/
 

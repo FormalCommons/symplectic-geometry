@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 import Mathlib.Tactic.LinearCombination
+import TauCeti.LinearAlgebra.SesquilinearForm.Separating
 
 /-!
 # Symmetric `j`-bilinear maps with a prescribed symmetrization against a form
@@ -71,9 +72,7 @@ theorem exists_symm_complexBilinear_apply_add_apply_eq {j : V →ₗ[K] V}
     have := LinearMap.BilinForm.apply_toDual_symm_apply (hB := hB) (T h u) v
     simp only [Q, T] at this ⊢
     simp
-  have hinj {x y : V} (h : ∀ v, G x v = G y v) : x = y := by
-    rw [← sub_eq_zero]
-    exact hG _ fun v ↦ by simp [h v]
+  have hinj {x y : V} (h : ∀ v, G x v = G y v) : x = y := hG.injective (LinearMap.ext h)
   have hGj' (x v : V) : G (j x) v = - G x (j v) := by
     simpa [hjj] using (hGj (j x) v).symm
   -- Symmetry of `Q`, from the cyclic identity.
