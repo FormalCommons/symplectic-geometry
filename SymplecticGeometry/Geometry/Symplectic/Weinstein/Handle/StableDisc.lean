@@ -291,8 +291,8 @@ theorem mem_stableSet_self {p : M} (hp : p ∈ criticalPoints 𝓘(ℝ, E) f) :
 
 /-- The derivative along an orbit of the flow of a function `g`, differentiable at the point
 `hW.flow t y` of the orbit, is `dg(X)` at that point. -/
-theorem hasDerivAt_comp_flow {g : M → ℝ} {y : M} {t : ℝ}
-    (hg : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g (hW.flow t y)) :
+theorem hasDerivAt_comp_flow {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {g : M → F}
+    {y : M} {t : ℝ} (hg : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, F) g (hW.flow t y)) :
     HasDerivAt (fun s ↦ g (hW.flow s y)) (mvfderiv 𝓘(ℝ, E) g (hW.flow t y) (X (hW.flow t y))) t :=
   Manifold.hasDerivAt_comp_curve (γ := fun s ↦ hW.flow s y) hg (hW.isMIntegralCurve_flow y t)
 
