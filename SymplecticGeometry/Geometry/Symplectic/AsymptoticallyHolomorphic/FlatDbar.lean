@@ -44,6 +44,7 @@ functions.
 * `SymplecticGeometry.flatDbar_add`, `SymplecticGeometry.flatDbar_neg`,
   `SymplecticGeometry.flatDbar_smul`, `SymplecticGeometry.flatDbar_mul`: it is additive, commutes
   with negation and complex scalars and satisfies the Leibniz rule;
+  `SymplecticGeometry.flatDbar_const`: it vanishes on constant functions;
   `SymplecticGeometry.flatDbar_congr_of_eventuallyEq`: its value at `z` depends only on the germ
   of `f` at `z`, and `SymplecticGeometry.flatDbar_eventuallyEq` says the same of its germ;
   `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a complex coordinate
@@ -180,6 +181,11 @@ theorem flatDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 @[simp]
 theorem flatDbar_zero (z : StdSpace ι) : flatDbar (0 : StdSpace ι → ℂ) z = 0 := by
   simp only [flatDbar_def, flatDbarWith_zero]
+
+/-- The flat `∂̄` of a constant function vanishes. -/
+@[simp]
+theorem flatDbar_const (c : ℂ) (z : StdSpace ι) : flatDbar (fun _ ↦ c) z = 0 := by
+  simp only [flatDbar_def, flatDbarWith_const]
 
 /-- The **Leibniz rule** for the flat `∂̄`: for `f` and `g` differentiable at `z`, the flat `∂̄`
 of `f * g` at `z` is `f z` times the flat `∂̄` of `g` plus `g z` times the flat `∂̄` of `f`. -/
