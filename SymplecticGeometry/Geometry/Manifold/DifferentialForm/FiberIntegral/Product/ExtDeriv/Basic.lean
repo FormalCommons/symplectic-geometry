@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Flat
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -18,7 +20,8 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 Let `B` be a boundaryless manifold, and `F` a compact, Hausdorff, boundaryless manifold of
 dimension `m`, oriented by `o`. For a smooth form `α` of degree `r + m` on `B × F`, this file
 proves `SymplecticGeometry.prodFiberIntegral_mextDeriv`: `∫_F dα = d ∫_F α`, the degree of `dα`
-being cast along `(r + m) + 1 = (r + 1) + m`. It holds for every `m`, including `m = 0`.
+being cast along `(r + m) + 1 = (r + 1) + m`. It holds for every `m`, including `m = 0`. So the
+fibre integral of a closed form is closed (`SymplecticGeometry.isClosed_prodFiberIntegral`).
 
 The proof reduces to a flat base, where the statement is
 `SymplecticGeometry.prodFiberIntegral_mextDeriv_opens`. Both sides are local in the base and
@@ -82,6 +85,14 @@ theorem prodFiberIntegral_mextDeriv {m : ℕ} (o : Manifold.Orientation J F (Fin
   rw [hpb, hpb, ← prodFiberIntegral_mpullback_prodMap o hf, SmoothForm.mpullback_cast,
     ← SmoothForm.mextDerivₗ_mpullback, prodFiberIntegral_mextDeriv_opens,
     prodFiberIntegral_mpullback_prodMap o hf, SmoothForm.mextDerivₗ_mpullback]
+
+/-- **The fibre integral of a closed form is closed**, by `prodFiberIntegral_mextDeriv`. -/
+theorem isClosed_prodFiberIntegral {m : ℕ} (o : Manifold.Orientation J F (Fin m))
+    {α : SmoothForm (I.prod J) (B × F) ℝ (r + m)} (hα : α.IsClosed) :
+    (prodFiberIntegral o α).IsClosed := by
+  have h := (mem_closedForms_iff_mextDerivₗ_eq_zero _ _).1 hα.mem_closedForms
+  rw [SmoothForm.isClosed_iff_mem_closedForms, mem_closedForms_iff_mextDerivₗ_eq_zero,
+    ← prodFiberIntegral_mextDeriv, h, map_zero, map_zero]
 
 end SymplecticGeometry
 
