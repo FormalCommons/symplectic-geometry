@@ -18,6 +18,9 @@ import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.FundThmCalculu
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Symplectic.Flux.Family
 import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
+import SymplecticGeometry.Geometry.Manifold.DeRham.PeriodicLoop
+import SymplecticGeometry.Topology.FiberBundle.Trivialization
 
 /-!
 # Hamiltonian holonomy and Hamiltonian curvature
@@ -101,6 +104,14 @@ curvature of [McDuffSalamon2017] is its negative.
   on a compact fibre, the holonomy diffeotopy is Hamiltonian, since each of its slices is the
   holonomy of a loop that bounds a disc; so each `ι(X_s)σ` is exact and its periods vanish
   (`HasHamiltonianDiscHolonomy.pathIntegral_interiorₗ_velocity_holonomyDiffeotopy_eq_zero`).
+* `TauCeti.IsEhresmannConnection.hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature`: a
+  symplectic connection with Hamiltonian curvature, on a proper map with a symplectic atlas and a
+  connected fibre, has Hamiltonian holonomy around discs. For a vertically closed connection
+  two-form, the period formula above and the vanishing of its inner integral kill every period of
+  `ι(X_s)σ` on a smooth periodic loop. Since `ι(X_s)σ` is closed, it is exact
+  (`TauCeti.mem_exactForms_one_iff_forall_periodic_pathIntegral_eq_zero`), so the holonomy
+  diffeotopy is Hamiltonian and its end, the holonomy of the boundary loop, lies in the
+  Hamiltonian group.
 
 ## References
 
@@ -519,6 +530,43 @@ theorem HasHamiltonianDiscHolonomy.pathIntegral_interiorₗ_velocity_holonomyDif
         c 0 1 = 0 :=
   (hH.isHamiltonian_holonomyDiffeotopy hσ hfp hA hΔ hx).pathIntegral_interiorₗ_velocity_eq_zero s
     hc hc₀₁
+
+/-- **Hamiltonian curvature gives Hamiltonian holonomy around discs.** Let `D` be a smooth
+Ehresmann connection on a proper map `proj` with a smooth atlas `A` whose coordinate changes
+preserve a symplectic form `σ` on the connected model fibre `F`. If `D` is symplectic for `A` and
+`σ` and has Hamiltonian curvature, then its holonomy around every loop that bounds a smooth disc,
+read in any chart of `A` at the base point of the loop, is a Hamiltonian diffeomorphism of
+`σ`. -/
+theorem hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature [ConnectedSpace F]
+    {σ : SmoothTwoForm IF F} (hσ : σ.IsSymplectic) (hfp : IsProperMap proj)
+    (hA : A.IsContMDiff ∞ IB IF IM)
+    (hG : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hS : hD.IsSymplectic A σ)
+    (hH : hD.HasHamiltonianCurvature A σ) : hD.HasHamiltonianDiscHolonomy A σ := by
+  refine (hasHamiltonianDiscHolonomy_iff hfp hA).2 fun γ hγ b hb ↦ ?_
+  have := (A.trivAt b).compactSpace_of_isProperMap hb hfp
+  obtain ⟨τ, hτ, hτv, hτD⟩ := hS.exists_restrictsTo_isVerticallyClosed hA hG hσ
+  obtain ⟨Δ, hΔ⟩ := hγ.exists_isSmoothDisc
+  have hΦ := hS.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer hfp hA hΔ hb
+  -- Every period of `ι(X_s)σ` on a smooth periodic loop vanishes, so the diffeotopy is
+  -- Hamiltonian.
+  have hHam := (Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms hΦ).2
+    fun s ↦ (mem_exactForms_one_iff_forall_periodic_pathIntegral_eq_zero
+      (Diffeotopy.interiorₗ_smoothVelocity_mem_closedForms _ hσ.isClosed hΦ s)).2 fun c hc hcp ↦ by
+        have hs : Δ ((s : ℝ), 0) ∈ (A.trivAt b).baseSet := (hΔ.apply_seam s).symm ▸ hb
+        rw [period_interior_velocity_holonomyDiffeotopy_eq_integral_curvatureTensor hτD hτ
+          hσ.isClosed hτv hfp hA hΔ hb hΦ hc hcp s]
+        simp only [integral_val_curvatureTensor_transportedCylinder_eq_zero hτ hA hH hfp
+          (hA.contMDiffOn_trivAt_symm b) hΔ.contMDiff hc hcp hs, intervalIntegral.integral_zero]
+  -- Its end is the holonomy of `t ↦ Δ (1, t)`, which agrees with `γ` on `[0, 1]`.
+  have hend := SmoothForm.final_mem_hamiltonianGroup hHam
+  rw [final_holonomyDiffeotopy] at hend
+  have hγΔ : EqOn (fun t ↦ Δ (1, t)) γ (uIcc 0 1) := fun t ht ↦ by
+    rw [uIcc_of_le zero_le_one] at ht
+    simpa using hΔ.apply_one ⟨t, ht⟩
+  convert hend using 1
+  refine DFunLike.coe_injective (funext fun v ↦ ?_)
+  simp only [coe_parallelTransportInDiffeomorph, parallelTransportIn_def,
+    hD.parallelTransport_congr hγΔ, hγΔ left_mem_uIcc]
 
 end IsEhresmannConnection
 
