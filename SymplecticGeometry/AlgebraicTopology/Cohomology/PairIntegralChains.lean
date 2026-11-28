@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.Relative
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
+import SymplecticGeometry.Algebra.Homology.Additive
 
 /-!
 # Cohomology of a pair over a commutative ring from integral chains
@@ -32,8 +33,7 @@ coefficients `ModuleCat.of ℤ (ULift ℤ)`. This is the counterpart for pairs o
   (`TopPair.singularCohomologyIntChainsIso_hom_naturality`), and compatible with the map to the
   cohomology of `X` and `TopCat.singularCohomologyIntChainsIso` there
   (`TopPair.singularCohomologyπ_singularCohomologyIntChainsIso_hom`). On the class of a cocycle it
-  is the class of the compared cocycle (`TopPair.map_homologyπ_singularCohomologyIntChainsIso_hom`,
-  `TopPair.mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles`).
+  is the class of the compared cocycle (`TopPair.map_homologyπ_singularCohomologyIntChainsIso_hom`).
 * `TopPair.singularKronecker_singularCohomologyIntChainsIso_hom`: a class over `k`, read through
   integral chains, pairs with an integral relative class as the class itself pairs with that
   class cast to `k` by `SSetPair.intCastHomologyMap`
@@ -47,9 +47,7 @@ coefficients `ModuleCat.of ℤ (ULift ℤ)`. This is the counterpart for pairs o
 The cochain comparison follows Tau Ceti's `TopCat.restrictScalarsCochainMap`, with the relative
 chain map in place of `TopCat.restrictScalarsChainMap`, and the cohomology comparison and its
 naturality follow `TopCat.singularCohomologyIntChainsIso` and
-`TopCat.singularCohomologyIntChainsIso_hom_naturality` of this library, as its values on cocycles
-follow `TopCat.map_homologyπ_singularCohomologyIntChainsIso_hom` and
-`TopCat.mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles`.
+`TopCat.singularCohomologyIntChainsIso_hom_naturality` of this library.
 
 ## References
 
@@ -306,7 +304,7 @@ theorem singularCohomologyπ_singularCohomologyIntChainsIso_hom (p : ℕ) :
       (singularCochainComplexIntChainsHom_comp_linearYonedaFunctor_map k P)).trans
         (HomologicalComplex.homologyMap_comp _ _ _)))
 
-
+open HomologicalComplex in
 /-- The comparison of cohomologies of a pair on the class of a cocycle `ψ` is the class of the
 integral cocycle that the comparison of relative cochains gives. -/
 @[reassoc, elementwise nosimp]
@@ -320,22 +318,7 @@ theorem map_homologyπ_singularCohomologyIntChainsIso_hom (p : ℕ) :
         (P.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
           (ModuleCat.of ℤ k)).homologyπ p := by
   rw [singularCohomologyIntChainsIso_hom,
-    Functor.map_homologyπ_comp_mapHomologicalComplexCompHomologyFunctorIso_inv_app_assoc,
-    HomologicalComplex.homologyπ_naturality]
-
-/-- On relative cocycles, the comparison of cohomologies of a pair is the comparison of the
-underlying relative cochains. -/
-@[reassoc, elementwise nosimp]
-theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles (p : ℕ) :
-    (((P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p).mapCyclesIso
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).inv ≫
-      HomologicalComplex.cyclesMap (P.singularCochainComplexIntChainsHom k) p ≫
-        (P.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-          (ModuleCat.of ℤ k)).iCycles p =
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          ((P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).iCycles p) ≫
-        (P.singularCochainComplexIntChainsHom k).f p := by
-  rw [HomologicalComplex.cyclesMap_i, Functor.mapCyclesIso_inv_comp_iCycles_assoc]
+    map_homologyπ_comp_mapHomologicalComplexCompHomologyFunctorIso_inv_app_comp_homologyMap]
 
 /-! ### Pairings with integral relative classes -/
 
@@ -356,7 +339,7 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom (p : ℕ)
   rw [map_homologyπ_singularCohomologyIntChainsIso_hom_apply]
   refine (cancel_epi ((P.singularChainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ p)).1 ?_
   rw [singularKronecker_homologyπ,
-    mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsHom_iCycles_apply]
+    HomologicalComplex.mapCyclesIso_inv_comp_cyclesMap_comp_iCycles_apply]
   refine (congrArg (HomologicalComplex.iCycles _ p ≫ ·)
     (singularCochainComplexIntChainsHom_f_apply k P p _)).trans ?_
   rw [SSetPair.homologyπ_intCastHomologyMap_assoc, ← Functor.map_comp_assoc]

@@ -35,7 +35,8 @@ chart, and the model operators of the peak functions are these at the constant s
 * `SymplecticGeometry.modelConnection_add`, `SymplecticGeometry.modelDbarWith_add`,
   `SymplecticGeometry.flatDbarWith_add` and their companions `_neg`, `_smul` and `_zero` for
   negation, complex scalars and zero: the three operators are additive on functions
-  differentiable at `z`, and commute with complex scalars.
+  differentiable at `z`, and commute with complex scalars; `SymplecticGeometry.flatDbarWith_const`:
+  the flat `∂̄` of a constant function vanishes.
 * `SymplecticGeometry.modelConnection_mul`, `SymplecticGeometry.flatDbarWith_mul`,
   `SymplecticGeometry.modelDbarWith_mul`: the Leibniz rules,
   `∂̄ (f g) = f ∂̄ g + g ∂̄_flat f` for the model `∂̄`.
@@ -262,6 +263,11 @@ theorem flatDbarWith_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) 
 
 @[simp]
 theorem flatDbarWith_zero (z : StdSpace ι) : flatDbarWith J (0 : StdSpace ι → ℂ) z = 0 := by
+  simp [flatDbarWith_def]
+
+/-- The flat `∂̄` of a constant function vanishes. -/
+@[simp]
+theorem flatDbarWith_const (c : ℂ) (z : StdSpace ι) : flatDbarWith J (fun _ ↦ c) z = 0 := by
   simp [flatDbarWith_def]
 
 /-- The **Leibniz rule for the flat `∂̄`**: for `f` and `g` differentiable at `z`, the flat `∂̄`

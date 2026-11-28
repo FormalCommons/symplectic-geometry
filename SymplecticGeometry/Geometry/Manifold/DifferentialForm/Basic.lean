@@ -35,6 +35,8 @@ scalar multiplication.
 * `TauCeti.RoughForm.cast_apply`: evaluation of a rough form cast along an equality of degrees.
 * `TauCeti.RoughForm.mdifferentiableAt_apply_vectorField`: a rough form differentiable at `x`,
   evaluated on vector fields differentiable at `x`, is differentiable at `x`.
+* `TauCeti.RoughForm.mdifferentiableAt_apply_one`: the same for a one-form on one vector field,
+  as the function `y ↦ φ y ![Z y]`.
 * `TauCeti.RoughForm.mdifferentiableAt_apply_two`: the same for a two-form on two vector fields,
   as the function `y ↦ φ y ![A y, B y]`.
 * `TauCeti.RoughForm.ofFunction_add`, `TauCeti.RoughForm.ofFunction_neg`,
@@ -110,6 +112,21 @@ theorem mdifferentiableAt_apply_vectorField {φ : RoughForm I M F k}
     MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ y (V · y)) x := by
   have h := hφ.continuousAlternatingMap_bundle_apply (b := id) hV
   simpa using ((mdifferentiableAt_totalSpace _ _).1 h).2
+
+/-- If a rough one-form `φ` is differentiable at `x`, as a section of the bundle of alternating
+maps, then its values `y ↦ φ y ![Z y]` on a vector field `Z` differentiable at `x` form a
+function differentiable at `x`. -/
+theorem mdifferentiableAt_apply_one {φ : RoughForm I M F 1}
+    {Z : (y : M) → TangentSpace I y} {x : M}
+    (hφ : MDiffAt (fun y ↦
+      (TotalSpace.mk' (E [⋀^Fin 1]→L[ℝ] F) y (φ y) :
+        TotalSpace (E [⋀^Fin 1]→L[ℝ] F)
+          (fun y ↦ TangentSpace I y [⋀^Fin 1]→L[ℝ] Bundle.Trivial M F y))) x)
+    (hZ : MDifferentiableAt I I.tangent (fun y ↦ (Z y : TangentBundle I M)) x) :
+    MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ y ![Z y]) x := by
+  have hev (y : M) : (fun k ↦ ![Z] k y) = ![Z y] := (FinVec.etaExpand_eq _).symm
+  simpa only [hev] using mdifferentiableAt_apply_vectorField (V := ![Z]) hφ
+    (fun k ↦ by fin_cases k; exact hZ)
 
 /-- If a rough two-form `φ` is differentiable at `x`, as a section of the bundle of alternating
 maps, then its values `y ↦ φ y ![A y, B y]` on two vector fields `A` and `B` differentiable at

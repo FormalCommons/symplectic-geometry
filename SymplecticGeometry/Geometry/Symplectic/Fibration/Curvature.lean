@@ -84,6 +84,14 @@ fields, and the curvature expands bilinearly
 (`TauCeti.IsEhresmannConnection.curvature_eq_sum_basis`). The fibre component of the result is
 the curvature read in `e`.
 
+In the other direction, a two-form `τ` on `M` is read on `EB × F` through
+`ψ q = e⁻¹ (φ⁻¹ q.1, q.2)`, over the patch of the points `x` of the target of `φ` with `φ⁻¹ x`
+in the base set of `e`. There `ψ^* τ` is a smooth section, its fibre components are `σ` when `τ`
+restricts to `σ` (since `ψ ∘ Prod.mk x` is a fibre inclusion of `e`), and it is vertically
+closed for `Prod.fst` when `τ` is vertically closed for `proj` (since `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`
+there, so `dψ` preserves vertical vectors;
+`TauCeti.RoughForm.IsVerticallyClosedOn.mpullback`).
+
 Last, the file computes the curvature in a product chart, in the setting of `LocalForm.lean`: a
 two-form `τ` on `EB × F` with fibre components `σ(x)`, mixed components `αᵢ(x)` and the fields
 `Xᵢ(x)` with `ι(Xᵢ(x)) σ(x) = αᵢ(x)`, so that the horizontal lift of the constant field `bs i`
@@ -98,6 +106,9 @@ closedness reduces `dτ(Lᵢ, Lⱼ, (0, w))` to
 `dτ((bs i, 0), (bs j, 0), (0, w))`, which Tau Ceti's
 `TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv` expands into derivatives
 of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F`.
+Since `σ(x)(Xᵢ(x), Xⱼ(x))` is smooth on `F`, it follows that, where `τ` is vertically closed
+along the fibre over `x`, `V` is a Hamiltonian vector field of a smooth function for `σ(x)`
+exactly when `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` is the differential of a smooth function on `F`.
 
 ## Main definitions
 
@@ -121,6 +132,9 @@ of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F
   vanishing curvature has Hamiltonian curvature.
 * `TauCeti.IsEhresmannConnection.curvatureIn_local`: the curvature of two constant fields in a
   product chart, through the components of the local form.
+* `TauCeti.IsEhresmannConnection.exists_isHamiltonianVectorField_curvature_iff`: in a product
+  chart, the curvature of two constant fields is Hamiltonian on the fibre over `x` exactly when
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` has a smooth primitive on `F`.
 * `TauCeti.IsEhresmannConnection.isHamiltonianVectorField_curvatureIn_of_isClosed`: for a closed
   two-form that restricts to `σ` on the fibres, the curvature read in a chart is a Hamiltonian
   vector field of `τ(v₁♯, v₂♯)` read on the fibre.
@@ -128,6 +142,11 @@ of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F
   two-form that restricts to `σ` on the fibres has Hamiltonian curvature.
 * `TauCeti.IsEhresmannConnection.curvatureIn_eq_snd_sum_curvature`: the curvature read in a chart
   over a coordinate patch, in terms of the curvature of a two-form on `EB × F` on constant fields.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_symm_extChartAt_symm`,
+  `TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm` and
+  `TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm`:
+  the reading of a two-form through a chart of the atlas and a base chart is smooth over the
+  patch, has the fibre components `σ` there, and is vertically closed there.
 
 ## References
 
@@ -622,6 +641,105 @@ end ChartReading
 
 end TauCeti.IsEhresmannConnection
 
+/-! ### A two-form read through a chart of the atlas and a base chart -/
+
+namespace TauCeti
+
+section PatchReading
+
+open Set
+open scoped Topology
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} [IB.Boundaryless] {B : Type*}
+  [TopologicalSpace B] [ChartedSpace HB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*}
+  [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M]
+  [ChartedSpace HM M] [IsManifold IM ∞ M]
+  {proj : M → B} {A : MapFiber.Atlas F proj}
+
+/-- For a smooth atlas, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at `b₀`, the
+pull-back of a smooth two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is a smooth section over the
+patch of the points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`. -/
+theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_symm_extChartAt_symm
+    [IsManifold IB ∞ B] (hA : A.IsContMDiff ∞ IB IF IM) (b' b₀ : B) (τ : SmoothTwoForm IM M) :
+    ContMDiffOn (𝓘(ℝ, EB).prod IF) ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z
+        (mpullback (𝓘(ℝ, EB).prod IF) IM
+          (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+            ((extChartAt IB b₀).symm q.1, q.2)) τ.val z))
+      (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
+        univ) := by
+  exact fun z hz ↦ ((SmoothForm.contMDiff τ _).mpullback_form
+    (hA.contMDiffAt_symm_extChartAt_symm hz.1) (by simp)).contMDiffWithinAt
+
+/-- For a `C^n` atlas `A`, `n ≠ 0`, along which `τ` restricts to `σ`, a chart `e = A.trivAt b'`
+and the extended chart `φ` of `B` at `b₀`, the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` has
+fibre component `σ` over each point `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`:
+there, `ψ ∘ Prod.mk x` is the fibre inclusion of `e` over `φ⁻¹ x`. -/
+theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm
+    {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0)
+    {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M} (h : A.RestrictsTo σ τ) {b' b₀ : B} {x : EB}
+    (hx : x ∈ (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) :
+    RoughForm.fiberComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
+      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+        ((extChartAt IB b₀).symm q.1, q.2)) τ.val) x = σ.val := by
+  funext y
+  have hψ := (hA.contMDiffAt_symm_extChartAt_symm (q := (x, y)) hx).mdifferentiableAt hn
+  have hincl : (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+      ((extChartAt IB b₀).symm q.1, q.2)) ∘ Prod.mk x = (A.trivAt b').fiberInclusionMap hx.2 := by
+    rw [Bundle.Trivialization.coe_fiberInclusionMap]
+    rfl
+  rw [RoughForm.fiberComponent_def,
+    ← mpullback_comp_at (f := Prod.mk x) (mdifferentiableAt_const.prodMk mdifferentiableAt_id) hψ,
+    hincl, MapFiber.Atlas.restrictsTo_iff.1 h b' _ hx.2]
+
+/-- For a `C^n` atlas, `2 ≤ n`, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at
+`b₀`, the pull-back of a vertically closed two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is
+vertically closed for `Prod.fst` over the patch of the points `x` of the target of `φ` with
+`φ⁻¹ x` in the base set of `e`, since there `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`. -/
+theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm
+    {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : 2 ≤ n)
+    {τ : SmoothTwoForm IM M} (h : SmoothTwoForm.IsVerticallyClosed IB proj τ) (b' b₀ : B) :
+    (mpullback (𝓘(ℝ, EB).prod IF) IM
+      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+        ((extChartAt IB b₀).symm q.1, q.2)) τ.val).IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst
+      (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
+        univ) := by
+  set ψ := fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+    ((extChartAt IB b₀).symm q.1, q.2)
+  have hW :=
+    ((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet (IB := IB) b₀).prod
+      (isOpen_univ (X := F))
+  have hn0 : n ≠ 0 := (lt_of_lt_of_le (by simp) hn).ne'
+  have hψ (q) (hq : q ∈ ((extChartAt IB b₀).target ∩
+      (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ (univ : Set F)) :
+      ContMDiffAt (𝓘(ℝ, EB).prod IF) IM n ψ q :=
+    hA.contMDiffAt_symm_extChartAt_symm hq.1
+  refine RoughForm.IsVerticallyClosedOn.mpullback
+    ((SmoothTwoForm.isVerticallyClosedOn_univ_iff.2 h).mono (subset_univ _))
+    (fun q hq ↦ (hψ q hq).of_le hn) (fun q _ ↦ (SmoothForm.contMDiff τ _).of_le (by simp))
+    fun q hq η hη ↦ ?_
+  -- Over the patch, `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`.
+  have heq : proj ∘ ψ =ᶠ[𝓝 q] (extChartAt IB b₀).symm ∘ Prod.fst :=
+    Filter.eventually_of_mem (hW.mem_nhds hq) fun z hz ↦
+      (A.trivAt b').proj_symm_apply' hz.1.2
+  have hφ : MDifferentiableAt 𝓘(ℝ, EB) IB (extChartAt IB b₀).symm q.1 :=
+    ((contMDiffOn_extChartAt_symm (n := n) b₀).contMDiffAt
+      ((isOpen_extChartAt_target b₀).mem_nhds hq.1.1)).mdifferentiableAt hn0
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hη ⊢
+  rw [← mfderiv_comp_apply q ((hA.contMDiff_proj _).mdifferentiableAt hn0)
+      ((hψ q hq).mdifferentiableAt hn0), heq.mfderiv_eq,
+    ContinuousLinearMap.comp_apply, mfderiv_comp_apply q hφ mdifferentiableAt_fst, hη, map_zero,
+    map_zero]
+
+end PatchReading
+
+end TauCeti
+
 /-! ### The curvature in a product chart -/
 
 namespace TauCeti.IsEhresmannConnection
@@ -804,6 +922,35 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     exact (congrArg (fun φ ↦ mvfderiv IF φ y w)
       (funext fun y' ↦ (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
   linear_combination -hlhs + hid - hdτ - hfAB - ha j (bs i) + ha i (bs j) + hS
+
+/-- **Hamiltonian curvature in a product chart.** In the setting of `curvatureIn_local`, suppose
+that `τ` is vertically closed along the fibre over `x`. Then the fibre component of the curvature
+of the constant fields `bs i`, `bs j` along that fibre is a Hamiltonian vector field, for `σ(x)`,
+of a smooth function on `F` exactly when the one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` is the
+differential of a smooth function on `F`. The two functions differ by `σ(x)(Xᵢ(x), Xⱼ(x))`. -/
+theorem exists_isHamiltonianVectorField_curvature_iff (hn : 1 ≤ n)
+    (hτ : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst τ.val ({x} ×ˢ Set.univ)) (i j : ι) :
+    (∃ f : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ f ∧ (τ.smoothFiberComponent x).IsHamiltonianVectorField f
+        fun y ↦ (hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)).2) ↔
+      ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
+        mvfderiv IF g y w =
+          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
+            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) := by
+  set S : F → ℝ := fun y ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y
+    (τ.mixedVectorField bs i x y) (τ.mixedVectorField bs j x y)
+  have hS : ContMDiff IF 𝓘(ℝ) ∞ S := τ.contMDiff_eval₂_mixedVectorField bs hσ i j
+  have hSd (y : F) : MDifferentiableAt IF 𝓘(ℝ) S y := (hS y).mdifferentiableAt (by simp)
+  have hloc (y : F) (w : TangentSpace IF y) :=
+    (curvatureIn_local hD bs hσ hn (hτ.mono (Set.singleton_subset_iff.2 ⟨rfl, trivial⟩)) i j).2 w
+  constructor
+  · rintro ⟨f, hf, hX⟩
+    refine ⟨f + S, hf.add hS, fun y w ↦ ?_⟩
+    rw [mvfderiv_add ((hf y).mdifferentiableAt (by simp)) (hSd y), add_apply,
+      ← SmoothTwoForm.isHamiltonianVectorField_iff.1 hX y w, hloc y w]
+    ring
+  · rintro ⟨g, hg, hdg⟩
+    refine ⟨g - S, hg.sub hS, SmoothTwoForm.isHamiltonianVectorField_iff.2 fun y w ↦ ?_⟩
+    rw [mvfderiv_sub ((hg y).mdifferentiableAt (by simp)) (hSd y), sub_apply, hdg y w, hloc y w]
 
 end Local
 

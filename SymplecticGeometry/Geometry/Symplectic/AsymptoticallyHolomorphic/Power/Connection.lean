@@ -422,8 +422,7 @@ theorem curvatureOperator_powerConnection_of_frame [CompleteSpace EB]
       (hσ.contMDiffAt (hU'.mem_nhds hxU')) (by simp)
   have hAZ {Z : Π y : B, TangentSpace IB y} (hZ : MDiffAt (T% Z) x) :
       MDifferentiableAt IB 𝓘(ℝ, ℝ) (fun y ↦ A y ![Z y]) x :=
-    RoughForm.mdifferentiableAt_apply_vectorField (hA.mdifferentiableAt one_ne_zero)
-      (V := fun i y ↦ ![Z y] i) fun i ↦ by fin_cases i; exact hZ
+    RoughForm.mdifferentiableAt_apply_one (hA.mdifferentiableAt one_ne_zero) hZ
   -- On `U'`, `D_k s` along a field `Z` reads `[σ, g Z]`, with `g Z = df(Z) + A(Z) • (i k f)`.
   set g : (Π y : B, TangentSpace IB y) → B → PowerModel k := fun Z ↦
     (fun y ↦ mvfderiv IB f y (Z y)) +
