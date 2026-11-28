@@ -46,6 +46,9 @@ and `h₁` are related by a diffeotopy of the blowup supported in the lifted bal
   pull-back of `σ` by the blowdown.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isSmoothFamily_normalizedBlowupForm`: for smooth
   `l` and `ε`, the forms `ω̃_{ψ_t, l t, ε t}` are a smooth family.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.exists_family_normalizedBlowupForm`: moving the
+  weight and the width of one normalized ball embedding linearly, along a smooth `ρ` with values
+  in `[0, 1]`, gives a smooth family of symplectic forms of the blowup.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.exists_path_compatible`: `ω̃_{ψ,l,ε}` is joined,
   through a smooth path of symplectic two-forms of the blowup, to a form compatible with the
   almost complex blowup of `J`.
@@ -303,6 +306,37 @@ theorem isSmoothFamily_normalizedBlowupForm [T2Space M]
     (fun t ↦ (hψ t).normalizedBlowupForm_eq_on_ballLift
       (isBlowupProfile_blowupProfile (hψ t).weight_pos (hψ t).width_pos))
     fun t ↦ (hψ t).normalizedBlowupForm_eq_on_compl
+
+/-- Along a smooth `ρ` with values in `[0, 1]`, the forms of a normalized ball embedding whose
+weight and width at time `t` are `(1 - ρ t) * l + ρ t * l'` and `(1 - ρ t) * ε + ρ t * ε'` are
+symplectic and smooth in time; they are its own form where `ρ = 0`, and the form of weight `l'`
+and width `ε'` where `ρ = 1`. -/
+theorem exists_family_normalizedBlowupForm [T2Space M] {ψ : StdSpace (Fin (n + 1)) → M}
+    {r l ε : ℝ} (hψ : IsNormalizedBallEmbedding hN ψ r l ε) (hσ : σ.IsSymplectic) {l' ε' : ℝ}
+    (hl' : 0 < l') (hε' : 0 < ε') (hε'ε : ε' ≤ ε) (hr : l' + ε' < r) {ρ : unitInterval → ℝ}
+    (hρ : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ ρ) (hρ₀ : ∀ t, 0 ≤ ρ t) (hρ₁ : ∀ t, ρ t ≤ 1) :
+    ∃ τ : unitInterval → SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart),
+      IsSmoothFamily (𝓡∂ 1) τ ∧ (∀ t, (τ t).IsSymplectic) ∧
+      (∀ t, ρ t = 0 → τ t = hψ.normalizedBlowupForm) ∧
+      ∀ t, ρ t = 1 → τ t = (hψ.of_width_le hl' hε' hε'ε hr).normalizedBlowupForm := by
+  have hψt (t : unitInterval) : IsNormalizedBallEmbedding hN (fun z ↦ ψ ((t, z) : unitInterval ×
+      StdSpace (Fin (n + 1))).2) r ((1 - ρ t) * l + ρ t * l') ((1 - ρ t) * ε + ρ t * ε') :=
+    hψ.of_one_sub_mul_add_mul hl' hε' hε'ε hr (hρ₀ t) (hρ₁ t)
+  have hsmooth (a b : ℝ) : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t ↦ (1 - ρ t) * a + ρ t * b :=
+    ((contMDiff_const.sub hρ).mul contMDiff_const).add (hρ.mul contMDiff_const)
+  -- The form depends only on the weight and the width.
+  have hcongr {l₁ ε₁ l₂ ε₂ : ℝ} (h₁ : IsNormalizedBallEmbedding hN ψ r l₁ ε₁)
+      (h₂ : IsNormalizedBallEmbedding hN ψ r l₂ ε₂) (hl : l₁ = l₂) (hε : ε₁ = ε₂) :
+      h₁.normalizedBlowupForm = h₂.normalizedBlowupForm := by
+    subst hl hε
+    rfl
+  refine ⟨fun t ↦ (hψt t).normalizedBlowupForm,
+    isSmoothFamily_normalizedBlowupForm hψt
+      (isSymplecticBallFamily_const hψ.isSymplecticBallEmbedding) (hsmooth l l') (hsmooth ε ε'),
+    fun t ↦ (hψt t).isSymplectic_normalizedBlowupForm
+      (isBlowupProfile_blowupProfile (hψt t).weight_pos (hψt t).width_pos) hσ,
+    fun t ht ↦ hcongr _ _ (by simp [ht]) (by simp [ht]),
+    fun t ht ↦ hcongr _ _ (by simp [ht]) (by simp [ht])⟩
 
 /-! ### A path to a compatible form -/
 

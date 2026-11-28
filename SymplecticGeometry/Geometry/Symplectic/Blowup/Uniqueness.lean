@@ -19,11 +19,6 @@ image in real singular cohomology when the weights agree (McDuff–Salamon, Theo
 
 ## Main results
 
-* `SymplecticGeometry.IsNormalizedBallEmbedding.ballLiftPartialDiffeomorph_eqOn`: two normalized
-  ball embeddings that agree on `B(a)` have lifts that agree on `openNbhd n a`.
-* `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_of_eqOn`: two normalized
-  ball embeddings with the same weight `l` and width `ε` that agree on a ball `B(a)` with
-  `l + ε < a` give the same form on the blowup.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.exists_path_normalizedBlowupForm`: the forms of two
   normalized ball embeddings are the ends of a smooth path of symplectic forms on the blowup.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm_eq_of_weight_eq`:
@@ -32,12 +27,11 @@ image in real singular cohomology when the weights agree (McDuff–Salamon, Theo
 ## Implementation notes
 
 For the path, both embeddings equal `ψ₀` on `B(a)`, `a = min ε₁ ε₂`. Take `l' = ε' = a / 3`.
-Each `ψᵢ` stays normalized for the weights and widths on the segment from `(lᵢ, εᵢ)` to
-`(l', ε')` (`IsNormalizedBallEmbedding.of_width_le`), and moving linearly along that segment
-gives a smooth family of forms (`isSmoothFamily_normalizedBlowupForm`), as in
-`exists_path_compatible`. The family of `ψ₁` ends, and the reversed family of `ψ₂` starts, at the
-same form, by `normalizedBlowupForm_eq_of_eqOn`, so the two concatenate to a smooth family
-(`IsSmoothFamily.glue_collaredHalves`).
+Moving each `ψᵢ` linearly in weight and width from `(lᵢ, εᵢ)` to `(l', ε')` gives a smooth
+family of symplectic forms (`IsNormalizedBallEmbedding.exists_family_normalizedBlowupForm`).
+The family of `ψ₁` ends, and the reversed family of `ψ₂` starts, at the same form, by
+`IsNormalizedBallEmbedding.normalizedBlowupForm_eq_of_eqOn`, so the two concatenate to a smooth
+family (`IsSmoothFamily.glue_collaredHalves`).
 
 ## References
 
@@ -65,120 +59,7 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 
 namespace IsNormalizedBallEmbedding
 
-/-- Two normalized ball embeddings for the same normalization that agree on the ball `B(a)`,
-with `a` at most both radii, have lifts that agree on `openNbhd n a`. -/
-theorem ballLiftPartialDiffeomorph_eqOn (hψ₁ : IsNormalizedBallEmbedding hN ψ₁ r₁ l₁ ε₁)
-    (hψ₂ : IsNormalizedBallEmbedding hN ψ₂ r₂ l₂ ε₂) {a : ℝ} (h : EqOn ψ₁ ψ₂ (ball 0 a))
-    (ha₁ : a ≤ r₁) (ha₂ : a ≤ r₂) :
-    EqOn hψ₁.ballLiftPartialDiffeomorph hψ₂.ballLiftPartialDiffeomorph (openNbhd n a) := by
-  intro y hy
-  have hy₁ : y ∈ openNbhd n r₁ := openNbhd_mono ha₁ hy
-  have hy₂ : y ∈ openNbhd n r₂ := openNbhd_mono ha₂ hy
-  rw [hψ₁.ballLiftPartialDiffeomorph_apply ⟨y, hy₁⟩,
-    hψ₂.ballLiftPartialDiffeomorph_apply ⟨y, hy₂⟩]
-  by_cases h0 : y.blowdown = 0
-  · have hyD : y ∈ exceptionalDivisor n := mem_exceptionalDivisor_iff.2 h0
-    rw [hψ₁.ballLift_of_mem_openNbhd _ (exceptionalDivisor_subset_openNbhd hψ₁.width_pos hyD),
-      hψ₂.ballLift_of_mem_openNbhd _ (exceptionalDivisor_subset_openNbhd hψ₂.width_pos hyD)]
-  · rw [hψ₁.ballLift_of_blowdown_ne_zero _ h0, hψ₂.ballLift_of_blowdown_ne_zero _ h0]
-    congr 2
-    exact h (mem_ball_zero_iff.2 (mem_openNbhd_iff.1 hy))
-
-/-- A normalized ball embedding stays normalized along the segment of weights and widths from
-`(l, ε)` to any admissible `(l', ε')`. -/
-private theorem of_lineMap {ψ : StdSpace (Fin (n + 1)) → M} {r l ε : ℝ}
-    (hψ : IsNormalizedBallEmbedding hN ψ r l ε) {l' ε' : ℝ} (hl' : 0 < l') (hε' : 0 < ε')
-    (hε'ε : ε' ≤ ε) (hr : l' + ε' < r) {s : ℝ} (hs₀ : 0 ≤ s) (hs₁ : s ≤ 1) :
-    IsNormalizedBallEmbedding hN ψ r ((1 - s) * l + s * l') ((1 - s) * ε + s * ε') := by
-  have hl := hψ.weight_pos
-  have hε := hψ.width_pos
-  have hlr := hψ.weight_add_width_lt
-  have h₂ : 0 ≤ 1 - s := sub_nonneg.2 hs₁
-  refine hψ.of_width_le ?_ ?_ ?_ ?_
-  · rcases hs₀.eq_or_lt with rfl | hs
-    · simpa using hl
-    · nlinarith [mul_nonneg h₂ hl.le, mul_pos hs hl']
-  · rcases hs₀.eq_or_lt with rfl | hs
-    · simpa using hε
-    · nlinarith [mul_nonneg h₂ hε.le, mul_pos hs hε']
-  · nlinarith [mul_nonneg h₂ hε.le]
-  · rcases hs₀.eq_or_lt with rfl | hs
-    · simpa using hlr
-    · nlinarith [mul_le_mul_of_nonneg_left hlr.le h₂, mul_lt_mul_of_pos_left hr hs]
-
 variable [T2Space M]
-
-/-- Two normalized ball embeddings for the same normalization, with the same weight `l` and width
-`ε`, that agree on a ball `B(a)` with `l + ε < a`, give the same form `ω̃_{ψ,l,ε}` on the blowup,
-for every `k`. -/
-theorem normalizedBlowupForm_eq_of_eqOn {l ε : ℝ} (hψ₁ : IsNormalizedBallEmbedding hN ψ₁ r₁ l ε)
-    (hψ₂ : IsNormalizedBallEmbedding hN ψ₂ r₂ l ε) {a : ℝ} (h : EqOn ψ₁ ψ₂ (ball 0 a))
-    (ha : l + ε < a) (k : ℝ → ℝ) :
-    hψ₁.normalizedBlowupForm k = hψ₂.normalizedBlowupForm k := by
-  by_cases hk : IsBlowupProfile l ε k
-  swap
-  · rw [hψ₁.normalizedBlowupForm_of_not hk, hψ₂.normalizedBlowupForm_of_not hk]
-  set b := min a (min r₁ r₂)
-  have hb : l + ε < b := lt_min ha (lt_min hψ₁.weight_add_width_lt hψ₂.weight_add_width_lt)
-  have hEq := ballLiftPartialDiffeomorph_eqOn hψ₁ hψ₂ (h.mono (ball_subset_ball (min_le_left _ _)))
-    ((min_le_right _ _).trans (min_le_left _ _)) ((min_le_right _ _).trans (min_le_right _ _))
-  have hK := closedNbhd_subset_openNbhd (n := n) hb
-  have himage : hψ₁.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) =
-      hψ₂.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) :=
-    (hEq.mono hK).image_eq
-  refine hψ₂.eq_normalizedBlowupForm hk (fun y hy ↦ ?_) fun x hx ↦
-    hψ₁.normalizedBlowupForm_eq_on_compl x (himage ▸ hx)
-  by_cases hyb : y ∈ openNbhd n b
-  · -- Near `y`, the two lifts agree.
-    have hev : (hψ₂.ballLiftPartialDiffeomorph : BlowupModel n → Blowup hN.blowupChart) =ᶠ[𝓝 y]
-        hψ₁.ballLiftPartialDiffeomorph :=
-      Filter.eventuallyEq_of_mem ((isOpen_openNbhd b).mem_nhds hyb) fun z hz ↦ (hEq hz).symm
-    rw [hev.mpullback_eq]
-    exact hψ₁.normalizedBlowupForm_eq_on_ballLift hk y
-      (openNbhd_mono ((min_le_right _ _).trans (min_le_left _ _)) hyb)
-  · -- Off `openNbhd n b`, the lift of `ψ₂` avoids the image of `L(l + ε)` under that of `ψ₁`.
-    have hyK : y ∉ closedNbhd n (l + ε) := fun hyK ↦ hyb (hK hyK)
-    have hx : hψ₂.ballLiftPartialDiffeomorph y ∉
-        hψ₁.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := by
-      rw [himage]
-      rintro ⟨z, hz, hzy⟩
-      have hz₂ : z ∈ openNbhd n r₂ :=
-        openNbhd_mono ((min_le_right _ _).trans (min_le_right _ _)) (hK hz)
-      refine hyK ((hψ₂.ballLiftPartialDiffeomorph.injOn (by simpa using hz₂)
-        (by simpa using hy) hzy) ▸ hz)
-    rw [mpullback_apply_congr (hψ₁.normalizedBlowupForm_eq_on_compl _ hx),
-      hψ₂.mpullback_ballLiftPartialDiffeomorph_mpullback_blowdown hy,
-      profileForm_eq_on_compl n hk y hyK]
-
-/-- Along a smooth `ρ` with values in `[0, 1]`, the forms of a normalized ball embedding whose
-weight and width run linearly towards `(l', ε')` are symplectic and smooth in time; they are
-its own form where `ρ = 0`, and the form of weight `l'` and width `ε'` where `ρ = 1`. -/
-private theorem exists_family_normalizedBlowupForm {ψ : StdSpace (Fin (n + 1)) → M} {r l ε : ℝ}
-    (hψ : IsNormalizedBallEmbedding hN ψ r l ε) (hσ : σ.IsSymplectic) {l' ε' : ℝ} (hl' : 0 < l')
-    (hε' : 0 < ε') (hε'ε : ε' ≤ ε) (hr : l' + ε' < r) {ρ : unitInterval → ℝ}
-    (hρ : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ ρ) (hρ₀ : ∀ t, 0 ≤ ρ t) (hρ₁ : ∀ t, ρ t ≤ 1) :
-    ∃ τ : unitInterval → SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart),
-      IsSmoothFamily (𝓡∂ 1) τ ∧ (∀ t, (τ t).IsSymplectic) ∧
-      (∀ t, ρ t = 0 → τ t = hψ.normalizedBlowupForm) ∧
-      ∀ t, ρ t = 1 → τ t = (hψ.of_width_le hl' hε' hε'ε hr).normalizedBlowupForm := by
-  have hψt (t : unitInterval) : IsNormalizedBallEmbedding hN (fun z ↦ ψ ((t, z) : unitInterval ×
-      StdSpace (Fin (n + 1))).2) r ((1 - ρ t) * l + ρ t * l') ((1 - ρ t) * ε + ρ t * ε') :=
-    hψ.of_lineMap hl' hε' hε'ε hr (hρ₀ t) (hρ₁ t)
-  have hsmooth (a b : ℝ) : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t ↦ (1 - ρ t) * a + ρ t * b :=
-    ((contMDiff_const.sub hρ).mul contMDiff_const).add (hρ.mul contMDiff_const)
-  -- The form depends only on the weight and the width.
-  have hcongr {l₁ ε₁ l₂ ε₂ : ℝ} (h₁ : IsNormalizedBallEmbedding hN ψ r l₁ ε₁)
-      (h₂ : IsNormalizedBallEmbedding hN ψ r l₂ ε₂) (hl : l₁ = l₂) (hε : ε₁ = ε₂) :
-      h₁.normalizedBlowupForm = h₂.normalizedBlowupForm := by
-    subst hl hε
-    rfl
-  refine ⟨fun t ↦ (hψt t).normalizedBlowupForm,
-    isSmoothFamily_normalizedBlowupForm hψt
-      (isSymplecticBallFamily_const hψ.isSymplecticBallEmbedding) (hsmooth l l') (hsmooth ε ε'),
-    fun t ↦ (hψt t).isSymplectic_normalizedBlowupForm
-      (isBlowupProfile_blowupProfile (hψt t).weight_pos (hψt t).width_pos) hσ,
-    fun t ht ↦ hcongr _ _ (by simp [ht]) (by simp [ht]),
-    fun t ht ↦ hcongr _ _ (by simp [ht]) (by simp [ht])⟩
 
 /-- **The forms of two normalized ball embeddings are joined by a path of symplectic forms.**
 Let `M` be Hausdorff, `σ` symplectic, and `ψ₁`, `ψ₂` normalized ball embeddings, for the same
