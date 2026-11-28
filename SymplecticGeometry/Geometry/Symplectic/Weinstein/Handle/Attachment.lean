@@ -10,6 +10,7 @@ public import TauCeti.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
+import TauCeti.Topology.Compactness.Normed
 
 /-!
 # Attaching handles: orbits across a sublevel transverse to the Liouville field
@@ -148,41 +149,35 @@ theorem exists_flow_apply_eq_upper {a b : ℝ}
 
 omit [T2Space M] in
 /-- **The level `g ⁻¹' {0}` is compact.** Let `g` be continuous, let `{g < 0}` contain the
-sublevel `{f ≤ a}` of the function of a Weinstein structure, and let `f < b` on `g ⁻¹' {0}`. Then
+sublevel `{f ≤ a}` of the function of a Weinstein structure, and let `f ≤ b` on `g ⁻¹' {0}`. Then
 `g ⁻¹' {0}` is compact, as a closed subset of the compact region `f ⁻¹' Icc a b`. -/
 theorem isCompact_preimage_zero {a b : ℝ} (hg : Continuous g)
-    (ha : {x | f x ≤ a} ⊆ {x | g x < 0}) (hgb : ∀ x, g x = 0 → f x < b) :
+    (ha : {x | f x ≤ a} ⊆ {x | g x < 0}) (hgb : ∀ x, g x = 0 → f x ≤ b) :
     IsCompact (g ⁻¹' {0}) :=
   (hW.isProperMap.isCompact_preimage isCompact_Icc).of_isClosed_subset
     (isClosed_singleton.preimage hg) fun x hx ↦
-      ⟨(not_le.1 fun hxa ↦ (ha hxa : g x < 0).ne hx).le, (hgb x hx).le⟩
+      ⟨(not_le.1 fun hxa ↦ (ha hxa : g x < 0).ne hx).le, hgb x hx⟩
 
 /-- **A margin between the lower sublevel and the backward orbits of `g ⁻¹' {0}`.** Let `g` be
 continuous, let `{g < 0}` contain the sublevel `{f ≤ a}` of the function of a Weinstein structure
-with flow `Φ`, and let `f < b` on `g ⁻¹' {0}`. Then there is `δ > 0` such that `a < f (Φ s y)` for
+with flow `Φ`, and let `f ≤ b` on `g ⁻¹' {0}`. Then there is `δ > 0` such that `a < f (Φ s y)` for
 every `y` with `g y = 0` and every time `s ≥ -δ`. -/
 theorem exists_pos_forall_lt_flow_apply {a b : ℝ} (hg : Continuous g)
-    (ha : {x | f x ≤ a} ⊆ {x | g x < 0}) (hgb : ∀ x, g x = 0 → f x < b) :
+    (ha : {x | f x ≤ a} ⊆ {x | g x < 0}) (hgb : ∀ x, g x = 0 → f x ≤ b) :
     ∃ δ > 0, ∀ y, g y = 0 → ∀ s, -δ ≤ s → a < f (hW.flow s y) := by
-  have hf := hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp)
-  -- On `g ⁻¹' {0}` we have `a < f`, since `{f ≤ a} ⊆ {g < 0}`.
-  have hya (y : M) (hy : g y = 0) : a < f y := not_le.1 fun h ↦ (ha h : g y < 0).ne hy
-  -- By the tube lemma on the compact set `g ⁻¹' {0}`, the bound holds for all small `|s|`.
-  have hcont : Continuous fun p : ℝ × M ↦ f (hW.flow p.1 p.2) :=
-    hf.continuous.comp (hW.flow.continuous continuous_fst continuous_snd)
-  have hev : ∀ᶠ s in 𝓝 (0 : ℝ), ∀ y ∈ g ⁻¹' {0}, a < f (hW.flow s y) :=
-    (hW.isCompact_preimage_zero hg ha hgb).eventually_forall_of_forall_eventually fun y hy ↦
-      hcont.continuousAt.eventually
-        (lt_mem_nhds (by simpa only [Flow.map_zero_apply] using hya y hy))
-  obtain ⟨ε, hε, hεs⟩ := Metric.eventually_nhds_iff.1 hev
-  refine ⟨ε / 2, half_pos hε, fun y hy s hs ↦ ?_⟩
-  rcases le_or_gt s 0 with hs₀ | hs₀
-  · exact hεs (by rw [Real.dist_0_eq_abs, abs_of_nonpos hs₀]; linarith) y hy
-  · -- For `s > 0`, `f` increases along the orbit.
-    calc a < f y := hya y hy
-      _ = f (hW.flow 0 y) := by rw [Flow.map_zero_apply]
-      _ ≤ f (hW.flow s y) :=
-        hW.isGradientLike.monotone_comp (hW.isMIntegralCurve_flow y) (fun _ ↦ hf _) hs₀.le
+  -- `a < f` on `g ⁻¹' {0}` and `f ∘ Φ` is continuous, so the bound holds for all small times,
+  -- uniformly on the compact level.
+  obtain ⟨ε, hε, h⟩ := (hW.isCompact_preimage_zero hg ha hgb).exists_pos_forall_norm_lt
+    (Q := fun s y ↦ a < f (hW.flow s y)) fun y hy ↦
+      (hW.isGeneralizedMorse.contMDiff.continuous.comp
+        (hW.flow.continuous continuous_fst continuous_snd)).continuousAt.eventually
+        (lt_mem_nhds (by
+          simpa only [Function.comp_apply, Flow.map_zero_apply] using
+            not_le.1 fun h ↦ (ha h : g y < 0).ne hy))
+  -- For later times, `f` increases along the orbit.
+  refine ⟨ε / 2, half_pos hε, fun y hy s hs ↦ (h ?_ y hy).trans_le (hW.monotone_comp_flow y hs)⟩
+  rw [norm_neg, Real.norm_of_nonneg (half_pos hε).le]
+  exact half_lt_self hε
 
 /-! ### Crossing times -/
 
@@ -211,7 +206,8 @@ theorem exists_forall_levelCrossingTime_mem_Ioc {a b : ℝ}
         (hW.isGeneralizedMorse.contMDiff.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
         (fun _ ↦ hfX _)) hft⟩
   obtain ⟨T, hT⟩ :=
-    (hW.isCompact_preimage_zero hg (subset_union_left.trans hK) hgb).bddAbove_image
+    (hW.isCompact_preimage_zero hg (subset_union_left.trans hK)
+      fun x hx ↦ (hgb x hx).le).bddAbove_image
     ((hW.contMDiffOn_levelCrossingTime_of_isRegularValue hb).continuousOn.mono fun x hx ↦
       (hcross x hx).elim fun t ht ↦ ⟨t, ht.2.1⟩)
   refine ⟨T, fun x hx ↦ ⟨?_, hT (mem_image_of_mem _ hx)⟩⟩
