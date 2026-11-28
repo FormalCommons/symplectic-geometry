@@ -15,7 +15,10 @@ Let `B` be a bilinear form on a module `M` over a commutative ring and `W` a sub
 complementary to its `B`-orthogonal. This file characterizes the projection onto `W` along the
 `B`-orthogonal of `W`: it sends `v` to the unique `w ∈ W` with `B u w = B u v` for all `u ∈ W`
 (`LinearMap.BilinForm.projection_orthogonal_eq_iff`). It also compares the orthogonals of `W`
-for two forms that agree on `W × W` (`LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`).
+for two forms: forms that agree on `W × M` have the same orthogonal of `W`
+(`LinearMap.BilinForm.orthogonal_eq_orthogonal_of_forall`), and for forms that agree on `W × W`
+the converse holds when `W` and its orthogonal span `M`
+(`LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`).
 -/
 
 public section
@@ -48,19 +51,23 @@ section CommSemiring
 
 variable {R M : Type*} [CommSemiring R] [AddCommMonoid M] [Module R M]
 
+/-- Two bilinear forms that agree on `W × M` have the same orthogonal of `W`. -/
+theorem orthogonal_eq_orthogonal_of_forall {B₁ B₂ : LinearMap.BilinForm R M} {W : Submodule R M}
+    (h : ∀ w ∈ W, ∀ v, B₁ w v = B₂ w v) : B₁.orthogonal W = B₂.orthogonal W := by
+  ext v
+  simp only [mem_orthogonal_iff]
+  exact forall₂_congr fun w hw ↦ by rw [h w hw v]
+
 /-- Two bilinear forms that agree on `W × W` have the same orthogonal of `W` exactly when they
 agree on `W × M`, provided `W` and its `B₁`-orthogonal span `M`. -/
 theorem orthogonal_eq_orthogonal_iff {B₁ B₂ : LinearMap.BilinForm R M} {W : Submodule R M}
     (hW : ∀ w ∈ W, ∀ w' ∈ W, B₁ w w' = B₂ w w') (hc : Codisjoint W (B₁.orthogonal W)) :
     B₁.orthogonal W = B₂.orthogonal W ↔ ∀ w ∈ W, ∀ v, B₁ w v = B₂ w v := by
-  refine ⟨fun h w hw v ↦ ?_, fun h ↦ ?_⟩
-  · obtain ⟨w', u, hw', hu, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hc v
-    have hu₂ : u ∈ B₂.orthogonal W := h ▸ hu
-    rw [map_add, map_add, (mem_orthogonal_iff.1 hu) w hw, (mem_orthogonal_iff.1 hu₂) w hw,
-      hW w hw w' hw']
-  · ext v
-    simp only [mem_orthogonal_iff]
-    exact forall₂_congr fun w hw ↦ by rw [h w hw v]
+  refine ⟨fun h w hw v ↦ ?_, orthogonal_eq_orthogonal_of_forall⟩
+  obtain ⟨w', u, hw', hu, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hc v
+  have hu₂ : u ∈ B₂.orthogonal W := h ▸ hu
+  rw [map_add, map_add, (mem_orthogonal_iff.1 hu) w hw, (mem_orthogonal_iff.1 hu₂) w hw,
+    hW w hw w' hw']
 
 end CommSemiring
 

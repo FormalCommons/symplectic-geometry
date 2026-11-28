@@ -55,9 +55,11 @@ are then `C^n` on that open set.
 * `TauCeti.isOpen_setOf_exists_flow_apply_eq`: the points whose orbits meet a level crossed
   upwards form an open set.
 * `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`,
-  `TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
+  `TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos`,
+  `TauCeti.contMDiffAt_flow_levelCrossingTime_of_mvfderiv_pos` and
   `TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`: for a `C^n` function, the crossing
-  time and the crossing point of a level crossed upwards are `C^n` on that open set.
+  time and the crossing point of a level crossed upwards are `C^n` at each point of that open
+  set, and on it.
 
 ## References
 
@@ -258,6 +260,18 @@ theorem contMDiffOn_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ
     ContMDiffOn I 𝓘(ℝ) n (Flow.levelCrossingTime Φ g c) {x | ∃ t, g (Φ t x) = c} := fun _ hx ↦
   (contMDiffAt_levelCrossingTime_of_mvfderiv_pos hn hv hcomplete hΦ hg hgv hx).contMDiffWithinAt
 
+/-- **The crossing point of an upward level is `C^n`.** Under the hypotheses of
+`TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`, the map
+`y ↦ Φ (Flow.levelCrossingTime Φ g c y) y`, which follows each orbit to the level `{g = c}`, is
+`C^n` at `x`. -/
+theorem contMDiffAt_flow_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ) n g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) (hx : ∃ t, g (Φ t x) = c) :
+    ContMDiffAt I I n (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) x := by
+  have h := contMDiffAt_flowOf_comp hn hv
+    (contMDiffAt_levelCrossingTime_of_mvfderiv_pos hn hv hcomplete hΦ hg hgv hx) contMDiffAt_id
+    (hcomplete.mem_flowDomain _ x)
+  rwa [hΦ] at h
+
 /-- **The crossing point of an upward level is `C^n` where the level is met.** Under the
 hypotheses of `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`, the map
 `y ↦ Φ (Flow.levelCrossingTime Φ g c y) y`, which follows each orbit to the level `{g = c}`, is
@@ -265,11 +279,8 @@ hypotheses of `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`, the map
 theorem contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ) n g)
     (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) :
     ContMDiffOn I I n (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y)
-      {x | ∃ t, g (Φ t x) = c} := fun x hx ↦ by
-  have h := contMDiffAt_flowOf_comp hn hv
-    (contMDiffAt_levelCrossingTime_of_mvfderiv_pos hn hv hcomplete hΦ hg hgv hx) contMDiffAt_id
-    (hcomplete.mem_flowDomain _ x)
-  rw [hΦ] at h
-  exact h.contMDiffWithinAt
+      {x | ∃ t, g (Φ t x) = c} := fun _ hx ↦
+  (contMDiffAt_flow_levelCrossingTime_of_mvfderiv_pos hn hv hcomplete hΦ hg hgv
+    hx).contMDiffWithinAt
 
 end TauCeti
