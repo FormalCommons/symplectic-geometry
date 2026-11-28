@@ -10,6 +10,7 @@ import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import Mathlib.MeasureTheory.Integral.Prod
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Analysis.Calculus.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -21,17 +22,20 @@ For each `s`, the slice `(t, θ) ↦ u (s, t, θ)` is a map of the plane, and Ta
 derivative of that integral in `s`.
 
 The pointwise step is the coordinate formula for the exterior derivative of the flat two-form
-`u^* τ` on `ℝ × ℝ × ℝ` (Mathlib's `extDeriv_apply`), read back on `M` through Tau Ceti's
-`TauCeti.mpullback_mextDeriv`: the partial derivative in `s` of `τ (∂ₜu, ∂_θu)` is
-`dτ (∂ₛu, ∂ₜu, ∂_θu) + ∂ₜ (τ (∂ₛu, ∂_θu)) - ∂_θ (τ (∂ₛu, ∂ₜu))`
+`u^* τ` on `ℝ × ℝ × ℝ` (Tau Ceti's `TauCeti.extDeriv_apply_triple`), read back on `M`
+through Tau Ceti's `TauCeti.mpullback_mextDeriv`: the partial derivative in `s` of
+`τ (∂ₜu, ∂_θu)` is `dτ (∂ₛu, ∂ₜu, ∂_θu) + ∂ₜ (τ (∂ₛu, ∂_θu)) - ∂_θ (τ (∂ₛu, ∂ₜu))`
 (`TauCeti.fderiv_mpullback_apply_eq_mextDeriv_add_sub`). Here `τ (∂ᵢu, ∂ⱼu)` is the pullback
 `u^* τ` evaluated on the coordinate vectors, and the partial derivatives are `fderiv` applied to
-coordinate vectors.
+coordinate vectors. Passing to the flat form `u^* τ` follows the opening of the proof of Tau
+Ceti's `TauCeti.rectangleIntegral_mextDeriv`.
 
 Integrating over the square, after differentiating under the integral sign
 (`intervalIntegral.hasDerivAt_integral_integral_of_contDiff`), the term in `t` integrates to the
 values on the boundary loops `t = 0` and `t = 1`, and, when `u` is `1`-periodic in `θ`, the term
-in `θ` integrates to zero (`TauCeti.hasDerivAt_rectangleIntegral_slice`). This extends Tau Ceti's
+in `θ` integrates to zero (`TauCeti.hasDerivAt_rectangleIntegral_slice`), by the invariance of
+the pullback under the period, as in the proof of Tau Ceti's
+`TauCeti.rectangleIntegral_comp_add_snd_of_periodic`. This extends Tau Ceti's
 `TauCeti.hasDerivAt_rectangleIntegral_comp_prodMap_affine`, which differentiates the integral over
 a family of rectangles in two parameters, to a third parameter.
 
@@ -57,16 +61,6 @@ namespace TauCeti
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- If a differentiable map `u` of a normed space satisfies `u (w + c) = u w` for every `w`, the
-pullback `u^* φ` of any form is invariant under translation by `c`. -/
-theorem mpullback_add_of_forall_add_eq {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-    {k : ℕ} {u : E' → M} (hu : MDifferentiable 𝓘(ℝ, E') I u) {c : E'} (hc : ∀ w, u (w + c) = u w)
-    (φ : RoughForm I M F k) (y : E') :
-    mpullback 𝓘(ℝ, E') I u φ (y + c) = mpullback 𝓘(ℝ, E') I u φ y := by
-  have h := mpullback_comp_add_right (hu (y + c)) φ
-  rw [funext hc] at h
-  exact h.symm
 
 /-- The integral of a two-form over the slice `(t, θ) ↦ u (s, t, θ)` of a differentiable map
 `u : ℝ × ℝ × ℝ → M` is the iterated integral of the pullback `u^* φ` on the coordinate vectors of
@@ -99,9 +93,6 @@ theorem fderiv_mpullback_apply_eq_mextDeriv_add_sub {τ : RoughForm I M F 2}
           (0, 0, 1) := by
   have hψ : ContDiff ℝ 1 (mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ) :=
     isSmoothForm_modelSpace_iff.mp (hτ.mpullback (by simpa [one_add_one_eq_two] using hu))
-  have hrm (i : Fin 3) (a : Fin 2 → ℝ × ℝ × ℝ) (h : ∀ j, Fin.removeNth i
-      ![((1 : ℝ), (0 : ℝ), (0 : ℝ)), (0, 1, 0), (0, 0, 1)] j = a j) : Fin.removeNth i
-      ![((1 : ℝ), (0 : ℝ), (0 : ℝ)), (0, 1, 0), (0, 0, 1)] = a := funext h
   have hd : extDeriv (mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ) x
       ![((1 : ℝ), (0 : ℝ), (0 : ℝ)), (0, 1, 0), (0, 0, 1)] =
       fderiv ℝ (fun y ↦ mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ y ![(0, 1, 0), (0, 0, 1)]) x (1, 0, 0) -
@@ -109,13 +100,12 @@ theorem fderiv_mpullback_apply_eq_mextDeriv_add_sub {τ : RoughForm I M F 2}
           (0, 1, 0) +
         fderiv ℝ (fun y ↦ mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ y ![(1, 0, 0), (0, 1, 0)]) x
           (0, 0, 1) := by
-    rw [extDeriv_apply (hψ.differentiable one_ne_zero x), Fin.sum_univ_three,
-      hrm 0 ![(0, 1, 0), (0, 0, 1)] (by intro j; fin_cases j <;> rfl),
-      hrm 1 ![(1, 0, 0), (0, 0, 1)] (by intro j; fin_cases j <;> rfl),
-      hrm 2 ![(1, 0, 0), (0, 1, 0)] (by intro j; fin_cases j <;> rfl)]
-    simp only [Fin.val_zero, Fin.val_one, Fin.val_two, pow_zero, pow_one, neg_one_sq, one_smul,
-      neg_smul]
-    abel
+    refine (extDeriv_apply_triple x _ _ _).trans ?_
+    rw [← fderiv_continuousAlternatingMap_apply_const_apply (hψ.differentiable one_ne_zero x),
+      ← fderiv_continuousAlternatingMap_apply_const_apply (hψ.differentiable one_ne_zero x),
+      ← fderiv_continuousAlternatingMap_apply_const_apply (hψ.differentiable one_ne_zero x)]
+    -- The two sides differ only in how the vector literals were elaborated.
+    rfl
   rw [mpullback_mextDeriv hu ((isSmoothBundleForm_def _ _).mpr hτ.contMDiff),
     mextDeriv_eq_extDeriv]
   -- `hd` is stated on vectors of `ℝ × ℝ × ℝ`, the goal on the same vectors as tangent vectors.
@@ -163,15 +153,9 @@ theorem hasDerivAt_rectangleIntegral_slice [CompleteSpace F] {τ : RoughForm I M
       D x + fderiv ℝ (fun y ↦ ψ y ![(1, 0, 0), (0, 0, 1)]) x (0, 1, 0) -
         fderiv ℝ (fun y ↦ ψ y ![(1, 0, 0), (0, 1, 0)]) x (0, 0, 1) :=
     fderiv_mpullback_apply_eq_mextDeriv_add_sub hτ hu x
-  have hD : Continuous D := by
-    have h : D = fun x ↦ fderiv ℝ (fun y ↦ ψ y ![(0, 1, 0), (0, 0, 1)]) x (1, 0, 0) -
-        fderiv ℝ (fun y ↦ ψ y ![(1, 0, 0), (0, 0, 1)]) x (0, 1, 0) +
-        fderiv ℝ (fun y ↦ ψ y ![(1, 0, 0), (0, 1, 0)]) x (0, 0, 1) := by
-      funext x
-      rw [hform]
-      abel
-    rw [h]
-    exact ((hgd _ _).sub (hgd _ _)).add (hgd _ _)
+  have hD : Continuous D :=
+    (isSmoothForm_mextDeriv hτ (by norm_num)).continuous_mpullback_apply
+      (hu.of_le one_le_two) ![(1, 0, 0), (0, 1, 0), (0, 0, 1)]
   have hint {f : ℝ × ℝ × ℝ → F} (hf : Continuous f) (t : ℝ) :
       IntervalIntegrable (fun θ ↦ f (s₀, t, θ)) volume 0 1 :=
     (hf.comp (by fun_prop)).intervalIntegrable _ _
