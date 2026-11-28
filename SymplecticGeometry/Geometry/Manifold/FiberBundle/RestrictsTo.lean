@@ -62,6 +62,8 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   vectors.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.mpullback_fiberInclusionMap_eq`: along a smooth atlas, the
   smooth pull-back of a form that restricts to `σ` along each fibre inclusion is `σ`.
+* `TauCeti.MapFiber.Atlas.RestrictsTo.apply_eq`: two forms that restrict to the same `σ` along a
+  smooth atlas agree on tuples of vertical vectors.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.mextDeriv_apply_eq_zero`: a form that restricts to a closed
   form along a smooth atlas has exterior derivative zero on tuples of vertical vectors.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.isClosed`: a form on `F` to which a closed form restricts
@@ -317,6 +319,17 @@ theorem RestrictsTo.mpullback_fiberInclusionMap_eq (hA : A.IsContMDiff ∞ IB IF
     SmoothForm.mpullback _
       ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') τ = σ :=
   (SmoothForm.mpullback_eq_iff _).2 (restrictsTo_iff.1 hτ b b' hb')
+
+/-- **Forms with the same restriction agree on vertical vectors.** If two forms `τ` and `τ'`
+restrict to the same form `σ` along a smooth atlas, then at every point they take the same value
+on every tuple of vertical vectors. -/
+theorem RestrictsTo.apply_eq (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ)
+    {τ' : SmoothForm IM M ℝ k} (hτ' : A.RestrictsTo σ τ') {x : M}
+    {u : Fin k → TangentSpace IM x} (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) :
+    τ.val x u = τ'.val x u :=
+  (A.trivAt (proj x)).apply_eq_of_mpullback_fiberInclusionMap_eq
+    (hA.mdifferentiable_trivAt (by simp) _) (A.mem_baseSet_trivAt (proj x))
+    ((restrictsTo_iff.1 hτ _ _ _).trans (restrictsTo_iff.1 hτ' _ _ _).symm) hu
 
 /-- **Forms restricting to a closed form are closed on vertical vectors.** If `τ` restricts to a
 closed form `σ` along a smooth atlas, then at every point the exterior derivative of `τ` vanishes

@@ -185,13 +185,19 @@ theorem isConnectionForm_mapCoeff_iff :
         (contMDiff_const_smul (op z)) (SmoothForm.mapCoeff
           (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
             circleLieGenerator) α) =
-        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL (𝓡 1) z⁻¹) (SmoothForm.mapCoeff
+        SmoothForm.mapCoeff (F := EuclideanSpace ℝ (Fin 1)) (G := EuclideanSpace ℝ (Fin 1))
+          (adjointContinuousLinearMap (I := 𝓡 1) z⁻¹) (SmoothForm.mapCoeff
           (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
             circleLieGenerator) α)) ↔
       SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
         (contMDiff_const_smul (op z)) α = α := by
-    rw [SmoothForm.mpullback_mapCoeff, GroupLieAlgebra.adjointL_eq_id, SmoothForm.mapCoeff_id,
-      LinearMap.id_apply, hinj.eq_iff]
+    -- Tau Ceti states the triviality of `Ad` as the identity of `GroupLieAlgebra (𝓡 1) Circle`; the
+    -- `show` reads it as the identity of the model space.
+    rw [SmoothForm.mpullback_mapCoeff, show (adjointContinuousLinearMap (I := 𝓡 1) z⁻¹ :
+        EuclideanSpace ℝ (Fin 1) →L[ℝ] EuclideanSpace ℝ (Fin 1)) =
+        ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin 1)) from
+          adjointContinuousLinearMap_eq_id z⁻¹,
+      SmoothForm.mapCoeff_id, LinearMap.id_apply, hinj.eq_iff]
   have hval (x : ManifoldTotalSpace Circle P) (ξ : GroupLieAlgebra (𝓡 1) Circle) :
       (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ
           (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator) α).val x
@@ -310,20 +316,12 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
   -- The difference `β - α` is invariant and vanishes on vertical vectors, so it is basic.
   have hbasic := PrincipalBundle.isBasic_of_mpullback_op_smul (n := ∞) (β := β - α)
     (fun z ↦ by rw [map_sub, hα.mpullback_op_smul, hβ.mpullback_op_smul])
-    (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ by
-      set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
-      obtain rfl : j = 0 := Subsingleton.elim _ _
-      obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+    (RoughForm.isSemibasic_iff_of_degree_one.mpr fun x v hv ↦ by
+      obtain ⟨c, rfl⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
         circleLieGenerator_ne_zero hv
-      have hv0 : v = ![0 + c • ξ] := by
-        funext i
-        fin_cases i
-        exact hc.trans (zero_add _).symm
-      rw [hv0, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
-        ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
-        SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
-        hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
-        smul_zero, add_zero])
+      rw [ContinuousAlternatingMap.vecCons_smul, SmoothBundleForm.sub_apply,
+        ContinuousAlternatingMap.sub_apply, hα.apply_rightFundamentalVectorField,
+        hβ.apply_rightFundamentalVectorField, sub_self, smul_zero])
   refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
     fun a' ha' ↦ SmoothForm.eq_descendedForm_iff.mpr ?_⟩
   · beta_reduce

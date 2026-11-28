@@ -58,7 +58,7 @@ with `LinearMap.inl` and `LinearMap.inr`. The fibre map is `K`-equivariant becau
   and is onto.
 * `SymplecticGeometry.LocalModelData.bijective_mkTangentMap_comp_linearModelMap`:
   `x ↦ dπ_(1, 0, 0) (linearModelMap x)` is bijective.
-* `SymplecticGeometry.LocalModelData.eval₂_descendedForm_linearModelEquiv`: through
+* `SymplecticGeometry.LocalModelData.eval₂_balancedProductInducedForm_linearModelEquiv`: through
   `linearModelEquiv`, the descended form at `[1, 0]` is the form of the linear normal form model.
 * `SymplecticGeometry.LocalModelData.tangentRepresentationOneZero_mkTangentMap`: `d(k • ·)_[1, 0]`
   sends `dπ_(1, 0, 0) (ξ, p)` to `dπ_(1, 0, 0) (Ad_k ξ, k • p)`.
@@ -193,7 +193,8 @@ theorem linearModelEquiv_apply (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.�
 descended form `ω` of the local model at `[1, 0]` is the form of the linear normal form model
 `(𝔪 × 𝔪*) × (𝔮 × V)`: the sum of the canonical form of `𝔪 × 𝔪*`, the Kirillov form of `τ` on
 `𝔮` and `σ`. -/
-theorem eval₂_descendedForm_linearModelEquiv (x₁ x₂ : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
+theorem eval₂_balancedProductInducedForm_linearModelEquiv
+    (x₁ x₂ : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F

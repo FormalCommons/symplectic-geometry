@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.Radial.Basic
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow.Basic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Volume
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import Mathlib.Data.Fin.Tuple.Reflection
 
 /-!
 # The one-form of a family of weights on the standard model
@@ -124,10 +125,7 @@ theorem weightOneForm_apply (k : ι → ℝ) (z : StdSpace ι)
 theorem weightOneForm_const (c : ℝ) :
     weightOneForm (fun _ : ι ↦ c) = (2 * c) • (stdForm ι).radialPrimitive := by
   refine SmoothBundleForm.ext fun z v ↦ ?_
-  have hv : v = ![v 0] := by
-    funext i
-    fin_cases i
-    rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq v).symm
   rw [weightOneForm_apply, SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
     hv, SymplecticForm.radialPrimitive_apply]
   -- Tangent vectors at `z` are points of `StdSpace ι`, where `stdForm_apply` is stated.

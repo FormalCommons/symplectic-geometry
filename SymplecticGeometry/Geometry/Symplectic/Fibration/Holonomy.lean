@@ -39,7 +39,7 @@ Read in a chart `e` at `x`, their holonomies form a diffeotopy of the model fibr
 (`TauCeti.IsEhresmannConnection.holonomyDiffeotopy`), built with the library's
 `TauCeti.Diffeotopy.ofContMDiff`: it starts at the identity since transport along a constant
 curve is trivial, and it is jointly smooth because transport depends smoothly on a family of
-curves (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`). It ends at the
+curves (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportIn_param`). It ends at the
 holonomy of the boundary loop of the disc, and for a symplectic connection all its slices
 preserve `σ`.
 
@@ -338,29 +338,12 @@ theorem contMDiff_parallelTransportIn_isSmoothDisc
     (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) :
     ContMDiff ((𝓡∂ 1).prod IF) IF ∞
       fun p : unitInterval × F ↦ hD.parallelTransportIn e e (fun t ↦ Δ (p.1, t)) 0 1 p.2 := by
-  have hf' : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hf.of_le (by simp)
   have hΔc : ContMDiff (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)) IB ((⊤ : ℕ∞) + 1) Δ :=
     contMDiff_prod_modelWithCornersSelf_iff.2 (hΔ.contMDiff.of_le (by simp))
-  have hT := hD.contMDiffOn_parallelTransport_param le_top hf' hfp isOpen_univ
-    hΔc.contMDiffOn 0 1
-  -- The point of the fibre over the centre with coordinate `v`, at the parameter `s`.
-  have hg : ContMDiff ((𝓡∂ 1).prod IF) (𝓘(ℝ, ℝ).prod IM) ∞
-      fun p : unitInterval × F ↦ ((p.1 : ℝ), e.fiberInclusionMap hx p.2) :=
-    (contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk
-      ((e.contMDiff_fiberInclusionMap he_symm hx).comp contMDiff_snd)
-  have h₁ := hT.comp_contMDiff hg fun p ↦
-    ⟨mem_univ _, (e.proj_fiberInclusionMap hx p.2).trans (hΔ.apply_seam p.1).symm⟩
-  have h₂ := he.comp_contMDiff h₁ fun p ↦ by
-    refine e.mem_source.2 ?_
-    have hy := hD.parallelTransport_mem_preimage le_top hf' hfp
-      ((hΔ.contMDiff_slice p.1).of_le (by simp))
-      (x := e.fiberInclusionMap hx p.2)
-      ((e.proj_fiberInclusionMap hx p.2).trans (hΔ.apply_seam p.1).symm) 1
-    rw [mem_preimage, mem_singleton_iff] at hy
-    rw [comp_apply, hy]
-    exact (hΔ.apply_seam_one p.1).symm ▸ hx
-  refine (contMDiff_snd.comp h₂).congr fun p ↦ ?_
-  simp only [comp_apply, parallelTransportIn_def, hΔ.apply_seam p.1, e.fiberInclusionMap_apply]
+  have hT := hD.contMDiffOn_parallelTransportIn_param le_top (hf.of_le (by simp)) hfp
+    isOpen_univ hΔc.contMDiffOn he_symm he 0 1
+  exact hT.comp_contMDiff ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd)
+    fun p ↦ ⟨mem_univ _, (hΔ.apply_seam p.1).symm ▸ hx, (hΔ.apply_seam_one p.1).symm ▸ hx⟩
 
 /-- **The holonomy diffeotopy of a smooth disc.** Let `D` be a smooth Ehresmann connection on a
 proper smooth map `proj`, `Δ` a smooth disc bounding a loop `γ` at `x`, and `e` a trivialization

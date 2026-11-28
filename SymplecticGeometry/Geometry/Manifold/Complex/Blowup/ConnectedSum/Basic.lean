@@ -302,7 +302,7 @@ theorem isOrientationPreservingAt_connectedSumBall
   rw [complexManifoldOrientationOfFinrank_def, complexManifoldOrientationOfFinrank_def,
     connectedSumBall_def]
   exact ((univBall_apply_zero (0 : EuclideanSpace ℂ (Fin (n + 1))) c.ballRadius ▸
-    hφ.reindex _).comp (isOrientationPreservingAt_univBall c.ballRadius_pos _))
+    hφ.reindex _).comp (isOrientationPreservingAt_univBall_zero c.ballRadius_pos _))
 
 end BlowupChart
 

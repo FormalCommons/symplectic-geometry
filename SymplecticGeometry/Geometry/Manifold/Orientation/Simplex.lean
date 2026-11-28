@@ -19,8 +19,8 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
+import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import TauCeti.Geometry.Manifold.Orientation.Chart
-import TauCeti.Topology.Algebra.Module.Determinant
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -35,6 +35,9 @@ preserving from the standard orientation of `ℝᵖ`
 The map is the inverse of an oriented chart at `x`, from Tau Ceti's
 `TauCeti.Manifold.Orientation.exists_partialDiffeomorph_isOrientationPreservingAt`, composed with
 a homothety of positive ratio that moves a small copy of `Δᵖ` into the chart's target.
+Both constructions below use such a homothety `y ↦ q + c • (y - p)`, `0 < c`, which is an open
+embedding (`isOpenEmbedding_add_smul_sub`) and preserves orientation at every point
+(`TauCeti.Manifold.Orientation.isOrientationPreservingAt_add_smul_sub`).
 
 For `0 < b` and `a < b` there is also a single smooth open embedding `g : ℝᵖ → ℝᵖ`, orientation
 preserving everywhere, with image in the open ball of radius `b` and with `g (interior Δᵖ)`
@@ -44,7 +47,7 @@ For `p = 2` no affine map does this when `b ≤ 2a`: a triangle in the ball of r
 inradius at most `b / 2`. So `g` is Mathlib's diffeomorphism `OpenPartialHomeomorph.univBall 0 b`
 of `ℝᵖ` onto that ball, after a homothety that blows a ball inside `interior Δᵖ` up past the
 compact preimage of the closed ball of radius `a`; it preserves orientation everywhere
-(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`). Read in `ℂ` through
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`). Read in `ℂ` through
 `Complex.orthonormalBasisOneI.repr.symm`, it gives a smooth `2`-simplex of `ℂ`, positively
 oriented for the complex orientation, whose faces avoid the closed disc of radius `a`
 (`TauCeti.Manifold.Orientation.exists_smoothSimplex_complex_closedBall_subset_image`).
@@ -99,25 +102,19 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex
     rw [Metric.mem_ball, dist_eq_norm] at hy
     calc ε * ‖y - p₀‖ < ε * R := by gcongr
       _ = r := div_mul_cancel₀ r hR.ne'
-  have hAd (y : EuclideanSpace ℝ (Fin p)) :
-      HasFDerivAt A (ε • ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin p))) y :=
-    (((hasFDerivAt_id y).sub_const p₀).const_smul ε).const_add (φ x)
-  let T : EuclideanSpace ℝ (Fin p) ≃ₜ EuclideanSpace ℝ (Fin p) := (Homeomorph.subRight p₀).trans
-    ((Homeomorph.smulOfNeZero ε hε.ne').trans (Homeomorph.addLeft (φ x)))
   refine ⟨⟨Metric.ball p₀ R, Metric.isOpen_ball⟩, φ.symm ∘ A, hsub, fun y hy ↦ ?_, ?_,
     fun y hy ↦ ?_, ⟨p₀, hp₀, by simpa [A] using φ.left_inv hxφ⟩⟩
   · exact ((φ.symm.contMDiffAt (hA y hy)).comp y
       (contDiff_const.add
         ((contDiff_id.sub contDiff_const).const_smul ε)).contMDiff.contMDiffAt).contMDiffWithinAt
-  · -- On the ball, `φ.symm ∘ A` is the inverse of `φ` after the affine homeomorphism `T`.
+  · -- On the ball, `φ.symm ∘ A` is the inverse of `φ` after the affine open embedding `A`.
     refine φ.symm.toOpenPartialHomeomorph.isOpenEmbedding_comp
-      (g := T ∘ ((↑) : Metric.ball p₀ R → _))
-      (T.isOpenEmbedding.comp Metric.isOpen_ball.isOpenEmbedding_subtypeVal) ?_
+      (g := A ∘ ((↑) : Metric.ball p₀ R → _))
+      ((isOpenEmbedding_add_smul_sub hε.ne' (φ x) p₀).comp
+        Metric.isOpen_ball.isOpenEmbedding_subtypeVal) ?_
     rintro _ ⟨y, rfl⟩
     exact hA y y.prop
-  · refine (hsymm _ (hA y hy)).comp (isOrientationPreservingAt_of_det_fderiv_pos _ ?_)
-    rw [(hAd y).fderiv, ContinuousLinearMap.det_smul, ContinuousLinearMap.det_id, mul_one]
-    positivity
+  · exact (hsymm _ (hA y hy)).comp (isOrientationPreservingAt_add_smul_sub _ hε (φ x) p₀ y)
 
 end TauCeti.Manifold.Orientation
 
@@ -150,18 +147,11 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex_ball {p : �
   set c := R / δ
   have hc : 0 < c := div_pos hR hδ
   set A : EuclideanSpace ℝ (Fin p) → EuclideanSpace ℝ (Fin p) := fun y ↦ c • (y - p₀) with hAdef
-  have hAd (y : EuclideanSpace ℝ (Fin p)) :
-      HasFDerivAt A (c • ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin p))) y :=
-    ((hasFDerivAt_id y).sub_const p₀).const_smul c
-  let T : EuclideanSpace ℝ (Fin p) ≃ₜ EuclideanSpace ℝ (Fin p) :=
-    (Homeomorph.subRight p₀).trans (Homeomorph.smulOfNeZero c hc.ne')
   refine ⟨F ∘ A, OpenPartialHomeomorph.contDiff_univBall.comp
       ((contDiff_id.sub contDiff_const).const_smul c),
-    (F.isOpenEmbedding hFs).comp T.isOpenEmbedding, fun y ↦
-      (OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos hb _ (A y)).comp ?_, ?_, ?_⟩
-  · refine isOrientationPreservingAt_of_det_fderiv_pos _ ?_
-    rw [(hAd y).fderiv, ContinuousLinearMap.det_smul, ContinuousLinearMap.det_id, mul_one]
-    positivity
+    (F.isOpenEmbedding hFs).comp (by simpa using isOpenEmbedding_add_smul_sub hc.ne' 0 p₀),
+    fun y ↦ (OpenPartialHomeomorph.isOrientationPreservingAt_univBall hb _ (A y)).comp
+      (by simpa using isOrientationPreservingAt_add_smul_sub _ hc 0 p₀ y), ?_, ?_⟩
   · intro w hw
     have hz : F.symm w ∈ ball (0 : EuclideanSpace ℝ (Fin p)) R := hKR ⟨w, hw, rfl⟩
     refine ⟨p₀ + c⁻¹ • F.symm w, hball ?_, ?_⟩

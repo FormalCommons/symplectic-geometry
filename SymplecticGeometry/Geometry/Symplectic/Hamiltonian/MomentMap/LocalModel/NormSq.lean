@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 public import SymplecticGeometry.LinearAlgebra.Dual.PolynomialFunctions
 
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Induced.BalancedProduct
+
 /-!
 # The norm square of the local model's moment map
 
@@ -30,8 +32,8 @@ coordinates `(η, v)`.
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.dualForm_descendedMomentMap_mk`: for `Ad`-invariant `B`,
-  `B^∨ (μ_Y [g, p]) (μ_Y [g, p]) = B^∨ (ν p) (ν p)`.
+* `SymplecticGeometry.LocalModelData.dualForm_balancedProductInducedMomentMap_mk`: for
+  `Ad`-invariant `B`, `B^∨ (μ_Y [g, p]) (μ_Y [g, p]) = B^∨ (ν p) (ν p)`.
 * `SymplecticGeometry.LocalModelData.dualForm_covector_mem_polynomialFunctions`: the function
   `p ↦ B^∨ (ν p) (ν p)` lies in `Module.polynomialFunctions ℝ (A × V)`.
 * `SymplecticGeometry.LocalModelData.exists_mvPolynomial_eval_eq_dualForm_covector`:
@@ -73,7 +75,7 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
 /-- For an `Ad`-invariant nondegenerate form `B` on `𝔤`, the norm square of the moment map of
 the local model at `[g, p]` is that of the covector `D.covector p`:
 `B^∨ (μ_Y [g, p]) (μ_Y [g, p]) = B^∨ (ν p) (ν p)`, with `B^∨ = B.dualForm hB`. -/
-theorem dualForm_descendedMomentMap_mk
+theorem dualForm_balancedProductInducedMomentMap_mk
     (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (g : G) (p : A × V) :
     letI := D.fiberDistribMulAction
     B.dualForm hB
@@ -84,7 +86,8 @@ theorem dualForm_descendedMomentMap_mk
       B.dualForm hB (D.covector p) (D.covector p) := by
   let := D.fiberDistribMulAction
   have h := momentNormSq_smul (ρ := adjointRepresentation ℝ I G)
-    (by simpa only [coadjointRepresentation_def] using D.balancedProductInducedMomentMap_smul)
+    (by simpa only [coadjointRepresentation_def] using
+      balancedProductInducedMomentMap_smul D.covectorCLM_smul)
     (hBG.toDual_symm_dual_apply hB) g (BalancedProduct.mk K (K.toRightTranslation 1) p)
   rw [BalancedProduct.smul_mk_toRightTranslation, mul_one,
     momentNormSq_toDual_symm_eq_dualForm, momentNormSq_toDual_symm_eq_dualForm,
@@ -128,8 +131,8 @@ theorem dualForm_covector_mem_polynomialFunctions :
 /-- For a nondegenerate form `B` on `𝔤` and any finite basis `b` of `A × V`, there is a real
 polynomial `P` in the coordinates of `b` with `P (b.equivFun p) = B^∨ (ν p) (ν p)` for every
 `p`, where `ν = D.covector` and `B^∨ = B.dualForm hB`. With
-`SymplecticGeometry.LocalModelData.dualForm_descendedMomentMap_mk`, the norm square of the moment
-map of the local model is this polynomial in the fibre coordinates. -/
+`SymplecticGeometry.LocalModelData.dualForm_balancedProductInducedMomentMap_mk`, the norm square
+of the moment map of the local model is this polynomial in the fibre coordinates. -/
 theorem exists_mvPolynomial_eval_eq_dualForm_covector {ι : Type*} [Finite ι]
     (b : Module.Basis ι ℝ (A × V)) :
     ∃ P : MvPolynomial ι ℝ, ∀ p, MvPolynomial.eval (b.equivFun p) P =

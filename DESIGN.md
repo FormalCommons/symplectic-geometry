@@ -2491,14 +2491,15 @@ complete target and a function on the whole half-space.
 ### 22. Almost complex manifolds
 
 - **Files:** `Geometry/Symplectic/Manifold/AlmostComplex/Contractible.lean`
-  (the case $E=TM$ of part 12's
+  (for compatible structures, the case $E=TM$ of part 12's
   `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`: through
   `tangentEquiv`, `tangentHomeomorph` and `compatible_tangentEquiv_iff`, the
-  subtypes of compatible and of taming structures of
-  `TauCeti.SmoothAlmostComplexStructure I M` for a nondegenerate `ω` are
-  contractible in Tau Ceti's `frameTopology`; the spaces of compatible and
-  of taming forms for a fixed structure, and the homotopy equivalence
-  $\omega\mapsto J_{g,\omega}$, are stated on part 12's
+  subtype of compatible structures of
+  `TauCeti.SmoothAlmostComplexStructure I M` for a nondegenerate `ω` is
+  contractible in Tau Ceti's `frameTopology`, and the subtype of taming
+  structures is, by the contraction along Tau Ceti's Cayley path; the
+  spaces of compatible and of taming forms for a fixed structure, and the
+  homotopy equivalence $\omega\mapsto J_{g,\omega}$, are stated on part 12's
   `Bundle.ContMDiffTwoForm I ⊤ EB (TangentSpace I)` with its frame topology,
   since Tau Ceti puts no topology on `SmoothTwoForm`; and the two
   consequences: $M$ has an almost complex structure exactly when it has a
@@ -3176,8 +3177,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $\tfrac12\|\mu\|^2$ and its convergence, through a Łojasiewicz inequality,
   and the three stability conditions with their characterizations)
   and `HilbertMumford.lean` (the weights $w_\mu(p,\xi)$ for $\xi\in\Lambda$,
-  the limits $p^+_\xi$, the moment-weight inequality and the numerical
-  criteria); the Łojasiewicz inequality's files are those of
+  the limits $p^+_\xi$, the moment-weight inequality and the semistable
+  criterion, the polystable and stable criteria being in `KempfNess/`);
+  the Łojasiewicz inequality's files are those of
   `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
   products

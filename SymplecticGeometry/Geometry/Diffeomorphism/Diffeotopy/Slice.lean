@@ -17,14 +17,22 @@ diffeomorphism of `M` (`TauCeti.Diffeotopy.slice`), the slice at `q` of the time
 (`TauCeti.Diffeotopy.contMDiff_slice`) that is the identity at time `0`
 (`TauCeti.Diffeotopy.slice_zero`).
 
+Reading the parameter through a smooth map `π : S → N` gives a diffeotopy of `S × M` that keeps
+the parameter, whose slice at `q` is the slice of `Φ` at `π q`
+(`TauCeti.Diffeotopy.pullbackParam`, `TauCeti.Diffeotopy.slice_pullbackParam`).
+
 ## Main definitions
 
 * `TauCeti.Diffeotopy.slice Φ hΦ q t`: the diffeomorphism `x ↦ (Φ (t, (q, x))).2` of `M`.
+* `TauCeti.Diffeotopy.pullbackParam Φ hΦ hπ`: the diffeotopy
+  `(t, (q, x)) ↦ (q, (Φ (t, (π q, x))).2)` of `S × M`, for a smooth map `π : S → N`.
 
 ## Main results
 
 * `TauCeti.Diffeotopy.contMDiff_slice`: the family `((q, t), x) ↦ Φ.slice hΦ q t x` is smooth.
 * `TauCeti.Diffeotopy.slice_zero`: the slices at time `0` are the identity.
+* `TauCeti.Diffeotopy.slice_pullbackParam`: the slice at `q` of the pullback along `π` is the
+  slice of `Φ` at `π q`.
 -/
 
 public noncomputable section
@@ -86,6 +94,73 @@ theorem contMDiff_slice :
     (contMDiff_fst.fst.prodMk contMDiff_snd)))
 
 end slice
+
+/-! ### Pulling back along a map of parameter spaces -/
+
+section pullbackParam
+
+variable {E'' H'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E''] [TopologicalSpace H'']
+  {K : ModelWithCorners ℝ E'' H''} {S : Type*} [TopologicalSpace S] [ChartedSpace H'' S]
+  (Φ : Diffeotopy (J.prod J') n (N × M)) (hΦ : ∀ t p, (Φ (t, p)).1 = p.1)
+  {π : S → N} (hπ : ContMDiff K J n π)
+
+/-- The pullback of a diffeotopy `Φ` of `N × M` that keeps the parameter along a smooth map
+`π : S → N` of parameter spaces: the diffeotopy `(t, (q, x)) ↦ (q, (Φ (t, (π q, x))).2)` of
+`S × M`. -/
+def pullbackParam : Diffeotopy (K.prod J') n (S × M) where
+  toDiffeomorph :=
+    { toFun := fun p ↦ (p.1, (p.2.1, Φ.slice hΦ (π p.2.1) p.1 p.2.2))
+      invFun := fun p ↦ (p.1, (p.2.1, (Φ.slice hΦ (π p.2.1) p.1).symm p.2.2))
+      left_inv := fun p ↦ by simp only [Diffeomorph.symm_apply_apply]
+      right_inv := fun p ↦ by simp only [Diffeomorph.apply_symm_apply]
+      contMDiff_toFun := by
+        simp only [slice_apply]
+        exact contMDiff_fst.prodMk (contMDiff_snd.fst.prodMk (contMDiff_snd.comp
+          (Φ.contMDiff.comp (contMDiff_fst.prodMk
+            ((hπ.comp contMDiff_snd.fst).prodMk contMDiff_snd.snd)))))
+      contMDiff_invFun := by
+        simp only [symm_slice_apply]
+        exact contMDiff_fst.prodMk (contMDiff_snd.fst.prodMk (contMDiff_snd.comp
+          (Φ.symm.contMDiff.comp (contMDiff_fst.prodMk
+            ((hπ.comp contMDiff_snd.fst).prodMk contMDiff_snd.snd))))) }
+  fst_apply _ := rfl
+  snd_apply_zero' p := Prod.ext rfl (DFunLike.congr_fun (Φ.slice_zero hΦ (π p.1)) p.2)
+
+/-- The pullback `Φ.pullbackParam hΦ hπ` sends `(t, (q, x))` to `(q, (Φ (t, (π q, x))).2)`. -/
+@[simp]
+theorem pullbackParam_apply (p : unitInterval × S × M) :
+    Φ.pullbackParam hΦ hπ p = (p.2.1, (Φ (p.1, (π p.2.1, p.2.2))).2) := by
+  rw [coe_apply]
+  exact congrArg (Prod.mk p.2.1) (Φ.slice_apply hΦ (π p.2.1) p.1 p.2.2)
+
+/-- The pullback `Φ.pullbackParam hΦ hπ` keeps the parameter in `S`. -/
+theorem fst_pullbackParam_apply (t : unitInterval) (p : S × M) :
+    (Φ.pullbackParam hΦ hπ (t, p)).1 = p.1 := by
+  rw [pullbackParam_apply]
+
+/-- The inverse of the level-preserving diffeomorphism of `Φ.pullbackParam hΦ hπ` sends
+`(t, (q, y))` to `(t, (q, y'))`, where `y'` is the image of `y` under the inverse of the slice of
+`Φ` at `π q` and time `t`. -/
+@[simp]
+theorem toDiffeomorph_symm_pullbackParam_apply (p : unitInterval × S × M) :
+    (Φ.pullbackParam hΦ hπ).toDiffeomorph.symm p =
+      (p.1, p.2.1, (Φ.slice hΦ (π p.2.1) p.1).symm p.2.2) :=
+  (rfl)
+
+/-- The inverse of the pullback `Φ.pullbackParam hΦ hπ` sends `(t, (q, y))` to
+`(q, (Φ.symm (t, (π q, y))).2)`. `simp` proves it through `symm_apply`,
+`toDiffeomorph_symm_pullbackParam_apply` and `symm_slice_apply`. -/
+theorem symm_pullbackParam_apply (p : unitInterval × S × M) :
+    (Φ.pullbackParam hΦ hπ).symm p = (p.2.1, (Φ.symm (p.1, (π p.2.1, p.2.2))).2) := by
+  rw [symm_apply, toDiffeomorph_symm_pullbackParam_apply, symm_slice_apply]
+
+/-- The slice at `q` of the pullback `Φ.pullbackParam hΦ hπ` is the slice of `Φ` at `π q`. -/
+@[simp]
+theorem slice_pullbackParam (q : S) (t : unitInterval) :
+    (Φ.pullbackParam hΦ hπ).slice (Φ.fst_pullbackParam_apply hΦ hπ) q t = Φ.slice hΦ (π q) t :=
+  Diffeomorph.ext fun x ↦ by rw [slice_apply, slice_apply, pullbackParam_apply]
+
+end pullbackParam
 
 end TauCeti.Diffeotopy
 
