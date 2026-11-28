@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Connection
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Analysis.Complex.Circle
-import Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.InnerProductSpace.Calculus
 
@@ -22,7 +22,9 @@ disc. Such a loop is smooth and `1`-periodic, and it is the boundary of a smooth
 of Tau Ceti (`TauCeti.IsSmoothDisc`): `D (s, t) = w ((1 - φ s) + φ s · exp (2πit))`, for a smooth
 profile `φ` from `0` to `1`. Conversely, each loop `t ↦ D (s, t)` of a smooth disc `D` bounds a
 smooth disc, namely `z ↦ D (s · ψ ‖z‖, arg z / 2π)`, where `ψ` vanishes near `0` and is `1` at
-`1`: the map is constant near the origin, where the polar angle is not smooth.
+`1`: the map is constant near the origin, where the polar angle is not smooth. Away from the
+origin, the proof of its smoothness follows Tau Ceti's `ContDiff.contDiffAt_comp_arg`, for a map
+into a manifold rather than a normed space.
 
 For an Ehresmann connection `D` on `proj : M → B` with an atlas `A` whose model fibre carries a
 two-form `σ`, the holonomy around a loop `γ` at `b`, read in a chart `e` of `A` at `b`, is the
@@ -118,11 +120,8 @@ theorem continuous (h : BoundsSmoothDisc IB γ) : Continuous γ :=
 
 /-- A loop `γ` that bounds a smooth disc, as a loop based at `γ 0` parametrized by the unit
 interval. -/
-def path (h : BoundsSmoothDisc IB γ) : Path (γ 0) (γ 0) where
-  toFun t := γ t
-  continuous_toFun := h.continuous.comp continuous_subtypeVal
-  source' := rfl
-  target' := h.apply_one
+def path (h : BoundsSmoothDisc IB γ) : Path (γ 0) (γ 0) :=
+  Path.ofLine h.continuous.continuousOn rfl h.apply_one
 
 @[simp]
 theorem path_apply (h : BoundsSmoothDisc IB γ) (t : unitInterval) : h.path t = γ t :=
@@ -166,85 +165,37 @@ near `0` and equal to `1` at `1`. -/
 theorem of_isSmoothDisc_slice {x : B} {γ' : Path x x} {D : ℝ × ℝ → B}
     (hD : TauCeti.IsSmoothDisc IB γ' D) (s : ℝ) : BoundsSmoothDisc IB fun t ↦ D (s, t) := by
   have hπ : (2 * π) ≠ 0 := by positivity
-  -- The disc takes the same value at two angles with the same exponential.
-  have hexp (r : ℝ) {θ θ' : ℝ}
-      (h : Complex.exp (↑(2 * π * θ) * I) = Complex.exp (↑(2 * π * θ') * I)) :
-      D (r, θ) = D (r, θ') := by
-    obtain ⟨n, hn⟩ := Complex.exp_eq_exp_iff_exists_int.1 h
-    have hθ : θ = θ' + n * 1 := by
-      have := congrArg Complex.im hn
-      simp only [Complex.ofReal_mul, Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im,
-        Complex.I_re, Complex.I_im, Complex.mul_re, Complex.add_im, Complex.intCast_re,
-        Complex.intCast_im, Complex.re_ofNat, Complex.im_ofNat] at this
-      apply mul_left_cancel₀ hπ
-      linear_combination this
-    rw [hθ]
-    exact (Periodic.int_mul (show Periodic (fun t ↦ D (r, t)) 1 from
-      fun t ↦ hD.apply_add_one (r, t)) n) θ'
+  -- The disc, as a function of the angle `2πt`, is `2π`-periodic.
+  have hper (r : ℝ) : Periodic (fun a ↦ D (r, a / (2 * π))) (2 * π) := fun a ↦ by
+    simpa only [add_div, div_self hπ] using hD.apply_add_one (r, a / (2 * π))
   set ψ : ℝ → ℝ := fun r ↦ Real.smoothTransition (2 * r - 1)
   have hψ : ContDiff ℝ ∞ ψ := Real.smoothTransition.contDiff.comp (by fun_prop)
-  set w : ℂ → B := fun z ↦ D (s * ψ ‖z‖, arg z / (2 * π))
-  -- Away from `0`, the angle `arg z / 2π` can be replaced by a smooth local angle.
-  have hangle (z : ℂ) (hz : z ≠ 0) (θ : ℝ) (hθ : Complex.exp (↑(2 * π * θ) * I) * ‖z‖ = z)
-      (r : ℝ) :
-      D (r, θ) = D (r, arg z / (2 * π)) := by
-    refine hexp r ?_
-    have hz' : (‖z‖ : ℂ) ≠ 0 := by simpa using hz
-    apply mul_right_cancel₀ hz'
-    rw [hθ, mul_div_cancel₀ _ hπ, mul_comm, norm_mul_exp_arg_mul_I]
-  refine ⟨w, fun z _ ↦ (?_ : ContMDiffAt 𝓘(ℝ, ℂ) IB ∞ w z).contMDiffWithinAt, fun t ↦ ?_⟩
+  refine ⟨fun z ↦ D (s * ψ ‖z‖, arg z / (2 * π)),
+    fun z _ ↦ (?_ : ContMDiffAt 𝓘(ℝ, ℂ) IB ∞ _ z).contMDiffWithinAt, fun t ↦ ?_⟩
   · rcases lt_or_ge ‖z‖ (1 / 2) with hz | hz
-    · -- Near the origin, `w` is the centre of the disc.
+    · -- Near the origin, the map is the centre of the disc.
       refine (contMDiffAt_const (c := x)).congr_of_eventuallyEq ?_
       filter_upwards [(isOpen_lt continuous_norm continuous_const).mem_nhds hz] with y hy
       have : ψ ‖y‖ = 0 := Real.smoothTransition.zero_of_nonpos (by simp at hy; linarith)
-      simp only [w, this, mul_zero]
+      simp only [this, mul_zero]
       exact hD.apply_zero_eq _
     · have hz0 : z ≠ 0 := by rintro rfl; norm_num at hz
       have hr : ContDiffAt ℝ ∞ (fun y : ℂ ↦ s * ψ ‖y‖) z :=
         contDiffAt_const.mul (hψ.contDiffAt.comp z (contDiffAt_norm ℝ hz0))
-      -- A local angle `θ`, smooth at `z`, with `exp (2πiθ(y)) = y / ‖y‖` near `z`.
-      obtain ⟨θ, hθ, hθe⟩ : ∃ θ : ℂ → ℝ, ContDiffAt ℝ ∞ θ z ∧ ∀ᶠ y in 𝓝 z,
-          Complex.exp (↑(2 * π * θ y) * I) * ‖y‖ = y := by
-        by_cases hzs : z ∈ slitPlane
-        · refine ⟨fun y ↦ arg y / (2 * π), ?_, ?_⟩
-          · have : ContDiffAt ℝ ∞ (fun y ↦ (Complex.log y).im) z :=
-              Complex.imCLM.contDiff.contDiffAt.comp z
-                ((Complex.contDiffAt_log hzs).restrict_scalars ℝ)
-            simp_rw [← Complex.log_im]
-            exact this.div_const _
-          · filter_upwards with y
-            rw [mul_div_cancel₀ _ hπ, mul_comm, norm_mul_exp_arg_mul_I]
-        · have hzs' : -z ∈ slitPlane := by
-            rw [Complex.mem_slitPlane_iff, not_or, not_lt, not_not] at hzs
-            rw [Complex.mem_slitPlane_iff, neg_re]
-            refine Or.inl (neg_pos.2 (hzs.1.lt_of_ne fun h ↦ hz0 ?_))
-            exact Complex.ext (by simpa using h) (by simpa using hzs.2)
-          refine ⟨fun y ↦ arg (-y) / (2 * π) + 1 / 2, ?_, ?_⟩
-          · have : ContDiffAt ℝ ∞ (fun y ↦ (Complex.log (-y)).im) z :=
-              Complex.imCLM.contDiff.contDiffAt.comp z
-                (((Complex.contDiffAt_log hzs').restrict_scalars ℝ).comp z contDiff_neg.contDiffAt)
-            simp_rw [← Complex.log_im]
-            exact (this.div_const _).add contDiffAt_const
-          · filter_upwards with y
-            have h := norm_mul_exp_arg_mul_I (-y)
-            rw [norm_neg] at h
-            push_cast
-            rw [mul_add, add_mul, Complex.exp_add, mul_div_cancel₀ _
-              (mul_ne_zero two_ne_zero (ofReal_ne_zero.2 Real.pi_ne_zero))]
-            have : Complex.exp (2 * π * (1 / 2) * I) = -1 := by
-              rw [show (2 : ℂ) * π * (1 / 2) * I = π * I by ring, Complex.exp_pi_mul_I]
-            rw [this, mul_neg_one, neg_mul, mul_comm, h, neg_neg]
-      have hD' : ContMDiffAt 𝓘(ℝ, ℂ) IB ∞ (fun y ↦ D (s * ψ ‖y‖, θ y)) z :=
-        hD.contMDiff.contMDiffAt.comp z (hr.prodMk hθ).contMDiffAt
-      refine hD'.congr_of_eventuallyEq ?_
-      filter_upwards [hθe, isOpen_ne.mem_nhds hz0] with y hy hy0
-      exact (hangle y hy0 _ hy _).symm
-  · simp only [w, Circle.norm_coe]
-    have : ψ 1 = 1 := Real.smoothTransition.one_of_one_le (by norm_num)
-    rw [this, mul_one]
-    refine (hangle _ (Circle.coe_ne_zero _) t ?_ s).symm
-    rw [Circle.norm_coe, ofReal_one, mul_one, Circle.coe_exp]
+      rcases mem_slitPlane_or_neg_mem_slitPlane hz0 with h | h
+      · exact hD.contMDiff.contMDiffAt.comp z
+          (hr.prodMk ((contDiffAt_arg h).div_const _)).contMDiffAt
+      · -- Off the slit plane, the angle is read from `arg (-y) + π`.
+        have h' : ContDiffAt ℝ ∞ (fun y : ℂ ↦ (arg (-y) + π) / (2 * π)) z :=
+          (((contDiffAt_arg h).comp z contDiff_neg.contDiffAt).add contDiffAt_const).div_const _
+        refine (hD.contMDiff.contMDiffAt.comp z (hr.prodMk h').contMDiffAt).congr_of_eventuallyEq
+          ?_
+        filter_upwards [isOpen_ne.mem_nhds hz0] with y hy
+        exact (hper _).apply_arg_eq_apply_arg_neg_add_pi hy
+  · have : ψ 1 = 1 := Real.smoothTransition.one_of_one_le (by norm_num)
+    simp only [Circle.norm_coe, this, mul_one]
+    rw [Circle.coe_exp, arg_exp_mul_I, toIocMod]
+    rw [(hper s).sub_zsmul_eq, mul_div_cancel_left₀ _ hπ]
 
 end BoundsSmoothDisc
 
