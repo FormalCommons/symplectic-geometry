@@ -282,7 +282,7 @@ theorem hasMFDerivAt_linearSliceMap :
   have h0 : L 0 ∈ e.chart.target := by rw [map_zero]; exact e.zero_mem_target
   have hs : HasMFDerivAt 𝓘(ℝ, E') I' e.chart.symm (L 0) (ContinuousLinearMap.id ℝ E') := by
     rw [map_zero]
-    exact e.hasMFDerivAt_symm
+    exact e.hasMFDerivAt_chart_symm
   have h := hs.comp (0 : P) L.hasMFDerivAt
   exact (h.congr_mfderiv (ContinuousLinearMap.id_comp _)).congr_of_eventuallyEq
     (e.linearSliceMap_eventuallyEq hL h0)

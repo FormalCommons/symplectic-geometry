@@ -1,0 +1,261 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+import TauCeti.Geometry.Manifold.Riemannian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Manifold.VectorField.Regularity
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
+import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
+import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
+
+/-!
+# The gradient-like inequality at second order at a critical point
+
+Let `X` satisfy the gradient-like inequality for `f` near a critical point `p` of `f`, on a
+manifold modelled on a finite-dimensional real space `E`, and let `X` be differentiable at `p`.
+In the chart at `p`, write `B` for the second derivative of `f` and `A` for the linearization of
+`X` at its zero `p` (Tau Ceti's `TauCeti.sectionLinearization`). Taken at second order at `p`,
+the inequality bounds `‖A v‖ ^ 2 + ‖B v‖ ^ 2` by a multiple of `B v (A v)`. At a nondegenerate
+critical point, where `B` is invertible, this makes `v ↦ B v (A v)` positive definite: the
+Hessian is then a Lyapunov form for `A`.
+
+Nothing here uses a symplectic or Weinstein structure; the linearization of a Weinstein field at
+a nondegenerate critical point, and the index bound, build on these results.
+
+## Main results
+
+* `TauCeti.exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv`: at any critical point `p` of a
+  function `f` that is `C²` in the chart, if `X` is differentiable at `p` and satisfies the
+  gradient-like inequality near `p`, there is `c > 0` with
+  `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`.
+* `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: for `X` gradient-like and `p`
+  nondegenerate, there is `c > 0` with `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`, where `H` is the
+  bilinear form of the Hessian in the chart.
+* `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_fderiv_fderiv`: the same bound for the second
+  derivative `B`.
+
+## Implementation notes
+
+The metric `g` of the gradient-like condition is only continuous in the chart, so it is compared
+with its value at `p`. For a fixed vector `e` of the chart, the Cauchy–Schwarz inequality
+`(df e) ^ 2 ≤ ‖grad f‖ ^ 2 * g(e, e)`, together with a bound on the differential of the chart for
+the norm of `g` (Mathlib's `eventually_norm_mfderiv_extChartAt_lt`), gives near `p` an inequality
+`κ * (‖X u‖ ^ 2 + (df_u e) ^ 2) ≤ df_u (X u)` in the chart, with `κ > 0` independent of `e` for
+`‖e‖ ≤ 1`. It passes to second order by
+`HasFDerivAt.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually`, and a choice of `e` at which
+`B v` is close to its norm makes the bound uniform in `v`. Nondegeneracy is not needed for this; at
+a nondegenerate critical point, the invertibility of the Hessian then bounds `‖v‖` by `‖B v‖`.
+
+## References
+
+* [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
+  Proposition 9.23 (a), whose proof uses the second-order inequality at a critical point that
+  need not be nondegenerate
+-/
+
+public section
+
+open Bundle Filter Set TauCeti.Manifold
+open scoped ContDiff Manifold Topology
+
+namespace TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
+  {f : M → ℝ} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
+
+/-- The local gradient-like inequality near `p`, for a metric `g` and a constant `c > 0`, read in
+the chart at `p` against a vector `e` of the chart with `‖e‖ ≤ 1`: with `Y` the field in the chart
+and a constant `κ > 0` that does not depend on `e`, `κ * (‖Y u‖ ^ 2 + (df_u e) ^ 2) ≤ df_u (Y u)`
+near the image of `p`, when `f` is differentiable there in the chart. -/
+private theorem exists_eventually_mul_norm_sq_add_sq_le {p : M}
+    (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {c : ℝ}
+    (hc : 0 < c)
+    (hg : letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+      ∀ᶠ y in 𝓝 p, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
+        mvfderiv 𝓘(ℝ, E) f y (X y))
+    (hF : ∀ᶠ u in 𝓝 (extChartAt 𝓘(ℝ, E) p p),
+      DifferentiableAt ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) u)
+    {Y : E → E} (hY : Y = VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) p).symm X) :
+    ∃ κ > 0, ∀ e : E, ‖e‖ ≤ 1 → ∀ᶠ u in 𝓝 (extChartAt 𝓘(ℝ, E) p p),
+      κ * (‖Y u‖ ^ 2 + fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) u e ^ 2) ≤
+        fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) u (Y u) := by
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  have : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) :=
+    IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := 𝓘(ℝ, E)) (n := ∞)
+  set φ := extChartAt 𝓘(ℝ, E) p
+  -- A bound for the differential of the chart, for the norm of `g` on the tangent spaces.
+  obtain ⟨C, hC, hCφ⟩ := eventually_norm_mfderiv_extChartAt_lt 𝓘(ℝ, E) p
+  set G₀ : E →L[ℝ] E →L[ℝ] ℝ := g.inner p
+  set N := ‖G₀‖
+  refine ⟨c / (C ^ 2 + N + 1), by positivity, fun e he ↦ ?_⟩
+  set T := trivializationAt E (TangentSpace 𝓘(ℝ, E)) p
+  have hpT : p ∈ T.baseSet := FiberBundle.mem_baseSet_trivializationAt' p
+  -- The vector `e` of the chart at `p`, as a vector field near `p`.
+  set W : (y : M) → TangentSpace 𝓘(ℝ, E) y := fun y ↦ T.symm y e
+  have hWp : W p = e := TangentBundle.trivializationAt_symm_apply_self p e
+  have hWc : ContinuousAt (fun y ↦ TotalSpace.mk' E y (W y)) p :=
+    (T.continuousAt_symm_prodMk_left hpT).congr <|
+      (T.open_baseSet.eventually_mem hpT).mono fun y hy ↦ (T.mk_symm hy e).symm
+  have hgW : ContinuousAt (fun y ↦ g.inner y (W y) (W y)) p :=
+    g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hWc hWc
+  have hgWp : g.inner p (W p) (W p) < N + 1 := by
+    rw [hWp]
+    have h₁ : G₀ e e ≤ N * ‖e‖ * ‖e‖ := (le_abs_self _).trans (G₀.le_opNorm₂ e e)
+    have h₂ : N * ‖e‖ * ‖e‖ ≤ N * 1 * 1 := by gcongr
+    -- `G₀` is the metric at `p`, read as a bilinear form on `E`.
+    change G₀ e e < N + 1
+    linarith
+  have hnear := hg.and ((hgW.eventually (gt_mem_nhds hgWp)).and hCφ)
+  have hsymm : Tendsto φ.symm (𝓝 (φ p)) (𝓝 p) := by
+    have := continuousAt_extChartAt_symm (I := 𝓘(ℝ, E)) p
+    rwa [ContinuousAt, extChartAt_to_inv] at this
+  filter_upwards [hsymm.eventually hnear, hF, extChartAt_target_mem_nhds (I := 𝓘(ℝ, E)) p]
+    with u ⟨hgy, hWu, hCy⟩ hFu hu
+  set y := φ.symm u
+  have hys : y ∈ φ.source := φ.map_target hu
+  have hφy : φ y = u := φ.right_inv hu
+  -- In the chart at `p`, the differential of `f` at `y` is that of `f ∘ φ.symm` at `u`.
+  have hdf (w : TangentSpace 𝓘(ℝ, E) y) : mvfderiv 𝓘(ℝ, E) f y w =
+      fderiv ℝ (f ∘ φ.symm) u (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ y w) := by
+    rw [mvfderiv_apply_eq_mfderiv_apply,
+      mfderiv_eq_fderiv_comp_mfderiv_extChartAt hys (by rwa [hφy]), hφy]
+    -- A composition applied to `w`, whose middle space, the tangent space at `φ y`, is `E`.
+    rfl
+  have hys' : y ∈ (chartAt E p).source := by rwa [← extChartAt_source (I := 𝓘(ℝ, E))]
+  have hWe : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ y (W y) = e := by
+    simp only [W]
+    rw [← T.symmL_apply (R := ℝ) (by simpa [T] using hys'),
+      TangentBundle.symmL_trivializationAt hys']
+    exact DFunLike.congr_fun
+      (mfderiv_extChartAt_comp_mfderivWithin_extChartAt_symm' (I := 𝓘(ℝ, E)) hys) e
+  have hXY : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ y (X y) = Y u := by
+    rw [← hφy, hY]
+    exact (VectorField.mpullback_extChartAt_symm_apply_eq_mfderiv X hys (by simp)).symm
+  -- The field in the chart is bounded by its length for `g`.
+  have hYu : ‖Y u‖ ^ 2 ≤ C ^ 2 * g.inner y (X y) (X y) := by
+    let := normedAddCommGroupTangentSpaceVectorSpace (E := E)
+    let := normedSpaceTangentSpaceVectorSpace (E := E)
+    have h₁ := ((mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ y).le_opNorm (X y)).trans
+      (mul_le_mul_of_nonneg_right hCy.le (norm_nonneg _))
+    rw [← hXY, ← g.norm_sq y (X y)]
+    exact (pow_le_pow_left₀ (norm_nonneg _) h₁ 2).trans_eq (mul_pow _ _ _)
+  rw [← hWe, ← hXY, ← hdf, ← hdf, hXY]
+  -- The Cauchy–Schwarz inequality for the gradient `G` of `f` at `y`.
+  set G := mgradient 𝓘(ℝ, E) f y
+  have hcs : mvfderiv 𝓘(ℝ, E) f y (W y) ^ 2 ≤ ‖G‖ ^ 2 * g.inner y (W y) (W y) := by
+    rw [← inner_mgradient, ← g.inner_eq, ← real_inner_self_eq_norm_sq, sq]
+    exact real_inner_mul_inner_self_le G (W y)
+  have hXX : 0 ≤ g.inner y (X y) (X y) := g.toRiemannianMetric.inner_self_nonneg y (X y)
+  have hN : 0 ≤ N := norm_nonneg G₀
+  have hG : 0 ≤ ‖G‖ ^ 2 := sq_nonneg _
+  calc c / (C ^ 2 + N + 1) * (‖Y u‖ ^ 2 + mvfderiv 𝓘(ℝ, E) f y (W y) ^ 2)
+      ≤ c / (C ^ 2 + N + 1) * ((C ^ 2 + N + 1) * (g.inner y (X y) (X y) + ‖G‖ ^ 2)) := by
+        gcongr
+        nlinarith [hcs.trans (mul_le_mul_of_nonneg_left hWu.le hG), sq_nonneg C]
+    _ = c * (g.inner y (X y) (X y) + ‖G‖ ^ 2) := by field_simp
+    _ ≤ _ := hgy
+
+/-- **The gradient-like inequality at second order.** Let `X` be gradient-like for `f` near a
+critical point `p` of `f` (`TauCeti.IsGradientLikeAt`). Let `f` be `C²` in the chart
+at `p`, with second derivative `B` there, and let `X` be differentiable at `p`, with linearization
+`A`. Then there is `c' > 0` with `c' * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`. -/
+theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
+    (hX : IsGradientLikeAt f X p) (hp : p ∈ criticalPoints 𝓘(ℝ, E) f)
+    (hf : ContDiffAt ℝ 2 (f ∘ (extChartAt 𝓘(ℝ, E) p).symm) (extChartAt 𝓘(ℝ, E) p p))
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
+    ∃ c > 0, ∀ v : E, c * (‖A v‖ ^ 2 +
+      ‖fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v‖ ^ 2) ≤
+      fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v (A v) := by
+  -- At the critical point `p`, the inequality forces `X p = 0`.
+  have hX₀ : X p = 0 := hX.eq_zero_iff.2 hp
+  obtain ⟨U, hU, g, c, hc, hg⟩ := (isGradientLikeAt_def f X p).1 hX
+  set φ := extChartAt 𝓘(ℝ, E) p
+  set Y : E → E := VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X
+  set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
+  have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
+    hf.eventually_differentiableAt (by simp)
+  obtain ⟨κ, hκ, hev⟩ :=
+    exists_eventually_mul_norm_sq_add_sq_le g hc (Filter.mem_of_superset hU hg) hF (Y := Y) rfl
+  have hB : HasFDerivAt (fderiv ℝ (f ∘ φ.symm)) B (φ p) := hf.hasFDerivAt_fderiv le_rfl
+  have hD₀ : fderiv ℝ (f ∘ φ.symm) (φ p) = 0 :=
+    fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hp
+  have hY : HasFDerivAt Y A (φ p) := hA ▸ hXp.hasFDerivAt_mpullback_extChartAt_symm
+  have hY₀ : Y (φ p) = 0 := (VectorField.mpullback_extChartAt_symm_self X p).trans hX₀
+  -- The inequality at second order, for each `e` with `‖e‖ ≤ 1`.
+  have hBe (v e : E) (he : ‖e‖ ≤ 1) : κ * (‖A v‖ ^ 2 + B v e ^ 2) ≤ B v (A v) :=
+    hB.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually hD₀ hY hY₀ (hev e he) v
+  refine ⟨κ / 8, by positivity, fun v ↦ ?_⟩
+  -- The norm of `B v` is attained, up to a factor `2`, at a vector of norm at most `1`.
+  have hBv : κ * (‖A v‖ ^ 2 + ‖B v‖ ^ 2 / 4) ≤ B v (A v) := by
+    rcases eq_or_ne (B v) 0 with h0 | h0
+    · simpa [h0] using hBe v 0 (by simp)
+    obtain ⟨e, he, hlt⟩ := (B v).exists_lt_apply_of_lt_opNorm (half_lt_self (norm_pos_iff.2 h0))
+    rw [Real.norm_eq_abs] at hlt
+    refine le_trans ?_ (hBe v e he.le)
+    gcongr
+    nlinarith [norm_nonneg (B v), abs_nonneg (B v e), sq_abs (B v e)]
+  nlinarith [sq_nonneg ‖A v‖, sq_nonneg ‖B v‖]
+
+/-- **The gradient-like inequality at second order.** Let `X` be gradient-like for `f`, let `p` be
+a nondegenerate critical point of `f`, and let `X` be differentiable at `p`. Write `H` for the
+bilinear form of the Hessian of `f` read in the chart at `p`, and `A` for the linearization of `X`
+at `p`. Then there is `c > 0` with `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`. -/
+theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f X) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p) :
+    ∃ c > 0, ∀ v : E, c * ‖v‖ ^ 2 ≤
+      QuadraticMap.associated (hessianQuadraticForm (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)
+        (extChartAt 𝓘(ℝ, E) p p)) v (sectionLinearization (F := E) 𝓘(ℝ, E) id X p v) := by
+  have hp' := (isManifoldNondegenerateCriticalPoint_iff _).1 hp
+  set φ := extChartAt 𝓘(ℝ, E) p
+  set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
+  obtain ⟨κ, hκ, hκB⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv
+    (hX.isGradientLikeAt p) hp.mem_criticalPoints hp'.contDiffAt hXp rfl
+  obtain ⟨L, hL⟩ := hp'.isInvertible
+  replace hL : (L : E →L[ℝ] E →L[ℝ] ℝ) = B := hL
+  set C := ‖(L.symm : (E →L[ℝ] ℝ) →L[ℝ] E)‖
+  refine ⟨κ / (C + 1) ^ 2, by positivity, fun v ↦ ?_⟩
+  rw [associated_hessianQuadraticForm hp'.contDiffAt]
+  refine le_of_le_of_eq ?_ (B.toBilinForm_apply v _).symm
+  have hv : ‖v‖ ≤ C * ‖B v‖ := by
+    have h := (L.symm : (E →L[ℝ] ℝ) →L[ℝ] E).le_opNorm (L v)
+    rw [ContinuousLinearEquiv.coe_coe, L.symm_apply_apply] at h
+    rwa [← hL]
+  have hC : 0 ≤ C := norm_nonneg (L.symm : (E →L[ℝ] ℝ) →L[ℝ] E)
+  have hv' : ‖v‖ ≤ (C + 1) * ‖B v‖ := hv.trans (by nlinarith [norm_nonneg (B v)])
+  calc κ / (C + 1) ^ 2 * ‖v‖ ^ 2 ≤ κ / (C + 1) ^ 2 * ((C + 1) * ‖B v‖) ^ 2 := by gcongr
+    _ = κ * ‖B v‖ ^ 2 := by field_simp
+    _ ≤ _ := (mul_le_mul_of_nonneg_left (le_add_of_nonneg_left (sq_nonneg _)) hκ.le).trans (hκB v)
+
+/-- **The gradient-like inequality at second order, for the second derivative.** Under the
+hypotheses of `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`, with `A` the
+linearization of `X` at `p`, there is `c > 0` with `c * ‖v‖ ^ 2 ≤ D²(f ∘ φ⁻¹)(φ p) v (A v)` for
+every `v`, where `φ` is the chart at `p`. -/
+theorem IsGradientLike.exists_pos_mul_norm_sq_le_fderiv_fderiv (hX : IsGradientLike f X) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
+    ∃ c > 0, ∀ v : E, c * ‖v‖ ^ 2 ≤
+      fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v (A v) := by
+  subst hA
+  obtain ⟨c, hc, h⟩ := hX.exists_pos_mul_norm_sq_le_hessian hp hXp
+  rw [associated_hessianQuadraticForm
+    ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt] at h
+  exact ⟨c, hc, fun v ↦ (h v).trans_eq (ContinuousLinearMap.toBilinForm_apply _ _ _)⟩
+
+
+end TauCeti
+
+end
