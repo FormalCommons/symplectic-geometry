@@ -235,8 +235,8 @@ theorem contMDiff_uniformizingMap (J : 𝒥) :
       if t p * s (1 : ℂ) = 0 then (∞ : OnePoint ℂ)
       else (((t p * s (1 : ℂ))⁻¹ * (s p * t (1 : ℂ)) : ℂ) : OnePoint ℂ) := by
     rw [uniformizingMap_eq J hs ht hs' ht' h₀ hinf, OnePoint.equivProjectivization_symm_apply_mk]
-    -- The decidability instances of the two conditions differ.
     simp only [Matrix.cons_val_one, Matrix.cons_val_zero]
+    -- The two sides differ only in the decidability instances of their conditions.
     congr
   intro x
   by_cases hx : t x = 0
