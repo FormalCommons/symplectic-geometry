@@ -228,9 +228,7 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
   have hF0 : ‖D.reading k x (s k) 0‖ = ‖s k x‖ := by
     rw [D.norm_reading, D.chart_symm_zero hk x]
   have hJd : DifferentiableAt ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0 :=
-    ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds h0)).differentiableAt (by simp)
+    (J.contDiffAt_chartPushforward (D.chart k x) h0).differentiableAt (by simp)
   rw [criticalHessian_add_criticalHessian_eq D hk (hF.of_le (by simp)) hx hcrit v]
   have hu : (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v : StdSpace ι) ≠ 0 := by
     intro h

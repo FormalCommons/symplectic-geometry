@@ -587,9 +587,7 @@ theorem contDiffAt_dbarReading [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M}
     (hs : ContDiffAt ℝ (n + 1) (D.reading k x s) z) :
     ContDiffAt ℝ n (D.dbarReading k x s) z := by
   have hJ : ContDiffAt ℝ n (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
-    ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds hz)).of_le (by exact_mod_cast le_top)
+    (J.contDiffAt_chartPushforward (D.chart k x) hz).of_le (by exact_mod_cast le_top)
   have hC := D.contDiffAt_connectionReading hs
   have h := (hC.add ((hC.clm_comp hJ).const_smul Complex.I)).const_smul (2⁻¹ : ℝ)
   refine h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ ?_)

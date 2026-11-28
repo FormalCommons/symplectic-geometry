@@ -142,8 +142,8 @@ theorem exists_forall_norm_iteratedFDeriv_chartPushforward_transAffine_le [I.Bou
   refine ⟨δ / C₀, div_pos hδ hC₀, hball, fun r ↦ ?_⟩
   -- The derivatives of `J` read in `φ` are bounded on the compact thickening.
   have hcont := ContinuousOn.continuousOn_iteratedFDeriv
-    (J.contDiffOn_chartPushforward (ψ := φ.toOpenPartialHomeomorph) φ.contMDiffOn
-      φ.symm.contMDiffOn) φ.open_target (k := r) (by exact_mod_cast le_top)
+    (J.contDiffOn_chartPushforward_toOpenPartialHomeomorph φ) φ.open_target (k := r)
+      (by exact_mod_cast le_top)
   obtain ⟨B, hB⟩ := hLc.cthickening.exists_bound_of_continuousOn (hcont.mono hδt)
   refine ⟨C₀ * C₀ ^ (r + 1) * max B 0, fun x hx z hz ↦ ?_⟩
   refine (J.norm_iteratedFDeriv_chartPushforward_transAffine_le φ _ _ r (hball x hx hz)).trans ?_

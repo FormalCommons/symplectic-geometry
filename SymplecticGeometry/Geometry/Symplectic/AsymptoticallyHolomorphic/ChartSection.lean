@@ -354,9 +354,7 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
   set L := D.connectionReading k x s
   have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
   have hJJ : ContDiffAt ℝ r JJ z :=
-    ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hz))).of_le
+    (J.contDiffAt_chartPushforward (D.chart k x) (D.ball_subset_target hk x hz)).of_le
       (by exact_mod_cast le_top)
   -- The correction term is bilinear in `c • L` and `J_{k,x} - J₀`.
   have heq : D.dbarReading k x s = modelDbar g + fun w ↦ B ((c • L) w) (JJ w - J₀) := by
