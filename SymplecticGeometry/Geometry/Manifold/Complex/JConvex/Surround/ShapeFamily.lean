@@ -64,7 +64,7 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `ℓ ∈ [ℓ₀, 2 ℓ₀]` are bounded on `[3 δ, ℓ / 4]` (a continuous function on a compact set), and
   the top leaf has height between `1` and `1 + γ`.
 
-* `SymplecticGeometry.sqrtSubLeaf` and `SymplecticGeometry.exists_isConvexShapeAt_sqrtSubLeaf`:
+* `SymplecticGeometry.sqrtSubLeaf` and `SymplecticGeometry.eventually_isConvexShapeAt_sqrtSubLeaf`:
   the leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`. They do not come from
   bending linear shapes, as in Cieliebak and Eliashberg's Lemma 4.25, but have a closed form: the
   leaf `ℓ` is the cutoff leaf `SymplecticGeometry.cutoffLeaf L δ b c` of `Surround/CutoffLeaf.lean`
@@ -552,15 +552,13 @@ theorem isConvexShapeAt_sqrtSubLeaf {L ℓ r : ℝ}
   exact isConvexShapeAt_cutoffLeaf hL hδ (by linarith) (by linarith)
     (by nlinarith) (by nlinarith) hr
 
-/-- **The explicit leaves below the cone are `i`-convex shapes.** There is `L₀ ≥ 1` such that for
-every `L ≥ L₀`, `δ > 0` and `ℓ ∈ [-8 δ, 0]`, the leaf `sqrtSubLeaf L δ ℓ` is an `i`-convex shape
-at every `r > δ`. -/
-theorem exists_isConvexShapeAt_sqrtSubLeaf :
-    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, δ < r →
-      IsConvexShapeAt (sqrtSubLeaf L δ ℓ) r := by
-  obtain ⟨L₀, h⟩ := eventually_atTop.1 eventually_isCutoffScale
-  exact ⟨max 1 L₀, le_max_left _ _, fun L hL δ hδ ℓ hℓ r hr ↦
-    isConvexShapeAt_sqrtSubLeaf (h L (le_of_max_le_right hL)) hδ hℓ hr⟩
+/-- **The explicit leaves below the cone are `i`-convex shapes.** For every large enough `L`, every
+`δ > 0` and every `ℓ ∈ [-8 δ, 0]`, the leaf `sqrtSubLeaf L δ ℓ` is an `i`-convex shape at every
+`r > δ`. -/
+theorem eventually_isConvexShapeAt_sqrtSubLeaf :
+    ∀ᶠ L in atTop, ∀ δ, 0 < δ → ∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, δ < r →
+      IsConvexShapeAt (sqrtSubLeaf L δ ℓ) r :=
+  eventually_isCutoffScale.mono fun _ hL _ hδ _ hℓ _ hr ↦ isConvexShapeAt_sqrtSubLeaf hL hδ hℓ hr
 
 /-- The bottom leaf: the leaf `-8 δ` is `√(64 r² - 64 δ²)` at every `r`. -/
 theorem sqrtSubLeaf_neg_eight_mul (L δ r : ℝ) :
@@ -659,10 +657,11 @@ theorem exists_convexShapeFamily_sqrt_sub :
       (∀ ℓ ∈ Icc (-8 * δ) 0, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
       (∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, K * δ ≤ r → χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
       ∀ r, δ < r → StrictMonoOn (fun ℓ ↦ χ ℓ r) (Icc (-8 * δ) 0) := by
-  obtain ⟨L, hL, hconv⟩ := exists_isConvexShapeAt_sqrtSubLeaf
+  obtain ⟨L, hconv, hL⟩ :=
+    (eventually_isConvexShapeAt_sqrtSubLeaf.and (eventually_ge_atTop 1)).exists
   refine ⟨2 + L, by linarith, fun δ hδ ↦ ⟨sqrtSubLeaf L δ,
     ⟨_, ?_, contDiffOn_uncurry_sqrtSubLeaf L hδ.le⟩,
-    fun ℓ hℓ r hr ↦ hconv L le_rfl δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
+    fun ℓ hℓ r hr ↦ hconv δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
     fun ℓ _ r hr ↦ ?_, fun ℓ _ ↦ tendsto_deriv_sqrtSubLeaf (by linarith) hδ ℓ,
     fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ strictMonoOn_sqrtSubLeaf L hδ.le hr⟩⟩
   · refine (isOpen_setOf_lt_snd_and_abs_fst_lt δ).mem_nhdsSet.2 ?_
