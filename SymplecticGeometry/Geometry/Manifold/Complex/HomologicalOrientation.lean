@@ -31,7 +31,9 @@ turn it into a pairing with the fundamental class:
   `SymplecticGeometry.complexManifoldHomologicalOrientation_def`;
 * `SymplecticGeometry.complexManifoldEvalFundamentalClass`: for `M` compact, the `ℤ`-linear map
   `H^{2r+2}(M; ℤ) → ℤ`, `c ↦ ⟨c, [M]⟩`, for that orientation, with
-  `SymplecticGeometry.complexManifoldEvalFundamentalClass_def`.
+  `SymplecticGeometry.complexManifoldEvalFundamentalClass_def`; for a complex curve,
+  `SymplecticGeometry.complexManifoldEvalFundamentalClass_eq_complexCurveOrientation` writes it
+  through `SymplecticGeometry.complexCurveOrientation`.
 
 For a complex vector bundle `V → M` of complex rank `r + 1` with a continuous section `s` that has
 finitely many zeros,
@@ -97,6 +99,18 @@ theorem complexManifoldEvalFundamentalClass_def [CompactSpace M] (hE : finrank �
       (complexManifoldHomologicalOrientation E M hE).evalFundamentalClass
         (finrank_real_of_finrank_complex_eq_add_one hE) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M) :=
   (rfl)
+
+/-- On a compact complex curve, `finrank ℂ E = 1`, the evaluation on the fundamental class for the
+complex orientation is the evaluation on the fundamental class of the homological orientation of
+`complexCurveOrientation E M h`. -/
+theorem complexManifoldEvalFundamentalClass_eq_complexCurveOrientation [CompactSpace M]
+    (h : finrank ℂ E = 1) :
+    complexManifoldEvalFundamentalClass E M (r := 0) h =
+      ((complexCurveOrientation E M h).toHomologicalOrientation
+        (finrank_real_of_finrank_complex_eq_add_one h)).evalFundamentalClass
+        (finrank_real_of_finrank_complex_eq_add_one h) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M) := by
+  rw [complexManifoldEvalFundamentalClass_def, complexManifoldHomologicalOrientation_def,
+    complexCurveOrientation_eq_complexManifoldOrientationOfFinrank]
 
 variable {E M}
 
