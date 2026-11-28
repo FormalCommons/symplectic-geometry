@@ -9,9 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
 import SymplecticGeometry.Geometry.Manifold.GroupAction.EquivariantAverage
 import TauCeti.Geometry.Lie.Subgroup.Embedded
-import TauCeti.Geometry.Manifold.ContMDiff.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.RepresentationTheory.Compact.Haar
 import TauCeti.RepresentationTheory.Continuous.Average
 import TauCeti.Topology.Algebra.ConstMulAction
@@ -50,8 +49,8 @@ chart of the atlas, and the derivative of the average is computed at every point
 * `SymplecticGeometry.exists_equivariant_holomorphic_chart`: at a point with compact stabilizer,
   an invariant integrable almost complex structure is constant in some linearizing chart.
 * `ContMDiffOn.mfderiv_integral_apply_inv_smul_apply_eq`: the equivariant average of a map whose
-  derivatives carry an invariant almost complex structure to a fixed linear map `J₀`, commuting
-  with the representation, has the same property.
+  derivatives carry an almost complex structure `J` to a fixed linear map `J₀`, commuting with
+  the representation, has the same property at each point where the action preserves `J`.
 
 ## References
 
@@ -85,22 +84,23 @@ variable [I'.Boundaryless] {EK : Type*} [NormedAddCommGroup EK] [NormedSpace ℝ
 
 include IK in
 /-- **Averages of holomorphic maps.** Let a compact Lie group `K` act smoothly on a manifold `M`
-without boundary, preserving an almost complex structure `J`, let `σ` be a continuous
-representation of `K` on `E'` commuting with a linear map `J₀`, let `μ` be a finite measure on
-`K`, and let `φ : M → E'` be `C^n`, `1 ≤ n`, on an open set `U`, with `dφ_y ∘ J y = J₀ ∘ dφ_y` on
-`U`. Then the equivariant average `y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ` has the same property at every
-point whose orbit lies in `U`. -/
+without boundary with an almost complex structure `J`, let `σ` be a continuous representation
+of `K` on `E'` commuting with a linear map `J₀`, let `μ` be a finite measure on `K`, and let
+`φ : M → E'` be `C^n`, `1 ≤ n`, on an open set `U`, with `dφ_z ∘ J z = J₀ ∘ dφ_z` for `z ∈ U`.
+Let `y` be a point whose orbit lies in `U`, such that `d(k • ·)_y ∘ J y = J (k • y) ∘ d(k • ·)_y`
+for every `k`. Then the equivariant average `A y = ∫ k, σ k (φ (k⁻¹ • y)) ∂μ` satisfies
+`dA_y ∘ J y = J₀ ∘ dA_y`. -/
 theorem _root_.ContMDiffOn.mfderiv_integral_apply_inv_smul_apply_eq
     {J : SmoothAlmostComplexStructure I' M}
     {J₀ : E' →L[ℝ] E'} (hσ : Continuous σ) (hU : IsOpen U) (hφ : ContMDiffOn I' 𝓘(ℝ, E') n φ U)
     (hn : 1 ≤ n)
     (hφJ : ∀ y ∈ U, ∀ v : TangentSpace I' y,
       mfderiv I' 𝓘(ℝ, E') φ y (J y v) = J₀ (mfderiv I' 𝓘(ℝ, E') φ y v))
-    (hσJ : ∀ (k : K) (w : E'), σ k (J₀ w) = J₀ (σ k w))
-    (hJK : ∀ (k : K) (y : M) (v : TangentSpace I' y),
+    (hσJ : ∀ (k : K) (w : E'), σ k (J₀ w) = J₀ (σ k w)) {y : M}
+    (hJK : ∀ (k : K) (v : TangentSpace I' y),
       mfderiv I' I' (fun z : M ↦ k • z) y (J y v) =
         J (k • y) (mfderiv I' I' (fun z : M ↦ k • z) y v))
-    {y : M} (hy : ∀ k : K, k • y ∈ U) (v : TangentSpace I' y) :
+    (hy : ∀ k : K, k • y ∈ U) (v : TangentSpace I' y) :
     mfderiv I' 𝓘(ℝ, E') (fun y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ) y (J y v) =
       J₀ (mfderiv I' 𝓘(ℝ, E') (fun y ↦ ∫ k, σ k (φ (k⁻¹ • y)) ∂μ) y v) := by
   rw [(hφ.hasMFDerivAt_integral_apply_inv_smul (IG := IK) (μ := μ) hσ hU hn hy).mfderiv]
@@ -111,7 +111,7 @@ theorem _root_.ContMDiffOn.mfderiv_integral_apply_inv_smul_apply_eq
   -- Each of the three factors of `L k` intertwines the values of `J`.
   have hL (k : K) (w : E') : L k (Jy w) = J₀ (L k w) := by
     have h₁ : mfderiv I' I' (fun z : M ↦ k⁻¹ • z) y (J y w) =
-        J (k⁻¹ • y) (mfderiv I' I' (fun z : M ↦ k⁻¹ • z) y w) := hJK k⁻¹ y w
+        J (k⁻¹ • y) (mfderiv I' I' (fun z : M ↦ k⁻¹ • z) y w) := hJK k⁻¹ w
     -- `L k` composes maps between tangent spaces, which `ContinuousLinearMap.comp_apply`
     -- does not rewrite once they are read on `E'`; unfold the composition by hand.
     change σ k (mfderiv I' 𝓘(ℝ, E') φ (k⁻¹ • y) (mfderiv I' I' (fun z : M ↦ k⁻¹ • z) y
@@ -129,47 +129,6 @@ theorem _root_.ContMDiffOn.mfderiv_integral_apply_inv_smul_apply_eq
     exact (map_zero J₀).symm
 
 end Average
-
-omit [IsManifold I' ∞ M] in
-/-- The inverse function theorem in a chart `ψ` at `x` with derivative the identity there: a map
-`A`, smooth on an open neighbourhood `S` of `x`, with derivative the identity at `x`, agrees near
-`x` with a smooth chart with smooth inverse. -/
-private theorem exists_openPartialHomeomorph_eqOn (ψ : PartialDiffeomorph I' 𝓘(ℝ, E') M E' ∞)
-    {x : M} (hxψ : x ∈ ψ.source) (hψd : HasMFDerivAt I' 𝓘(ℝ, E') ψ x (ContinuousLinearMap.id ℝ E'))
-    {A : M → E'} {S : Set M} (hS : IsOpen S) (hxS : x ∈ S) (hA : ContMDiffOn I' 𝓘(ℝ, E') ∞ A S)
-    (hAx : HasMFDerivAt I' 𝓘(ℝ, E') A x (ContinuousLinearMap.id ℝ E')) :
-    ∃ e : OpenPartialHomeomorph M E', x ∈ e.source ∧ e.source ⊆ S ∧ EqOn e A e.source ∧
-      ContMDiffOn I' 𝓘(ℝ, E') ∞ e e.source ∧ ContMDiffOn 𝓘(ℝ, E') I' ∞ e.symm e.target := by
-  let χ := ψ.toOpenPartialHomeomorph
-  have hχ : ContMDiffOn I' 𝓘(ℝ, E') ∞ χ χ.source := ψ.contMDiffOn
-  have hχs : ContMDiffOn 𝓘(ℝ, E') I' ∞ χ.symm χ.target := ψ.symm.contMDiffOn
-  have hxχ : x ∈ χ.source := hxψ
-  -- `A` read in the chart `χ`.
-  let V : Set E' := χ.target ∩ χ.symm ⁻¹' S
-  have hV : IsOpen V := χ.isOpen_inter_preimage_symm hS
-  have hA' : ContDiffOn ℝ ∞ (A ∘ χ.symm) V :=
-    contMDiffOn_iff_contDiffOn.mp (hA.comp (hχs.mono inter_subset_left) fun _ hw ↦ hw.2)
-  have hxV : χ x ∈ V := ⟨χ.map_source hxχ, by simpa [χ.left_inv hxχ] using hxS⟩
-  have hsymm : HasMFDerivAt 𝓘(ℝ, E') I' χ.symm (χ x) (ContinuousLinearMap.id ℝ E') := by
-    have hsd : MDifferentiableAt 𝓘(ℝ, E') I' χ.symm (χ x) :=
-      (hχs.contMDiffAt (χ.open_target.mem_nhds (χ.map_source hxχ))).mdifferentiableAt (by simp)
-    have hed : MDifferentiableAt I' 𝓘(ℝ, E') χ (χ.symm (χ x)) := by
-      rw [χ.left_inv hxχ]; exact hψd.mdifferentiableAt
-    refine hsd.hasMFDerivAt.congr_mfderiv (ContinuousLinearMap.ext fun w ↦ ?_)
-    -- `dψ_x` is the identity, and it undoes the derivative of `ψ.symm` at `ψ x`.
-    have h := χ.mfderiv_apply_mfderiv_symm_apply (χ.map_source hxχ) hed hsd w
-    rwa [χ.left_inv hxχ, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph, hψd.mfderiv] at h
-  have hA'x : HasFDerivAt (A ∘ χ.symm) (ContinuousLinearMap.id ℝ E') (χ x) := by
-    have hAx' : HasMFDerivAt I' 𝓘(ℝ, E') A (χ.symm (χ x)) (ContinuousLinearMap.id ℝ E') := by
-      rwa [χ.left_inv hxχ]
-    exact hasMFDerivAt_iff_hasFDerivAt.mp (hAx'.comp (χ x) hsymm)
-  obtain ⟨Θ, hΘ, hxΘ, hΘV, he₀smooth, he₀symm⟩ :=
-    exists_contMDiffOn_trans_of_hasFDerivAt hχ hχs hA' hV hxV (by exact_mod_cast le_top) hA'x
-  refine ⟨χ.trans Θ, ⟨hxχ, hxΘ⟩, fun y hy ↦ ?_, fun y hy ↦ ?_, he₀smooth, he₀symm⟩
-  · have h : χ.symm (χ y) ∈ S := (hΘV hy.2).2
-    rwa [χ.left_inv hy.1] at h
-  · simp only [OpenPartialHomeomorph.coe_trans, comp_apply, hΘ]
-    rw [χ.left_inv hy.1]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 attribute [local instance] ContMDiffMul.boundarylessManifold
@@ -204,11 +163,8 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   have := d.lieGroup
   have : CompactSpace K := isCompact_iff_compactSpace.mp hx
   let IK := 𝓘(ℝ, (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule)
-  have : ContMDiffSMul IK I' ∞ K M :=
-    ⟨(ContMDiffSMul.contMDiff_smul (I := I) (I' := I') (n := ∞) (G := G) (M := M)).comp
-      (d.contMDiff_subtypeVal.prodMap contMDiff_id)⟩
-  have : ContinuousSMul K M :=
-    ⟨(ContMDiffSMul.contMDiff_smul (I := IK) (I' := I') (n := ∞) (G := K) (M := M)).continuous⟩
+  have : ContMDiffSMul IK I' ∞ K M := d.contMDiffSMul
+  have : ContinuousSMul K M := ContMDiffSMul.continuousSMul (I := IK) (I' := I') ∞
   borelize ↥(stabilizer G x)
   let μ : Measure K := haarProb K
   have hfix (k : K) : k • x = x := k.property
@@ -242,8 +198,15 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
     hψs.hasMFDerivAt_integral_apply_inv_smul_of_smul_eq (IG := IK) (μ := μ) hσ ψ.open_source
       le_top hfix hxψ (fun k ↦ (hσk k).symm) hψd.mfderiv
   -- The inverse function theorem makes `A` a chart `e₀` near `x`.
-  obtain ⟨e₀, hxe₀, he₀S, he₀, he₀smooth, he₀symm⟩ := exists_openPartialHomeomorph_eqOn ψ hxψ
-    hψd hS hxS (hψs.integral_apply_inv_smul (IG := IK) (μ := μ) hσ ψ.open_source) hAx
+  have hA : ContMDiffOn I' 𝓘(ℝ, E') ∞ A S :=
+    hψs.integral_apply_inv_smul (IG := IK) (μ := μ) hσ ψ.open_source
+  obtain ⟨Φ, hxe₀, he₀S, hAΦ⟩ := (isLocalDiffeomorphAt_of_mfderiv_eq hA hS hxS
+    BoundarylessManifold.isInteriorPoint (by exact_mod_cast le_top)
+    (e := ContinuousLinearEquiv.refl ℝ E') hAx.mfderiv.symm).exists_partialDiffeomorph_eqOn hS hxS
+  let e₀ := Φ.toOpenPartialHomeomorph
+  have he₀ : EqOn e₀ A e₀.source := fun y hy ↦ (hAΦ hy).symm
+  have he₀smooth : ContMDiffOn I' 𝓘(ℝ, E') ∞ e₀ e₀.source := Φ.contMDiffOn
+  have he₀symm : ContMDiffOn 𝓘(ℝ, E') I' ∞ e₀.symm e₀.target := Φ.symm.contMDiffOn
   -- Restrict `e₀` to the largest `K`-invariant open subset of its source.
   let S' : Set M := {y | ∀ k : K, k • y ∈ e₀.source}
   have hS' : IsOpen S' := isOpen_setOf_forall_smul_mem e₀.open_source
@@ -269,7 +232,7 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   refine ⟨⟨e, hesource.2 hxS', ?_, ?_, ?_, ?_, fun g hg z hz ↦ ?_, fun g hg z hz ↦ ?_⟩,
     fun z hz v ↦ ?_⟩
   · rw [hee₀, he₀ (hS'source hxS')]
-    simp [hfix, hψx]
+    simp [A, hfix, hψx]
   · rw [hee₀]
     exact he₀smooth.mono fun y hy ↦ hS'source (hesource.1 hy)
   · rw [e₀.coe_restrOpen_symm hS']
@@ -282,7 +245,7 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   · -- The derivative of `A` intertwines `J z` with `J x`, as each term of its integral does.
     rw [(heA hz).mfderiv_eq]
     exact hψs.mfderiv_integral_apply_inv_smul_apply_eq (IK := IK) hσ ψ.open_source le_top hψJ
-      hσJ (fun k y v ↦ hJG k y v) (he₀S (hS'source (hesource.1 hz))) v
+      hσJ (fun k v ↦ hJG k z v) (he₀S (hS'source (hesource.1 hz))) v
 
 end SymplecticGeometry
 
