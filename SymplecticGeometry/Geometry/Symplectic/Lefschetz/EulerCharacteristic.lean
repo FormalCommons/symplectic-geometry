@@ -11,7 +11,7 @@ public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWTyp
 public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Homological
 import SymplecticGeometry.AlgebraicTopology.Singular.SurfaceGenus
-import SymplecticGeometry.Geometry.Manifold.Morse.Bott.EulerCharacteristic
+import TauCeti.Geometry.Manifold.Morse.Bott.EulerCharacteristic
 import SymplecticGeometry.Geometry.Manifold.Projectivization.ProjectiveLineAction
 import SymplecticGeometry.Geometry.Manifold.Submersion.FiberDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Lefschetz.MorseBott
@@ -41,7 +41,8 @@ functions:
 2. for it, the two fibres over the coordinate points and the critical points exhibit `μ ∘ π` as a
    Morse–Bott function, of index `0`, `2` and `2`
    (`SymplecticGeometry.IsLefschetzFibration.isMorseBottFamily_momentPullback`), so
-   `χ(X) = χ(F₀) + χ(F₁) + ℓ` (`TauCeti.IsMorseBottFamily.eulerChar_eq_sum`);
+   `χ(X) = χ(F₀) + χ(F₁) + ℓ`
+   (`TauCeti.IsMorseBottFamily.eulerChar_eq_sum_neg_one_pow_index_mul_eulerChar`);
 3. both fibres are homeomorphic to `F`, by the diffeomorphism of regular fibres.
 
 In real dimension four the fibres are closed surfaces; when `F` is homologically oriented,
@@ -160,9 +161,13 @@ theorem eulerChar_eq (h : IsLefschetzFibration ω J π) {y : ℙ ℂ (Fin 2 → 
     FiniteCWType.of_isManifold _ 𝓘(ℝ, Fin (dim I π' j) → ℝ)
   have e₀' : Piece I π' (.inl 0) ≃ₜ {x // π x = y} := e₀
   have e₁' : Piece I π' (.inl 1) ≃ₜ {x // π x = y} := e₁
-  rw [hMB.eulerChar_eq_sum (h'.manifoldMorseIndex_momentPullback hreg), Fintype.sum_sum_type,
+  -- The index of each piece is the Morse index of `μ ∘ π'` at any of its points.
+  have hidx (j) : hMB.index j = index I π' j :=
+    (hMB.manifoldMorseIndex_eq_index (by simp) j (hMB.nonempty j).some).symm.trans
+      (h'.manifoldMorseIndex_momentPullback hreg j _)
+  rw [hMB.eulerChar_eq_sum_neg_one_pow_index_mul_eulerChar, Fintype.sum_sum_type,
     Fin.sum_univ_two, e₀'.eulerChar_eq, e₁'.eulerChar_eq]
-  simp only [index_inl, index_inr, eulerChar_of_contractibleSpace]
+  simp only [hidx, index_inl, index_inr, eulerChar_of_contractibleSpace]
   rw [← criticalSet_smul g π, Set.ncard_eq_toFinset_card', Set.toFinset_card]
   simp
   ring
