@@ -29,6 +29,11 @@ by Tau Ceti's `TauCeti.mextDeriv_neg` and `TauCeti.RoughForm.ofFunction_neg`
 `fderiv_fun_neg` and `fderiv_neg`, the form for `fun x ↦ -f x` is a simp lemma and the form for
 `-f` is not.
 
+For forms of any degree, `d(φ - η) = dφ - dη` at a point where the coordinate expressions of `φ`
+and `η` in the chart there are differentiable (`TauCeti.mextDeriv_sub`): Tau Ceti's
+`TauCeti.mextDerivWithin_sub` on the whole space, as Tau Ceti's `TauCeti.mextDeriv_add` follows
+from `TauCeti.mextDerivWithin_add`.
+
 On a real normed space `E`, regarded as a manifold with the model `𝓘(ℝ, E)`, `df` at `x` takes
 on a single vector `v 0` the value of the Fréchet derivative, `fderiv ℝ f x (v 0)`
 (`TauCeti.mextDeriv_ofFunction_modelSpace_apply`). It is Tau Ceti's
@@ -55,6 +60,8 @@ hypothesis holds at every point of `U` when `ω` is of class `Cⁿ` with `n ≠ 
   `d(f + g) = df + dg` and `d(f - g) = df - dg` at a point where `f` and `g` are differentiable.
 * `TauCeti.mextDeriv_ofFunction_sub`: `d(f - g) = df - dg` for differentiable functions.
 * `TauCeti.mextDeriv_ofFunction_neg`, `TauCeti.mextDeriv_ofFunction_fun_neg`: `d(-f) = -df`.
+* `TauCeti.mextDeriv_sub`: `d(φ - η) = dφ - dη` at a point where both forms are differentiable
+  in the chart.
 * `TauCeti.mextDeriv_ofFunction_modelSpace_apply`: `df(x)(v) = fderiv ℝ f x (v 0)` on a normed
   space.
 * `TauCeti.mextDeriv_apply_eq_sum_fderivWithin`: the coordinate formula for `dφ` in the chart at
@@ -117,6 +124,15 @@ theorem mextDeriv_ofFunction_neg (f : M → F) :
 theorem mextDeriv_ofFunction_fun_neg (f : M → F) :
     mextDeriv (RoughForm.ofFunction I fun x ↦ -f x) = -mextDeriv (RoughForm.ofFunction I f) :=
   mextDeriv_ofFunction_neg f
+
+/-- The exterior derivative is subtractive on forms whose coordinate expressions in the chart at
+the point are differentiable within `range I` there. -/
+theorem mextDeriv_sub {k : ℕ} {φ η : RoughForm I M F k} {x : M}
+    (hφ : DifferentiableWithinAt ℝ (φ.inChartAt x) (Set.range I) (extChartAt I x x))
+    (hη : DifferentiableWithinAt ℝ (η.inChartAt x) (Set.range I) (extChartAt I x x)) :
+    mextDeriv (φ - η) x = mextDeriv φ x - mextDeriv η x := by
+  simp only [← mextDerivWithin_univ]
+  exact mextDerivWithin_sub (uniqueMDiffWithinAt_univ I) (by simpa using hφ) (by simpa using hη)
 
 /-- **The exterior derivative in a chart.** If the coordinate expression of `φ` in the chart at
 `x` is differentiable within the model range at the chart image of `x`, then `dφ` at `x` on
