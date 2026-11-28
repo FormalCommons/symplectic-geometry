@@ -20,6 +20,12 @@ import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import TauCeti.Geometry.Manifold.Instances.Cylinder
+import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # The map of the Riemann sphere given by two sections of `𝒪(k)`
@@ -179,49 +185,34 @@ section Continuity
 open TopologicalSpace
 open scoped TauCeti.ManifoldWeakWhitney TauCeti.ComplexManifold
 
-/-- The open set of nonzero pairs of complex numbers. -/
-private def nonzeroPairs : Opens (ℂ × ℂ) :=
-  ⟨{q | q ≠ 0}, isOpen_ne⟩
+/-- A nonzero pair of complex numbers, as a nonzero vector of `ℂ²`. -/
+private def vecOfPair (q : puncturedSpace (ℂ × ℂ)) : puncturedSpace (Fin (1 + 1) → ℂ) :=
+  ⟨![(q : ℂ × ℂ).1, (q : ℂ × ℂ).2], mem_puncturedSpace.2 fun h ↦
+    mem_puncturedSpace.1 q.property (Prod.ext (by simpa using congrFun h 0)
+      (by simpa using congrFun h 1))⟩
 
-/-- A nonzero pair of complex numbers, as a vector of `ℂ²`, is nonzero. -/
-private theorem vec_ne_zero_of_mem_nonzeroPairs (q : nonzeroPairs) :
-    (![(q : ℂ × ℂ).1, (q : ℂ × ℂ).2] : Fin 2 → ℂ) ≠ 0 := fun h ↦
-  q.property (Prod.ext (by simpa using congrFun h 0) (by simpa using congrFun h 1))
+private theorem contMDiff_vecOfPair :
+    ContMDiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, Fin (1 + 1) → ℂ) n vecOfPair := by
+  refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_
+  -- The pair `(a, b)`, read in the model `ℂ × ℂ`, followed by the linear map `(a, b) ↦ ![a, b]`.
+  have hL : ContMDiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, Fin 2 → ℂ) n
+      (fun q : ℂ × ℂ ↦ (ContinuousLinearEquiv.finTwoArrow ℝ ℂ).symm (q.1, q.2)) :=
+    (ContinuousLinearEquiv.finTwoArrow ℝ ℂ).symm.contDiff.contMDiff.comp
+      (contMDiff_fst.prodMk_space contMDiff_snd)
+  convert hL.comp contMDiff_subtypeVal using 1
+  funext q
+  ext i
+  fin_cases i <;> simp [vecOfPair]
 
 /-- The map `(a, b) ↦ [a : b]` from the nonzero pairs to the Riemann sphere, as a `C^n` map. -/
-private def projMk : C^n⟮𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ), nonzeroPairs; 𝓘(ℝ, ℂ), OnePoint ℂ⟯ :=
-  ⟨fun q ↦ (equivProjectivization ℂ).symm
-      (Projectivization.mk ℂ _ (vec_ne_zero_of_mem_nonzeroPairs q)), by
-    intro q
-    have hval : ContMDiffAt (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ × ℂ) n
-        (fun q : nonzeroPairs ↦ ((q : ℂ × ℂ).1, (q : ℂ × ℂ).2)) q :=
-      ((contMDiff_fst.comp contMDiff_subtypeVal).prodMk_space
-        (contMDiff_snd.comp contMDiff_subtypeVal)).contMDiffAt
-    have hdiv {f g : ℂ × ℂ → ℂ} (hf : ContDiff ℂ ω f) (hg : ContDiff ℂ ω g)
-        (hq : g (q : ℂ × ℂ) ≠ 0) :
-        ContMDiffAt (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) n
-          (fun q : nonzeroPairs ↦ f (q : ℂ × ℂ) / g (q : ℂ × ℂ)) q := by
-      refine ContMDiffAt.comp (g := fun p : ℂ × ℂ ↦ f p / g p) q ?_ hval
-      exact contMDiffAt_iff_contDiffAt.mpr
-        (((hf.contDiffAt.div hg.contDiffAt hq).restrict_scalars ℝ).of_le le_top)
-    by_cases hq : (q : ℂ × ℂ).2 = 0
-    · have hq₁ : (q : ℂ × ℂ).1 ≠ 0 := fun h ↦ q.property (Prod.ext h hq)
-      refine (contMDiff_invChart_symm_real.contMDiffAt.comp q
-        (hdiv contDiff_snd contDiff_fst hq₁)).congr_of_eventuallyEq ?_
-      have : ∀ᶠ r in 𝓝 q, ((r : nonzeroPairs) : ℂ × ℂ).1 ≠ 0 :=
-        (continuous_fst.comp continuous_subtypeVal).continuousAt.eventually_ne hq₁
-      filter_upwards [this] with r hr
-      exact equivProjectivization_symm_mk_eq_invChart_symm _ hr
-    · refine (contMDiff_coe_real.contMDiffAt.comp q
-        (hdiv contDiff_fst contDiff_snd hq)).congr_of_eventuallyEq ?_
-      have : ∀ᶠ r in 𝓝 q, ((r : nonzeroPairs) : ℂ × ℂ).2 ≠ 0 :=
-        (continuous_snd.comp continuous_subtypeVal).continuousAt.eventually_ne hq
-      filter_upwards [this] with r hr
-      exact equivProjectivization_symm_mk_of_ne_zero _ hr⟩
+private def projMk : C^n⟮𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ), puncturedSpace (ℂ × ℂ); 𝓘(ℝ, ℂ), OnePoint ℂ⟯ :=
+  ⟨fun q ↦ (equivProjectivization ℂ).symm (Projectivization.mkNonzero ℂ 1 (vecOfPair q)),
+    ((((contMDiff_equivProjectivization_symm (𝕜 := ℂ)).restrictScalars' ℝ).of_le le_top).comp
+      (Projectivization.contMDiff_mkNonzero ℂ 1 n)).comp contMDiff_vecOfPair⟩
 
-private theorem projMk_apply (q : nonzeroPairs) :
-    projMk (n := n) q = (equivProjectivization ℂ).symm
-      (Projectivization.mk ℂ _ (vec_ne_zero_of_mem_nonzeroPairs q)) :=
+private theorem projMk_apply (q : puncturedSpace (ℂ × ℂ)) :
+    projMk (n := n) q =
+      (equivProjectivization ℂ).symm (Projectivization.mkNonzero ℂ 1 (vecOfPair q)) :=
   (rfl)
 
 /-- In a trivialization of `𝒪(k)`, over a point of its base set, the point `[a : b]` of `ℙ¹(ℂ)`
@@ -272,27 +263,26 @@ theorem continuous_ratioMap {ι : Type*}
         (hc.comp (continuous_snd.comp continuous_subtypeVal)))
   have hmem (p : {p : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ ×
       Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ // ∀ x, (![p.1 x, p.2 x] : Fin 2 → ℂ) ≠ 0})
-      (y : U' x) : (c p.val.1).prodMk (c p.val.2) y ∈ nonzeroPairs := by
-    intro h
+      (y : U' x) : (c p.val.1).prodMk (c p.val.2) y ∈ puncturedSpace (ℂ × ℂ) := by
+    refine mem_puncturedSpace.2 fun h ↦ ?_
     obtain ⟨h₁, h₂⟩ := Prod.mk_eq_zero.mp h
     have hy : (y : OnePoint ℂ) ∈ (e' x).baseSet := y.property
     refine p.property y ?_
     simp only [c, Bundle.Trivialization.frameCoordinates_apply] at h₁ h₂
-    have hL {v : (twistCore (𝕜 := ℂ) k).Fiber y} (hv : ((e' x) ⟨y, v⟩).2 = 0) : v = 0 :=
-      ((e' x).continuousLinearEquivAt ℂ _ hy).map_eq_zero_iff.mp
-        (by rwa [Trivialization.continuousLinearEquivAt_apply])
     ext i
     fin_cases i
     -- The entries of the vector are `s y` and `t y`, read in `ℂ`, which the fibres are by
     -- definition.
-    exacts [hL h₁, hL h₂]
+    exacts [((e' x).snd_apply_eq_zero_iff ℂ (v := ⟨y, _⟩) hy).mp h₁,
+      ((e' x).snd_apply_eq_zero_iff ℂ (v := ⟨y, _⟩) hy).mp h₂]
   convert (ContMDiffMap.continuous_postcomp_manifoldWeakWhitney projMk).comp
-    (hpair.codRestrict_manifoldWeakWhitney nonzeroPairs hmem) using 1
+    (hpair.codRestrict_manifoldWeakWhitney (puncturedSpace (ℂ × ℂ)) hmem) using 1
   funext p
   ext y
   simp only [Function.comp_apply, ContMDiffMap.restrict_apply, ContMDiffMap.comp_apply,
-    ratioMap_apply, projMk_apply, ContMDiffMap.coe_codRestrict_apply, ContMDiffMap.prodMk_apply,
-    c, Bundle.Trivialization.frameCoordinates_apply]
+    ratioMap_apply, projMk_apply, Projectivization.mkNonzero_apply, vecOfPair,
+    ContMDiffMap.coe_codRestrict_apply, ContMDiffMap.prodMk_apply, c,
+    Bundle.Trivialization.frameCoordinates_apply]
   congr 1
   exact (mk_trivialization_eq (e' x) y.property _ _).symm
 
