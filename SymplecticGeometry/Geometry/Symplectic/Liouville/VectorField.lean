@@ -18,7 +18,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.LocalPrimitive
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 
 /-!
@@ -303,8 +303,8 @@ theorem exists_eval₂_sub_eq_mvfderiv_opens {σ : SmoothTwoForm I N}
   refine Eq.trans ?_ (hgW y hyW v)
   -- The tangent spaces of `U` at `y` and of `N` at `↑y` are both `E`, which `rw` does not see
   -- through, so the two sides are matched term by term.
-  exact congrArg₂ (· - ·) (SmoothTwoForm.eval₂_mpullback_subtypeVal y _ v).symm
-    ((SmoothTwoForm.eval₂_mpullback_subtypeVal y _ v).trans
+  exact congrArg₂ (· - ·) (SmoothForm.eval₂_mpullback_subtypeVal σ y _ v).symm
+    ((SmoothForm.eval₂_mpullback_subtypeVal σ y _ v).trans
       (congrArg (SmoothBundleForm.eval₂ σ (y : N) · v)
         (VectorField.mpullback_subtypeVal_apply X y))).symm
 
