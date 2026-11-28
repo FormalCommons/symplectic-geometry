@@ -128,8 +128,8 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   to `δ`.
 * For `0 ≤ L` and `0 < δ` the family is smooth in `(ℓ, r)` at every point with `δ < r`
   (`SymplecticGeometry.contDiffAt_uncurry_struweSwitchLeaf`): near `ℓ = 6 δ` the comparisons
-  show that it is `sqrtAddLeaf`, and for `ℓ > 6 δ` the smoothed maximum is rescaled to width `1`
-  (`SymplecticGeometry.smoothedMax_eq_mul_smoothedMax_one`). For `0 ≤ δ`, at each `r > δ`, the
+  show that it is `sqrtAddLeaf`, and for `ℓ > 6 δ` it is a smoothed maximum of positive width
+  (`SymplecticGeometry.contDiffAt_smoothedMax`). For `0 ≤ δ`, at each `r > δ`, the
   leaves `ℓ ≥ 0` increase strictly with `ℓ`
   (`SymplecticGeometry.strictMonoOn_struweSwitchLeaf`), since both pieces do and the width grows
   with `ℓ`.
@@ -1027,17 +1027,14 @@ theorem contDiffAt_uncurry_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < 
     · rw [struweSwitchLeaf_of_le ha]
     · rw [struweSwitchLeaf_of_lt ha]
       exact smoothedMax_eq_left (div_pos (sub_pos.2 ha) (by norm_num)) (by linarith)
-  · -- Near `ℓ > 6 δ` the family is a smoothed maximum of positive width, rescaled to width `1`.
-    set η := fun p : ℝ × ℝ ↦ (p.1 - 6 * δ) / 200
-    have hη : ContDiffAt ℝ ∞ η (ℓ, r) := (contDiffAt_fst.sub contDiffAt_const).div_const _
-    have hη₀ : η (ℓ, r) ≠ 0 := (div_pos (sub_pos.2 hℓ) (by norm_num)).ne'
-    refine (hη.mul ((contDiff_smoothedMax 1).contDiffAt.comp (ℓ, r)
-      ((hA.div hη hη₀).prodMk (hT.div hη hη₀)))).congr_of_eventuallyEq ?_
+  · -- Near `ℓ > 6 δ` the family is a smoothed maximum of positive width.
+    have hη : ContDiffAt ℝ ∞ (fun p : ℝ × ℝ ↦ (p.1 - 6 * δ) / 200) (ℓ, r) :=
+      (contDiffAt_fst.sub contDiffAt_const).div_const _
+    refine (contDiffAt_smoothedMax hη (div_pos (sub_pos.2 hℓ) (by norm_num)).ne' hA
+      hT).congr_of_eventuallyEq ?_
     filter_upwards [(isOpen_lt continuous_const continuous_fst).mem_nhds hℓ]
       with ⟨a, b⟩ (h : 6 * δ < a)
-    simp only [A, T, η, Function.uncurry_apply_pair, Function.comp_apply,
-      struweSwitchLeaf_of_lt h]
-    exact smoothedMax_eq_mul_smoothedMax_one (div_pos (sub_pos.2 h) (by norm_num)).ne' _ _
+    simp only [A, T, Function.uncurry_apply_pair, struweSwitchLeaf_of_lt h]
 
 /-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ≥ 0` are strictly increasing in `ℓ`. Both
 `sqrtAddLeaf L δ ℓ r` and Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ` increase strictly

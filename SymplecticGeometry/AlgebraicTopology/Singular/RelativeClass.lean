@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.System
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RelativeClass
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.RestrictScalars
 
 /-!
 # Relative classes of singular simplices
@@ -25,6 +26,10 @@ pair of `P`, its faces lifted to singular simplices of `A` (`TopPair.liftSimplex
 * `TopPair.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app`: lifts of the faces to the subspace
   give the face condition, and `TopPair.relClass_eq_of_eq_toSSet_map_app` is the class for them.
 * `TopPair.relClass_singularHomologyMap`: naturality in maps of pairs.
+* `TopPair.relClass_restrictScalarsHomologyMap`: the change of coefficients
+  `SSetPair.restrictScalarsHomologyMap` along `g : M ⟶ f^* N` sends the class with coefficients
+  in `M` to the class with coefficients in `N`, through `g`; for the cast of integers into a
+  ring `k`, `TopPair.relClass_intCastHomologyMap`.
 * `TopPair.relClass_localHomologyRestriction`: compatibility with the restriction
   `Hₙ₊₁(M, M ∖ T) ⟶ Hₙ₊₁(M, M ∖ S)` for `S ⊆ T`.
 * `TopPair.relClass_localHomologyMap`: naturality in continuous maps, on local homology.
@@ -147,6 +152,34 @@ lemma relClass_singularHomologyMap {P' : TopPair.{w}} (f : P ⟶ P') :
   -- unfolding `toSSetPair`, so the naturality of `SSetPair.relClass` is applied as a term.
   exact (SSetPair.relClass_homologyMap (Q := toSSetPair.obj P) R σ _ _ (toSSetPair.map f)).trans
     (relClass_eq _ _ _ _ _ _).symm
+
+/-- The change of coefficients `SSetPair.restrictScalarsHomologyMap` along `g : M ⟶ f^* N` sends
+the class of a singular `(n + 1)`-simplex `σ` whose faces lie in the subspace, with coefficients
+in `M`, to the class of `σ` with coefficients in `N`, through `g` on coefficients. -/
+@[reassoc]
+lemma relClass_restrictScalarsHomologyMap {R S : Type w} [Ring R] [Ring S] (f : R →+* S)
+    {M : ModuleCat.{w} R} {N : ModuleCat.{w} S} (g : M ⟶ (ModuleCat.restrictScalars f).obj N) :
+    P.relClass M σ hσ ≫ SSetPair.restrictScalarsHomologyMap f g (toSSetPair.obj P) (n + 1) =
+      g ≫ (ModuleCat.restrictScalars f).map (P.relClass N σ hσ) := by
+  rw [relClass_def, relClass_def]
+  -- `σ` is a simplex of `(toSSetPair.obj P).right`, which is `TopCat.toSSet.obj P.fst` only up to
+  -- unfolding `toSSetPair`, so the lemma for pairs of simplicial sets is applied as a term.
+  exact SSetPair.relClass_restrictScalarsHomologyMap f g (P := toSSetPair.obj P) σ _ _
+
+/-- Casting integral relative homology to `k` (`SSetPair.intCastHomologyMap`) sends the integral
+class of a singular `(n + 1)`-simplex `σ` whose faces lie in the subspace to the class of `σ`
+over `k`, through the cast of integers to `k` on coefficients. -/
+@[reassoc]
+lemma relClass_intCastHomologyMap {k : Type} [Ring k] {Q : TopPair.{0}} {m : ℕ}
+    (s : (TopCat.toSSet.obj Q.fst) _⦋m + 1⦌)
+    (hs : ∀ i, Set.range (Q.fst.toSSetObjEquiv _ ((TopCat.toSSet.obj Q.fst).δ i s)) ⊆
+      Set.range Q.map) :
+    Q.relClass (ModuleCat.of ℤ (ULift.{0} ℤ)) s hs ≫
+        SSetPair.intCastHomologyMap k (toSSetPair.obj Q) (m + 1) =
+      ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+          (Q.relClass (ModuleCat.of k k) s hs) := by
+  rw [SSetPair.intCastHomologyMap_def, relClass_restrictScalarsHomologyMap]
 
 section Abelian
 

@@ -8,19 +8,26 @@ module
 public import Mathlib.GroupTheory.GroupAction.Basic
 public import Mathlib.Topology.Algebra.Monoid.Defs
 public import Mathlib.Topology.Constructions
+public import TauCeti.Topology.Algebra.Group.Connected
+import TauCeti.Topology.Algebra.ConstMulAction
 
 /-!
-# Discreteness of stabilizers along an orbit
+# Discreteness and closedness of stabilizers
 
 For a group `G` with continuous multiplication acting on a type `α`, the stabilizers of `a` and
 of `g • a` are conjugate in `G`, so one of them is discrete, for the subspace topology, exactly
 when the other is. The Kempf–Ness theory uses this to see that stability, which asks for a
 discrete stabilizer, holds along whole orbits.
 
+When the orbit map `g ↦ g • x` is continuous and points are closed, the identity component of the
+stabilizer of `x` is closed, so that in a Lie group it is a Lie group as a closed subgroup.
+
 ## Main results
 
 * `MulAction.discreteTopology_stabilizer_smul_iff`: the stabilizer of `g • a` is discrete exactly
   when that of `a` is.
+* `MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer`: the identity component of the
+  stabilizer of a point with continuous orbit map in a `T₁` space is closed.
 -/
 
 public section
@@ -39,5 +46,13 @@ theorem MulAction.discreteTopology_stabilizer_smul_iff {G α : Type*} [Group G]
       simp_rw [Function.comp_def, stabilizerEquivStabilizer_apply, MulAut.conj_apply]; fun_prop)
       (stabilizerEquivStabilizer hb).injective
   exact ⟨fun _ ↦ key (h := g) rfl, fun _ ↦ key (inv_smul_smul g a).symm⟩
+
+/-- If the orbit map `g ↦ g • x` is continuous and points are closed, then the identity component
+of the stabilizer of `x` is closed in `G`. -/
+theorem MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer {G α : Type*} [Group G]
+    [TopologicalSpace G] [IsTopologicalGroup G] [MulAction G α] [TopologicalSpace α] [T1Space α]
+    {x : α} (hx : Continuous fun g : G ↦ g • x) :
+    IsClosed ((stabilizer G x).ambientConnectedComponentOfOne : Set G) :=
+  Subgroup.isClosed_ambientConnectedComponentOfOne <| TauCeti.isClosed_stabilizer hx
 
 end

@@ -80,7 +80,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `SymplecticGeometry.smoothedMax_eq_mul_smoothedMax_one`: for `δ ≠ 0`, each is its width-`1`
   version rescaled by `δ`. Since `s ↦ smoothedAbs 1 s - s` is nonnegative and nonincreasing on
   `[0, ∞)`, the rescaling gives `SymplecticGeometry.monotoneOn_smoothedAbs_width` and
-  `SymplecticGeometry.monotoneOn_smoothedMax_width`: both grow with the width `δ > 0`.
+  `SymplecticGeometry.monotoneOn_smoothedMax_width`: both grow with the width `δ > 0`. It also
+  makes the smoothed maximum smooth in a varying nonzero width
+  (`SymplecticGeometry.contDiffAt_smoothedMax`).
 * `SymplecticGeometry.smoothedMax_add_add_right`: a common shift of the two arguments shifts the
   smoothed maximum.
 * The smoothed minimum `-smoothedMax δ (-a) (-b)` lies in `[min a b - δ / 2, min a b]`
@@ -671,6 +673,19 @@ theorem smoothedMax_eq_mul_smoothedMax_one (hδ : δ ≠ 0) (a b : ℝ) :
     smoothedMax δ a b = δ * smoothedMax 1 (a / δ) (b / δ) := by
   rw [smoothedMax_def, smoothedMax_def, smoothedAbs_eq_mul_smoothedAbs_one hδ, ← sub_div]
   field_simp
+
+/-- The smoothed maximum is smooth jointly in its width and its two arguments where the width
+does not vanish: if `η`, `f` and `g` are `Cⁿ` at `x` and `η x ≠ 0`, then
+`y ↦ smoothedMax (η y) (f y) (g y)` is `Cⁿ` at `x`. -/
+theorem contDiffAt_smoothedMax {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {n : ℕ∞}
+    {η f g : E → ℝ} {x : E} (hη : ContDiffAt ℝ n η x) (hη₀ : η x ≠ 0)
+    (hf : ContDiffAt ℝ n f x) (hg : ContDiffAt ℝ n g x) :
+    ContDiffAt ℝ n (fun y ↦ smoothedMax (η y) (f y) (g y)) x := by
+  -- Near `x` the width does not vanish, and the smoothed maximum is rescaled to width `1`.
+  refine (hη.mul ((contDiff_smoothedMax 1).contDiffAt.comp x
+    ((hf.div hη hη₀).prodMk (hg.div hη hη₀)))).congr_of_eventuallyEq ?_
+  filter_upwards [hη.continuousAt.eventually_ne hη₀] with y hy
+  exact smoothedMax_eq_mul_smoothedMax_one hy _ _
 
 /-- Adding the same number to both arguments of the smoothed maximum adds it to the value. -/
 theorem smoothedMax_add_add_right (δ a b c : ℝ) :
