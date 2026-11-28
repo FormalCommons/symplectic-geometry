@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.Riemannian.NormedSpace
 import TauCeti.Topology.VectorBundle.Riemannian.Comparison
