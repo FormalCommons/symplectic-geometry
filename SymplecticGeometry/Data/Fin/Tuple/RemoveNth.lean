@@ -102,15 +102,11 @@ theorem sum_neg_one_pow_smul_removeNth_append_zero {G : Type*} [AddCommGroup G] 
 
 /-- Removing an entry `i` of `f` from `Fin.snoc f z` gives `Fin.snoc (Fin.removeNth i f) z`: the
 last entry stays last. -/
+@[simp]
 theorem removeNth_castSucc_snoc {n : ℕ} (i : Fin (n + 1)) (f : Fin (n + 1) → α) (z : α) :
     removeNth i.castSucc (snoc f z : Fin (n + 2) → α) = snoc (removeNth i f) z := by
   funext m
-  refine lastCases ?_ (fun m ↦ ?_) m
-  · simp [removeNth_apply]
-  · simp only [removeNth_apply, succAbove, lt_def, snoc_castSucc, val_castSucc]
-    split_ifs
-    · simp
-    · rw [succ_castSucc, snoc_castSucc]
+  refine lastCases ?_ (fun m ↦ ?_) m <;> simp [removeNth_apply]
 
 end Fin
 
