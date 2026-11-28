@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.MaurerCartan
+public import TauCeti.Geometry.Lie.MaurerCartan
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
@@ -38,6 +38,10 @@ these local forms into a connection form on the whole total space, as soon as th
 
 ## Implementation notes
 
+The Maurer–Cartan form is Tau Ceti's `TauCeti.leftMaurerCartanForm`, with values in the model
+space `EG`, and its behaviour under right translations is
+`TauCeti.leftMaurerCartanForm_apply_mfderiv_mul_right`.
+
 The local lemmas follow from two facts about the fibre coordinate that hold for any form,
 `Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
 `Bundle.Trivialization.mfderiv_snd_rightFundamentalVectorField` (`Principal/Trivialization.lean`),
@@ -60,7 +64,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
-open scoped Manifold ContDiff GroupLieAlgebra
+open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
 
@@ -92,17 +96,14 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
     {x : ManifoldTotalSpace G P}
     (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ e.baseSet) (g : G) :
     TauCeti.mpullback (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y)
-      (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
-        (leftMaurerCartanForm IG G).val) x =
-      RoughForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹)
-        (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
-          (leftMaurerCartanForm IG G).val) x := by
-  -- `Ad(g⁻¹)` is typed on `GroupLieAlgebra IG G`, so `rw` cannot match `mapCoeff (F := EG)`.
-  have hR := ((SmoothForm.mpullback_eq_iff _).1
-    (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)).trans
-    (SmoothForm.coe_mapCoeff (F := EG) (G := EG) _ _)
-  rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR]
-  exact congrFun (mpullback_mapCoeff (F := EG) (G := EG) _ _ _) x
+      (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val) x =
+      RoughForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹)
+        (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val) x := by
+  rw [e.mpullback_op_smul_mpullback_snd hθ hx]
+  refine ContinuousAlternatingMap.ext fun v ↦ ?_
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by rw [Subsingleton.elim i 0]; rfl⟩
+  rw [RoughForm.mapCoeff_apply, mpullback_apply_one, mpullback_apply_one, mpullback_apply_one,
+    leftMaurerCartanForm_apply_mfderiv_mul_right, GroupLieAlgebra.adjointL_apply]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -127,7 +128,7 @@ end Local
 unity of the base, from the pull-backs of the left Maurer–Cartan form along the fibre coordinates
 of the trivializations of the atlas. -/
 theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] :
-    ∃ A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1,
+    ∃ A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1,
       IsConnectionForm A := by
   obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
     (fun b : B ↦ (trivializationAt G P b).baseSet)
@@ -142,10 +143,10 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
   have hθ (b : B) (x : ManifoldTotalSpace G P) (hx : p x ∈ (trivializationAt G P b).baseSet) :=
     (hθd b x hx).mdifferentiableAt (by simp)
   -- The local connection forms `θ^* θ_MC`, glued with the partition of unity.
-  set ℓ : B → RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1 := fun b ↦
+  set ℓ : B → RoughForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1 := fun b ↦
     TauCeti.mpullback (IB.prod IG) IG (trivializationAt G P b).manifoldSnd
       (leftMaurerCartanForm IG G).val
-  let A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1 :=
+  let A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1 :=
     ⟨fun x ↦ ∑ b ∈ ρ.finsupport (p x), ρ b (p x) • ℓ b x, IsSmoothForm.mem_smoothBundleForms <|
       isSmoothForm_sum_finsupport_smul_mpullback hρ
         (fun b ↦ (trivializationAt G P b).open_baseSet) hpc hθd (leftMaurerCartanForm IG G)⟩
@@ -158,14 +159,10 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
       RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]
     refine Finset.sum_congr rfl fun b hb ↦ ?_
-    -- As above, `mapCoeff_apply` is applied as a term rather than by `rw`.
-    have h := (DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
-      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v).trans
-      (RoughForm.mapCoeff_apply (F := EG) (G := EG) _ _ _ _)
-    rw [mpullback_apply] at h
-    rw [map_smul]
-    -- `h` is stated in the model space `EG`, the goal in the Lie algebra; they agree by definition.
-    exact congrArg (ρ b (p x) • ·) h
+    have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
+      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v
+    rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
+    rw [map_smul, ← h]
   · rw [hA]
     exact ρ.sum_finsupport_smul_eq_of_forall_eq (Set.mem_univ _)
       fun b hb ↦ mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField
