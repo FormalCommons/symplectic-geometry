@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.LocalForm
 import SymplecticGeometry.Geometry.Manifold.Submersion.VerticalProjection
+import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import TauCeti.Geometry.Manifold.Distribution.Kernel
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -70,6 +71,18 @@ vector field of the function `τ(v₁♯, v₂♯)` read on the fibre through th
 This is the curvature condition of McDuff–Salamon [McDuffSalamon2017], Exercise 6.4.9, and of
 [GuilleminLermanSternberg1996], §1.4.
 
+Next, the file computes the curvature read in a chart `e` of a smooth atlas over a coordinate
+patch of a base without boundary. With `φ` the extended chart of `B` at `b`, the map
+`Φ p = (φ (proj p), (e p).2)` identifies a neighbourhood of the fibre over `b` with an open set
+of `EB × F`. If a two-form `τ'` there pulls back by `Φ` to `τ` near a point, then `dΦ` carries
+the connection of `τ` into that of `τ'` near that point
+(`TauCeti.SmoothTwoForm.map_mfderiv_horizontalDistribution`), so by the naturality of the curvature
+(`TauCeti.IsEhresmannConnection.mfderiv_curvature_of_related`) the curvature of `v₁ v₂` is carried
+to that of their push-forwards by `φ`. On `EB` these push-forwards are combinations of constant
+fields, and the curvature expands bilinearly
+(`TauCeti.IsEhresmannConnection.curvature_eq_sum_basis`). The fibre component of the result is
+the curvature read in `e`.
+
 Last, the file computes the curvature in a product chart, in the setting of `LocalForm.lean`: a
 two-form `τ` on `EB × F` with fibre components `σ(x)`, mixed components `αᵢ(x)` and the fields
 `Xᵢ(x)` with `ι(Xᵢ(x)) σ(x) = αᵢ(x)`, so that the horizontal lift of the constant field `bs i`
@@ -112,6 +125,8 @@ of `αⱼ` and `αᵢ` along the base and of `τ((bs i, 0), (bs j, 0))` along `F
   vector field of `τ(v₁♯, v₂♯)` read on the fibre.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_of_isClosed`: the connection of a closed
   two-form that restricts to `σ` on the fibres has Hamiltonian curvature.
+* `TauCeti.IsEhresmannConnection.curvatureIn_eq_snd_sum_curvature`: the curvature read in a chart
+  over a coordinate patch, in terms of the curvature of a two-form on `EB × F` on constant fields.
 
 ## References
 
@@ -486,6 +501,119 @@ theorem hasHamiltonianCurvature_of_isClosed
       ((hv₁ b).of_le (by simp)) ((hv₂ b).of_le (by simp))⟩
 
 end Closed
+
+/-! ### The curvature read in a chart over a coordinate patch -/
+
+section ChartReading
+
+open Set
+open scoped Topology
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpace EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} [IB.Boundaryless] {B : Type*}
+  [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB 2 B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [CompleteSpace EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [CompleteSpace EM] {HM : Type*}
+  [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M]
+  [ChartedSpace HM M] [IsManifold IM ∞ M]
+  {proj : M → B} {A : MapFiber.Atlas F proj}
+
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
+
+/-- **The curvature read in a chart over a coordinate patch.** Let `A` be a smooth atlas of
+`proj : M → B` with fibre `F`, over a base without boundary, and `hD` the connection of a
+two-form `τ` on `M`, a `C^n` Ehresmann connection with `1 ≤ n`. Take a chart `e = A.trivAt b'`,
+a point `b` of its base set, the extended chart `φ` of `B` at `b`, and the map
+`Φ p = (φ (proj p), (e p).2)` to `EB × F`. Let `τ'` be a two-form on `EB × F` whose connection
+`hD'` for `Prod.fst` is a `C^n'` Ehresmann connection with `1 ≤ n'`, and whose pull-back by `Φ`
+equals `τ` near `x = e⁻¹ (b, y)`. Then for vector fields `v₁ v₂` on `B` that are `C^1` at `b`
+and a basis `bs` of `EB`, the curvature on the fibre over `b` read in `e`, at `y`, is the fibre
+component of `∑ i, ∑ j, cᵢ dⱼ • Ω'(bs i, bs j)` at `(φ b, y)`, where `Ω'(bs i, bs j)` is the
+curvature of `hD'` on the constant fields `bs i`, `bs j`, and `c`, `d` are the coordinates in
+`bs` of `dφ (v₁ b)` and `dφ (v₂ b)`. -/
+theorem curvatureIn_eq_snd_sum_curvature
+    {τ : SmoothTwoForm IM M} {n : ℕ∞ω}
+    (hD : IsEhresmannConnection IM IB n proj (SmoothTwoForm.horizontalDistribution IB proj τ))
+    (hn : 1 ≤ n) (hA : A.IsContMDiff ∞ IB IF IM) {b' b : B} (hb : b ∈ (A.trivAt b').baseSet)
+    {τ' : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F)} {n' : ℕ∞ω}
+    (hD' : IsEhresmannConnection (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) n' Prod.fst
+      (SmoothTwoForm.horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ')) (hn' : 1 ≤ n') {y : F}
+    (hτ' : ∀ᶠ p in 𝓝 ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)),
+      mpullback IM (𝓘(ℝ, EB).prod IF) (fun p ↦ (extChartAt IB b (proj p), (A.trivAt b' p).2))
+        τ'.val p = τ.val p)
+    {ι : Type*} [Fintype ι] (bs : Module.Basis ι ℝ EB) {v₁ v₂ : Π b : B, TangentSpace IB b}
+    (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) b) (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) b) :
+    hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y =
+      (∑ i, ∑ j, (bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) b (v₁ b)) i *
+          bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) b (v₂ b)) j) •
+        hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b b, y)).2 := by
+  set e := A.trivAt b'
+  set Φ : M → EB × F := fun p ↦ (extChartAt IB b (proj p), (e p).2) with hΦdef
+  set x := e.toOpenPartialHomeomorph.symm (b, y)
+  have hpx : proj x = b := e.proj_symm_apply' hb
+  have hex : e x = (b, y) := e.apply_symm_apply' hb
+  have hxe : x ∈ e.source := e.mem_source.2 (by rw [hpx]; exact hb)
+  have hΦx : Φ x = (extChartAt IB b b, y) := by simp only [hΦdef, hpx, hex]
+  have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
+  -- The points over which `Φ` is a chart.
+  have hU : e.source ∩ proj ⁻¹' (chartAt HB b).source ∈ 𝓝 x :=
+    inter_mem (e.open_source.mem_nhds hxe) ((hproj.continuous.continuousAt).preimage_mem_nhds
+      ((chartAt HB b).open_source.mem_nhds (by rw [hpx]; exact mem_chart_source HB b)))
+  have hΦ (z : M) (hz : z ∈ e.source ∩ proj ⁻¹' (chartAt HB b).source) :
+      ContMDiffAt IM (𝓘(ℝ, EB).prod IF) 2 Φ z ∧
+        Function.Surjective (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ z) :=
+    ⟨hA.contMDiffAt_extChartAt_proj_prodMk_snd (by simp) (e.mem_source.1 hz.1) hz.2,
+      hA.surjective_mfderiv_extChartAt_proj_prodMk_snd (by simp) (e.mem_source.1 hz.1) hz.2⟩
+  -- `dΦ` carries the connection of `τ` into that of `τ'` near `x`.
+  have hΦD : ∀ᶠ z in 𝓝 x, ∀ w ∈ SmoothTwoForm.horizontalDistribution IB proj τ z,
+      mfderiv IM (𝓘(ℝ, EB).prod IF) Φ z w ∈
+        SmoothTwoForm.horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ' (Φ z) := by
+    filter_upwards [hU, hτ'] with z hz hτz w hw
+    have hzb : proj z ∈ (extChartAt IB b).source := by rw [extChartAt_source]; exact hz.2
+    rw [← SmoothTwoForm.map_mfderiv_horizontalDistribution (proj := proj) (proj' := Prod.fst)
+      (ψ := extChartAt IB b) (Φ := Φ) (τ := τ) (τ' := τ') EventuallyEq.rfl
+      ((hproj z).mdifferentiableAt (by simp)) (((hΦ z hz).1).mdifferentiableAt two_ne_zero)
+      ((contMDiffAt_extChartAt' (n := 2) hz.2).mdifferentiableAt two_ne_zero)
+      mdifferentiableAt_fst (isInvertible_mfderiv_extChartAt hzb).injective (hΦ z hz).2 hτz]
+    exact Submodule.mem_map_of_mem hw
+  -- The fields on `EB` that `φ` relates `v₁ v₂` to.
+  have hrel (v : Π b : B, TangentSpace IB b) :
+      ∀ᶠ c in 𝓝 (proj x), mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) c (v c) =
+        VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b).symm v
+          (extChartAt IB b c) :=
+    hpx ▸ VectorField.eventually_mfderiv_extChartAt_apply_eq_mpullback v b
+  have hreg {v : Π b : B, TangentSpace IB b} (hv : ContMDiffAt IB IB.tangent 1 (T% v) b) :
+      ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent 1
+        (T% (VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b).symm v))
+        (Prod.fst (Φ x)) := by
+    rw [hΦx]
+    exact contMDiffAt_vectorSpace_iff_contDiffAt.2
+      (ContMDiffAt.contDiffAt_mpullback_extChartAt_symm hv)
+  have hcurv := hD.mfderiv_curvature_of_related hD' hn hn' ((hproj x).of_le (by simp))
+    contMDiffAt_fst (hΦ x (mem_of_mem_nhds hU)).1
+    (contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact mem_chart_source HB b))
+    EventuallyEq.rfl hΦD (by rw [hpx]; exact hv₁) (by rw [hpx]; exact hv₂) (hreg hv₁) (hreg hv₂)
+    (hrel v₁) (hrel v₂)
+  -- The curvature read in `e` is the fibre component of `dΦ` applied to the curvature.
+  have hsnd : hD.curvatureIn IF e b v₁ v₂ y =
+      (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ x (hD.curvature v₁ v₂ x)).2 := by
+    rw [curvatureIn_def, hΦdef, mfderiv_prodMk (f := fun p ↦ extChartAt IB b (proj p))
+      (g := fun p ↦ (e p).2)
+      ((contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact mem_chart_source HB b)).comp x
+        ((hproj x).of_le (by simp)) |>.mdifferentiableAt two_ne_zero)
+      ((hA.contMDiffAt_snd_trivAt (e.mem_source.1 hxe)).mdifferentiableAt (by simp))]
+    -- `ContinuousLinearMap.prod_apply` does not match here, the tangent spaces of `EB × F` being
+    -- products only by definition.
+    rfl
+  have h₁ := (hrel v₁).self_of_nhds
+  have h₂ := (hrel v₂).self_of_nhds
+  rw [hpx] at h₁ h₂
+  rw [hsnd, hcurv, hD'.curvature_eq_sum_basis hn' contMDiffAt_fst bs (hreg hv₁) (hreg hv₂), hΦx,
+    h₁, h₂]
+
+end ChartReading
 
 end TauCeti.IsEhresmannConnection
 

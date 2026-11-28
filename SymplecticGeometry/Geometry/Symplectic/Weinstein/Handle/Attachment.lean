@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Dynamics.Flow.LevelCrossing
-import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
+import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import TauCeti.Topology.Compactness.Normed
 
@@ -32,9 +32,9 @@ lies in `{f < b}`. This file proves the facts about the orbits of `Φ` that such
    `g ⁻¹' {0}` to `f ⁻¹' {b}` is positive and bounded.
 
 Fact (1) needs no statement of its own: it is the library's
-`IsMIntegralCurve.lt_apply_of_le_apply`, `IsMIntegralCurve.apply_lt_of_apply_le` and
-`IsMIntegralCurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos`, applied to the orbit
-`hW.isMIntegralCurve_flow x` of `Φ`.
+`IsMIntegralCurve.lt_apply_of_le_apply` and `IsMIntegralCurve.apply_lt_of_apply_le`, applied to
+the orbit `hW.isMIntegralCurve_flow x` of `Φ`, and
+`TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos`.
 Facts (2) and (3) follow from the statements about gradient-like flows in a compact region of
 `Morse/GradientLike.lean`. A backward orbit that never enters `{f ≤ a}` clusters at `-∞` at a
 critical point in the region (`TauCeti.IsGradientLike.exists_flow_apply_le_or_mapClusterPt_atBot`),
@@ -193,18 +193,15 @@ theorem exists_forall_levelCrossingTime_mem_Ioc {a b : ℝ}
       {x | g x < 0})
     (hgb : ∀ x, g x = 0 → f x < b) :
     ∃ T, ∀ x, g x = 0 → Flow.levelCrossingTime hW.flow f b x ∈ Ioc 0 T := by
-  have hfX (x : M) (hx : f x = b) :
-      MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f x ∧ 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
-    ⟨hW.isGeneralizedMorse.contMDiff.mdifferentiableAt (by simp),
-      hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb hx⟩
   -- The orbit of a point of `g ⁻¹' {0}` meets `f ⁻¹' {b}` exactly once, at a positive time.
   have hcross (x : M) (hx : g x = 0) :
       ∃ t, 0 < t ∧ f (hW.flow t x) = b ∧ Flow.levelCrossingTime hW.flow f b x = t := by
     obtain ⟨t, ht, hft⟩ := hW.exists_flow_apply_eq_upper hK hx (hgb x hx)
     exact ⟨t, ht, hft, Flow.levelCrossingTime_eq_of_subsingleton
-      ((hW.isMIntegralCurve_flow x).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
-        (hW.isGeneralizedMorse.contMDiff.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
-        (fun _ ↦ hfX _)) hft⟩
+      (_root_.TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
+        (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField hW.flowOf_eq_flow
+        (hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp))
+        (fun _ ↦ hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb) x) hft⟩
   obtain ⟨T, hT⟩ :=
     (hW.isCompact_preimage_zero hg (subset_union_left.trans hK)
       fun x hx ↦ (hgb x hx).le).bddAbove_image
