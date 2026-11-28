@@ -13,10 +13,11 @@ public import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 Two results on how an integral curve `γ` of a vector field `v`, defined for all times, meets a
 level `{f = c}` of a real function `f`.
 
-If `f` decreases along `γ` (weakly) and the level is transverse to `v` wherever `γ` meets it,
-then `γ` meets it at most once (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`): two meetings
-would make `f` constant along `γ` between them, so `df(v)` would vanish at a meeting point, by
-Tau Ceti's `IsMIntegralCurveAt.mfderiv_apply_eq_zero_of_eventuallyEq_const`.
+If `f` decreases along `γ` (weakly), and is differentiable and transverse to `v` wherever `γ`
+meets the level, then `γ` meets it at most once
+(`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`): two meetings would make `f` constant along
+`γ` between them, so `df(v)` would vanish at a meeting point, by Tau Ceti's
+`IsMIntegralCurveAt.mfderiv_apply_eq_zero_of_eventuallyEq_const`.
 
 If instead `df(v) > 0` at the points of `γ` on the level, and off it only the continuity of
 `f ∘ γ` is known, then `γ` crosses the level only from `{f < c}` to `{f > c}`, hence at most once
@@ -40,14 +41,18 @@ public section
 open Filter
 open scoped Manifold Topology
 
+namespace IsMIntegralCurve
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  {v : (x : M) → TangentSpace I x} {γ : ℝ → M} {f : M → ℝ} {c : ℝ}
+
 /-- **A transverse level is met at most once along an antitone orbit.** Let `γ` be an integral
-curve of `v` along which `f` is differentiable and `f ∘ γ` is antitone. If `df(v) ≠ 0` at each
-point of `γ` on the level `{f = c}`, then `γ` meets that level at most once. -/
-theorem IsMIntegralCurve.subsingleton_setOfPred_apply_eq {E H M : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
-    [ChartedSpace H M] {v : (x : M) → TangentSpace I x} {γ : ℝ → M} {f : M → ℝ} {c : ℝ}
-    (hγ : IsMIntegralCurve γ v) (hf : ∀ t, MDifferentiableAt I 𝓘(ℝ) f (γ t))
-    (hanti : Antitone (f ∘ γ)) (hc : ∀ t, f (γ t) = c → mvfderiv I f (γ t) (v (γ t)) ≠ 0) :
+curve of `v` with `f ∘ γ` antitone, and let `f` be differentiable with `df(v) ≠ 0` at each point
+of `γ` on the level `{f = c}`. Then `γ` meets that level at most once. -/
+theorem subsingleton_setOfPred_apply_eq (hγ : IsMIntegralCurve γ v) (hanti : Antitone (f ∘ γ))
+    (hc : ∀ t, f (γ t) = c → MDifferentiableAt I 𝓘(ℝ) f (γ t) ∧
+      mvfderiv I f (γ t) (v (γ t)) ≠ 0) :
     {t | f (γ t) = c}.Subsingleton := by
   intro s hs t ht
   by_contra hne
@@ -58,14 +63,9 @@ theorem IsMIntegralCurve.subsingleton_setOfPred_apply_eq {E H M : Type*} [Normed
     filter_upwards [Ioo_mem_nhds (show s < (s + t) / 2 by linarith)
       (show (s + t) / 2 < t by linarith)] with u hu
     exact le_antisymm (hs ▸ hanti hu.1.le) (ht ▸ hanti hu.2.le)
-  exact hc _ hconst.eq_of_nhds
-    ((hγ.isMIntegralCurveAt _).mfderiv_apply_eq_zero_of_eventuallyEq_const (hf _) hconst)
-
-namespace IsMIntegralCurve
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  {v : (x : M) → TangentSpace I x} {γ : ℝ → M} {f : M → ℝ} {c : ℝ}
+  have hmid := hc _ hconst.eq_of_nhds
+  exact hmid.2 ((hγ.isMIntegralCurveAt _).mfderiv_apply_eq_zero_of_eventuallyEq_const hmid.1
+    hconst)
 
 /-- **An integral curve crosses an upward level only upwards.** Let `γ` be an integral curve of
 `v` with `f ∘ γ` continuous, and let `f` be differentiable with `df(v) > 0` at every point of `γ`

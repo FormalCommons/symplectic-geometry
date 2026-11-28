@@ -9,7 +9,6 @@ public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
 import TauCeti.MeasureTheory.Function.Lp.Norm
-import TauCeti.MeasureTheory.Function.LpSeminorm.Multiplier
 
 /-!
 # Consequences of the triangle inequality for the `Lᵖ` seminorm
@@ -58,17 +57,27 @@ theorem integral_sum_norm_sq_le {ι : Type*} (s : Finset ι) {f : ι → α → 
 then `(1 - m) ‖f‖_p ≤ ‖f + c g‖_p`. -/
 theorem one_sub_mul_eLpNorm_le_eLpNorm_add_smul {𝕜 : Type*} [NormedField 𝕜] [NormedSpace 𝕜 E]
     {p : ℝ≥0∞} (hp : 1 ≤ p) {f g : α → E} {c : α → 𝕜} {m : ℝ≥0}
-    (hc : AEStronglyMeasurable c μ)
     (hcm : ∀ᵐ x ∂μ, ‖c x‖ ≤ m) (hgf : eLpNorm g p μ ≤ eLpNorm f p μ)
     (hf_top : eLpNorm f p μ ≠ ⊤) :
     (1 - (m : ℝ≥0∞)) * eLpNorm f p μ ≤ eLpNorm (fun x ↦ f x + c x • g x) p μ := by
+  by_cases hfcg : AEStronglyMeasurable (fun x ↦ f x + c x • g x) μ
+  swap
+  · rw [eLpNorm_of_not_aestronglyMeasurable hfcg]
+    exact le_top
+  have hcg : AEStronglyMeasurable (fun x ↦ c x • g x) μ := by
+    exact (hfcg.sub (aestronglyMeasurable_of_eLpNorm_ne_top hf_top)).congr
+      (.of_forall fun x ↦ add_sub_cancel_left (f x) _)
   have h₁ : eLpNorm f p μ ≤
       eLpNorm (fun x ↦ f x + c x • g x) p μ + eLpNorm (fun x ↦ c x • g x) p μ := by
     have h := eLpNorm_sub_le (f := fun x ↦ f x + c x • g x) (g := fun x ↦ c x • g x) (μ := μ) hp
     rwa [show ((fun x ↦ f x + c x • g x) - fun x ↦ c x • g x) = f from
       funext fun x ↦ add_sub_cancel_right _ _] at h
   have h₂ : eLpNorm (fun x ↦ c x • g x) p μ ≤ m * eLpNorm f p μ :=
-    (eLpNorm_smul_le_of_ae_norm_le hc hcm g p).trans (by rw [ENNReal.ofReal_coe_nnreal]; gcongr)
+    (eLpNorm_le_nnreal_smul_eLpNorm_of_ae_le_mul (g := g) hcg (by
+      filter_upwards [hcm] with x hx
+      rw [nnNorm_smul]
+      exact mul_le_mul_of_nonneg_right (by exact_mod_cast hx) (by positivity)) p).trans
+      (by rw [ENNReal.smul_def, smul_eq_mul]; gcongr)
   rw [ENNReal.sub_mul fun _ _ ↦ hf_top, one_mul, tsub_le_iff_right]
   exact h₁.trans (by gcongr)
 

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Basic
+public import TauCeti.Geometry.Manifold.Morse.Bott.Count
 public import TauCeti.Geometry.Manifold.Morse.Bott.Submersion
 public import TauCeti.Geometry.Manifold.Morse.Projectivization
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
@@ -61,6 +62,8 @@ submersion, adding the critical points of `π` as pieces of their own.
   `μ ∘ π` as a Morse–Bott function.
 * `SymplecticGeometry.IsLefschetzFibration.manifoldMorseIndex_momentPullback`: the Morse index of
   `μ ∘ π` along the piece `j` is `index j`.
+* `SymplecticGeometry.IsLefschetzFibration.index_isMorseBottFamily_momentPullback`: the index
+  that Tau Ceti's `TauCeti.IsMorseBottFamily.index` gives the piece `j` is also `index j`.
 
 ## References
 
@@ -348,6 +351,19 @@ theorem manifoldMorseIndex_momentPullback :
   · rw [embedding_inr_apply, index_inr]
     exact (h.manifoldMorseIndex_projectiveMomentFunction_comp p.property
         (apply_notMem_range_coordinatePoint hreg p.property)).2
+
+/-- **The index of the Morse–Bott family of `μ ∘ π`.** In the setting of
+`SymplecticGeometry.IsLefschetzFibration.isMorseBottFamily_momentPullback`, the index that
+`TauCeti.IsMorseBottFamily.index` gives the piece `j` of that family is
+`MomentPullback.index I π j`: `2 * k` for the fibre over `c k`, and `2` for a critical point
+of `π`. -/
+theorem index_isMorseBottFamily_momentPullback
+    (hconn : ∀ k, IsConnected (π ⁻¹' {coordinatePoint k})) (j) :
+    letI := MomentPullback.chartedSpace h.contMDiff hreg
+    (h.isMorseBottFamily_momentPullback hreg hconn).index j = MomentPullback.index I π j :=
+  letI := MomentPullback.chartedSpace h.contMDiff hreg
+  ((h.isMorseBottFamily_momentPullback hreg hconn).index_def j).trans
+    (h.manifoldMorseIndex_momentPullback hreg j _)
 
 end IsLefschetzFibration
 
