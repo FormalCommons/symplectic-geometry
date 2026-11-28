@@ -22,7 +22,7 @@ smooth odd one is `t * g (t ^ 2)`. Hence `v ↦ f ‖v‖` is smooth on a real i
 for every smooth even `f`.
 
 A smooth odd `f` is `t * k t` with `k` smooth and even, by Hadamard's lemma in one variable
-(`ContDiff.exists_contDiff_sub_eq_smul`). For a smooth
+(`ContDiff.exists_contDiff_sub_eq_sub_smul`). For a smooth
 even `f`, applying this to the odd function `deriv f` gives a smooth even `k` with
 `deriv f t = t * k t`, so that `s ↦ f (√s)` has derivative `s ↦ k (√s) / 2` on `[0, ∞)`
 (at `0` by `hasDerivWithinAt_Ici_of_tendsto_deriv`). By induction on the order,
@@ -58,7 +58,7 @@ namespace Function
 /-- A smooth odd function `f : ℝ → ℝ` is `t * k t` for a smooth even function `k`. -/
 theorem Odd.exists_contDiff_even_mul {f : ℝ → ℝ} (hf : f.Odd) (hc : ContDiff ℝ ∞ f) :
     ∃ k : ℝ → ℝ, ContDiff ℝ ∞ k ∧ k.Even ∧ ∀ t, f t = t * k t := by
-  obtain ⟨k, hkc, hk', -⟩ := ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) hc 0
+  obtain ⟨k, hkc, hk', -⟩ := ContDiff.exists_contDiff_sub_eq_sub_smul (n := ⊤) hc 0
   have hk : ∀ t, f t = t * k t := fun t ↦ by
     simpa [hf.map_zero] using hk' t
   refine ⟨k, hkc, fun t ↦ ?_, hk⟩

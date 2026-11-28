@@ -20,7 +20,7 @@ derivative: `g x = deriv f x`.
 
 ## Main results
 
-* `ContDiff.exists_contDiff_sub_eq_smul`: `f u - f x = (u - x) • g u` with `g` of class `C^n`
+* `ContDiff.exists_contDiff_sub_eq_sub_smul`: `f u - f x = (u - x) • g u` with `g` of class `C^n`
   and `g x = deriv f x`.
 -/
 
@@ -33,7 +33,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F
 /-- **Hadamard's lemma** in one variable: for `f : ℝ → F` of class `C^(n+1)` and a point `x`,
 there is `g : ℝ → F` of class `C^n` with `f u - f x = (u - x) • g u` for all `u`, and
 `g x = deriv f x`. -/
-theorem ContDiff.exists_contDiff_sub_eq_smul {n : ℕ∞} {f : ℝ → F} (hf : ContDiff ℝ (n + 1) f)
+theorem ContDiff.exists_contDiff_sub_eq_sub_smul {n : ℕ∞} {f : ℝ → F} (hf : ContDiff ℝ (n + 1) f)
     (x : ℝ) :
     ∃ g : ℝ → F, ContDiff ℝ n g ∧ (∀ u, f u - f x = (u - x) • g u) ∧ g x = deriv f x := by
   refine ⟨fun u ↦ hadamardFactor f x u 1,

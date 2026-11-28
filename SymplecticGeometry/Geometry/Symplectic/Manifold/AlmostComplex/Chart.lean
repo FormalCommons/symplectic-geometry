@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.Geometry.Symplectic.Transport
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Extension
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset

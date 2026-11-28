@@ -9,7 +9,9 @@ public import TauCeti.Topology.VectorBundle.Complexification
 public import TauCeti.Topology.VectorBundle.Hom
 public import SymplecticGeometry.Topology.Algebra.Module.Complexification
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import TauCeti.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
@@ -155,18 +157,14 @@ theorem continuous_complexificationProdEquiv_totalSpace :
       TotalSpace.mk' (Complexification F₁ × Complexification F₂)
         (E := (fun x ↦ ℂ ⊗[ℝ] E₁ x) ×ᵇ (fun x ↦ ℂ ⊗[ℝ] E₂ x)) v.proj
         (complexificationProdEquiv (E₁ v.proj) (E₂ v.proj) v.snd) := by
-  rw [(FiberBundle.Prod.isInducing_diag _ _ _ _).continuous_iff, Function.comp_def,
-    continuous_prodMk]
+  rw [Bundle.Prod.continuous_totalSpace_prod_iff]
   obtain ⟨hre, him⟩ := (continuous_complexification_totalSpace_iff (F := F₁ × F₂)
     (E := E₁ ×ᵇ E₂)).1 continuous_id
-  have hre' := (FiberBundle.Prod.isInducing_diag _ _ _ _).continuous.comp hre
-  have him' := (FiberBundle.Prod.isInducing_diag _ _ _ _).continuous.comp him
-  simp only [Function.comp_def] at hre' him'
   constructor <;> refine (continuous_complexification_totalSpace_iff).2 ⟨?_, ?_⟩
-  · exact hre'.fst.congr fun v ↦ by simp
-  · exact him'.fst.congr fun v ↦ by simp
-  · exact hre'.snd.congr fun v ↦ by simp
-  · exact him'.snd.congr fun v ↦ by simp
+  · exact (FiberBundle.Prod.continuous_totalSpaceFst.comp hre).congr fun v ↦ by simp
+  · exact (FiberBundle.Prod.continuous_totalSpaceFst.comp him).congr fun v ↦ by simp
+  · exact (FiberBundle.Prod.continuous_totalSpaceSnd.comp hre).congr fun v ↦ by simp
+  · exact (FiberBundle.Prod.continuous_totalSpaceSnd.comp him).congr fun v ↦ by simp
 
 variable [FiniteDimensional ℝ F₁] [FiniteDimensional ℝ F₂]
 

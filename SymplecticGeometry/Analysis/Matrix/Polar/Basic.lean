@@ -17,12 +17,11 @@ the left decomposition `A = √(A Aᴴ) U` of Tau Ceti's `existsUnique_posDef_mu
 gives the matrix form of Tau Ceti's right polar decomposition of invertible elements
 (`Units.polarUnitary_mul_sqrt_star_mul` and
 `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq`), where the positive factor is positive
-definite, and writes the unitary factor as `U = A (Aᴴ A) ^ (-1 / 2)`.
+definite (Tau Ceti's `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul`), and writes the unitary
+factor as `U = A (Aᴴ A) ^ (-1 / 2)`.
 
 ## Main results
 
-* `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul`: the positive factor `√(Aᴴ A)` is positive
-  definite.
 * `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`: existence and uniqueness of the
   right polar decomposition `A = U Q` with `U` unitary and `Q` positive definite.
 * `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`: the unitary factor is
@@ -44,11 +43,6 @@ open scoped MatrixOrder ComplexOrder
 namespace Matrix.GeneralLinearGroup
 
 variable {n 𝕜 : Type*} [RCLike 𝕜] [Fintype n] [DecidableEq n] (A : GL n 𝕜)
-
-/-- The positive factor `√(Aᴴ A)` of the right polar decomposition of an invertible matrix is
-positive definite. -/
-theorem posDef_sqrt_star_mul : (CFC.sqrt (star (A : Matrix n n 𝕜) * (A : Matrix n n 𝕜))).PosDef :=
-  isStrictlyPositive_iff_posDef.1 (Units.isStrictlyPositive_sqrt_star_mul A)
 
 /-- **The right polar decomposition of an invertible matrix.** Every `A : GL n 𝕜` is uniquely a
 product `U Q` of a unitary matrix `U` and a positive definite matrix `Q`; the factors are

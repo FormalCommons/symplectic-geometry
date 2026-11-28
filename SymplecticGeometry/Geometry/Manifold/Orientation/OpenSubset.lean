@@ -20,9 +20,8 @@ at the same point.
 
 ## Main results
 
-* `TauCeti.Manifold.Orientation.map_orientationAt_restrict`: `tangentSpaceOpenEquiv x` carries
-  the tangent orientation at `x` of the restriction of `o` to `U` to that of `o` at `x`.
-* `TauCeti.Manifold.Orientation.orientationAt_restrict`: the same equality without the transport,
+* `TauCeti.Manifold.Orientation.orientationAt_restrict`: Tau Ceti's
+  `TauCeti.Manifold.Orientation.map_orientationAt_restrict` without the transport,
   which is possible since `tangentSpaceOpenEquiv x` is the identity.
 * `TauCeti.Manifold.Orientation.isOrientationPreservingAt_restrict_iff`: a map into `U` preserves
   orientation into the restriction of `o` exactly when its composite with the inclusion of `U`
@@ -44,22 +43,11 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I 1 M] {ι : Type*} [Fintype ι]
 
-/-- At each point `x` of an open subset `U`, the identification
-`TauCeti.Manifold.tangentSpaceOpenEquiv x` of the tangent space of `U` at `x` with that of `M`
-carries the tangent orientation of the restriction of `o` to `U` to that of `o` at `x`. -/
-@[simp]
-theorem map_orientationAt_restrict (o : Orientation I M ι) (U : Opens M) (x : U) :
-    _root_.Orientation.map ι (TauCeti.Manifold.tangentSpaceOpenEquiv x).toLinearEquiv
-      ((o.restrict U).orientationAt x) = o.orientationAt (x : M) :=
-  (isOrientationPreservingAt_iff_of_coe_eq (o.restrict U) o Subtype.val x
-    (TauCeti.Manifold.tangentSpaceOpenEquiv x) (TauCeti.Manifold.mfderiv_subtype_val x).symm).1
-    (o.isOrientationPreservingAt_restrict U x)
-
 /-- At each point `x` of an open subset `U`, the tangent orientation of the restriction of `o` to
 `U` is that of `o` at `x`, the two tangent spaces being identified through
 `TauCeti.Manifold.tangentSpaceOpenEquiv x`, which is the identity. The two sides have types that
-agree only after unfolding `TangentSpace`; `map_orientationAt_restrict` states the equality with
-the identification made explicit, and is the form for `simp`. -/
+agree only after unfolding `TangentSpace`; Tau Ceti's `map_orientationAt_restrict` states the
+equality with the identification made explicit. -/
 theorem orientationAt_restrict (o : Orientation I M ι) (U : Opens M) (x : U) :
     (o.restrict U).orientationAt x = o.orientationAt (x : M) := by
   have he : (TauCeti.Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv =
