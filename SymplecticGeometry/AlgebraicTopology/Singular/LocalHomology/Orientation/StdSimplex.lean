@@ -16,6 +16,7 @@ import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.S
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 import SymplecticGeometry.AlgebraicTopology.Singular.Circle
+import SymplecticGeometry.Geometry.Convex.FullSimplex
 
 /-!
 # The local class of the standard 2-simplex in the plane
@@ -207,13 +208,7 @@ private lemma vertices_sub {p : EuclideanSpace ℝ (Fin 2)} (hp : p ∈ interior
         toComplex (EuclideanSpace.single 0 1 - p)).im ∧
       (toComplex (EuclideanSpace.single 1 1 - p) / toComplex (0 - p)).im < 0 := by
   -- The coordinates of `p` are positive, with sum less than `1`.
-  have hint := (EuclideanSpace.equiv (Fin 2) ℝ).toHomeomorph.preimage_interior
-    (coordinateSimplex (Fin 2))
-  rw [ContinuousLinearEquiv.coe_toHomeomorph] at hint
-  have hfs : fullSimplex 2 = (EuclideanSpace.equiv (Fin 2) ℝ) ⁻¹' coordinateSimplex (Fin 2) :=
-    Set.ext fun x ↦ by simp [mem_coordinateSimplex]
-  rw [hfs, ← hint, Set.mem_preimage, interior_coordinateSimplex] at hp
-  obtain ⟨hpos, hsum⟩ := hp
+  obtain ⟨hpos, hsum⟩ := mem_interior_fullSimplex_iff.1 hp
   have h0 : 0 < p 0 := hpos 0
   have h1 : 0 < p 1 := hpos 1
   have h2 : p 0 + p 1 < 1 := by simpa [Fin.sum_univ_two] using hsum
