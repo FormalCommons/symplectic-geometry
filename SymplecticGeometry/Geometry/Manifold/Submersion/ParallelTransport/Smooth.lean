@@ -305,7 +305,7 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
   -- The relation is transitive: compose the diffeomorphisms, and transport.
   have htrans : IsTrans ℝ R := ⟨fun a b c ⟨Ψ₁, h₁⟩ ⟨Ψ₂, h₂⟩ ↦ ⟨Ψ₁.trans Ψ₂, fun x hx ↦ by
     rw [Diffeomorph.coe_trans, comp_apply, h₁ hx,
-      h₂ (hD.parallelTransport_mem_preimage hn hf hfp hγ hx b),
+      h₂ (hD.apply_parallelTransport hn hf hfp hγ hx b),
       hD.parallelTransport_parallelTransport hn hf hfp hγ hx]⟩⟩
   -- It holds between two times of an interval that `γ` maps into the base set of one
   -- trivialization.
@@ -362,7 +362,7 @@ theorem exists_contMDiff_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff 
     ⟨U₁ ∩ U₂, inter_mem hU₁ hU₂, fun p ↦ Ψ₂ (p.1, Ψ₁ p), hΨ₂.comp (contMDiff_fst.prodMk hΨ₁),
       fun a ha x hx ↦ by
         simp only [h₁ a ha.1 hx,
-          h₂ a ha.2 (hD.parallelTransport_mem_preimage hn hf hfp (hΓc a) hx v),
+          h₂ a ha.2 (hD.apply_parallelTransport hn hf hfp (hΓc a) hx v),
           hD.parallelTransport_parallelTransport hn hf hfp (hΓc a) hx]⟩⟩
   -- It holds between two times of an interval that the curve at `a₀` maps into the base set of
   -- one trivialization.
@@ -461,8 +461,7 @@ theorem fiberInclusionMap_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J
     (v : Z) :
     e'.fiberInclusionMap ht (hD.parallelTransportIn e e' γ s t v) =
       hD.parallelTransport γ s t (e.fiberInclusionMap hs v) := by
-  have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ (e.proj_symm_apply' (x := v) hs) t
-  rw [mem_preimage, mem_singleton_iff] at hy
+  have hy := hD.apply_parallelTransport hn hf hfp hγ (e.proj_symm_apply' (x := v) hs) t
   rw [parallelTransportIn_def, e.fiberInclusionMap_apply hs, e'.fiberInclusionMap_apply ht, ← hy,
     e'.symm_apply_mk_proj (e'.mem_source.2 (hy ▸ ht))]
 
@@ -518,9 +517,7 @@ theorem contMDiffOn_parallelTransportIn_param (hn : 1 ≤ n) (hf : ContMDiff I J
   have h₁ := hT.comp hg fun p hp ↦ ⟨hp.1, hx hp.2.1⟩
   have h₂ := he'.comp h₁ fun p hp ↦ by
     refine e'.mem_source.2 ?_
-    have hy := hD.parallelTransport_mem_preimage hn hf hfp (hslice hp.1) (hx hp.2.1) t
-    rw [mem_preimage, mem_singleton_iff] at hy
-    rw [comp_apply, hy]
+    rw [comp_apply, hD.apply_parallelTransport hn hf hfp (hslice hp.1) (hx hp.2.1) t]
     exact hp.2.2
   exact (contMDiff_snd.comp_contMDiffOn h₂).congr fun p _ ↦ by
     simp only [comp_apply, parallelTransportIn_def]
@@ -606,8 +603,7 @@ theorem parallelTransportIn_coordChange (hn : 1 ≤ n) (hf : ContMDiff I J (n + 
       e'.coordChange e₂' (γ t) (hD.parallelTransportIn e e' γ s t (e₂.coordChange e (γ s) v)) := by
   rw [hD.parallelTransportIn_def e, ← e.fiberInclusionMap_apply hs,
     e₂.fiberInclusionMap_coordChange e hs₂ hs, e₂.fiberInclusionMap_apply hs₂]
-  have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ (e₂.proj_symm_apply' (x := v) hs₂) t
-  rw [mem_preimage, mem_singleton_iff] at hy
+  have hy := hD.apply_parallelTransport hn hf hfp hγ (e₂.proj_symm_apply' (x := v) hs₂) t
   rw [← hy, e'.coordChange_apply_snd e₂' (hy ▸ ht), parallelTransportIn_def]
 
 end Trivialization
