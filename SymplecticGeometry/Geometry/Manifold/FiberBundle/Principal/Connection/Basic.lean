@@ -347,9 +347,8 @@ theorem isTensorialForm_sub (hA : IsConnectionForm A)
       funext i
       rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
         PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
-    rw [hv, SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
-      hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField]
-    exact sub_self _
+    rw [hv]
+    exact hA.sub_apply_rightFundamentalVectorField_eq_zero hA' x ξ
 
 /-- **The connection forms are an affine space over the tensorial one-forms.** Any connection
 form `A'` is the sum of a given connection form `A` and a unique tensorial one-form. -/
