@@ -558,11 +558,12 @@ and the prerequisites, placed by topic.
   `oneZeroPart` and that lemma are in
   `Geometry/Manifold/VectorBundle/CauchyRiemann/OneZeroPart.lean`.
 - `ZeroSet.lean`: for any covariant derivative $D$ on a bundle of normed
-  complex lines over a manifold with compatible $J$:
-  `isTransverse_of_norm_dbar_lt` (surjective
+  complex lines: `isTransverse_of_norm_dbar_lt`, for any metric on
+  $TM$ (surjective
   `TauCeti.sectionLinearization` at the zeros, so the zero set is a
-  submanifold by Tau Ceti's `exists_isManifold_sectionZero_of_contMDiff`)
-  and `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`; for any
+  submanifold by Tau Ceti's `exists_isManifold_sectionZero_of_contMDiff`),
+  and, over a manifold with compatible $J$,
+  `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`; for any
   Hermitian line bundle with a complex-linear metric connection $D$ on a
   closed manifold with compatible $J$, the milestone `dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`:
   with the symplectic orientations of $M$ and of the zero set $Z$, $Z$ has
@@ -620,7 +621,7 @@ and the prerequisites, placed by topic.
   (at critical points of $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
   `IsUniformlyTransverse.isComplexNegativeAt_log_norm_sq`,
   `IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`, and the milestone
-  `exists_relCWComplex_homotopyEquiv_zeroSet`: for nonempty $Z_k$ and large
+  `IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_zeroSet`: for large
   $k$, $M$ has the homotopy type of a CW complex relative to $Z_k$ whose
   cells all have dimension $n$ or more. In the form of Tau Ceti's
   `IsMorse.exists_relCWComplex_homotopyEquiv_sublevel`, there are a
@@ -628,7 +629,8 @@ and the prerequisites, placed by topic.
   `RelCWComplex (univ : Set X) (range j)` with no cell of dimension less
   than $n$, and `h : X ≃ₕ M` with `h (j z) = z`. It is assembled from the
   Morse–Bott attachment near $Z_k$ and the Morse CW models away from it.
-  Its corollary `isNConnected_zeroSet_inclusion` ($Z_k\hookrightarrow M$ is
+  Its corollary `IsUniformlyTransverse.isNConnected_zeroSet_inclusion` (for
+  nonempty $Z_k$, $Z_k\hookrightarrow M$ is
   $(n-1)$-connected) follows through `TauCeti.isNConnected_inclusion_skeletonLT`
   and the homotopy equivalence.
 - `Hypersurface.lean`: the milestone `exists_symplecticHypersurface`: for
