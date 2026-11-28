@@ -113,16 +113,10 @@ theorem tangentBundleMap_pullback (φ : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmost
     (J.pullback φ).tangentBundleMap =
       (φ.symm.toContMDiffMap.tangentMap ENat.coe_top_add_one.le).comp
         (J.tangentBundleMap.comp (φ.toContMDiffMap.tangentMap ENat.coe_top_add_one.le)) := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   refine ContMDiffMap.ext fun ⟨x, v⟩ ↦ ?_
-  rw [ContMDiffMap.comp_apply, ContMDiffMap.comp_apply, ContMDiffMap.coe_tangentMap,
-    ContMDiffMap.coe_tangentMap, tangentBundleMap_apply, tangentBundleMap_apply]
-  refine Bundle.TotalSpace.ext (φ.symm_apply_apply x).symm (heq_of_eq ?_)
-  -- The two fibres are `TangentSpace I x` and `TangentSpace I (φ.symm (φ x))`, both `E`.
-  change ((J.pullback φ) x v : E) = mfderiv I' I φ.symm (φ x) (J (φ x) (mfderiv I I' φ x v))
-  rw [pullback_apply]
-  exact (φ.isInvertible_mfderiv hn).inverse_apply_eq.2
-    (φ.mfderiv_apply_mfderiv_symm_apply hn x _).symm
+  simp only [ContMDiffMap.comp_apply, ContMDiffMap.coe_tangentMap, tangentBundleMap_apply,
+    pullback_apply]
+  exact (φ.tangentMap_symm_mk (by simp) x _).symm
 
 /-- Let `M` and `N` be compact manifolds with finite-dimensional models, `N` Hausdorff. For any
 frame system of `End(TM)`, the pull-back `φ ↦ φ^* J` of a smooth almost complex structure `J` on
