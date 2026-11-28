@@ -175,8 +175,7 @@ theorem contMDiff_equivProjectivization_symm_mk_twistCore
   have hne (y : U) : (![c ⟨s, hs⟩ y, c ⟨t, ht⟩ y] : Fin 2 → ℂ) ≠ 0 := by
     rw [hc, hc]
     exact hne₀ y
-  have hx : x ∈ U :=
-    Bundle.Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt ℂ _ x)
+  have hx : x ∈ U := FiberBundle.mem_baseSetOpens_trivializationAt ℂ _ x
   refine (contMDiffAt_subtype_iff (U := U) (x := ⟨x, hx⟩)).1 ?_
   refine (contMDiff_equivProjectivization_symm_mk (c ⟨s, hs⟩).contMDiff (c ⟨t, ht⟩).contMDiff
     hne _).congr_of_eventuallyEq (Eventually.of_forall fun y ↦ ?_)
