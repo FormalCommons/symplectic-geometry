@@ -150,10 +150,16 @@ def toTautological {ℓ : ℙ 𝕜 V} {v : V} (hv : v ≠ 0) (h : ℓ.submodule 
   LinearEquiv.toSpanNonzeroSingleton 𝕜 V v hv ≪≫ₗ LinearEquiv.ofEq _ _ h.symm
 
 variable {𝕜 V} in
+theorem toTautological_def {ℓ : ℙ 𝕜 V} {v : V} (hv : v ≠ 0) (h : ℓ.submodule = 𝕜 ∙ v) :
+    toTautological hv h =
+      LinearEquiv.toSpanNonzeroSingleton 𝕜 V v hv ≪≫ₗ LinearEquiv.ofEq _ _ h.symm :=
+  (rfl)
+
+variable {𝕜 V} in
 @[simp]
 theorem coe_toTautological_apply {ℓ : ℙ 𝕜 V} {v : V} (hv : v ≠ 0) (h : ℓ.submodule = 𝕜 ∙ v)
-    (z : 𝕜) : (toTautological hv h z : V) = z • v := by
-  simp [toTautological]
+    (z : 𝕜) : (toTautological hv h z : V) = z • v :=
+  (rfl)
 
 variable [TopologicalSpace V]
 
