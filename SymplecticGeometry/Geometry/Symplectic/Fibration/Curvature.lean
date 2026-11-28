@@ -30,6 +30,11 @@ where `Ω(v₁, v₂) = [v₁♯, v₂♯] - [v₁, v₂]♯` is `hD.curvature v
 assumed. When `τ` is closed, the last term vanishes, and the identity says that on each fibre the
 contraction of `τ` with the curvature is the differential of the restriction of `τ(v₁♯, v₂♯)`.
 
+As a consequence, two closed two-forms `τ` and `τ'` that agree whenever one argument is vertical
+(so that they have the same connection) give functions `τ(v₁♯, v₂♯)` and `τ'(v₁♯, v₂♯)` with
+the same derivative along every vertical vector: both sides of the identity for `τ'` agree with
+those for `τ`.
+
 The proof follows Guillemin–Lerman–Sternberg [GuilleminLermanSternberg1996], §1.3–1.4. Extend `η`
 to a vertical vector field `W` (the vertical projection of a local extension of `η`) and expand
 `dτ(v₁♯, v₂♯, W)` by the invariant formula `TauCeti.SmoothForm.mextDeriv_apply_two`. The
@@ -66,6 +71,9 @@ This is the curvature condition of McDuff–Salamon [McDuffSalamon2017], Exercis
 
 * `TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_sub_mextDeriv`: the curvature
   identity for the connection of a two-form.
+* `TauCeti.IsEhresmannConnection.mvfderiv_val_horizontalLiftField_eq_of_isClosed`: for two
+  closed forms with the same connection, `τ(v₁♯, v₂♯)` and `τ'(v₁♯, v₂♯)` have the same
+  derivative along vertical vectors.
 * `TauCeti.IsEhresmannConnection.curvatureIn_coordChange`: the curvature read in two
   trivializations differs by the derivative of the coordinate change.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_iff_forall_exists`: for an atlas whose
@@ -163,6 +171,50 @@ theorem apply_curvature_eq_mvfderiv_sub_mextDeriv
   rw [hsplit, ContinuousAlternatingMap.vecCons_add, hlift, add_zero] at h
   rw [h, zero_apply, zero_apply]
   abel
+
+/-- **Closed forms with the same connection.** Let `τ` and `τ'` be closed two-forms that agree on
+`(η, v)` for every vertical vector `η` and every tangent vector `v`, so that they have the same
+horizontal spaces, and let `hD` be the connection of `τ`, a `C^n` Ehresmann connection with
+`1 ≤ n` on a `C^2` map `proj`. Let `v₁ v₂` be vector fields on `B`, `C^1` at `proj x`. Then the
+functions `τ'(v₁♯, v₂♯)` and `τ(v₁♯, v₂♯)` have the same derivative along every vertical vector
+`η` at `x`. -/
+theorem mvfderiv_val_horizontalLiftField_eq_of_isClosed
+    (hD : IsEhresmannConnection IM IB n proj (SmoothTwoForm.horizontalDistribution IB proj τ))
+    (hn : 1 ≤ n) (hproj : ContMDiff IM IB 2 proj) {τ' : SmoothTwoForm IM M}
+    (hτ : τ.IsClosed) (hτ' : τ'.IsClosed)
+    (h : ∀ y, ∀ η ∈ (mfderiv IM IB proj y).ker, ∀ v : TangentSpace IM y,
+      τ.bilinFormAt y η v = τ'.bilinFormAt y η v)
+    {v₁ v₂ : Π b : B, TangentSpace IB b} {x : M}
+    (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) (proj x))
+    (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) (proj x))
+    {η : TangentSpace IM x} (hη : η ∈ (mfderiv IM IB proj x).ker) :
+    mvfderiv IM (fun y ↦ τ'.val y ![hD.horizontalLiftField v₁ y, hD.horizontalLiftField v₂ y])
+        x η =
+      mvfderiv IM (fun y ↦ τ.val y ![hD.horizontalLiftField v₁ y, hD.horizontalLiftField v₂ y])
+        x η := by
+  -- `τ` and `τ'` have the same horizontal spaces, so `hD` is also the connection of `τ'`.
+  have hdist : SmoothTwoForm.horizontalDistribution IB proj τ =
+      SmoothTwoForm.horizontalDistribution IB proj τ' :=
+    SmoothTwoForm.horizontalDistribution_eq_of_forall h
+  have key : ∀ D (hD' : IsEhresmannConnection IM IB n proj D),
+      D = SmoothTwoForm.horizontalDistribution IB proj τ' →
+      τ'.val x ![hD'.curvature v₁ v₂ x, η] =
+        mvfderiv IM (fun y ↦ τ'.val y ![hD'.horizontalLiftField v₁ y,
+            hD'.horizontalLiftField v₂ y]) x η -
+          mextDeriv τ'.val x ![hD'.horizontalLiftField v₁ x, hD'.horizontalLiftField v₂ x, η] := by
+    rintro D hD' rfl
+    exact apply_curvature_eq_mvfderiv_sub_mextDeriv hD' hn hproj hv₁ hv₂ hη
+  have h' := key _ hD hdist
+  have h₀ := apply_curvature_eq_mvfderiv_sub_mextDeriv hD hn hproj hv₁ hv₂ hη
+  rw [(SmoothForm.isClosed_def τ).1 hτ] at h₀
+  rw [(SmoothForm.isClosed_def τ').1 hτ'] at h'
+  -- `τ` and `τ'` pair the curvature with the vertical vector `η` alike.
+  have hΩ : τ'.val x ![hD.curvature v₁ v₂ x, η] = τ.val x ![hD.curvature v₁ v₂ x, η] := by
+    have hη' := h x η hη (hD.curvature v₁ v₂ x)
+    rw [SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply] at hη'
+    rw [← SmoothBundleForm.eval₂_apply τ', ← SmoothBundleForm.eval₂_apply τ,
+      SmoothBundleForm.eval₂_swap τ', SmoothBundleForm.eval₂_swap τ, hη']
+  exact sub_left_injective (h'.symm.trans (hΩ.trans h₀))
 
 end TauCeti.IsEhresmannConnection
 

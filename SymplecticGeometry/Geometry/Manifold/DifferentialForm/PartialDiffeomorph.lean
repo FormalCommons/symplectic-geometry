@@ -310,9 +310,7 @@ theorem _root_.PartialDiffeomorph.symbolInChart_realAlternatingDerivation_apply
   rw [PartialDiffeomorph.symbolInChart_apply, PartialDiffeomorph.symbolInChart_apply]
   refine key _ ?_ _ _ (fderiv_mpullback_symm_realAlternatingDerivation_apply J ψ hψ φ hy)
   ext u
-  have h := J.mfderiv_apply_eq_chartPushforward_apply ψ (ψ.map_target hy) u
-  rw [ψ.right_inv hy] at h
-  exact (h.trans (hψ y hy _)).symm
+  exact ((J.forall_chartPushforward_apply_eq_iff ψ A₀).1 hψ _ (ψ.map_target hy) u).symm
 
 end Readings
 

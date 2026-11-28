@@ -7,12 +7,13 @@ module
 
 public import Mathlib.Topology.Algebra.Module.Equiv.Basic
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
+public import Mathlib.Analysis.Calculus.FDeriv.Equiv
 public import TauCeti.Analysis.Calculus.FDeriv.Equiv
 
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
-# The derivative of a partial homeomorphism differentiable in both directions
+# Derivatives and equivalences
 
 Let `f` be an open partial homeomorphism between normed spaces, differentiable at a point `x` of
 its source, with inverse differentiable at `f x`. By the chain rule, the derivatives of `f` at `x`
@@ -31,6 +32,9 @@ continuous linear equivalence.
 * `OpenPartialHomeomorph.fderiv_fderiv_symm_apply_fderiv_apply`: when `f` and `f.symm` are `C²`,
   the second derivative of the inverse is `D²f⁻¹(Df a, Df b) = -Df⁻¹(D²f(a, b))`, by the
   second-order chain rule `TauCeti.fderiv_fderiv_comp_apply` applied to `f.symm ∘ f`.
+* `LinearIsometryEquiv.comp_right_fderiv`: the derivative of `f ∘ iso`, for a linear isometry
+  equivalence `iso`, is that of `f` composed with `iso`; Mathlib's
+  `LinearIsometryEquiv` API has only the left-composition form `comp_fderiv`.
 -/
 
 public section
@@ -94,5 +98,19 @@ theorem fderiv_fderiv_symm_apply_fderiv_apply (he : ContDiffAt 𝕜 2 f x)
   exact eq_neg_of_add_eq_zero_left h.symm
 
 end OpenPartialHomeomorph
+
+namespace LinearIsometryEquiv
+
+variable {𝕜 E F G : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+  [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+
+/-- The derivative of `f ∘ iso` at `x`, for a linear isometry equivalence `iso`, is the
+derivative of `f` at `iso x` composed with `iso`. -/
+theorem comp_right_fderiv (iso : E ≃ₗᵢ[𝕜] F) {f : F → G} {x : E} :
+    fderiv 𝕜 (f ∘ iso) x = (fderiv 𝕜 f (iso x)).comp (iso : E →L[𝕜] F) :=
+  iso.toContinuousLinearEquiv.comp_right_fderiv
+
+end LinearIsometryEquiv
 
 end

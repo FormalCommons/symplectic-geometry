@@ -222,8 +222,9 @@ may adjust implicit arguments and instance arguments to what elaborates.
 - `Geometry/Manifold/Riemannian/Gradient/Lojasiewicz.lean`: decision 4 (e).
 - `Geometry/Symplectic/Hamiltonian/MomentMap/LocalNormalForm.lean`:
   decision 4 (c).
-- `Geometry/Symplectic/Hamiltonian/MomentMap/NormSq.lean`: $\mu^\sharp$
-  and $\|\mu\|^2$, for any Lie group and any map `μ`.
+- `Geometry/Symplectic/Hamiltonian/MomentMap/NormSq.lean`: $\mu^\sharp$,
+  and what $\|\mu\|^2$ needs beyond Tau Ceti's `MomentMap/NormSq.lean`, for
+  any Lie group and any map `μ`.
 - In `Geometry/Symplectic/Hamiltonian/MomentMap/KempfNess/`:
   `Basic.lean` (`IsComplexifiedAction`, the stability predicates, the
   gradient of $\langle\mu,\xi\rangle$ and the
@@ -249,9 +250,10 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   `IsComplexifiedAction.fundamentalVectorField_cplx` and
   `isMIntegralCurve_expI_smul` (the velocity of $t\mapsto\exp(it\xi)p$ is
   $JX_\xi$ at the moving point).
-- `momentSharp B hB μ x : 𝔤` and `momentNormSq B hB μ x : ℝ`, with
-  `B (momentSharp …) ξ = μ x ξ`, `momentNormSq_nonneg`,
-  `momentNormSq_eq_zero_iff`, invariance under `G`, and smoothness.
+- `momentSharp B hB μ x : 𝔤`, with `B (momentSharp …) ξ = μ x ξ`. The norm
+  square is Tau Ceti's `momentNormSq μ (B.toDual hB).symm x : ℝ`, with its
+  invariance under `G` and smoothness; here `momentNormSq_nonneg` and
+  `momentNormSq_eq_zero_iff`.
 - `IsSemistable C μ p : Prop` ($\exists x\in\overline{G^{\mathbb C}p}$ with
   $\mu(x)=0$), `IsPolystable C μ p` ($\exists x\in G^{\mathbb C}p$ with
   $\mu(x)=0$), `IsStable C μ p` (polystable and
@@ -439,7 +441,7 @@ This is a hypothesis of the statements below, not a definition.
   antitone on `s` for convex `s`, such as `Set.Ici 0`, by
   `antitone_moment_expI`.
 - `exists_smul_eq_of_mgradient_momentNormSq_eq_zero` (Ness's uniqueness
-  theorem): if `y = g₀⁻¹ • x` and `mgradient I' (momentNormSq B hB μ)`
+  theorem): if `y = g₀⁻¹ • x` and `mgradient I' (momentNormSq μ (B.toDual hB).symm)`
   vanishes at `x` and at `y`, then `y = u • x` for some `u : G`. Proof (the
   Calabi–Chen proof of [GeorgoulasRobbinSalamon2021], Theorem 6.3): a
   critical point `x` has $X_{\mu^\sharp(x)}(x)=0$ (`mgradient_momentNormSq`),
@@ -461,7 +463,7 @@ This is a hypothesis of the statements below, not a definition.
   `y = C.toHom u∞⁻¹ • x`. This generalizes `exists_smul_eq_of_moment_eq_zero`.
 - `momentNormSq_limit_eq_iInf` (the moment limit theorem): for the limit
   `x∞` of the flow from `p`,
-  `momentNormSq B hB μ x∞ = ⨅ g : Gc, momentNormSq B hB μ (g • p)`. Both
+  `momentNormSq μ (B.toDual hB).symm x∞ = ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`. Both
   norms are those of `B`. Proof: `≥`, because the flow stays in the orbit
   (`exists_mem_orbit_maximalIntegralCurve`) and `momentNormSq` is
   continuous. `≤`: fix `g₀`. Let `g` be the flow curve from `p` and `g'`
@@ -498,7 +500,7 @@ This is a hypothesis of the statements below, not a definition.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,
   $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for every $\xi\in\mathfrak g$ (in particular
   $\xi\in\Lambda$) and $g\in G^{\mathbb C}$,
-  with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq B hB μ (g • p))`.
+  with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq μ (B.toDual hB).symm (g • p))`.
 - `momentWeight_toHom_smul : momentWeight C μ (C.toHom u • x) (Ad u ξ) = momentWeight C μ x ξ`
   and `limitPoint_toHom_smul : limitPoint C (C.toHom u • x) (Ad u ξ) = C.toHom u • limitPoint C x ξ`,
   from `toHom_mul_expI_mul_inv` and `moment_toHom_smul` (decision 8 (iii)).
@@ -514,7 +516,7 @@ This is a hypothesis of the statements below, not a definition.
   (`intervalIntegral.tendsto_integral_filter_of_dominated_convergence`, with
   the bound from compactness of `M`) and `tendsto_momentWeight` give the
   limit. It does not use the slope identity.
-- `abs_kempfNessFunction_expI_mul_toHom_le`: if `√(momentNormSq B hB μ y) ≤ L`
+- `abs_kempfNessFunction_expI_mul_toHom_le`: if `√(momentNormSq μ (B.toDual hB).symm y) ≤ L`
   for all `y`, then `|Φ_p (C.expI η * C.toHom u)| ≤ L * √(B η η)` for every
   `p`, from `kempfNessFunction_expI_mul_toHom` and
   `abs_apply_le_sqrt_momentNormSq_mul_sqrt`.
@@ -734,7 +736,7 @@ proof that needs it as a `Submodule` builds it there.
 - `isSemistable_of_iInf_momentNormSq_smul_eq_zero` (`KempfNess/Stability.lean`,
   the converse of `IsSemistable.iInf_momentNormSq_smul_eq_zero`): in the
   setting of `momentNormSq_limit_eq_iInf`, if
-  `⨅ g : Gc, momentNormSq B hB μ (g • p) = 0` then `p` is semistable: the
+  `⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0` then `p` is semistable: the
   limit of the flow (`tendsto_maximalIntegralCurve_momentNormSq`) lies in
   the closure of the orbit (`exists_mem_orbit_maximalIntegralCurve`), and
   `momentNormSq_limit_eq_iInf` and `momentNormSq_eq_zero_iff` make it a
@@ -742,18 +744,18 @@ proof that needs it as a `Submodule` builds it there.
   `isSemistable_iff_bddBelow_kempfNessFunction` has this step inline; the
   building issue moves it here.
 - `exists_momentWeight_pos_of_iInf_momentNormSq_pos` (`HilbertMumford.lean`):
-  in that setting, if `0 < m²` for `m² := ⨅ g : Gc, momentNormSq B hB μ (g • p)`,
+  in that setting, if `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
   some `ξ` with `B ξ ξ = 1` has `0 < momentWeight C μ p ξ`. Proof: take
   the flow curve `g` of `exists_mem_orbit_maximalIntegralCurve`, so
   `Φ_p (g t) ≤ -2 * m² * t` for `t ≥ 0` (`Φ_p 1 = 0` by
   `kempfNessFunction_toHom`), and let `r t` be the polar radius
   of `g t`, with `g t = C.expI (r t • ζ t) * C.toHom (u t)` and
   `B (ζ t) (ζ t) = 1` when `r t > 0` (`expI_mul_toHom_polar_symm`). Let `L`
-  be the maximum of `√(momentNormSq B hB μ)` on `M`; `L ≥ m > 0`.
+  be the maximum of `√(momentNormSq μ (B.toDual hB).symm)` on `M`; `L ≥ m > 0`.
   1. `r t ≤ 2 * L * t`, by `sqrt_polar_symm_fst_le_add_mul`, since the
      imaginary part of the left-trivialized derivative is
      `-2 • momentSharp B hB μ ((g t)⁻¹ • p)` (`im_cplx_lieMap`).
-  2. `r t ≥ 2 * m² * t / √(momentNormSq B hB μ p)`, by
+  2. `r t ≥ 2 * m² * t / √(momentNormSq μ (B.toDual hB).symm p)`, by
      `kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le` at `g = 1`; so
      `r t → ∞`.
   3. The `ζ t` lie on the unit sphere of `B`, which is compact, so

@@ -39,7 +39,7 @@ read in all of them on that ball.
 
 The uniformity comes from two inputs: the uniform bound on the normal forms,
 `SymplecticGeometry.exists_forall_isSymplectomorphism_stdForm_norm_le`, applied to the structures
-`J.chartPushforwardAt φ` on the compact set `φ '' K`; and the radius and derivative bounds that
+`φ.pushforwardAt J` on the compact set `φ '' K`; and the radius and derivative bounds that
 `SmoothAlmostComplexStructure.exists_forall_norm_iteratedFDeriv_chartPushforward_transAffine_le`
 gives for any family of recentred charts whose linear parts are bounded with their inverses.
 
@@ -165,6 +165,9 @@ from `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`). So every `y`
   `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`: `2π k σ(v, J v)`
   is `‖u‖ ^ 2` up to `bound 1 * ‖z‖ / √k * ‖u‖ ^ 2`, `u` the image of `v` in the chart, and some
   `ρ₁ ≤ ρ₀` is a comparison radius for every `k ≥ k₀` and every point.
+* `SymplecticGeometry.RescaledUnitaryCharts.sqrt_eval₂_apply_le`: hence
+  `√(σ(v, J v)) ≤ (2π k)^(-1/2) (1 + max (bound 1) 0 * ‖z‖ / √k) ‖u‖` on the ball of radius
+  `ρ₀ * √k`.
 * `SymplecticGeometry.RescaledUnitaryCharts.mul_norm_mfderiv_symm_le` and
   `SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_le_mul`: for the metric `g_J` and a
   comparison radius `ρ₁` for `D.chart k x` (with `ρ₁ ≤ ρ₀` for the first), on the
@@ -249,9 +252,9 @@ theorem exists_transAffine_darbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
     rw [Subtype.isCompact_iff, Subtype.image_preimage_coe, Set.inter_eq_right.2 hLt]
     exact hK.image_of_continuousOn (φ.contMDiffOn.continuousOn.mono hKφ)
   obtain ⟨C₁, hC₁⟩ := exists_forall_isSymplectomorphism_stdForm_norm_le
-    (J := fun p : φ.target ↦ J.chartPushforwardAt φ p.property) finrank_stdSpace hLX
-    (J.continuous_toContinuousLinearMap_chartPushforwardAt φ).continuousOn
-    fun p _ ↦ J.compatible_chartPushforwardAt hJ φ hφ p.property
+    (J := fun p : φ.target ↦ φ.pushforwardAt J p.property) finrank_stdSpace hLX
+    (φ.continuous_toContinuousLinearMap_pushforwardAt J).continuousOn
+    fun p _ ↦ hJ.compatible_pushforwardAt φ hφ p.property
   have hex (x : M) : ∃ Ψ : StdSpace ι ≃L[ℝ] StdSpace ι, x ∈ K →
       IsSymplectomorphism (stdForm ι) (stdForm ι) Ψ.toLinearEquiv ∧
       (∀ w, Ψ (stdComplexStructure ι w) =
@@ -261,7 +264,8 @@ theorem exists_transAffine_darbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
     by_cases hx : x ∈ K
     · obtain ⟨Ψ, h₁, h₂, h₃, h₄⟩ := hC₁ ⟨φ x, φ.map_source (hKφ hx)⟩ (Set.mem_image_of_mem φ hx)
       refine ⟨Ψ, fun _ ↦ ⟨h₁, fun w ↦ ?_, h₃, h₄⟩⟩
-      simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using LinearMap.congr_fun h₂ w
+      exact (LinearMap.congr_fun h₂ w).trans
+        (φ.pushforwardAt_apply_eq_chartPushforward_apply J _ (Ψ w))
     · exact ⟨ContinuousLinearEquiv.refl ℝ _, fun h ↦ absurd h hx⟩
   choose Ψ hΨ using hex
   -- The radius and the derivative bounds, from the bounds on `Ψ x` and its inverse.
@@ -852,8 +856,12 @@ theorem abs_eval₂_apply_sub_norm_sq_le {k : ℕ} (hk : k₀ ≤ k) (x : M) {y 
     LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
   have hJv : mvfderiv I (D.chart k x) y (J y v) =
       stdComplexStructure ι (mvfderiv I (D.chart k x) y v) + A (mvfderiv I (D.chart k x) y v) := by
-    rw [mvfderiv_apply_eq_mfderiv_apply, J.mfderiv_apply_eq_chartPushforward_apply _ hy,
-      ← mvfderiv_apply_eq_mfderiv_apply]
+    have h : J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x y)
+        (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) y v) =
+          mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) y (J y v) := by
+      rw [J.chartPushforward_toOpenPartialHomeomorph]
+      exact (D.chart k x).pushforwardEndomorphism_mfderiv_apply J hy v
+    rw [mvfderiv_apply_eq_mfderiv_apply, ← h, ← mvfderiv_apply_eq_mfderiv_apply]
     simp only [A, sub_apply, LinearMap.coe_toContinuousLinearMap', add_sub_cancel]
   rw [D.eval₂_eq hk x y hy, hJv]
   set u := mvfderiv I (D.chart k x) y v
@@ -865,6 +873,44 @@ theorem abs_eval₂_apply_sub_norm_sq_le {k : ℕ} (hk : k₀ ≤ k) (x : M) {y 
         gcongr
         exact (A.le_opNorm u).trans (by gcongr; exact D.jStruct_sub_le hk x _ hyB)
     _ = D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ * ‖u‖ ^ 2 := by ring
+
+/-- At a point `y` whose image `z` under the chart `D.chart k x` lies in the ball of radius
+`ρ₀ * √k`, the square root of `σ(v, J v)` for a tangent vector `v` at `y` is at most
+`(2π k)^(-1/2) (1 + C ‖z‖ / √k) ‖u‖`, for `u` the image of `v` under the derivative of the chart
+and `C = max (D.bound 1) 0`. -/
+theorem sqrt_eval₂_apply_le {k : ℕ} (hk : k₀ ≤ k) (x : M) {y : M}
+    (hy : y ∈ (D.chart k x).source) (hyB : D.chart k x y ∈ ball 0 (ρ₀ * √k))
+    (v : TangentSpace I y) :
+    √(σ.eval₂ y v (J y v)) ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+      ((1 + max (D.bound 1) 0 * ‖D.chart k x y‖ / √k) * ‖mvfderiv I (D.chart k x) y v‖) := by
+  set u := mvfderiv I (D.chart k x) y v
+  set t := max (D.bound 1) 0 * ‖D.chart k x y‖ / √k
+  set p := (2 * Real.pi * k) ^ (-1 / 2 : ℝ)
+  have hkpos : (0 : ℝ) < k := by
+    have h0 : 0 < ρ₀ * √k := (norm_nonneg _).trans_lt (mem_ball_zero_iff.1 hyB)
+    by_contra h
+    rw [Real.sqrt_eq_zero'.2 (not_lt.1 h), mul_zero] at h0
+    exact lt_irrefl 0 h0
+  have ht : 0 ≤ t := by positivity
+  have hbt : D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ ≤ t := by
+    simp only [t, div_eq_mul_inv, mul_right_comm _ (√(k : ℝ))⁻¹]
+    gcongr
+    exact le_max_left _ _
+  have hsq : p ^ 2 * (2 * Real.pi * k) = 1 := by
+    simp only [p]
+    rw [← Real.rpow_mul_natCast (by positivity : (0 : ℝ) ≤ 2 * Real.pi * k),
+      ← Real.rpow_add_one (by positivity : (2 * Real.pi * k : ℝ) ≠ 0)]
+    norm_num
+  have hle : 2 * Real.pi * k * σ.eval₂ y v (J y v) ≤ (1 + t) ^ 2 * ‖u‖ ^ 2 := by
+    have := (abs_le.1 (D.abs_eval₂_apply_sub_norm_sq_le hk x hy hyB v)).2
+    have : 1 + t ≤ (1 + t) ^ 2 := by nlinarith
+    have : D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ * ‖u‖ ^ 2 ≤ t * ‖u‖ ^ 2 := by gcongr
+    nlinarith [sq_nonneg ‖u‖]
+  refine Real.sqrt_le_iff.2 ⟨by positivity, ?_⟩
+  calc σ.eval₂ y v (J y v) = p ^ 2 * (2 * Real.pi * k * σ.eval₂ y v (J y v)) := by
+        rw [← mul_assoc, hsq, one_mul]
+    _ ≤ p ^ 2 * ((1 + t) ^ 2 * ‖u‖ ^ 2) := by gcongr
+    _ = (p * ((1 + t) * ‖u‖)) ^ 2 := by ring
 
 /-- `D.IsComparisonRadius k x ρ₁` says that on the ball of radius `ρ₁ * √k` the quadratic form
 `2π k σ(v, J v)` is comparable with the square of the norm in the chart `D.chart k x`: for every
