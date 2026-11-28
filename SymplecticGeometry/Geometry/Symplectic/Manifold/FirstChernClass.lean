@@ -33,6 +33,8 @@ not matter, and that the class does not change along a family of nondegenerate f
 
 * `IsNondegenerate.firstChernClass_eq_of_tames`, `IsNondegenerate.firstChernClass_eq_of_compatible`:
   every almost complex structure tamed by `σ`, in particular every compatible one, gives `c₁(σ)`;
+* `IsNondegenerate.firstChernClass_congr`: equal forms have equal classes, whatever the proofs of
+  nondegeneracy;
 * `IsNondegenerate.firstChernClass_congr_model`: the class does not depend on the complex model
   `G` of the tangent spaces;
 * `firstChernClass_mpullback_prodMk_eq`: for a smooth two-form on `ℝ × M` whose slices
@@ -83,6 +85,13 @@ def IsNondegenerate.firstChernClass {σ : SmoothTwoForm I M} (h : σ.IsNondegene
 theorem IsNondegenerate.firstChernClass_def {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) :
     h.firstChernClass G = TauCeti.firstChernClass G
       (h.exists_compatible.choose.toContMDiff ⊤).toContinuousComplexStructure.Fiber := (rfl)
+
+/-- Equal nondegenerate two-forms have equal first Chern classes, whatever the proofs of their
+nondegeneracy. -/
+theorem IsNondegenerate.firstChernClass_congr {σ σ' : SmoothTwoForm I M} (h : σ.IsNondegenerate)
+    (h' : σ'.IsNondegenerate) (he : σ = σ') : h.firstChernClass G = h'.firstChernClass G := by
+  subst he
+  rfl
 
 /-- The first Chern class of a nondegenerate two-form `σ` is that of the complex bundle `(TM, J)`
 for any complex structure `J` on `TM`, of any regularity, tamed by the two-form on `TM` that
@@ -201,13 +210,9 @@ theorem firstChernClass_mpullback_prodMk_eq (σ : SmoothTwoForm (𝓘(ℝ, ℝ).
   have hs (t : ℝ) := SmoothForm.mpullback_prodMk_mpullback_prodMap_id σ hρ t
   have h' (t : ℝ) := hs t ▸
     h _ ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
-  have hc {τ τ' : SmoothTwoForm I M} (hτ : τ.IsNondegenerate) (hτ' : τ'.IsNondegenerate)
-      (he : τ = τ') : hτ.firstChernClass G = hτ'.firstChernClass G := by
-    subst he
-    rfl
-  rw [hc _ (h' 0) (by rw [hs, Real.smoothTransition.zero]),
+  rw [IsNondegenerate.firstChernClass_congr G _ (h' 0) (by rw [hs, Real.smoothTransition.zero]),
     firstChernClass_mpullback_prodMk_eq_of_forall G _ h',
-    hc (h' 1) _ (by rw [hs, Real.smoothTransition.one])]
+    IsNondegenerate.firstChernClass_congr G (h' 1) _ (by rw [hs, Real.smoothTransition.one])]
 
 /-- **The first Chern class of a nondegenerate two-form.** On a Hausdorff σ-compact manifold `M`
 modelled on a finite-dimensional space:
@@ -261,10 +266,11 @@ theorem IsSmoothFamily.firstChernClass_eq {τ : unitInterval → SmoothTwoForm I
   have h' (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) := (hs t ht).symm ▸ h ⟨t, ht⟩
   have key := SmoothTwoForm.firstChernClass_mpullback_prodMk_eq G Ω h'
   -- The two ends of `key` are the classes of `τ 0` and `τ 1`, for other proofs of
-  -- nondegeneracy; `congr 1` reduces this to the equality of the forms.
-  calc (h 0).firstChernClass G = (h' 0 (left_mem_Icc.2 zero_le_one)).firstChernClass G := by
-        congr 1; exact (hs 0 _).symm
+  -- nondegeneracy.
+  calc (h 0).firstChernClass G = (h' 0 (left_mem_Icc.2 zero_le_one)).firstChernClass G :=
+        (h 0).firstChernClass_congr G _ (hs 0 _).symm
     _ = (h' 1 (right_mem_Icc.2 zero_le_one)).firstChernClass G := key
-    _ = (h 1).firstChernClass G := by congr 1; exact hs 1 _
+    _ = (h 1).firstChernClass G :=
+        (h' 1 (right_mem_Icc.2 zero_le_one)).firstChernClass_congr G _ (hs 1 _)
 
 end SymplecticGeometry
