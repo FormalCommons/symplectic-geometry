@@ -751,15 +751,15 @@ the image of `Φ q v` under the identification of the normal spaces of `ι` and 
 embedding at `q`: back through the derivative of the inclusion of the complement of the tube,
 then forward through that of `inl`. -/
 theorem inlEmbeddingFraming_apply (Φ : SymplecticFraming hι' hP') (q : Q')
-    (v : (zeroSlice J' Q').isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    (v : (zeroSlice J' Q').isImmersion.NormalSpace q ENat.coe_top_ne_zero) :
     inlEmbeddingFraming hω Φ q v =
       (ι.codRestrict (f₁.complTube hδε) hι).normalSpaceEquivOfComp (inlEmbedding f₂ hδ ι hι)
-        (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+        ENat.coe_top_ne_zero ENat.coe_top_ne_zero
         (fun q ↦ (GluedAlong.isLocalDiffeomorph_inl _).isInvertible_mfderiv (by simp)
           (ι.codRestrict (f₁.complTube hδε) hι q))
         (coe_inlEmbedding ι hι).symm q
         (((ι.codRestrict (f₁.complTube hδε) hι).normalSpaceEquivOfComp ι
-          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+          ENat.coe_top_ne_zero ENat.coe_top_ne_zero
           (fun q ↦ (isLocalDiffeomorph_subtype_val (n := ∞)).isInvertible_mfderiv (by simp)
             (ι.codRestrict (f₁.complTube hδε) hι q))
           (ι.val_comp_codRestrict _ hι) q).symm (Φ q v)) :=
