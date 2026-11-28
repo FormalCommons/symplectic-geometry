@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Algebra.Lie.InvariantForm
 public import Mathlib.LinearAlgebra.Projection
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
 public import TauCeti.Geometry.Lie.Subgroup.Commutative
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import TauCeti.LinearAlgebra.TotallyReal.CompatibleForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Lie.Functor
@@ -58,6 +60,12 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.re`, `SymplecticGeometry.LieComplexification.im`: the
   two components of an element of the Lie algebra of `Gc` in the decomposition
   `lieMap 𝔤 ⊕ cplx (lieMap 𝔤)`.
+* `SymplecticGeometry.LieComplexification.complexifyForm`: the form
+  `(x, y) ↦ B (re x) (re y) + B (im x) (im y)` on the Lie algebra of `Gc` induced by a form `B`
+  on that of `G`, defined as Tau Ceti's `TauCeti.IsMaximalTotallyReal.compatibleForm` of
+  `(x, y) ↦ B (re x) (re y)` for the maximal totally real image of `lieMap`.
+* `SymplecticGeometry.LieComplexification.conj`: the conjugation
+  `x ↦ lieMap (re x) - cplx (lieMap (im x))`.
 * `SymplecticGeometry.LieComplexification.circle`: the example `Circle` in `ℂˣ`, with the
   inclusion `Circle.contMDiffToUnits`, the complex structure of the complex manifold `ℂˣ` at `1`
   (Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold`), which is multiplication
@@ -82,6 +90,25 @@ The complex structure `cplx` is not determined by the other fields.
   `SymplecticGeometry.LieComplexification.re_lie`, `SymplecticGeometry.LieComplexification.im_lie`:
   the bracket multiplies like complex numbers,
   `re ⁅x, y⁆ = ⁅re x, re y⁆ - ⁅im x, im y⁆` and `im ⁅x, y⁆ = ⁅re x, im y⁆ + ⁅im x, re y⁆`.
+* `SymplecticGeometry.LieComplexification.re_cplx`,
+  `SymplecticGeometry.LieComplexification.im_cplx`: `re (cplx x) = -im x` and
+  `im (cplx x) = re x`.
+* `SymplecticGeometry.LieComplexification.projection_range_lieMap_apply`: the projection onto
+  the image of `lieMap` along its image under `cplx` is `lieMap ∘ re`.
+* `SymplecticGeometry.LieComplexification.re_lie_cplx_lieMap`,
+  `SymplecticGeometry.LieComplexification.im_lie_cplx_lieMap`: for `A = ad (cplx (lieMap ξ))`,
+  `re (A x) = -⁅ξ, im x⁆` and `im (A x) = ⁅ξ, re x⁆`.
+* `SymplecticGeometry.LieComplexification.isSymm_complexifyForm`,
+  `SymplecticGeometry.LieComplexification.complexifyForm_apply_self_pos`: `complexifyForm B` is
+  symmetric, or positive definite, when `B` is, from Tau Ceti's
+  `TauCeti.IsMaximalTotallyReal.isSymm_compatibleForm` and
+  `TauCeti.IsMaximalTotallyReal.compatibleForm_pos`.
+* `SymplecticGeometry.LieComplexification.isSelfAdjoint_ad_cplx_lieMap`: for an `ad`-invariant
+  `B`, the operator `ad (cplx (lieMap ξ))` is self-adjoint for `complexifyForm B`, in the form
+  that Tau Ceti's `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` takes.
+* `SymplecticGeometry.LieComplexification.conj_lie`,
+  `SymplecticGeometry.LieComplexification.conj_lie_cplx_lieMap`: `conj` preserves brackets, so
+  it anticommutes with `ad (cplx (lieMap ξ))`.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
 * `SymplecticGeometry.LieComplexification.isClosedEmbedding_toHom`: `toHom` is a closed
   embedding.
@@ -142,7 +169,9 @@ dimensions, by Tau Ceti's `TauCeti.IsTotallyReal.isMaximalTotallyReal`.
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
   Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], §2 (the complexified group and its
-  polar decomposition).
+  polar decomposition) and Appendix E (the inner product on the complexified Lie algebra built
+  from an invariant one on the Lie algebra of `G`, for which `ad` of an imaginary direction is
+  self-adjoint, and the conjugation fixing the real directions).
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7
   (complexified Lie groups and the complex structure of their Lie algebras).
 -/
@@ -287,11 +316,9 @@ def im : GroupLieAlgebra IC Gc →ₗ[ℝ] GroupLieAlgebra I G :=
 theorem re_lieMap (ξ : GroupLieAlgebra I G) : C.re (C.lieMap ξ) = ξ :=
   LinearMap.linearProjOfIsCompl_apply_left _ _ _ _ ξ
 
-@[simp]
 theorem re_cplx_lieMap (ξ : GroupLieAlgebra I G) : C.re (C.cplx (C.lieMap ξ)) = 0 :=
   LinearMap.linearProjOfIsCompl_apply_right' _ _ _ _ _ ⟨ξ, rfl⟩
 
-@[simp]
 theorem im_cplx_lieMap (ξ : GroupLieAlgebra I G) : C.im (C.cplx (C.lieMap ξ)) = ξ :=
   LinearMap.linearProjOfIsCompl_apply_left _ _ _ _ ξ
 
@@ -322,7 +349,7 @@ theorem lieMap_re_add_cplx_lieMap_im (x : GroupLieAlgebra IC Gc) :
     C.lieMap (C.re x) + C.cplx (C.lieMap (C.im x)) = x := by
   obtain ⟨_, ⟨ξ, rfl⟩, _, ⟨η, rfl⟩, rfl⟩ :=
     Submodule.mem_sup.1 (C.isCompl_range_lieMap.sup_eq_top ▸ Submodule.mem_top (x := x))
-  simp
+  simp [re_cplx_lieMap, im_cplx_lieMap]
 
 /-- The real part of a bracket: `re ⁅x, y⁆ = ⁅re x, re y⁆ - ⁅im x, im y⁆`. -/
 @[simp]
@@ -339,6 +366,142 @@ theorem im_lie (x y : GroupLieAlgebra IC Gc) :
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x, ← C.lieMap_re_add_cplx_lieMap_im y,
     lie_lieMap_add_cplx_lieMap]
   rw [map_add, im_lieMap, im_cplx_lieMap, zero_add]
+
+/-- The real part of a bracket with an imaginary direction:
+`re ⁅cplx (lieMap ξ), x⁆ = -⁅ξ, im x⁆`. -/
+theorem re_lie_cplx_lieMap (ξ : GroupLieAlgebra I G) (x : GroupLieAlgebra IC Gc) :
+    C.re ⁅C.cplx (C.lieMap ξ), x⁆ = -⁅ξ, C.im x⁆ := by
+  rw [re_lie, re_cplx_lieMap, im_cplx_lieMap, zero_lie, zero_sub]
+
+/-- The imaginary part of a bracket with an imaginary direction:
+`im ⁅cplx (lieMap ξ), x⁆ = ⁅ξ, re x⁆`. -/
+theorem im_lie_cplx_lieMap (ξ : GroupLieAlgebra I G) (x : GroupLieAlgebra IC Gc) :
+    C.im ⁅C.cplx (C.lieMap ξ), x⁆ = ⁅ξ, C.re x⁆ := by
+  rw [im_lie, re_cplx_lieMap, im_cplx_lieMap, zero_lie, zero_add]
+
+/-- The real part of an image under the complex structure: `re (cplx x) = -im x`. -/
+@[simp]
+theorem re_cplx (x : GroupLieAlgebra IC Gc) : C.re (C.cplx x) = -C.im x := by
+  conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
+  rw [map_add, AlmostComplexStructure.apply_apply, map_add, map_neg, re_cplx_lieMap, re_lieMap,
+    zero_add]
+
+/-- The imaginary part of an image under the complex structure: `im (cplx x) = re x`. -/
+@[simp]
+theorem im_cplx (x : GroupLieAlgebra IC Gc) : C.im (C.cplx x) = C.re x := by
+  conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
+  rw [map_add, AlmostComplexStructure.apply_apply, map_add, map_neg, im_cplx_lieMap, im_lieMap,
+    neg_zero, add_zero]
+
+/-- The projection onto the image of `lieMap` along its image under `cplx` is `lieMap ∘ re`. -/
+theorem projection_range_lieMap_apply (x : GroupLieAlgebra IC Gc) :
+    (LinearMap.range C.lieMap.toLinearMap).projection
+        ((LinearMap.range C.lieMap.toLinearMap).map C.cplx.toLinearMap)
+        C.isMaximalTotallyReal_range_lieMap.isCompl x = C.lieMap (C.re x) := by
+  have hmem (ξ : GroupLieAlgebra I G) : C.lieMap ξ ∈ LinearMap.range C.lieMap.toLinearMap := by
+    simp
+  conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
+  rw [map_add, Submodule.projection_apply_of_mem_left _ (hmem _),
+    C.isMaximalTotallyReal_range_lieMap.projection_map_of_mem (hmem _), add_zero]
+
+/-- Two elements of the Lie algebra of `Gc` with the same components `re` and `im` are equal. -/
+theorem ext_re_im {x y : GroupLieAlgebra IC Gc} (hre : C.re x = C.re y) (him : C.im x = C.im y) :
+    x = y := by
+  rw [← C.lieMap_re_add_cplx_lieMap_im x, ← C.lieMap_re_add_cplx_lieMap_im y, hre, him]
+
+/-- The bilinear form on the Lie algebra of `Gc` induced by a bilinear form `B` on that of `G`,
+`(x, y) ↦ B (re x) (re y) + B (im x) (im y)`, which pairs the components of `x` and `y` in the
+decomposition `lieMap 𝔤 ⊕ cplx (lieMap 𝔤)`. It is Tau Ceti's
+`TauCeti.IsMaximalTotallyReal.compatibleForm` of the form `(x, y) ↦ B (re x) (re y)`, for the
+maximal totally real image of `lieMap`, so it is `cplx`-invariant
+(`TauCeti.IsMaximalTotallyReal.compatibleForm_map_map`) and makes the two summands orthogonal. -/
+def complexifyForm (B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)) :
+    LinearMap.BilinForm ℝ (GroupLieAlgebra IC Gc) :=
+  C.isMaximalTotallyReal_range_lieMap.compatibleForm (B.compl₁₂ C.re C.re)
+
+theorem complexifyForm_def (B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)) :
+    C.complexifyForm B = C.isMaximalTotallyReal_range_lieMap.compatibleForm (B.compl₁₂ C.re C.re) :=
+  (rfl)
+
+@[simp]
+theorem complexifyForm_apply (B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G))
+    (x y : GroupLieAlgebra IC Gc) :
+    C.complexifyForm B x y = B (C.re x) (C.re y) + B (C.im x) (C.im y) := by
+  rw [complexifyForm_def, IsMaximalTotallyReal.compatibleForm_apply]
+  simp only [projection_range_lieMap_apply, LinearMap.compl₁₂_apply, re_lieMap, re_cplx,
+    LinearMap.map_neg, LinearMap.neg_apply, neg_neg]
+
+/-- The form induced by a symmetric form is symmetric. -/
+theorem isSymm_complexifyForm {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} (hB : B.IsSymm) :
+    (C.complexifyForm B).IsSymm :=
+  IsMaximalTotallyReal.isSymm_compatibleForm _ (by
+    rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩
+    simpa using hB.eq (C.re (C.lieMap a)) (C.re (C.lieMap b)))
+
+/-- The form induced by a positive definite form is positive definite. -/
+theorem complexifyForm_apply_self_pos {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : ∀ v, v ≠ 0 → 0 < B v v) (x : GroupLieAlgebra IC Gc) (hx : x ≠ 0) :
+    0 < C.complexifyForm B x x :=
+  IsMaximalTotallyReal.compatibleForm_pos C.cplx.square_neg _ (by
+    rintro _ ⟨ξ, rfl⟩ h
+    simpa using hB ξ (by rintro rfl; simp at h)) hx
+
+/-- For an `ad`-invariant form `B`, the operator `ad (cplx (lieMap ξ))` is self-adjoint for the
+induced form `complexifyForm B`. -/
+theorem isSelfAdjoint_ad_cplx_lieMap {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : B.lieInvariant (GroupLieAlgebra I G)) (ξ : GroupLieAlgebra I G) :
+    (C.complexifyForm B).IsSelfAdjoint (LieAlgebra.ad ℝ _ (C.cplx (C.lieMap ξ))) := by
+  intro x y
+  simp only [LieAlgebra.ad_apply, complexifyForm_apply, re_lie_cplx_lieMap, im_lie_cplx_lieMap,
+    map_neg, LinearMap.neg_apply, hB ξ]
+  ring
+
+/-- The conjugation of the Lie algebra of `Gc` that fixes the image of `lieMap` and negates its
+image under `cplx`: `x ↦ lieMap (re x) - cplx (lieMap (im x))`. -/
+def conj : GroupLieAlgebra IC Gc →ₗ[ℝ] GroupLieAlgebra IC Gc :=
+  C.lieMap.toLinearMap ∘ₗ C.re - C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap ∘ₗ C.im
+
+theorem conj_apply (x : GroupLieAlgebra IC Gc) :
+    C.conj x = C.lieMap (C.re x) - C.cplx (C.lieMap (C.im x)) :=
+  (rfl)
+
+@[simp]
+theorem re_conj (x : GroupLieAlgebra IC Gc) : C.re (C.conj x) = C.re x := by
+  simp [conj_apply]
+
+@[simp]
+theorem im_conj (x : GroupLieAlgebra IC Gc) : C.im (C.conj x) = -C.im x := by
+  simp [conj_apply]
+
+@[simp]
+theorem conj_conj (x : GroupLieAlgebra IC Gc) : C.conj (C.conj x) = x :=
+  C.ext_re_im (by simp) (by simp)
+
+@[simp]
+theorem conj_lieMap (ξ : GroupLieAlgebra I G) : C.conj (C.lieMap ξ) = C.lieMap ξ :=
+  C.ext_re_im (by simp) (by simp)
+
+@[simp]
+theorem conj_cplx_lieMap (ξ : GroupLieAlgebra I G) :
+    C.conj (C.cplx (C.lieMap ξ)) = -C.cplx (C.lieMap ξ) :=
+  C.ext_re_im (by simp) (by simp)
+
+/-- The conjugation is a morphism of real Lie algebras: `conj ⁅x, y⁆ = ⁅conj x, conj y⁆`. -/
+theorem conj_lie (x y : GroupLieAlgebra IC Gc) : C.conj ⁅x, y⁆ = ⁅C.conj x, C.conj y⁆ := by
+  -- `im_conj` negates in the tangent space, `lie_neg` in the Lie ring: the two agree only up to
+  -- unfolding the instances, so `simp` does not apply `lie_neg` (#8266), and the instances of
+  -- `neg_lie` and `lie_neg` are given as terms.
+  refine C.ext_re_im ?_ ?_
+  · rw [re_conj, re_lie, re_lie, re_conj, re_conj, im_conj, im_conj,
+      (neg_lie (C.im x) (-C.im y)).trans (congrArg Neg.neg (lie_neg (C.im x) (C.im y))), neg_neg]
+  · rw [im_conj, im_lie, im_lie, re_conj, re_conj, im_conj, im_conj, neg_add,
+      ← lie_neg (C.re x) (C.im y), ← neg_lie (C.im x) (C.re y)]
+
+/-- The conjugation anticommutes with `ad (cplx (lieMap ξ))`:
+`conj ⁅cplx (lieMap ξ), x⁆ = -⁅cplx (lieMap ξ), conj x⁆`. -/
+theorem conj_lie_cplx_lieMap (ξ : GroupLieAlgebra I G) (x : GroupLieAlgebra IC Gc) :
+    C.conj ⁅C.cplx (C.lieMap ξ), x⁆ = -⁅C.cplx (C.lieMap ξ), C.conj x⁆ := by
+  rw [conj_lie, conj_cplx_lieMap, neg_lie]
 
 end FiniteDimensional
 
@@ -590,7 +753,7 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
     -- `φ`, the conjugation by the identity `groupLieAlgebraEquivModelVectorSpace` and `L` are
     -- unfolded to state the value in the Lie algebra.
     change B η (C.im ⁅C.cplx (C.lieMap η), y⁆) = 0
-    rw [im_lie, re_cplx_lieMap, im_cplx_lieMap, zero_lie, zero_add]
+    rw [im_lie_cplx_lieMap]
     exact hl
   refine (φ.apply_oneSubExpNegDivSelf_apply_of_comp_eq_zero hφ _).trans ?_
   have hd : mfderiv IM 𝓘(ℝ, EC) (fun z ↦ L (ξ z)) z w = L (mfderiv IM 𝓘(ℝ, E) ξ z w) :=
