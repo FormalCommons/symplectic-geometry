@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 
 /-!
 # Lemmas on iterated derivatives
@@ -51,11 +52,9 @@ theorem exists_forall_mem_of_abs_sub_lt_of_isOpen {χ : ℝ → ℝ → ℝ} {K 
   -- The values of `(r, χ ℓ r, (χ ℓ)' r, (χ ℓ)'' r)` on `K` form a compact subset of `U`.
   set g : ℝ × ℝ → ℝ × ℝ × ℝ × ℝ :=
     fun x ↦ (x.2, χ x.1 x.2, deriv (χ x.1) x.2, iteratedDeriv 2 (χ x.1) x.2) with hg_def
-  have hg : ContinuousOn g K := by
-    have h₀ := hcont 0 (by norm_num)
-    have h₁ := hcont 1 (by norm_num)
-    simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
-    exact continuousOn_snd.prodMk (h₀.prodMk (h₁.prodMk (hcont 2 le_rfl)))
+  have hg : ContinuousOn g K :=
+    continuousOn_snd.prodMk ((ContinuousOn.uncurry_of_iteratedDeriv hcont).prodMk
+      ((ContinuousOn.deriv_of_iteratedDeriv hcont one_le_two).prodMk (hcont 2 le_rfl)))
   obtain ⟨η, hη, hsub⟩ := (hK.image_of_continuousOn hg).exists_thickening_subset_open hU
     (by rintro _ ⟨x, hx, rfl⟩; exact hKU x hx)
   refine ⟨η, hη, fun x hx a b e h₀ h₁ h₂ ↦ hsub (mem_thickening_iff.2 ⟨g x, ⟨x, hx, rfl⟩, ?_⟩)⟩
