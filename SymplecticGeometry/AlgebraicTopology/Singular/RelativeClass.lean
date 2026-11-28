@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.System
+public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RelativeClass
 
 /-!
@@ -30,6 +31,8 @@ pair of `P`, its faces lifted to singular simplices of `A` (`TopPair.liftSimplex
 * `TopPair.relClass_singularHomologyδ`: the connecting morphism of the pair sends the class to that
   of the cycle `∑ i, (-1) ^ i • t i` of `A`, where the `t i` lift the faces of `σ`; for a singular
   `2`-simplex, to that of `t 0 - t 1 + t 2` (`TopPair.relClass_singularHomologyδ_two`).
+* `TopPair.relClass_comp_singularKronecker_homologyπ`: the Kronecker pairing of the class of a
+  relative cocycle with the class of the simplex is the cocycle evaluated on the simplex.
 
 ## References
 
@@ -187,6 +190,22 @@ lemma relClass_singularHomologyδ_two (σ : (TopCat.toSSet.obj P.fst) _⦋2⦌)
         ((TopCat.toSSet.obj P.snd).chainComplex R).homologyπ 1 := by
   rw [P.relClass_eq R σ hσ t ht]
   exact SSetPair.relClass_homologyδ_two (Q := toSSetPair.obj P) R σ t ht
+
+/-- **The Kronecker pairing on the class of a singular simplex**: a relative class represented by
+a cocycle `φ` evaluates on the class of `σ` to `φ` evaluated on the relative chain of `σ`. -/
+@[reassoc]
+lemma relClass_comp_singularKronecker_homologyπ {M : A} (k : Type*) [Ring k] [Linear k A]
+    (φ : (P.singularCochainComplex R k M).cycles (n + 1)) :
+    P.relClass R σ hσ ≫
+        P.singularKronecker k (n + 1) ((P.singularCochainComplex R k M).homologyπ (n + 1) φ) =
+      (TopCat.toSSet.obj P.fst).ιChainComplex σ ≫ (P.singularChainComplexπ R).f (n + 1) ≫
+        (P.singularCochainComplex R k M).iCycles (n + 1) φ := by
+  rw [relClass_def]
+  -- `σ` is a simplex of `(toSSetPair.obj P).right`, which is `TopCat.toSSet.obj P.fst` only up to
+  -- unfolding `toSSetPair`, so `SSetPair.relClass_def` and `liftCycles_i` are applied as terms.
+  refine (congrArg (· ≫ _) (SSetPair.relClass_def (Q := toSSetPair.obj P) R σ _ _)).trans ?_
+  rw [Category.assoc, singularKronecker_homologyπ]
+  exact (HomologicalComplex.liftCycles_i_assoc _ _ _ _ _ _).trans (Category.assoc _ _ _)
 
 /-- For `S ⊆ T`, the complement of `T` lies in the complement of `S`, as ranges of the
 inclusions of the pairs `(M, M ∖ T)` and `(M, M ∖ S)`. -/

@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
+import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
 import TauCeti.Analysis.Calculus.Deriv.Growth
 import TauCeti.LinearAlgebra.BilinearForm.Basic
@@ -71,6 +72,21 @@ identity `kempfNessFunction_mul` the functions for `q x` and `x` differ along `e
 a bounded amount, since the conjugates of `q⁻¹` converge and so have bounded polar radius
 (`abs_kempfNessFunction_expI_mul_toHom_le`, `exists_eventually_abs_kempfNessFunction_le`); so
 `w_μ(q x, ξ) = w_μ(x, ξ)` (`momentWeight_smul_of_mem_parabolic`).
+
+These give the necessity halves of the polystable and stable criteria, following the proof of
+[GeorgoulasRobbinSalamon2021], Theorem 7.4. The weight `w_μ(x, ξ)` is the infimum of the
+antitone function `t ↦ ⟨μ (exp (i t ξ) x), ξ⟩`, so it equals its value `⟨μ x, ξ⟩` at `t = 0`
+exactly when that function is constant, that is, when `x` is fixed by every `exp (i t ξ)`
+(`momentWeight_eq_moment_iff`). Writing `g = u q` with `u : G` and `q` parabolic turns this into
+`exists_momentWeight_smul_eq_moment_of_forall_expI_smul_eq`. For a polystable `p`, splitting
+`g⁻¹ = q u` for a `g` with `μ (g p) = 0` gives `p = q x` with `μ x = 0`
+(`IsPolystable.exists_mem_parabolic_smul_eq`), so `w_μ(p, ξ) = w_μ(x, ξ) ≤ ⟨μ x, ξ⟩ = 0`
+(`IsPolystable.momentWeight_nonpos`). If moreover `w_μ(p, ξ) = 0`, then `x` is fixed by every
+`exp (i t ξ)` (`IsPolystable.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero`). Then
+`exp (i t ξ) q x` is the conjugate of `q` at time `t` acting on `x`, so
+`p⁺_ξ = C.parabolicLimit ξ q • x` lies in the orbit of `p` (`IsPolystable.limitPoint_mem_orbit`),
+and, if `p` is stable, the stabilizer of `x` is discrete, so `X_ξ x = 0` forces `ξ = 0`
+(`IsStable.momentWeight_neg`).
 
 With these transformation rules one proves steps 6 and 7 of the sufficiency half of the
 polystability criterion in [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 12.5). Suppose
@@ -137,6 +153,14 @@ of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
   `Gc`, `Φ_p` is eventually bounded, uniformly in `p`.
 * `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
   is nonpositive.
+* `SymplecticGeometry.momentWeight_eq_moment_iff`: `w_μ(x, ξ) = ⟨μ x, ξ⟩` exactly when every
+  `C.expI (t • ξ)` fixes `x`.
+* `SymplecticGeometry.IsPolystable.momentWeight_nonpos`: at a polystable point every moment weight
+  is nonpositive.
+* `SymplecticGeometry.IsPolystable.limitPoint_mem_orbit`: at a polystable point, the limit point
+  of a direction of weight `0` lies in the orbit under `Gc`.
+* `SymplecticGeometry.IsStable.momentWeight_neg`: at a stable point every nonzero direction has
+  negative weight.
 * `SymplecticGeometry.exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`: a period `ζ` along
   which a point of the orbit of `p` flows to a zero of `μ` outside that orbit gives a period
   `ξ` with `w_μ(p, ξ) = 0` and `p⁺_ξ` outside the orbit.
@@ -144,7 +168,7 @@ of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
 ## References
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021].
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemma 7.5 and Theorem 7.4.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
 -/
 
@@ -268,6 +292,33 @@ theorem momentWeight_smul_of_nonneg (h : IsComplexifiedAction C J)
     ((((tendsto_momentWeight h hμ hg p ξ).comp (tendsto_id.const_mul_atTop hc)).const_mul
       c).congr fun t ↦ ?_)
   simp only [Function.comp_apply, id_eq, smul_smul, map_smul, smul_eq_mul, mul_comm t c]
+
+/-- **Weights equal to the moment.** Under the hypotheses of `momentWeight_le`,
+`w_μ(x, ξ) = ⟨μ x, ξ⟩` exactly when `C.expI (t • ξ)` fixes `x` for every `t`. -/
+theorem momentWeight_eq_moment_iff (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {x : M} {ξ : GroupLieAlgebra I G} :
+    momentWeight C μ x ξ = μ x ξ ↔ ∀ t : ℝ, C.expI (t • ξ) • x = x := by
+  constructor
+  · intro hw
+    -- For `t ≥ 0`, `⟨μ x, t ξ⟩ = t w_μ(x, ξ) ≤ ⟨μ (exp (i t ξ) x), t ξ⟩`, so `exp (i t ξ)`
+    -- fixes `x`.
+    have hpos {t : ℝ} (ht : 0 ≤ t) : C.expI (t • ξ) • x = x := by
+      refine expI_smul_eq_self_of_moment_apply_le h hμ hg ?_
+      simp only [map_smul, smul_eq_mul]
+      rw [← hw]
+      exact mul_le_mul_of_nonneg_left (momentWeight_le_moment_expI_smul h hμ hg x ξ t) ht
+    intro t
+    rcases le_total 0 t with ht | ht
+    · exact hpos ht
+    · -- For `t ≤ 0`, apply `exp (i t ξ)` to `exp (-i t ξ) x = x`.
+      conv_lhs => rw [← hpos (neg_nonneg.2 ht)]
+      rw [smul_smul, ← C.expI_add_smul, add_neg_cancel, zero_smul, C.expI_zero, one_smul]
+  · intro hx
+    refine tendsto_nhds_unique (tendsto_momentWeight h hμ hg x ξ) ?_
+    simp only [hx]
+    exact tendsto_const_nhds
 
 omit [CompactSpace M] [ContMDiffSMul IC I' ∞ Gc M]
   [RiemannianBundle fun x : M ↦ TangentSpace I' x] in
@@ -660,6 +711,65 @@ theorem momentWeight_smul_of_mem_parabolic (h : IsComplexifiedAction C J)
       rw [hid, add_div])
   linarith
 
+/-- **Weights along the orbit of a fixed point.** Under the hypotheses of
+`tendsto_deriv_kempfNessFunction`, with `G` compact, if `C.expI (t • ξ)` fixes `x` for every
+`t`, then for every `g : Gc` some `u : G` has `w_μ(g x, Ad u ξ) = ⟨μ x, ξ⟩`. -/
+theorem exists_momentWeight_smul_eq_moment_of_forall_expI_smul_eq [CompactSpace G]
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {ξ : GroupLieAlgebra I G} {x : M} (hx : ∀ t : ℝ, C.expI (t • ξ) • x = x) (g : Gc) :
+    ∃ u : G, momentWeight C μ (g • x) (Lie.tangentAd (I := I) u ξ) = μ x ξ := by
+  obtain ⟨u, q, hq, rfl⟩ := C.exists_toHom_mul_mem_parabolic ξ g
+  refine ⟨u, ?_⟩
+  rw [mul_smul, momentWeight_toHom_smul h hμ,
+    momentWeight_smul_of_mem_parabolic h hμ hg (⟨q, hq⟩ : C.parabolic ξ),
+    momentWeight_eq_moment_iff h hμ.toIsMomentMap hg]
+  exact hx
+
+omit [ConnectedSpace G] [CompactSpace M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle fun x : M ↦ TangentSpace I' x] in
+/-- **Splitting a polystable point.** For a complexified action, with `-μ` an equivariant moment
+map for `σ`, if `p` is polystable then for every `ξ` there are `q` in the parabolic subgroup
+`C.parabolic ξ` and a zero `x` of `μ` with `p = q • x`. -/
+theorem IsPolystable.exists_mem_parabolic_smul_eq [CompactSpace G] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) {p : M} (hp : IsPolystable C μ p)
+    (ξ : GroupLieAlgebra I G) :
+    ∃ q ∈ C.parabolic ξ, ∃ x, μ x = 0 ∧ p = q • x := by
+  have := FiniteDimensional.completeSpace ℝ E'
+  -- Take `g` with `μ (g • p) = 0` and write `g⁻¹ = q * C.toHom u`; then `x = C.toHom u • g • p`.
+  obtain ⟨g, hg0⟩ := isPolystable_iff_exists_smul.1 hp
+  obtain ⟨q, hq, u, hgu⟩ := C.exists_mem_parabolic_mul_toHom ξ g⁻¹
+  refine ⟨q, hq, C.toHom u • g • p, ?_, ?_⟩
+  · rw [h.moment_toHom_smul hμ, hg0, map_zero]
+  · rw [smul_smul, ← hgu, inv_smul_smul]
+
+/-- **A polystable point of weight zero.** Under the hypotheses of
+`tendsto_deriv_kempfNessFunction`, with `G` compact, if `p` is polystable and
+`w_μ(p, ξ) = 0`, then `p = q • x` for some `q` in the parabolic subgroup `C.parabolic ξ` and
+some zero `x` of `μ` that every `C.expI (t • ξ)` fixes. -/
+theorem IsPolystable.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero [CompactSpace G]
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
+    (hp : IsPolystable C μ p) {ξ : GroupLieAlgebra I G} (hw : momentWeight C μ p ξ = 0) :
+    ∃ q ∈ C.parabolic ξ, ∃ x, μ x = 0 ∧ (∀ t : ℝ, C.expI (t • ξ) • x = x) ∧ p = q • x := by
+  obtain ⟨q, hq, x, hx0, rfl⟩ := hp.exists_mem_parabolic_smul_eq h hμ ξ
+  refine ⟨q, hq, x, hx0, (momentWeight_eq_moment_iff h hμ.toIsMomentMap hg).1 ?_, rfl⟩
+  rw [hx0, LinearMap.zero_apply, ← hw,
+    momentWeight_smul_of_mem_parabolic h hμ hg (⟨q, hq⟩ : C.parabolic ξ)]
+
+/-- **Polystable points have nonpositive weights.** Under the hypotheses of
+`tendsto_deriv_kempfNessFunction`, with `G` compact, if `p` is polystable then `w_μ(p, ξ) ≤ 0`
+for every `ξ` in the Lie algebra of `G`. -/
+theorem IsPolystable.momentWeight_nonpos [CompactSpace G] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
+    (hp : IsPolystable C μ p) (ξ : GroupLieAlgebra I G) :
+    momentWeight C μ p ξ ≤ 0 := by
+  -- With `p = q • x` and `μ x = 0`, `w_μ(p, ξ) = w_μ(x, ξ) ≤ ⟨μ x, ξ⟩ = 0`.
+  obtain ⟨q, hq, x, hx0, rfl⟩ := hp.exists_mem_parabolic_smul_eq h hμ ξ
+  rw [momentWeight_smul_of_mem_parabolic h hμ hg (⟨q, hq⟩ : C.parabolic ξ)]
+  simpa [hx0] using momentWeight_le h hμ.toIsMomentMap hg x ξ
+
 /-- **The moment-weight inequality.** For a complexified action on a compact manifold, with `-μ`
 an equivariant moment map for `σ`, the metric `g(u, w) = σ(u, J w)` and a symmetric, nonnegative,
 nondegenerate, `Ad`-invariant form `B` on the Lie algebra of the connected group `G`,
@@ -703,6 +813,45 @@ theorem momentWeight_le_mul_norm (h : IsComplexifiedAction C J)
     (fun t _ ↦ by simpa using ((hasDerivAt_id t).const_mul (K * S - w)).const_add c)
     fun _ _ ↦ le_rfl
   linarith
+
+/-- **Stable points have negative weights.** For a complexified action on a compact Hausdorff
+manifold without boundary, with `G` compact, `-μ` an equivariant moment map for `σ` and the
+metric `g(u, w) = σ(u, J w)`, if `p` is stable then `w_μ(p, ξ) < 0` for every nonzero `ξ` in
+the Lie algebra of `G`, in particular for every `ξ ∈ nonzeroPeriods I G`. -/
+theorem IsStable.momentWeight_neg [CompactSpace G] [T2Space M] [BoundarylessManifold I' M]
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
+    (hp : IsStable C μ p) {ξ : GroupLieAlgebra I G} (hξ : ξ ≠ 0) :
+    momentWeight C μ p ξ < 0 := by
+  have := continuousMul_of_contMDiffMul IC ∞ (G := Gc)
+  refine (hp.isPolystable.momentWeight_nonpos h hμ hg ξ).lt_of_ne fun hw ↦ hξ ?_
+  -- A weight `0` gives `p = q • x` with `μ x = 0` and `X_ξ x = 0`, where the stabilizer of `x`,
+  -- conjugate to that of `p`, is discrete; this forces `ξ = 0`.
+  obtain ⟨q, -, x, hx0, hx, rfl⟩ :=
+    hp.isPolystable.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero h hμ hg hw
+  have hd := (MulAction.discreteTopology_stabilizer_smul_iff q x).1 hp.discreteTopology_stabilizer
+  exact (h.discreteTopology_stabilizer_iff_of_moment_eq_zero hμ hg hx0).1 hd ξ
+    ((h.expI_smul_smul_eq_self_iff).1 hx)
+
+/-- **Limit points of polystable points.** For a complexified action on a compact Hausdorff
+manifold, with `G` compact, `-μ` an equivariant moment map for `σ` and the metric
+`g(u, w) = σ(u, J w)`, if `p` is polystable and `w_μ(p, ξ) = 0`, then the limit point `p⁺_ξ`
+lies in the orbit of `p` under `Gc`. -/
+theorem IsPolystable.limitPoint_mem_orbit [CompactSpace G] [T2Space M]
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
+    (hp : IsPolystable C μ p) {ξ : GroupLieAlgebra I G} (hw : momentWeight C μ p ξ = 0) :
+    limitPoint C p ξ ∈ MulAction.orbit Gc p := by
+  have := C.finiteDimensional
+  have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := I') ∞
+  obtain ⟨q, hq, x, -, hx, rfl⟩ :=
+    hp.exists_mem_parabolic_smul_eq_of_momentWeight_eq_zero h hμ hg hw
+  -- As `x` is fixed, `exp (i t ξ) q x` is the conjugate of `q` at time `t` acting on `x`.
+  have hlim : limitPoint C (q • x) ξ = C.parabolicLimit ξ ⟨q, hq⟩ • x :=
+    limitPoint_eq_of_tendsto (((C.tendsto_parabolicLimit ξ ⟨q, hq⟩).smul_const x).congr fun t ↦ by
+      rw [Subgroup.coe_mk, mul_smul, mul_smul, C.expI_neg, inv_smul_eq_iff.2 (hx t).symm])
+  refine MulAction.mem_orbit_iff.2 ⟨C.parabolicLimit ξ ⟨q, hq⟩ * q⁻¹, ?_⟩
+  rw [hlim, mul_smul, inv_smul_smul]
 
 end Slope
 
