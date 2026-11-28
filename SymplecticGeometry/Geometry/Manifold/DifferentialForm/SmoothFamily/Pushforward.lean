@@ -27,10 +27,8 @@ compact set `C ⊆ P × N`.
 ## Implementation notes
 
 For one `t`, the push-forward is
-`IsLocalDiffeomorph.exists_smoothForm_mpullback_eq_of_injective`. The smoothness criterion
-follows the proof of
-`SymplecticGeometry.IsNormalizedBallEmbedding.isSmoothFamily_of_eq_on_ballLift`: at a point
-`(t, e (t, y))` the family is smooth by
+`IsLocalDiffeomorph.exists_smoothForm_mpullback_eq_of_injective`. For the smoothness criterion,
+at a point `(t, e (t, y))` the family is smooth by
 `SymplecticGeometry.IsSmoothFamily.contMDiffAt_of_mpullback_family`, and any other point lies off
 the image of `C` under `(t, y) ↦ (t, e (t, y))`, which is compact and hence closed, and off which
 every `A t` vanishes. Over the unit interval, the map `(t, y) ↦ (t, e (t, y))` is a local
