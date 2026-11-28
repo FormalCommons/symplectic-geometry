@@ -18,6 +18,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Prod
+import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
 import Mathlib.Analysis.InnerProductSpace.ProdL2
@@ -1124,8 +1125,7 @@ complex vector space. -/
 theorem isStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     IsStrictlyPlurisubharmonicAt (modelLevel k m) p := by
-  rw [isStrictlyPlurisubharmonicAt_iff, modelLevel_eq, leviForm_const_add,
-    ← isStrictlyPlurisubharmonicAt_iff]
+  rw [modelLevel_eq, isStrictlyPlurisubharmonicAt_const_add_iff]
   exact isStrictlyPlurisubharmonicAt_modelHandle two_pos one_lt_two p
 
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
