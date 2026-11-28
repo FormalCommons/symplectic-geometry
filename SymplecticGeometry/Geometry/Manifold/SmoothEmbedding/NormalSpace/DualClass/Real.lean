@@ -44,6 +44,14 @@ is positively oriented around `0`
 (`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`), and the real image
 pairs as its cast. So the slice of the real relative dual class pairs with such a simplex to `-1`
 (`TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`).
+The same holds on any disc transverse to `f` at `x`: a map `g` from a neighbourhood `B` of `0`
+in `ℝ²` that meets `f(Z)` only at `g 0 = f x`, and whose derivative at `0`, followed by the
+quotient onto `ν_x`, is an isomorphism `m` as above. By the local-degree lemma
+`singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv` (`DualClass/Slice.lean`), `g` pulls
+the class back as the inclusion of `B` into `ℝ²` followed by the slice read through `m`; by the
+naturality of the Kronecker pairing and of the class of a simplex, a simplex of `B` carried to
+`σ` then pairs to `-1` with the pull-back
+(`TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt`).
 
 When `Z` is connected, the real canonical Thom class is a Thom class with coefficients `ℝ`
 (`TauCeti.VectorBundleOrientation.isThomClass_realCanonicalThomClass`). So, by
@@ -70,6 +78,10 @@ of the real image of the dual class.
 * `TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`: in rank
   two, read on `(ℝ², ℝ² ∖ {0})`, it pairs to `-1` with a positively oriented smooth `2`-simplex
   around `0`.
+* `TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt`: in rank
+  two, pulled back along a disc `g` through `f x` that meets `f(Z)` only there and whose
+  derivative at `0` is read on `ν_x` through an oriented isomorphism, it pairs to `-1` with a
+  positively oriented smooth `2`-simplex around `0`.
 * `TauCeti.SmoothEmbedding.exists_eq_smul_realRelDualClass`: for connected `Z`, every class of
   `Hʳ(X, X ∖ f(Z); ℝ)` is a real multiple of the real relative dual class.
 * `exists_eq_smul_singularCohomologyRealImageAddMonoidHom_dualClass_of_restrict_compl`, in the
@@ -88,7 +100,7 @@ of the real image of the dual class.
 public section
 
 open Bundle CategoryTheory Module Set Topology
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Simplicial
 
 namespace TauCeti.SmoothEmbedding
 
@@ -280,6 +292,91 @@ theorem singularKronecker_normalSlice_realRelDualClass_relClass
     LinearMap.comp_apply,
     SmoothSimplex.singularKronecker_localCohomologyClass_relClass σ hU hgσ hg ho h0, map_neg,
     intToRealCoeff_apply, ULift.one_down, Int.cast_one]
+
+/-- **The value of the real dual class of a codimension-two submanifold on a transverse disc.**
+Let the normal bundle have rank two, `x : Z`, and `m : ℝ² ≃ ν_x` a linear isomorphism carrying
+the standard orientation of `ℝ²` to `o x`. Let `B` be a neighbourhood of `0` in `ℝ²` and
+`g : ℝ² → X` a map continuous on `B`, with `g 0 = f x`, sending no other point of `B` into
+`f(Z)`, and with a derivative `A` at `0` such that the normal class of each `A w` is `m w`. Pull
+`realRelDualClass f hn hdim hf o hr` back along `g`, as a map of pairs
+`(B, B ∖ {0}) ⟶ (X, X ∖ f(Z))`. Let `σ` be a smooth `2`-simplex of `ℝ²` as in
+`singularKronecker_normalSlice_realRelDualClass_relClass`, positively oriented around `0`, and
+`τ` a singular simplex of `B` that the inclusion carries to `σ`. Then the pulled-back class,
+read through integral chains, pairs with the class of `τ` in `H₂(B, B ∖ {0}; ℤ)` to `-1`.
+
+By `singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`, `g` pulls the class back as the
+normal slice of a normalized tube read through `m` does, after the inclusion of `B` into `ℝ²`;
+the inclusion carries the class of `τ` to that of `σ`. -/
+theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin 2))
+    (hr : finrank ℝ P = 2) (x : Z)
+    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] f.isImmersion.NormalSpace x hn)
+    (hm : (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
+      o x)
+    {B : Set (EuclideanSpace ℝ (Fin 2))} (hB : B ∈ 𝓝 0) {g : EuclideanSpace ℝ (Fin 2) → X}
+    (hgB : ContinuousOn g B) (hg0 : g 0 = f x) (hgf : ∀ w ∈ B, g w ∈ range f → w = 0)
+    {A : EuclideanSpace ℝ (Fin 2) →L[ℝ] V}
+    (hg : HasMFDerivAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) J g 0 A)
+    (hA : ∀ w, f.isImmersion.normalClassL x hn (A w) = m w)
+    (σ : SmoothSimplex 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) 2)
+    {U : TopologicalSpace.Opens (EuclideanSpace ℝ (Fin 2))} (hU : fullSimplex 2 ⊆ U)
+    {φ : EuclideanSpace ℝ (Fin 2) → EuclideanSpace ℝ (Fin 2)}
+    (hφσ : ∀ y : fullSimplex 2, φ y = σ.toContinuousMap y)
+    (hφ : IsOpenEmbedding (φ ∘ ((↑) : U → EuclideanSpace ℝ (Fin 2))))
+    (ho : ∀ y ∈ U, Manifold.Orientation.IsOrientationPreservingAt
+      (Manifold.Orientation.euclideanSpace 2) (Manifold.Orientation.euclideanSpace 2) φ y)
+    (h0 : 0 ∈ φ '' interior (fullSimplex 2))
+    (τ : (TopCat.toSSet.obj (TopCat.of B)) _⦋2⦌)
+    (hτ : (TopCat.toSSet.map (TopCat.ofHom (ContinuousMap.subtypeVal B))).app _ τ = σ.val) :
+    ((TopPair.ofSubset (X := TopCat.of B) {⟨0, mem_of_mem_nhds hB⟩}ᶜ).singularKronecker ℤ 2
+        ((TopPair.ofSubset (X := TopCat.of B) {⟨0, mem_of_mem_nhds hB⟩}ᶜ
+          ).singularCohomologyIntChainsIso ℝ 2 |>.hom
+          (TopPair.singularCohomologyMap
+            (TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of X)
+              (TopCat.ofHom ⟨B.domRestrict g, hgB.domRestrict⟩)
+              (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ) (B' := (range f)ᶜ)
+              fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))) 2
+            (f.realRelDualClass hn hdim hf o hr)))).hom
+      ((TopPair.ofSubset ({(⟨0, mem_of_mem_nhds hB⟩ : B)}ᶜ : Set (TopCat.of B))).relClass
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (n := 1) τ
+        (TopPair.range_toSSetObjEquiv_δ_subset_of_toSSet_map_app (ContinuousMap.subtypeVal B)
+          (S := {(⟨0, mem_of_mem_nhds hB⟩ : B)}) (T := {0}) (fun _ h ↦ by simp_all) τ
+          (hτ ▸ SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl σ hU hφσ hφ
+            (singleton_subset_iff.2 h0))) 1) = -1 := by
+  obtain ⟨W, Φ, hΦ, -⟩ :=
+    exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf
+      (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ) (M := ModuleCat.of ℤ (ULift.{0} ℤ)) f hn hdim
+      hf
+  -- The inclusion `(B, B ∖ {0}) ⟶ (ℝ², ℝ² ∖ {0})`.
+  set ι := TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of (EuclideanSpace ℝ (Fin 2)))
+    (TopCat.ofHom (ContinuousMap.subtypeVal B)) (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ)
+    (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h)))
+  set y := TopPair.singularCohomologyMap (m.complZeroPairIso.hom ≫
+    f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) 2 (f.realRelDualClass hn hdim hf o hr)
+  -- By the local-degree lemma, `g` pulls the class back as the normal slice read through `m`.
+  rw [singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv hΦ x m hB hgB hg0 hgf hg hA,
+    TopPair.singularCohomologyMap_comp_apply,
+    ← TopPair.singularCohomologyMap_comp_apply m.complZeroPairIso.hom]
+  -- Read through integral chains, the pull-back along the inclusion is the integral one.
+  have hι : ((TopPair.ofSubset (X := TopCat.of B) {⟨0, mem_of_mem_nhds hB⟩}ᶜ
+        ).singularCohomologyIntChainsIso ℝ 2).hom (TopPair.singularCohomologyMap ι 2 y) =
+      TopPair.singularCohomologyMap ι 2
+        (((TopPair.ofSubset (X := TopCat.of (EuclideanSpace ℝ (Fin 2))) {0}ᶜ
+          ).singularCohomologyIntChainsIso ℝ 2).hom y) :=
+    congrArg (fun φ ↦ φ.hom y) (TopPair.singularCohomologyIntChainsIso_hom_naturality ℝ ι 2)
+  rw [hι, TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply]
+  refine (congrArg _ ?_).trans (singularKronecker_normalSlice_realRelDualClass_relClass f hn hdim
+    hf o hr hΦ x m hm σ hU hφσ hφ ho h0)
+  -- The inclusion carries the class of `τ` to that of `σ`.
+  rw [← ConcreteCategory.comp_apply]
+  -- `τ` is a simplex of `B`, which is the space of the pair only up to unfolding `ofSubset`.
+  erw [TopPair.relClass_singularHomologyMap]
+  congr 3
+  exact (congrArg (fun F ↦ (TopCat.toSSet.map F).app _ τ) (TopPair.ofSubsetMap_fst _ _)).trans hτ
 
 section Connected
 
