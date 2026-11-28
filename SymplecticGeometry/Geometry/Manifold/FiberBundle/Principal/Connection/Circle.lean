@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleC
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
-import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
 import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
@@ -23,8 +22,8 @@ the total space of a principal `Circle`-bundle gives the `𝔤`-valued one-form 
 `ξ₀ = circleLieGenerator`: its image under `SmoothForm.mapCoeff` along
 `ContinuousLinearMap.toSpanSingleton ℝ ξ₀ : ℝ →L[ℝ] 𝔤`. `CircleConnection.lean`
 shows that the real circle connection forms (`SymplecticGeometry.IsCircleConnectionForm`) are
-the connection forms of `Principal/Connection/Basic.lean` (`SymplecticGeometry.IsConnectionForm`)
-under this identification (`SymplecticGeometry.isConnectionForm_mapCoeff_iff`). This file shows
+Tau Ceti's connection forms (`TauCeti.PrincipalBundle.IsConnectionForm`) under this identification
+(`SymplecticGeometry.isConnectionForm_mapCoeff_iff`). This file shows
 that every connection form arises so, and that the curvatures agree: the curvature
 `TauCeti.gaugeCurvature` of `α ξ₀` is the pull-back to the total space of the
 curvature `hα.curvature` on the base, times `ξ₀`. In particular, the existence of circle
@@ -32,14 +31,14 @@ connection forms follows from that of connection forms.
 
 ## Main results
 
-* `SymplecticGeometry.IsConnectionForm.existsUnique_eq_mapCoeff`: every `𝔤`-valued connection form
-  is `α ξ₀` for a unique real form `α`, and this `α` is a circle connection form.
+* `TauCeti.PrincipalBundle.IsConnectionForm.existsUnique_eq_mapCoeff`: every `𝔤`-valued connection
+  form is `α ξ₀` for a unique real form `α`, and this `α` is a circle connection form.
 * `SymplecticGeometry.IsCircleConnectionForm.gaugeCurvature_mapCoeff`: for a circle
   connection form `α`, the curvature of `α ξ₀` is the pull-back of `hα.curvature` along the
   projection, times `ξ₀`.
 * `SymplecticGeometry.exists_isCircleConnectionForm`: every principal `Circle`-bundle over a
   Hausdorff, σ-compact, finite-dimensional base has a circle connection form, the case
-  `G = Circle` of `SymplecticGeometry.exists_isConnectionForm`.
+  `G = Circle` of `TauCeti.PrincipalBundle.exists_isConnectionForm`.
 
 ## References
 
@@ -52,6 +51,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
+open TauCeti.PrincipalBundle (IsConnectionForm)
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -64,7 +64,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 /-- Every `𝔤`-valued connection form `A` on a principal `Circle`-bundle is `α ξ₀`, for
 `ξ₀ = circleLieGenerator`, for a unique real one-form `α`, and `α` is a circle connection form. -/
-theorem IsConnectionForm.existsUnique_eq_mapCoeff
+theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.existsUnique_eq_mapCoeff
     {A : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) (EuclideanSpace ℝ (Fin 1)) 1}
     (hA : IsConnectionForm A) :
     ∃! α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1,
@@ -125,7 +125,8 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
     [SigmaCompactSpace B] :
     ∃ α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1,
       IsCircleConnectionForm α :=
-  let ⟨_, hA⟩ := exists_isConnectionForm (IB := IB) (IG := 𝓡 1) (G := Circle) (P := P)
+  let ⟨_, hA⟩ :=
+    PrincipalBundle.exists_isConnectionForm (IB := IB) (IG := 𝓡 1) (G := Circle) (P := P)
   hA.existsUnique_eq_mapCoeff.exists.imp fun _ h ↦ h.1
 
 /-! ### The circle bundle of a Hermitian line bundle -/

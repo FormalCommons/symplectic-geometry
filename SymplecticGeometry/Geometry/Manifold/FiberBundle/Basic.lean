@@ -58,8 +58,8 @@ of a principal bundle given by a local section.
   the model fibre are, as Tau Ceti's `TauCeti.FiberBundle.t2Space_totalSpace` says of
   `Bundle.TotalSpace F E`.
 * `Bundle.Trivialization.manifoldSnd`: the fibre coordinate of a trivialization, as a map on the
-  charted total space; `Bundle.Trivialization.contMDiffOn_manifoldSnd`: it is `C^n` over the base
-  set of a trivialization in the atlas.
+  charted total space, for any trivialization; for those of the atlas it is Tau Ceti's
+  `TauCeti.ManifoldTotalSpace.fiberCoord`.
 * `TauCeti.PrincipalBundle.contMDiffAt_snd_trivializationOfSection`: the fibre coordinate of the
   trivialization that a `C^n` local section determines is `C^n` over the section's domain.
 -/
@@ -270,25 +270,6 @@ theorem manifoldSnd_homeomorph (p : TotalSpace F E) :
   rw [manifoldSnd_apply, Homeomorph.symm_apply_apply]
 
 end ManifoldSnd
-
-section Smooth
-
-variable {n : ℕ∞ω} {𝕜 B F : Type*} {E : B → Type*} [NontriviallyNormedField 𝕜]
-  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] {HB : Type*} [TopologicalSpace HB]
-  {IB : ModelWithCorners 𝕜 EB HB} [TopologicalSpace B] [ChartedSpace HB B]
-  [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
-  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF] {HF : Type*}
-  [TopologicalSpace HF] {IF : ModelWithCorners 𝕜 EF HF} [TopologicalSpace F] [ChartedSpace HF F]
-  [FiberBundle F E] [TauCeti.ContMDiffFiberBundle n F E IB IF]
-
-/-- The fibre coordinate of a trivialization `e` in the atlas of a `C^n` fibre bundle is `C^n`
-over the base set of `e`. -/
-theorem contMDiffOn_manifoldSnd (e : Trivialization F (π F E)) [MemTrivializationAtlas e] :
-    ContMDiffOn (IB.prod IF) IF n e.manifoldSnd
-      ((fun x ↦ ((TauCeti.ManifoldTotalSpace.homeomorph F E).symm x).proj) ⁻¹' e.baseSet) :=
-  TauCeti.ManifoldTotalSpace.contMDiffOn_trivialization_snd_comp e contMDiffOn_id fun _ hx ↦ hx
-
-end Smooth
 
 end Bundle.Trivialization
 

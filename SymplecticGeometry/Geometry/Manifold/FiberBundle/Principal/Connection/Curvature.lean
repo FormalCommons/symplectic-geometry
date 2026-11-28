@@ -30,10 +30,10 @@ the properties of the curvature of a connection form on the total space of a pri
 
 ## Main results
 
-* `SymplecticGeometry.IsConnectionForm.mpullback_op_smul_gaugeCurvature`: the curvature of a
+* `TauCeti.PrincipalBundle.IsConnectionForm.mpullback_op_smul_gaugeCurvature`: the curvature of a
   connection form is equivariant, `R_g^* F_A = Ad(g⁻¹) ∘ F_A`.
-* `SymplecticGeometry.IsConnectionForm.isSemibasic_gaugeCurvature`,
-  `SymplecticGeometry.IsConnectionForm.isTensorialForm_gaugeCurvature`: the curvature of a
+* `TauCeti.PrincipalBundle.IsConnectionForm.isSemibasic_gaugeCurvature`,
+  `TauCeti.PrincipalBundle.IsConnectionForm.isTensorialForm_gaugeCurvature`: the curvature of a
   connection form vanishes as soon as one of its arguments is vertical, so it is a tensorial form
   of type `Ad`. On a fundamental vector field `ξ^♯`, Cartan's formula and the Lie derivative
   `L_{ξ^♯} A = -[ξ, A]` of `Principal/BasicForm.lean`
@@ -59,6 +59,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField
+open TauCeti.PrincipalBundle (IsConnectionForm)
 open scoped Manifold ContDiff
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
@@ -71,7 +72,8 @@ variable {EG HG G : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [FiniteD
 
 /-- **The curvature of a connection form is equivariant**: its pull-back by the action of `g` is
 its image under `Ad(g⁻¹)`. -/
-theorem IsConnectionForm.mpullback_op_smul_gaugeCurvature {EB HB B : Type*}
+theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.mpullback_op_smul_gaugeCurvature
+    {EB HB B : Type*}
     [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
     {IB : ModelWithCorners ℝ EB HB}
     [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
@@ -101,7 +103,8 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 /-- The curvature of a connection form vanishes when its first argument is the value of a
 fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket
 `[A(ξ^♯), A] = [ξ, A]` cancels. -/
-theorem IsConnectionForm.gaugeCurvature_apply_rightFundamentalVectorField
+theorem
+    _root_.TauCeti.PrincipalBundle.IsConnectionForm.gaugeCurvature_apply_rightFundamentalVectorField
     (hA : IsConnectionForm A) (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
     (w : TangentSpace (IB.prod IG) x) :
     (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val x
@@ -118,7 +121,8 @@ theorem IsConnectionForm.gaugeCurvature_apply_rightFundamentalVectorField
 
 /-- **The curvature of a connection form is horizontal**: it is semibasic for the projection,
 that is, it vanishes as soon as one of its arguments is vertical. -/
-theorem IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω} (hA : IsConnectionForm A) :
+theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω}
+    (hA : IsConnectionForm A) :
     RoughForm.IsSemibasic (F := EG) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG)
       (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val := by
@@ -132,7 +136,8 @@ theorem IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω} (hA : IsConne
 
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
-theorem IsConnectionForm.isTensorialForm_gaugeCurvature (hA : IsConnectionForm A) :
+theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.isTensorialForm_gaugeCurvature
+    (hA : IsConnectionForm A) :
     IsTensorialForm (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) where
   mpullback_op_smul := hA.mpullback_op_smul_gaugeCurvature
   isSemibasic := hA.isSemibasic_gaugeCurvature
