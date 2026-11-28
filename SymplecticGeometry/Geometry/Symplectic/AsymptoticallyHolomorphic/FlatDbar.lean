@@ -266,7 +266,8 @@ theorem flatDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDel (c • f) z = c • flatDel f z := by
   apply ContinuousLinearMap.coe_injective
   rw [toLinearMap_flatDel, ContinuousLinearMap.toLinearMap_smul, toLinearMap_flatDel,
-    fderiv_const_smul_field, Pi.smul_apply, ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
+    fderiv_const_smul_field, Pi.smul_apply, ContinuousLinearMap.toLinearMap_smul,
+    complexLinearPart_complex_smul]
 
 /-- The **flat `∂` is Tau Ceti's `∂` on functions**: for the constant smooth almost complex
 structure `J₀` on `StdSpace ι`, `TauCeti.SmoothAlmostComplexStructure.delFunction f z` is the flat
