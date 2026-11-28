@@ -142,9 +142,9 @@ exactly when `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` is the differential of a smooth f
   two-form that restricts to `σ` on the fibres has Hamiltonian curvature.
 * `TauCeti.IsEhresmannConnection.curvatureIn_eq_snd_sum_curvature`: the curvature read in a chart
   over a coordinate patch, in terms of the curvature of a two-form on `EB × F` on constant fields.
-* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_symm_extChartAt_symm`,
-  `TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm` and
-  `TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm`:
+* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_patchMap`,
+  `TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_patchMap` and
+  `TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap`:
   the reading of a two-form through a chart of the atlas and a base chart is smooth over the
   patch, has the fibre components `σ` there, and is vertically closed there.
 
@@ -664,53 +664,45 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
 /-- For a smooth atlas, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at `b₀`, the
 pull-back of a smooth two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is a smooth section over the
 patch of the points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`. -/
-theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_symm_extChartAt_symm
+theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_patchMap
     [IsManifold IB ∞ B] (hA : A.IsContMDiff ∞ IB IF IM) (b' b₀ : B) (τ : SmoothTwoForm IM M) :
     ContMDiffOn (𝓘(ℝ, EB).prod IF) ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
       (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z
-        (mpullback (𝓘(ℝ, EB).prod IF) IM
-          (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-            ((extChartAt IB b₀).symm q.1, q.2)) τ.val z))
+        (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val z))
       (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
         univ) := by
   exact fun z hz ↦ ((SmoothForm.contMDiff τ _).mpullback_form
-    (hA.contMDiffAt_symm_extChartAt_symm hz.1) (by simp)).contMDiffWithinAt
+    (hA.contMDiffAt_patchMap hz.1) (by simp)).contMDiffWithinAt
 
 /-- For a `C^n` atlas `A`, `n ≠ 0`, along which `τ` restricts to `σ`, a chart `e = A.trivAt b'`
 and the extended chart `φ` of `B` at `b₀`, the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` has
 fibre component `σ` over each point `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`:
 there, `ψ ∘ Prod.mk x` is the fibre inclusion of `e` over `φ⁻¹ x`. -/
-theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm
+theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_patchMap
     {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0)
     {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M} (h : A.RestrictsTo σ τ) {b' b₀ : B} {x : EB}
     (hx : x ∈ (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) :
-    RoughForm.fiberComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2)) τ.val) x = σ.val := by
+    RoughForm.fiberComponent
+        (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val) x =
+      σ.val := by
   funext y
-  have hψ := (hA.contMDiffAt_symm_extChartAt_symm (q := (x, y)) hx).mdifferentiableAt hn
-  have hincl : (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-      ((extChartAt IB b₀).symm q.1, q.2)) ∘ Prod.mk x = (A.trivAt b').fiberInclusionMap hx.2 := by
-    rw [Bundle.Trivialization.coe_fiberInclusionMap]
-    rfl
+  have hψ := (hA.contMDiffAt_patchMap (q := (x, y)) hx).mdifferentiableAt hn
   rw [RoughForm.fiberComponent_def,
     ← mpullback_comp_at (f := Prod.mk x) (mdifferentiableAt_const.prodMk mdifferentiableAt_id) hψ,
-    hincl, MapFiber.Atlas.restrictsTo_iff.1 h b' _ hx.2]
+    (A.trivAt b').patchMap_comp_prodMk hx.2, MapFiber.Atlas.restrictsTo_iff.1 h b' _ hx.2]
 
 /-- For a `C^n` atlas, `2 ≤ n`, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at
 `b₀`, the pull-back of a vertically closed two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is
 vertically closed for `Prod.fst` over the patch of the points `x` of the target of `φ` with
 `φ⁻¹ x` in the base set of `e`, since there `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`. -/
-theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm
+theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap
     {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : 2 ≤ n)
     {τ : SmoothTwoForm IM M} (h : SmoothTwoForm.IsVerticallyClosed IB proj τ) (b' b₀ : B) :
-    (mpullback (𝓘(ℝ, EB).prod IF) IM
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2)) τ.val).IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst
+    (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val).IsVerticallyClosedOn
+      𝓘(ℝ, EB) Prod.fst
       (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
         univ) := by
-  set ψ := fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-    ((extChartAt IB b₀).symm q.1, q.2)
+  set ψ := (A.trivAt b').patchMap IB b₀
   have hW :=
     ((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet (IB := IB) b₀).prod
       (isOpen_univ (X := F))
@@ -718,7 +710,7 @@ theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_ext
   have hψ (q) (hq : q ∈ ((extChartAt IB b₀).target ∩
       (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ (univ : Set F)) :
       ContMDiffAt (𝓘(ℝ, EB).prod IF) IM n ψ q :=
-    hA.contMDiffAt_symm_extChartAt_symm hq.1
+    hA.contMDiffAt_patchMap hq.1
   refine RoughForm.IsVerticallyClosedOn.mpullback
     ((SmoothTwoForm.isVerticallyClosedOn_univ_iff.2 h).mono (subset_univ _))
     (fun q hq ↦ (hψ q hq).of_le hn) (fun q _ ↦ (SmoothForm.contMDiff τ _).of_le (by simp))
@@ -726,7 +718,7 @@ theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_ext
   -- Over the patch, `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`.
   have heq : proj ∘ ψ =ᶠ[𝓝 q] (extChartAt IB b₀).symm ∘ Prod.fst :=
     Filter.eventually_of_mem (hW.mem_nhds hq) fun z hz ↦
-      (A.trivAt b').proj_symm_apply' hz.1.2
+      (A.trivAt b').proj_patchMap hz.1.2
   have hφ : MDifferentiableAt 𝓘(ℝ, EB) IB (extChartAt IB b₀).symm q.1 :=
     ((contMDiffOn_extChartAt_symm (n := n) b₀).contMDiffAt
       ((isOpen_extChartAt_target b₀).mem_nhds hq.1.1)).mdifferentiableAt hn0
