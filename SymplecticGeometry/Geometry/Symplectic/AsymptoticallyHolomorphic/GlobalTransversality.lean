@@ -289,35 +289,30 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
           ∀ y : M, transversalityQuantity J α k s y - C₁ * δ ≤
             transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) y := by
   classical
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, h₁⟩ := D.jetNormAt_reading_le_of_chart_change hg hJ hα hρ₀
-  obtain ⟨C₃, hC₃, h₃⟩ := h₁ 2
-  obtain ⟨ρ₂, hρ₂, -, h₂⟩ := D.jetNormAt_dbarReading_le_of_chart_change hg hJ hα hρ₀
-  obtain ⟨C₄, hC₄, h₄⟩ := h₂ 1
-  obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
-  set B' := max (C₃ * 3 ^ 2 * B) (C₄ * 3 * B)
+  obtain ⟨C₃, hC₃, h₃⟩ :=
+    D.exists_forall_jetNormAt_le_jetNorm_of_mem_ball hg hJ hα hρ₀ (11 / 10) 2
+  obtain ⟨C₄, hC₄, h₄⟩ :=
+    D.exists_forall_jetNormAt_le_jetNorm_of_mem_ball hg hJ hα hρ₀ (11 / 10) 1
+  obtain ⟨ρ, hρ, hρρ₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
+  set B' := max (C₃ * B) (C₄ * B)
   obtain ⟨p, hp, δ₀, hδ₀, H⟩ := D.exists_local_correction hg hα hρ₀ B'
   obtain ⟨C, c, -, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1
   obtain ⟨C₂, c₂, hc₂, Htail⟩ :=
     D.exists_jetNorm_sum_erase_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1 2
   refine ⟨p, hp, δ₀, hδ₀, max C 0, C₂, c₂, hc₂, fun δ hδ hδδ₀ ↦ ?_⟩
-  set ρ := min (min ρ₁ ρ₂) ρ₃
-  have hρ : 0 < ρ := lt_min (lt_min hρ₁ hρ₂) hρ₃
   have hkρ : ∀ᶠ k : ℕ in Filter.atTop, (11 / 10 : ℝ) < ρ * √k :=
     ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ).eventually_gt_atTop _
   filter_upwards [H δ hδ hδδ₀, Hsum, Htail, Filter.eventually_ge_atTop k₀,
-    Filter.eventually_ne_atTop 0,
-    hkρ, D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀,
+    Filter.eventually_ne_atTop 0, hkρ, h₃, h₄,
+    D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀,
     D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀]
-    with k hloc hsum htail hk hk0 hkρ hsm₁ hsm T R hR hT hsep s hs hsB
-  -- Points of the ball of radius `11 / 10` lie in the balls where the chart changes apply, and
-  -- at rescaled distance at most `2` from the centre.
-  have hball {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) {ρ' : ℝ} (hρ' : ρ ≤ ρ') :
-      z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
-    mem_ball_zero_iff.2 (hz.trans (hkρ.trans_le (by gcongr)))
+    with k hloc hsum htail hk hk0 hkρ h₃ h₄ hsm₁ hsm T R hR hT hsep s hs hsB
+  -- Points of the ball of radius `11 / 10` lie at rescaled distance at most `2` from the centre.
   have hdist (x : M) {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) :
       rescaledDist I k x ((D.chart k x).symm z) ≤ 2 := by
-    refine (D.rescaledDist_symm_le hg hρ₃₀ hk x (hcmp hk x) (hball hz (min_le_right _ _))).trans ?_
+    refine (D.rescaledDist_symm_le hg hρρ₀ hk x (hcmp hk x)
+      (mem_ball_zero_iff.2 (hz.trans hkρ))).trans ?_
     have h32 : √(3 / 2 : ℝ) ≤ 5 / 4 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
     nlinarith [norm_nonneg z]
   have hdiff (y : M) : ∀ᶠ v in 𝓝 0, DifferentiableAt ℝ (D.reading k y s) v :=
@@ -327,23 +322,16 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
       jetNormAt ℝ 2 (D.reading k x s) z ≤ B' ∧
       jetNormAt ℝ 1 (D.dbarReading k x s) z ≤ B' * (k : ℝ) ^ (-1 / 2 : ℝ) := by
     intro z hz
-    rw [mem_ball_zero_iff] at hz
     set y := (D.chart k x).symm z
-    have hd := hdist x hz
-    have hd0 := rescaledDist_nonneg I k x y
-    refine ⟨D.contDiffAt_reading_of_chart_change (n := 2) hk x
-      (hball hz ((min_le_left _ _).trans ((min_le_left _ _).trans hρ₁₀))) (hs y).1, ?_, ?_⟩
-    · refine (h₃ hk x z (hball hz ((min_le_left _ _).trans (min_le_left _ _))) (hs y).1).trans ?_
-      have hJ0 := D.jetNorm_nonneg k 2 s y
-      calc _ ≤ C₃ * 3 ^ 2 * D.jetNorm k 2 s y := by gcongr; linarith
-        _ ≤ C₃ * 3 ^ 2 * B := by gcongr; exact (hsB y).1
+    obtain ⟨hc, -, hb, -⟩ := h₃ x z hz (s := s)
+    obtain ⟨-, -, -, hdb⟩ := h₄ x z hz (s := s)
+    refine ⟨hc (hs y).1, ?_, ?_⟩
+    · calc _ ≤ C₃ * D.jetNorm k 2 s y := hb (hs y).1
+        _ ≤ C₃ * B := by gcongr; exact (hsB y).1
         _ ≤ B' := le_max_left _ _
-    · refine (h₄ hk x z (hball hz ((min_le_left _ _).trans (min_le_right _ _))) (hdiff y)
-        (hs y).2).trans ?_
-      have hJ0 := D.dbarJetNorm_nonneg k 1 s y
-      calc _ ≤ C₄ * 3 * D.dbarJetNorm k 1 s y := by gcongr; linarith
-        _ ≤ C₄ * 3 * (B * (k : ℝ) ^ (-1 / 2 : ℝ)) := by gcongr; exact (hsB y).2
-        _ = C₄ * 3 * B * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
+    · calc _ ≤ C₄ * D.dbarJetNorm k 1 s y := hdb (hdiff y) (hs y).2
+        _ ≤ C₄ * (B * (k : ℝ) ^ (-1 / 2 : ℝ)) := by gcongr; exact (hsB y).2
+        _ = C₄ * B * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
         _ ≤ B' * (k : ℝ) ^ (-1 / 2 : ℝ) := by gcongr; exact le_max_right _ _
   choose w hw hwQ using fun x ↦ hloc x s (hhyp x)
   refine ⟨w, fun x _ ↦ hw x, fun x hx z hz ↦ ?_, fun y ↦ ?_⟩
