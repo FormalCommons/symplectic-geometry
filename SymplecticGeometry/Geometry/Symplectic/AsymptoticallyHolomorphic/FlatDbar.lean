@@ -10,6 +10,7 @@ public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -111,9 +112,10 @@ theorem flatDbar_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 /-- The flat `∂̄` of `f` at `z` is the operator `TauCeti.complexAntilinearPartContinuousLinearMap`
 for `J₀` and multiplication by `i`, applied to `df_z`. -/
 theorem flatDbar_eq (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    flatDbar f z = complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z) := by
-  rw [flatDbar_def, flatDbarWith_def, LinearMap.coe_toContinuousLinearMap]
+    flatDbar f z = complexAntilinearPartContinuousLinearMap
+      (LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+      (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (fderiv ℝ f z) := by
+  rw [flatDbar_def, flatDbarWith_def]
 
 theorem flatDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     flatDbar f z v =
@@ -210,7 +212,8 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
     flatDbar (complexToRealEuclideanCoord ι j) = 0 := by
   ext z v : 2
   rw [flatDbar_eq, (complexToRealEuclideanCoord ι j).fderiv,
-    complexAntilinearPartContinuousLinearMap_apply_apply,
+    complexAntilinearPartContinuousLinearMap_apply_apply, LinearMap.coe_toContinuousLinearMap,
+    Complex.coe_smulIEquiv_eq_ofComplexModule,
     (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero
       (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
   simp
@@ -222,12 +225,14 @@ theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
 multiplication by `i` on `ℂ`, applied to `df_z`, that is `v ↦ ½ (df_z v - i df_z (J₀ v))`. It
 is the `(1,0)` counterpart of the flat `∂̄` `SymplecticGeometry.flatDbar`. -/
 noncomputable def flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z)
+  complexLinearPartContinuousLinearMap
+    (LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+    (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (fderiv ℝ f z)
 
 theorem flatDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    flatDel f z = complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z) :=
+    flatDel f z = complexLinearPartContinuousLinearMap
+      (LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+      (Complex.smulIEquiv ℂ : ℂ →L[ℝ] ℂ) (fderiv ℝ f z) :=
   (rfl)
 
 /-- As a real-linear map, the flat `∂` of `f` at `z` is Tau Ceti's complex-linear part
@@ -237,13 +242,14 @@ theorem coe_flatDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
       complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  rw [flatDel_def, complexLinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap]
+  rw [flatDel_def, coe_complexLinearPartContinuousLinearMap_apply,
+    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule]
 
 theorem flatDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     flatDel f z v =
       (2⁻¹ : ℝ) • (fderiv ℝ f z v - Complex.I * fderiv ℝ f z (stdComplexStructure ι v)) := by
   rw [flatDel_def, complexLinearPartContinuousLinearMap_apply_apply, complexLinearPart_apply]
-  simp [AlmostComplexStructure.ofComplexModule_apply]
+  simp
 
 /-- The differential of `f` at `z` is the sum of its flat `∂` and its flat `∂̄`. -/
 theorem flatDel_add_flatDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :

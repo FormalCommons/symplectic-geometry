@@ -87,9 +87,9 @@ sequence the bounds at the centres become bounds on balls of fixed radius.
 * `SymplecticGeometry.RescaledUnitaryCharts.jetNormAt_dbarReading_le_of_chart_change`: for every
   `r`, `jetNormAt ℝ r (D.dbarReading k x s) z ≤ C * (1 + d_k(x, y)) ^ r * D.dbarJetNorm k r s y`.
 * `SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le`:
-  for an asymptotically holomorphic sequence and a fixed radius `R`, for large `k` the readings
-  and `∂̄` readings are smooth on the ball of radius `R` of every chart, with `r`-jet norms at
-  most `C` and `C * k ^ (-1/2)`.
+  for an asymptotically holomorphic sequence and a fixed radius `R`, there is `C ≥ 0` such that
+  for large `k` the readings and `∂̄` readings are smooth on the ball of radius `R` of every
+  chart, with `r`-jet norms at most `C` and `C * k ^ (-1/2)`.
 
 ## References
 
@@ -227,12 +227,12 @@ theorem exists_forall_jetNormAt_chartChange_le_of_norm_fderiv_le [I.Boundaryless
     exact (hCe hk hw hCτw).trans (mul_le_mul_of_nonneg_right (by linarith) (by positivity))
   · -- The derivative of the transition.
     exact (jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
-      hCτw (j + 1) (by omega) (by omega)).trans (by rw [abs_of_nonneg hCτ0]; linarith)
+      hCτw (j + 1) (by omega) (by omega)).trans (by linarith)
   · -- Faà di Bruno for `g ∘ τ`, with `max 1 (jetNormAt ℝ r τ w) ≤ A * (1 + ‖τ w‖)`.
     have hjτ : max 1 (jetNormAt ℝ r τ w) ≤ A * (1 + ‖τ w‖) :=
       max_le (by nlinarith [norm_nonneg (τ w)])
         ((jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
-          hCτw (j + 1) (by omega) (by omega)).trans_eq (by rw [abs_of_nonneg hCτ0]))
+          hCτw (j + 1) (by omega) (by omega)))
     have hjg := jetNormAt_nonneg (𝕜 := ℝ) r g (τ w)
     refine (jetNormAt_comp_le hg hτr).trans ?_
     calc _ ≤ (r + 1)! * jetNormAt ℝ r g (τ w) * (A * (1 + ‖τ w‖)) ^ r :=
@@ -573,7 +573,7 @@ theorem jetNormAt_dbarReading_le_of_chart_change [T2Space M] [I.Boundaryless]
 Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry the metric `g_J`
 of the pair, let `α` be a connection form and `ρ₀ > 0`, and let `s` be an asymptotically
 holomorphic sequence of sections. For every radius `R` and every order `r` there is a constant
-`C` such that, for all large `k`, all points `x` and all `z` in the ball of radius `R`, the
+`C ≥ 0` such that, for all large `k`, all points `x` and all `z` in the ball of radius `R`, the
 readings of `s k` and their `∂̄` readings in the chart centred at `x` are smooth at `z`, the
 `r`-jet norm at `z` of the reading is at most `C`, and that of the `∂̄` reading is at most
 `C * k ^ (-1/2)`. -/
@@ -583,7 +583,7 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Bo
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀)
     {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) (R : ℝ)
     (r : ℕ) :
-    ∃ C : ℝ, ∀ᶠ k in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ᶠ k in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
       ContDiffAt ℝ ∞ (D.reading k x (s k)) z ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) z ∧
       jetNormAt ℝ r (D.reading k x (s k)) z ≤ C ∧
       jetNormAt ℝ r (D.dbarReading k x (s k)) z ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ) := by
@@ -598,7 +598,7 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Bo
   have hρ : 0 < ρ := lt_min hρ₁ (lt_min hρ₂ hρ₃)
   -- On the ball of radius `R`, `d_k(x, y) ≤ √(3/2) * |R|`.
   set Q : ℝ := (1 + √(3 / 2) * |R|) ^ r
-  refine ⟨(C₁ + C₂) * Q * |Cs|, ?_⟩
+  refine ⟨(C₁ + C₂) * Q * |Cs|, by have := add_nonneg hC₁0 hC₂0; positivity, ?_⟩
   have hρk : ∀ᶠ k : ℕ in Filter.atTop, |R| < ρ * √k :=
     ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ).eventually_gt_atTop |R|

@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
 public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.AlmostComplex
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Geometry.Symplectic.Orientation
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Normed.Module.FiniteDimension
@@ -316,10 +317,10 @@ variable {V W : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteD
 is a complex-linear isometric equivalence `φ : W ≃ ℂ` such that `φ ∘ F` has the same property. -/
 private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 1)
     {F : V →L[ℝ] W}
-    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    (h : ‖complexAntilinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖ <
+      ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖) :
     ∃ φ : W ≃ₗᵢ[ℂ] ℂ,
       ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
@@ -327,6 +328,8 @@ private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 
       ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         ((φ.toLinearEquiv.restrictScalars ℝ : W →ₗ[ℝ] ℂ) ∘ₗ (F : V →ₗ[ℝ] W)))‖ := by
+  rw [complexAntilinearPartContinuousLinearMap_apply, complexLinearPartContinuousLinearMap_apply,
+    LinearMap.coe_toContinuousLinearMap, coe_smulIEquiv_eq_ofComplexModule] at h
   obtain ⟨e⟩ := nonempty_linearIsometryEquiv_of_finrank_eq_one hW
   set φ := e.symm
   set ψ : W →ₗᵢ[ℝ] ℂ := ⟨φ.toLinearEquiv.restrictScalars ℝ, φ.norm_map⟩
@@ -347,10 +350,10 @@ for `J` and multiplication by `i` on `W`, has smaller operator norm than its com
 Then the kernel of `F` is a symplectic subspace. -/
 theorem SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt
     (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
-    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    (h : ‖complexAntilinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖ <
+      ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖) :
     ω.IsSymplectic (LinearMap.ker (F : V →ₗ[ℝ] W)) := by
   obtain ⟨ψ, hψ⟩ := exists_norm_complexAntilinearPart_comp_lt hW h
   have hk := isSymplectic_ker_of_norm_lt hg
@@ -373,10 +376,10 @@ orientation of `V` and the complex orientation `complexOrientation W` of `W` is 
 orientation of `K`. -/
 theorem SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt
     (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
-    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖)
+    (h : ‖complexAntilinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖ <
+      ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖)
     {m : ℕ} (hV : finrank ℝ V = m + 2) (hm : finrank ℝ (LinearMap.ker (F : V →ₗ[ℝ] W)) = m) :
     haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
     haveI : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
@@ -429,10 +432,10 @@ by the symplectic orientation of the kernel `K` of `F` and the complex orientati
 written as any `r` with `finrank ℝ W = r`, as the model fibre of a vector bundle gives it. -/
 theorem SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt
     (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
-    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖)
+    (h : ‖complexAntilinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖ <
+      ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
+        (smulIEquiv W : W →L[ℝ] W) F‖)
     {m r : ℕ} (hV : finrank ℝ V = m + r)
     (hm : finrank ℝ (LinearMap.ker (F : V →ₗ[ℝ] W)) = m) (hWr : finrank ℝ W = r) :
     haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW

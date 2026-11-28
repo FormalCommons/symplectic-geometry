@@ -220,22 +220,24 @@ theorem jetNormAt_le_of_norm_iteratedFDeriv_succ_le {r : ℕ} {f : E → F} {z :
     _ = r * C := by simp
 
 /-- If the derivatives of orders `1` to `r` of `f` at `z` have norm at most `C`, the `r`-jet norm
-of `f` at `z` is at most `(1 + r * |C|) * (1 + ‖f z‖)`. -/
+of `f` at `z` is at most `(1 + r * C) * (1 + ‖f z‖)`. -/
 theorem jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le {r : ℕ} {f : E → F} {z : E}
     {C : ℝ} (h : ∀ j < r, ‖iteratedFDeriv 𝕜 (j + 1) f z‖ ≤ C) :
-    jetNormAt 𝕜 r f z ≤ (1 + r * |C|) * (1 + ‖f z‖) := by
-  have h' := jetNormAt_le_of_norm_iteratedFDeriv_succ_le (C := |C|) fun j hj ↦
-    (h j hj).trans (le_abs_self C)
-  nlinarith [mul_nonneg (mul_nonneg (Nat.cast_nonneg r : (0 : ℝ) ≤ r) (abs_nonneg C))
-    (norm_nonneg (f z))]
+    jetNormAt 𝕜 r f z ≤ (1 + r * C) * (1 + ‖f z‖) := by
+  have h' := jetNormAt_le_of_norm_iteratedFDeriv_succ_le h
+  -- `r * C` is nonnegative: it vanishes for `r = 0`, and otherwise `0 ≤ C` by `h 0`.
+  have hrC : 0 ≤ (r : ℝ) * C := by
+    rcases r with _ | r
+    · simp
+    · exact mul_nonneg (Nat.cast_nonneg _) ((norm_nonneg _).trans (h 0 (Nat.succ_pos r)))
+  nlinarith [mul_nonneg hrC (norm_nonneg (f z))]
 
 /-- If the derivatives of orders `1` to `r + 1` of `f` at `z` have norm at most `C`, the `r`-jet
-norm of `fderiv 𝕜 f` at `z` is at most `(r + 1) * |C|`. -/
+norm of `fderiv 𝕜 f` at `z` is at most `(r + 1) * C`. -/
 theorem jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le {r : ℕ} {f : E → F} {z : E} {C : ℝ}
     (h : ∀ j < r + 1, ‖iteratedFDeriv 𝕜 (j + 1) f z‖ ≤ C) :
-    jetNormAt 𝕜 r (fderiv 𝕜 f) z ≤ (r + 1) * |C| := by
-  have h' := jetNormAt_le_of_norm_iteratedFDeriv_succ_le (C := |C|) fun j hj ↦
-    (h j hj).trans (le_abs_self C)
+    jetNormAt 𝕜 r (fderiv 𝕜 f) z ≤ (r + 1) * C := by
+  have h' := jetNormAt_le_of_norm_iteratedFDeriv_succ_le h
   rw [jetNormAt_succ] at h'
   push_cast at h'
   linarith [norm_nonneg (f z)]
