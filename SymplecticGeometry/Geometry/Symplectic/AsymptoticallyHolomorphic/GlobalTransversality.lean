@@ -10,6 +10,8 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.LocalTransversality
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakQuotient
+import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.SeparatedNet
+import SymplecticGeometry.Analysis.SpecialFunctions.Log.Recurrence
 import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 
@@ -372,6 +374,379 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
     have h1 := (hsum y T (hT y) δ w hδ.le fun x _ ↦ hw x).1
     have h2 : C * δ ≤ max C 0 * δ := by gcongr; exact le_max_left _ _
     linarith [(abs_le.1 hstab).1]
+
+/-- The constants of the iteration over colours. Given an exponent `p`, a dimension `m`, a bound
+`δ₀ > 0` on the size of the corrections, constants `C₁, C₂ ≥ 0`, `c₂ > 0` and a colour constant
+`C`, there are `R ≥ 1`, lower bounds `b j > 0` and sizes `0 < δ j < δ₀` with `δ j ≤ 1` such that
+`b (j + 1) ≤ b j - C₁ * δ j` for every `j`, and
+`b (j + 1) ≤ δ j / log (1 / δ j) ^ p / 4 - C₂ * δ j * exp (-c₂ * R ^ 2)` for `j < C * R ^ m`.
+Here `δ j = b j / A` and `b (j + 1) = δ j / log (1 / δ j) ^ p / 8` for `A = 2 * C₁ + 2`, and
+`R` is chosen with `Real.exists_le_mul_mul_log_of_le_add_log`. -/
+private theorem exists_iteration_constants (p m : ℕ) {δ₀ C₁ C₂ c₂ : ℝ} (hδ₀ : 0 < δ₀)
+    (hC₁ : 0 ≤ C₁) (hC₂ : 0 ≤ C₂) (hc₂ : 0 < c₂) (C : ℝ) :
+    ∃ R ≥ (1 : ℝ), ∃ b δ : ℕ → ℝ, (∀ j, 0 < b j) ∧ (∀ j, 0 < δ j ∧ δ j < δ₀ ∧ δ j ≤ 1) ∧
+      (∀ j, b (j + 1) ≤ b j - C₁ * δ j) ∧
+      ∀ j : ℕ, (j : ℝ) < C * R ^ m →
+        b (j + 1) ≤ δ j / Real.log (1 / δ j) ^ p / 4 - C₂ * δ j * Real.exp (-c₂ * R ^ 2) := by
+  set A := 2 * C₁ + 2
+  set b₀ := min (δ₀ / 2) (Real.exp (-1))
+  have hb₀ : 0 < b₀ := lt_min (half_pos hδ₀) (Real.exp_pos _)
+  have hb₀1 : b₀ ≤ 1 := (min_le_right _ _).trans (Real.exp_le_one_iff.2 (by norm_num))
+  set f : ℝ → ℝ := fun β ↦ β / A / Real.log (1 / (β / A)) ^ p / 8
+  set b : ℕ → ℝ := fun j ↦ f^[j] b₀
+  have hbs (j : ℕ) : b (j + 1) = f (b j) := Function.iterate_succ_apply' f j b₀
+  -- For `0 < β ≤ b₀`, the logarithm `log (A / β)` is at least `1`.
+  have hlog {β : ℝ} (hβ : 0 < β) (hβb : β ≤ b₀) : 1 ≤ Real.log (1 / (β / A)) := by
+    rw [one_div_div, Real.le_log_iff_exp_le (by positivity), le_div_iff₀ hβ]
+    calc Real.exp 1 * β ≤ Real.exp 1 * Real.exp (-1) := by
+          gcongr; exact hβb.trans (min_le_right _ _)
+      _ = 1 := by rw [← Real.exp_add]; simp
+      _ ≤ A := by linarith
+  have hf {β : ℝ} (hβ : 0 < β) (hβb : β ≤ b₀) : 0 < f β ∧ f β ≤ β / A / 8 := by
+    have hL := hlog hβ hβb
+    have hA0 : 0 < β / A := by positivity
+    exact ⟨div_pos (div_pos hA0 (pow_pos (by linarith) _)) (by norm_num),
+      div_le_div_of_nonneg_right (div_le_self hA0.le (one_le_pow₀ hL)) (by norm_num)⟩
+  have hb (j : ℕ) : 0 < b j ∧ b j ≤ b₀ := by
+    induction j with
+    | zero => exact ⟨hb₀, le_rfl⟩
+    | succ j ih =>
+      rw [hbs]
+      obtain ⟨h1, h2⟩ := hf ih.1 ih.2
+      have : b j / A ≤ b j := div_le_self ih.1.le (by linarith)
+      exact ⟨h1, by linarith [ih.2]⟩
+  set δ : ℕ → ℝ := fun j ↦ b j / A
+  have hδ (j : ℕ) : 0 < δ j ∧ δ j < δ₀ ∧ δ j ≤ 1 := by
+    have h1 : δ j ≤ b j := div_le_self (hb j).1.le (by linarith)
+    have h2 := (hb j).2
+    have h3 : b₀ ≤ δ₀ / 2 := min_le_left _ _
+    exact ⟨div_pos (hb j).1 (by linarith), by linarith, by linarith⟩
+  set L : ℕ → ℝ := fun j ↦ Real.log (1 / δ j)
+  have hL (j : ℕ) : 1 ≤ L j := hlog (hb j).1 (hb j).2
+  have hbδ (j : ℕ) : b (j + 1) = δ j / L j ^ p / 8 := hbs j
+  -- The logarithms `u j = log (1 / b j)` satisfy the recurrence of `Recurrence.lean`.
+  set u : ℕ → ℝ := fun j ↦ Real.log (1 / b j)
+  have hu (j : ℕ) : 0 ≤ u j := Real.log_nonneg (one_le_one_div (hb j).1 ((hb j).2.trans hb₀1))
+  have hA0 : 0 < A := by linarith
+  have hLu (j : ℕ) : L j = u j + Real.log A := by
+    simp only [L, u, δ]
+    rw [one_div_div, div_eq_mul_one_div, Real.log_mul hA0.ne' (one_div_pos.2 (hb j).1).ne']
+    ring
+  have hrec (j : ℕ) : u (j + 1) ≤ u j + Real.log (8 * A) + p * Real.log (u j + Real.log A) := by
+    have hLj : 0 < L j := by linarith [hL j]
+    have e : u (j + 1) = u j + Real.log (8 * A) + p * Real.log (L j) := by
+      simp only [u, one_div, Real.log_inv]
+      rw [hbδ, Real.log_div (div_pos (hδ j).1 (pow_pos hLj p)).ne' (by norm_num),
+        Real.log_div (hδ j).1.ne' (pow_pos hLj p).ne', Real.log_pow, show δ j = b j / A from rfl,
+        Real.log_div (hb j).1.ne' hA0.ne', Real.log_mul (by norm_num) hA0.ne']
+      ring
+    rw [e, hLu]
+  obtain ⟨K, hK⟩ := Real.exists_le_mul_mul_log_of_le_add_log hu (Nat.cast_nonneg p)
+    (Real.log_pos (by linarith : (1 : ℝ) < A)) hrec
+  -- For `j < C * R ^ m` the logarithm `L j` is at most a polynomial in `R`.
+  set K' := max K 0
+  set C' := max C 0
+  set Q := K' * (C' + 1) ^ 2 + Real.log A + 1
+  have hlogA : 0 ≤ Real.log A := Real.log_nonneg (by linarith)
+  have hLQ (j : ℕ) {R : ℝ} (hR : 1 ≤ R) (hj : (j : ℝ) < C * R ^ m) : L j ≤ Q * (R ^ 2) ^ m := by
+    have hRm : 1 ≤ R ^ m := one_le_pow₀ hR
+    have hlj : Real.log ((j : ℝ) + 2) ≤ j + 1 := by
+      linarith [Real.log_le_sub_one_of_pos (x := (j : ℝ) + 2) (by linarith)]
+    have hlj0 : 0 ≤ Real.log ((j : ℝ) + 2) := Real.log_nonneg (by linarith)
+    have h1 : u j ≤ K' * ((j + 1) * (j + 1)) :=
+      calc u j ≤ K * (j + 1) * Real.log (j + 2) := hK j
+        _ ≤ K' * ((j + 1) * Real.log (j + 2)) := by
+            rw [mul_assoc]; exact mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity)
+        _ ≤ K' * ((j + 1) * (j + 1)) := by gcongr
+    have h2 : (j : ℝ) + 1 ≤ (C' + 1) * R ^ m := by
+      have : C * R ^ m ≤ C' * R ^ m := by gcongr; exact le_max_left _ _
+      linarith
+    have h3 : ((j : ℝ) + 1) * (j + 1) ≤ (C' + 1) ^ 2 * (R ^ 2) ^ m := by
+      rw [← pow_mul, mul_comm 2 m, pow_mul]
+      nlinarith
+    have hR2 : 1 ≤ (R ^ 2) ^ m := one_le_pow₀ (one_le_pow₀ hR)
+    rw [hLu]
+    calc u j + Real.log A ≤ K' * ((C' + 1) ^ 2 * (R ^ 2) ^ m) + Real.log A * (R ^ 2) ^ m := by
+          gcongr
+          · exact h1.trans (by gcongr)
+          · exact le_mul_of_one_le_right hlogA hR2
+      _ ≤ Q * (R ^ 2) ^ m := by nlinarith
+  -- The Gaussian `exp (-c₂ * R ^ 2)` beats every power of `R`.
+  set n := m * p
+  set ε := 1 / (8 * C₂ * Q ^ p + 1) with hεdef
+  have hε : 0 < ε := by positivity
+  have htend : Filter.Tendsto (fun R : ℝ ↦ (c₂ * R ^ 2) ^ n * Real.exp (-(c₂ * R ^ 2)))
+      Filter.atTop (𝓝 0) :=
+    (Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero n).comp
+      ((Filter.tendsto_pow_atTop two_ne_zero).const_mul_atTop hc₂)
+  obtain ⟨R, hRε, hR⟩ := ((htend.eventually_lt_const (mul_pos (pow_pos hc₂ n) hε)).and
+    (Filter.eventually_ge_atTop 1)).exists
+  refine ⟨R, hR, b, δ, fun j ↦ (hb j).1, hδ, fun j ↦ ?_, fun j hj ↦ ?_⟩
+  · have hδj := (hδ j).1
+    have hbA : b j = 2 * (C₁ * δ j) + 2 * δ j := by
+      simp only [δ, A]; field_simp
+    have : δ j / L j ^ p ≤ δ j := div_le_self hδj.le (one_le_pow₀ (hL j))
+    have := mul_nonneg hC₁ hδj.le
+    rw [hbδ]
+    linarith
+  · -- `8 * C₂ * exp (-c₂ * R ^ 2) * L j ^ p ≤ 1`.
+    set X := (R ^ 2) ^ n * Real.exp (-(c₂ * R ^ 2))
+    have hX0 : 0 ≤ X := by positivity
+    have hXε : X < ε := by
+      rw [mul_pow, mul_assoc] at hRε
+      exact lt_of_mul_lt_mul_left hRε (pow_nonneg hc₂.le n)
+    rw [hεdef] at hXε
+    have hX1 : X * (8 * C₂ * Q ^ p + 1) < 1 := (lt_div_iff₀ (by positivity)).1 hXε
+    have hLp : L j ^ p ≤ Q ^ p * (R ^ 2) ^ n := by
+      rw [show n = m * p from rfl, pow_mul, ← mul_pow]
+      exact pow_le_pow_left₀ (by linarith [hL j]) (hLQ j hR hj) p
+    have hY : 0 ≤ δ j / L j ^ p :=
+      div_nonneg (hδ j).1.le (pow_nonneg (by linarith [hL j]) p)
+    have hδL : δ j = δ j / L j ^ p * L j ^ p := by
+      rw [div_mul_cancel₀]; exact (pow_pos (by linarith [hL j]) p).ne'
+    have hkey : C₂ * Real.exp (-c₂ * R ^ 2) * L j ^ p ≤ 1 / 8 := by
+      rw [neg_mul]
+      have h1 : C₂ * Real.exp (-(c₂ * R ^ 2)) * L j ^ p ≤ C₂ * Q ^ p * X := by
+        simp only [X]
+        have := Real.exp_pos (-(c₂ * R ^ 2))
+        calc _ ≤ C₂ * Real.exp (-(c₂ * R ^ 2)) * (Q ^ p * (R ^ 2) ^ n) := by gcongr
+          _ = _ := by ring
+      have : 0 ≤ C₂ * Q ^ p * X := by positivity
+      nlinarith
+    rw [hbδ]
+    have h := mul_le_mul_of_nonneg_left hkey hY
+    have : C₂ * δ j * Real.exp (-c₂ * R ^ 2) =
+        δ j / L j ^ p * (C₂ * Real.exp (-c₂ * R ^ 2) * L j ^ p) := by
+      conv_lhs => rw [hδL]
+      ring
+    linarith
+
+section Iteration
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+/-- **Sums of peak sections are asymptotically holomorphic.** Let `M` be Hausdorff and
+boundaryless, with the metric `σ(·, J ·)`. For finite sets `S k` of centres with at most
+`C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from any point, and coefficients
+`w k x` of norm at most `δ` on `S k`, both for large `k`, the sequence of sections
+`Σ_{x ∈ S k} D.affinePeakSection k x (w k x)` is asymptotically holomorphic. -/
+theorem isAsymptoticallyHolomorphic_sum_affinePeakSection [T2Space M] [I.Boundaryless]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {C₀ δ : ℝ} {m : ℕ}
+    (S : ℕ → Finset M) (w : ℕ → M → EuclideanSpace ℂ (Option ι)) (hδ : 0 ≤ δ)
+    (hS : ∀ᶠ k in Filter.atTop, ∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+      (((S k).filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m)
+    (hw : ∀ᶠ k in Filter.atTop, ∀ x ∈ S k, ‖w k x‖ ≤ δ) :
+    D.IsAsymptoticallyHolomorphic fun k ↦ ∑ x ∈ S k, D.affinePeakSection k x (w k x) := by
+  refine (D.isAsymptoticallyHolomorphic_def _).2
+    ⟨(D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀).mono
+      fun k h x ↦ h (S k) (w k) x, fun r ↦ ?_⟩
+  obtain ⟨C, _, -, hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m r
+  refine ⟨C * δ, ?_⟩
+  filter_upwards [hsum, hS, hw] with k hk hSk hwk x
+  obtain ⟨h1, h2, -⟩ := hk x (S k) (hSk x) δ (w k) hδ hwk
+  exact ⟨h1, h2⟩
+
+/-- The iteration over the colours `c : M → Fin N` of a finite set `S` of centres, for one `k`:
+colour `j` is corrected with coefficients of size `δ j`, by `hcorr`, which is the conclusion of
+`exists_correction_of_separated` for `δ j`, and the lower bound `b j` holds near the centres of
+the colours below `j`. -/
+private theorem exists_forall_le_transversalityQuantity_of_coloring [∀ y, Nonempty (P y)]
+    {k : ℕ} {S : Finset M}
+    {N : ℕ} (c : M → Fin N) {B C₁ C₂ c₂ R : ℝ} {p : ℕ} {b δ : ℕ → ℝ}
+    (hδ : ∀ j, δ j ≤ 1) (hold : ∀ j, b (j + 1) ≤ b j - C₁ * δ j)
+    (hnew : ∀ j < N,
+      b (j + 1) ≤ δ j / Real.log (1 / δ j) ^ p / 4 - C₂ * δ j * Real.exp (-c₂ * R ^ 2))
+    (hsep : ∀ x ∈ S, ∀ x' ∈ S, x ≠ x' → c x = c x' → R ≤ rescaledDist I k x x')
+    (hsm : ∀ (U : Finset M) (w : M → EuclideanSpace ℂ (Option ι)) (y : M),
+      ContDiffAt ℝ ∞ (D.reading k y (∑ x ∈ U, D.affinePeakSection k x (w x))) 0 ∧
+        ContDiffAt ℝ ∞ (D.dbarReading k y (∑ x ∈ U, D.affinePeakSection k x (w x))) 0)
+    (hB : ∀ U ⊆ S, ∀ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ U, ‖w x‖ ≤ 1) → ∀ y,
+      D.jetNorm k 2 (∑ x ∈ U, D.affinePeakSection k x (w x)) y ≤ B ∧
+        D.dbarJetNorm k 1 (∑ x ∈ U, D.affinePeakSection k x (w x)) y ≤
+          B * (k : ℝ) ^ (-1 / 2 : ℝ))
+    (hcorr : ∀ j < N, ∀ T ⊆ S, (∀ x ∈ T, ∀ x' ∈ T, x ≠ x' → R ≤ rescaledDist I k x x') →
+      ∀ s : Π y, PowerBundle P k y,
+      (∀ y, ContDiffAt ℝ 2 (D.reading k y s) 0 ∧ ContDiffAt ℝ 1 (D.dbarReading k y s) 0) →
+      (∀ y, D.jetNorm k 2 s y ≤ B ∧ D.dbarJetNorm k 1 s y ≤ B * (k : ℝ) ^ (-1 / 2 : ℝ)) →
+      ∃ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ T, ‖w x‖ ≤ δ j) ∧
+        (∀ x ∈ T, ∀ z ∈ closedBall (0 : StdSpace ι) 1,
+          δ j / Real.log (1 / δ j) ^ p / 4 - C₂ * δ j * Real.exp (-c₂ * R ^ 2) ≤
+            transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x'))
+              ((D.chart k x).symm z)) ∧
+        ∀ y : M, transversalityQuantity J α k s y - C₁ * δ j ≤
+          transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) y) :
+    ∃ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ S, ‖w x‖ ≤ 1) ∧
+      ∀ x ∈ S, ∀ z ∈ closedBall (0 : StdSpace ι) 1,
+        b N ≤ transversalityQuantity J α k (-∑ x ∈ S, D.affinePeakSection k x (w x))
+          ((D.chart k x).symm z) := by
+  classical
+  set U : ℕ → Finset M := fun j ↦ S.filter fun x ↦ (c x : ℕ) < j
+  suffices h : ∀ j ≤ N, ∃ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ S, ‖w x‖ ≤ 1) ∧
+      ∀ x ∈ U j, ∀ z ∈ closedBall (0 : StdSpace ι) 1,
+        b j ≤ transversalityQuantity J α k (-∑ x ∈ U j, D.affinePeakSection k x (w x))
+          ((D.chart k x).symm z) by
+    obtain ⟨w, hw, hb⟩ := h N le_rfl
+    have hU : U N = S := Finset.filter_true_of_mem fun x _ ↦ (c x).isLt
+    rw [hU] at hb
+    exact ⟨w, hw, hb⟩
+  intro j hj
+  induction j with
+  | zero => exact ⟨0, fun _ _ ↦ by simp, fun x hx ↦ by simp [U] at hx⟩
+  | succ j ih =>
+    obtain ⟨w, hw, hb⟩ := ih (by omega)
+    have hjN : j < N := by omega
+    set T := S.filter fun x ↦ (c x : ℕ) = j
+    set s : Π y, PowerBundle P k y := -∑ x ∈ U j, D.affinePeakSection k x (w x)
+    have hUS : U j ⊆ S := Finset.filter_subset _ _
+    have hwU : ∀ x ∈ U j, ‖w x‖ ≤ 1 := fun x hx ↦ hw x (hUS hx)
+    have hdbar_neg (y : M) : D.dbarReading k y s =
+        -D.dbarReading k y (∑ x ∈ U j, D.affinePeakSection k x (w x)) :=
+      funext (D.dbarReading_neg k y _)
+    obtain ⟨w', hw', hT, hall⟩ := hcorr j hjN T (Finset.filter_subset _ _)
+      (fun x hx x' hx' hne ↦ hsep x (Finset.mem_filter.1 hx).1 x'
+        (Finset.mem_filter.1 hx').1 hne
+        (Fin.ext ((Finset.mem_filter.1 hx).2.trans (Finset.mem_filter.1 hx').2.symm))) s
+      (fun y ↦ by
+        rw [reading_neg, hdbar_neg]
+        exact ⟨((hsm _ w y).1.of_le (by simp)).neg,
+          ((hsm _ w y).2.of_le (by simp)).neg⟩)
+      (fun y ↦ by rw [jetNorm_neg, dbarJetNorm_neg]; exact hB _ hUS w hwU y)
+    set w'' : M → EuclideanSpace ℂ (Option ι) := fun x ↦ if (c x : ℕ) = j then w' x else w x
+    -- The new section is the sum over the colours up to `j`.
+    have hsum : s - ∑ x' ∈ T, D.affinePeakSection k x' (w' x') =
+        -∑ x ∈ U (j + 1), D.affinePeakSection k x (w'' x) := by
+      rw [← Finset.sum_filter_add_sum_filter_not (U (j + 1)) fun x ↦ (c x : ℕ) = j]
+      have h1 : (U (j + 1)).filter (fun x ↦ (c x : ℕ) = j) = T := by
+        ext x
+        simp only [U, T, Finset.mem_filter]
+        exact ⟨fun h ↦ ⟨h.1.1, h.2⟩, fun h ↦ ⟨⟨h.1, by omega⟩, h.2⟩⟩
+      have h2 : (U (j + 1)).filter (fun x ↦ ¬(c x : ℕ) = j) = U j := by
+        ext x
+        simp only [U, Finset.mem_filter]
+        exact ⟨fun h ↦ ⟨h.1.1, by omega⟩, fun h ↦ ⟨⟨h.1, by omega⟩, by omega⟩⟩
+      have e1 : ∑ x ∈ T, D.affinePeakSection k x (w'' x) =
+          ∑ x ∈ T, D.affinePeakSection k x (w' x) :=
+        Finset.sum_congr rfl fun x hx ↦ by simp [w'', (Finset.mem_filter.1 hx).2]
+      have e2 : ∑ x ∈ U j, D.affinePeakSection k x (w'' x) =
+          ∑ x ∈ U j, D.affinePeakSection k x (w x) :=
+        Finset.sum_congr rfl fun x hx ↦ by simp [w'', (Finset.mem_filter.1 hx).2.ne]
+      rw [h1, h2, e1, e2]
+      simp only [s]
+      abel
+    refine ⟨w'', fun x hx ↦ ?_, fun x hx z hz ↦ ?_⟩
+    · simp only [w'']
+      split_ifs with hcx
+      · exact (hw' x (Finset.mem_filter.2 ⟨hx, hcx⟩)).trans (hδ j)
+      · exact hw x hx
+    · rw [← hsum]
+      obtain ⟨hxS, hxj⟩ := Finset.mem_filter.1 hx
+      by_cases hcx : (c x : ℕ) = j
+      · exact (hnew j hjN).trans (hT x (Finset.mem_filter.2 ⟨hxS, hcx⟩) z hz)
+      · have := hb x (Finset.mem_filter.2 ⟨hxS, by omega⟩) z hz
+        have := hall ((D.chart k x).symm z)
+        linarith [hold j]
+
+/-- **Global uniform transversality.** Let `M` be compact, Hausdorff, preconnected and
+boundaryless, with the metric `g(u, w) = σ(u, J w)`, let `α` be a connection form and let `D` be
+rescaled unitary charts of radius `ρ₀ > 0`. There are an asymptotically holomorphic sequence `s`
+of sections, `s k` of `PowerBundle P k`, and `η > 0` such that `s` is uniformly transverse with
+constant `η`: for all large `k` and every point `y`,
+`η ≤ max ‖s k y‖ ((2π k)^(-1/2) ‖∂ (s k) y‖)`.
+
+Milestone: *Global uniform transversality of asymptotically holomorphic sections*. -/
+theorem exists_isUniformlyTransverse [CompactSpace M] [T2Space M] [I.Boundaryless]
+    [PreconnectedSpace M] [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
+    [∀ y, Nonempty (P y)]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) :
+    ∃ s : ∀ k : ℕ, Π y, PowerBundle P k y, D.IsAsymptoticallyHolomorphic s ∧
+      ∃ η > 0, IsUniformlyTransverse J α η s := by
+  classical
+  set m := Module.finrank ℝ (StdSpace ι)
+  obtain ⟨r₀, -, C₀, hnet⟩ := D.exists_separated_chart_cover_coloring hg hρ₀
+  obtain ⟨C₅, _, -, H₂⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 2
+  obtain ⟨C₆, _, -, H₁⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1
+  set B := max (max C₅ 0) (max C₆ 0)
+  obtain ⟨p, -, δ₀, hδ₀, C₁, C₂, c₂, hc₂, Hcorr⟩ :=
+    D.exists_correction_of_separated hg hJ hα hρ₀ B C₀ m
+  obtain ⟨R, hR, b, δ, hb, hδ, hold, hnew⟩ := exists_iteration_constants p m hδ₀
+    (le_max_right C₁ 0) (le_max_right C₂ 0) hc₂ C₀
+  set N₀ := ⌈C₀ * R ^ m⌉₊
+  have hbanti : Antitone b := antitone_nat_of_succ_le fun j ↦ by
+    have := hold j
+    have := mul_nonneg (le_max_right C₁ 0) (hδ j).1.le
+    linarith
+  have hold' (j : ℕ) : b (j + 1) ≤ b j - C₁ * δ j := by
+    have : C₁ * δ j ≤ max C₁ 0 * δ j := by gcongr; exacts [(hδ j).1.le, le_max_left _ _]
+    linarith [hold j]
+  have hnew' (j : ℕ) (hj : (j : ℝ) < C₀ * R ^ m) :
+      b (j + 1) ≤ δ j / Real.log (1 / δ j) ^ p / 4 - C₂ * δ j * Real.exp (-c₂ * R ^ 2) := by
+    have : C₂ * δ j * Real.exp (-c₂ * R ^ 2) ≤ max C₂ 0 * δ j * Real.exp (-c₂ * R ^ 2) := by
+      gcongr; exacts [(hδ j).1.le, le_max_left _ _]
+    linarith [hnew j hj]
+  -- The bound `B` on the jets of all partial sums.
+  have hBk : ∀ᶠ k : ℕ in Filter.atTop, ∀ (S : Finset M),
+      (∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+        ((S.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m) →
+      ∀ U ⊆ S, ∀ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ U, ‖w x‖ ≤ 1) → ∀ y,
+        D.jetNorm k 2 (∑ x ∈ U, D.affinePeakSection k x (w x)) y ≤ B ∧
+          D.dbarJetNorm k 1 (∑ x ∈ U, D.affinePeakSection k x (w x)) y ≤
+            B * (k : ℝ) ^ (-1 / 2 : ℝ) := by
+    filter_upwards [H₂, H₁] with k h₂ h₁ S hS U hU w hw y
+    have hcount (ρ : ℝ) (hρ : 0 ≤ ρ) :
+        ((U.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m :=
+      le_trans (by exact_mod_cast Finset.card_le_card (Finset.filter_subset_filter _ hU))
+        (hS y ρ hρ)
+    obtain ⟨e₂, -, -⟩ := h₂ y U hcount 1 w zero_le_one hw
+    obtain ⟨-, e₁, -⟩ := h₁ y U hcount 1 w zero_le_one hw
+    have hB₅ : C₅ ≤ B := (le_max_left _ _).trans (le_max_left _ _)
+    have hB₆ : C₆ ≤ B := (le_max_left _ _).trans (le_max_right _ _)
+    rw [mul_one] at e₂ e₁
+    exact ⟨e₂.trans hB₅, e₁.trans (by gcongr)⟩
+  have hgood : ∀ᶠ k : ℕ in Filter.atTop, ∃ S : Finset M,
+      (∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+        ((S.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m) ∧
+      ∃ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ S, ‖w x‖ ≤ 1) ∧
+        ∀ y, b N₀ ≤ transversalityQuantity J α k (-∑ x ∈ S, D.affinePeakSection k x (w x)) y := by
+    filter_upwards [Filter.eventually_all.2 fun j : Fin N₀ ↦ Hcorr (δ j) (hδ j).1 (hδ j).2.1,
+      hBk, D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀,
+      Filter.eventually_ge_atTop (max k₀ 1)] with k hck hBk hsm hk
+    obtain ⟨S, -, hcover, hcount, hcol⟩ := hnet hk
+    obtain ⟨N, hN, c, hc⟩ := hcol hR
+    have hNN₀ : N ≤ N₀ := by exact_mod_cast hN.trans (Nat.le_ceil _)
+    have hcount' (y : M) (ρ : ℝ) (hρ : 0 ≤ ρ) :
+        ((S.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m :=
+      hcount y hρ
+    obtain ⟨w, hw, hlow⟩ := exists_forall_le_transversalityQuantity_of_coloring D c
+      (fun j ↦ (hδ j).2.2) hold'
+      (fun j hj ↦ hnew' j (lt_of_lt_of_le (by exact_mod_cast hj) hN)) hc hsm
+      (hBk S hcount')
+      (fun j hj T hT hsep ↦ hck ⟨j, hj.trans_le hNN₀⟩ T R (by linarith)
+        (fun y ρ hρ ↦ le_trans (by exact_mod_cast (Finset.card_le_card
+          (Finset.filter_subset_filter _ hT))) (hcount y hρ)) hsep)
+    refine ⟨S, hcount', w, hw, fun y ↦ ?_⟩
+    obtain ⟨x, hx, z, hz, rfl⟩ := hcover y
+    exact (hbanti hNN₀).trans (hlow x hx z hz)
+  -- Choose the centres and the coefficients for each `k`.
+  obtain ⟨k₁, hk₁⟩ := Filter.eventually_atTop.1 hgood
+  have hch (k : ℕ) : ∃ (S : Finset M) (w : M → EuclideanSpace ℂ (Option ι)), k₁ ≤ k →
+      (∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+        ((S.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m) ∧
+      (∀ x ∈ S, ‖w x‖ ≤ 1) ∧
+        ∀ y, b N₀ ≤ transversalityQuantity J α k (-∑ x ∈ S, D.affinePeakSection k x (w x)) y := by
+    by_cases hk : k₁ ≤ k
+    · obtain ⟨S, hS, w, hw, h⟩ := hk₁ k hk
+      exact ⟨S, w, fun _ ↦ ⟨hS, hw, h⟩⟩
+    · exact ⟨∅, 0, fun h ↦ absurd h hk⟩
+  choose S w hSw using hch
+  refine ⟨fun k ↦ -∑ x ∈ S k, D.affinePeakSection k x (w k x),
+    (D.isAsymptoticallyHolomorphic_sum_affinePeakSection hg hJ hα hρ₀ S w zero_le_one
+      (Filter.eventually_atTop.2 ⟨k₁, fun k hk ↦ (hSw k hk).1⟩)
+      (Filter.eventually_atTop.2 ⟨k₁, fun k hk ↦ (hSw k hk).2.1⟩)).neg, b N₀, hb N₀,
+    isUniformlyTransverse_def.2 (Filter.eventually_atTop.2 ⟨k₁, fun k hk ↦ (hSw k hk).2.2⟩)⟩
+
+end Iteration
 
 end RescaledUnitaryCharts
 
