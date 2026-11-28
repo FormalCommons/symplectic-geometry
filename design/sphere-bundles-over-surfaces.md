@@ -388,7 +388,7 @@ About 450 lines; the issue may split the openness lemma off.
   `hasStructureGroup_productAtlas` (every coordinate change is `1`).
 - `OnePoint.circleAction`: the action of `Circle` on `OnePoint ℂ` by
   Möbius rotations, jointly smooth, by elements of `mobiusSubgroup`, and
-  fixing `0` and `∞`; `rotationLoop n : AddCircle (2 * π) → diffPlus`.
+  fixing `0` and `∞`; `rotationLoop n : AddCircle 1 → diffPlus`.
 - Gluing: for an atlas whose charts over an open `U` and over open discs
   differ on collars by smooth maps into `diffPlus`, smoothly homotopic
   clutching maps give isomorphic bundles over `S`
