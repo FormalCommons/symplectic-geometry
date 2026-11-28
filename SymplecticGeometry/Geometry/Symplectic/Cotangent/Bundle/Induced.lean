@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
-public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Induced
+public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Induced.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Geometry.Lie.ProdFstMulAction

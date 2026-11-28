@@ -9,8 +9,8 @@ public import Mathlib.Geometry.Manifold.ContMDiffMap
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivWithinApply
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
-import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Evaluation
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 
@@ -93,9 +93,8 @@ theorem tangentMap_comp (g : C^n⟮I', M'; I'', M''⟯) (f : C^n⟮I, M; I', M'�
   have hn : n ≠ 0 := by
     rintro rfl
     exact absurd hmn (by simp)
-  have hgf : ⇑(g.comp f) = ⇑g ∘ ⇑f := funext (comp_apply g f)
   refine ContMDiffMap.ext fun p ↦ ?_
-  rw [comp_apply, coe_tangentMap, coe_tangentMap, coe_tangentMap, hgf,
+  rw [comp_apply, coe_tangentMap, coe_tangentMap, coe_tangentMap, coe_comp,
     _root_.tangentMap_comp (g.contMDiff.mdifferentiable hn) (f.contMDiff.mdifferentiable hn),
     Function.comp_apply]
 
@@ -104,8 +103,7 @@ theorem tangentMap_comp (g : C^n⟮I', M'; I'', M''⟯) (f : C^n⟮I, M; I', M'�
 theorem tangentMap_id (hmn : m + 1 ≤ n) :
     (ContMDiffMap.id : C^n⟮I, M; I, M⟯).tangentMap hmn = ContMDiffMap.id := by
   refine ContMDiffMap.ext fun p ↦ ?_
-  have hid : ⇑(ContMDiffMap.id : C^n⟮I, M; I, M⟯) = _root_.id := funext id_apply
-  rw [coe_tangentMap, hid, _root_.tangentMap_id, id_apply, id_eq]
+  rw [coe_tangentMap, coe_id, _root_.tangentMap_id, coe_id]
 
 end Functoriality
 

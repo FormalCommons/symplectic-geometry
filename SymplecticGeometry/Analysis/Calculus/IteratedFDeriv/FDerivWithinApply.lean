@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Analysis.Calculus.ContDiff.Bounds
 import Mathlib.Analysis.Calculus.TangentCone.Prod
-import Mathlib.Analysis.Normed.Operator.Prod
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.CompLinear
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
 
 /-!
@@ -21,9 +21,6 @@ its iterated derivatives at `(z, v)` by those of `g` at `z` of one order more, w
 
 ## Main results
 
-* `norm_iteratedFDerivWithin_comp_fst_le`: the iterated derivatives of `f ∘ Prod.fst` within
-  `s ×ˢ univ` are bounded by those of `f` within `s`. This is the within-a-set form of Tau Ceti's
-  `Prod.norm_iteratedFDeriv_comp_fst`.
 * `norm_iteratedFDerivWithin_fderivWithin_apply_le`: for `g` of class `C^{j+1}` on a set `s`
   of unique differentiability and `z ∈ s`, the `j`-th derivative of `(z, v) ↦ Dg(z) v` within
   `s ×ˢ univ` at `(z, v)` has norm at most
@@ -46,25 +43,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
 
-/-- The iterated derivatives of `f ∘ Prod.fst` within `s ×ˢ univ` at `p`, for `f` of class `C^n`
-on a set `s` of unique differentiability and `p.1 ∈ s`, are bounded, up to order `n`, by those of
-`f` within `s` at `p.1`. -/
-theorem norm_iteratedFDerivWithin_comp_fst_le {f : E → F} {s : Set E} {n : WithTop ℕ∞}
-    (hf : ContDiffOn 𝕜 n f s) (hs : UniqueDiffOn 𝕜 s) {i : ℕ} (hi : i ≤ n) {p : E × G}
-    (hp : p.1 ∈ s) :
-    ‖iteratedFDerivWithin 𝕜 i (f ∘ Prod.fst) (s ×ˢ univ) p‖ ≤
-      ‖iteratedFDerivWithin 𝕜 i f s p.1‖ := by
-  have hpre : (ContinuousLinearMap.fst 𝕜 E G) ⁻¹' s = s ×ˢ univ := by
-    ext; simp
-  have hS : UniqueDiffOn 𝕜 ((ContinuousLinearMap.fst 𝕜 E G) ⁻¹' s) :=
-    hpre ▸ hs.prod uniqueDiffOn_univ
-  rw [← ContinuousLinearMap.coe_fst' (R := 𝕜) (M₂ := G), ← hpre,
-    ContinuousLinearMap.iteratedFDerivWithin_comp_right _ hf hs hS hp hi]
-  refine (ContinuousMultilinearMap.norm_compContinuousLinearMap_le _ _).trans ?_
-  refine mul_le_of_le_one_right (norm_nonneg _) ?_
-  exact Finset.prod_le_one₀ (fun _ _ ↦ norm_nonneg _)
-    fun _ _ ↦ ContinuousLinearMap.norm_fst_le 𝕜 E G
-
 /-- The iterated derivatives of `(z, v) ↦ Dg(z) v` within `s ×ˢ univ` at `(z, v)`, for `g` of
 class `C^{j+1}` on a set `s` of unique differentiability and `z ∈ s`, are bounded by those of `g`
 at `z` of one order more:
@@ -84,7 +62,7 @@ theorem norm_iteratedFDerivWithin_fderivWithin_apply_le {g : E → F} {s : Set E
   have hAi (i : ℕ) (hi : i ≤ j) :
       ‖iteratedFDerivWithin 𝕜 i (fderivWithin 𝕜 g s ∘ Prod.fst) (s ×ˢ (univ : Set E)) (z, v)‖ ≤
         ‖iteratedFDerivWithin 𝕜 (i + 1) g s z‖ :=
-    (norm_iteratedFDerivWithin_comp_fst_le hDg hs (by exact_mod_cast hi) hz).trans_eq
+    (Prod.norm_iteratedFDerivWithin_comp_fst hDg hs (by exact_mod_cast hi) hz).le.trans_eq
       (norm_iteratedFDerivWithin_fderivWithin hs hz)
   -- Derivatives of the second factor: `v` at order zero, then at most one.
   have hBk (k : ℕ) :
@@ -120,7 +98,7 @@ theorem norm_iteratedFDerivWithin_comp_fst_sub_le {f₁ f₂ : E → F} {s : Set
     ((hf.comp contDiffOn_fst fun (q : E × G) (hq : q ∈ s ×ˢ univ) ↦ hq.1).of_le hi) p hpS
   rw [← iteratedFDerivWithin_sub_apply (hc f₁ hf₁) (hc f₂ hf₂) hS hpS,
     ← iteratedFDerivWithin_sub_apply ((hf₁.of_le hi) _ hp) ((hf₂.of_le hi) _ hp) hs hp]
-  exact norm_iteratedFDerivWithin_comp_fst_le (hf₁.sub hf₂) hs hi hp
+  exact (Prod.norm_iteratedFDerivWithin_comp_fst (hf₁.sub hf₂) hs hi hp).le
 
 /-- The iterated derivatives of the difference of `(z, v) ↦ Dg₁(z) v` and `(z, v) ↦ Dg₂(z) v`
 within `s ×ˢ univ` at `(z, v)`, for `g₁` and `g₂` of class `C^{j+1}` on a set `s` of unique

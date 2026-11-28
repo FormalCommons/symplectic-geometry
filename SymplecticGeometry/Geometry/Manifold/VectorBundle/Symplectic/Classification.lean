@@ -10,7 +10,7 @@ import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.BilinearForm
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 import SymplecticGeometry.Geometry.Symplectic.LinearMoser
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Geometry.Symplectic.Cayley.Basic
 import TauCeti.Topology.Algebra.Module.BilinearForm
 import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.FiniteDimensional

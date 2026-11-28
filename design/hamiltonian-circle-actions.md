@@ -151,7 +151,6 @@ as result 2 of `CircleAction.lean` says, holding for any two-form.
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Manifold/DeRham/PoincarePairing/Nondegenerate.lean` | nondegeneracy of the pairing in degrees $(1,m-1)$ | 1 |
-| `Geometry/Manifold/DeRham/Wedge.lean` | closedness of wedge powers (named like Tau Ceti's file) | 1 |
 | `Geometry/Manifold/DifferentialForm/Average.lean` | the average of a closed one-form is cohomologous to it (named like Tau Ceti's file) | 2 |
 | `Geometry/Manifold/GroupAction/InvariantForm.lean` | an invariant closed one-form pairs each $X_\xi$ to a constant (named like Tau Ceti's file) | 2 |
 | `Geometry/Symplectic/Hamiltonian/CircleAction.lean` | fixed points of Hamiltonian circle actions, the vanishing integral, the milestone | 3 |
@@ -178,14 +177,14 @@ the class of $\beta$" (and, for issue 3, of $\gamma$) is
 `compactlySupportedForms_eq_top` and Stokes' theorem; if it takes more
 than a few lines, it is a public lemma of this file.
 
-### `Geometry/Manifold/DeRham/Wedge.lean`
+### Closed wedge powers (Tau Ceti's `TauCeti/Geometry/Manifold/DeRham/Wedge.lean`)
 
 ```lean
 theorem TauCeti.SmoothForm.wedgePow_mem_closedForms {k : ℕ} {φ : SmoothForm I M ℝ k}
     (hφ : φ ∈ closedForms I M k) (m : ℕ) : φ.wedgePow m ∈ closedForms I M (k * m)
 ```
 
-By induction with `wedgePow_succ` and Tau Ceti's `wedge_mem_closedForms`.
+Tau Ceti has it, in the same file as `wedge_mem_closedForms`.
 
 ### `Geometry/Manifold/DifferentialForm/Average.lean`
 
@@ -322,7 +321,8 @@ Each is a few hundred lines at most; each is blocked by the issues it
 names.
 
 1. **Nondegeneracy of the pairing in degrees $(1,m-1)$, and closed wedge
-   powers.** `PoincarePairing/Nondegenerate.lean` and `DeRham/Wedge.lean`.
+   powers.** `PoincarePairing/Nondegenerate.lean`; the wedge powers are
+   Tau Ceti's `DeRham/Wedge.lean`.
    About 170 lines. No blockers.
 2. **Invariant representatives of closed one-forms.**
    `DifferentialForm/Average.lean` and `GroupAction/InvariantForm.lean`.

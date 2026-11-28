@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeCompression
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import Mathlib.Topology.MetricSpace.Thickening
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Slice
 import TauCeti.Data.Set.Function
 
 /-!
@@ -104,6 +104,9 @@ theorem exists_isotopy_mapsTo_of_diffeotopy {ε₀ : ℝ} (hε₀ : 0 < ε₀) (
       (H.timeSlice t).injective.mapsTo_of_eq_self (f := H.timeSlice t)
         (K := {p : L × E × F | ‖p.2‖ ≤ 1})
         (fun q hq ↦ (H.timeSlice_apply t q).trans (hHid t q (Or.inr (not_le.1 hq).le))) hp
+  -- `H` for the product model, so that it has slices over `L`
+  have hH' (t : I) (p : L × E × F) : (H.toProdModel (t, p)).1 = p.1 := by
+    rw [Diffeotopy.toProdModel_apply, hH]
   refine ⟨fun q ↦ (H (q.1.2, (q.1.1, c q.1.2 q.2))).2, ?_, fun p ↦ ?_, fun l x ↦ ?_,
     fun p x hx ↦ ?_, fun p x hx ↦ ?_, fun l hl x hx ↦ ?_⟩
   · have hcs : ContMDiff ((𝓘(ℝ, L).prod (𝓡∂ 1)).prod 𝓘(ℝ, E × F)) 𝓘(ℝ, E × F) ∞
@@ -112,17 +115,14 @@ theorem exists_isotopy_mapsTo_of_diffeotopy {ε₀ : ℝ} (hε₀ : 0 < ε₀) (
         (hψ.contMDiff.comp
           ((contMDiff_subtypeVal_Icc.comp (contMDiff_snd.comp contMDiff_fst)).prodMk_space
             contMDiff_snd))
-    exact contDiff_snd.contMDiff.comp (H.contMDiff.comp ((contMDiff_snd.comp contMDiff_fst).prodMk
-      ((contMDiff_fst.comp contMDiff_fst).prodMk_space hcs)))
-  · -- the time slice of `H` as a diffeomorphism for the product model, so that it has slices
-    set Ψ := Diffeomorph.prodModelEquiv (H.timeSlice p.2) with hΨdef
-    have hΨ (q : L × E × F) : Ψ q = H (p.2, q) := by
-      rw [hΨdef, Diffeomorph.coe_prodModelEquiv, Diffeotopy.timeSlice_apply]
-    refine ⟨(prodFiberScalingDiffeomorph (hψs p.2) fun u ↦ (hψpos _).1.ne').trans
-      (Ψ.slice (fun q ↦ (congrArg Prod.fst (hΨ q)).trans (hH p.2 q)) p.1), ?_⟩
+    have he := (H.toProdModel.contMDiff_slice hH').comp (contMDiff_fst.prodMk hcs)
+    simp only [Function.comp_def, Diffeotopy.slice_apply, Diffeotopy.toProdModel_apply] at he
+    exact he
+  · refine ⟨(prodFiberScalingDiffeomorph (hψs p.2) fun u ↦ (hψpos _).1.ne').trans
+      (H.toProdModel.slice hH' p.1 p.2), ?_⟩
     funext x
     rw [Diffeomorph.coe_trans, Function.comp_apply, coe_prodFiberScalingDiffeomorph,
-      Diffeomorph.slice_apply, hΨ]
+      Diffeotopy.slice_apply, Diffeotopy.toProdModel_apply]
   · have hc0 : c 0 x = x := by simpa only [hc, Set.Icc.coe_zero] using hψ0 x
     exact (congrArg (fun y ↦ (H (0, (l, y))).2) hc0).trans (congrArg Prod.snd (H.apply_zero _))
   · have hy : (p.1, c p.2 x) ∈ {q : L × E × F | ‖q.2‖ ≤ 1} :=

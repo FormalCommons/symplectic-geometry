@@ -17,8 +17,9 @@ import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
 # Wedge powers of smooth forms
 
 The zeroth wedge power of a smooth real form is the `0`-form of the constant function `1`
-(`TauCeti.SmoothForm.wedgePow_zero`), and the first wedge power of a smooth real two-form `σ` is
-`σ` itself (`TauCeti.SmoothForm.wedgePow_one`). Both hold pointwise, by
+(`TauCeti.SmoothForm.wedgePow_zero_eq_ofFunction_one`; Tau Ceti's `TauCeti.SmoothForm.wedgePow_zero`
+states it for the underlying rough form), and the first wedge power of a smooth real two-form `σ`
+is `σ` itself (`TauCeti.SmoothForm.wedgePow_one`). Both hold pointwise, by
 `ContinuousAlternatingMap.wedgePow_zero_apply` and `ContinuousAlternatingMap.wedgePow_one`, and
 Tau Ceti's `TauCeti.SmoothForm.wedgePow_apply`.
 
@@ -29,7 +30,7 @@ of `ContinuousAlternatingMap.pairedWedge_curryLeftTopological_wedgePow_eq_zero`.
 
 ## Main results
 
-* `TauCeti.SmoothForm.wedgePow_zero`: `wedgePow φ 0 = ofFunction 1`.
+* `TauCeti.SmoothForm.wedgePow_zero_eq_ofFunction_one`: `wedgePow φ 0 = ofFunction 1`.
 * `TauCeti.SmoothForm.wedgePow_one`: `wedgePow σ 1 = σ` for a smooth two-form `σ`.
 * `TauCeti.SmoothForm.wedge_interior_wedge_wedgePow_apply_eq_zero`: `γ ∧ ι_X σ ∧ σ ^ n` vanishes
   at `x` in dimension `2 n + 2` when `γ_x(X x) = 0`.
@@ -55,7 +56,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 /-- The zeroth wedge power of a smooth form is the `0`-form of the constant function `1`. -/
 @[simp]
-theorem wedgePow_zero {k : ℕ} (φ : SmoothForm I M ℝ k) :
+theorem wedgePow_zero_eq_ofFunction_one {k : ℕ} (φ : SmoothForm I M ℝ k) :
     φ.wedgePow 0 = ofFunction (1 : C^∞⟮I, M; ℝ⟯) := by
   ext x v
   rw [wedgePow_apply, ContinuousAlternatingMap.wedgePow_zero_apply, coe_ofFunction,

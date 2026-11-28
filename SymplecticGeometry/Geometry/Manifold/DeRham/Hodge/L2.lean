@@ -26,7 +26,7 @@ import TauCeti.Analysis.InnerProductSpace.Comass
 import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 import TauCeti.Geometry.Manifold.Riemannian.L2Form.Adjoint
 import TauCeti.Geometry.Manifold.Riemannian.L2Form.Density
-import TauCeti.Geometry.Manifold.Riemannian.DivergenceTheorem
+import TauCeti.Geometry.Manifold.Riemannian.DivergenceTheorem.Basic
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
 import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Support
 import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
