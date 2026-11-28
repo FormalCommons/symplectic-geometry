@@ -541,8 +541,8 @@ attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
 `proj : M → B` with fibre `F`, over a base without boundary, and `hD` the connection of a
 two-form `τ` on `M`, a `C^n` Ehresmann connection with `1 ≤ n`. Take a chart `e = A.trivAt b'`,
 a point `b` of its base set, a point `b₀` with `b` in the source of the chart of `B` at `b₀`,
-the extended chart `φ` of `B` at `b₀`, and the map
-`Φ p = (φ (proj p), (e p).2)` to `EB × F`. Let `τ'` be a two-form on `EB × F` whose connection
+the extended chart `φ` of `B` at `b₀`, and the patch chart
+`Φ p = (φ (proj p), (e p).2)` of `e` over `φ`. Let `τ'` be a two-form on `EB × F` whose connection
 `hD'` for `Prod.fst` is a `C^n'` Ehresmann connection with `1 ≤ n'`, and whose pull-back by `Φ`
 equals `τ` near `x = e⁻¹ (b, y)`. Then for vector fields `v₁ v₂` on `B` that are `C^1` at `b`
 and a basis `bs` of `EB`, the curvature on the fibre over `b` read in `e`, at `y`, is the fibre
@@ -558,8 +558,7 @@ theorem curvatureIn_eq_snd_sum_curvature
     (hD' : IsEhresmannConnection (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) n' Prod.fst
       (SmoothTwoForm.horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ')) (hn' : 1 ≤ n') {y : F}
     (hτ' : ∀ᶠ p in 𝓝 ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)),
-      mpullback IM (𝓘(ℝ, EB).prod IF) (fun p ↦ (extChartAt IB b₀ (proj p), (A.trivAt b' p).2))
-        τ'.val p = τ.val p)
+      mpullback IM (𝓘(ℝ, EB).prod IF) ((A.trivAt b').patchChart IB b₀) τ'.val p = τ.val p)
     {ι : Type*} [Fintype ι] (bs : Module.Basis ι ℝ EB) {v₁ v₂ : Π b : B, TangentSpace IB b}
     (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) b) (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) b) :
     hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y =
@@ -567,12 +566,12 @@ theorem curvatureIn_eq_snd_sum_curvature
           bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b₀) b (v₂ b)) j) •
         hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b₀ b, y)).2 := by
   set e := A.trivAt b'
-  set Φ : M → EB × F := fun p ↦ (extChartAt IB b₀ (proj p), (e p).2) with hΦdef
+  set Φ : M → EB × F := e.patchChart IB b₀ with hΦdef
   set x := e.toOpenPartialHomeomorph.symm (b, y)
   have hpx : proj x = b := e.proj_symm_apply' hb
   have hex : e x = (b, y) := e.apply_symm_apply' hb
   have hxe : x ∈ e.source := e.mem_source.2 (by rw [hpx]; exact hb)
-  have hΦx : Φ x = (extChartAt IB b₀ b, y) := by simp only [hΦdef, hpx, hex]
+  have hΦx : Φ x = (extChartAt IB b₀ b, y) := by rw [hΦdef, e.patchChart_def, hpx, hex]
   have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
   -- The points over which `Φ` is a chart.
   have hU : e.source ∩ proj ⁻¹' (chartAt HB b₀).source ∈ 𝓝 x :=
@@ -581,8 +580,8 @@ theorem curvatureIn_eq_snd_sum_curvature
   have hΦ (z : M) (hz : z ∈ e.source ∩ proj ⁻¹' (chartAt HB b₀).source) :
       ContMDiffAt IM (𝓘(ℝ, EB).prod IF) 2 Φ z ∧
         Function.Surjective (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ z) :=
-    ⟨hA.contMDiffAt_extChartAt_proj_prodMk_snd (by simp) (e.mem_source.1 hz.1) hz.2,
-      hA.surjective_mfderiv_extChartAt_proj_prodMk_snd (by simp) (e.mem_source.1 hz.1) hz.2⟩
+    ⟨hA.contMDiffAt_patchChart (by simp) (e.mem_source.1 hz.1) hz.2,
+      hA.surjective_mfderiv_patchChart (by simp) (e.mem_source.1 hz.1) hz.2⟩
   -- `dΦ` carries the connection of `τ` into that of `τ'` near `x`.
   have hΦD : ∀ᶠ z in 𝓝 x, ∀ w ∈ SmoothTwoForm.horizontalDistribution IB proj τ z,
       mfderiv IM (𝓘(ℝ, EB).prod IF) Φ z w ∈
@@ -590,7 +589,8 @@ theorem curvatureIn_eq_snd_sum_curvature
     filter_upwards [hU, hτ'] with z hz hτz w hw
     have hzb : proj z ∈ (extChartAt IB b₀).source := by rw [extChartAt_source]; exact hz.2
     rw [← SmoothTwoForm.map_mfderiv_horizontalDistribution (proj := proj) (proj' := Prod.fst)
-      (ψ := extChartAt IB b₀) (Φ := Φ) (τ := τ) (τ' := τ') EventuallyEq.rfl
+      (ψ := extChartAt IB b₀) (Φ := Φ) (τ := τ) (τ' := τ')
+      (e.fst_comp_patchChart b₀).eventuallyEq
       ((hproj z).mdifferentiableAt (by simp)) (((hΦ z hz).1).mdifferentiableAt two_ne_zero)
       ((contMDiffAt_extChartAt' (n := 2) hz.2).mdifferentiableAt two_ne_zero)
       mdifferentiableAt_fst (isInvertible_mfderiv_extChartAt hzb).injective (hΦ z hz).2 hτz]
@@ -618,12 +618,13 @@ theorem curvatureIn_eq_snd_sum_curvature
   have hcurv := hD.mfderiv_curvature_of_related hD' hn hn' ((hproj x).of_le (by simp))
     contMDiffAt_fst (hΦ x (mem_of_mem_nhds hU)).1
     (contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact hb₀))
-    EventuallyEq.rfl hΦD (by rw [hpx]; exact hv₁) (by rw [hpx]; exact hv₂) (hreg hv₁) (hreg hv₂)
-    (hrel v₁) (hrel v₂)
+    (e.fst_comp_patchChart b₀).eventuallyEq hΦD (by rw [hpx]; exact hv₁) (by rw [hpx]; exact hv₂)
+    (hreg hv₁) (hreg hv₂) (hrel v₁) (hrel v₂)
   -- The curvature read in `e` is the fibre component of `dΦ` applied to the curvature.
   have hsnd : hD.curvatureIn IF e b v₁ v₂ y =
       (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ x (hD.curvature v₁ v₂ x)).2 := by
-    rw [curvatureIn_def, hΦdef, mfderiv_prodMk (f := fun p ↦ extChartAt IB b₀ (proj p))
+    rw [curvatureIn_def, hΦdef, show e.patchChart IB b₀ = _ from funext (e.patchChart_def b₀),
+      mfderiv_prodMk (f := fun p ↦ extChartAt IB b₀ (proj p))
       (g := fun p ↦ (e p).2)
       ((contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact hb₀)).comp x
         ((hproj x).of_le (by simp)) |>.mdifferentiableAt two_ne_zero)
@@ -663,25 +664,24 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
 
 /-- For a smooth atlas, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at `b₀`, the
 pull-back of a smooth two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is a smooth section over the
-patch of the points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`. -/
+patch of `e` over `φ`. -/
 theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_patchMap
     [IsManifold IB ∞ B] (hA : A.IsContMDiff ∞ IB IF IM) (b' b₀ : B) (τ : SmoothTwoForm IM M) :
     ContMDiffOn (𝓘(ℝ, EB).prod IF) ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
       (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z
         (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val z))
-      (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
-        univ) := by
+      ((A.trivAt b').patchSet IB b₀ ×ˢ univ) := by
   exact fun z hz ↦ ((SmoothForm.contMDiff τ _).mpullback_form
     (hA.contMDiffAt_patchMap hz.1) (by simp)).contMDiffWithinAt
 
 /-- For a `C^n` atlas `A`, `n ≠ 0`, along which `τ` restricts to `σ`, a chart `e = A.trivAt b'`
 and the extended chart `φ` of `B` at `b₀`, the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` has
-fibre component `σ` over each point `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`:
-there, `ψ ∘ Prod.mk x` is the fibre inclusion of `e` over `φ⁻¹ x`. -/
+fibre component `σ` over each point `x` of the patch of `e` over `φ`: there,
+`ψ ∘ Prod.mk x` is the fibre inclusion of `e` over `φ⁻¹ x`. -/
 theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_patchMap
     {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0)
     {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M} (h : A.RestrictsTo σ τ) {b' b₀ : B} {x : EB}
-    (hx : x ∈ (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) :
+    (hx : x ∈ (A.trivAt b').patchSet IB b₀) :
     RoughForm.fiberComponent
         (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val) x =
       σ.val := by
@@ -689,26 +689,23 @@ theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_patchMap
   have hψ := (hA.contMDiffAt_patchMap (q := (x, y)) hx).mdifferentiableAt hn
   rw [RoughForm.fiberComponent_def,
     ← mpullback_comp_at (f := Prod.mk x) (mdifferentiableAt_const.prodMk mdifferentiableAt_id) hψ,
-    (A.trivAt b').patchMap_comp_prodMk hx.2, MapFiber.Atlas.restrictsTo_iff.1 h b' _ hx.2]
+    (A.trivAt b').patchMap_comp_prodMk ((A.trivAt b').mem_patchSet_iff.1 hx).2,
+    MapFiber.Atlas.restrictsTo_iff.1 h b' _ ((A.trivAt b').mem_patchSet_iff.1 hx).2]
 
 /-- For a `C^n` atlas, `2 ≤ n`, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at
 `b₀`, the pull-back of a vertically closed two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is
-vertically closed for `Prod.fst` over the patch of the points `x` of the target of `φ` with
-`φ⁻¹ x` in the base set of `e`, since there `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`. -/
+vertically closed for `Prod.fst` over the patch of `e` over `φ`, since there
+`proj ∘ ψ = φ⁻¹ ∘ Prod.fst`. -/
 theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap
     {n : ℕ∞ω} [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (hn : 2 ≤ n)
     {τ : SmoothTwoForm IM M} (h : SmoothTwoForm.IsVerticallyClosed IB proj τ) (b' b₀ : B) :
     (mpullback (𝓘(ℝ, EB).prod IF) IM ((A.trivAt b').patchMap IB b₀) τ.val).IsVerticallyClosedOn
       𝓘(ℝ, EB) Prod.fst
-      (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
-        univ) := by
+      ((A.trivAt b').patchSet IB b₀ ×ˢ univ) := by
   set ψ := (A.trivAt b').patchMap IB b₀
-  have hW :=
-    ((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet (IB := IB) b₀).prod
-      (isOpen_univ (X := F))
+  have hW := ((A.trivAt b').isOpen_patchSet (IB := IB) b₀).prod (isOpen_univ (X := F))
   have hn0 : n ≠ 0 := (lt_of_lt_of_le (by simp) hn).ne'
-  have hψ (q) (hq : q ∈ ((extChartAt IB b₀).target ∩
-      (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ (univ : Set F)) :
+  have hψ (q) (hq : q ∈ (A.trivAt b').patchSet IB b₀ ×ˢ (univ : Set F)) :
       ContMDiffAt (𝓘(ℝ, EB).prod IF) IM n ψ q :=
     hA.contMDiffAt_patchMap hq.1
   refine RoughForm.IsVerticallyClosedOn.mpullback
@@ -718,10 +715,11 @@ theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap
   -- Over the patch, `proj ∘ ψ = φ⁻¹ ∘ Prod.fst`.
   have heq : proj ∘ ψ =ᶠ[𝓝 q] (extChartAt IB b₀).symm ∘ Prod.fst :=
     Filter.eventually_of_mem (hW.mem_nhds hq) fun z hz ↦
-      (A.trivAt b').proj_patchMap hz.1.2
+      (A.trivAt b').proj_patchMap ((A.trivAt b').mem_patchSet_iff.1 hz.1).2
   have hφ : MDifferentiableAt 𝓘(ℝ, EB) IB (extChartAt IB b₀).symm q.1 :=
     ((contMDiffOn_extChartAt_symm (n := n) b₀).contMDiffAt
-      ((isOpen_extChartAt_target b₀).mem_nhds hq.1.1)).mdifferentiableAt hn0
+      ((isOpen_extChartAt_target b₀).mem_nhds ((A.trivAt b').mem_patchSet_iff.1 hq.1).1)
+      ).mdifferentiableAt hn0
   rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hη ⊢
   rw [← mfderiv_comp_apply q ((hA.contMDiff_proj _).mdifferentiableAt hn0)
       ((hψ q hq).mdifferentiableAt hn0), heq.mfderiv_eq,
