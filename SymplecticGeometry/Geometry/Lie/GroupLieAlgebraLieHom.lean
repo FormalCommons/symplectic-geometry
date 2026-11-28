@@ -30,7 +30,7 @@ moves them to `groupLieAlgebraLieHom`, and states there the naturality of the ad
 
 The exponential law is the tangent-space form of Tau Ceti's `map_lieExp` (Tau Ceti proves it
 privately, as `monoidHom_mulInvariantExp`); here it is derived from `map_lieExp`. Injectivity is
-derived from Tau Ceti's `ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker`. The
+the case `g = 1` of Tau Ceti's `ContinuousMonoidHom.injective_mfderiv_of_discreteTopology_ker`. The
 naturality of `Ad` restates Tau Ceti's `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap`
 for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`. The identity `mfderiv_inv_mul_mfderiv`
 is derived from Tau Ceti's `ContMDiffMonoidMorphism.mfderiv_mulInvariantVectorField`, by writing
@@ -110,22 +110,11 @@ theorem map_mulInvariantExp [T2Space G] [T2Space G'] (φ : ContMDiffMonoidMorphi
 theorem groupLieAlgebraLieHom_injective (φ : ContMDiffMonoidMorphism I I' ∞ G G')
     (hφ : Injective φ) : Injective φ.groupLieAlgebraLieHom := by
   let f : G →ₜ* G' := ⟨φ.toMonoidHom, φ.contMDiff_toFun.continuous⟩
-  have hf : f.toContMDiffMonoidMorphism I I' = φ :=
-    DFunLike.ext _ _ fun _ ↦
-      ContinuousMonoidHom.coe_toContMDiffMonoidMorphism (I := I) (I' := I') f ▸ rfl
   have : Subsingleton f.ker :=
     ⟨fun a b ↦ Subtype.ext (hφ (a.property.trans b.property.symm))⟩
-  have hinj := ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker (I := I) (I' := I') f
-  rw [ContinuousMonoidHom.lieMap_def, hf] at hinj
-  let e := leftInvariantDerivationLieEquivGroupLieAlgebra
-    (ContMDiffMul.isInteriorPoint (I := I) (n := ∞) (by simp) (1 : G))
   intro ξ η h
-  refine e.symm.injective (hinj ?_)
-  rw [← leftInvariantDerivationLieEquivGroupLieAlgebra_symm_groupLieAlgebraMap,
-    ← leftInvariantDerivationLieEquivGroupLieAlgebra_symm_groupLieAlgebraMap]
-  rw [coe_groupLieAlgebraLieHom] at h
-  refine congrArg _ ?_
-  rwa [LieEquiv.coe_toLieHom, LieEquiv.apply_symm_apply,
-    LieEquiv.apply_symm_apply]
+  rw [coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
+    MonoidHom.groupLieAlgebraMap_apply] at h
+  exact ContinuousMonoidHom.injective_mfderiv_of_discreteTopology_ker (I := I) (I' := I') f 1 h
 
 end ContMDiffMonoidMorphism

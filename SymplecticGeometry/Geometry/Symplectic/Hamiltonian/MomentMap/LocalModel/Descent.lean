@@ -183,11 +183,7 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
     (D.ι𝔥_apply_coe _ ⟨ξ', hξ'⟩).trans (SymplecticForm.linearMomentMapCompPolar_apply _ _ _ _ _)
   rw [form_def, localModelForm_def]
   refine eval₂_inducedForm_eq_zero hf (ξ := -ξ') ?_ (fun ζ ↦ ?_) (fun w ↦ ?_) w
-  · have h : mulInvariantVectorField (-ξ') g = -mulInvariantVectorField ξ' g := by
-      have h := mulInvariantVectorField_smul (I := I) (G := G) (-1 : ℝ) ξ'
-      rw [neg_one_smul, neg_one_smul] at h
-      rw [h, Pi.neg_apply]
-    rw [hξ, h]
+  · rw [hξ]
   · rw [hξ]
     dsimp only
     refine (hd ζ X).trans ((h₁ ζ).trans ?_)
