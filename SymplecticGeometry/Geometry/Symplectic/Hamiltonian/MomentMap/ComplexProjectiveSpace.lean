@@ -62,6 +62,9 @@ equivariance of `D⁻¹`, and the compatibility of `L` with the coadjoint action
   the differential of `D⁻¹` sends that generator to `unitaryAction n (L ξ)`.
 * `SymplecticGeometry.unitaryProjectivizationMoment n`: the map `x ↦ ½ (unitaryMomentMap n (D⁻¹ x)
   ∘ L)`, and `SymplecticGeometry.unitaryProjectivizationMoment_smul`, its coadjoint equivariance.
+* `SymplecticGeometry.unitaryProjectivizationMoment_mk_apply`: in homogeneous coordinates, its
+  component along `ξ` at `[v]` is `Im ⟪v, L ξ v⟫ / (2 ‖v‖²)`, from Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.unitaryMomentMap_mk_apply` at the unit vector `v / ‖v‖`.
 * `SymplecticGeometry.isEquivariantMomentMap_neg_unitaryProjectivizationMoment`: its negative is
   a group-level moment map for `fubiniStudyForm n`.
 
@@ -160,7 +163,7 @@ end TauCeti.ComplexProjectiveSpace
 /-! ### The group-level moment map of the unitary group -/
 
 open TauCeti.Lie
-open scoped ContDiff Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
+open scoped ContDiff Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary InnerProductSpace
 
 /-- The Lie algebra of the matrix unitary Lie group `unitarySubgroup (GL (Fin (n + 1)) ℂ)`. -/
 local notation "𝔤[" n "]" =>
@@ -248,6 +251,27 @@ theorem unitaryProjectivizationMoment_def (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
   (rfl)
 
 variable {n}
+
+/-- **The unitary moment map in homogeneous coordinates.** For a nonzero vector `v` of `ℂⁿ⁺¹`,
+the component along `ξ` of `unitaryProjectivizationMoment n [v]` is `Im ⟪v, X v⟫ / (2 ‖v‖²)`,
+for the Hermitian inner product and norm of `EuclideanSpace ℂ (Fin (n + 1))`, where `X` is the
+skew-Hermitian matrix `matrixUnitaryLieAlgebraEquiv ξ`. -/
+theorem unitaryProjectivizationMoment_mk_apply (ξ : 𝔤[n]) {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) :
+    unitaryProjectivizationMoment n (Projectivization.mk ℂ v hv) ξ =
+      (⟪WithLp.toLp 2 v, WithLp.toLp 2
+        ((matrixUnitaryLieAlgebraEquiv ξ : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ v)⟫_ℂ).im /
+        (2 * ‖WithLp.toLp 2 v‖ ^ 2) := by
+  have hv' : ‖WithLp.toLp 2 v‖ ≠ 0 := norm_ne_zero_iff.2 ((WithLp.toLp_eq_zero 2).not.2 hv)
+  -- Scale `v` to the unit vector `v / ‖v‖` and apply Tau Ceti's formula there.
+  rw [unitaryProjectivizationMoment_def, LinearMap.smul_apply, LinearMap.comp_apply,
+    ComplexProjectiveSpace.coe_diffeomorphProjectivization_symm,
+    ComplexProjectiveSpace.homeomorphProjectivization_symm_mk_eq_mk_inv_norm_smul,
+    ComplexProjectiveSpace.unitaryMomentMap_mk_apply]
+  simp only [LinearEquiv.coe_coe, LieEquiv.coe_toLinearEquiv, map_smul, toEuclideanCLM_toLp,
+    inner_smul_left, inner_smul_right, smul_eq_mul]
+  rw [← Complex.ofReal_inv, Complex.conj_ofReal, ← mul_assoc, ← Complex.ofReal_mul,
+    Complex.im_ofReal_mul]
+  field_simp
 
 /-- `unitaryProjectivizationMoment n` is equivariant for the coadjoint representation of the
 matrix unitary Lie group. -/

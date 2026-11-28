@@ -41,6 +41,8 @@ codomain, so that its values add to other real classes with `+`.
 * `TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`: the
   evaluation with values in `ℝ` of the real image of `c` on `f_*[N]`, read through integral
   chains, is the cast of the evaluation of `c`.
+* `TauCeti.HomologicalOrientation.singularCohomologyRealImageAddMonoidHom_ne_zero`: a class that
+  evaluates to a nonzero integer on `f_*[N]` has a nonzero real image.
 
 ## References
 
@@ -148,6 +150,20 @@ theorem evalFundamentalClass_singularCohomologyRealImage (f : C(N, X))
       ((o.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) f c).down : ℝ) := by
   rw [TopCat.singularCohomologyRealImage_comp_singularCohomologyIntChainsIso_hom_apply,
     evalFundamentalClass_singularCohomologyValueMap, intToRealCoeff_apply]
+
+/-- **A class with nonzero evaluation has nonzero real image**: if an integral class
+`c ∈ Hⁿ(X; ULift ℤ)` evaluates to a nonzero integer on `f_*[N]`, for `f : N → X` from a compact
+oriented `n`-manifold, then its real image in `Hⁿ(X; ℝ)` is not zero. -/
+theorem singularCohomologyRealImageAddMonoidHom_ne_zero (f : C(N, X))
+    {c : (TopCat.of X).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) n}
+    (hc : o.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) f c ≠ 0) :
+    (TopCat.of X).singularCohomologyRealImageAddMonoidHom n c ≠ 0 := by
+  intro h
+  have h0 := o.evalFundamentalClass_singularCohomologyRealImage hn f c
+  rw [← TopCat.singularCohomologyRealImageAddMonoidHom_apply, h] at h0
+  refine hc (ULift.ext ?_)
+  exact_mod_cast h0.symm.trans ((congrArg _ (map_zero _)).trans (map_zero _))
 
 end TauCeti.HomologicalOrientation
 
