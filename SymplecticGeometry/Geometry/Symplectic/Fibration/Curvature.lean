@@ -11,7 +11,8 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.LocalForm
 import SymplecticGeometry.Geometry.Manifold.Submersion.VerticalProjection
-import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
+import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Geometry.Manifold.Distribution.Kernel
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -520,7 +521,8 @@ attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
 /-- **The curvature read in a chart over a coordinate patch.** Let `A` be a smooth atlas of
 `proj : M → B` with fibre `F`, over a base without boundary, and `hD` the connection of a
 two-form `τ` on `M`, a `C^n` Ehresmann connection with `1 ≤ n`. Take a chart `e = A.trivAt b'`,
-a point `b` of its base set, the extended chart `φ` of `B` at `b`, and the map
+a point `b` of its base set, a point `b₀` with `b` in the source of the chart of `B` at `b₀`,
+the extended chart `φ` of `B` at `b₀`, and the map
 `Φ p = (φ (proj p), (e p).2)` to `EB × F`. Let `τ'` be a two-form on `EB × F` whose connection
 `hD'` for `Prod.fst` is a `C^n'` Ehresmann connection with `1 ≤ n'`, and whose pull-back by `Φ`
 equals `τ` near `x = e⁻¹ (b, y)`. Then for vector fields `v₁ v₂` on `B` that are `C^1` at `b`
@@ -532,31 +534,32 @@ theorem curvatureIn_eq_snd_sum_curvature
     {τ : SmoothTwoForm IM M} {n : ℕ∞ω}
     (hD : IsEhresmannConnection IM IB n proj (SmoothTwoForm.horizontalDistribution IB proj τ))
     (hn : 1 ≤ n) (hA : A.IsContMDiff ∞ IB IF IM) {b' b : B} (hb : b ∈ (A.trivAt b').baseSet)
+    {b₀ : B} (hb₀ : b ∈ (chartAt HB b₀).source)
     {τ' : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F)} {n' : ℕ∞ω}
     (hD' : IsEhresmannConnection (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) n' Prod.fst
       (SmoothTwoForm.horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ')) (hn' : 1 ≤ n') {y : F}
     (hτ' : ∀ᶠ p in 𝓝 ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)),
-      mpullback IM (𝓘(ℝ, EB).prod IF) (fun p ↦ (extChartAt IB b (proj p), (A.trivAt b' p).2))
+      mpullback IM (𝓘(ℝ, EB).prod IF) (fun p ↦ (extChartAt IB b₀ (proj p), (A.trivAt b' p).2))
         τ'.val p = τ.val p)
     {ι : Type*} [Fintype ι] (bs : Module.Basis ι ℝ EB) {v₁ v₂ : Π b : B, TangentSpace IB b}
     (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) b) (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) b) :
     hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y =
-      (∑ i, ∑ j, (bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) b (v₁ b)) i *
-          bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) b (v₂ b)) j) •
-        hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b b, y)).2 := by
+      (∑ i, ∑ j, (bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b₀) b (v₁ b)) i *
+          bs.repr (mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b₀) b (v₂ b)) j) •
+        hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b₀ b, y)).2 := by
   set e := A.trivAt b'
-  set Φ : M → EB × F := fun p ↦ (extChartAt IB b (proj p), (e p).2) with hΦdef
+  set Φ : M → EB × F := fun p ↦ (extChartAt IB b₀ (proj p), (e p).2) with hΦdef
   set x := e.toOpenPartialHomeomorph.symm (b, y)
   have hpx : proj x = b := e.proj_symm_apply' hb
   have hex : e x = (b, y) := e.apply_symm_apply' hb
   have hxe : x ∈ e.source := e.mem_source.2 (by rw [hpx]; exact hb)
-  have hΦx : Φ x = (extChartAt IB b b, y) := by simp only [hΦdef, hpx, hex]
+  have hΦx : Φ x = (extChartAt IB b₀ b, y) := by simp only [hΦdef, hpx, hex]
   have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
   -- The points over which `Φ` is a chart.
-  have hU : e.source ∩ proj ⁻¹' (chartAt HB b).source ∈ 𝓝 x :=
+  have hU : e.source ∩ proj ⁻¹' (chartAt HB b₀).source ∈ 𝓝 x :=
     inter_mem (e.open_source.mem_nhds hxe) ((hproj.continuous.continuousAt).preimage_mem_nhds
-      ((chartAt HB b).open_source.mem_nhds (by rw [hpx]; exact mem_chart_source HB b)))
-  have hΦ (z : M) (hz : z ∈ e.source ∩ proj ⁻¹' (chartAt HB b).source) :
+      ((chartAt HB b₀).open_source.mem_nhds (by rw [hpx]; exact hb₀)))
+  have hΦ (z : M) (hz : z ∈ e.source ∩ proj ⁻¹' (chartAt HB b₀).source) :
       ContMDiffAt IM (𝓘(ℝ, EB).prod IF) 2 Φ z ∧
         Function.Surjective (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ z) :=
     ⟨hA.contMDiffAt_extChartAt_proj_prodMk_snd (by simp) (e.mem_source.1 hz.1) hz.2,
@@ -566,37 +569,44 @@ theorem curvatureIn_eq_snd_sum_curvature
       mfderiv IM (𝓘(ℝ, EB).prod IF) Φ z w ∈
         SmoothTwoForm.horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ' (Φ z) := by
     filter_upwards [hU, hτ'] with z hz hτz w hw
-    have hzb : proj z ∈ (extChartAt IB b).source := by rw [extChartAt_source]; exact hz.2
+    have hzb : proj z ∈ (extChartAt IB b₀).source := by rw [extChartAt_source]; exact hz.2
     rw [← SmoothTwoForm.map_mfderiv_horizontalDistribution (proj := proj) (proj' := Prod.fst)
-      (ψ := extChartAt IB b) (Φ := Φ) (τ := τ) (τ' := τ') EventuallyEq.rfl
+      (ψ := extChartAt IB b₀) (Φ := Φ) (τ := τ) (τ' := τ') EventuallyEq.rfl
       ((hproj z).mdifferentiableAt (by simp)) (((hΦ z hz).1).mdifferentiableAt two_ne_zero)
       ((contMDiffAt_extChartAt' (n := 2) hz.2).mdifferentiableAt two_ne_zero)
       mdifferentiableAt_fst (isInvertible_mfderiv_extChartAt hzb).injective (hΦ z hz).2 hτz]
     exact Submodule.mem_map_of_mem hw
   -- The fields on `EB` that `φ` relates `v₁ v₂` to.
   have hrel (v : Π b : B, TangentSpace IB b) :
-      ∀ᶠ c in 𝓝 (proj x), mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) c (v c) =
-        VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b).symm v
-          (extChartAt IB b c) :=
-    hpx ▸ VectorField.eventually_mfderiv_extChartAt_apply_eq_mpullback v b
+      ∀ᶠ c in 𝓝 (proj x), mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b₀) c (v c) =
+        VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b₀).symm v
+          (extChartAt IB b₀ c) := by
+    rw [hpx]
+    filter_upwards [(chartAt HB b₀).open_source.mem_nhds hb₀] with c hc
+    exact (VectorField.mpullback_extChartAt_symm_apply_eq_mfderiv v
+      (by rwa [extChartAt_source]) (by simp [IB.range_eq_univ])).symm
   have hreg {v : Π b : B, TangentSpace IB b} (hv : ContMDiffAt IB IB.tangent 1 (T% v) b) :
       ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent 1
-        (T% (VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b).symm v))
+        (T% (VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b₀).symm v))
         (Prod.fst (Φ x)) := by
+    have hbs : b ∈ (extChartAt IB b₀).source := by rwa [extChartAt_source]
+    have hbt := (extChartAt IB b₀).map_source hbs
     rw [hΦx]
-    exact contMDiffAt_vectorSpace_iff_contDiffAt.2
-      (ContMDiffAt.contDiffAt_mpullback_extChartAt_symm hv)
+    refine ContMDiffAt.mpullback_vectorField_preimage (n := 2) ?_
+      ((contMDiffOn_extChartAt_symm b₀).contMDiffAt ((isOpen_extChartAt_target b₀).mem_nhds hbt))
+      (TauCeti.isInvertible_mfderiv_extChartAt_symm hbt) one_add_one_eq_two.le
+    rwa [(extChartAt IB b₀).left_inv hbs]
   have hcurv := hD.mfderiv_curvature_of_related hD' hn hn' ((hproj x).of_le (by simp))
     contMDiffAt_fst (hΦ x (mem_of_mem_nhds hU)).1
-    (contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact mem_chart_source HB b))
+    (contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact hb₀))
     EventuallyEq.rfl hΦD (by rw [hpx]; exact hv₁) (by rw [hpx]; exact hv₂) (hreg hv₁) (hreg hv₂)
     (hrel v₁) (hrel v₂)
   -- The curvature read in `e` is the fibre component of `dΦ` applied to the curvature.
   have hsnd : hD.curvatureIn IF e b v₁ v₂ y =
       (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ x (hD.curvature v₁ v₂ x)).2 := by
-    rw [curvatureIn_def, hΦdef, mfderiv_prodMk (f := fun p ↦ extChartAt IB b (proj p))
+    rw [curvatureIn_def, hΦdef, mfderiv_prodMk (f := fun p ↦ extChartAt IB b₀ (proj p))
       (g := fun p ↦ (e p).2)
-      ((contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact mem_chart_source HB b)).comp x
+      ((contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact hb₀)).comp x
         ((hproj x).of_le (by simp)) |>.mdifferentiableAt two_ne_zero)
       ((hA.contMDiffAt_snd_trivAt (e.mem_source.1 hxe)).mdifferentiableAt (by simp))]
     -- `ContinuousLinearMap.prod_apply` does not match here, the tangent spaces of `EB × F` being
