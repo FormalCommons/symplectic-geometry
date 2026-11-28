@@ -17,8 +17,8 @@ import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.MixedPartial
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-import TauCeti.Geometry.Manifold.VectorField.ModelChart
 
 /-!
 # The curvature of the connection of a two-form
@@ -487,12 +487,7 @@ private theorem mdifferentiableAt_val_const (i j : ι) (y : F) :
       ((contMDiff_zeroSection ℝ (TangentSpace IF)).mdifferentiableAt one_ne_zero)
   have hAv (k : ι) (z : EB × F) : A k z = ((bs k, 0) : EB × EF) :=
     Manifold.prodVectorField_apply _ _ z
-  have h := τ.mdifferentiableAt_apply_vectorField (V := ![A i, A j])
-    (fun k ↦ by fin_cases k; exacts [hA i, hA j])
-  have hev (z : EB × F) : (fun k ↦ ![A i, A j] k z) = ![A i z, A j z] := by
-    funext k; fin_cases k <;> rfl
-  simp only [hev, hAv] at h
-  exact h
+  simpa only [hAv] using τ.mdifferentiableAt_apply_two (hA i) (hA j)
 
 /-- **The curvature in a product chart.** Let `τ` be a smooth two-form on `EB × F` whose
 `τ`-orthogonals of the vertical spaces of `Prod.fst` form a `C^n` Ehresmann connection `hD`,
@@ -551,14 +546,9 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     exact h
   -- The derivative along `(0, w)` of `τ(Lᵢ, Lⱼ)` is read on the fibre over `x`.
   have hfd := mdifferentiableAt_val_const (τ := τ) bs (x := x) i j y
-  have hg : MDifferentiableAt (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, ℝ) (fun z ↦ τ.val z ![Lᵢ z, Lⱼ z])
-      (x, y) := by
-    have hL (k : ι) := hD.mdifferentiableAt_horizontalLiftField hn (hproj (x, y))
-      (V := (fun _ ↦ bs k : Π b : EB, TangentSpace 𝓘(ℝ, EB) b)) (hc k)
-    have hev (z : EB × F) : (fun k ↦ ![Lᵢ, Lⱼ] k z) = ![Lᵢ z, Lⱼ z] := by
-      funext k; fin_cases k <;> rfl
-    simpa [hev] using τ.mdifferentiableAt_apply_vectorField (V := ![Lᵢ, Lⱼ])
-      (fun k ↦ by fin_cases k; exacts [hL i, hL j])
+  have hL (k : ι) := hD.mdifferentiableAt_horizontalLiftField hn (hproj (x, y))
+    (V := (fun _ ↦ bs k : Π b : EB, TangentSpace 𝓘(ℝ, EB) b)) (hc k)
+  have hg := τ.mdifferentiableAt_apply_two (hL i) (hL j)
   have hS : mvfderiv IF (fun y' ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
         (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y')) y w =
       mvfderiv IF (fun y' ↦ τ.val (x, y') ![(bs i, 0), (bs j, 0)]) y w -
