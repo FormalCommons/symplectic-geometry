@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
+import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
@@ -383,12 +384,9 @@ theorem exists_forall_norm_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (B :
   refine ⟨hqC, (norm_le_jetNormAt 1 q z).trans hqJ,
     (norm_fderiv_le_jetNormAt le_rfl q z).trans hqJ,
     (norm_le_jetNormAt 1 _ z).trans hdJ, fun b ↦ ?_⟩
-  rw [fderiv_clm_apply hdD (differentiableAt_const b), fderiv_const_apply,
-    ContinuousLinearMap.comp_zero, zero_add]
-  calc ‖(fderiv ℝ (flatDbar q) z).flip b‖ ≤ ‖(fderiv ℝ (flatDbar q) z).flip‖ * ‖b‖ :=
-        ContinuousLinearMap.le_opNorm _ b
+  calc ‖fderiv ℝ (fun y ↦ flatDbar q y b) z‖ ≤ ‖fderiv ℝ (flatDbar q) z‖ * ‖b‖ :=
+        norm_fderiv_clm_apply_const_le hdD b
     _ ≤ 2 * C₂ * B * t * ‖b‖ := by
-        rw [ContinuousLinearMap.opNorm_flip]
         gcongr
         exact (norm_fderiv_le_jetNormAt le_rfl _ z).trans hdJ
 
@@ -460,9 +458,7 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
   have hk0 : 0 < √(k : ℝ) := hC.trans_lt (by linarith)
   have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
   have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
-    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
-      ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
-      one_ne_zero z
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
   have hs : DifferentiableAt ℝ (D.reading k x s) z := (hq.mul hGd).congr_of_eventuallyEq hfeq
   set G := Real.exp (-‖z‖ ^ 2 / 4)
   set a := ‖q z‖

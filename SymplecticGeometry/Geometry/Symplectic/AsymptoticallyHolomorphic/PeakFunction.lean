@@ -224,20 +224,26 @@ theorem peakFunction_eq_ofRealCLM_comp (k : ℕ) :
   ext z
   rw [peakFunction_def, Function.comp_apply, Complex.ofRealCLM_apply, smul_eq_mul]
 
-/-- The Gaussian `exp (-‖z‖ ^ 2 / 4)` of the cut-off Gaussians is smooth. -/
-theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
-    ContDiff ℝ n fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4) :=
-  Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).neg.div_const 4)
+/-- The Gaussian `exp (-‖z‖ ^ 2 / 4)` of the cut-off Gaussians is smooth: Tau Ceti's
+`TauCeti.contDiff_exp_mul_norm_sq` for `α = -1 / 4`. -/
+theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : WithTop ℕ∞} :
+    ContDiff ℝ n fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4) := by
+  convert (TauCeti.contDiff_exp_mul_norm_sq (E := E) (-1 / 4)).of_le le_top using 3
+  ring
 
 /-- The Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function, is smooth. -/
-theorem contDiff_ofReal_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
+theorem contDiff_ofReal_gaussian [InnerProductSpace ℝ E] {n : WithTop ℕ∞} :
     ContDiff ℝ n fun z : E ↦ (Real.exp (-‖z‖ ^ 2 / 4) : ℂ) :=
   Complex.ofRealCLM.contDiff.comp (contDiff_gaussian (E := E))
 
-/-- The inverse Gaussian `exp (‖z‖ ^ 2 / 4)`, as a complex function, is smooth. -/
-theorem contDiff_ofReal_exp_norm_sq_div_four [InnerProductSpace ℝ E] {n : ℕ∞} :
-    ContDiff ℝ n fun z : E ↦ (Real.exp (‖z‖ ^ 2 / 4) : ℂ) :=
-  Complex.ofRealCLM.contDiff.comp (Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).div_const 4))
+/-- The inverse Gaussian `exp (‖z‖ ^ 2 / 4)`, as a complex function, is smooth: Tau Ceti's
+`TauCeti.contDiff_exp_mul_norm_sq` for `α = 1 / 4`. -/
+theorem contDiff_ofReal_exp_norm_sq_div_four [InnerProductSpace ℝ E] {n : WithTop ℕ∞} :
+    ContDiff ℝ n fun z : E ↦ (Real.exp (‖z‖ ^ 2 / 4) : ℂ) := by
+  have h : ContDiff ℝ n fun z : E ↦ Real.exp (‖z‖ ^ 2 / 4) := by
+    convert (TauCeti.contDiff_exp_mul_norm_sq (E := E) (1 / 4)).of_le le_top using 3
+    ring
+  exact Complex.ofRealCLM.contDiff.comp h
 
 /-- The jet norms of the Gaussian `exp (-‖z‖ ^ 2 / 4)` are at most a constant times
 `exp (-‖z‖ ^ 2 / 8)`: `exists_jetNormAt_exp_neg_mul_norm_sq_le` for `a = 1 / 4`. -/

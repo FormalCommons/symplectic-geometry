@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
@@ -381,17 +382,12 @@ theorem isPseudoholomorphicAt_div_of_mem_twistOneKernel {s t : OnePoint ℂ → 
   have htx := ht₁.mdifferentiableAt (x := x) (by simp)
   have hu := OnePoint.mdifferentiableAt_div_twistCore 1 hsx htx hx
   -- Near `x`, `s` is the quotient times `t`.
-  -- `t` does not vanish near `x`, since its coordinate in the frame at `x` does not.
-  have hct := ((twistCore (𝕜 := ℂ) 1).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
-    (by simp) |>.1 htx
-  simp only [OnePoint.twistCore_localTriv_apply] at hct
-  have hct0 : OnePoint.twistTransition 1 x x x * t x ≠ 0 := by
-    rwa [OnePoint.twistTransition_self, one_mul]
   let t' : Π p, (twistCore (𝕜 := ℂ) 1).Fiber p := t
   have hst : ∀ᶠ p in 𝓝 x, ((fun p ↦ s p / t p) • t') p = s p := by
-    filter_upwards [hct.continuousAt.eventually_ne hct0] with p hp
+    filter_upwards [VectorBundle.eventually_ne_zero ℝ (b := id)
+      (E := (twistCore (𝕜 := ℂ) 1).Fiber) (s := t) htx.continuousAt hx] with p hp
     -- The fibres of `𝒪(1)` are `ℂ`, with its multiplication as scalar action.
-    exact div_mul_cancel₀ (s p) (right_ne_zero_of_mul hp)
+    exact div_mul_cancel₀ (s p) hp
   have hD := isRealCauchyRiemannOperator_twistOneDelBar J
   rw [← (hD.apply_smul_eq_zero_iff_isPseudoholomorphicAt (isComplexLinearOperator_twistOneDelBar J)
     htx hx (congrFun ht₂ x) hu), hD.apply_eq_of_eventuallyEq hsx hst, congrFun hs₂ x,
