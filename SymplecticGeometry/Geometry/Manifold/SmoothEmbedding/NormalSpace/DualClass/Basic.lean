@@ -478,6 +478,82 @@ theorem relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf
     TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
     LinearEquiv.refl_apply]
 
+/-- Pull-backs of the relative dual class from facts about `relDualClassOf` for Mathlib's
+`ℤ`-linear structure `ModuleCat.instLinear`. Let `g : A ⟶ (X, X ∖ f(Z))` and `h : A ⟶ B` be maps of
+pairs and `c` a class of `B`. Carry the canonical Thom class `u = o.canonicalThomClass hr` and `c`
+to `ModuleCat.instLinear` by `TopPair.singularCohomologyLinearCongr`. If there the pull-back along
+`g` of `relDualClassOf f hn hdim hf u` is the pull-back of `c` along `h`, then the pull-back of
+`relDualClass f hn hdim hf o hr` along `g` is the pull-back of `c` along `h`. The case `g = 𝟙` is
+`relDualClass_eq_of_relDualClassOf`. -/
+theorem singularCohomologyMap_relDualClass_eq_of_relDualClassOf
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+    (hr : finrank ℝ P = r) {A B : TopPair.{w}}
+    (g : A ⟶ TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ) (h : A ⟶ B)
+    (c : B.singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) r)
+    (H : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      letI : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear
+      TopPair.singularCohomologyMap g r
+          (f.relDualClassOf hn hdim hf (TopPair.singularCohomologyLinearCongr
+            (Subsingleton.elim (α := Linear ℤ (ModuleCat.{w} ℤ)) Linear.preadditiveIntLinear
+              ModuleCat.instLinear) (thomPair P fun x ↦ f.isImmersion.NormalSpace x hn)
+            (ModuleCat.of ℤ (ULift.{w} ℤ)) (ModuleCat.of ℤ (ULift.{w} ℤ)) r
+            (o.canonicalThomClass hr))) =
+        TopPair.singularCohomologyMap h r (TopPair.singularCohomologyLinearCongr
+          (Subsingleton.elim (α := Linear ℤ (ModuleCat.{w} ℤ)) Linear.preadditiveIntLinear
+            ModuleCat.instLinear) B (ModuleCat.of ℤ (ULift.{w} ℤ)) (ModuleCat.of ℤ (ULift.{w} ℤ)) r
+          c)) :
+    TopPair.singularCohomologyMap g r (f.relDualClass hn hdim hf o hr) =
+      TopPair.singularCohomologyMap h r c := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  rw [relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
+    ← TopPair.singularCohomologyLinearCongr_naturality, H,
+    TopPair.singularCohomologyLinearCongr_naturality,
+    TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
+    LinearEquiv.refl_apply]
+
+/-- The relative dual class from a fact about `relDualClassOf` for Mathlib's `ℤ`-linear structure
+`ModuleCat.instLinear`: the case `g = 𝟙` of
+`singularCohomologyMap_relDualClass_eq_of_relDualClassOf`. Let `h : (X, X ∖ f(Z)) ⟶ B` be a map of
+pairs and `c` a class of `B`. If, with the canonical Thom class `u = o.canonicalThomClass hr` and
+`c` carried to `ModuleCat.instLinear` by `TopPair.singularCohomologyLinearCongr`,
+`relDualClassOf f hn hdim hf u` is the pull-back of `c` along `h`, then
+`relDualClass f hn hdim hf o hr` is the pull-back of `c` along `h`. -/
+theorem relDualClass_eq_of_relDualClassOf
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+    (hr : finrank ℝ P = r) {B : TopPair.{w}}
+    (h : TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ ⟶ B)
+    (c : B.singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) r)
+    (H : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      letI : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear
+      f.relDualClassOf hn hdim hf (TopPair.singularCohomologyLinearCongr
+          (Subsingleton.elim (α := Linear ℤ (ModuleCat.{w} ℤ)) Linear.preadditiveIntLinear
+            ModuleCat.instLinear) (thomPair P fun x ↦ f.isImmersion.NormalSpace x hn)
+          (ModuleCat.of ℤ (ULift.{w} ℤ)) (ModuleCat.of ℤ (ULift.{w} ℤ)) r
+          (o.canonicalThomClass hr)) =
+        TopPair.singularCohomologyMap h r (TopPair.singularCohomologyLinearCongr
+          (Subsingleton.elim (α := Linear ℤ (ModuleCat.{w} ℤ)) Linear.preadditiveIntLinear
+            ModuleCat.instLinear) B (ModuleCat.of ℤ (ULift.{w} ℤ)) (ModuleCat.of ℤ (ULift.{w} ℤ)) r
+          c)) :
+    f.relDualClass hn hdim hf o hr = TopPair.singularCohomologyMap h r c := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  have := singularCohomologyMap_relDualClass_eq_of_relDualClassOf f hn hdim hf o hr (𝟙 _) h c
+    (by
+      let : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear
+      rw [TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply, H])
+  rwa [TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply] at this
+
 /-- **The dual class of a normally oriented submanifold.** For a smooth embedding `f : Z → X`
 with closed range and an orientation `o` of its normal bundle, of rank `r`, the class
 `dualClassOf f hn hdim hf u ∈ Hʳ(X; ℤ)` of the canonical Thom class `u = o.canonicalThomClass hr`,
