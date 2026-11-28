@@ -178,8 +178,8 @@ omit [IsManifold IM ∞ M] in
 /-- **Blending two vertically closed forms by a function of the base.** Let `τ₁` and `τ₂` be
 two-forms on `M`, vertically closed on `s` for `proj : M → B`, that agree on every pair of
 vectors of the kernel of the derivative of `proj` at each point of `s`. Let `f : B → ℝ`. If
-`proj`, `f ∘ proj`, `τ₁` and `τ₂` are differentiable at the points of `s`, then the blend
-`(f ∘ proj) • τ₁ + (1 - f ∘ proj) • τ₂` is vertically closed on `s`. -/
+`proj`, `τ₁` and `τ₂` are differentiable at the points of `s`, and `f` at their images under
+`proj`, then the blend `(f ∘ proj) • τ₁ + (1 - f ∘ proj) • τ₂` is vertically closed on `s`. -/
 theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul [IsManifold IM 1 M]
     {f : B → ℝ} {τ₁ τ₂ : RoughForm IM M ℝ 2} {s : Set M}
     (h₁ : τ₁.IsVerticallyClosedOn IB proj s) (h₂ : τ₂.IsVerticallyClosedOn IB proj s)
