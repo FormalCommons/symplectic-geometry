@@ -96,6 +96,12 @@ curvature of [McDuffSalamon2017] is its negative.
   the disc, as for any alternating bilinear map
   (`LinearMap.IsAlt.apply_mfderiv_chartDisc_fst_snd`, from Tau Ceti's
   `LinearMap.IsAlt.apply_smul_add_smul`).
+* `TauCeti.IsEhresmannConnection.val_curvatureTensor_transportedCylinder_chartDisc_zero`: at radius
+  `r = 0` the disc is constant at `b`, its transported cylinder is `(s, t, θ) ↦ e⁻¹ (b, c θ)`, and
+  `τ(Ω(W₁, W₂), ∂_θC)` there is `σ(X (c θ), c' θ)`, for `X` the curvature read in `e` of fields
+  through `w₁` and `w₂`; it does not depend on `s` or `t`. Its integral over `θ ∈ [0, 1]` is the
+  line integral of `ι_X σ` along `c`
+  (`TauCeti.IsEhresmannConnection.integral_val_curvatureTensor_transportedCylinder_chartDisc_zero`).
 * `HasHamiltonianDiscHolonomy.isHamiltonian_holonomyDiffeotopy`, in the namespace
   `TauCeti.IsEhresmannConnection`: when the holonomy around discs is Hamiltonian for a closed `σ`
   on a compact fibre, the holonomy diffeotopy is Hamiltonian, since each of its slices is the
@@ -561,6 +567,137 @@ theorem curvatureTensor_mfderiv_chartDisc (hn : 1 ≤ n) {x : P} (hf : ContMDiff
   (hD.curvatureTensor_isAlt hn hf).apply_mfderiv_chartDisc_fst_snd hz
 
 end ChartDisc
+
+end IsEhresmannConnection
+
+end TauCeti
+
+namespace TauCeti
+
+namespace IsEhresmannConnection
+
+section ChartDiscZero
+
+open SymplecticGeometry
+
+variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [CompleteSpace EM]
+  {HM : Type*} [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M] [T2Space M]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpace EB]
+  [FiniteDimensional ℝ EB] {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
+  [IB.Boundaryless] {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  [T2Space B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF]
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
+  {F : Type*} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {proj : M → B} {D : Π x : M, Submodule ℝ (TangentSpace IM x)}
+  {hD : IsEhresmannConnection IM IB ∞ proj D} {A : MapFiber.Atlas F proj} {b : B} {c : ℝ → F}
+
+/-- **The curvature integrand at radius `0`.** Let `τ` restrict to `σ` on the fibres of a smooth
+atlas `A`, and let `C` be the transported cylinder, in the chart `e = A.trivAt b`, of the small
+disc `chartDisc IB b w₁ w₂ 0` of radius `0`, which is constant at `b`. For smooth fields `V₁ V₂`
+on `B` with values `w₁ w₂` at `b`, and `c` differentiable at `θ`, the value of `τ` at
+`C (s, t, θ) = e⁻¹ (b, c θ)` on the curvature tensor `Ω(W₁, W₂)` of `D` and on `∂_θC`, with
+`W₁ W₂` the images of `w₁ w₂` under the derivative of the inverse chart at the disc (as in
+`curvatureTensor_mfderiv_chartDisc`), is the value of `σ` at `c θ` on the curvature read in `e`,
+`hD.curvatureIn IF e b V₁ V₂ (c θ)`, and on the velocity of `c` at `θ`. It does not depend on
+`s` or `t`. -/
+theorem val_curvatureTensor_transportedCylinder_chartDisc_zero {σ : SmoothTwoForm IF F}
+    {τ : SmoothTwoForm IM M} (hτ : A.RestrictsTo σ τ) (hA : A.IsContMDiff ∞ IB IF IM)
+    {w₁ w₂ : EB} {V₁ V₂ : Π b : B, TangentSpace IB b} (hV₁ : CMDiff ∞ (T% V₁))
+    (hV₂ : CMDiff ∞ (T% V₂)) (h₁ : V₁ b = w₁) (h₂ : V₂ b = w₂) {s t θ : ℝ}
+    (hc : MDifferentiableAt 𝓘(ℝ, ℝ) IF c θ) :
+    τ.val (hD.transportedCylinder (A.trivAt b) (chartDisc IB b w₁ w₂ 0) c (s, t, θ))
+        ![hD.curvatureTensor (by simp) ((hA.contMDiff_proj _).of_le (by simp))
+            (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ 0 (s, t)) w₁)
+            (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ 0 (s, t))
+              w₂),
+          mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM
+            (hD.transportedCylinder (A.trivAt b) (chartDisc IB b w₁ w₂ 0) c) (s, t, θ)
+            (0, 0, 1)] =
+      σ.val (c θ) ![hD.curvatureIn IF (A.trivAt b) b V₁ V₂ (c θ),
+        Manifold.curveVelocity IF c θ] := by
+  have hf : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
+  have hb : b ∈ (A.trivAt b).baseSet := A.mem_baseSet_trivAt b
+  set γ : ℝ → M := fun θ' ↦ (A.trivAt b).toOpenPartialHomeomorph.symm (b, c θ') with hγ_def
+  -- The disc of radius `0` is constant at `b`, so the cylinder is `(s, t, θ) ↦ e⁻¹ (b, c θ)`.
+  have hC : hD.transportedCylinder (A.trivAt b) (chartDisc IB b w₁ w₂ 0) c =
+      fun p ↦ γ p.2.2 := by
+    rw [show chartDisc IB b w₁ w₂ 0 = fun _ ↦ b from funext chartDisc_zero_radius]
+    exact funext (hD.transportedCylinder_const (by simp) (hf.of_le (by simp)) b)
+  -- At radius `0` the inverse chart is read at the chart point of `b`, where its derivative is
+  -- the identity.
+  have hW (w : EB) : mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm
+      (chartDiscCoord IB b w₁ w₂ 0 (s, t)) w = w := by
+    rw [chartDiscCoord_zero_radius, (hasMFDerivAt_extChartAt_symm_self b).mfderiv]
+    rfl
+  -- The curvature tensor on `w₁ = V₁ b` and `w₂ = V₂ b` is the curvature of `V₁ V₂`.
+  have key : ∀ x, proj x = b → ∀ hfx : ContMDiffAt IM IB 2 proj x,
+      hD.curvatureTensor (by simp) hfx w₁ w₂ = hD.curvature V₁ V₂ x := by
+    rintro x rfl hfx
+    rw [← h₁, ← h₂]
+    exact hD.curvatureTensor_apply _ hfx hV₁ hV₂
+  have hγ : MDifferentiableAt 𝓘(ℝ, ℝ) IM γ θ :=
+    (((hA.contMDiffOn_trivAt_symm b).contMDiffAt
+      ((A.trivAt b).open_target.mem_nhds ((A.trivAt b).mem_target.2 hb))).mdifferentiableAt
+      (by simp)).comp θ (mdifferentiableAt_const.prodMk hc)
+  -- The derivative of the cylinder in `θ` is the velocity of `γ`.
+  have hΘ : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (fun p : ℝ × ℝ × ℝ ↦ γ p.2.2) (s, t, θ) (0, 0, 1) =
+      Manifold.curveVelocity IM γ θ := by
+    have hℓ : HasDerivAt (fun θ' : ℝ ↦ (s, t, θ')) ((0, 0, 1) : ℝ × ℝ × ℝ) θ :=
+      (hasDerivAt_const θ s).prodMk ((hasDerivAt_const θ t).prodMk (hasDerivAt_id θ))
+    exact ((hγ.comp (s, t, θ)
+      ((by fun_prop : Differentiable ℝ fun p : ℝ × ℝ × ℝ ↦ p.2.2) (s, t, θ)).mdifferentiableAt
+      ).curveVelocity_comp_mfderiv hℓ).symm
+  have hp : proj (γ θ) = b := (A.trivAt b).proj_symm_apply' hb
+  -- `∂_θC` is vertical: `proj ∘ γ` is constant.
+  have hv : Manifold.curveVelocity IM γ θ ∈ (mfderiv IM IB proj (γ θ)).ker := by
+    have h := Manifold.curveVelocityWithin_map ((hf _).mdifferentiableAt (by simp))
+      uniqueDiffWithinAt_univ hγ.mdifferentiableWithinAt
+    rw [Manifold.curveVelocityWithin_univ, Manifold.curveVelocityWithin_univ,
+      show proj ∘ γ = fun _ ↦ b from funext fun θ' ↦ (A.trivAt b).proj_symm_apply' hb,
+      Manifold.curveVelocity_const] at h
+    exact h.symm
+  -- The fibre coordinate of `e` sends `∂_θC` to the velocity of `c`.
+  have hsnd : mfderiv IM IF (fun z ↦ (A.trivAt b z).2) (γ θ) (Manifold.curveVelocity IM γ θ) =
+      Manifold.curveVelocity IF c θ := by
+    have h := Manifold.curveVelocityWithin_map (((hA.contMDiffOn_snd_trivAt b).contMDiffAt
+      ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).map_target
+        ((A.trivAt b).mem_target.2 hb)))).mdifferentiableAt (by simp))
+      uniqueDiffWithinAt_univ hγ.mdifferentiableWithinAt
+    rw [Manifold.curveVelocityWithin_univ, Manifold.curveVelocityWithin_univ,
+      show (fun z ↦ (A.trivAt b z).2) ∘ γ = c from
+        funext fun θ' ↦ by rw [comp_apply, hγ_def, (A.trivAt b).apply_symm_apply' hb]] at h
+    exact h.symm
+  rw [hW, hW, key _ (by rw [hC]; exact hp), hC, hΘ,
+    hD.apply_curvature_eq_apply_curvatureIn (by simp) hA hτ hb ((hV₁ b).of_le (by simp))
+      ((hV₂ b).of_le (by simp)) (c θ) hv, hsnd]
+
+/-- **The integral of the curvature integrand at radius `0`.** In the setting of
+`val_curvatureTensor_transportedCylinder_chartDisc_zero`, for `c` differentiable, the integral
+over `θ ∈ [0, 1]` of the value of `τ` at `C (s, t, θ)` on `Ω(W₁, W₂)` and `∂_θC` is the line
+integral along `c` from `0` to `1` of the contraction `ι_X σ` of `σ` with the curvature read in
+the chart `e = A.trivAt b`, `X = hD.curvatureIn IF e b V₁ V₂`. -/
+theorem integral_val_curvatureTensor_transportedCylinder_chartDisc_zero
+    {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M} (hτ : A.RestrictsTo σ τ)
+    (hA : A.IsContMDiff ∞ IB IF IM) {w₁ w₂ : EB} {V₁ V₂ : Π b : B, TangentSpace IB b}
+    (hV₁ : CMDiff ∞ (T% V₁)) (hV₂ : CMDiff ∞ (T% V₂)) (h₁ : V₁ b = w₁) (h₂ : V₂ b = w₂)
+    (hc : MDifferentiable 𝓘(ℝ, ℝ) IF c) (s t : ℝ) :
+    ∫ θ in 0..1, τ.val (hD.transportedCylinder (A.trivAt b) (chartDisc IB b w₁ w₂ 0) c (s, t, θ))
+        ![hD.curvatureTensor (by simp) ((hA.contMDiff_proj _).of_le (by simp))
+            (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ 0 (s, t)) w₁)
+            (mfderiv 𝓘(ℝ, EB) IB (extChartAt IB b).symm (chartDiscCoord IB b w₁ w₂ 0 (s, t))
+              w₂),
+          mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM
+            (hD.transportedCylinder (A.trivAt b) (chartDisc IB b w₁ w₂ 0) c) (s, t, θ)
+            (0, 0, 1)] =
+      pathIntegral (RoughForm.interior (hD.curvatureIn IF (A.trivAt b) b V₁ V₂) σ.val) c 0 1 := by
+  rw [pathIntegral_def]
+  refine intervalIntegral.integral_congr fun θ _ ↦ ?_
+  rw [val_curvatureTensor_transportedCylinder_chartDisc_zero hτ hA hV₁ hV₂ h₁ h₂ (hc θ),
+    RoughForm.interior_apply, ← Matrix.vec_single_eq_const]
+
+end ChartDiscZero
 
 end IsEhresmannConnection
 

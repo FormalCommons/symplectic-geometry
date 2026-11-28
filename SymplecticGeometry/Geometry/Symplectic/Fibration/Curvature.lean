@@ -131,6 +131,9 @@ exactly when `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` is the differential of a smooth f
 * `TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField`: for a
   Hamiltonian `f` of the curvature read in a chart `e`, the contraction of `τ` with the curvature
   is `df` composed with the derivative of the fibre coordinate of `e`, on vertical vectors.
+* `TauCeti.IsEhresmannConnection.apply_curvature_eq_apply_curvatureIn`: at `e⁻¹ (b, y)`, the
+  value of `τ` on the curvature and a vertical vector `w` is that of `σ` at `y` on the curvature
+  read in `e` and the image of `w` under the derivative of the fibre coordinate of `e`.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_of_curvature_eq_zero`: a connection with
   vanishing curvature has Hamiltonian curvature.
 * `TauCeti.IsEhresmannConnection.curvatureIn_local`: the curvature of two constant fields in a
@@ -463,7 +466,7 @@ theorem apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField (hn : 1 ≤ n)
       mvfderiv IF f (A.trivAt b' x).2 (mfderiv IM IF (fun y ↦ (A.trivAt b' y).2) x w) := by
   subst hx
   set e := A.trivAt b'
-  have hker := hD.curvature_mem_ker hn ((hA.contMDiff_proj x).of_le (by simp)) hv₁ hv₂
+  have hker := hD.curvature_mem_ker hn ((hA.contMDiff_proj _).of_le (by simp)) hv₁ hv₂
   -- The curvature read in `e` at `(e x).2` is the image of the curvature at `x`. The tangent
   -- spaces of `F` at the fibre coordinates of `x` and of `e⁻¹ (proj x, (e x).2)` agree only by
   -- definition, so the point is generalized before it is replaced.
@@ -479,6 +482,38 @@ theorem apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField (hn : 1 ≤ n)
   rw [hτ.apply_eq_mpullback_snd_trivAt hA hb (fun i ↦ by fin_cases i; exacts [hker, hw]),
     mpullback_apply_pair, ← hc, ← SmoothBundleForm.eval₂_apply,
     SmoothTwoForm.isHamiltonianVectorField_iff.1 hX]
+
+/-- **The curvature against a vertical vector, read on the fibre.** Let `hD` be a `C^n`
+Ehresmann connection, `1 ≤ n`, and let `τ` restrict to `σ` on the fibres of a smooth atlas `A`.
+Let `b` be in the base set of the chart `e = A.trivAt b'`, and `v₁ v₂` fields on `B`, `C^1` at
+`b`. At the point `x = e⁻¹ (b, y)` and for every vertical vector `w` at `x`, `τ(Ω, w)`, where `Ω`
+is the curvature of `v₁ v₂` at `x`, is the value of `σ` at `y` on the curvature read in `e`,
+`hD.curvatureIn IF e b v₁ v₂ y`, and on the image of `w` under the derivative of the fibre
+coordinate of `e`. -/
+theorem apply_curvature_eq_apply_curvatureIn (hn : 1 ≤ n) {A : MapFiber.Atlas F proj}
+    (hA : A.IsContMDiff ∞ IB IF IM) {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
+    (hτ : A.RestrictsTo σ τ) {b' b : B} (hb : b ∈ (A.trivAt b').baseSet)
+    {v₁ v₂ : Π b : B, TangentSpace IB b} (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) b)
+    (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) b) (y : F)
+    {w : TangentSpace IM ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))}
+    (hw : w ∈ (mfderiv IM IB proj ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))).ker) :
+    τ.val ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))
+        ![hD.curvature v₁ v₂ ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)), w] =
+      σ.val y ![hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y,
+        mfderiv IM IF (fun z ↦ (A.trivAt b' z).2)
+          ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)) w] := by
+  have hx : proj ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)) = b :=
+    (A.trivAt b').proj_symm_apply' hb
+  rw [← hx] at hv₁ hv₂
+  have hker := hD.curvature_mem_ker hn ((hA.contMDiff_proj _).of_le (by simp)) hv₁ hv₂
+  have hy : (A.trivAt b' ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))).2 = y := by
+    rw [(A.trivAt b').apply_symm_apply' hb]
+  -- On vertical vectors, `τ` is the pull-back of `σ` by the fibre coordinate of `A.trivAt b'`.
+  rw [hτ.apply_eq_mpullback_snd_trivAt hA (hx.symm ▸ hb)
+    (fun i ↦ by fin_cases i; exacts [hker, hw]), mpullback_apply_pair, hy, curvatureIn_def]
+  -- The two sides differ only in the point of `F` in the type of the tangent vectors, the
+  -- fibre coordinate of `e⁻¹ (b, y)` or `y`, whose tangent spaces agree by definition.
+  rfl
 
 end HamiltonianApply
 

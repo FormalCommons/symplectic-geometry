@@ -23,7 +23,8 @@ Fix a point `b` of a manifold `M` modelled on `E`, and vectors `w₁ w₂ : E`. 
 
 (`chartDiscCoord`), followed by the inverse of that chart. For fixed `s`, its loop in `t` runs
 around an ellipse through `b`, in the plane of `w₁` and `w₂`, scaled by `r sin (πs/2)`. At `s = 0`
-and along the seam `t = 0` it is the point `b`.
+and along the seam `t = 0` it is the point `b`. The disc of radius `0` is constant at `b`
+(`chartDisc_zero_radius`).
 
 All values of `chartDiscCoord` lie within `|r| (2‖w₁‖ + ‖w₂‖)` of the chart point of `b`. So, on a
 manifold without boundary, for `|r|` small the map stays inside any given neighbourhood of `b` and
@@ -112,6 +113,12 @@ theorem chartDiscCoord_zero_right (s : ℝ) :
     chartDiscCoord I b w₁ w₂ r (s, 0) = extChartAt I b b := by
   simp [chartDiscCoord_def]
 
+/-- The disc of radius `0` in the chart is the chart point of `b`. -/
+@[simp]
+theorem chartDiscCoord_zero_radius (z : ℝ × ℝ) :
+    chartDiscCoord I b w₁ w₂ 0 z = extChartAt I b b := by
+  simp [chartDiscCoord_def]
+
 /-- The disc in the chart lies within `|r| (2‖w₁‖ + ‖w₂‖)` of the chart point of `b`. -/
 theorem norm_chartDiscCoord_sub_le (z : ℝ × ℝ) :
     ‖chartDiscCoord I b w₁ w₂ r z - extChartAt I b b‖ ≤ |r| * (2 * ‖w₁‖ + ‖w₂‖) := by
@@ -172,6 +179,11 @@ theorem chartDisc_zero_left (t : ℝ) : chartDisc I b w₁ w₂ r (0, t) = b := 
 @[simp]
 theorem chartDisc_zero_right (s : ℝ) : chartDisc I b w₁ w₂ r (s, 0) = b := by
   rw [chartDisc_def, chartDiscCoord_zero_right, extChartAt_to_inv]
+
+/-- The disc of radius `0` is constant at `b`. -/
+@[simp]
+theorem chartDisc_zero_radius (z : ℝ × ℝ) : chartDisc I b w₁ w₂ 0 z = b := by
+  rw [chartDisc_def, chartDiscCoord_zero_radius, extChartAt_to_inv]
 
 /-- The disc is `1`-periodic in its second coordinate. -/
 theorem chartDisc_add_one (z : ℝ × ℝ) :
