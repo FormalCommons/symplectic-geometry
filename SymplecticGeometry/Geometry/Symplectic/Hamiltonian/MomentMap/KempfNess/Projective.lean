@@ -47,7 +47,8 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   Tau Ceti's `TauCeti.ComplexProjectiveSpace.unitaryMomentMap` read on `ℙ ℂ (Fin (n + 1) → ℂ)`,
   and `dφ` is the differential of `φ` at the identity. For a representation
   `ρ : Gc →* GL(n + 1, ℂ)` that is unitary on `G`, `φ` is `ρ ∘ C.toHom` with its values
-  restricted to the unitary group.
+  restricted to the unitary group. In homogeneous coordinates its component along `ξ` at `[v]` is
+  `Im ⟪v, dφ ξ v⟫ / (2 ‖v‖²)` (`SymplecticGeometry.projectivizationMoment_mk_apply`).
 * `SymplecticGeometry.isEquivariantMomentMap_neg_projectivizationMoment`: if `φ` is
   differentiable at the identity, `x ↦ -projectivizationMoment I φ x` is a coadjoint-equivariant
   moment map for `fubiniStudyForm n`, so `projectivizationMoment I φ` is a moment map with the
@@ -93,7 +94,7 @@ theorem mpullback_smul_fubiniStudyForm {K : Type*} [Group K]
 section Moment
 
 open TauCeti.Lie
-open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
+open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary InnerProductSpace
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -124,6 +125,18 @@ theorem projectivizationMoment_apply (φ : G →* unitarySubgroup (GL (Fin (n + 
     projectivizationMoment I φ x ξ =
       unitaryProjectivizationMoment n x (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :=
   (rfl)
+
+/-- **The moment map in homogeneous coordinates.** For a nonzero vector `v` of `ℂⁿ⁺¹`, the
+component of `projectivizationMoment I φ [v]` along `ξ` is `Im ⟪v, X v⟫ / (2 ‖v‖²)`, for the
+Hermitian inner product and norm of `EuclideanSpace ℂ (Fin (n + 1))`, where `X` is the
+skew-Hermitian matrix of `dφ ξ` (through `matrixUnitaryLieAlgebraEquiv`). -/
+theorem projectivizationMoment_mk_apply (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (ξ : GroupLieAlgebra I G) {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) :
+    projectivizationMoment I φ (mk ℂ v hv) ξ =
+      (⟪WithLp.toLp 2 v, WithLp.toLp 2
+        ((matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
+          Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ v)⟫_ℂ).im / (2 * ‖WithLp.toLp 2 v‖ ^ 2) := by
+  rw [projectivizationMoment_apply, unitaryProjectivizationMoment_mk_apply]
 
 variable {I} [CompleteSpace E] [LieGroup I ∞ G]
   [DistribMulAction G (Fin (n + 1) → ℂ)] [SMulCommClass G ℂ (Fin (n + 1) → ℂ)]
