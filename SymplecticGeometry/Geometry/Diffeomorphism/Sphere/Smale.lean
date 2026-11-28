@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Congr
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
-public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Mobius
+public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Trivialization
 import SymplecticGeometry.Geometry.Diffeomorphism.Orientation
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 
@@ -167,6 +167,85 @@ theorem range_specialOrthogonalGroup_le_roundDiffPlus :
     ((orthogonalToDiffSphere 2 ∞).comp
       (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)).range ≤ roundDiffPlus :=
   range_orthogonalToDiffSphere_specialOrthogonalGroup_le _ _
+
+/-! ### The deformation of `Diff⁺` of the Riemann sphere onto the rotations -/
+
+section DiffPlus
+
+open scoped TauCeti.DiffeomorphWeakWhitney
+
+variable {ι : Type*}
+  (e : ι → Bundle.Trivialization (ℂ →L[ℝ] ℂ) (Bundle.TotalSpace.proj (F := ℂ →L[ℝ] ℂ)
+    (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+  [∀ k, MemTrivializationAtlas (e k)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+  (hU : ∀ k, (U k : Set (OnePoint ℂ)) ⊆ (e k).baseSet) (hcover : ∀ x, ∃ k, x ∈ U k)
+
+/-- The retraction of `Diff⁺(S²)` onto the rotations: `φ ↦ m₁(φ σ(φ^* i)⁻¹)`, where `m₁` is the
+polar retraction of the Möbius group onto the rotations. It is continuous for the weak Whitney
+topology; the covering frame system only serves to prove that. -/
+noncomputable def diffPlusPolarRetraction : C(diffPlus, diffPlus) :=
+  letI := SmoothAlmostComplexStructure.frameTopology e U hU
+  { toFun φ := Subgroup.inclusion mobiusSubgroup_le_diffPlus
+      (mobiusPolarRetraction (diffPlusTrivialization e U hU hcover φ).2)
+    continuous_toFun := (continuous_inclusion mobiusSubgroup_le_diffPlus).comp
+      (mobiusPolarRetraction.continuous.comp
+        (continuous_snd.comp (diffPlusTrivialization e U hU hcover).continuous)) }
+
+/-- The retraction of `Diff⁺(S²)` sends `φ` to the polar retraction of the second component
+`φ σ(φ^* i)⁻¹` of its image under the trivialization. -/
+theorem coe_diffPlusPolarRetraction_apply (φ : diffPlus) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    (diffPlusPolarRetraction e U hU hcover φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) =
+      mobiusPolarRetraction (diffPlusTrivialization e U hU hcover φ).2 :=
+  (rfl)
+
+/-- The retraction of `Diff⁺(S²)` takes its values in the rotations. -/
+theorem coe_diffPlusPolarRetraction_mem_rotationSubgroup (φ : diffPlus) :
+    (diffPlusPolarRetraction e U hU hcover φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) ∈
+      rotationSubgroup :=
+  coe_mobiusPolarRetraction_mem_rotationSubgroup _
+
+/-- **`Diff⁺` of the Riemann sphere deformation retracts onto the rotations.** With `Φ` the
+trivialization `Diff⁺(S²) ≃ₜ 𝒥 × mobiusSubgroup`, `c` the contraction of `𝒥` onto `i` and `m` the
+polar homotopy of the Möbius group, the homotopy `(t, φ) ↦ Φ⁻¹ (c_t (Φ φ).1, m_t (Φ φ).2)` runs
+from the identity of `Diff⁺(S²)` to `diffPlusPolarRetraction`, and fixes every rotation at all
+times. -/
+noncomputable def diffPlusPolarHomotopy :
+    (ContinuousMap.id diffPlus).HomotopyRel (diffPlusPolarRetraction e U hU hcover)
+      {φ | (φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) ∈ rotationSubgroup} :=
+  letI := SmoothAlmostComplexStructure.frameTopology e U hU
+  { toFun x := (diffPlusTrivialization e U hU hcover).symm
+      (complexStructureContraction e U hU hcover
+        (x.1, (diffPlusTrivialization e U hU hcover x.2).1),
+        mobiusPolarHomotopy (x.1, (diffPlusTrivialization e U hU hcover x.2).2))
+    continuous_toFun := by fun_prop
+    map_zero_left φ := by
+      simp only [ContinuousMap.HomotopyWith.apply_zero, ContinuousMap.id_apply, Prod.mk.eta,
+        Homeomorph.symm_apply_apply]
+    map_one_left φ := by
+      refine Subtype.ext ?_
+      simp only [ContinuousMap.HomotopyWith.apply_one, ContinuousMap.const_apply,
+        coe_diffPlusTrivialization_symm_apply, uniformizingDiffeomorph_ofComplexManifold,
+        Subgroup.coe_one, mul_one, coe_diffPlusPolarRetraction_apply]
+    prop' t φ hφ := by
+      obtain ⟨g, rfl⟩ : ∃ g : mobiusSubgroup,
+          Subgroup.inclusion mobiusSubgroup_le_diffPlus g = φ :=
+        ⟨⟨φ, rotationSubgroup_le_mobiusSubgroup hφ⟩, rfl⟩
+      simp only [ContinuousMap.coe_mk, diffPlusTrivialization_inclusion, ContinuousMap.id_apply]
+      rw [(complexStructureContraction e U hU hcover).eq_fst t rfl,
+        mobiusPolarHomotopy.eq_fst t hφ]
+      exact (Homeomorph.symm_apply_eq _).2 (diffPlusTrivialization_inclusion e U hU hcover g).symm }
+
+/-- At time `t`, the deformation of `Diff⁺(S²)` sends `φ` to `Φ⁻¹ (c_t (φ^* i), m_t (Φ φ).2)`. -/
+theorem diffPlusPolarHomotopy_apply (t : unitInterval) (φ : diffPlus) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    diffPlusPolarHomotopy e U hU hcover (t, φ) = (diffPlusTrivialization e U hU hcover).symm
+      (complexStructureContraction e U hU hcover (t, complexStructureMap φ),
+        mobiusPolarHomotopy (t, (diffPlusTrivialization e U hU hcover φ).2)) := by
+  rw [← diffPlusTrivialization_apply_fst e U hU hcover]
+  rfl
+
+end DiffPlus
 
 end SymplecticGeometry
 
