@@ -6,9 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormSpaces
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Components
 public import TauCeti.Topology.Homotopy.HomotopyGroup.WeakHomotopyEquivalence
+public import Mathlib.Topology.Homotopy.Equiv
+import TauCeti.AlgebraicTopology.Homotopy.Whitehead
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.WeakEquivalence
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.FreeCompression
 import TauCeti.Topology.Homotopy.Extension.Cube
@@ -25,6 +29,10 @@ two-forms on its tangent bundle the frame topology of a covering frame system. F
 two-form `α`, the inclusion of the symplectic forms in the class of `α` into the nondegenerate
 two-forms is then a weak homotopy equivalence
 (`isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`).
+
+When moreover `M` is locally connected and each of its connected components compresses into a
+compact set by a smooth isotopy starting at the identity, the inclusion is a homotopy equivalence
+(`exists_homotopyEquiv_symplecticFormsInClass`).
 
 ## Proof
 
@@ -48,6 +56,19 @@ family `β` of forms in the class of `α` that agrees with `g` over `P₀`.
 Last, `ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` identifies the inclusion
 of `A` into `X` with the inclusion of the symplectic forms into the nondegenerate forms.
 
+For the homotopy equivalence, work on each component `c.opens` with the frame topology
+`Bundle.ContMDiffTwoForm.trivializationAtFrameTopology`. The component is again a manifold as
+above: it is σ-compact as a closed subset of `M` (a local instance inside the proof, from
+`IsClosed.sigmaCompactSpace`), and its connected components are not compact, since the component
+in `c.opens` of a point contains the component of that point in `M`. There both spaces have CW
+type (`cwType_nondegenerateForms`, `cwType_symplecticFormsInClass`), so Whitehead's theorem,
+Tau Ceti's `ContinuousMap.IsWeakHomotopyEquivalence.homotopyEquiv`, turns the weak equivalence
+into a homotopy equivalence. The product of these over the components
+(`ContinuousMap.HomotopyEquiv.piCongrRight`) is carried to `M` by the homeomorphisms
+`symplecticFormsInClassHomeomorphPi` and `nondegenerateFormsHomeomorphPi` of
+`HPrinciple/Components.lean`, which match the inclusions
+(`nondegenerateFormsHomeomorphPi_inclusion`).
+
 ## References
 
 * [Y. Eliashberg and N. Mishachev, *Introduction to the h-principle*][EliashbergMishachev2002],
@@ -56,12 +77,14 @@ of `A` into `X` with the inclusion of the symplectic forms into the nondegenerat
   arXiv:math/0101196, Theorem 2.1.2.
 * M. Bertelson, *A h-principle for open relations invariant under foliated isotopies*,
   arXiv:math/0011045, Theorem 8.2.
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Theorem 4.5 (Whitehead's
+  theorem).
 -/
 
 public section
 
 open Set Bundle SymplecticGeometry.Bundle TauCeti TopologicalSpace
-open scoped Manifold Topology
+open scoped Manifold Topology ContDiff ContinuousMap
 
 namespace SymplecticGeometry
 
@@ -180,6 +203,77 @@ theorem isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass
             (by simp only [φ, Homeomorph.apply_symm_apply])
   exact (ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal
     (symplecticFormsInClass_subset_nondegenerateForms α)).2 hA
+
+/-- Whitehead's theorem applied to the weak equivalence: if moreover a smooth isotopy from the
+identity of `M` ends at a map whose image has compact closure, so that both spaces have CW type,
+the inclusion of the symplectic forms in the class of `α` into the nondegenerate forms is the
+forward map of a homotopy equivalence. -/
+private theorem exists_homotopyEquiv_symplecticFormsInClass_of_smoothIsotopy
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) (hcover : ∀ x, ∃ i, x ∈ U i)
+    {α : SmoothTwoForm I M} (hα : α ∈ closedForms I M 2) {j : C^∞⟮I, M; I, M⟯}
+    (h : SmoothIsotopy (ContMDiffMap.id) j) (hj : IsCompact (closure (Set.range j))) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+    ∃ φ : symplecticFormsInClass α ≃ₕ nondegenerateForms I M,
+      ⇑φ.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms α) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+  have := cwType_nondegenerateForms e U hU hcover h hj
+  have := cwType_symplecticFormsInClass e U hU hcover hα h hj
+  have hf := isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass e U hU hM hcover hα
+  exact ⟨hf.homotopyEquiv, by
+    rw [ContinuousMap.IsWeakHomotopyEquivalence.homotopyEquiv_toFun]
+    ext σ
+    simp⟩
+
+/-- **The homotopy equivalence of the spaces of forms.** Let `M` be a Hausdorff, σ-compact,
+locally connected manifold without boundary, modelled on a finite-dimensional space, none of
+whose connected components is compact, and give the smooth two-forms on its tangent bundle the
+frame topology of a covering frame system. Suppose that each connected component `c` of `M`
+compresses into a compact set: some smooth isotopy of `c.opens` starts at the identity and ends
+at a map `j` whose image has compact closure. Then, for a closed two-form `α` on `M`, the
+inclusion of the symplectic forms in the class of `α` into the nondegenerate two-forms is a
+homotopy equivalence.
+
+The hypothesis holds when `M` itself compresses into a compact set, since each slice of such an
+isotopy maps every component into itself; it also holds for a manifold of finite type, the
+interior of a compact manifold with boundary, by compression along a collar of the boundary.
+Without a hypothesis of this kind the two spaces need not have CW type. -/
+theorem exists_homotopyEquiv_symplecticFormsInClass [LocallyConnectedSpace M]
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) (hcover : ∀ x, ∃ i, x ∈ U i)
+    {α : SmoothTwoForm I M} (hα : α ∈ closedForms I M 2)
+    (hj : ∀ c : ConnectedComponents M, ∃ j : C^∞⟮I, c.opens; I, c.opens⟯,
+      Nonempty (SmoothIsotopy (ContMDiffMap.id) j) ∧ IsCompact (closure (Set.range j))) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+    ∃ φ : symplecticFormsInClass α ≃ₕ nondegenerateForms I M,
+      ⇑φ.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms α) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+  let _ (c : ConnectedComponents M) := ContMDiffTwoForm.trivializationAtFrameTopology I c.opens
+  -- On each component, Whitehead's theorem gives a homotopy equivalence.
+  have key (c : ConnectedComponents M) : ∃ φ : symplecticFormsInClass
+      (SmoothForm.mpullback (Subtype.val : c.opens → M) contMDiff_subtypeVal α) ≃ₕ
+        nondegenerateForms I c.opens,
+      ⇑φ.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms _) := by
+    have : SigmaCompactSpace c.opens := c.isClopen_opens.isClosed.sigmaCompactSpace
+    obtain ⟨j, ⟨h⟩, hj⟩ := hj c
+    -- The connected component of a point `x` of `c.opens` contains that of `x` in `M`.
+    have hc (x : c.opens) : ¬ IsCompact (connectedComponent x) := fun hx ↦
+      hM x ((hx.image continuous_subtypeVal).of_isClosed_subset isClosed_connectedComponent
+        ((isPreconnected_connectedComponent.subset_connectedComponentIn mem_connectedComponent
+          (c.isClopen_opens.connectedComponent_subset x.property)).trans
+            (connectedComponentIn_eq_image x.property).subset))
+    have := exists_homotopyEquiv_symplecticFormsInClass_of_smoothIsotopy _ _
+      (fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset) hc
+      (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)
+      (SmoothForm.mpullback_mem_closedForms (Subtype.val : c.opens → M) contMDiff_subtypeVal hα)
+      h hj
+    rwa [← ContMDiffTwoForm.trivializationAtFrameTopology_def] at this
+  choose φ hφ using key
+  refine ⟨(symplecticFormsInClassHomeomorphPi e U hU hcover α).toHomotopyEquiv.trans
+    ((ContinuousMap.HomotopyEquiv.piCongrRight φ).trans
+      (nondegenerateFormsHomeomorphPi e U hU hcover).symm.toHomotopyEquiv), funext fun σ ↦ ?_⟩
+  refine (Homeomorph.symm_apply_eq _).2 ?_
+  rw [nondegenerateFormsHomeomorphPi_inclusion]
+  funext c
+  exact congrFun (hφ c) _
 
 end SymplecticGeometry
 
