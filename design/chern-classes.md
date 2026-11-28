@@ -585,10 +585,10 @@ submodule onto its image, the continuous form of Mathlib's
 `SeparatingDual.of_injective`: a topological module with an injective
 continuous linear map into one with separating dual has separating dual.
 
-### `Topology/VectorBundle/SeparatingDual.lean`
+### Separating duals of the fibres
 
-`VectorBundle.separatingDual`: for `b : B`, the fibre `E b` of a vector
-bundle with model `F` has separating dual when `F` has, through the
+Tau Ceti's `TauCeti.separatingDual_fiber`: for `b : B`, the fibre `E b` of a
+vector bundle with model `F` has separating dual when `F` has, through the
 trivialization at `b`. With Tau Ceti's `VectorBundle.isTopologicalAddGroup`
 and `VectorBundle.continuousSMul`, it gives the fibres `E b` the instances
 that `Projectivization.Tautological 𝕜 (E b)` needs.
@@ -994,7 +994,8 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only.
   (firstChernClass G E)`. By induction on the rank with
   the splitting principle: both sides are additive on `L ×ᵇ Q`, the first
   by `chernClass_prod`, the second by Tau Ceti's `TauCeti.DetBundle.prodEquiv`,
-  `TauCeti.complexEulerClass_tensorProduct` and `firstChernClass_congr`; on
+  `TauCeti.complexEulerClass_tensorProduct` and
+  `TauCeti.firstChernClass_eq_of_fiberwise`; on
   lines both are `complexEulerClass` (`firstChernClass_eq_complexEulerClass`).
   Rank zero: both vanish (`chernClass_eq_zero_of_finrank_lt`, and Tau Ceti's
   `TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`).
@@ -1148,8 +1149,7 @@ then imports `ChernClass/FirstChernClass.lean`.
 
 ## What the part uses
 
-- From *First Chern number*: `firstChernClass_congr` and
-  `firstChernClass_eq_complexEulerClass` (#784), only in
+- From *First Chern number*: `firstChernClass_eq_complexEulerClass` (#784), only in
   `ChernClass/FirstChernClass.lean`; the class `TauCeti.firstChernClass` and
   the determinant line `TauCeti.DetBundle` are Tau Ceti's.
 - From *First Chern number*: its file
