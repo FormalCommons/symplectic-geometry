@@ -11,6 +11,7 @@ public import Mathlib.Topology.OpenPartialHomeomorph.Defs
 import Mathlib.Analysis.LocallyConvex.SeparatingDual
 import Mathlib.Topology.OpenPartialHomeomorph.Constructions
 import SymplecticGeometry.Analysis.Calculus.Morse.CubicNormalForm
+import SymplecticGeometry.Topology.Constructions.SumProd
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Slice
 import TauCeti.Analysis.Calculus.Morse.Cerf.Splitting
 
@@ -40,7 +41,8 @@ The proof has three steps.
    writes `g - g 0` as `φ ^ 3 / 3` for a local diffeomorphism `φ` of `ℝ`.
 3. The chart `Φ` is the composite of the affine coordinates `y ↦ (ℓ (y - u), (y - u) -
    ℓ (y - u) • e)` of `E`, the slice of the splitting chart at the parameter `0`
-   (`OpenPartialHomeomorph.exists_slice_prod_of_fst_eq`), and `φ` on the first coordinate.
+   (`OpenPartialHomeomorph.slice`, after `Homeomorph.prodAssoc`), and `φ` on the first
+   coordinate.
 
 ## Main results
 
@@ -141,42 +143,39 @@ theorem ContDiffOn.exists_openPartialHomeomorph_eq_add_pow_three_div_three_add_s
   obtain ⟨ℓ, hℓ⟩ := SeparatingDual.exists_eq_one (R := ℝ) he
   obtain ⟨ψ, φ, hψ0, hψ00, hψ1, hψ1', hψ, hψsymm, hφ0, hφ00, hφ, hφsymm, hFψ⟩ :=
     exists_splitting_chart_and_cubic hF hW hc hker hℓ h3
-  -- The slice of the splitting chart at the parameter `0`.
-  obtain ⟨ψ₀, hψ₀s, hψ₀t, hψ₀, hψ₀symm⟩ := ψ.exists_slice_prod_of_fst_eq (fun z _ ↦ hψ1 z) hψ1' 0
+  -- The splitting chart with the parameter split off as the first coordinate, and its slice at
+  -- the parameter `0`.
+  let ψ' := ((Homeomorph.prodAssoc ℝ ℝ ℓ.ker).symm.toOpenPartialHomeomorph.trans ψ).trans
+    (Homeomorph.prodAssoc ℝ ℝ _).toOpenPartialHomeomorph
+  have hψ'1 : ∀ z ∈ ψ'.source, (ψ' z).1 = z.1 := fun z _ ↦ by simp [ψ', hψ1]
+  have hψ'1' : ∀ z ∈ ψ'.target, (ψ'.symm z).1 = z.1 := fun z hz ↦ by simp_all [ψ']
+  let ψ₀ := ψ'.slice hψ'1 hψ'1' 0
   -- Linear coordinates `y ↦ (ℓ y, y - ℓ y • e)` on `E`.
-  let P₀ : E ≃ₗ[ℝ] ℝ × ℓ.ker :=
-    { toFun y := (ℓ y, ⟨y - ℓ y • e, by simp [hℓ]⟩)
-      map_add' y z := by ext <;> simp [add_smul]; abel
-      map_smul' c y := by ext <;> simp [smul_sub, smul_smul]
-      invFun p := p.1 • e + p.2
-      left_inv y := by simp
-      right_inv p := by
-        have hp : ℓ p.2 = 0 := p.2.property
-        ext <;> simp [hℓ, hp] }
-  set P := P₀.toContinuousLinearEquiv
-  have hP (y : E) : P y = (ℓ y, ⟨y - ℓ y • e, by simp [hℓ]⟩) := by simp [P, P₀]
-  have hPsymm (p : ℝ × ℓ.ker) : P.symm p = p.1 • e + p.2 := by simp [P, P₀]
+  let P : E ≃L[ℝ] ℝ × ℓ.ker :=
+    .equivOfRightInverse ℓ (.toSpanSingleton ℝ e) fun r ↦ by simp [hℓ]
+  have hP (y : E) : P y = (ℓ y, ⟨y - ℓ y • e, by simp [hℓ]⟩) := by ext <;> simp [P]
+  have hPsymm (p : ℝ × ℓ.ker) : P.symm p = p.1 • e + p.2 := by simp [P]
   -- The chart, and formulas for it, its inverse, its source and its target.
   set Φ := (((Homeomorph.subRight u).trans P.toHomeomorph).toOpenPartialHomeomorph.trans ψ₀).trans
     (φ.prod (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin (finrank ℝ ℓ.ker)))))
   have hΦ (y : E) : Φ y = (φ (ℓ (y - u)), (ψ ((0, ℓ (y - u)), (P (y - u)).2)).2) := by
-    simp [Φ, hψ₀, hψ1, hP]
+    simp [Φ, ψ₀, ψ', hψ1, hP]
   have hΦs (y : E) : y ∈ Φ.source ↔
       ((0, ℓ (y - u)), (P (y - u)).2) ∈ ψ.source ∧ ℓ (y - u) ∈ φ.source := by
-    simp [Φ, hψ₀, hψ₀s, hψ1, hP]
+    simp [Φ, ψ₀, ψ', hψ1, hP]
   have hΦsymm (q : ℝ × EuclideanSpace ℝ (Fin (finrank ℝ ℓ.ker))) : Φ.symm q =
       u + (ψ.symm ((0, φ.symm q.1), q.2)).1.2 • e + (ψ.symm ((0, φ.symm q.1), q.2)).2 := by
-    simp [Φ, hψ₀symm, hPsymm]
+    simp [Φ, ψ₀, ψ', hPsymm]
     abel
   have hΦt (q : ℝ × EuclideanSpace ℝ (Fin (finrank ℝ ℓ.ker))) :
       q ∈ Φ.target ↔ q.1 ∈ φ.target ∧ ((0, φ.symm q.1), q.2) ∈ ψ.target := by
-    simp [Φ, hψ₀t]
+    simp [Φ, ψ₀, ψ']
   have hsub : ContDiff ℝ ∞ fun y : E ↦ y - u := contDiff_id.sub contDiff_const
   refine ⟨finrank ℝ ℓ.ker, fun i ↦ if i.val < TauCeti.morseIndex F u then -1 else 1, Φ, ?_,
     fun i ↦ ?_,
     (hΦs u).2 ⟨by simpa using hψ0, by simpa using hφ0⟩, by simp [hΦ, hφ00, hψ00], ?_, ?_,
     fun y hy ↦ ?_⟩
-  · have := P₀.finrank_eq
+  · have := P.toLinearEquiv.finrank_eq
     rw [Module.finrank_prod, Module.finrank_self] at this
     omega
   · dsimp only

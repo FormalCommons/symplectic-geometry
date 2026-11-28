@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Topology.OpenPartialHomeomorph.Defs
 import Mathlib.Topology.Constructions.SumProd
-import Mathlib.Topology.OpenPartialHomeomorph.Composition
 
 /-!
 # Slices of an open partial homeomorphism that preserves a parameter
@@ -20,21 +19,10 @@ that does not move the parameter. For each value `t` of the parameter, its restr
 of those of `e` and whose inverse is `y ↦ (e.symm (t, y)).2`. This is the analogue for open
 partial homeomorphisms of `Diffeomorph.slice`.
 
-The same holds when the preserved coordinate is a pair `(t, a)` and only `t` is fixed
-(`OpenPartialHomeomorph.exists_slice_prod_of_fst_eq`). This is the form of the charts given by
-the splitting lemma for families of Tau Ceti,
-`TauCeti.exists_normalized_splitting_chart_of_ker_eq_span_singleton`,
-which keep both the parameter of the family and the coordinate along the kernel of the Hessian.
-
 ## Main definitions
 
 * `OpenPartialHomeomorph.slice`: the slice at `t` of an open partial homeomorphism of `T × X`
   onto `T × Y` that preserves the first coordinate.
-
-## Main results
-
-* `OpenPartialHomeomorph.exists_slice_prod_of_fst_eq`: the slice at `t` of an open partial
-  homeomorphism of `(T × A) × X` onto `(T × A) × Y` that preserves the coordinate in `T × A`.
 -/
 
 public section
@@ -97,37 +85,6 @@ theorem slice_target (t : T) : (e.slice he he' t).target = Prod.mk t ⁻¹' e.ta
   (rfl)
 
 end slice
-
-/-- **The slice of an open partial homeomorphism that preserves a pair of parameters, at a value
-of the first.** If an open partial homeomorphism `e` of `(T × A) × X` onto `(T × A) × Y` keeps
-the first coordinate on its source and its inverse keeps it on its target, then for each `t : T`
-there is an open partial homeomorphism of `A × X` onto `A × Y` that is `e` on the slice
-`{t} × A × X`: its source and target are the slices of those of `e`, it sends `(a, x)` to
-`((e ((t, a), x)).1.2, (e ((t, a), x)).2)`, and its inverse is given by the same formula with
-`e.symm`. -/
-theorem exists_slice_prod_of_fst_eq {A : Type*} [TopologicalSpace A]
-    (e : OpenPartialHomeomorph ((T × A) × X) ((T × A) × Y))
-    (he : ∀ z ∈ e.source, (e z).1 = z.1) (he' : ∀ z ∈ e.target, (e.symm z).1 = z.1) (t : T) :
-    ∃ e' : OpenPartialHomeomorph (A × X) (A × Y),
-      e'.source = (fun p ↦ ((t, p.1), p.2)) ⁻¹' e.source ∧
-      e'.target = (fun q ↦ ((t, q.1), q.2)) ⁻¹' e.target ∧
-      (∀ p, e' p = ((e ((t, p.1), p.2)).1.2, (e ((t, p.1), p.2)).2)) ∧
-      ∀ q, e'.symm q = ((e.symm ((t, q.1), q.2)).1.2, (e.symm ((t, q.1), q.2)).2) := by
-  have hA : ⇑(Homeomorph.prodAssoc T A Y) = Equiv.prodAssoc T A Y := by
-    rw [← Homeomorph.coe_toEquiv, Homeomorph.prodAssoc_toEquiv]
-  have hA' : ⇑(Homeomorph.prodAssoc T A X).symm = (Equiv.prodAssoc T A X).symm := by
-    rw [← Homeomorph.coe_symm_toEquiv, Homeomorph.prodAssoc_toEquiv]
-  have hB : ⇑(Homeomorph.prodAssoc T A X) = Equiv.prodAssoc T A X := by
-    rw [← Homeomorph.coe_toEquiv, Homeomorph.prodAssoc_toEquiv]
-  have hB' : ⇑(Homeomorph.prodAssoc T A Y).symm = (Equiv.prodAssoc T A Y).symm := by
-    rw [← Homeomorph.coe_symm_toEquiv, Homeomorph.prodAssoc_toEquiv]
-  -- `e` with the parameter `t` split off as the first coordinate.
-  set f := ((Homeomorph.prodAssoc T A X).symm.toOpenPartialHomeomorph.trans e).trans
-    (Homeomorph.prodAssoc T A Y).toOpenPartialHomeomorph
-  have hf : ∀ z ∈ f.source, (f z).1 = z.1 := fun z hz ↦ by simp_all [f]
-  have hf' : ∀ z ∈ f.target, (f.symm z).1 = z.1 := fun z hz ↦ by simp_all [f]
-  exact ⟨f.slice hf hf' t, by ext; simp [f, hA'], by ext; simp [f, hB'],
-    fun p ↦ by simp [f, hA, hA'], fun q ↦ by simp [f, hB, hB']⟩
 
 end OpenPartialHomeomorph
 
