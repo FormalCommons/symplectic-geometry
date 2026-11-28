@@ -7,13 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.LocalForm
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
-import TauCeti.Geometry.Manifold.DifferentialForm.MixedPartial
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 
 /-!
 # Closed forms over a patch with given fibre and mixed components
@@ -26,16 +22,8 @@ fibre and mixed components as `τ`, the local step of the existence of the coupl
 symplectic connection with Hamiltonian curvature ([McDuffSalamon2017], §6.4, proof of
 Theorem 6.4.1).
 
-The first result reads the curl `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` of the mixed components through `τ`: on a
-vector `w` tangent to `F` at `y`,
-
-`∂ᵢαⱼ(x)(w) - ∂ⱼαᵢ(x)(w) = d_F f_{ij}(x)(w) - dτ((∂ᵢ, 0), (∂ⱼ, 0), (0, w))`
-
-(`TauCeti.SmoothTwoForm.fderiv_mixedComponent_sub_fderiv_mixedComponent`), where `∂ᵢ = bs i`.
-This is Tau Ceti's `TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv`
-rewritten in terms of the components.
-
-The second result chooses primitives of these curls smoothly in `x`. If, at every `x` of an open
+The result here chooses primitives of the curls `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` of the mixed components
+smoothly in `x`, where `∂ᵢ` differentiates along `bs i`. If, at every `x` of an open
 set `U`, the curl is the differential of a smooth function on `F`, then there is a function `f`
 on `EB × F`, smooth on `U ×ˢ univ` and vanishing on `U × {y₀}`, whose restriction to each fibre
 over `x ∈ U` is such a primitive
@@ -43,23 +31,21 @@ over `x ∈ U` is such a primitive
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.contMDiff_baseComponent`: the base components `f_{ij}` of a smooth `τ`
-  are smooth jointly in `x` and the point of `F`.
-* `TauCeti.SmoothTwoForm.fderiv_mixedComponent_sub_fderiv_mixedComponent`: the curl of the mixed
-  components, through `d_F f_{ij}` and `dτ`.
 * `TauCeti.SmoothTwoForm.exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub`: jointly
   smooth primitives of the curls over an open patch, normalized at a point `y₀` of `F`.
 
 ## Implementation notes
 
-By the first result, the curl at `x` is `d_F f_{ij}(x)` minus the slice over `x` of the smooth
-one-form `η = ι(∂ⱼ, 0) ι(∂ᵢ, 0) dτ` on `EB × F`. If the curl at `x` is exact, then so is that slice.
+By the formula for the curl in `Fibration/LocalForm.lean`
+(`TauCeti.SmoothTwoForm.fderiv_mixedComponent_sub_fderiv_mixedComponent`), the curl at `x` is
+`d_F f_{ij}(x)` minus the slice over `x` of the smooth one-form `η = ι(∂ⱼ, 0) ι(∂ᵢ, 0) dτ` on
+`EB × F`. If the curl at `x` is exact, then so is that slice.
 The slices of `η` over the patch, the subtype of `U` as an open subset of `EB`, form a smooth
 family of exact one-forms on `F`, so the library's
 `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms` gives them jointly
 smooth primitives `h`. Then `f_{ij} - h`, extended by zero off the patch, has the curls as fibre
-differentials, and subtracting its values at `y₀` normalizes it. Smoothness on `U ×ˢ univ` is
-read through the inclusion of `U × F` into `EB × F`, a local diffeomorphism.
+differentials, and subtracting its values at `y₀` normalizes it. Smoothness on `U ×ˢ univ` comes
+from that of `h` on `U × F` by `ContMDiff.contMDiffOn_opens_prod_of_eq`.
 
 ## References
 
@@ -81,30 +67,6 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
   {ι : Type*} (τ : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F)) (bs : Module.Basis ι ℝ EB)
 
-/-- The constant vector field `(bs k, 0)` on `EB × F`, as a smooth section. -/
-private def baseField (k : ι) :
-    Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
-  ⟨Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) 0,
-    Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
-      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
-
-private theorem baseField_apply (k : ι) (p : EB × F) :
-    baseField (IF := IF) bs k p = ((bs k, 0) : EB × EF) :=
-  Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
-
-/-- The base components `f_{ij}(x)(y) = τ((bs i, 0), (bs j, 0))` of a smooth two-form `τ` on
-`EB × F` are smooth jointly in `x` and `y`. -/
-theorem contMDiff_baseComponent (i j : ι) :
-    ContMDiff (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞
-      fun p : EB × F ↦ RoughForm.baseComponent τ.val bs i j p.1 p.2 := by
-  refine (SmoothForm.interiorProduct (baseField bs j)
-    (SmoothForm.interiorProduct (baseField bs i) τ)).contMDiff_apply_zero.congr fun p ↦ ?_
-  rw [RoughForm.baseComponent_def, SmoothForm.coe_interiorProduct, RoughForm.interior_apply,
-    SmoothForm.coe_interiorProduct, RoughForm.interior_apply, baseField_apply, baseField_apply]
-  congr 1
-  ext k
-  fin_cases k <;> rfl
-
 /-- The slices of the one-form `ι(bs j, 0) ι(bs i, 0) dτ` on `EB × F`: on a vector `w` tangent
 to `F`, the slice over `x` takes the value of `dτ` on `(bs i, 0), (bs j, 0), (0, w)`. -/
 private theorem exists_mpullback_prodMk_apply_eq_mextDeriv (i j : ι) :
@@ -120,28 +82,6 @@ private theorem exists_mpullback_prodMk_apply_eq_mextDeriv (i j : ι) :
   rfl
 
 variable [CompleteSpace EB] [CompleteSpace EF]
-
-/-- **The curl of the mixed components.** For a smooth two-form `τ` on `EB × F`, with mixed
-components `αₖ` and base components `f_{ij}` for the basis `bs`, and a vector `w` tangent to `F`
-at `y`, `∂ᵢαⱼ(x)(w) - ∂ⱼαᵢ(x)(w) = d_F f_{ij}(x)(w) - dτ((bs i, 0), (bs j, 0), (0, w))`, where
-`∂ₖ` differentiates in `x` along `bs k`. -/
-theorem fderiv_mixedComponent_sub_fderiv_mixedComponent (i j : ι) (x : EB) (y : F)
-    (w : TangentSpace IF y) :
-    fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
-        fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) =
-      mvfderiv IF (RoughForm.baseComponent τ.val bs i j x) y w -
-        mextDeriv τ.val (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] := by
-  have hα (k : ι) : (fun x' ↦ RoughForm.mixedComponent τ.val bs k x' y ![w]) =
-      fun x' ↦ -τ.val (x', y) ![(bs k, 0), ((0 : EB), w)] := by
-    funext x'
-    rw [RoughForm.mixedComponent_apply]
-    exact (τ.val (x', y)).apply_vecCons_swap _ _
-  have hf : RoughForm.baseComponent τ.val bs i j x =
-      fun y' ↦ τ.val (x, y') ![(bs i, 0), (bs j, 0)] :=
-    funext fun _ ↦ RoughForm.baseComponent_def ..
-  rw [hα, hα, fderiv_fun_neg, fderiv_fun_neg, neg_apply, neg_apply, hf,
-    SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv]
-  abel
 
 /-- **Smooth primitives of the curls of the mixed components.** Let `τ` be a smooth two-form on
 `EB × F` with mixed components `αₖ` for the basis `bs`, and `U` an open set of `EB`. If, at every
@@ -192,13 +132,8 @@ theorem exists_contMDiffOn_mvfderiv_eq_fderiv_mixedComponent_sub {U : Set EB} (h
   -- The primitives `h₀ (t, ·)` of the `α t`, extended by zero off the patch.
   let H : EB × F → ℝ := fun p ↦ if hp : p.1 ∈ U then h₀ (⟨p.1, hp⟩, p.2) else 0
   have hH {x : EB} (hx : x ∈ U) (y : F) : H (x, y) = h₀ (⟨x, hx⟩, y) := by simp [H, hx]
-  have hHs : ContMDiffOn (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞ H (U ×ˢ univ) := by
-    intro p hp
-    have hloc : IsLocalDiffeomorphAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF) ∞
-        (Prod.map (Subtype.val : V → EB) id) (⟨p.1, hp.1⟩, p.2) :=
-      (isLocalDiffeomorph_subtype_val _).prodMap (SymplecticGeometry.isLocalDiffeomorph_id _)
-    refine ((hloc.contMDiffAt_comp_iff le_rfl).1 ?_).contMDiffWithinAt
-    exact (hh₀ _).congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ hH q.1.property q.2)
+  have hHs : ContMDiffOn (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞ H (U ×ˢ univ) :=
+    hh₀.contMDiffOn_opens_prod_of_eq (U := V) fun x hx y ↦ hH hx y
   let f₀ : EB × F → ℝ := fun p ↦ RoughForm.baseComponent τ.val bs i j p.1 p.2 - H p
   have hf₀ : ContMDiffOn (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞ f₀ (U ×ˢ univ) := hf.contMDiffOn.sub hHs
   refine ⟨fun p ↦ f₀ p - f₀ (p.1, y₀), hf₀.sub (hf₀.comp
