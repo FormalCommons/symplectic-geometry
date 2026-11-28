@@ -37,10 +37,9 @@ of `X`, `ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` reduc
 
 The proofs follow those of `TauCeti.surjective_homotopyGroupMap_skeletonLT` and
 `TauCeti.injective_homotopyGroupMap_skeletonLT`, which make the same deductions for the skeleta
-of a CW complex. The proof of
-`ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` adapts that of Tau Ceti's
-`ContinuousMap.isWeakHomotopyEquivalence_inclusion_preimage_val_iff`, which compares inclusions
-of subsets with those of their preimages by the same homeomorphisms.
+of a CW complex. `ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` is derived
+from Tau Ceti's `ContinuousMap.isWeakHomotopyEquivalence_inclusion_preimage_val_iff`, applied to
+`W` itself, whose preimage in `W` is identified with `W` by a homeomorphism.
 
 ## References
 
@@ -144,15 +143,10 @@ homeomorphism between that preimage and `S`. -/
 theorem isWeakHomotopyEquivalence_inclusion_iff_subtypeVal {S W : Set X} (h : S ⊆ W) :
     (inclusion h).IsWeakHomotopyEquivalence ↔
       (subtypeVal (Subtype.val ⁻¹' S : Set W)).IsWeakHomotopyEquivalence := by
-  let φ := Topology.IsEmbedding.subtypeVal.homeomorphOfSubsetRange
-    (h.trans (Subtype.range_coe (s := W)).ge)
-  have heq : inclusion h = (subtypeVal (Subtype.val ⁻¹' S : Set W)).comp (φ.symm : C(S, _)) := by
-    refine ContinuousMap.ext fun x ↦ Subtype.ext ?_
-    have := congrArg Subtype.val (φ.apply_symm_apply x)
-    rw [Topology.IsEmbedding.homeomorphOfSubsetRange_apply_coe] at this
-    exact this.symm
-  rw [heq]
-  exact ⟨fun hS ↦ .of_precomp φ.symm.isWeakHomotopyEquivalence hS,
-    fun hA ↦ hA.comp φ.symm.isWeakHomotopyEquivalence⟩
+  rw [← isWeakHomotopyEquivalence_inclusion_preimage_val_iff subset_rfl h]
+  let e : (Subtype.val ⁻¹' W : Set W) ≃ₜ W :=
+    (Homeomorph.setCongr (Subtype.coe_preimage_self W)).trans (Homeomorph.Set.univ W)
+  rw [← e.toHomotopyEquiv.isWeakHomotopyEquivalence.postcomp_iff]
+  rfl
 
 end ContinuousMap

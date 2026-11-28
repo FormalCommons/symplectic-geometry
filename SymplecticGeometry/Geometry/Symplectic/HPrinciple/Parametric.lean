@@ -11,7 +11,7 @@ import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.WeakEquivalence
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.FreeCompression
-import SymplecticGeometry.Topology.Homotopy.Cube.Basic
+import TauCeti.Topology.Homotopy.Extension.Cube
 import SymplecticGeometry.Topology.Homotopy.Cube.ConvexExtension
 import TauCeti.Topology.Homotopy.Cube.Basic
 import Mathlib.Topology.Homotopy.Path
@@ -174,7 +174,7 @@ theorem isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass
           (mem_symplecticFormsInClass.1
             (hg (piOptionEquivProdHomeomorph_mem_prodBoundary_iff.2 hy))).2
       exact exists_homotopicWith_symplecticFormsInClass e U hU hM hcover hα
-        (Cube.isClosed_prodBoundary (Fin n)) g
+        hasHomotopyExtensionProperty_prodBoundary.isClosed g
         (b.comp φ.symm) (fun z ↦ hbC ⟨_, rfl⟩) fun z hz ↦
           (hb (piOptionEquivProdHomeomorph_symm_mem_boundary hz)).trans
             (by simp only [φ, Homeomorph.apply_symm_apply])
