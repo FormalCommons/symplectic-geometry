@@ -15,7 +15,8 @@ For `0 < u`, the bound `log (u ^ 2) ≥ 1 - 1 / u ^ 2` (`Real.one_sub_inv_le_log
 `log u ≥ (u ^ 2 - 1) / (2 * u ^ 2)` (`Real.sq_sub_one_div_le_log`), and so, for `1 < u`,
 `1 / √(log u) ≤ √2 * u / √(u ^ 2 - 1)` (`Real.one_div_sqrt_log_le`). The right side is the
 derivative of `√2 * √(u ^ 2 - 1)`, which makes integrals of `1 / √(log u)` from `1` easy to
-bound; such integrals define Struwe's shapes.
+bound; such integrals define Struwe's shapes. At `u = r / δ`, for `0 < δ < r`, the bound reads
+`1 / √(log (r / δ)) ≤ √2 * r / √(r ^ 2 - δ ^ 2)` (`Real.one_div_sqrt_log_div_le`).
 
 ## References
 
@@ -49,6 +50,14 @@ theorem one_div_sqrt_log_le {u : ℝ} (hu : 1 < u) :
         rw [sqrt_mul (by positivity), sqrt_mul (by positivity), sqrt_sq hu₀.le]
   rw [div_le_div_iff₀ (sqrt_pos.2 hL) (sqrt_pos.2 (by nlinarith))]
   linarith
+
+/-- For `0 < δ < r`, `1 / √(log (r / δ)) ≤ √2 * r / √(r ^ 2 - δ ^ 2)`. -/
+theorem one_div_sqrt_log_div_le {δ r : ℝ} (hδ : 0 < δ) (hr : δ < r) :
+    1 / √(log (r / δ)) ≤ √2 * r / √(r ^ 2 - δ ^ 2) := by
+  refine (one_div_sqrt_log_le ((one_lt_div hδ).2 hr)).trans_eq ?_
+  rw [show (r / δ) ^ 2 - 1 = (r ^ 2 - δ ^ 2) / δ ^ 2 by field_simp,
+    sqrt_div' _ (sq_nonneg δ), sqrt_sq hδ.le]
+  field_simp
 
 end Real
 

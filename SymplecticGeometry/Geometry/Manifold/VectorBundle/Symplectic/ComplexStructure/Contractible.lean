@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
 import SymplecticGeometry.Topology.Homotopy.Affine
+import SymplecticGeometry.Topology.Homotopy.Subtype
 
 /-!
 # Tame and compatible structures and forms on a vector bundle: contractibility and the polar map
@@ -37,7 +38,8 @@ structure; so it gives complex structures
 `SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.cayleyPath`, jointly continuous in `t` and
 `J` by `ContMDiffSection.continuous_fiberwiseMap`. Run backwards, it contracts the space of
 `ω`-tame structures, and the space of `ω`-compatible structures, to `J₀`, keeping `J₀` fixed
-(`Compatible.cayleyContraction` and `Compatible.compatibleCayleyContraction`).
+(`Compatible.cayleyContraction` and `Compatible.compatibleCayleyContraction`); the second is
+the restriction of the first by `ContinuousMap.HomotopyRel.restrictSubtype`.
 
 For the homotopy equivalence, `ω` and `ω_{g,J_{g,ω}}` both tame `J_{g,ω}`, so the segment between
 them stays among the nondegenerate forms. For metrics `g₀` and `g₁`, the structures `J` and
@@ -357,17 +359,10 @@ def Compatible.compatibleCayleyContraction (hcover : ∀ x, ∃ i, x ∈ U i) :
     (ContinuousMap.id {J : ContMDiffComplexStructure I n F V // ω.Compatible J}).HomotopyRel
       (ContinuousMap.const _ ⟨J₀, h₀⟩) {⟨J₀, h₀⟩} :=
   letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
-  { toFun := fun p ↦ ⟨h₀.cayleyContraction e U hU hcover (p.1, ⟨p.2, p.2.property.tames⟩),
-      h₀.compatible_cayleyPath p.2.property _⟩
-    continuous_toFun := (continuous_subtypeVal.comp
-      ((h₀.cayleyContraction e U hU hcover).continuous.comp
-        (continuous_fst.prodMk ((continuous_subtypeVal.comp continuous_snd).subtype_mk _)))
-      ).subtype_mk _
-    map_zero_left := fun J ↦ Subtype.ext (by simp)
-    map_one_left := fun J ↦ Subtype.ext (by simp)
-    prop' := fun t J hJ ↦ by
-      obtain rfl := hJ
-      exact Subtype.ext (by simp) }
+  (h₀.cayleyContraction e U hU hcover).restrictSubtype (fun _ hJ ↦ hJ.tames) h₀
+    fun t J hJ ↦ by
+      rw [h₀.cayleyContraction_apply e U hU hcover]
+      exact h₀.compatible_cayleyPath hJ _
 
 /-- The compatible Cayley contraction onto `J₀` is the Cayley contraction of the `ω`-tame
 structures, restricted to the `ω`-compatible ones. -/
@@ -376,7 +371,8 @@ theorem Compatible.coe_compatibleCayleyContraction (hcover : ∀ x, ∃ i, x ∈
     (t : unitInterval) (J : {J : ContMDiffComplexStructure I n F V // ω.Compatible J}) :
     (h₀.compatibleCayleyContraction e U hU hcover (t, J) : ContMDiffComplexStructure I n F V) =
       h₀.cayleyContraction e U hU hcover (t, ⟨J, J.property.tames⟩) :=
-  (rfl)
+  letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+  ContinuousMap.HomotopyRel.coe_restrictSubtype_apply _ _ _ _ _
 
 /-- At time `t`, the compatible Cayley contraction onto `J₀` sends an `ω`-compatible structure
 `J` to the Cayley path from `J₀` to `J` at time `1 - t`. -/
@@ -384,7 +380,8 @@ theorem Compatible.compatibleCayleyContraction_apply (hcover : ∀ x, ∃ i, x �
     (t : unitInterval) (J : {J : ContMDiffComplexStructure I n F V // ω.Compatible J}) :
     (h₀.compatibleCayleyContraction e U hU hcover (t, J) : ContMDiffComplexStructure I n F V) =
       h₀.cayleyPath J.property.tames (1 - t) :=
-  (rfl)
+  (h₀.coe_compatibleCayleyContraction e U hU hcover t J).trans
+    (h₀.cayleyContraction_apply e U hU hcover t _)
 
 end CayleyPath
 
