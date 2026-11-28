@@ -550,14 +550,14 @@ theorem contDiffOn_inverse_associatedBilinFormInChart [I.Boundaryless] (k : ℕ)
     (D.contDiffAt_associatedBilinFormInChart hw)).contDiffWithinAt
 
 /-- **Uniform bounds on the Christoffel symbols of the forms read in the charts.** On a
-boundaryless manifold, for each `r` there is a constant `C` such that for all `j ≤ r`, all
+boundaryless manifold, for each `r` there is a constant `C ≥ 0` such that for all `j ≤ r`, all
 `k ≥ k₀`, all `x` and all `w` in the ball of radius `ρ₀ * √k`, the `j`-th iterated derivative at
 `w` of the Christoffel symbols of the second kind of `g_{k,x}` has norm at most `C * (√k)⁻¹`. The
 factor `(√k)⁻¹` is there for `j = 0` too, since the Christoffel symbols are linear in the first
 derivative of the forms. -/
 theorem exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le
     [I.Boundaryless] (r : ℕ) :
-    ∃ C : ℝ, ∀ j ≤ r, ∀ k, k₀ ≤ k → ∀ (x : M), ∀ w ∈ ball (0 : StdSpace ι) (ρ₀ * √k),
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ j ≤ r, ∀ k, k₀ ≤ k → ∀ (x : M), ∀ w ∈ ball (0 : StdSpace ι) (ρ₀ * √k),
       ‖iteratedFDeriv ℝ j (Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) w‖ ≤
         C * (√k)⁻¹ := by
   -- A bound on the `i`-th derivative of the inverses, valid on the balls for all `k ≥ 1`.
@@ -567,8 +567,11 @@ theorem exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInCh
   have hA0 (i : ℕ) : 0 ≤ A i := by simp only [A]; split_ifs <;> positivity
   let M₁ := ∑ i ∈ Finset.range (r + 1), A i
   let M₂ := ∑ m ∈ Finset.range (r + 1), |D.bound (m + 1)|
+  have hM₁ : 0 ≤ M₁ := Finset.sum_nonneg fun i _ ↦ hA0 i
+  have hM₂ : 0 ≤ M₂ := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
   refine ⟨christoffelSecondKindOfJetBilinNorm (StdSpace ι) * 2 ^ r * M₁ * M₂,
-    fun j hj k hk x w hw ↦ ?_⟩
+    mul_nonneg (mul_nonneg (mul_nonneg (christoffelSecondKindOfJetBilinNorm_nonneg _)
+      (by positivity)) hM₁) hM₂, fun j hj k hk x w hw ↦ ?_⟩
   have hwt := D.ball_subset_target hk x hw
   have hk0 : 0 < √k := (Real.sqrt_nonneg _).lt_of_ne fun h ↦ by
     simpa [← h] using pos_of_mem_ball hw
@@ -601,8 +604,6 @@ theorem exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInCh
             ((D.chart k x).open_target.mem_nhds hwt)) (by exact_mod_cast le_top)
           (fun _ hi ↦ hinv hi) fun _ hm ↦ hder hm
     _ ≤ christoffelSecondKindOfJetBilinNorm (StdSpace ι) * 2 ^ r * M₁ * (M₂ * (√k)⁻¹) := by
-        have hM₁ : 0 ≤ M₁ := Finset.sum_nonneg fun i _ ↦ hA0 i
-        have hM₂ : 0 ≤ M₂ := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
         exact mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left
           (pow_le_pow_right₀ one_le_two hj) (christoffelSecondKindOfJetBilinNorm_nonneg _)) hM₁)
           (mul_nonneg hM₂ (inv_nonneg.2 hk0.le))
@@ -839,22 +840,22 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
     ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
       w ∈ D.chartTransitionDomain k x y → ‖fderiv ℝ (D.chartTransition k x y) w‖ ≤ B →
       ∀ j, 1 ≤ j → j ≤ r → ‖iteratedFDeriv ℝ j (D.chartTransition k x y) w‖ ≤ C := by
-  obtain ⟨CΓ, hCΓ⟩ :=
+  obtain ⟨CΓ, hCΓ0, hCΓ⟩ :=
     D.exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le r
   have : ProperSpace (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) :=
     FiniteDimensional.proper_real (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι)
   have : ProperSpace (StdSpace ι →L[ℝ] StdSpace ι) :=
     FiniteDimensional.proper_real (StdSpace ι →L[ℝ] StdSpace ι)
-  set R := max |CΓ| B
+  set R := max CΓ B
   -- Sets of norm at most `R` rather than closed balls: the closed ball's centre `0` cannot be
   -- matched with the zero that `mem_closedBall_zero_iff` expects in these spaces of maps.
   have hRc {V : Type _} [NormedAddCommGroup V] [ProperSpace V] : IsCompact {G : V | ‖G‖ ≤ R} :=
     Metric.isCompact_of_isClosed_isBounded (isClosed_le continuous_norm continuous_const)
       (isBounded_iff_forall_norm_le.2 ⟨R, fun _ h ↦ h⟩)
-  obtain ⟨K, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq (r := r)
+  obtain ⟨K, hK0, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq (r := r)
     ((contDiff_koszulRHS (ι := ι)).of_le (by simp))
     (hRc.prod (hRc.prod hRc)) R
-  refine ⟨max K 0, le_max_right _ _, fun {k} hk x y w hw hB j hj₁ hj ↦ ?_⟩
+  refine ⟨K, hK0, fun {k} hk x y w hw hB j hj₁ hj ↦ ?_⟩
   obtain ⟨hwB, hws, hτB⟩ := D.mem_chartTransitionDomain_iff.1 hw
   have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hws).1
   have hτt : D.chartTransition k x y w ∈ (D.chart k x).target := by
@@ -870,7 +871,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
       ‖iteratedFDeriv ℝ i (Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x'))
         w‖ ≤ R :=
     calc _ ≤ CΓ * (√k)⁻¹ := hCΓ i hi k hk x' w hw
-      _ ≤ |CΓ| * 1 := by gcongr; exact le_abs_self _
+      _ ≤ CΓ * 1 := mul_le_mul_of_nonneg_left hk1 hCΓ0
       _ ≤ R := by rw [mul_one]; exact le_max_left _ _
   refine (hK (τ := D.chartTransition k x y)
     (a := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y))
@@ -880,8 +881,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
       ((D.chart k y).open_target.mem_nhds hwt)).of_le (by simp))
     (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k x).contDiffAt
       ((D.chart k x).open_target.mem_nhds hτt)).of_le (by simp))
-    ?_ ?_ (fun i _ hi ↦ hΓ y hwB i hi) (fun i _ hi ↦ hΓ x hτB i hi) j hj₁ (by omega)).trans
-    (le_max_left _ _)
+    ?_ ?_ (fun i _ hi ↦ hΓ y hwB i hi) (fun i _ hi ↦ hΓ x hτB i hi) j hj₁ (by omega))
   · filter_upwards [(D.chartTransition k x y).open_source.mem_nhds hws] with w hw
     rw [koszulRHS_apply]
     exact D.fderiv_fderiv_chartTransition hJ hk hw
