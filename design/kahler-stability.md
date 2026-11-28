@@ -975,13 +975,6 @@ proof that needs it as a `Submodule` builds it there.
   `momentWeight_expI_smul_of_lie_eq_zero`, hence for `y ∈ K` by continuity.
   The map `(y, ξ) ↦ μ y ξ` is continuous (`𝔤` is finite-dimensional), so
   `IsCompact.continuous_sInf` gives continuity.
-- `exists_pow_mem_of_mem_nhds_one` (`Topology/Algebra/Group/Recurrence.lean`,
-  with its additive version): in a compact topological group, every
-  neighbourhood of `1` contains `g ^ n` for some `n > 0`. Proof: the powers
-  `g ^ n` have a cluster point, so two of them, `g ^ k` and `g ^ l` with
-  `k < l`, lie in one translate `x * W` of a neighbourhood `W` with
-  `W⁻¹ * W ⊆ V`. No such lemma turned up in Mathlib or Tau Ceti at the
-  pinned versions; its building issue searches again first.
 - `mem_closure_smul_nonzeroPeriods` (`Geometry/Lie/Exponential/Periods.lean`):
   for compact `G` and `ξ ≠ 0`, `ξ` lies in the closure of the positive
   multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof,
@@ -991,7 +984,7 @@ proof that needs it as a `Submodule` builds it there.
   source of `mulInvariantExpOpenPartialHomeomorph` and inside a set on
   which `mulInvariantExp` is injective
   (`exists_injOn_mulInvariantExp_modelSpace`), its image is a neighbourhood
-  of `1`, so by `exists_pow_mem_of_mem_nhds_one` some `m ≥ 1` has
+  of `1`, so by Mathlib's `mapClusterPt_one_atTop_pow` some `m ≥ 1` has
   `mulInvariantExp (m • ξ) = mulInvariantExp η` with `|η| < δ`. For `ζ'`
   commuting with `ξ`, `h = mulInvariantExp (s • ζ')` commutes with
   `mulInvariantExp (m • ξ)` (`commute_lieExp_of_lie_eq_zero`), so
@@ -1153,8 +1146,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
     2. `hasDerivAt_moment_apply_expI`, `momentWeight_smul`,
        `momentWeight_expI_smul_of_lie_eq_zero` and
        `continuousOn_momentWeight`. No blockers.
-    3. `exists_pow_mem_of_mem_nhds_one` and
-       `mem_closure_smul_nonzeroPeriods`. No blockers.
+    3. `mem_closure_smul_nonzeroPeriods`. No blockers.
     4. `isSemistable_of_iInf_momentNormSq_smul_eq_zero` and
        `exists_momentWeight_pos_of_iInf_momentNormSq_pos`. Blocked by 12.1
        and by the slope identity (#7892).
