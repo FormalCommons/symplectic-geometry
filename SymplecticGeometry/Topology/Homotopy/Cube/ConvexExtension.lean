@@ -8,77 +8,70 @@ module
 public import Mathlib.Analysis.Convex.Basic
 public import Mathlib.Topology.Algebra.MulAction
 public import Mathlib.Topology.Homotopy.HomotopyGroup
-import SymplecticGeometry.Topology.Homotopy.Cube.Radius
+import TauCeti.Topology.Homotopy.Extension.Cube
 
 /-!
-# Extending maps from the boundary of a cube into a convex set
+# Extending maps from the boundary of a cube into a star-convex set
 
-A map from the boundary of the cube `I^N` into a convex subset `C` of a real topological vector
-space extends to a continuous map on the whole cube with values in `C`. The extension is a cone
-from the centre of the cube: with `ρ = TauCeti.cubeRadius` the normalized sup-distance from the
-centre and `r z = TauCeti.cubeScale (ρ z)⁻¹ z` the radial projection onto the boundary, it is
-`z ↦ ψ z • f (r z) + (1 - ψ z) • c`, where `c ∈ C` is fixed and `ψ = max 0 (2 ρ - 1)`. The
-weight `ψ` takes values in `[0, 1]`, is `1` on the boundary and vanishes where `ρ ≤ 1 / 2`, so
-the extension is constant near the centre, where the radial projection is undefined.
+A map from the boundary of the cube `I^N` into a set `C` of a real topological vector space that
+is star-convex about a point `c ∈ C` extends to a continuous map on the whole cube with values
+in `C`. The straight-line homotopy `(t, z) ↦ (1 - t) • c + t • f z` on `I × Cube.boundary N`
+starts at the constant map `c` and takes values in `C`. Since the boundary of the cube has the
+homotopy extension property (`TauCeti.hasHomotopyExtensionProperty_cubeBoundary`), it extends
+to a homotopy `I × I^N → C` that starts at the constant map, and its end is the extension.
 
 ## Main results
 
-* `Convex.exists_continuousMap_eqOn_cubeBoundary`: for `C` convex and nonempty, every map that is
-  continuous on `Cube.boundary N` and sends it into `C` agrees there with a continuous map
-  `I^N → V` with range in `C`.
-* `Convex.exists_continuousMap_eqOn_cubeBoundary_of_nonempty`: the same for a nonempty index type
-  `N`, where `C` is nonempty because it contains the image of the boundary.
+* `StarConvex.exists_continuousMap_eqOn_cubeBoundary`: for `C` star-convex about `c ∈ C`, every
+  map that is continuous on `Cube.boundary N` and sends it into `C` agrees there with a
+  continuous map `I^N → V` with range in `C`.
+* `Convex.exists_continuousMap_eqOn_cubeBoundary`: the same for `C` convex and nonempty.
+* `Convex.exists_continuousMap_eqOn_cubeBoundary_of_nonempty`: the same for `C` convex and a
+  nonempty index type `N`, where `C` is nonempty because it contains the image of the boundary.
 -/
 
 public section
 
-open Set Filter TauCeti
+open Set TauCeti
 open scoped unitInterval Topology
-
-namespace Convex
 
 variable {V : Type*} [AddCommMonoid V] [Module ℝ V] [TopologicalSpace V] [ContinuousAdd V]
   [ContinuousSMul ℝ V] {N : Type*} [Finite N] {C : Set V} {f : (I^N) → V}
+
+namespace StarConvex
+
+/-- A map `f` that is continuous on the boundary of the cube `I^N` and sends it into a set `C`
+that is star-convex about a point `c ∈ C` agrees on the boundary with a continuous map
+`g : I^N → V` whose range lies in `C`. -/
+theorem exists_continuousMap_eqOn_cubeBoundary {c : V} (hC : StarConvex ℝ c C) (hc : c ∈ C)
+    (hf : ContinuousOn f (Cube.boundary N)) (hfC : MapsTo f (Cube.boundary N) C) :
+    ∃ g : C(I^N, V), EqOn g f (Cube.boundary N) ∧ range g ⊆ C := by
+  have hfc : Continuous fun p : I × Cube.boundary N ↦ f p.2 := hf.domRestrict.comp continuous_snd
+  have ht : Continuous fun p : I × Cube.boundary N ↦ (p.1 : ℝ) := by fun_prop
+  let H : C(I × Cube.boundary N, C) :=
+    ⟨fun p ↦ ⟨(1 - (p.1 : ℝ)) • c + (p.1 : ℝ) • f p.2,
+      hC (hfC p.2.property) (sub_nonneg.2 p.1.property.2) p.1.property.1 (sub_add_cancel _ _)⟩,
+      (((continuous_const.sub ht).smul continuous_const).add (ht.smul hfc)).subtype_mk _⟩
+  obtain ⟨G, -, hG⟩ := hasHomotopyExtensionProperty_cubeBoundary.exists_extension_of_isClosed
+    Cube.isClosed_boundary (ContinuousMap.const _ ⟨c, hc⟩) H fun z ↦ by ext; simp [H]
+  refine ⟨⟨fun z ↦ G (1, z), by fun_prop⟩, fun z hz ↦ ?_, ?_⟩
+  · simpa [H] using congrArg Subtype.val (hG 1 ⟨z, hz⟩)
+  · rintro _ ⟨z, rfl⟩
+    exact (G (1, z)).property
+
+end StarConvex
+
+namespace Convex
 
 /-- A map `f` that is continuous on the boundary of the cube `I^N` and sends it into a nonempty
 convex set `C` agrees on the boundary with a continuous map `g : I^N → V` whose range lies
 in `C`. -/
 theorem exists_continuousMap_eqOn_cubeBoundary (hC : Convex ℝ C) (hC₀ : C.Nonempty)
     (hf : ContinuousOn f (Cube.boundary N)) (hfC : MapsTo f (Cube.boundary N) C) :
-    ∃ g : C(I^N, V), EqOn g f (Cube.boundary N) ∧ range g ⊆ C := by
-  have := Fintype.ofFinite N
-  obtain ⟨c, hc⟩ := hC₀
-  set ψ : (I^N) → ℝ := fun z ↦ max 0 (2 * cubeRadius z - 1)
-  have hψc : Continuous ψ :=
-    continuous_const.max ((continuous_const.mul continuous_cubeRadius).sub continuous_const)
-  have hψ₀ {z : I^N} (hz : cubeRadius z ≤ 1 / 2) : ψ z = 0 := max_eq_left (by linarith)
-  set g : (I^N) → V := fun z ↦ ψ z • f (cubeScale (cubeRadius z)⁻¹ z) + (1 - ψ z) • c
-  have hgc : Continuous g := by
-    refine continuous_iff_continuousAt.2 fun z ↦ ?_
-    by_cases hz : cubeRadius z = 0
-    · have hlt : ∀ᶠ y in 𝓝 z, cubeRadius y < 1 / 2 :=
-        continuous_cubeRadius.continuousAt.eventually (gt_mem_nhds (by rw [hz]; norm_num))
-      refine (continuousAt_const (y := c)).congr (Filter.EventuallyEq.symm ?_)
-      filter_upwards [hlt] with y hy
-      simp [g, hψ₀ hy.le]
-    · have hopen : IsOpen {y : I^N | cubeRadius y ≠ 0} :=
-        isOpen_ne_fun continuous_cubeRadius continuous_const
-      have hfr : ContinuousOn (fun y ↦ f (cubeScale (cubeRadius y)⁻¹ y))
-          {y | cubeRadius y ≠ 0} :=
-        hf.comp continuousOn_cubeScale_inv_cubeRadius
-          fun _ hy ↦ cubeScale_inv_cubeRadius_mem_boundary hy
-      exact ((hψc.continuousOn.smul hfr).add ((continuous_const.sub hψc).continuousOn.smul
-        continuousOn_const)).continuousAt (hopen.mem_nhds hz)
-  refine ⟨⟨g, hgc⟩, fun z hz ↦ ?_, ?_⟩
-  · have h1 : cubeRadius z = 1 := (cubeRadius_eq_one_iff z).2 hz
-    have hψ1 : ψ z = 1 := by norm_num [ψ, h1]
-    simp [g, hψ1, h1, cubeScale_one]
-  · rintro _ ⟨z, rfl⟩
-    by_cases hz : cubeRadius z = 0
-    · simpa [g, hψ₀ (hz.le.trans (by norm_num))] using hc
-    · have hψ1 : ψ z ≤ 1 := max_le zero_le_one (by linarith [cubeRadius_le_one z])
-      exact hC (hfC (cubeScale_inv_cubeRadius_mem_boundary hz)) hc (le_max_left _ _)
-        (by linarith) (by ring)
+    ∃ g : C(I^N, V), EqOn g f (Cube.boundary N) ∧ range g ⊆ C :=
+  let ⟨_, hc⟩ := hC₀
+  (hC hc).exists_continuousMap_eqOn_cubeBoundary hc hf hfC
+
 
 /-- For a nonempty index type `N`, a map `f` that is continuous on the boundary of the cube `I^N`
 and sends it into a convex set `C` agrees on the boundary with a continuous map `g : I^N → V`
