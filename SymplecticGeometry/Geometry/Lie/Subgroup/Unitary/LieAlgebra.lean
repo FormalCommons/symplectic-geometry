@@ -51,6 +51,8 @@ and `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv` is assembled as
 
 ## Main definitions and results
 
+* The scope `TauCeti.Lie.MatrixUnitary`: the instances on matrices under which
+  `unitarySubgroup (GL n ℂ)` is a Lie group, and the notation `𝔨[n]` for its model space.
 * `TauCeti.Lie.unitsLieAlgebraLieEquiv_map_lieSubalgebraOfSubgroup_unitarySubgroup`: in algebra
   coordinates, the Lie algebra of `unitarySubgroup (GL n ℂ)` is `unitaryLieAlgebra n`.
 * `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv`: the Lie algebra of the matrix unitary Lie group is
@@ -78,16 +80,31 @@ open scoped ContDiff Manifold Matrix Matrix.Norms.Operator
 
 namespace TauCeti.Lie
 
--- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
-attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
-attribute [local instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-attribute [local instance 100] LieRing.ofAssociativeRing
+/-! ### The setting of the matrix unitary Lie group
 
-/-- The model vector space of the matrix unitary Lie group: its Lie algebra inside the Lie
-algebra of `GL n ℂ`. -/
-local notation "𝔨[" n "]" => LieSubalgebra.toSubmodule
+The scope `TauCeti.Lie.MatrixUnitary` holds what a statement about the Lie group
+`unitarySubgroup (GL n ℂ)` needs besides `Matrix.Norms.Operator`: the instances on matrices for
+which Tau Ceti builds `matrixUnitaryLieGroup`, and the notation `𝔨[n]` for its model vector
+space. Other files open both, with `open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary`.
+-/
+
+namespace MatrixUnitary
+
+-- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
+attribute [scoped instance] NormedAddCommGroup.toSeminormedAddCommGroup
+attribute [scoped instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
+attribute [scoped instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+/-- The model vector space of the matrix unitary Lie group `unitarySubgroup (GL n ℂ)`: its Lie
+algebra inside the Lie algebra of `GL n ℂ`. -/
+scoped notation "𝔨[" n "]" => LieSubalgebra.toSubmodule
   (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n ℂ)) (unitarySubgroup (GL n ℂ)))
+
+end MatrixUnitary
+
+open scoped MatrixUnitary
+
+attribute [local instance 100] LieRing.ofAssociativeRing
 
 /-- Tau Ceti's closed-subgroup data of the matrix unitary group, whose charts and Lie group
 structure are `matrixUnitaryChartedSpace` and `matrixUnitaryLieGroup`. -/

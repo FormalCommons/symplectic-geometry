@@ -44,13 +44,9 @@ matrices followed by the continuous linear map `A ↦ A *ᵥ y`, whose different
 public section
 
 open Manifold
-open scoped ContDiff Manifold Matrix Matrix.Norms.Operator
+open scoped ContDiff Manifold Matrix Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
 
 namespace TauCeti.Lie
-
--- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
-attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
-attribute [local instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
 
 variable {n 𝕜 : Type*} [Fintype n] [DecidableEq n] [RCLike 𝕜]
 
