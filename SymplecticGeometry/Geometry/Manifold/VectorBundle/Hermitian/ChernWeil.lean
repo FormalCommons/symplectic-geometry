@@ -19,6 +19,7 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.RealCohomology
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Projectivization
 import TauCeti.Geometry.Sphere.Connected
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 
