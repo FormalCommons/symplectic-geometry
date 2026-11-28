@@ -334,7 +334,7 @@ theorem exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends
   · simp [h₀, h₁]
   · convert add_mem h₀α (Submodule.smul_mem _ s (sub_mem h₁α h₀α)) using 1
     simp only [id]
-    abel
+    module
   · rintro t (rfl | rfl) <;> simp
 
 end SymplecticGeometry
