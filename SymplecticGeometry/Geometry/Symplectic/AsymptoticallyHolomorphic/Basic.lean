@@ -207,6 +207,12 @@ theorem reading_sub (k : ℕ) (x : M) (s t : Π y, PowerBundle P k y) :
   ext z
   simp only [reading_def, Pi.sub_apply, map_sub]
 
+@[simp]
+theorem reading_sum {κ : Type*} (k : ℕ) (x : M) (t : Finset κ) (s : κ → Π y, PowerBundle P k y) :
+    D.reading k x (∑ i ∈ t, s i) = ∑ i ∈ t, D.reading k x (s i) := by
+  ext z
+  simp only [reading_def, Finset.sum_apply, map_sum]
+
 /-- The reading has the norm of the section: at `z`, it is `‖s ((D.chart k x).symm z)‖`. -/
 @[simp]
 theorem norm_reading (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
