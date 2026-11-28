@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.Geometry.Diffeomorphism.Group
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Radial
+import SymplecticGeometry.Geometry.Diffeomorphism.SmoothFamily
 
 /-!
 # Cutting off a homotopy of clutching maps along the collar of a coordinate disc
@@ -119,12 +120,6 @@ theorem exists_contMDiffOn_cutoff_homotopy (φ : CoordinateDisc o)
     have hmaps : MapsTo (fun p : M × F ↦ ((c p.1, p.1), p.2)) (A ×ˢ univ)
         ((Icc 0 1 ×ˢ A) ×ˢ univ) := fun p hp ↦ ⟨⟨hc01 _, hp.1⟩, trivial⟩
     exact ⟨hh.comp hg hmaps, hh'.comp hg hmaps⟩
-  -- The product of two families that are smooth on `A × F` is smooth there.
-  have hmul (f g : M → TauCeti.Diff IF F N)
-      (hf : ContMDiffOn (I.prod IF) IF n (fun p : M × F ↦ f p.1 p.2) (A ×ˢ univ))
-      (hg : ContMDiffOn (I.prod IF) IF n (fun p : M × F ↦ g p.1 p.2) (A ×ˢ univ)) :
-      ContMDiffOn (I.prod IF) IF n (fun p : M × F ↦ (f p.1 * g p.1) p.2) (A ×ˢ univ) :=
-    hf.comp (contMDiffOn_fst.prodMk hg) fun p hp ↦ ⟨hp.1, trivial⟩
   obtain ⟨hχs, hχs'⟩ := hfam (hχ.mono hAr) hχ01
   obtain ⟨h0s, h0s'⟩ := hfam (c := fun _ ↦ 0) contMDiffOn_const fun _ ↦ ⟨le_rfl, zero_le_one⟩
   -- The map `k`: `h (χ x) x * (h 0 x)⁻¹` on `A'`, and `1` elsewhere.
@@ -148,30 +143,28 @@ theorem exists_contMDiffOn_cutoff_homotopy (φ : CoordinateDisc o)
   have hAo : IsOpen A := hopen ((isOpen_lt continuous_const continuous_subtypeVal.norm).inter
     (isOpen_lt continuous_subtypeVal.norm continuous_const))
   have hUo : IsOpen U := hopen (isOpen_lt continuous_subtypeVal.norm continuous_const)
-  -- Smoothness on the disc, from smoothness on `U` and on `A`, which cover it.
-  have hcover (x : M) (hx : x ∈ φ '' {z | ‖(z : ℂ)‖ < b}) : x ∈ U ∨ x ∈ A := by
-    obtain ⟨z, hz, rfl⟩ := hx
+  -- Smoothness on the disc, from smoothness on the open sets `U` and `A`, which cover it.
+  have hcover : (φ '' {z | ‖(z : ℂ)‖ < b}) ×ˢ (univ : Set F) ⊆ U ×ˢ univ ∪ A ×ˢ univ := by
+    rintro ⟨_, v⟩ ⟨⟨z, hz, rfl⟩, -⟩
     by_cases hza : ‖(z : ℂ)‖ < a'
-    · exact Or.inl ⟨z, hza, rfl⟩
-    · exact Or.inr ⟨z, ⟨by linarith [not_lt.1 hza], hz⟩, rfl⟩
-  have hlocal {G : M → TauCeti.Diff IF F N} (hGU : ∀ x ∈ U, G x = 1)
+    · exact Or.inl ⟨⟨z, hza, rfl⟩, trivial⟩
+    · exact Or.inr ⟨⟨z, ⟨by linarith [not_lt.1 hza], hz⟩, rfl⟩, trivial⟩
+  have hlocal {G : M → TauCeti.Diff IF F N} (hGU : EqOn G 1 U)
       (hGA : ContMDiffOn (I.prod IF) IF n (fun p : M × F ↦ G p.1 p.2) (A ×ˢ univ)) :
       ContMDiffOn (I.prod IF) IF n (fun p : M × F ↦ G p.1 p.2)
-        ((φ '' {z | ‖(z : ℂ)‖ < b}) ×ˢ univ) := by
-    refine contMDiffOn_of_locally_contMDiffOn fun p hp ↦ ?_
-    rcases hcover p.1 hp.1 with hpU | hpA
-    · refine ⟨U ×ˢ univ, hUo.prod isOpen_univ, ⟨hpU, trivial⟩, ?_⟩
-      refine (contMDiffOn_snd.congr fun q hq ↦ ?_).mono inter_subset_right
-      rw [hGU q.1 hq.1, Diffeomorph.one_apply]
-    · exact ⟨A ×ˢ univ, hAo.prod isOpen_univ, ⟨hpA, trivial⟩, hGA.mono inter_subset_right⟩
-  refine ⟨k, hlocal (G := fun x ↦ k x) (fun x hx ↦ by rw [hkU x hx, Subgroup.coe_one]) ?_,
-    hlocal (G := fun x ↦ ((k x)⁻¹ : K)) (fun x hx ↦ by rw [hkU x hx, inv_one, Subgroup.coe_one])
-      ?_, hk1, fun z hz₁ hz₂ ↦ ?_⟩
-  · refine (hmul (fun x ↦ h (χ x) x) (fun x ↦ (h 0 x : TauCeti.Diff IF F N)⁻¹) hχs
-      h0s').congr fun q hq ↦ ?_
+        ((φ '' {z | ‖(z : ℂ)‖ < b}) ×ˢ univ) :=
+    ((Diffeomorph.contMDiffOn_apply_of_eqOn_one hGU).union_of_isOpen hGA
+      (hUo.prod isOpen_univ) (hAo.prod isOpen_univ)).mono hcover
+  refine ⟨k, hlocal (G := fun x ↦ k x)
+      (fun x hx ↦ by simp only [hkU x hx, Subgroup.coe_one, Pi.one_apply]) ?_,
+    hlocal (G := fun x ↦ ((k x)⁻¹ : K))
+      (fun x hx ↦ by simp only [hkU x hx, inv_one, Subgroup.coe_one, Pi.one_apply]) ?_, hk1,
+    fun z hz₁ hz₂ ↦ ?_⟩
+  · refine (Diffeomorph.contMDiffOn_mul_apply (f := fun x ↦ h (χ x) x)
+      (g := fun x ↦ (h 0 x : TauCeti.Diff IF F N)⁻¹) hχs h0s').congr fun q hq ↦ ?_
     rw [hkA q.1 hq.1, Subgroup.coe_mul, Subgroup.coe_inv]
-  · refine (hmul (fun x ↦ h 0 x) (fun x ↦ (h (χ x) x : TauCeti.Diff IF F N)⁻¹) h0s
-      hχs').congr fun q hq ↦ ?_
+  · refine (Diffeomorph.contMDiffOn_mul_apply (f := fun x ↦ h 0 x)
+      (g := fun x ↦ (h (χ x) x : TauCeti.Diff IF F N)⁻¹) h0s hχs').congr fun q hq ↦ ?_
     rw [hkA q.1 hq.1, mul_inv_rev, inv_inv, Subgroup.coe_mul, Subgroup.coe_inv]
   · rw [hkA _ ⟨z, ⟨by linarith, hz₂⟩, rfl⟩, hχ1 z hz₁]
 
