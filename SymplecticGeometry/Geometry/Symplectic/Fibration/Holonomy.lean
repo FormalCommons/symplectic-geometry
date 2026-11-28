@@ -660,27 +660,43 @@ theorem val_mfderiv_transportedCylinder_eq_zero {τ : SmoothTwoForm IM M}
 two-form on `M` whose horizontal spaces form the connection `D` of a proper `C^(n+1)` map,
 `1 ≤ n`, and `Δ` a `C^(n+1)` family with `Δ (s, 0)` in the base set of `e`. For the slice
 `u (t, θ) = C (s, t, θ)` of the transported cylinder, the integrand
-`τ (u q) (∂₁u q, ∂₂u q)` of its `τ`-area vanishes at every `q` where `C` is differentiable at
-`(s, q)`. -/
+`τ (u q) (∂₁u q, ∂₂u q)` of its `τ`-area vanishes at every `q`. -/
 theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
     (hτ : SmoothTwoForm.horizontalDistribution IB proj τ = D) (hn : 1 ≤ n)
     (hf : ContMDiff IM IB (n + 1) proj) (hfp : IsProperMap proj)
     (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB (n + 1) Δ) {s : ℝ} (hs : Δ (s, 0) ∈ e.baseSet)
-    {q : ℝ × ℝ}
-    (hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, q)) :
+    (q : ℝ × ℝ) :
     τ.val (hD.transportedCylinder e Δ c (s, q))
       ![mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (1, 0),
         mfderiv 𝓘(ℝ, ℝ × ℝ) IM (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) q (0, 1)] = 0 := by
-  have hι : HasMFDerivAt 𝓘(ℝ, ℝ × ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun q' : ℝ × ℝ ↦ (s, q')) q
-      (ContinuousLinearMap.inr ℝ ℝ (ℝ × ℝ)) :=
-    hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_right s q)
-  have hcomp := (hC.hasMFDerivAt.comp q hι).mfderiv
-  simp only [comp_def] at hcomp
-  rw [hcomp]
-  -- The derivatives are now `dC ∘ inr` at `(1, 0)` and `(0, 1)`, that is `dC` at `(0, 1, 0)` and
-  -- `(0, 0, 1)`; `ContinuousLinearMap.comp_apply` misses them, as the arguments are typed as
-  -- tangent vectors.
-  exact hD.val_mfderiv_transportedCylinder_eq_zero hτ hn hf hfp hΔ (p := (s, q)) hs
+  subst hτ
+  obtain ⟨t, θ⟩ := q
+  by_cases hu : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ) IM
+    (fun q' ↦ hD.transportedCylinder e Δ c (s, q')) (t, θ)
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hu]
+    exact SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
+      (IB := IB) (proj := proj) (Submodule.zero_mem _) (LinearMap.ker _).zero_mem
+  refine SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker (IB := IB)
+    (proj := proj) ?_ ?_
+  · rw [← hu.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ (r, θ))
+      ((hasDerivAt_id t).prodMk (hasDerivAt_const t θ)), Manifold.curveVelocity_apply]
+    exact (hD.isHorizontalMap_transportedCylinder hn hf hfp hΔ hs θ).mfderiv_mem t 1
+  · have hproj : MDifferentiableAt IM IB proj (hD.transportedCylinder e Δ c (s, t, θ)) :=
+      (hf.mdifferentiable (by simp)).mdifferentiableAt
+    -- Along the line through `(t, θ)` in the direction of `θ`, the projection of the slice is
+    -- constant.
+    have h := mfderiv_apply_eq_zero_of_const_line (I := IB)
+      (f := proj ∘ fun q' ↦ hD.transportedCylinder e Δ c (s, q'))
+      (z := (t, θ)) (w := (0, 1)) fun r ↦ by
+        have hr : (t, θ) + r • ((0 : ℝ), (1 : ℝ)) = (t, θ + r) := by
+          ext <;> simp
+        rw [hr, comp_apply, comp_apply, hD.proj_transportedCylinder hn hf hfp hΔ hs,
+          hD.proj_transportedCylinder hn hf hfp hΔ hs]
+    rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+    -- As in `mfderiv_transportedCylinder_apply_mem_ker`, `h` and the chain rule type `(0, 1)`
+    -- differently, so `rw` does not match them.
+    exact (mfderiv_comp_apply (t, θ) hproj hu _).symm.trans h
 
 end TransportedCylinder
 
