@@ -778,7 +778,7 @@ theorem exists_mem_stableSet_of_isCompact [T2Space M] (hX : IsGradientLike f X)
     (hb : ∀ t, 0 ≤ t → f (Φ t x) ≤ b) :
     ∃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b, x ∈ Φ.stableSet p := by
   obtain ⟨p, hp, hlim⟩ := exists_tendsto_atTop_of_setOf_mapClusterPt_subset hK
-    (Φ.continuous continuous_id continuous_const).continuousOn
+    (Φ.continuous_eval_const x).continuousOn
     (hX.mapsTo_flow_Ici_preimage_Icc (hΦ x) (fun _ ↦ hf _) hx hb) hfin
     (hX.exists_mapClusterPt_atTop_of_isCompact hΦ hf hK hx hb).2
   exact ⟨p, hp, Flow.mem_stableSet.2 hlim⟩
