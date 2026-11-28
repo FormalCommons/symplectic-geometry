@@ -27,8 +27,9 @@ are `C^n` near `x`.
 
 No new implicit function argument is needed. The hitting time carries the points near `x` into the
 level (`TauCeti.eventually_flowHittingTime`), and on an orbit that meets the level at most once the
-crossing time is the only time spent on the level (`Flow.apply_flow_levelCrossingTime`). Tau
-Ceti's `TauCeti.contMDiffAt_flowHittingTime` and `TauCeti.contMDiffAt_flowOf_comp` then give the
+crossing time is the only time spent on the level (`Flow.levelCrossingTime_eq_of_subsingleton`,
+from Tau Ceti's `Flow.apply_flow_levelCrossingTime`). Tau Ceti's
+`TauCeti.contMDiffAt_flowHittingTime` and `TauCeti.contMDiffAt_flowOf_comp` then give the
 smoothness. In finite dimension, the same eventual equality identifies the map to the level near `x`
 with Tau Ceti's transition `TauCeti.flowTransition v g T x`, so the kernel of its derivative at `x`
 is the line through `v x`: it contains `v x` by `TauCeti.mfderiv_flowTransition_apply_eq_zero`,
@@ -44,6 +45,8 @@ are then `C^n` on that open set.
 
 ## Main results
 
+* `Flow.levelCrossingTime_eq_of_subsingleton`: on an orbit that meets the level at most once,
+  the crossing time is the time at which it meets it.
 * `TauCeti.levelCrossingTime_eventuallyEq_flowHittingTime`: near a point whose orbit crosses the
   level transversally, the crossing time is the hitting time of the level.
 * `TauCeti.ker_mfderiv_flow_levelCrossingTime`: in finite dimension, the derivative of the map to
@@ -69,6 +72,19 @@ public section
 
 open Filter
 open scoped ContDiff Manifold Topology
+
+namespace Flow
+
+/-- **The crossing time on an orbit that meets the level once.** If the orbit of `x` under the
+flow `φ` lies on the level `{f = c}` at the time `t`, and at no other time, then
+`Flow.levelCrossingTime φ f c x = t`. Unlike `Flow.eq_levelCrossingTime_iff`, this does not ask
+`f` to be strictly decreasing along the orbit. -/
+theorem levelCrossingTime_eq_of_subsingleton {X : Type*} [TopologicalSpace X] {φ : Flow ℝ X}
+    {f : X → ℝ} {c t : ℝ} {x : X} (hsub : {s | f (φ s x) = c}.Subsingleton)
+    (ht : f (φ t x) = c) : levelCrossingTime φ f c x = t :=
+  hsub (apply_flow_levelCrossingTime ⟨t, ht⟩) ht
+
+end Flow
 
 namespace TauCeti
 
@@ -120,7 +136,7 @@ theorem levelCrossingTime_eventuallyEq_flowHittingTime
   filter_upwards [eventually_flowHittingTime hv (hcomplete.mem_flowDomain T x) hg hgv, huniq]
     with y hy huniq_y
   have hyc : g (Φ (flowHittingTime v g T x y) y) = c := by rw [← hc, ← hΦ, hy.2]
-  exact huniq_y (Flow.apply_flow_levelCrossingTime ⟨_, hyc⟩) hyc
+  exact Flow.levelCrossingTime_eq_of_subsingleton huniq_y hyc
 
 /-- **The kernel of the derivative of the map to the level.** Let `v` be a complete `C¹` field on a
 finite-dimensional manifold, with flow `Φ`, and let the orbits through a neighbourhood of `x` meet
