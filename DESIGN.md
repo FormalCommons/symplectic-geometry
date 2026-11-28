@@ -3163,7 +3163,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 ### 44. Kähler stability (needs `design/kahler-stability.md`)
 
-- **Files:** `Geometry/Lie/Complexification.lean`
+- **Files:** `Geometry/Lie/Complexification/`
   (the complexification $G^{\mathbb C}$ of a compact connected Lie group,
   given as data with the decomposition
   $G^{\mathbb C}=\exp(i\mathfrak g)G$), and in

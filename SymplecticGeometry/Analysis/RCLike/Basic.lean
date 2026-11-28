@@ -19,8 +19,8 @@ arguments are instantiated by unification, that nested search exceeds Lean's def
 
 This happens in files that obtain `LieGroup I (minSmoothness ℝ 3) G` from `LieGroup I ∞ G`
 through Tau Ceti's local instance `LieGroup.minSmoothness_of_isRCLikeNormedField`: there
-Mathlib's lemmas on the second argument of a Lie bracket (`lie_neg`, `lie_smul`, …) and
-`lie_skew`, `lie_self` do not rewrite on `GroupLieAlgebra I G`. The instance below gives
+Mathlib's lemmas that take a `LieRingModule` instance (`lie_zero`, `lie_neg`, `lie_add`,
+`lie_sub`, `lie_smul`) do not rewrite on `GroupLieAlgebra I G`. The instance below gives
 `IsRCLikeNormedField ℝ` directly, so that the search needs no nested step.
 
 ## Main results

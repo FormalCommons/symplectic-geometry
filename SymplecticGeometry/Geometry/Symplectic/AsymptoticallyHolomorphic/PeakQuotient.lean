@@ -54,6 +54,16 @@ difference.
   `RescaledUnitaryCharts.exists_jetNormAt_chartPushforward_sub_le`. The orders `r = 0` and `r = 1`
   bound the flat `∂̄` of the quotient and its derivative (`norm_le_jetNormAt`,
   `norm_fderiv_le_jetNormAt`).
+* `RescaledUnitaryCharts.eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian`:
+  for the metric `σ(·, J ·)`, if the reading of `s` is `q` times the Gaussian near a point `z` of
+  the closed unit ball and the connection read there is bounded by `B`, then
+  `ε ≤ max ‖q z‖ ‖∂q(z)‖` gives `ε / 4 ≤ max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)` at the image `y` of
+  `z`, for all `k` beyond a bound that does not depend on `x`, `s`, `q` or `z`. The right side is
+  the quantity of `SymplecticGeometry.IsUniformlyTransverse`.
+  If `‖q z‖ ≥ ε / 2` the section is large; otherwise the lower bound
+  `mul_sub_le_norm_complexLinearPart_modelConnection_mul_gaussian` meets the upper bound
+  `RescaledUnitaryCharts.norm_complexLinearPart_connectionReading_le_of_inner_eq`, whose error
+  terms are `O(k ^ (-1/2))`.
 
 ## References
 
@@ -206,13 +216,13 @@ theorem exists_jetNormAt_div_peakFunction_le (r : ℕ) (R : ℝ) :
         · exact hA z (mem_closedBall_zero_iff.2 hz)
 
 /-- **Jets of the flat `∂̄` of the quotient by the cut-off Gaussian.** For every order `r` and
-radius `R` there is a constant `C` such that, for every `k` with `R < k ^ (1 / 6)`, every field
+radius `R` there is a constant `C ≥ 0` such that, for every `k` with `R < k ^ (1 / 6)`, every field
 `J` of real-linear endomorphisms of `StdSpace ι`, every `f` and every `z` with `‖z‖ ≤ R` where `f`
 is `C^(r + 1)` and `J` is `C^r`, the `r`-jet norm at `z` of the flat `∂̄` of `f / peakFunction k`
 is at most `C` times the `r`-jet norm of the model `∂̄` of `f` for `J` plus the product of the
 `r`-jet norm of `J - J₀` and the `(r + 1)`-jet norm of `f`. -/
 theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
-    ∃ C, ∀ (k : ℕ) (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
+    ∃ C, 0 ≤ C ∧ ∀ (k : ℕ) (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
       {z : StdSpace ι}, ‖z‖ ≤ R → R < (k : ℝ) ^ (1 / 6 : ℝ) →
       ContDiffAt ℝ (r + 1 : ℕ) f z → ContDiffAt ℝ r J z →
       jetNormAt ℝ r (flatDbar fun y ↦ f y / peakFunction k y) z ≤
@@ -225,7 +235,8 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
   obtain ⟨C₁, hC₁0, hC₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
   set J₀ := LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
   set K := C₁ * (1 + |R|)
-  refine ⟨2 ^ r * |A| * (1 + K), fun k J f z hz hk hf hJ ↦ ?_⟩
+  have hK : 0 ≤ K := by positivity
+  refine ⟨2 ^ r * |A| * (1 + K), by positivity, fun k J f z hz hk hf hJ ↦ ?_⟩
   set E : StdSpace ι → ℂ := fun y ↦ Real.exp (‖y‖ ^ 2 / 4)
   set T := fun w ↦ modelDbarWith J f w - modelDbarWith (fun _ ↦ J₀) f w
   have hE : ContDiffAt ℝ r E z := contDiff_ofReal_exp_norm_sq_div_four.contDiffAt
@@ -256,7 +267,6 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
     rw [mul_assoc]
     exact mul_le_mul_of_nonneg_right h1
       (mul_nonneg (jetNormAt_nonneg _ _ _) (jetNormAt_nonneg _ _ _))
-  have hK : 0 ≤ K := by positivity
   have hP := jetNormAt_fun_smul_le hE (hD.add hT.neg)
   have hAz : jetNormAt ℝ r E z ≤ |A| :=
     (hA z (mem_closedBall_zero_iff.2 hz)).trans (le_abs_self A)
@@ -290,27 +300,28 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
 
 /-- **The flat `∂̄` of a reading divided by the cut-off Gaussian.** For every order `r` and radius
-`R` there is a constant `C` such that, for rescaled unitary charts of radius `ρ₀ > 0`, for all
+`R` there is a constant `C ≥ 0` such that, for rescaled unitary charts of radius `ρ₀ > 0`, for all
 large `k`, every centre `x`, every section `s` of `PowerBundle P k` and every `z` with `‖z‖ ≤ R`
 where the reading `f` of `s` is `C^(r + 1)`, the
 `r`-jet norm at `z` of the flat `∂̄` of `f / peakFunction k` is at most `C` times the `r`-jet norm
 of the `∂̄` reading of `s` plus `k ^ (-1 / 2)` times the `(r + 1)`-jet norm of `f`. -/
 theorem exists_jetNormAt_flatDbar_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (r : ℕ) (R : ℝ) :
-    ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
+    ∃ C, 0 ≤ C ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
       ‖z‖ ≤ R → ContDiffAt ℝ (r + 1 : ℕ) (D.reading k x s) z →
       jetNormAt ℝ r (flatDbar fun y ↦ D.reading k x s y / peakFunction k y) z ≤
         C * (jetNormAt ℝ r (D.dbarReading k x s) z +
           (k : ℝ) ^ (-1 / 2 : ℝ) * jetNormAt ℝ (r + 1) (D.reading k x s) z) := by
-  obtain ⟨C, hC⟩ := exists_jetNormAt_flatDbar_div_peakFunction_le (ι := ι) r R
-  obtain ⟨C₀, hC₀⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
-  set C' := |C₀| * (1 + |R|)
+  obtain ⟨C, hC0, hC⟩ := exists_jetNormAt_flatDbar_div_peakFunction_le (ι := ι) r R
+  obtain ⟨C₀, hC₀0, hC₀⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
+  set C' := C₀ * (1 + |R|)
+  have hC' : 0 ≤ C' := by positivity
   have h6 : ∀ᶠ k : ℕ in Filter.atTop, R < (k : ℝ) ^ (1 / 6 : ℝ) :=
     ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 6)).comp
       tendsto_natCast_atTop_atTop).eventually_gt_atTop R
   have hρ : ∀ᶠ k : ℕ in Filter.atTop, R < ρ₀ * √k :=
     (((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ₀).eventually_gt_atTop R)
-  refine ⟨|C| * (1 + |C'|), ?_⟩
+  refine ⟨C * (1 + C'), by positivity, ?_⟩
   filter_upwards [Filter.eventually_ge_atTop k₀, h6, hρ] with k hk hk6 hkρ x s z hz hf
   have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
   have hJ : ContDiffAt ℝ r (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
@@ -328,22 +339,111 @@ theorem exists_jetNormAt_flatDbar_reading_div_peakFunction_le (hρ₀ : 0 < ρ�
   set t := (k : ℝ) ^ (-1 / 2 : ℝ)
   have ha : 0 ≤ a := jetNormAt_nonneg _ _ _
   have hb : 0 ≤ b := jetNormAt_nonneg _ _ _
-  have hj0 : 0 ≤ j := jetNormAt_nonneg _ _ _
   have ht : 0 ≤ t := by positivity
   have hz' : 1 + ‖z‖ ≤ 1 + |R| := by linarith [le_abs_self R]
-  have hj' : j ≤ |C'| * t := by
+  have hj' : j ≤ C' * t := by
     refine hj.trans ?_
-    rw [abs_of_nonneg (by positivity : 0 ≤ C')]
-    calc C₀ * t * (1 + ‖z‖) ≤ |C₀| * t * (1 + |R|) := by gcongr; exact le_abs_self _
+    calc C₀ * t * (1 + ‖z‖) ≤ C₀ * t * (1 + |R|) :=
+          mul_le_mul_of_nonneg_left hz' (by positivity)
       _ = C' * t := by ring
-  calc C * (a + j * b) ≤ |C| * (a + j * b) :=
-        mul_le_mul_of_nonneg_right (le_abs_self _) (by positivity)
-    _ ≤ |C| * (a + |C'| * t * b) := by gcongr
-    _ ≤ |C| * (1 + |C'|) * (a + t * b) := by
-        have : a + |C'| * t * b ≤ (1 + |C'|) * (a + t * b) := by
-          nlinarith [abs_nonneg C', mul_nonneg ht hb]
-        calc |C| * (a + |C'| * t * b) ≤ |C| * ((1 + |C'|) * (a + t * b)) := by gcongr
+  calc C * (a + j * b) ≤ C * (a + C' * t * b) := by gcongr
+    _ ≤ C * (1 + C') * (a + t * b) := by
+        have : a + C' * t * b ≤ (1 + C') * (a + t * b) := by
+          nlinarith [mul_nonneg ht hb]
+        calc C * (a + C' * t * b) ≤ C * ((1 + C') * (a + t * b)) := by gcongr
           _ = _ := by ring
+
+omit [I.Boundaryless] in
+/-- **A lower bound on the quotient by the Gaussian gives the transversality quantity.** Let the
+metric of `M` be `g(u, w) = σ(u, J w)`, and `ρ₀ > 0`. For every `ε` and `B`, for all large `k`,
+every centre `x`, every section `s` of `PowerBundle P k`, every `q : StdSpace ι → ℂ` and every `z`
+with `‖z‖ ≤ 1`: if the reading of `s` agrees near `z` with `q * exp (-‖·‖ ^ 2 / 4)`, `q` is
+differentiable at `z`, the connection read in the chart has operator norm at most `B` at `z`, and
+`ε ≤ max ‖q z‖ ‖∂q(z)‖`, for `∂q(z)` the complex-linear part of `dq_z` for `J₀` and multiplication
+by `i`, then at `y = (D.chart k x).symm z`,
+`ε / 4 ≤ max ‖s y‖ ((2π k)^(-1/2) ‖∂ s(y)‖)`, where `∂ s(y)` is the `(1,0)`-part
+`J.oneZeroPart` of `D_k s` at `y`, with its operator norm. -/
+theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
+    [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [∀ y, Nonempty (P y)]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (ε B : ℝ) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y) (q : StdSpace ι → ℂ)
+      (z : StdSpace ι), ‖z‖ ≤ 1 →
+      D.reading k x s =ᶠ[𝓝 z] (fun y ↦ q y * Real.exp (-‖y‖ ^ 2 / 4)) →
+      DifferentiableAt ℝ q z → ‖D.connectionReading k x s z‖ ≤ B →
+      ε ≤ max ‖q z‖ ‖LinearMap.toContinuousLinearMap (complexLinearPart
+          (stdComplexStructure ι).toLinearMap
+          (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+          (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ))‖ →
+      ε / 4 ≤ max ‖s ((D.chart k x).symm z)‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+        ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖) := by
+  rcases le_or_gt ε 0 with hε | hε
+  · exact Filter.Eventually.of_forall fun k x s _ _ _ _ _ _ _ ↦
+      (by linarith : ε / 4 ≤ 0).trans (le_max_of_le_left (norm_nonneg _))
+  set C := max (D.bound 1) 0
+  set B' := max B 0
+  have hC : 0 ≤ C := le_max_right _ _
+  have hB' : 0 ≤ B' := le_max_right _ _
+  have hsqrt := Real.tendsto_sqrt_atTop.comp (tendsto_natCast_atTop_atTop (R := ℝ))
+  filter_upwards [Filter.eventually_ge_atTop k₀,
+    (hsqrt.const_mul_atTop hρ₀).eventually_gt_atTop 1, hsqrt.eventually_gt_atTop (4 * C),
+    hsqrt.eventually_gt_atTop (8 * C * B' / ε)] with k hk hkρ hk4 hk8 x s q z hz hfeq hq hB hmax
+  simp only [Function.comp_apply] at hkρ hk4 hk8
+  have hk0 : 0 < √(k : ℝ) := hC.trans_lt (by linarith)
+  have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
+  have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
+    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
+      ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
+      one_ne_zero z
+  have hs : DifferentiableAt ℝ (D.reading k x s) z := (hq.mul hGd).congr_of_eventuallyEq hfeq
+  set G := Real.exp (-‖z‖ ^ 2 / 4)
+  set a := ‖q z‖
+  set b := ‖LinearMap.toContinuousLinearMap (complexLinearPart
+    (stdComplexStructure ι).toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+    (fderiv ℝ q z : StdSpace ι →ₗ[ℝ] ℂ))‖
+  have ha : 0 ≤ a := norm_nonneg _
+  have hz0 : 0 ≤ ‖z‖ := norm_nonneg _
+  -- On the closed unit ball the Gaussian is at least `3 / 4`.
+  have hG : 3 / 4 ≤ G := by
+    have := Real.add_one_le_exp (-‖z‖ ^ 2 / 4)
+    nlinarith
+  rcases le_or_gt (ε / 2) a with hqz | hqz
+  · -- The section itself is large.
+    refine le_max_of_le_left ?_
+    rw [← norm_reading, hfeq.eq_of_nhds, norm_mul, Complex.norm_real,
+      Real.norm_of_nonneg (Real.exp_pos _).le]
+    nlinarith
+  · -- Its `∂` is large: compare the two bounds on the complex-linear part of the connection.
+    refine le_max_of_le_right ?_
+    have hb : ε ≤ b := by
+      rcases le_max_iff.1 hmax with h | h
+      · linarith
+      · exact h
+    have hlow := mul_sub_le_norm_complexLinearPart_modelConnection_mul_gaussian hq
+    rw [← modelConnection_congr_of_eventuallyEq hfeq, ← connectionReading_def] at hlow
+    have hup := D.norm_complexLinearPart_connectionReading_le_of_inner_eq hg hα hk hzb hs
+    set t := C * ‖z‖ / √k
+    set X := (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+      ‖J.oneZeroPart (powerConnection α k s ((D.chart k x).symm z))‖
+    set N := ‖D.connectionReading k x s z‖
+    have hX : 0 ≤ X := by positivity
+    have hN : N ≤ B' := hB.trans (le_max_left _ _)
+    have htk : t * √k = C * ‖z‖ := div_mul_cancel₀ _ hk0.ne'
+    have ht0 : 0 ≤ t := by positivity
+    have ht1 : 4 * t ≤ 1 := by
+      refine le_of_mul_le_mul_right ?_ hk0
+      nlinarith
+    have ht2 : 8 * (t * N) ≤ ε := by
+      rw [div_lt_iff₀ hε] at hk8
+      refine le_of_mul_le_mul_right ?_ hk0
+      have : C * ‖z‖ * N ≤ C * B' := by
+        calc C * ‖z‖ * N ≤ C * 1 * B' := by gcongr
+          _ = C * B' := by ring
+      nlinarith
+    have hlow' : 9 / 16 * ε ≤ G * (b - ‖z‖ * a / 2) := by
+      have : ‖z‖ * a ≤ a := by nlinarith
+      nlinarith
+    nlinarith [mul_le_mul_of_nonneg_right ht1 hX]
 
 end RescaledUnitaryCharts
 

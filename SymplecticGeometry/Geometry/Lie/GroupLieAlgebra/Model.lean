@@ -74,6 +74,7 @@ theorem bracketL_swap (v w : E) : bracketL I G w v = -bracketL I G v w := by
 @[simp]
 theorem bracketL_self (v : E) : bracketL I G v v = 0 := by
   rw [bracketL_apply]
+  -- `v` has type `E`, so `L` would be taken to be `E` unless given.
   exact lie_self (L := GroupLieAlgebra I G) v
 
 /-- The adjoint action preserves the bracket. -/
