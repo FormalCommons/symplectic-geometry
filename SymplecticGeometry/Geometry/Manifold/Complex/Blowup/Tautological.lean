@@ -661,17 +661,16 @@ theorem normalSpaceZeroSectionRealEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) �
 `curveLift (· • v)` of the line `t ↦ t • v`, crosses the exceptional divisor at `t = 0` with
 velocity `v`: the real derivative of the lift at `0` applied to `c`, sent to the normal space
 of the real zero section at `ℓ` and then to the tautological line by
-`normalSpaceZeroSectionRealEquiv n hn ℓ`, is `c • v`. -/
+`normalSpaceZeroSectionRealEquiv n hn ℓ`, is `toTautological hv _ c`, the vector `c • v`. -/
 theorem normalSpaceZeroSectionRealEquiv_normalClassL_mfderiv_curveLift_smul
     {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) (c : ℂ) :
     normalSpaceZeroSectionRealEquiv n hn (mk ℂ v hv)
         ((zeroSectionRealEmbedding n).isImmersion.normalClassL (mk ℂ v hv) hn
           (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c)) =
-      ⟨c • v, by
-        rw [submodule_mk]
-        exact Submodule.smul_mem _ c (Submodule.mem_span_singleton_self v)⟩ := by
+      toTautological hv (submodule_mk v hv) c := by
   refine (congrArg _ (Manifold.IsImmersion.normalClassL_apply _ _ _ _)).trans
     ((normalSpaceZeroSectionRealEquiv_normalClass _ _).trans (Subtype.ext ?_))
+  rw [coe_toTautological_apply]
   exact mfderiv_blowdown_mfderiv_curveLift_smul hv c
 
 /-- **The complex structure of the normal bundle of the exceptional divisor is multiplication by
