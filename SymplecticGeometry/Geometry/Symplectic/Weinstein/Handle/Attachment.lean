@@ -62,6 +62,8 @@ out as above.
   of `{f ≤ b}` enters `{g < 0}`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_flow_apply_eq_upper`: the forward orbit of a
   point of `g ⁻¹' {0}` reaches `f ⁻¹' {b}`.
+* `SymplecticGeometry.IsWeinsteinStructure.exists_pos_forall_lt_flow_apply`: for some `δ > 0`,
+  the orbits of the points of `g ⁻¹' {0}` stay out of `{f ≤ a}` from time `-δ` on.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_forall_levelCrossingTime_mem_Ioc`: the time from
   `g ⁻¹' {0}` to `f ⁻¹' {b}` lies in `Ioc 0 T` for a common `T`.
 
@@ -144,6 +146,44 @@ theorem exists_flow_apply_eq_upper {a b : ℝ}
         (hW.isProperMap.isCompact_preimage isCompact_Icc)) hxa hb
     exact Or.inr (mem_biUnion hp hxp)
 
+omit [T2Space M] in
+/-- **The level `g ⁻¹' {0}` is compact.** Let `g` be continuous, let `{g < 0}` contain the
+sublevel `{f ≤ a}` of the function of a Weinstein structure, and let `f < b` on `g ⁻¹' {0}`. Then
+`g ⁻¹' {0}` is compact, as a closed subset of the compact region `f ⁻¹' Icc a b`. -/
+theorem isCompact_preimage_zero {a b : ℝ} (hg : Continuous g)
+    (ha : {x | f x ≤ a} ⊆ {x | g x < 0}) (hgb : ∀ x, g x = 0 → f x < b) :
+    IsCompact (g ⁻¹' {0}) :=
+  (hW.isProperMap.isCompact_preimage isCompact_Icc).of_isClosed_subset
+    (isClosed_singleton.preimage hg) fun x hx ↦
+      ⟨(not_le.1 fun hxa ↦ (ha hxa : g x < 0).ne hx).le, (hgb x hx).le⟩
+
+/-- **A margin between the lower sublevel and the backward orbits of `g ⁻¹' {0}`.** Let `g` be
+continuous, let `{g < 0}` contain the sublevel `{f ≤ a}` of the function of a Weinstein structure
+with flow `Φ`, and let `f < b` on `g ⁻¹' {0}`. Then there is `δ > 0` such that `a < f (Φ s y)` for
+every `y` with `g y = 0` and every time `s ≥ -δ`. -/
+theorem exists_pos_forall_lt_flow_apply {a b : ℝ} (hg : Continuous g)
+    (ha : {x | f x ≤ a} ⊆ {x | g x < 0}) (hgb : ∀ x, g x = 0 → f x < b) :
+    ∃ δ > 0, ∀ y, g y = 0 → ∀ s, -δ ≤ s → a < f (hW.flow s y) := by
+  have hf := hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp)
+  -- On `g ⁻¹' {0}` we have `a < f`, since `{f ≤ a} ⊆ {g < 0}`.
+  have hya (y : M) (hy : g y = 0) : a < f y := not_le.1 fun h ↦ (ha h : g y < 0).ne hy
+  -- By the tube lemma on the compact set `g ⁻¹' {0}`, the bound holds for all small `|s|`.
+  have hcont : Continuous fun p : ℝ × M ↦ f (hW.flow p.1 p.2) :=
+    hf.continuous.comp (hW.flow.continuous continuous_fst continuous_snd)
+  have hev : ∀ᶠ s in 𝓝 (0 : ℝ), ∀ y ∈ g ⁻¹' {0}, a < f (hW.flow s y) :=
+    (hW.isCompact_preimage_zero hg ha hgb).eventually_forall_of_forall_eventually fun y hy ↦
+      hcont.continuousAt.eventually
+        (lt_mem_nhds (by simpa only [Flow.map_zero_apply] using hya y hy))
+  obtain ⟨ε, hε, hεs⟩ := Metric.eventually_nhds_iff.1 hev
+  refine ⟨ε / 2, half_pos hε, fun y hy s hs ↦ ?_⟩
+  rcases le_or_gt s 0 with hs₀ | hs₀
+  · exact hεs (by rw [Real.dist_0_eq_abs, abs_of_nonpos hs₀]; linarith) y hy
+  · -- For `s > 0`, `f` increases along the orbit.
+    calc a < f y := hya y hy
+      _ = f (hW.flow 0 y) := by rw [Flow.map_zero_apply]
+      _ ≤ f (hW.flow s y) :=
+        hW.isGradientLike.monotone_comp (hW.isMIntegralCurve_flow y) (fun _ ↦ hf _) hs₀.le
+
 /-! ### Crossing times -/
 
 /-- **The time from `g ⁻¹' {0}` to the upper level is bounded.** Let `b` be a regular value of the
@@ -170,12 +210,8 @@ theorem exists_forall_levelCrossingTime_mem_Ioc {a b : ℝ}
       ((hW.isMIntegralCurve_flow x).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
         (hW.isGeneralizedMorse.contMDiff.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
         (fun _ ↦ hfX _)) hft⟩
-  -- `g ⁻¹' {0}` is a closed subset of the compact region `f ⁻¹' Icc a b`.
-  have hcompact : IsCompact (g ⁻¹' {0}) :=
-    (hW.isProperMap.isCompact_preimage isCompact_Icc).of_isClosed_subset
-      (isClosed_singleton.preimage hg) fun x hx ↦
-        ⟨(not_le.1 fun hxa ↦ (hK (Or.inl hxa) : g x < 0).ne hx).le, (hgb x hx).le⟩
-  obtain ⟨T, hT⟩ := hcompact.bddAbove_image
+  obtain ⟨T, hT⟩ :=
+    (hW.isCompact_preimage_zero hg (subset_union_left.trans hK) hgb).bddAbove_image
     ((hW.contMDiffOn_levelCrossingTime_of_isRegularValue hb).continuousOn.mono fun x hx ↦
       (hcross x hx).elim fun t ht ↦ ⟨t, ht.2.1⟩)
   refine ⟨T, fun x hx ↦ ⟨?_, hT (mem_image_of_mem _ hx)⟩⟩
