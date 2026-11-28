@@ -50,7 +50,10 @@ needed.
 
 The curvature is alternating, additive in each argument, and linear over differentiable functions
 on the base: `g • v₁` has curvature `(g ∘ f) • curvature v₁ v₂`, by the Leibniz rule for the
-bracket (`VectorField.mlieBracket_smul_left`) on `B` and on `P`.
+bracket (`VectorField.mlieBracket_smul_left`) on `B` and on `P`. Over a vector space with a
+finite basis, a field `C^1` at a point is a combination of the constant fields with `C^1`
+coefficients, so its curvature there is the bilinear combination of the curvatures of the
+constant fields.
 
 Over `ℝ`, on a finite-dimensional Hausdorff base, these laws make the curvature at `x` of smooth
 fields depend only on their values at `f x` (`curvature_congr`), by Tau Ceti's tensoriality
@@ -98,6 +101,9 @@ and their curvature is `-curvature`.
   `TauCeti.IsEhresmannConnection.curvature_add_left` and
   `TauCeti.IsEhresmannConnection.curvature_smul_left`, with their right-hand versions: the
   curvature is alternating and linear over functions on the base.
+* `TauCeti.IsEhresmannConnection.curvature_sum_left`, `curvature_sum_right` and
+  `curvature_eq_sum_basis`: the curvature is additive over finite sums, and over a vector space
+  it is the bilinear combination, in a basis, of the curvatures of the constant fields.
 * `TauCeti.IsEhresmannConnection.curvature_eq_zero_iff_isInvolutiveDistribution`: the connection
   is flat exactly when its horizontal distribution is involutive.
 * `TauCeti.IsEhresmannConnection.curvature_congr`: the curvature at `x` of smooth fields depends
@@ -313,6 +319,34 @@ theorem curvature_smul_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
   rw [curvature_swap_apply, hD.curvature_smul_left hn hf hg v₁ hv₂, ← smul_neg,
     ← curvature_swap_apply]
 
+/-- The curvature is additive over finite sums in its first argument, at a point `x` where the
+summands are `C^1` at `f x`, for a `C^n` connection with `1 ≤ n` and `f` of class `C^2` at
+`x`. -/
+theorem curvature_sum_left (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) {ι : Type*}
+    (s : Finset ι) {w : ι → Π b : B, TangentSpace J b} (v₂ : Π b : B, TangentSpace J b)
+    (hw : ∀ i ∈ s, ContMDiffAt J J.tangent 1 (T% (w i)) (f x)) :
+    hD.curvature (∑ i ∈ s, w i) v₂ x = ∑ i ∈ s, hD.curvature (w i) v₂ x := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert i s hi ih =>
+    have hs : ContMDiffAt J J.tangent 1 (T% (∑ j ∈ s, w j)) (f x) := by
+      simpa only [Finset.sum_apply] using
+        ContMDiffAt.sum_section (t := fun j b ↦ w j b) fun j hj ↦ hw j (Finset.mem_insert_of_mem hj)
+    rw [Finset.sum_insert hi, Finset.sum_insert hi,
+      hD.curvature_add_left hn hf v₂ (hw i (Finset.mem_insert_self i s)) hs,
+      ih fun j hj ↦ hw j (Finset.mem_insert_of_mem hj)]
+
+/-- The curvature is additive over finite sums in its second argument, at a point `x` where the
+summands are `C^1` at `f x`, for a `C^n` connection with `1 ≤ n` and `f` of class `C^2` at
+`x`. -/
+theorem curvature_sum_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) {ι : Type*}
+    (s : Finset ι) (v₁ : Π b : B, TangentSpace J b) {w : ι → Π b : B, TangentSpace J b}
+    (hw : ∀ i ∈ s, ContMDiffAt J J.tangent 1 (T% (w i)) (f x)) :
+    hD.curvature v₁ (∑ i ∈ s, w i) x = ∑ i ∈ s, hD.curvature v₁ (w i) x := by
+  rw [curvature_swap_apply, hD.curvature_sum_left hn hf s v₁ hw, ← Finset.sum_neg_distrib]
+  exact Finset.sum_congr rfl fun i _ ↦ (curvature_swap_apply hD _ _ x).symm
+
 /-! ### Flatness and involutivity -/
 
 /-- If the horizontal distribution of a `C^n` connection, with `1 ≤ n`, is involutive, then its
@@ -373,6 +407,59 @@ theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F
       ((hf _).of_le (SymplecticGeometry.two_le_add_one_of_one_le hn)) hDi hv₁ hv₂⟩
 
 end Smooth
+
+section VectorSpace
+
+/-! ### Connections over a vector space -/
+
+variable [IsRCLikeNormedField 𝕜] [CompleteSpace E] [CompleteSpace F] [IsManifold I 2 P]
+
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
+
+/-- **The curvature over a vector space, in a basis.** For a `C^n` Ehresmann connection, with
+`1 ≤ n`, on a map `g : P → F` to a vector space, `C^2` at `x`, and a finite basis `bs` of `F`,
+the curvature at `x` of vector fields `v₁ v₂` on `F` that are `C^1` at `g x` is the bilinear
+combination, with the coordinates of `v₁ (g x)` and `v₂ (g x)` in `bs`, of the curvatures of
+the constant fields `bs i`. -/
+theorem curvature_eq_sum_basis [CompleteSpace 𝕜] {g : P → F}
+    (hD : IsEhresmannConnection I 𝓘(𝕜, F) n g D)
+    (hn : 1 ≤ n) {x : P} (hg : ContMDiffAt I 𝓘(𝕜, F) 2 g x) {ι : Type*} [Fintype ι]
+    (bs : Module.Basis ι 𝕜 F) {v₁ v₂ : Π z : F, TangentSpace 𝓘(𝕜, F) z}
+    (hv₁ : ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, F).tangent 1 (T% v₁) (g x))
+    (hv₂ : ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, F).tangent 1 (T% v₂) (g x)) :
+    hD.curvature v₁ v₂ x = ∑ i, ∑ j, (bs.repr (v₁ (g x)) i * bs.repr (v₂ (g x)) j) •
+      hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) x := by
+  have : FiniteDimensional 𝕜 F := bs.finiteDimensional_of_finite
+  -- The constant fields `bs i`, named so that `T%` reads them as fields on `F`.
+  obtain ⟨K, hKdef⟩ : ∃ K : ι → Π z : F, TangentSpace 𝓘(𝕜, F) z, K = fun i _ ↦ bs i :=
+    ⟨_, rfl⟩
+  -- Each field is the sum of its coordinate functions times the constant fields `bs i`.
+  have hexp (v : Π z : F, TangentSpace 𝓘(𝕜, F) z) :
+      v = ∑ i, (fun z ↦ bs.repr (v z) i) • K i :=
+    funext fun z ↦ by
+      simp only [hKdef, Finset.sum_apply]
+      exact (bs.sum_repr (v z)).symm
+  have hK (i : ι) : ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, F).tangent 1 (T% (K i)) (g x) := by
+    rw [contMDiffAt_vectorSpace_iff_contDiffAt, hKdef]
+    exact contDiffAt_const
+  have hc {v : Π z : F, TangentSpace 𝓘(𝕜, F) z}
+      (hv : ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, F).tangent 1 (T% v) (g x)) (i : ι) :
+      ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜) 1 (fun z ↦ bs.repr (v z) i) (g x) :=
+    ((LinearMap.toContinuousLinearMap (bs.coord i)).contDiff.contDiffAt.comp _
+      (contMDiffAt_vectorSpace_iff_contDiffAt.1 hv)).contMDiffAt
+  have hcK {v : Π z : F, TangentSpace 𝓘(𝕜, F) z}
+      (hv : ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, F).tangent 1 (T% v) (g x)) (i : ι) :=
+    (hc hv i).smul_section (hK i)
+  conv_lhs => rw [hexp v₁, hexp v₂]
+  rw [hD.curvature_sum_left hn hg _ _ fun i _ ↦ hcK hv₁ i]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [hD.curvature_smul_left hn hg ((hc hv₁ i).mdifferentiableAt one_ne_zero) _ (hK i),
+    hD.curvature_sum_right hn hg _ _ fun j _ ↦ hcK hv₂ j, Finset.smul_sum]
+  refine Finset.sum_congr rfl fun j _ ↦ ?_
+  rw [hD.curvature_smul_right hn hg ((hc hv₂ j).mdifferentiableAt one_ne_zero) _ (hK j),
+    smul_smul, hKdef]
+
+end VectorSpace
 
 section NaturalitySmooth
 

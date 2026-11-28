@@ -32,7 +32,9 @@ of `proj`. The coordinate change between two such trivializations over `b` is a 
 fibre bundle gives a smooth atlas of the projection of its charted total space. Finally, if the
 fibre over `b` carries a manifold structure whose inclusion into `M` is a smooth embedding, the
 fibre coordinate of `e` is a diffeomorphism from the fibre onto `F`, and its underlying
-homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
+homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`. Over the source of a chart `φ` of
+`B`, a chart `e` of a smooth atlas gives the map `p ↦ (φ (proj p), (e p).2)` to `EB × F`,
+which is smooth with onto derivative.
 
 ## Main definitions
 
@@ -74,6 +76,9 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffAt_extChartAt_proj_prodMk_snd` and
+  `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd`: a chart of a
+  smooth atlas, read through a chart of the base, is smooth with onto derivative.
 * `TauCeti.MapFiber.Atlas.apply_eq_of_mfderiv_eq_zero_of_proj_eq`: over a preconnected model
   fibre, a real function whose derivative vanishes on vertical vectors at every point of a fibre
   takes the same value at any two points of that fibre.
@@ -543,6 +548,51 @@ theorem IsContMDiff.contMDiffAt_snd_trivAt (hA : A.IsContMDiff n IB IF IM) {b : 
     ContMDiffAt IM IF n (fun y ↦ (A.trivAt b y).2) x :=
   (hA.contMDiffOn_snd_trivAt b).contMDiffAt
     ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).mem_source.2 hx))
+
+/-- Over the base set of a chart `e = A.trivAt b'` of a `C^n` atlas and the source of the chart
+of `B` at `b`, the map `p ↦ (φ (proj p), (e p).2)` to `EB × F`, with `φ` the extended chart of
+`B` at `b`, is `C^m` for every `m ≤ n` for which `B` is a `C^m` manifold. -/
+theorem IsContMDiff.contMDiffAt_extChartAt_proj_prodMk_snd {m : ℕ∞ω} [IsManifold IB m B]
+    (hA : A.IsContMDiff n IB IF IM) (hmn : m ≤ n) {b' b : B} {x : M}
+    (hx : proj x ∈ (A.trivAt b').baseSet) (hxb : proj x ∈ (chartAt HB b).source) :
+    ContMDiffAt IM (𝓘(𝕜, EB).prod IF) m
+      (fun y ↦ (extChartAt IB b (proj y), (A.trivAt b' y).2)) x :=
+  ((contMDiffAt_extChartAt' hxb).comp x ((hA.contMDiff_proj x).of_le hmn)).prodMk
+    ((hA.contMDiffAt_snd_trivAt hx).of_le hmn)
+
+/-- Over the base set of a chart `e = A.trivAt b'` of a `C^n` atlas, `n ≠ 0`, and the source of
+the chart of `B` at `b`, the map `p ↦ (φ (proj p), (e p).2)` to `EB × F`, with `φ` the extended
+chart of `B` at `b`, has onto derivative: near `x` it is `e` followed by `Prod.map φ id`, both of
+which have invertible derivatives there. -/
+theorem IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd [IsManifold IB 1 B]
+    (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) {b' b : B} {x : M}
+    (hx : proj x ∈ (A.trivAt b').baseSet) (hxb : proj x ∈ (chartAt HB b).source) :
+    Surjective (mfderiv IM (𝓘(𝕜, EB).prod IF)
+      (fun y ↦ (extChartAt IB b (proj y), (A.trivAt b' y).2)) x) := by
+  set e := A.trivAt b'
+  have hxe : x ∈ e.source := e.mem_source.2 hx
+  -- Near `x` the map is `Prod.map φ id ∘ e`, since the first coordinate of `e` is `proj`.
+  have heq : (fun y ↦ (extChartAt IB b (proj y), (e y).2)) =ᶠ[𝓝 x]
+      Prod.map (extChartAt IB b) id ∘ e := by
+    filter_upwards [e.open_source.mem_nhds hxe] with y hy
+    exact congrArg (fun c ↦ (extChartAt IB b c, (e y).2)) (e.coe_fst hy).symm
+  have he := hA.mdifferentiable_trivAt hn b'
+  have hex : (e x).1 = proj x := e.coe_fst hxe
+  have hψ : MDifferentiableAt IB 𝓘(𝕜, EB) (extChartAt IB b) (e x).1 := by
+    rw [hex]
+    exact (contMDiffAt_extChartAt' (n := 1) hxb).mdifferentiableAt one_ne_zero
+  have hmap : MDifferentiableAt (IB.prod IF) (𝓘(𝕜, EB).prod IF) (Prod.map (extChartAt IB b) id)
+      (e x) := hψ.prodMap mdifferentiableAt_id
+  rw [heq.mfderiv_eq, mfderiv_comp x hmap (he.mdifferentiableAt hxe),
+    mfderiv_prodMap hψ mdifferentiableAt_id, mfderiv_id]
+  have hinv := isInvertible_mfderiv_extChartAt (I := IB) (x := b) (y := (e x).1)
+    (by rw [hex, extChartAt_source]; exact hxb)
+  -- The derivative of `Prod.map φ id` at `e x` is onto, `dφ` being invertible there.
+  have hL : Surjective ((mfderiv IB 𝓘(𝕜, EB) (extChartAt IB b) (e x).1).prodMap
+      (ContinuousLinearMap.id 𝕜 (TangentSpace IF (e x).2))) := fun q ↦
+    ⟨((hinv.surjective q.1).choose, q.2), Prod.ext (hinv.surjective q.1).choose_spec rfl⟩
+  -- The cast between the tangent spaces at equal points is the identity.
+  exact fun q ↦ let ⟨p, hp⟩ := hL.comp (he.mfderiv_surjective hxe) q; ⟨p, hp⟩
 
 end TauCeti.MapFiber.Atlas
 
