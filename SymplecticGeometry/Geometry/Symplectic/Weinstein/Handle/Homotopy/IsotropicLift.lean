@@ -243,10 +243,9 @@ theorem isLiouvilleVectorField_isotropicLiftField
 theorem isotropicLiftField_modelDisc (Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k))
     (x : EuclideanSpace ℝ (Fin k)) :
     isotropicLiftField m Y (modelDisc k m x) = modelDisc k m (Y x) := by
-  have hx : complexEuclideanEquivRealProd (Fin k) (modelDisc k m x).1 = (x, 0) := by
-    ext j <;> simp
   refine Prod.ext ((complexEuclideanEquivRealProd (Fin k)).injective ?_) (by simp)
-  rw [complexEuclideanEquivRealProd_isotropicLiftField_fst, hx]
+  rw [complexEuclideanEquivRealProd_isotropicLiftField_fst,
+    complexEuclideanEquivRealProd_modelDisc_fst]
   ext j <;> simp
 
 /-- **The Liouville lift is tangent to the core and equals `Y` there**: at a point `p = ι₀ x` of
@@ -299,10 +298,6 @@ theorem exists_isOpen_image_modelDisc_subset_forall_isotropicLiftField_eq_zero
   have hV : IsOpen V := (isOpen_ne_fun hY.continuous continuous_const).union
     (Units.isOpen.preimage (continuous_const.sub
       (ContinuousLinearMap.adjoint.continuous.comp (hY.continuous_fderiv one_ne_zero))))
-  have hπ (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-      modelDiscProj k m p = (e p.1).1 := by
-    ext j
-    simp [e]
   refine ⟨modelDiscProj k m ⁻¹' V, hV.preimage (modelDiscProj k m).continuous, ?_, ?_⟩
   · rintro _ ⟨x, hx, rfl⟩
     rw [mem_preimage, leftInverse_modelDiscProj x]
@@ -316,12 +311,12 @@ theorem exists_isOpen_image_modelDisc_subset_forall_isotropicLiftField_eq_zero
     have h2 : p.2 = 0 := by
       have := isotropicLiftField_apply_snd Y p
       rwa [h0, Prod.snd_zero, eq_comm, smul_eq_zero, or_iff_right (by norm_num)] at this
-    rw [mem_preimage, hπ] at hp
+    rw [mem_preimage, modelDiscProj_apply_eq_complexEuclideanEquivRealProd] at hp
     have hu := hp.resolve_left (not_not.mpr h1.1)
     have hy : (e p.1).2 = 0 := ContinuousLinearMap.isUnit_iff_bijective.mp hu |>.1 <| by
       simpa using h1.2
     refine ⟨(e p.1).1, h1.1, Prod.ext (e.injective ?_) (by simp [h2])⟩
-    rw [show e (modelDisc k m (e p.1).1).1 = ((e p.1).1, 0) by ext j <;> simp [e], ← hy]
+    rw [complexEuclideanEquivRealProd_modelDisc_fst, ← hy]
 
 /-- **The derivative of the Liouville lift on the core.** At `ι₀ x`, for `Y` of class `C²` at
 `x`, the derivative of the lift sends `(ξ + i η, ζ)` to `(DY(x) ξ + i (η - DY(x)ᵀ η), ζ / 2)`. -/
@@ -334,9 +329,8 @@ theorem fderiv_isotropicLiftField_modelDisc_apply
             (complexEuclideanEquivRealProd (Fin k) u.1).2 -
               (fderiv ℝ Y x).adjoint (complexEuclideanEquivRealProd (Fin k) u.1).2),
         (2⁻¹ : ℝ) • u.2) := by
-  have hx : complexEuclideanEquivRealProd (Fin k) (modelDisc k m x).1 = (x, 0) := by
-    ext j <;> simp
-  rw [fderiv_isotropicLiftField_apply _ (by rwa [hx]), hx]
+  rw [fderiv_isotropicLiftField_apply _ (by rwa [complexEuclideanEquivRealProd_modelDisc_fst]),
+    complexEuclideanEquivRealProd_modelDisc_fst]
   simp
 
 /-- **The derivative of the Liouville lift on the core is block diagonal**: at `ι₀ x`, for `Y` of
