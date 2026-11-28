@@ -289,9 +289,8 @@ theorem map_orientation_of_forall_ge_nondegenerate_add_smul_comp
   -- `L` identifies `H` with `U`.
   have hLH : Function.Injective (L.domRestrict H) :=
     LinearMap.injective_domRestrict_iff.2 hc'.disjoint
-  let e : H ≃ₗ[ℝ] U := LinearEquiv.ofBijective (L.domRestrict H)
-    ⟨hLH, (LinearMap.injective_iff_surjective_of_finrank_eq_finrank (hm'.trans hm.symm)).1 hLH⟩
-  have he (x : H) : e x = L x := LinearEquiv.ofBijective_apply (L.domRestrict H) x
+  let e : H ≃ₗ[ℝ] U := (L.domRestrict H).linearEquivOfInjective hLH (hm'.trans hm.symm)
+  have he (x : H) : e x = L x := LinearMap.linearEquivOfInjective_apply hLH _ x
   have hHK : ∀ x ∈ H, ∀ y ∈ K, ω x y = 0 := fun x hx y hy ↦ (LinearMap.congr_fun₂ hω x y).trans
     (LinearMap.BilinForm.add_smul_comp_eq_zero_of_mem_orthogonal_of_mem_ker hτ.isRefl _ c hx hy)
   rw [ω.orientation_eq_map_prod_of_isCompl hc' hHK hm' hn' hV,

@@ -135,8 +135,10 @@ every fibre, and whether it needs an induction on the torus.
     open onto the cone $\mu(x)+\operatorname{range}\Phi\times\mathfrak q^*$,
     and its fibres are products of a ball with a fibre of $\Phi$ inside a ball,
     preconnected by Tau Ceti's `isPreconnected_preimage_weightMomentMap_inter`.
-  With the cone as `C`, Tau Ceti's `exists_isConvexChart_inter_preimage_ball`
-  then gives a convexity chart around $x$, at every point of a manifold with a
+  Tau Ceti's `exists_isConvexChart_of_eqOn_add_weightMomentMap`, for its
+  slice model with the weights extended by zero on $\mathfrak q$ and $u$ read
+  among the covectors vanishing on $\mathfrak k$, then gives a convexity chart
+  around $x$, at every point of a manifold with a
   symplectic torus action and a moment map, compact or not.
 - **The local-to-global theorem is Tau Ceti's.** The part defines no
   predicate of local convexity: the local result is stated with Tau Ceti's
@@ -225,17 +227,14 @@ unless Mathlib or Tau Ceti has it:
 4. the change of the weight-zero coordinates by the implicit function theorem
    (`HasStrictFDerivAt.implicitToOpenPartialHomeomorph`), and the product form of
    $\mu$;
-5. a convexity chart of the product form, from
-   `image_mem_nhdsWithin_range_weightMomentMap`,
-   `isPreconnected_preimage_weightMomentMap_inter` and
-   `exists_isConvexChart_inter_preimage_ball`, with the cone
-   $\mu(x)+\operatorname{range}\Phi\times\mathfrak q^*$ as `C`.
+5. a convexity chart of the slice model, from Tau Ceti's
+   `exists_isConvexChart_of_eqOn_add_weightMomentMap`.
 
-If step 4 or 5 grows, the product form can go first, as a separate lemma about
+If step 4 grows, the product form can go first, as a separate lemma about
 a map $(u,w,z_+)\mapsto(\Phi(z_+),u)$ with no moment map in it. The file cites
 [BjorndahlKarshon2010], Proposition 29, and [Atiyah1982], §2, and credits Tau
-Ceti's `exists_weightModelChart` and `exists_isConvexChart_inter_preimage_ball`
-by name.
+Ceti's `exists_weightModelChart` and
+`exists_isConvexChart_of_eqOn_add_weightMomentMap` by name.
 
 ### `Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean`
 
