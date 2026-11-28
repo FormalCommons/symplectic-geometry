@@ -37,7 +37,7 @@ of `jetNormAt`. It is nonnegative and monotone in `r`; for `k₀ ≤ k` its orde
 `s x`, since the chart sends `x` to `0` (`SymplecticGeometry.RescaledUnitaryCharts.chart_symm_zero`)
 and the frame is unitary; it vanishes on the zero section, is unchanged by negation, and scales
 by `‖c‖` under multiplication by `c : ℂ`; and for sections whose readings are `C^r` at `0` it
-satisfies the triangle inequality.
+satisfies the triangle inequality, also over finite sums.
 
 The connection `powerConnection α k` is read in the same chart and frame as
 `D.connectionReading k x s z = df_z + i A₀(z) f(z)`, for `f` the reading of `s` and
@@ -69,7 +69,8 @@ differentiable at `z`.
 The `r`-jet norm of the `∂̄` reading, `D.dbarJetNorm k r s x`, is its jet norm at `0`; it is
 nonnegative and monotone in `r`, vanishes on the zero section, is unchanged by negation, scales by
 `‖c‖` under multiplication by `c : ℂ`, and satisfies the triangle inequality for sections whose
-readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`.
+readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`, also over finite
+sums.
 
 These are the chart norms by which the estimates on asymptotically holomorphic sequences of
 sections are stated, in the rescaled metrics `k ω(·, J ·)`.
@@ -263,6 +264,13 @@ theorem jetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     (hs : ContDiffAt ℝ r (D.reading k x s) 0) (ht : ContDiffAt ℝ r (D.reading k x t) 0) :
     D.jetNorm k r (s + t) x ≤ D.jetNorm k r s x + D.jetNorm k r t x := by
   simpa only [jetNorm_def, reading_add] using jetNormAt_add_le hs ht
+
+/-- The **triangle inequality for jet norms** over a finite sum of sections whose readings are
+`C^r` at `0`. -/
+theorem jetNorm_sum_le {κ : Type*} {k r : ℕ} {x : M} {t : Finset κ}
+    {s : κ → Π y, PowerBundle P k y} (hs : ∀ i ∈ t, ContDiffAt ℝ r (D.reading k x (s i)) 0) :
+    D.jetNorm k r (∑ i ∈ t, s i) x ≤ ∑ i ∈ t, D.jetNorm k r (s i) x := by
+  simpa only [jetNorm_def, reading_sum] using jetNormAt_sum_le hs
 
 /-- The jet norm of a complex multiple `c • s` is `‖c‖` times that of `s`. -/
 @[simp]
@@ -554,6 +562,22 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     D.dbarJetNorm k r (s + t) x ≤ D.dbarJetNorm k r s x + D.dbarJetNorm k r t x := by
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_add_eventuallyEq hs ht)]
   exact jetNormAt_add_le hs' ht'
+
+/-- The **triangle inequality for jet norms of `∂̄`** over a finite sum of sections whose
+readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`. -/
+theorem dbarJetNorm_sum_le {κ : Type*} {k r : ℕ} {x : M} {t : Finset κ}
+    {s : κ → Π y, PowerBundle P k y}
+    (hs : ∀ i ∈ t, ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x (s i)) z)
+    (hs' : ∀ i ∈ t, ContDiffAt ℝ r (D.dbarReading k x (s i)) 0) :
+    D.dbarJetNorm k r (∑ i ∈ t, s i) x ≤ ∑ i ∈ t, D.dbarJetNorm k r (s i) x :=
+  Finset.le_sum_of_subadditive_on_pred (fun u ↦ D.dbarJetNorm k r u x)
+    (fun u ↦ (∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x u) z) ∧
+      ContDiffAt ℝ r (D.dbarReading k x u) 0)
+    (D.dbarJetNorm_zero_fun k r x).le (fun _ _ hu hv ↦ D.dbarJetNorm_add_le hu.1 hv.1 hu.2 hv.2)
+    (fun _ _ hu hv ↦ ⟨(hu.1.and hv.1).mono fun _ hz ↦ by
+        rw [reading_add]; exact hz.1.add hz.2,
+      (hu.2.add hv.2).congr_of_eventuallyEq (D.dbarReading_add_eventuallyEq hu.1 hv.1)⟩)
+    s fun i hi ↦ ⟨hs i hi, hs' i hi⟩
 
 /-! ### Smoothness and germs of the readings -/
 
