@@ -45,8 +45,7 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   this holds without a convexity criterion, and is stated as
   `SymplecticGeometry.exists_smoothedMax_family`. For small `δ` the members are `i`-convex shapes
   by `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, applied to the pairs
-  `(M + q ℓ, χ' ℓ')` with `ℓ, ℓ' ∈ [b, ℓ₁]`, `χ'` a globally smooth family that agrees with `χ`
-  near the rectangle (`ContDiffOn.exists_contDiff_eventuallyEq_nhdsSet`).
+  `(M + q ℓ, χ ℓ')` with `ℓ, ℓ' ∈ [b, ℓ₁]`.
 * `SymplecticGeometry.exists_comp_add_shapeFamily`: the piece next to the end `ℓ₀` of the
   parameter interval `[ℓ₀, a]`. It is `T ℓ r = χ (λ ℓ) r + q ℓ`, where `q` is smooth,
   nondecreasing, `0` near `ℓ₀` and with `q' > 0` on `[a₁, a]`, and `λ` is a smooth monotone map
@@ -155,7 +154,7 @@ theorem exists_smoothedMax_family {χ : ℝ → ℝ → ℝ} {M q : ℝ → ℝ}
   have hval : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, χ' x = χ x.1 x.2 := fun x hx ↦
     (hloc x hx).eq_of_nhds
   have hsliceR : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, (fun r ↦ χ' (x.1, r)) =ᶠ[𝓝 x.2] χ x.1 :=
-    fun x hx ↦ (hloc x hx).comp_tendsto (Continuous.tendsto' (by fun_prop) x.2 x rfl)
+    fun x hx ↦ (hloc x hx).uncurry_left (f := fun ℓ r ↦ χ' (ℓ, r))
   have hχ'c : Continuous χ' := hχ'.continuous
   have hMcont : Continuous M := hM.continuous
   have hqcont : Continuous q := hq.continuous
@@ -315,36 +314,31 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
         deriv (T x.1) x.2 ≤ max (deriv M x.2) (deriv (χ ℓ') x.2) ∧
         min (iteratedDeriv 2 M x.2) (iteratedDeriv 2 (χ ℓ') x.2) ≤
           iteratedDeriv 2 (T x.1) x.2 := by
-  -- A globally smooth `χ'` that agrees with `uncurry χ` near the rectangle, and the width `δ₀`
-  -- below which the smoothed maxima of `M + q ℓ` and a member of `χ'` are `i`-convex shapes.
-  obtain ⟨χ', hχ', hχ'eq⟩ := hχ.exists_contDiff_eventuallyEq_nhdsSet
-    (isCompact_Icc.prod isCompact_Icc) (hU.mem_nhdsSet.2 hRU)
-  have hsliceR : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, (fun r ↦ χ' (x.1, r)) =ᶠ[𝓝 x.2] χ x.1 :=
-    fun x hx ↦ (hχ'eq.filter_mono (nhds_le_nhdsSet hx)).comp_tendsto
-      (Continuous.tendsto' (by fun_prop) x.2 x rfl)
+  -- The width `δ₀` below which the smoothed maxima of `M + q ℓ` and a member of `χ` are
+  -- `i`-convex shapes.
   have hFM : ContDiff ℝ ∞ fun x : (ℝ × ℝ) × ℝ ↦ M x.2 + q x.1.1 :=
     (hM.comp contDiff_snd).add (hq.comp (contDiff_fst.comp contDiff_fst))
-  have hFA : ContDiff ℝ ∞ fun x : (ℝ × ℝ) × ℝ ↦ χ' (x.1.2, x.2) :=
-    hχ'.comp ((contDiff_snd.comp contDiff_fst).prodMk contDiff_snd)
+  have hAx : ∀ p ∈ Icc b ℓ₁ ×ˢ Icc b ℓ₁, ∀ r ∈ Icc r₁ r₂,
+      ContDiffAt ℝ ∞ (Function.uncurry fun (p : ℝ × ℝ) r ↦ χ p.2 r) (p, r) := fun p hp r hr' ↦
+    (hχ.contDiffAt (hU.mem_nhds (hRU ⟨hp.2, hr'⟩))).comp (p, r)
+      ((contDiffAt_snd.comp _ contDiffAt_fst).prodMk contDiffAt_snd)
   obtain ⟨δ₀, hδ₀, hconv⟩ := exists_forall_isConvexShapeAt_smoothedMax
     (K := Icc b ℓ₁ ×ˢ Icc b ℓ₁) (isCompact_Icc.prod isCompact_Icc)
-    (M := fun p r ↦ M r + q p.1) (A := fun p r ↦ χ' (p.2, r)) (r₁ := r₁) (r₂ := r₂)
+    (M := fun p r ↦ M r + q p.1) (A := fun p r ↦ χ p.2 r) (r₁ := r₁) (r₂ := r₂)
     (fun p _ _ _ ↦ ((hFM.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)).contDiffAt)
-    (fun p _ _ _ ↦ ((hFA.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)).contDiffAt)
+    (fun p hp r hr' ↦ (hAx p hp r hr').uncurry_left.of_le (by simp))
     (fun p hp r hr' ↦ (hMc r hr').add_const (hqb.trans (hqm hp.1.1)))
-    (fun p hp r hr' ↦ (hχc (p.2, r) ⟨hp.2, hr'⟩).congr_of_eventuallyEq
-      (hsliceR (p.2, r) ⟨hp.2, hr'⟩))
+    (fun p hp r hr' ↦ hχc (p.2, r) ⟨hp.2, hr'⟩)
     (fun _ _ _ _ ↦ (hFM.contDiffAt.continuousAt_iteratedDeriv_prod_right
       (by exact_mod_cast le_top)).continuousWithinAt)
-    (fun _ _ _ _ ↦ (hFA.contDiffAt.continuousAt_iteratedDeriv_prod_right
+    (fun _ _ x hx ↦ ((hAx x.1 hx.1 x.2 hx.2).continuousAt_iteratedDeriv_prod_right
       (by exact_mod_cast le_top)).continuousWithinAt)
   obtain ⟨δ, hδ, T, hT, hTℓ, hTb, hTℓ₁, hTx⟩ := exists_smoothedMax_family hbc hcℓ hU hRU hχ hχℓ
     hM hq hqm hq' hgb hgc (lt_min hε hδ₀)
   refine ⟨δ, ⟨hδ.1, hδ.2.trans (min_le_left _ _)⟩, T, hT, fun x hx ↦ ?_, hTℓ, hTb, hTℓ₁, hTx⟩
   obtain ⟨ℓ', hℓ', hloc, -⟩ := hTx x hx
   exact (hconv δ ⟨hδ.1, hδ.2.trans (min_le_right _ _)⟩ (x.1, ℓ') ⟨hx.1, hℓ'⟩ x.2
-    hx.2).congr_of_eventuallyEq (hloc.trans ((hsliceR (ℓ', x.2) ⟨hℓ', hx.2⟩).mono
-      fun r hr' ↦ congrArg (smoothedMax δ (M r + q x.1)) hr'.symm))
+    hx.2).congr_of_eventuallyEq hloc
 
 /-- **Reparametrizing a strictly increasing family and raising it.** Let `χ : ℝ → ℝ → ℝ` be
 smooth in `(ℓ, r)` on an open set containing `[ℓ₀, a] × [r₁, r₂]`, with `∂χ/∂ℓ > 0` at each
@@ -374,7 +368,7 @@ theorem exists_comp_add_family {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ} {U :
   have hloc : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, χ' =ᶠ[𝓝 x] Function.uncurry χ := fun _ hx ↦
     hχ'eq.filter_mono (nhds_le_nhdsSet hx)
   have hsliceR : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, (fun r ↦ χ' (x.1, r)) =ᶠ[𝓝 x.2] χ x.1 :=
-    fun x hx ↦ (hloc x hx).comp_tendsto (Continuous.tendsto' (by fun_prop) x.2 x rfl)
+    fun x hx ↦ (hloc x hx).uncurry_left (f := fun ℓ r ↦ χ' (ℓ, r))
   -- The reparametrization `L`: the identity up to `a'`, equal to `a` from `a''` on.
   set a' := (ℓ₀ + a₁) / 2 with ha'
   set a'' := (a₁ + a) / 2 with ha''

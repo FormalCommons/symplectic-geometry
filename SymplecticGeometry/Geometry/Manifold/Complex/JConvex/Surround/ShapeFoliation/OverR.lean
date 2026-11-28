@@ -11,7 +11,6 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 import Mathlib.Analysis.Calculus.Deriv.Add
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import TauCeti.Analysis.Calculus.ContDiff.Prod
-import SymplecticGeometry.Analysis.Calculus.BumpFunction.FiniteDimension
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
@@ -104,29 +103,25 @@ theorem exists_smoothedMin_shapeFamilyOverR {ρ : ℝ → ℝ → ℝ} {M q : �
         deriv (T x.1) x.2 ≤ max (deriv M x.2) (deriv (ρ ℓ') x.2) ∧
         iteratedDeriv 2 (T x.1) x.2 ≤
           max (iteratedDeriv 2 M x.2) (iteratedDeriv 2 (ρ ℓ') x.2) := by
-  -- A globally smooth `ρ'` that agrees with `uncurry ρ` near the rectangle, and the width `δ₀`
-  -- below which the smoothed minima of `M - q ℓ` and a member of `ρ'` are shapes over `R`.
-  obtain ⟨ρ', hρ', hρ'eq⟩ := hρ.exists_contDiff_eventuallyEq_nhdsSet
-    (isCompact_Icc.prod isCompact_Icc) (hU.mem_nhdsSet.2 hRU)
-  have hsliceR : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc R₁ R₂, (fun R ↦ ρ' (x.1, R)) =ᶠ[𝓝 x.2] ρ x.1 :=
-    fun x hx ↦ (hρ'eq.filter_mono (nhds_le_nhdsSet hx)).comp_tendsto
-      (Continuous.tendsto' (by fun_prop) x.2 x rfl)
+  -- The width `δ₀` below which the smoothed minima of `M - q ℓ` and a member of `ρ` are shapes
+  -- over `R`.
   have hFM : ContDiff ℝ ∞ fun x : (ℝ × ℝ) × ℝ ↦ M x.2 - q x.1.1 :=
     (hM.comp contDiff_snd).sub (hq.comp (contDiff_fst.comp contDiff_fst))
-  have hFA : ContDiff ℝ ∞ fun x : (ℝ × ℝ) × ℝ ↦ ρ' (x.1.2, x.2) :=
-    hρ'.comp ((contDiff_snd.comp contDiff_fst).prodMk contDiff_snd)
+  have hAx : ∀ p ∈ Icc b ℓ₁ ×ˢ Icc b ℓ₁, ∀ R ∈ Icc R₁ R₂,
+      ContDiffAt ℝ ∞ (Function.uncurry fun (p : ℝ × ℝ) R ↦ ρ p.2 R) (p, R) := fun p hp R hR ↦
+    (hρ.contDiffAt (hU.mem_nhds (hRU ⟨hp.2, hR⟩))).comp (p, R)
+      ((contDiffAt_snd.comp _ contDiffAt_fst).prodMk contDiffAt_snd)
   obtain ⟨δ₀, hδ₀, hconv⟩ := exists_forall_isConvexShapeOverRAt_smoothedMin
     (K := Icc b ℓ₁ ×ˢ Icc b ℓ₁) (isCompact_Icc.prod isCompact_Icc)
-    (M := fun p R ↦ M R - q p.1) (A := fun p R ↦ ρ' (p.2, R)) (R₁ := R₁) (R₂ := R₂)
+    (M := fun p R ↦ M R - q p.1) (A := fun p R ↦ ρ p.2 R) (R₁ := R₁) (R₂ := R₂)
     (fun p _ _ _ ↦ ((hFM.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)).contDiffAt)
-    (fun p _ _ _ ↦ ((hFA.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)).contDiffAt)
+    (fun p hp R hR ↦ (hAx p hp R hR).uncurry_left.of_le (by simp))
     (fun p hp R hR ↦ (hMc R hR).sub_const (hqb.trans (hqm hp.1.1))
       ((hqm hp.1.2).trans_lt (hqM R hR)))
-    (fun p hp R hR ↦ (hρc (p.2, R) ⟨hp.2, hR⟩).congr_of_eventuallyEq
-      (hsliceR (p.2, R) ⟨hp.2, hR⟩))
+    (fun p hp R hR ↦ hρc (p.2, R) ⟨hp.2, hR⟩)
     (fun _ _ _ _ ↦ (hFM.contDiffAt.continuousAt_iteratedDeriv_prod_right
       (by exact_mod_cast le_top)).continuousWithinAt)
-    (fun _ _ _ _ ↦ (hFA.contDiffAt.continuousAt_iteratedDeriv_prod_right
+    (fun _ _ x hx ↦ ((hAx x.1 hx.1 x.2 hx.2).continuousAt_iteratedDeriv_prod_right
       (by exact_mod_cast le_top)).continuousWithinAt)
   -- The smoothed maximum of `-M + q ℓ` and `-ρ`, a family over `r` with `∂(-ρ)/∂ℓ > 0`.
   obtain ⟨δ, hδ, T, hT, hTℓ, hTb, hTℓ₁, hTx⟩ := exists_smoothedMax_family
@@ -143,8 +138,7 @@ theorem exists_smoothedMin_shapeFamilyOverR {ρ : ℝ → ℝ → ℝ} {M q : �
   · -- The members satisfy the criterion over `R`.
     obtain ⟨ℓ', hℓ', h, -⟩ := hTx x hx
     exact (hconv δ ⟨hδ.1, hδ.2.trans (min_le_right _ _)⟩ (x.1, ℓ') ⟨hx.1, hℓ'⟩ x.2
-      hx.2).congr_of_eventuallyEq ((hloc x ℓ' h).trans ((hsliceR (ℓ', x.2) ⟨hℓ', hx.2⟩).mono
-        fun R hR ↦ by dsimp only at hR ⊢; rw [hR]))
+      hx.2).congr_of_eventuallyEq (hloc x ℓ' h)
   · -- The `ℓ`-derivative.
     beta_reduce
     rw [deriv.fun_neg]
