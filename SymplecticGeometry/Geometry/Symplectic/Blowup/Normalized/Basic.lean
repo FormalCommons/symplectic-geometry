@@ -21,7 +21,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -328,11 +327,6 @@ theorem exists_isNormalizedAt [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymp
     ⟨⟨χ.target, χ.open_target, hδt, χ.symm.contMDiffOn⟩, χ.symm.injOn.mono hδt,
       fun z hz ↦ SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ
         (hδt (ball_subset_closedBall hz))⟩
-  -- On its target, `χ⁻¹` pulls `σ` back to the constant form `stdForm`.
-  have hχs := χ.isSymplecticMapOn_symm (σ := (stdForm (Fin (n + 1))).constSmooth)
-    (SmoothTwoForm.isSymplecticMapOn_iff.2 fun x hx v w ↦ by
-      rw [hχ x hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
-      exact SymplecticForm.constSmooth_apply _ _ _ _) (by simp)
   -- A compatible `J` for which `χ⁻¹` is pseudoholomorphic from `J₀` at the points of `B(δ)`.
   obtain ⟨J, hJ, hJχ⟩ := χ.symm.exists_compatible_mfderiv_apply_eq
     (stdComplexStructure (Fin (n + 1))).constSmooth hσ.isNondegenerate χ.open_target
@@ -340,7 +334,8 @@ theorem exists_isNormalizedAt [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymp
     (fun _ _ ↦ by
       rw [AlmostComplexStructure.constSmooth_almostComplexStructureAt]
       exact stdForm_compatible)
-    (fun z hz v w ↦ (SmoothTwoForm.isSymplecticMapOn_iff.1 hχs z hz v w).trans
+    (fun z hz v w ↦ (SmoothTwoForm.isSymplecticMapOn_iff.1
+        (SmoothTwoForm.isSymplecticMapOn_constSmooth_symm hχ) z hz v w).trans
       (SymplecticForm.constSmooth_apply _ _ _ _))
     (isCompact_closedBall 0 (ε / 2)) hδt
   refine ⟨J, ε / 2, χ.symm, hJ, by positivity, hψ, by rw [← hp0]; exact χ.left_inv hp,
