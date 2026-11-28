@@ -127,14 +127,12 @@ derivative on $TM$. In the statements,
      Mathlib's choice, and contain the page's hypotheses: `hJ` makes `σ`
      compatible with `J` (`compatible_of_inner_eq`), hence nondegenerate.
    - The milestones are stated in the page's form, for `hJ : σ.Compatible J`:
-     inside the statement, `letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) :=
-     ⟨hJ.metric.toRiemannianMetric⟩`, as `DESIGN.md` says, the connection is
-     `CovariantDerivative.leviCivitaConnection I M`, and `⟪·, ·⟫` is the
-     inner product of that instance, which is $g_J$. The
-     `IsContMDiffRiemannianBundle` instance comes from Mathlib's instance for
-     `⟨g.toRiemannianMetric⟩`. The proof is the first layer, with `hJ`
-     supplied by `Bundle.ContMDiffRiemannianMetric.inner_eq` and
-     `metric_inner`.
+     inside the statement, `letI := hJ.riemannianBundle`, as `DESIGN.md`
+     says, the connection is `CovariantDerivative.leviCivitaConnection I M`,
+     and `⟪·, ·⟫` is the inner product of that instance, which is $g_J$. The
+     `IsContMDiffRiemannianBundle` instance is
+     `Compatible.isContMDiffRiemannianBundle`. The proof is the first layer,
+     with `hJ` supplied by `Compatible.inner_riemannianBundle`.
 
    No definition bundles the connection of $g_J$: the milestones are the
    only statements that name it, and a definition would be a wrapper around
@@ -282,7 +280,7 @@ In the namespace `TauCeti.SmoothTwoForm`, the milestone:
   (hJ : σ.Compatible J)`; the block below abbreviates the statement with `D`,
   which the theorem writes out in full:
   ```
-  letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
+  letI := hJ.riemannianBundle
   ∀ x (u v w : TangentSpace I x),
     let D := (CovariantDerivative.leviCivitaConnection I M).hom
       (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism x
@@ -327,7 +325,7 @@ In the namespace `TauCeti.SmoothTwoForm`:
 
 - `Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff (hJ : σ.Compatible J)`:
   ```
-  letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
+  letI := hJ.riemannianBundle
   let L := CovariantDerivative.leviCivitaConnection I M
   (∀ x (u v w : TangentSpace I x),
     ⟪J.nijenhuis x u v, w⟫ =

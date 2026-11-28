@@ -20,6 +20,7 @@ import SymplecticGeometry.Analysis.Calculus.Deriv.Rectangle
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ShapeFoliation.Chain
 import SymplecticGeometry.Topology.Constructions.SumProd
+import SymplecticGeometry.Topology.Order.Compact
 
 /-!
 # Smooth, strictly increasing families of `i`-convex shapes
@@ -178,13 +179,15 @@ theorem exists_smoothedMax_family {χ : ℝ → ℝ → ℝ} {M q : ℝ → ℝ}
   have hLid : ∀ ℓ, b' ≤ ℓ → L ℓ = ℓ := fun ℓ hℓ ↦
     TauCeti.smoothLowerTruncation_of_right_le hbb' hℓ
   -- The gaps at `b` and at `ℓ₁`.
-  obtain ⟨g₀, hg₀, hg₀le⟩ := isCompact_Icc.exists_forall_le' (a := (0 : ℝ))
-    (f := fun r ↦ M r + q b - χ' (b, r)) (s := Icc r₁ r₂) (by fun_prop) fun r hr' ↦ by
+  obtain ⟨g₀, hg₀, hg₀le⟩ := isCompact_Icc.exists_pos_forall_add_le_of_forall_lt
+    (f := fun r ↦ χ' (b, r)) (g := fun r ↦ M r + q b) (s := Icc r₁ r₂) (by fun_prop)
+    (by fun_prop) fun r hr' ↦ by
       have := hval (b, r) ⟨left_mem_Icc.2 hbℓ, hr'⟩
       simp only at this ⊢
       linarith [hgb r hr']
-  obtain ⟨g₁, hg₁, hg₁le⟩ := isCompact_Icc.exists_forall_le' (a := (0 : ℝ))
-    (f := fun r ↦ χ' (ℓ₁, r) - (M r + q ℓ₁)) (s := Icc r₁ r₂) (by fun_prop) fun r hr' ↦ by
+  obtain ⟨g₁, hg₁, hg₁le⟩ := isCompact_Icc.exists_pos_forall_add_le_of_forall_lt
+    (f := fun r ↦ M r + q ℓ₁) (g := fun r ↦ χ' (ℓ₁, r)) (s := Icc r₁ r₂) (by fun_prop)
+    (by fun_prop) fun r hr' ↦ by
       have := hval (ℓ₁, r) ⟨right_mem_Icc.2 hbℓ, hr'⟩
       simp only at this ⊢
       linarith [hgc ℓ₁ ⟨hcℓ, le_rfl⟩ r hr']
