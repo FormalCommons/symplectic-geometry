@@ -299,8 +299,10 @@ private theorem singularHomologyπ_singularHomologyδ_localHomologyCross {m : �
         (mapsTo_preimage_fst_compl_union_preimage_snd_compl (0 : F) (0 : ℝ))) := by
     ext p
     refine Subtype.ext ?_
-    erw [TopPair.ofSubsetMap_snd_apply]
-    -- both are the image of `p` in `F × ℝ`
+    -- No `rw`: `p` is a point of the pair's subspace only after unfolding `ofSubset`, so the
+    -- lemma is applied with its pair given. Both sides are the image of `p` in `F × ℝ`.
+    refine Eq.trans ?_ (TopPair.ofSubsetMap_snd_apply (X := TopCat.of F ⊗ TopCat.of ℝ)
+      (Y := TopCat.of (F × ℝ)) _ _ p).symm
     rfl
   have h₄ := ConcreteCategory.congr_hom
     (TopPair.singularHomologyπ_naturality (f := prodComplZeroInnerPairMap (F := F))
