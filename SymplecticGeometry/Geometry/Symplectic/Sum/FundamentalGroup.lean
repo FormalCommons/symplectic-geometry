@@ -61,7 +61,7 @@ miss its tube and are carried into the sum with their forms and framings
 because the isomorphism of `fibreSum_fundamentalGroupMulEquiv`, after the quotient map, carries
 the normal closure of each remaining torus in `X` onto that of the torus carried into the sum
 (`fibreSum_map_normalClosure_basepointChangeSubgroup_range_map`), and by the third isomorphism
-theorem in the form `QuotientGroup.liftEquiv`.
+theorem, `QuotientGroup.quotientQuotientEquivQuotient`.
 
 ## Main results
 
@@ -86,7 +86,7 @@ theorem in the form `QuotientGroup.liftEquiv`.
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  Exercise 7.2.6.
+  Theorem 7.2.8 and Exercise 7.2.6.
 * [R. E. Gompf, *A new construction of symplectic manifolds*][Gompf1995].
 -/
 
@@ -443,11 +443,9 @@ private theorem nonempty_mulEquiv_quotient_of_fiberSum {κ : Type w} {X : Type u
   have hφN₀ : (Subgroup.normalClosure (range (map (ι none).toContinuousMap t))).map φ = ⊥ :=
     (Subgroup.map_eq_bot_iff _).2 fun g hg ↦ by
       simpa [φ] using hg
-  have hker : φ.ker ≤ K₀ := fun g hg ↦ by
-    refine (hN₀ ▸ Subgroup.normalClosure_mono (subset_iUnion (fun k ↦
-      (basepointChangeSubgroup (χ k) (R k) : Set (FundamentalGroup X (ι none t)))) none) :
-        Subgroup.normalClosure (range (map (ι none).toContinuousMap t)) ≤ K₀) ?_
-    exact (QuotientGroup.eq_one_iff g).1 (Ψ.map_eq_one_iff.1 hg)
+  have hNK : Subgroup.normalClosure (range (map (ι none).toContinuousMap t)) ≤ K₀ :=
+    hN₀ ▸ Subgroup.normalClosure_mono (subset_iUnion (fun k ↦
+      (basepointChangeSubgroup (χ k) (R k) : Set (FundamentalGroup X (ι none t)))) none)
   have hφs : Function.Surjective φ := Ψ.surjective.comp (QuotientGroup.mk'_surjective _)
   let L := Subgroup.normalClosure (⋃ k, (basepointChangeSubgroup (PathConnectedSpace.somePath _ c)
     (map (FiberSum.inlEmbedding f₂ hδ (ι (some k)) (hmem k)).toContinuousMap t).range :
@@ -461,14 +459,11 @@ private theorem nonempty_mulEquiv_quotient_of_fiberSum {κ : Type w} {X : Type u
     rw [← Subgroup.map_normalClosure _ _ hφs]
     exact fibreSum_map_normalClosure_basepointChangeSubgroup_range_map e p f₁ f₂ hδ hδε
       (ι (some k)) (hmem k) (t, z₀) t (χ (some k)) _
-  have hK : K₀ = ((QuotientGroup.mk' L).comp φ).ker := by
-    rw [← MonoidHom.comap_ker, QuotientGroup.ker_mk']
-    exact (Subgroup.comap_map_eq_self hker).symm.trans (congrArg (Subgroup.comap φ) hC)
-  exact ⟨θ.trans ((QuotientGroup.liftEquiv K₀ (φ := (QuotientGroup.mk' L).comp φ)
-    ((QuotientGroup.mk'_surjective L).comp hφs) hK).symm.trans
+  exact ⟨θ.trans ((QuotientGroup.congr _ L Ψ (by rw [Subgroup.map_map]; exact hC)).symm.trans
+    ((QuotientGroup.quotientQuotientEquivQuotient _ K₀ hNK).trans
     (QuotientGroup.congr K₀ (Subgroup.normalClosure
       (⋃ k, (basepointChangeSubgroup (ψ k) (R k) : Set (FundamentalGroup X x))))
-      (fundamentalGroupMulEquivOfPath ρ) hA))⟩
+      (fundamentalGroupMulEquivOfPath ρ) hA)))⟩
 
 /-- The conclusion of `exists_fundamentalGroup_mulEquiv_quotient_tori` for the tori indexed by
 `κ`, for every compact symplectic `X` on the model `V` in `Type u`; its proof is an induction on
