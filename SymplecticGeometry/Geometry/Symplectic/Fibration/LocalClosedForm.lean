@@ -39,14 +39,6 @@ vanishes over the patch when `τ` is vertically closed there and `F` is connecte
   primitives of the mixed curls over an open patch, normalized at a point `y₀` of `F`.
 * `TauCeti.SmoothTwoForm.exists_isClosed_local`: a two-form, smooth and closed over the patch,
   that agrees with `τ` whenever one of the two vectors is tangent to the fibre.
-* `TauCeti.RoughForm.add_sum_smul_mpullback_fst_wedge_apply_vertical`,
-  `TauCeti.RoughForm.fiberComponent_add_sum_smul_mpullback_fst_wedge`,
-  `TauCeti.RoughForm.mixedComponent_add_sum_smul_mpullback_fst_wedge` and
-  `TauCeti.RoughForm.baseComponent_add_sum_smul_mpullback_fst_wedge`: adding
-  `∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)` to a two-form `τ` keeps its values on pairs ending with a
-  vertical vector, hence its fibre and mixed components, and adds `g_{ij}` to its base
-  components; `TauCeti.SmoothTwoForm.contMDiffOn_add_sum_smul_mpullback_fst_wedge` says that
-  the sum is smooth where the `g_{ij}` are.
 
 ## Implementation notes
 
@@ -62,10 +54,10 @@ differentials, and subtracting its values at `y₀` normalizes it. Smoothness on
 from that of `h` on `U × F` by `ContMDiff.contMDiffOn_opens_prod_of_eq`.
 
 The form of `TauCeti.SmoothTwoForm.exists_isClosed_local` is
-`φ = τ + ∑_{i<j} (f_{ij} - τ((∂ᵢ, 0), (∂ⱼ, 0))) • pr₁^*(dxᵢ ∧ dxⱼ)`. The pull-backs
-`pr₁^*(dxᵢ ∧ dxⱼ)` vanish as soon as one vector is vertical
-(`Module.Basis.mpullback_fst_wedge_coordOneForm_apply`), so `φ` agrees with `τ` there, and
-its base components are the `f_{ij}` (`Module.Basis.sum_sum_mul_coord_mul_sub_coord_mul`).
+`φ = τ + ∑_{i<j} (f_{ij} - τ((∂ᵢ, 0), (∂ⱼ, 0))) • pr₁^*(dxᵢ ∧ dxⱼ)`. By the lemmas of
+`Fibration/LocalForm.lean` on adding such base terms, `φ` has the fibre and mixed components of
+`τ` (`TauCeti.RoughForm.add_sum_smul_mpullback_fst_wedge_apply_vertical`), and its base
+components are the `f_{ij}` (`TauCeti.RoughForm.baseComponent_add_sum_smul_mpullback_fst_wedge`).
 Closedness is checked on three kinds of triples
 (`ContinuousAlternatingMap.eq_zero_of_forall_prod_fin_three`), each in a lemma of its own.
 On two fibre vectors, `dφ` only depends on the fibre and mixed components
@@ -92,76 +84,6 @@ noncomputable section
 open Set
 open scoped Manifold ContDiff
 
-namespace TauCeti.RoughForm
-
-variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
-  {EF HF F : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [TopologicalSpace HF]
-  {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
-  {ι : Type*} [Fintype ι] [LinearOrder ι] (τ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2)
-  (bs : Module.Basis ι ℝ EB) (g : ι → ι → EB × F → ℝ)
-
-/-- The two-form `τ + ∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)` on `EB × F`, where `dxᵢ` are the
-coordinate one-forms of a basis `bs` of `EB`, takes on `v, w` the value of `τ` plus
-`∑_{i<j} g_{ij} (xᵢ(v₁) xⱼ(w₁) - xᵢ(w₁) xⱼ(v₁))`. -/
-theorem add_sum_smul_mpullback_fst_wedge_apply (z : EB × F)
-    (v w : TangentSpace (𝓘(ℝ, EB).prod IF) z) :
-    (τ + ∑ i, ∑ j with i < j, g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val :
-      RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) z ![v, w] =
-      τ z ![v, w] + ∑ i, ∑ j with i < j,
-        g i j z * (bs.coord i v.1 * bs.coord j w.1 - bs.coord i w.1 * bs.coord j v.1) := by
-  simp only [Pi.add_apply, ContinuousAlternatingMap.add_apply, Finset.sum_apply,
-    ContinuousAlternatingMap.sum_apply, Pi.smul_apply', ContinuousAlternatingMap.smul_apply,
-    smul_eq_mul, Module.Basis.mpullback_fst_wedge_coordOneForm_apply]
-
-/-- The two-form `τ + ∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)` agrees with `τ` on every pair whose second
-vector is tangent to the fibre. -/
-theorem add_sum_smul_mpullback_fst_wedge_apply_vertical (z : EB × F)
-    (v : TangentSpace (𝓘(ℝ, EB).prod IF) z) (w : TangentSpace IF z.2) :
-    (τ + ∑ i, ∑ j with i < j, g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val :
-      RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) z ![v, ((0 : EB), w)] =
-      τ z ![v, ((0 : EB), w)] := by
-  refine (add_sum_smul_mpullback_fst_wedge_apply τ bs g z v ((0 : EB), w)).trans ?_
-  simp
-
-/-- The two-form `τ + ∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)` has the fibre components of `τ`. -/
-theorem fiberComponent_add_sum_smul_mpullback_fst_wedge :
-    (τ + ∑ i, ∑ j with i < j, g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val :
-      RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2).fiberComponent =
-      τ.fiberComponent := by
-  funext x y
-  refine ContinuousAlternatingMap.ext_fin_two fun w₁ w₂ ↦ ?_
-  rw [fiberComponent_apply, fiberComponent_apply]
-  exact add_sum_smul_mpullback_fst_wedge_apply_vertical τ bs g _ _ w₂
-
-/-- The two-form `τ + ∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)` has the mixed components of `τ`. -/
-theorem mixedComponent_add_sum_smul_mpullback_fst_wedge :
-    (τ + ∑ i, ∑ j with i < j, g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val :
-      RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2).mixedComponent bs =
-      τ.mixedComponent bs := by
-  funext i x y
-  refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
-  rw [mixedComponent_apply, mixedComponent_apply]
-  exact (ContinuousAlternatingMap.apply_vecCons_swap _ _ _).trans ((congrArg Neg.neg
-    (add_sum_smul_mpullback_fst_wedge_apply_vertical τ bs g _ _ w)).trans
-      ((τ (x, y)).apply_vecCons_swap _ _).symm)
-
-/-- For `i < j`, the base component `f_{ij}` of `τ + ∑_{k<l} g_{kl} pr₁^*(dxₖ ∧ dxₗ)` is the base
-component of `τ` plus `g_{ij}`. -/
-theorem baseComponent_add_sum_smul_mpullback_fst_wedge {i j : ι} (hij : i < j) (x : EB) (y : F) :
-    (τ + ∑ k, ∑ l with k < l, g k l • (SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.wedge (bs.coordOneForm k) (bs.coordOneForm l))).val :
-      RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2).baseComponent bs i j x y =
-      τ.baseComponent bs i j x y + g i j (x, y) := by
-  rw [baseComponent_def, baseComponent_def]
-  refine (add_sum_smul_mpullback_fst_wedge_apply τ bs g (x, y) (bs i, 0) (bs j, 0)).trans ?_
-  exact congrArg _ (bs.sum_sum_mul_coord_mul_sub_coord_mul (fun k l ↦ g k l (x, y)) hij)
-
-end TauCeti.RoughForm
-
 namespace TauCeti.SmoothTwoForm
 
 variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
@@ -183,27 +105,6 @@ private theorem exists_mpullback_prodMk_apply_eq_mextDeriv (i j : ι) :
     mextDerivₗ_apply, baseField_apply, baseField_apply]
   -- The vector `(0, w)` lies in the tangent space of `EB × F`, which is `EB × EF` by definition.
   rfl
-
-/-- If the functions `g_{ij}` are smooth on a set `s`, then so is the two-form
-`τ + ∑_{i<j} g_{ij} pr₁^*(dxᵢ ∧ dxⱼ)` on `EB × F`, as a section of the bundle of two-forms. -/
-theorem contMDiffOn_add_sum_smul_mpullback_fst_wedge [FiniteDimensional ℝ EB] [Fintype ι]
-    [LinearOrder ι] {g : ι → ι → EB × F → ℝ} {s : Set (EB × F)}
-    (hg : ∀ i j, ContMDiffOn (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞ (g i j) s) :
-    ContMDiffOn (𝓘(ℝ, EB).prod IF)
-      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
-      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z
-        ((τ.val + ∑ i, ∑ j with i < j, g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
-          (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val :
-          RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) z)) s := by
-  have hsum : ContMDiffOn (𝓘(ℝ, EB).prod IF)
-      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
-      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z
-        (∑ i, ∑ j with i < j, (g i j • (SmoothForm.mpullback Prod.fst contMDiff_fst
-          (SmoothForm.wedge (bs.coordOneForm i) (bs.coordOneForm j))).val :
-          RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) z)) s :=
-    ContMDiffOn.sum_section fun i _ ↦ ContMDiffOn.sum_section fun j _ ↦
-      ContMDiffOn.smul_section (hg i j) (SmoothForm.contMDiff _).contMDiffOn
-  exact τ.contMDiff.contMDiffOn.add_section (hsum.congr fun z _ ↦ by simp only [Finset.sum_apply])
 
 variable [CompleteSpace EB] [CompleteSpace EF]
 
