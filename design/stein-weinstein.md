@@ -873,7 +873,8 @@ containing `ι '' closedBall 0 1`:
       - `IsConvexShapeAt (χ ℓ) r` for `ℓ ∈ Icc 0 (7 * δ)` and `δ < r`;
       - `ContinuousOn (χ ℓ) (Ici δ)` and
         `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop` for `ℓ ∈ Icc 0 (7 * δ)`;
-      - `χ 0 = sqrtSubLeaf L δ 0`;
+      - `χ 0 = sqrtAddLeaf L δ 0`, which is `sqrtSubLeaf L δ 0` by
+        `sqrtAddLeaf_zero`;
       - `χ ℓ r = sqrtAddLeaf L δ ℓ r` for `ℓ ∈ Icc 0 (7 * δ)` and
         `2 * δ ≤ r`, so `χ ℓ r = √(64 * r ^ 2 + ℓ ^ 2)` for
         `(2 + L) * δ ≤ r`;
