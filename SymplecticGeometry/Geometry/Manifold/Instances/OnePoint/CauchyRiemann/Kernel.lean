@@ -22,7 +22,7 @@ import SymplecticGeometry.Analysis.Normed.Operator.Fredholm
 import TauCeti.Analysis.Fredholm.ContinuousFamily
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HomologicalOrientation
 import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
-import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Analysis.Normed.Operator.Splitting.Basic
@@ -105,7 +105,7 @@ isolated. So there is one zero, of order one. A holomorphic function with a zero
 a nonzero derivative there (`AnalyticAt.analyticOrderAt_deriv_add_one`). In the trivialization
 `(twistCore 1).localTriv z` the coordinate of `s` is that holomorphic reading, composed with `ψ`,
 times a factor that is only continuous but nonzero at the zero; at a zero such a factor multiplies
-the derivative and nothing more (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`), so the
+the derivative and nothing more (`TauCeti.mvfderiv_eq_smul_of_eventuallyEq_smul`), so the
 derivative of the coordinate is invertible, and so is the linearization
 (`TauCeti.surjective_sectionLinearization_iff`).
 
@@ -333,9 +333,7 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
   have h0 : h (ψ.toOpenPartialHomeomorph z) = 0 := by simpa using h0' 0 one_pos
   replace hd : deriv h (ψ.toOpenPartialHomeomorph z) ≠ 0 := by simpa using hd
   -- Near `z`, the coordinate of `s` in `e₀` is `(c x)⁻¹ h (ψ x)`.
-  set C : OnePoint ℂ → ℂ →L[ℝ] ℂ := fun x ↦ (c x)⁻¹ • ContinuousLinearMap.id ℝ ℂ
-  have hC : ContinuousAt C z := (hc.inv₀ hc₀).smul continuousAt_const
-  have hu : (fun x ↦ C x ((h ∘ ψ.toOpenPartialHomeomorph) x)) =ᶠ[𝓝 z]
+  have hu : (fun x ↦ (c x)⁻¹ • (h ∘ ψ.toOpenPartialHomeomorph) x) =ᶠ[𝓝 z]
       fun x ↦ (e₀ (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) (id x) (s x))).2 := by
     filter_upwards [ψ.open_source.mem_nhds hzψ, hc.eventually_ne hc₀] with x hx hcx
     -- `ψ⁻¹ (ψ x) = x`, rewritten under the dependent pair through the map `p ↦ ⟨p, s p⟩`.
@@ -343,7 +341,7 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
         (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x))).2 :=
       congrArg (fun p ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (s p))).2)
         (ψ.toOpenPartialHomeomorph.left_inv hx)
-    simp only [C, hx', smul_apply, ContinuousLinearMap.id_apply, smul_eq_mul, id]
+    simp only [hx', smul_eq_mul, id]
     rw [inv_mul_eq_iff_eq_mul₀ hcx]
     exact hec x (s x)
   have hψd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ.toOpenPartialHomeomorph z :=
@@ -353,17 +351,17 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
   have hcomp := hhd.comp z hψd
   rw [surjective_sectionLinearization_iff (e := e₀) continuousAt_id
     (by simp [e₀, OnePoint.twistCore_localTriv_baseSet])
-    (mdifferentiableAt_of_eventuallyEq_clm_apply hu hC hcomp h0) hz,
-    mvfderiv_eq_comp_of_eventuallyEq_clm_apply hu hC hcomp h0, mvfderiv_comp z hhd hψd,
+    (mdifferentiableAt_of_eventuallyEq_smul hu (hc.inv₀ hc₀) hcomp h0) hz,
+    mvfderiv_eq_smul_of_eventuallyEq_smul hu (hc.inv₀ hc₀) hcomp h0, mvfderiv_comp z hhd hψd,
     mvfderiv_eq_fderiv,
     (hA.differentiableAt.hasDerivAt.hasFDerivAt.restrictScalars ℝ).fderiv]
   have hDs := ((ψ.isLocalDiffeomorphAt _ _ ∞ hzψ).isInvertible_mfderiv (by simp)).surjective
-  have hCs : Function.Surjective (C z) := fun y ↦ ⟨c z * y, by simp [C, hc₀]⟩
   have hds : Function.Surjective ((ContinuousLinearMap.toSpanSingleton ℂ
       (deriv h (ψ.toOpenPartialHomeomorph z))).restrictScalars ℝ) :=
     fun y ↦ ⟨y / deriv h (ψ.toOpenPartialHomeomorph z), by simpa using div_mul_cancel₀ y hd⟩
-  simp only [ContinuousLinearMap.coe_comp]
-  exact hCs.comp ((hds.comp (NormedSpace.fromTangentSpace _).surjective).comp hDs)
+  rw [FunLike.coe_smul, Pi.smul_def, ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp]
+  exact (MulAction.surjective₀ (inv_ne_zero hc₀)).comp
+    ((hds.comp (NormedSpace.fromTangentSpace _).surjective).comp hDs)
 
 /-! ### Quotients of kernel elements -/
 
