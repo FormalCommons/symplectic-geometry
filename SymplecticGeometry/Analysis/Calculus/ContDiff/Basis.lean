@@ -24,6 +24,9 @@ and a map `f : E → F`:
 The second is a converse of Mathlib's `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`, applied
 to the coordinate functionals. It is Tau Ceti's `TauCeti.norm_iteratedFDeriv_sum_comp_left_le`
 for the maps `c ↦ c • b j`, applied to `f = fun y ↦ ∑ j, b.repr (f y) j • b j`.
+Tau Ceti's `Module.Basis.norm_iteratedFDeriv_le_sum` is the same bound for real derivatives of
+maps into a space over an `RCLike` field; the one here takes derivatives over the field `𝕜` of
+the basis, which may be any complete nontrivially normed field.
 -/
 
 public section

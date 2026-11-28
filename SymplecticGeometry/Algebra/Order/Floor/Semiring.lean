@@ -18,7 +18,8 @@ import Mathlib.Tactic.Ring
 A supplement to `Mathlib.Algebra.Order.Floor.Semiring`: in a linearly ordered field with a floor,
 the closed intervals `[a + j h, a + (j + 1) h]`, `j < N`, of the mesh of step `h > 0` cover
 `[a, a + N h]` (`SymplecticGeometry.exists_lt_mem_Icc_add_mul`). Left of `a + N h`, a point lies
-in the cell of index `⌊(x - a) / h⌋₊`; the right end lies in the last cell.
+in the cell of index `⌊(x - a) / h⌋₊`; the right end lies in the last cell. For `a < b`, `[a, b]`
+has such a mesh with cells as small as wanted (`SymplecticGeometry.exists_mesh_Icc`).
 -/
 
 public section
@@ -40,6 +41,29 @@ theorem exists_lt_mem_Icc_add_mul {K : Type*} [Field K] [LinearOrder K] [IsStric
   · refine ⟨N - 1, Nat.sub_lt hN one_pos, ?_⟩
     rw [Nat.cast_pred hN, heq]
     exact ⟨by nlinarith, le_of_eq (by ring)⟩
+
+/-- For `a < b` and `h₀ > 0`, `[a, b]` has a uniform mesh of `N > 0` cells of size `h < h₀`,
+`N h = b - a`, with a sequence `t` that runs through its points, `t i = a + i h` for `i ≤ N`,
+and stays in `[a, b]`. -/
+theorem exists_mesh_Icc {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
+    [FloorSemiring K] {a b h₀ : K} (hab : a < b) (hh₀ : 0 < h₀) :
+    ∃ N : ℕ, 0 < N ∧ ∃ h : K, 0 < h ∧ h < h₀ ∧ N * h = b - a ∧ ∃ t : ℕ → K,
+      (∀ i ≤ N, t i = a + i * h) ∧ ∀ i, t i ∈ Icc a b := by
+  set N := ⌊(b - a) / h₀⌋₊ + 1
+  have hN : (0 : K) < N := Nat.cast_pos.2 (Nat.succ_pos _)
+  have hNh₀ : b - a < h₀ * N := by
+    have := Nat.lt_floor_add_one ((b - a) / h₀)
+    rw [div_lt_iff₀ hh₀] at this
+    push_cast [N]
+    linarith
+  have hNh : (N : K) * ((b - a) / N) = b - a := mul_div_cancel₀ _ hN.ne'
+  have hh : 0 < (b - a) / N := div_pos (sub_pos.2 hab) hN
+  refine ⟨N, Nat.succ_pos _, (b - a) / N, hh, (div_lt_iff₀ hN).2 hNh₀, hNh,
+    fun i ↦ a + (min i N : ℕ) * ((b - a) / N), fun i hi ↦ by simp only [min_eq_left hi], fun i ↦ ?_⟩
+  have h₁ : ((min i N : ℕ) : K) ≤ N := Nat.cast_le.2 (min_le_right i N)
+  have h₂ : (0 : K) ≤ (min i N : ℕ) := Nat.cast_nonneg _
+  exact ⟨le_add_of_nonneg_right (mul_nonneg h₂ hh.le),
+    by nlinarith [mul_le_mul_of_nonneg_right h₁ hh.le]⟩
 
 end SymplecticGeometry
 
