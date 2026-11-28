@@ -434,7 +434,7 @@ private theorem exists_smoothSimplex_singularKronecker_relClass [SigmaCompactSpa
       (fun w hw hZ ↦ hψ.eq_zero_of_lineDisc_mem_range hv hw hZ) hA (hAμ _ hA) σ₀
       (U := ⊤) (subset_univ _) (fun x ↦ (hσ₀ x).symm) hφ
       (fun x _ ↦ (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr (g x)).comp
-        (reindex_complexManifoldOrientation_complex ▸ hgo x)) h0 (fun x ↦ hσ₀ x ▸ hRgB x) S.val hs
+        (reindex_complexManifoldOrientation_complex _ ▸ hgo x)) h0 (fun x ↦ hσ₀ x ▸ hRgB x) S.val hs
 
 open CategoryTheory in
 /-- **The relative class of `ω̃_{ψ,l,ε} - π^* σ` is `π l²` times the dual class of the divisor.**

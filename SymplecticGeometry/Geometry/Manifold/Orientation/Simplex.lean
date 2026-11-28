@@ -190,7 +190,7 @@ theorem exists_smoothSimplex_complex_closedBall_subset_image {a b : ℝ} (hb : 0
     exact ⟨y, hy, by simp [hyw]⟩
   refine ⟨L ∘ g, SmoothSimplex.ofContMDiff hs.contMDiff, fun x ↦ by simp, hs, he, fun y ↦ ?_,
     hdisc, fun i x hx ↦ ?_, ?_⟩
-  · rw [SymplecticGeometry.reindex_complexManifoldOrientation_complex]
+  · rw [TauCeti.reindex_complexManifoldOrientation_complex _]
     exact (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_symm (g y)).comp (hgo y)
   · -- A face point of `Δ²` is not in its interior, and `L ∘ g` is injective.
     rw [SmoothSimplex.toContinuousMap_ofContMDiff_apply] at hx
