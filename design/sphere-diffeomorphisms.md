@@ -364,8 +364,8 @@ $\sigma=\omega_{FS}$):
   The $J$-holomorphy of the ratio of two elements of $E_J$ is a lemma of its
   own, `isPseudoholomorphicOn_div_of_mem_twistOneKernel`, in part 45's
   `CauchyRiemann/Kernel.lean`.
-- `eq_uniformizingDiffeomorph_iff`: an element of `diffPlus` equals
-  `uniformizingDiffeomorph J` exactly when it pulls $i$ back to $J$ and
+- `eq_uniformizingDiffeomorph_iff`: a diffeomorphism of the sphere equals
+  the coercion of `uniformizingDiffeomorph J` exactly when it pulls $i$ back to $J$ and
   fixes `0`, `1` and `∞` (Decision 7); and
   `uniformizingDiffeomorph_ofComplexManifold : uniformizingDiffeomorph i = 1`.
 

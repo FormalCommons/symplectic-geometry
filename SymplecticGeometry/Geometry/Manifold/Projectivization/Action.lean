@@ -29,10 +29,14 @@ generators.
   `(g, x) ↦ g • x` is `C^r` on `G × ℙ 𝕜 V`. Near `x₀` the action is `(g, x) ↦ [g • L x]`, for the
   homogeneous coordinates `L` of the identity that Tau Ceti's
   `Projectivization.exists_contMDiffAt_eventually_eq_mk` gives.
+* `Projectivization.instContMDiffConstSMulReal`: each `g` acts by a real-`C^r` map, with no
+  assumption on how the action depends on `g`: Tau Ceti's `ContMDiffConstSMul.restrictScalars`
+  applied to its `Projectivization.instContMDiffConstSMul` over `𝕜`.
 * `Projectivization.fundamentalVectorField_mk`: the fundamental vector field of `ξ` at `[y]` is
   the image under the differential of `mkNonzero` at `y` of the fundamental vector field of `ξ`
-  for the linear action at `y`, by the chain rule along the factorization of the orbit map of
-  `[y]` through that of `y`.
+  for the linear action at `y`. Both the inclusion of the punctured space and `mkNonzero` are
+  equivariant (`mkNonzero_smul`), so Tau Ceti's `TauCeti.mfderiv_fundamentalVectorField_of_map_smul`
+  applies to each.
 * `Projectivization.fundamentalVectorField_mk_of_smul_eq`: for an action through
   `ρ : G → (V →L[ℝ] V)`, differentiable at `1`, that vector at `y` is `dρ₁ ξ y`, by Tau Ceti's
   `TauCeti.fundamentalVectorField_eq_mfderiv_apply`.
@@ -99,6 +103,13 @@ instance instContMDiffSMul [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → 𝕜) r G 
     conv_lhs => rw [hpx]
     exact smul_mk p.1 hp
 
+/-- A group acting `𝕜`-linearly on `𝕜ⁿ⁺¹` acts on `ℙ 𝕜 (Fin (n + 1) → 𝕜)` by maps that are `C^r`
+for the underlying real manifold structure, since they are `C^r` over `𝕜`
+(`Projectivization.instContMDiffConstSMul`, `ContMDiffConstSMul.restrictScalars`). -/
+instance instContMDiffConstSMulReal :
+    ContMDiffConstSMul 𝓘(ℝ, Fin n → 𝕜) r G (ℙ 𝕜 (Fin (n + 1) → 𝕜)) :=
+  ContMDiffConstSMul.restrictScalars ℝ (𝕜' := 𝕜) inferInstance
+
 /-- **Fundamental vector fields of a linear action on projective space.** If a group acts
 `𝕜`-linearly on `𝕜ⁿ⁺¹` and the orbit map of `y ≠ 0` is differentiable at `1`, the fundamental
 vector field of `ξ` at `[y]` is the image under the differential of the projection `mkNonzero` at
@@ -109,23 +120,21 @@ theorem fundamentalVectorField_mk (ξ : GroupLieAlgebra I G) {y : Fin (n + 1) �
       mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n)
         ⟨y, mem_puncturedSpace.2 hy⟩ (fundamentalVectorField 𝓘(ℝ, Fin (n + 1) → 𝕜) ξ y) := by
   set y' : puncturedSpace (Fin (n + 1) → 𝕜) := ⟨y, mem_puncturedSpace.2 hy⟩
-  -- The orbit map of `[y]` factors through the orbit map `φ` of `y` in the punctured space.
-  set φ : G → puncturedSpace (Fin (n + 1) → 𝕜) := fun g ↦
-    ⟨g • y, mem_puncturedSpace.2 ((smul_ne_zero_iff_ne g).2 hy)⟩
-  have horbit : (fun g : G ↦ g • mk 𝕜 y hy) = mkNonzero 𝕜 n ∘ φ :=
-    funext fun g ↦ by rw [comp_apply, mkNonzero_apply]; exact smul_mk g hy
-  have hval : (Subtype.val ∘ φ) = fun g : G ↦ g • y := rfl
-  have hφ : MDifferentiableAt I 𝓘(ℝ, Fin (n + 1) → 𝕜) φ 1 :=
+  have hval : (Subtype.val ∘ fun g : G ↦ g • y') = fun g : G ↦ g • y :=
+    funext fun g ↦ puncturedSpace.coe_smul g y'
+  have horbit : MDifferentiableAt I 𝓘(ℝ, Fin (n + 1) → 𝕜) (fun g : G ↦ g • y') 1 :=
     Manifold.mdifferentiableAt_subtype_val_comp_iff.1 (hval ▸ h)
-  have hφ1 : φ 1 = y' := Subtype.ext (one_smul G y)
-  have hval1 : mfderiv I 𝓘(ℝ, Fin (n + 1) → 𝕜) (Subtype.val ∘ φ) 1 ξ =
-      mfderiv I 𝓘(ℝ, Fin (n + 1) → 𝕜) φ 1 ξ :=
-    (mfderiv_comp_apply 1 (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero) hφ ξ).trans
-      (Manifold.mfderiv_subtype_val_apply _ _)
-  rw [fundamentalVectorField_apply, fundamentalVectorField_apply, ← hval, horbit]
-  exact (mfderiv_comp_apply_of_eq 1 ((contMDiff_mkNonzero 𝕜 n 1).mdifferentiableAt one_ne_zero) hφ
-    hφ1 ξ).trans (congrArg (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) y')
-      hval1.symm)
+  -- The inclusion of the punctured space is equivariant, and its differential fixes every
+  -- tangent vector, so it identifies the two fundamental vector fields of `ξ` at `y`.
+  have hP : fundamentalVectorField 𝓘(ℝ, Fin (n + 1) → 𝕜) ξ y' =
+      fundamentalVectorField 𝓘(ℝ, Fin (n + 1) → 𝕜) ξ y :=
+    (Manifold.mfderiv_subtype_val_apply y' _).symm.trans
+      (mfderiv_fundamentalVectorField_of_map_smul
+        (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero) horbit
+        (fun g ↦ puncturedSpace.coe_smul g y') ξ)
+  rw [← hP, mfderiv_fundamentalVectorField_of_map_smul
+    ((contMDiff_mkNonzero 𝕜 n 1).mdifferentiableAt one_ne_zero) horbit
+    (fun g ↦ mkNonzero_smul g y') ξ, mkNonzero_apply]
 
 /-- **Fundamental vector fields of a representation on projective space.** If a group acts on
 `𝕜ⁿ⁺¹` through `ρ : G → (𝕜ⁿ⁺¹ →L[ℝ] 𝕜ⁿ⁺¹)`, by `𝕜`-linear maps, and `ρ` is differentiable at `1`,
