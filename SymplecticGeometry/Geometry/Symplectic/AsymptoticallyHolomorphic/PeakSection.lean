@@ -292,8 +292,9 @@ private theorem exists_and_le_of_le {X : Type*} {F G d : ℕ → X → X → ℝ
 
 /-- **Asymptotically holomorphic peak sections.** Let `M` be a Hausdorff boundaryless manifold,
 let `σ` be compatible with `J`, let `M` carry the Riemannian metric `⟪u, w⟫ = σ(u, J w)`, let
-`α` be a connection form, and let `D` be rescaled unitary charts of radius `ρ₀ > 0` (on a closed
-manifold they exist by `SymplecticGeometry.exists_rescaledUnitaryCharts`). Write
+`α` be a connection form, and let `D` be rescaled unitary charts of radius `ρ₀ > 0` (on a compact
+manifold of dimension `2 * card ι`, for `α` of curvature `-2π σ`, they exist by
+`SymplecticGeometry.exists_rescaledUnitaryCharts`). Write
 `d = √(2π k) · d_g(x, y)` for the rescaled distance. Then the peak sections `D.peakSection k x`
 and `D.peakSection_mul k x j` satisfy:
 * for some `R > 0` and large `k`, `‖D.peakSection k x y‖ ≥ exp (-1 / 4)` whenever `d < R`;
