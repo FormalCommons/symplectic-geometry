@@ -31,11 +31,15 @@ Together they give the converse of
 embedding `A → X` of a topological pair is a weak homotopy equivalence if and only if every path
 component of `X` meets the image of `A` and all relative homotopy sets `π_{n+1}(X, A, a)`,
 `a ∈ A`, are trivial (`TauCeti.TopPair.isWeakHomotopyEquivalence_map_iff`). For the inclusion
-of a subset this is `ContinuousMap.isWeakHomotopyEquivalence_subtypeVal_iff`.
+of a subset this is `ContinuousMap.isWeakHomotopyEquivalence_subtypeVal_iff`. For subsets `S ⊆ W`
+of `X`, `ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` reduces the inclusion
+`S → W` to the inclusion of the preimage of `S` in `W`, to which that criterion applies.
 
 The proofs follow those of `TauCeti.surjective_homotopyGroupMap_skeletonLT` and
 `TauCeti.injective_homotopyGroupMap_skeletonLT`, which make the same deductions for the skeleta
-of a CW complex.
+of a CW complex. `ContinuousMap.isWeakHomotopyEquivalence_inclusion_iff_subtypeVal` is derived
+from Tau Ceti's `ContinuousMap.isWeakHomotopyEquivalence_inclusion_preimage_val_iff`, applied to
+`W` itself, whose preimage in `W` is identified with `W` by a homeomorphism.
 
 ## References
 
@@ -132,5 +136,17 @@ theorem isWeakHomotopyEquivalence_subtypeVal_iff :
         ∀ (n : ℕ) (a : A),
           Subsingleton (RelHomotopyGroup (Fin n) ⟨TopPair.ofSubset (X := TopCat.of X) A, a⟩) :=
   (TopPair.ofSubset (X := TopCat.of X) A).isWeakHomotopyEquivalence_map_iff
+
+/-- For subsets `S ⊆ W` of `X`, the inclusion `S → W` is a weak homotopy equivalence if and only if
+the inclusion into `W` of the preimage of `S` in `W` is: the two are identified by the
+homeomorphism between that preimage and `S`. -/
+theorem isWeakHomotopyEquivalence_inclusion_iff_subtypeVal {S W : Set X} (h : S ⊆ W) :
+    (inclusion h).IsWeakHomotopyEquivalence ↔
+      (subtypeVal (Subtype.val ⁻¹' S : Set W)).IsWeakHomotopyEquivalence := by
+  rw [← isWeakHomotopyEquivalence_inclusion_preimage_val_iff subset_rfl h]
+  let e : (Subtype.val ⁻¹' W : Set W) ≃ₜ W :=
+    (Homeomorph.setCongr (Subtype.coe_preimage_self W)).trans (Homeomorph.Set.univ W)
+  rw [← e.toHomotopyEquiv.isWeakHomotopyEquivalence.postcomp_iff]
+  rfl
 
 end ContinuousMap
