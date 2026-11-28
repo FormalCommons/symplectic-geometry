@@ -17,7 +17,6 @@ public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
-import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
@@ -69,11 +68,10 @@ can use it with no conversion.
   `SymplecticGeometry.Blowup.exceptionalClass_restrict_divisor`: in integral cohomology it is
   `-h`, minus the hyperplane class `Projectivization.hyperplaneClass`.
 * `SymplecticGeometry.Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero`:
-  for `1 ≤ n` the real image of `e` in `H²(Blowup c; ℝ)` is not zero. On a projective line of
-  the divisor, `e` is `-h`, which evaluates to `-1` on the line's fundamental class
-  (`Projectivization.complexManifoldEvalFundamentalClass_map_hyperplaneClass`), while a class
-  with zero real image evaluates to `0` there
-  (`TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`).
+  for `1 ≤ n` the real image of `e` in `H²(Blowup c; ℝ)` is not zero: its restriction to the
+  divisor is minus the hyperplane class (`exceptionalClass_restrict_divisor`), whose real image is
+  nonzero
+  (`Projectivization.singularCohomologyRealImageAddMonoidHom_hyperplaneClass_ne_zero`).
 
 ## References
 
@@ -368,7 +366,7 @@ is not zero. -/
 theorem singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero (hn : 1 ≤ n) :
     (TopCat.of (Blowup c)).singularCohomologyRealImageAddMonoidHom 2 (exceptionalClass c) ≠ 0 := by
   intro h
-  -- A projective line `ℙ¹ → ℙ ℂ (Fin (n + 1) → ℂ)`, followed by the exceptional divisor.
+  -- An injective linear map `ℂ² → ℂⁿ⁺¹`, which exists as `1 ≤ n`.
   set f : Fin (n + 1) → Fin 2 := fun i ↦ if (i : ℕ) = 0 then 0 else 1
   have hf : Function.Surjective f := by
     intro j
@@ -377,34 +375,12 @@ theorem singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero (hn : 1
     · exact ⟨⟨1, by omega⟩, by simp [f]⟩
   set ι := LinearMap.funLeft ℂ ℂ f
   have hι : Function.Injective ι := LinearMap.funLeft_injective_of_surjective _ _ _ hf
-  set x := TopCat.singularCohomologyMap (TopCat.ofHom (Projectivization.mapContinuousMap ι hι)) 2
-    (TopCat.singularCohomologyMap
-      (TopCat.ofHom ⟨divisorRealEmbedding c, (divisorRealEmbedding c).isEmbedding.continuous⟩) 2
-      (exceptionalClass c))
-  -- The real image of `x` vanishes, so `x` evaluates to `0` on the fundamental class of `ℙ¹`.
-  have hx : ((TopCat.of (ℙ ℂ (Fin 2 → ℂ))).singularCohomologyRealImage 2).hom x = 0 := by
-    rw [← TopCat.singularCohomologyRealImageAddMonoidHom_apply,
-      TopCat.singularCohomologyRealImageAddMonoidHom_naturality,
-      TopCat.singularCohomologyRealImageAddMonoidHom_naturality, h, map_zero, map_zero]
-    -- The two zeros are those of real cohomology and of its restriction of scalars to `ℤ`.
-    rfl
-  set o := complexManifoldHomologicalOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)
-  have h0 := o.evalFundamentalClass_singularCohomologyRealImage
-    (finrank_real_of_finrank_complex_eq_add_one (finrank_fin_fun ℂ)) (ContinuousMap.id _) x
-  rw [hx] at h0
-  have h0' : (o.evalFundamentalClass (finrank_real_of_finrank_complex_eq_add_one
-      (finrank_fin_fun ℂ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id _) x).down = 0 := by
-    exact_mod_cast h0.symm.trans ((congrArg _ (map_zero _)).trans (map_zero _))
-  -- But in integral cohomology `x` is minus the hyperplane class of `ℙ¹`, which evaluates to `1`.
-  have h2 : ((TopCat.of (ℙ ℂ (Fin 2 → ℂ))).uliftIntegralCohomologyIso 2).hom x =
-      -TopCat.singularCohomologyMap (TopCat.ofHom (Projectivization.mapContinuousMap ι hι)) 2
-        (Projectivization.hyperplaneClass (Fin (n + 1) → ℂ)) := by
-    rw [TopCat.uliftIntegralCohomologyIso_naturality_apply, exceptionalClass_restrict_divisor,
-      map_neg]
-  have h1 := Projectivization.complexManifoldEvalFundamentalClass_map_hyperplaneClass ι hι
-  rw [← neg_neg (TopCat.singularCohomologyMap _ 2 _), ← h2, complexManifoldEvalFundamentalClass_def,
-    map_neg, o.evalFundamentalClass_uliftIntegralCohomologyIso_hom, h0'] at h1
-  simp at h1
+  -- On the divisor, `e` restricts to minus the hyperplane class, read in `ULift ℤ`.
+  refine Projectivization.singularCohomologyRealImageAddMonoidHom_hyperplaneClass_ne_zero ι hι ?_
+  rw [← neg_eq_zero, ← map_neg (TopCat.singularCohomologyRealImageAddMonoidHom _ 2),
+    ← map_neg (ModuleCat.Hom.hom _), ← exceptionalClass_restrict_divisor c,
+    Iso.hom_inv_id_apply,
+    TopCat.singularCohomologyRealImageAddMonoidHom_naturality, h, map_zero]
 
 end Blowup
 
