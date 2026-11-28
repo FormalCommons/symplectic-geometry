@@ -642,35 +642,29 @@ theorem isAsymptoticallyHolomorphic_sectionOfReading [T2Space M] [I.Boundaryless
     (hfs' r) hfb (hfg r)
   obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_sectionOfReading_le hg hJ hα hρ₀ r
     (by exact_mod_cast hfs' (r + 1)) hfb (hfg (r + 1)) (hdg r)
-  set B₁ := max C₁ 0 * (N₁ ! / (c₁ / 2) ^ N₁ * Real.exp c₁)
-  set B₂ := max C₂ 0 * (N₂ ! / (c₂ / 2) ^ N₂ * Real.exp c₂)
-  refine ⟨max B₁ B₂, ?_⟩
-  filter_upwards [h₁, h₂] with k h₁ h₂ y
-  set d := rescaledDist I k (x k) y
-  have hd : 0 ≤ d := rescaledDist_nonneg I k (x k) y
+  -- One Gaussian bound, with constants `C`, `N` and `c`, for both jet norms.
+  obtain ⟨C, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+    (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
+    (F := fun k y ↦ D.jetNorm k r (D.sectionOfReading k (x k) (f k)) y)
+    (G := fun k y ↦ D.dbarJetNorm k r (D.sectionOfReading k (x k) (f k)) y)
+    (d := fun k y ↦ rescaledDist I k (x k) y) (fun k y ↦ rescaledDist_nonneg I k (x k) y)
+    (fun _ ↦ by positivity) ⟨C₁, N₁, c₁, hc₁, h₁.mono fun k h ↦ h (x k)⟩
+    ⟨C₂, N₂, c₂, hc₂, h₂.mono fun k h ↦ h (x k)⟩
+  refine ⟨max C 0 * (N ! / (c / 2) ^ N * Real.exp c), ?_⟩
+  filter_upwards [h] with k h y
+  set W := (1 + rescaledDist I k (x k) y) ^ N * Real.exp (-c * rescaledDist I k (x k) y ^ 2)
+  have hW₀ : 0 ≤ W := mul_nonneg (pow_nonneg (by linarith [rescaledDist_nonneg I k (x k) y]) _)
+    (Real.exp_pos _).le
+  have hB : max C 0 * W ≤ max C 0 * (N ! / (c / 2) ^ N * Real.exp c) :=
+    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc N) (le_max_right _ _)
+  have hCW : C * W ≤ max C 0 * W := mul_le_mul_of_nonneg_right (le_max_left _ _) hW₀
   have hk : 0 ≤ (k : ℝ) ^ (-1 / 2 : ℝ) := by positivity
-  have hW (N : ℕ) (c : ℝ) : 0 ≤ (1 + d) ^ N * Real.exp (-c * d ^ 2) :=
-    mul_nonneg (pow_nonneg (by linarith) _) (Real.exp_pos _).le
-  have hB₁ : max C₁ 0 * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) ≤ B₁ :=
-    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc₁ N₁)
-      (le_max_right _ _)
-  have hB₂ : max C₂ 0 * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) ≤ B₂ :=
-    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc₂ N₂)
-      (le_max_right _ _)
+  obtain ⟨h₁, h₂⟩ := h y
   constructor
-  · calc D.jetNorm k r (D.sectionOfReading k (x k) (f k)) y
-        ≤ C₁ * (1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2) := h₁ (x k) y
-      _ = C₁ * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) := by ring
-      _ ≤ max C₁ 0 * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) :=
-          mul_le_mul_of_nonneg_right (le_max_left _ _) (hW _ _)
-      _ ≤ max B₁ B₂ := hB₁.trans (le_max_left _ _)
-  · calc D.dbarJetNorm k r (D.sectionOfReading k (x k) (f k)) y
-        ≤ C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2) := h₂ (x k) y
-      _ = C₂ * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
-      _ ≤ max C₂ 0 * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) * (k : ℝ) ^ (-1 / 2 : ℝ) :=
-          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (le_max_left _ _) (hW _ _)) hk
-      _ ≤ max B₁ B₂ * (k : ℝ) ^ (-1 / 2 : ℝ) :=
-          mul_le_mul_of_nonneg_right (hB₂.trans (le_max_right _ _)) hk
+  · calc _ ≤ C * W := h₁.trans_eq (by ring)
+      _ ≤ _ := hCW.trans hB
+  · calc _ ≤ C * W * (k : ℝ) ^ (-1 / 2 : ℝ) := h₂.trans_eq (by ring)
+      _ ≤ _ := mul_le_mul_of_nonneg_right (hCW.trans hB) hk
 
 /-- **Lower bound of sections extended by zero near the centre.** Let `M` be Hausdorff, with a
 Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let `ρ₀ > 0`. Let `f k` be
