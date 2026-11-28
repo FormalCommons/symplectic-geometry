@@ -119,10 +119,10 @@ These settle the points that part 53 of `DESIGN.md` leaves to this file.
   same connection differ by a closed form $\delta$ that vanishes on vertical
   vectors. The invariant formula for $d\delta$ on two horizontal lifts and a
   vertical field shows that $\delta(v_1^\sharp,v_2^\sharp)$ is constant
-  along each fibre; since fibres are connected, $\delta=\pi^*\beta$ with
-  $\beta$ read on lifts, and $\beta$ is smooth and closed because it is the
-  pull-back of $\delta$ along the local sections $b\mapsto e^{-1}(b,v_0)$.
-  No descent of basic forms along a fibration is needed.
+  along each fibre; since fibres are connected, $\delta$ is basic, and
+  $\beta$ is its descent `TauCeti.SmoothForm.descendedForm` along the
+  surjective submersion $\pi$, smooth by construction and closed because
+  $\delta$ is.
 - **Holonomy along a disc is an isotopy, without a trivialization over the
   disc.** A loop that bounds a disc is the end of Tau Ceti's smooth disc
   `TauCeti.IsSmoothDisc IB γ D` (`Geometry/Manifold/DifferentialForm/Integration/Disc.lean`):
@@ -254,7 +254,7 @@ About 500 lines.
 - `hasHamiltonianCurvature_of_isClosed`: for a closed `τ` that restricts to
   `σ` and defines `hD`, the curvature is Hamiltonian, with Hamiltonian the
   restriction of $\tau(v_1^\sharp,v_2^\sharp)$ to the fibre (from the
-  identity with $d\tau=0$, and `curvature_congr` for the pointwise values).
+  identity with $d\tau=0$).
   This is the page's equation (1.12) of [GuilleminLermanSternberg1996].
 - `curvatureIn_local` (the local formula): in the setting of
   `LocalForm.lean`, with $X_i$ the fields of `horizontalLift_local`, the
