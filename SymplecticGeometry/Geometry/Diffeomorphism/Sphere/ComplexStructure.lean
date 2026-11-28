@@ -14,6 +14,7 @@ public import Mathlib.Topology.Homotopy.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Contractible
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 
 /-!
@@ -41,8 +42,8 @@ local notation for it.
   `Diffeomorph.isOrientationPreservingAt_complexManifoldOrientation_iff_det_pos`).
 * `SymplecticGeometry.complexStructureMap`: the map `Diff⁺(S²) → 𝒥`, `φ ↦ φ^* i`, with
   `SymplecticGeometry.coe_complexStructureMap`, `SymplecticGeometry.complexStructureMap_one` and
-  `SymplecticGeometry.complexStructureMap_mul`: `(φ ψ)^* i = ψ^* (φ^* i)`, from Tau Ceti's
-  `TauCeti.SmoothAlmostComplexStructure.pullback_trans`.
+  `SymplecticGeometry.complexStructureMap_mul`: `(φ ψ)^* i = ψ^* (φ^* i)`, from
+  `TauCeti.SmoothAlmostComplexStructure.pullback_mul`, a form of Tau Ceti's `pullback_trans`.
 * `SymplecticGeometry.continuous_complexStructureMap`: for any frame system, `φ ↦ φ^* i` is
   continuous from the weak Whitney topology on `Diff⁺(S²)` (`TauCeti.DiffeomorphWeakWhitney`) to
   Tau Ceti's `C^∞` topology `TauCeti.SmoothAlmostComplexStructure.frameTopology` on `𝒥`; it is
@@ -140,15 +141,15 @@ theorem coe_complexStructureMap (φ : diffPlus) :
 @[simp]
 theorem complexStructureMap_one : complexStructureMap 1 = tameOfComplexManifold := by
   ext1
-  rw [coe_complexStructureMap, Subgroup.coe_one, Diffeomorph.one_def,
-    SmoothAlmostComplexStructure.pullback_refl, coe_tameOfComplexManifold]
+  rw [coe_complexStructureMap, Subgroup.coe_one, SmoothAlmostComplexStructure.pullback_one,
+    coe_tameOfComplexManifold]
 
 /-- Pulling `i` back along a product is the iterated pull-back: `(φ ψ)^* i = ψ^* (φ^* i)`. -/
 theorem complexStructureMap_mul (φ ψ : diffPlus) :
     (complexStructureMap (φ * ψ) : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)) =
       (complexStructureMap φ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)).pullback ψ := by
-  rw [coe_complexStructureMap, coe_complexStructureMap, Subgroup.coe_mul, Diffeomorph.mul_def,
-    SmoothAlmostComplexStructure.pullback_trans]
+  rw [coe_complexStructureMap, coe_complexStructureMap, Subgroup.coe_mul,
+    SmoothAlmostComplexStructure.pullback_mul]
 
 /-- For any frame system of `End(TS²)`, the map `Diff⁺(S²) → 𝒥`, `φ ↦ φ^* i`, is continuous for
 the weak Whitney topology on `Diff⁺(S²)` and the `C^∞` topology on `𝒥`. -/

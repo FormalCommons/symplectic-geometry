@@ -515,7 +515,7 @@ sphere is the identity. -/
 theorem uniformizingDiffeomorph_ofComplexManifold :
     uniformizingDiffeomorph tameOfComplexManifold = 1 := by
   refine Subtype.ext ((eq_uniformizingDiffeomorph_iff _).2 ?_).symm
-  simp [Diffeomorph.one_def]
+  simp
 
 end SymplecticGeometry
 

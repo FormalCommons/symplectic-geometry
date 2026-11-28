@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Contact.Distribution
 import TauCeti.Geometry.Contact.Family
 public import TauCeti.Geometry.Contact.Gray
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import SymplecticGeometry.Geometry.Contact.Levi
 import SymplecticGeometry.Geometry.Contact.Moser
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
@@ -54,7 +54,8 @@ every point (`SymplecticGeometry.IsContactFamily.exists_local_extension`). Near 
 (Tau Ceti's `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`), hence on a
 product of an interval around `t₀` and an open `U ∋ x₀`.
 Composing in time with a smooth map into that interval which is the identity near `t₀` in
-`[0, 1]` (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`) and restricting to `U` gives
+`[0, 1]` (Tau Ceti's `TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`) and restricting
+to `U` gives
 a form on `ℝ × U` all of whose slices are contact, and whose kernels are those of `ξ` at the
 times near `t₀` in `[0, 1]`. No compactness of `M` is needed.
 
@@ -346,34 +347,28 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
   obtain ⟨pa, hpa, pb, hpb, hab⟩ := eventually_prod_iff.1 hW
   obtain ⟨δ, hδ, hδa⟩ := Metric.eventually_nhds_iff.1 hpa
   obtain ⟨U, hUb, hU, hxU⟩ := eventually_nhds_iff.1 hpb
-  -- Reparametrize time by a map into `(t₀ - δ, t₀ + δ)`, equal to the identity near `t₀` in
-  -- `[0, 1]`.
-  have ht₀ := p.1.property
-  obtain ⟨c, hc, hcid, hcmem, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo
-    (a := max 0 ((p.1 : ℝ) - δ / 2)) (b := min 1 ((p.1 : ℝ) + δ / 2))
-    (le_min (max_le zero_le_one (by linarith [ht₀.2]))
-      (max_le (by linarith [ht₀.1]) (by linarith)))
-    (half_pos hδ)
+  -- Reparametrize time by a map into `(t₀ - δ, t₀ + δ)`, equal to the identity near the closed
+  -- ball of radius `δ / 2` around `t₀`.
+  have hK := Metric.closedBall_subset_ball (x := (p.1 : ℝ)) (half_lt_self hδ)
+  obtain ⟨g, hg, hgid⟩ := (⟨Metric.ball (p.1 : ℝ) δ, Metric.isOpen_ball⟩ : Opens ℝ)
+    |>.exists_contMDiff_eventuallyEq_id (convex_closedBall _ _) (isCompact_closedBall _ _)
+      (Metric.nonempty_closedBall.2 (half_pos hδ).le) hK
+  let c : ℝ → ℝ := fun t ↦ g t
+  have hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c := contMDiff_subtypeVal.comp hg
   refine ⟨p.1 - δ / 2, p.1 + δ / 2, ⟨by linarith, by linarith⟩, ⟨U, hU⟩, hxU,
-    mpullback (Prod.map c Subtype.val) (hc.contMDiff.prodMap contMDiff_subtypeVal) β,
+    mpullback (Prod.map c Subtype.val) (hc.prodMap contMDiff_subtypeVal) β,
     ⟨fun t ↦ ?_, fun t ht x ↦ ?_⟩⟩
-  · rw [mpullback_prodMk_mpullback_prodMap' hc.contMDiff Subtype.val contMDiff_subtypeVal,
+  · rw [mpullback_prodMk_mpullback_prodMap' hc Subtype.val contMDiff_subtypeVal,
       isContactForm_iff_forall_isContactFormAt]
     intro x
-    have hct : dist (c t) p.1 < δ := by
-      have h₁ := hcmem t
-      have h₂ := le_max_right 0 ((p.1 : ℝ) - δ / 2)
-      have h₃ := min_le_right 1 ((p.1 : ℝ) + δ / 2)
-      rw [Real.dist_eq, abs_lt]
-      constructor <;> linarith [h₁.1, h₁.2]
+    have hct : dist (c t) p.1 < δ := Metric.mem_ball.1 (Opens.mem_mk.1 (g t).property)
     exact (isContactFormAt_mpullback_subtype_val_iff _ x).2 (hab (hδa hct) (hUb x x.property)).2
-  · have hct : c t = t := hcid ⟨max_le ht.2.1 (by linarith [ht.1.1]),
-      le_min ht.2.2 (by linarith [ht.1.2])⟩
-    have htδ : dist t p.1 < δ := by
-      rw [Real.dist_eq, abs_lt]
-      constructor <;> linarith [ht.1.1, ht.1.2]
-    have hx := ((hab (hδa htδ) (hUb x x.property)).1 (⟨t, ht.2⟩, x) rfl).2
-    rw [mpullback_prodMk_mpullback_prodMap' hc.contMDiff Subtype.val contMDiff_subtypeVal, hct,
+  · have htK : t ∈ Metric.closedBall (p.1 : ℝ) (δ / 2) := by
+      rw [Real.closedBall_eq_Icc]; exact Ioo_subset_Icc_self ht.1
+    have hct : c t = t := (hgid t htK).self_of_nhds
+    have hx := ((hab (hδa (Metric.mem_ball.1 (hK htK))) (hUb x x.property)).1
+      (⟨t, ht.2⟩, x) rfl).2
+    rw [mpullback_prodMk_mpullback_prodMap' hc Subtype.val contMDiff_subtypeVal, hct,
       map_kerDistribution_mpullback_subtypeVal, hx]
     have hβ : mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
         mpullback (Prod.mk (⟨t, ht.2⟩ : unitInterval)) (contMDiff_const.prodMk contMDiff_id) α :=

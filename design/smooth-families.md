@@ -841,7 +841,7 @@ In `TauCeti.Diffeotopy`, for `[CompleteSpace E] [IsManifold I ∞ M]
   the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`, and
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Extension.lean`; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
-  `Gray.lean`, and `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Family.lean`.
+  `Gray.lean`.
 
 ## Issues
 

@@ -36,6 +36,8 @@ version on any manifold, but for the real version only on a preconnected one
 
 * `SymplecticGeometry.rescaledEDist_triangle` and `SymplecticGeometry.rescaledDist_triangle`: the
   triangle inequality, the latter on a preconnected manifold.
+* `SymplecticGeometry.sqrt_mul_rescaledEDist` and `SymplecticGeometry.sqrt_mul_rescaledDist`:
+  the rescaled distances for two powers are proportional.
 * `SymplecticGeometry.rescaledEDist_ne_top` and `SymplecticGeometry.ofReal_rescaledDist`: on a
   preconnected manifold, the rescaled distance is finite, and its real version recovers it.
 * `SymplecticGeometry.exists_sum_one_add_rescaledDist_pow_mul_exp_le`: over a finite set with
@@ -101,6 +103,23 @@ theorem rescaledEDist_comm (k : ℕ) (x y : M) : rescaledEDist I k x y = rescale
 
 theorem rescaledDist_comm (k : ℕ) (x y : M) : rescaledDist I k x y = rescaledDist I k y x := by
   rw [rescaledDist_def, rescaledDist_def, rescaledEDist_comm]
+
+/-- **Changing the power in the rescaled distance.** The rescaled extended distances for two
+powers `k` and `l` are proportional: `√l * d_k(x, y) = √k * d_l(x, y)`. -/
+theorem sqrt_mul_rescaledEDist (k l : ℕ) (x y : M) :
+    ENNReal.ofReal √l * rescaledEDist I k x y = ENNReal.ofReal √k * rescaledEDist I l x y := by
+  simp only [rescaledEDist_def, ← mul_assoc, ← ENNReal.ofReal_mul (Real.sqrt_nonneg _)]
+  congr 2
+  rw [← Real.sqrt_mul (Nat.cast_nonneg _), ← Real.sqrt_mul (Nat.cast_nonneg _)]
+  ring_nf
+
+/-- **Changing the power in the rescaled distance.** The real rescaled distances for two powers
+`k` and `l` are proportional: `√l * d_k(x, y) = √k * d_l(x, y)`. -/
+theorem sqrt_mul_rescaledDist (k l : ℕ) (x y : M) :
+    √l * rescaledDist I k x y = √k * rescaledDist I l x y := by
+  have h := congrArg ENNReal.toReal (sqrt_mul_rescaledEDist (I := I) k l x y)
+  rwa [ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_ofReal (Real.sqrt_nonneg _),
+    ENNReal.toReal_ofReal (Real.sqrt_nonneg _), ← rescaledDist_def, ← rescaledDist_def] at h
 
 /-- The triangle inequality for the rescaled distance. -/
 theorem rescaledEDist_triangle (k : ℕ) (x y z : M) :
