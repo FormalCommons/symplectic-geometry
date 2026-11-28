@@ -15,8 +15,8 @@ Mathlib's lemmas on the second argument of a bracket (`lie_zero`, `lie_neg`, `li
 apply when `LieGroup I (minSmoothness 𝕜 3) G` is a hypothesis. They also apply over a variable
 field `𝕜` with `[IsRCLikeNormedField 𝕜]` when that instance is derived from a hypothesis
 `LieGroup I ∞ G` through the local instance `LieGroup.minSmoothness_of_isRCLikeNormedField`. Over
-the concrete field `𝕜 = ℝ`, with the instance derived in that way, as in many files of this
-library, they do not match unless `L` is given explicitly. The lemmas on the first argument
+a concrete field such as `ℝ` or `ℂ`, with the instance derived in that way, as in many files of
+this library, they do not match unless `L` is given explicitly. The lemmas on the first argument
 (`zero_lie`, `neg_lie`, `add_lie`, …) apply in all these settings.
 
 This file restates the lemmas on the second argument for `GroupLieAlgebra I G`, so that `rw` and
@@ -42,8 +42,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 namespace GroupLieAlgebra
 
 /-! The `simpNF` linter reports that `simp` proves each lemma below by Mathlib's lemma of the same
-name. That holds under a hypothesis `LieGroup I (minSmoothness 𝕜 3) G`, but over `𝕜 = ℝ`
-Mathlib's lemmas do not fire when that instance comes from
+name. That holds under a hypothesis `LieGroup I (minSmoothness 𝕜 3) G`, but over a concrete
+field such as `ℝ` or `ℂ` Mathlib's lemmas do not fire when that instance comes from
 `LieGroup.minSmoothness_of_isRCLikeNormedField`, and these do; so they keep `@[simp]`, with
 `nolint simpNF`. -/
 
