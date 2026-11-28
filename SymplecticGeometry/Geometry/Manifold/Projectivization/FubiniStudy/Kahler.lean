@@ -11,13 +11,13 @@ public import SymplecticGeometry.LinearAlgebra.Matrix.ToLin
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
-import SymplecticGeometry.Data.Matrix.Mul
 import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.Instances.ComplexProjectiveSpace.Projectivization
+import SymplecticGeometry.Geometry.Manifold.Instances.PuncturedSpace
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
@@ -93,38 +93,6 @@ section Unitary
 
 variable (A : Matrix (Fin (n + 1)) (Fin (m + 1)) ℂ) (hA : Aᴴ * A = 1)
 
-/-- Multiplication by `A`, from `ℂᵐ⁺¹ ∖ 0` to `ℂⁿ⁺¹ ∖ 0`. -/
-private noncomputable def puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ)) :
-    puncturedSpace (Fin (n + 1) → ℂ) :=
-  ⟨A *ᵥ (z : Fin (m + 1) → ℂ), mem_puncturedSpace.2 fun h ↦ mem_puncturedSpace.1 z.property
-    (mulVec_injective_of_mul_eq_one hA (by rw [h, mulVec_zero]))⟩
-
-private theorem coe_puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ)) :
-    (puncturedMulVec A hA z : Fin (n + 1) → ℂ) = A *ᵥ (z : Fin (m + 1) → ℂ) :=
-  rfl
-
-private theorem contMDiff_puncturedMulVec (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin (m + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) r (puncturedMulVec A hA) :=
-  (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
-    (((toLin' A).restrictScalars ℝ).toContinuousLinearMap.contDiff.contMDiff.comp
-      contMDiff_subtypeVal)
-
-private theorem mfderiv_puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ))
-    (v : TangentSpace 𝓘(ℝ, Fin (m + 1) → ℂ) z) :
-    mfderiv 𝓘(ℝ, Fin (m + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (puncturedMulVec A hA) z v =
-      A *ᵥ (v : Fin (m + 1) → ℂ) := by
-  -- `puncturedMulVec A hA` is the restriction of `A *ᵥ ·` to the punctured spaces.
-  have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, Fin (m + 1) → ℂ))
-    (I' := 𝓘(ℝ, Fin (n + 1) → ℂ)) (f := puncturedMulVec A hA)
-    (A := ((toLin' A).restrictScalars ℝ).toContinuousLinearMap) rfl v
-  rwa [mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h
-
-private theorem mkNonzero_comp_puncturedMulVec :
-    mkNonzero ℂ n ∘ puncturedMulVec A hA =
-      map (toLin' A) (toLin'_injective_of_mul_eq_one hA) ∘ mkNonzero ℂ m := by
-  funext z
-  simp [puncturedMulVec, map_mk]
-
 /-- The Fubini–Study form is invariant under matrices with orthonormal columns: for
 `A : Matrix (Fin (n + 1)) (Fin (m + 1)) ℂ` with `Aᴴ * A = 1`, the pull-back of the Fubini–Study
 form of `ℂPⁿ` along the induced map `ℂPᵐ → ℂPⁿ`, `[z] ↦ [A z]`, is the Fubini–Study form of
@@ -133,20 +101,29 @@ theorem mpullback_map_fubiniStudyForm :
     SmoothForm.mpullback
         (map (toLin' A) (toLin'_injective_of_mul_eq_one hA))
       (contMDiff_map_restrictScalars _ _ ∞) (fubiniStudyForm n) = fubiniStudyForm m := by
+  -- Multiplication by `A`, read on the punctured spaces, lifts the map of projective spaces.
+  set L : (Fin (m + 1) → ℂ) →L[ℝ] (Fin (n + 1) → ℂ) :=
+    ((toLin' A).restrictScalars ℝ).toContinuousLinearMap
+  have hL : Injective L := toLin'_injective_of_mul_eq_one hA
+  have hL_apply (z : Fin (m + 1) → ℂ) : L z = A *ᵥ z := by simp [L]
+  have hcomp : mkNonzero ℂ n ∘ puncturedSpace.map L hL =
+      map (toLin' A) (toLin'_injective_of_mul_eq_one hA) ∘ mkNonzero ℂ m := by
+    funext z
+    simp [mkNonzero_apply, map_mk, hL_apply]
   refine SmoothForm.mpullback_injective_of_surjective (contMDiff_mkNonzero ℂ m ∞)
     (surjective_mkNonzero ℂ m) ((isSubmersion_mkNonzero ℂ m).surjective_mfderiv (by simp)) ?_
-  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ (contMDiff_puncturedMulVec A hA ∞)
-      (contMDiff_mkNonzero ℂ n ∞) (mkNonzero_comp_puncturedMulVec A hA).symm,
+  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ (puncturedSpace.contMDiff_map L hL ∞)
+      (contMDiff_mkNonzero ℂ n ∞) hcomp.symm,
     mpullback_mkNonzero_fubiniStudyForm, mpullback_mkNonzero_fubiniStudyForm]
   refine SmoothBundleForm.ext_eval₂ fun z v w ↦ ?_
-  rw [SmoothForm.eval₂_mpullback, mfderiv_puncturedMulVec, mfderiv_puncturedMulVec,
-    fubiniStudyLift_apply z, fubiniStudyLift_apply (puncturedMulVec A hA z)
-      (A *ᵥ (v : Fin (m + 1) → ℂ)) (A *ᵥ (w : Fin (m + 1) → ℂ))]
+  rw [SmoothForm.eval₂_mpullback, puncturedSpace.mfderiv_map_apply,
+    puncturedSpace.mfderiv_map_apply, fubiniStudyLift_apply z,
+    fubiniStudyLift_apply (puncturedSpace.map L hL z) (L v) (L w)]
   -- Read `v` and `w` as vectors of `Fin (m + 1) → ℂ`, so that the lemmas on vectors apply.
   revert v w
   intro (v : Fin (m + 1) → ℂ) (w : Fin (m + 1) → ℂ)
-  simp only [stdComplexPiSymplecticForm_apply_eq_im, coe_puncturedMulVec, ← re_star_dotProduct_self,
-    star_mulVec_dotProduct_mulVec hA]
+  simp only [stdComplexPiSymplecticForm_apply_eq_im, puncturedSpace.coe_map, hL_apply,
+    ← re_star_dotProduct_self, star_mulVec_dotProduct_mulVec hA]
 
 /-- The Fubini–Study form is invariant under the unitary group `U(n + 1)`, acting on `ℂPⁿ` by the
 diffeomorphisms `Projectivization.mapDiffeomorph`, read on the underlying real manifold. -/

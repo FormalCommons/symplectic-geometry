@@ -106,19 +106,19 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchM
         ∀ c ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source, extChartAt IB b₀ c ∈ U →
           ∀ y : F, ∀ᶠ p in 𝓝 ((A.trivAt b').toOpenPartialHomeomorph.symm (c, y)),
             mpullback IM (𝓘(ℝ, EB).prod IF)
-              (fun p ↦ (extChartAt IB b₀ (proj p), (A.trivAt b' p).2)) τ'.val p = τ.val p := by
+              ((A.trivAt b').patchChart IB b₀) τ'.val p = τ.val p := by
   set e := A.trivAt b'
   set φ := extChartAt IB b₀
-  set W := φ.target ∩ φ.symm ⁻¹' e.baseSet
+  set W := e.patchSet IB b₀
   set ψ := (A.trivAt b').patchMap IB b₀
   set μ := mpullback (𝓘(ℝ, EB).prod IF) IM ψ τ.val
   set νs : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F) :=
     SmoothForm.mpullback Prod.snd contMDiff_snd σ
   set ν := νs.val
-  have hWo : IsOpen W := e.isOpen_extChartAt_target_inter_symm_preimage_baseSet b₀
+  have hWo : IsOpen W := e.isOpen_patchSet b₀
   have hbφ : b ∈ φ.source := by rw [extChartAt_source]; exact hb.2
-  have hbW : φ b ∈ W := ⟨φ.map_source hbφ, by
-    rw [mem_preimage, φ.left_inv hbφ]; exact hb.1⟩
+  have hbW : φ b ∈ W :=
+    e.mem_patchSet_iff.2 ⟨φ.map_source hbφ, by rw [φ.left_inv hbφ]; exact hb.1⟩
   -- A bump function `χ` on `EB`, equal to `1` near `φ b` and supported in `W`.
   obtain ⟨ε, hε, hεW⟩ := Metric.isOpen_iff.1 hWo _ hbW
   let χ : ContDiffBump (φ b) := ⟨ε / 4, ε / 2, by positivity, by linarith⟩
@@ -188,7 +188,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchM
     have hu₂' : u₂ = ((0 : EB), u₂.2) := Prod.ext hu₂ rfl
     rw [hu₁', hu₂', (hvert u₁.2 u₂.2).1, (hvert u₁.2 u₂.2).2 hq]
   · -- The pull-back by `Φ`.
-    set Φ : M → EB × F := fun p ↦ (φ (proj p), (e p).2) with hΦdef
+    set Φ : M → EB × F := e.patchChart IB b₀ with hΦdef
     set p₀ := e.toOpenPartialHomeomorph.symm (c, y)
     have hp₀ : proj p₀ = c := e.proj_symm_apply' hc.1
     have hep₀ : e p₀ = (c, y) := e.apply_symm_apply' hc.1
@@ -199,15 +199,15 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchM
     have hp₀S : p₀ ∈ S := ⟨e.mem_source.2 (by rw [hp₀]; exact hc.1),
       by rw [mem_preimage, hp₀]; exact hc.2⟩
     have hΦ {p : M} (hp : p ∈ S) : ContMDiffAt IM (𝓘(ℝ, EB).prod IF) ∞ Φ p :=
-      hA.contMDiffAt_extChartAt_proj_prodMk_snd le_rfl (e.mem_source.1 hp.1) hp.2
-    have hΦp₀ : Φ p₀ = (φ c, y) := by simp only [hΦdef, hp₀, hep₀]
+      hA.contMDiffAt_patchChart le_rfl (e.mem_source.1 hp.1) hp.2
+    have hΦp₀ : Φ p₀ = (φ c, y) := by rw [hΦdef, e.patchChart_def, hp₀, hep₀]
     have hUo : IsOpen (Metric.ball (φ b) (ε / 4) ×ˢ (univ : Set F)) :=
       Metric.isOpen_ball.prod isOpen_univ
     filter_upwards [hS.mem_nhds hp₀S, (hΦ hp₀S).continuousAt.preimage_mem_nhds
       (hUo.mem_nhds (by rw [hΦp₀]; exact ⟨hcU, mem_univ _⟩))] with p hp hpU
     -- `ψ ∘ Φ` is the identity near `p`.
     have hid : ψ ∘ Φ =ᶠ[𝓝 p] id := Filter.eventually_of_mem (hS.mem_nhds hp) fun q hq ↦
-      (A.trivAt b').patchMap_extChartAt_proj_prodMk_snd hq.1 hq.2
+      (A.trivAt b').patchMap_patchChart hq.1 hq.2
     have hpW : (Φ p).1 ∈ W :=
       hεW (Metric.ball_subset_ball (by linarith) (show (Φ p).1 ∈ _ from hpU.1))
     have hψ : MDifferentiableAt (𝓘(ℝ, EB).prod IF) IM ψ (Φ p) :=
