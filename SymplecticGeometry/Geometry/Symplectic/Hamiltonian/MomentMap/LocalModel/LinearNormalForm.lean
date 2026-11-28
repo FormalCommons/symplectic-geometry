@@ -205,8 +205,6 @@ theorem forall_eval₂_form_one_zero_eq_zero_iff
       tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u ∈ D.𝔥.prod ⊥ := by
   set e := tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
   set π := Submodule.projectionOnto _ _ D.isCompl_𝔪_sup
-  have hι (a : A) (ζ : GroupLieAlgebra I G) : D.ι𝔪 a ζ = D.equivDual𝔪 a (π ζ) := by
-    rw [ι𝔪_def, LinearMap.comp_apply, LinearMap.dualMap_apply, LinearEquiv.coe_coe]
   -- `π` maps `𝔤_τ ⊇ 𝔪` onto `𝔪`, and `𝔤_τ ∩ ker π = (𝔥 ⊕ 𝔪) ∩ (𝔥 ⊕ 𝔮) = 𝔥`.
   have hπ : (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule.map π = ⊤ :=
     eq_top_iff.2 fun m _ ↦
@@ -221,8 +219,8 @@ theorem forall_eval₂_form_one_zero_eq_zero_iff
         D.equivDual𝔪 a' (π ξ) - D.equivDual𝔪 a (π ζ) + D.τ.kirillovForm ξ ζ +
           D.σ.toBilinForm b w := by
     -- `ring` also matches `D.σ b w` with `D.σ.toBilinForm b w`, the definition of the coercion.
-    rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu (e.apply_symm_apply (ζ, (a', w))), hι,
-      hι, Module.Dual.kirillovForm_apply]
+    rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu (e.apply_symm_apply (ζ, (a', w))),
+      ι𝔪_apply, ι𝔪_apply, Module.Dual.kirillovForm_apply]
     ring
   have key : (∀ u', D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u u' = 0) ↔
       ∀ (ζ : GroupLieAlgebra I G) (b' : Module.Dual ℝ D.𝔪) (w : V),
