@@ -18,7 +18,9 @@ complementary to its `B`-orthogonal. This file characterizes the projection onto
 for two forms: forms that agree on `W × M` have the same orthogonal of `W`
 (`LinearMap.BilinForm.orthogonal_eq_orthogonal_of_forall`), and for forms that agree on `W × W`
 the converse holds when `W` and its orthogonal span `M`
-(`LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`).
+(`LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`). A surjective linear map that carries one
+form to another maps orthogonals onto orthogonals
+(`LinearMap.BilinForm.map_orthogonal_of_surjective`).
 -/
 
 public section
@@ -68,6 +70,21 @@ theorem orthogonal_eq_orthogonal_iff {B₁ B₂ : LinearMap.BilinForm R M} {W : 
   have hu₂ : u ∈ B₂.orthogonal W := h ▸ hu
   rw [map_add, map_add, (mem_orthogonal_iff.1 hu) w hw, (mem_orthogonal_iff.1 hu₂) w hw,
     hW w hw w' hw']
+
+/-- A surjective linear map `f` that carries the form `B` to the form `B'`, in the sense that
+`B' (f v) (f w) = B v w`, maps the `B`-orthogonal of `W` onto the `B'`-orthogonal of `f(W)`. -/
+theorem map_orthogonal_of_surjective {M' : Type*} [AddCommMonoid M'] [Module R M']
+    {B : LinearMap.BilinForm R M} {B' : LinearMap.BilinForm R M'} {f : M →ₗ[R] M'}
+    (hf : Function.Surjective f) (h : ∀ v w, B' (f v) (f w) = B v w) (W : Submodule R M) :
+    (B.orthogonal W).map f = B'.orthogonal (W.map f) := by
+  ext u
+  constructor
+  · rintro ⟨v, hv, rfl⟩
+    rintro _ ⟨w, hw, rfl⟩
+    exact (h w v).trans (hv w hw)
+  · intro hu
+    obtain ⟨v, rfl⟩ := hf u
+    exact ⟨v, fun w hw ↦ (h w v).symm.trans (hu _ ⟨w, hw, rfl⟩), rfl⟩
 
 end CommSemiring
 

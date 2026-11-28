@@ -311,7 +311,8 @@ theorem mpullback_smul_momentPairing
       μ (g⁻¹ • v) ξ = μ v (adjointContinuousLinearMap g ξ))
     {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) A = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A)
+      (contMDiff_const_smul (op g)) A =
+        SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) A)
     (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2))
       (AssociatedBundle.contMDiff_op_smul_inv_smul g) (momentPairing μ hμs A) =
@@ -320,7 +321,7 @@ theorem mpullback_smul_momentPairing
       (AssociatedBundle.contMDiff_op_smul_inv_smul (IB := IB) (IG := IG) (IF := IF) g)
       (SmoothForm.mpullback Prod.fst contMDiff_fst A) =
       SmoothForm.mpullback Prod.fst contMDiff_fst
-        (SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A) := by
+        (SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) A) := by
     rw [← hA g]
     exact SmoothForm.mpullback_mpullback_of_comp_eq _ _ _ _ (by rfl) A
   have h2 : SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2))
@@ -342,13 +343,18 @@ theorem mpullback_smul_momentPairing
   refine SmoothBundleForm.ext fun p w ↦ ?_
   rw [SmoothForm.wedgeWith_flip, SmoothForm.wedgeWith_apply_zero_right,
     SmoothForm.wedgeWith_flip, SmoothForm.wedgeWith_apply_zero_right]
+  -- `Ad(g⁻¹)` is a map of `GroupLieAlgebra IG G`, read on `EG`; `simp` does not unify it with the
+  -- coefficient map of the general lemmas, so they are instantiated first.
+  have hL := SmoothForm.coe_mapCoeff (F := EG) (G := EG)
+    (adjointContinuousLinearMap (I := IG) g⁻¹) A
+  have hL' := RoughForm.mapCoeff_apply (F := EG) (G := EG)
+    (adjointContinuousLinearMap (I := IG) g⁻¹) A.val
   simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
     ContinuousLinearMap.id_apply, SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction,
-    RoughForm.ofFunction_apply, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-    momentMapCLM_apply]
+    RoughForm.ofFunction_apply, hL, hL', momentMapCLM_apply]
   -- The factor `Ad(g)` on `μ` cancels the factor `Ad(g⁻¹)` on `A`.
   refine (hμG g p.2 _).trans ?_
-  rw [← GroupLieAlgebra.adjointL_apply, GroupLieAlgebra.adjointL_adjointL_inv]
+  exact congrArg (μ p.2) (adjointContinuousLinearMap_adjointContinuousLinearMap_inv (I := IG) g _)
 
 /-- **Weinstein's form is invariant** under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` of `G`
 on `P × F`, for a connection form `A`, a two-form `σ` invariant under `G` and an equivariant moment

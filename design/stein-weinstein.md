@@ -2349,8 +2349,9 @@ birth–death points are allowed.
   (1) Under `hgX`, an orbit meets `g ⁻¹' {0}` at most once, going from
   `g < 0` to `g > 0`. This is a fact about any flow; its case `g = f`, at
   a regular level of `f`, gives `eq_levelCrossingTime_iff` (15e), and it
-  goes with the library's
-  `Geometry/Manifold/IntegralCurve/Monotone.lean` if it fits there.
+  comes from the library's `Geometry/Manifold/IntegralCurve/Monotone.lean`
+  applied to the orbits, with no statement of its own in
+  `Attachment.lean`, so that 15e does not import it.
   (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
   it reaches `{f ≤ a}`, or it stays in the compact region, where its
   limit set consists of critical points

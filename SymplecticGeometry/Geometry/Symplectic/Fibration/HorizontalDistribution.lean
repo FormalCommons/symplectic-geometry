@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Kernel
 import SymplecticGeometry.Geometry.Manifold.Distribution.Orthogonal
 import SymplecticGeometry.Geometry.Manifold.Submersion.VerticalProjection
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
@@ -54,6 +55,10 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate.isEhresmannConnection`: for a smooth
   submersion, the horizontal spaces of a vertically nondegenerate form are a smooth Ehresmann
   connection.
+* `TauCeti.SmoothTwoForm.map_mfderiv_horizontalDistribution`: the connection of a two-form is
+  natural. A map with surjective differential that covers a map of the bases with injective
+  differential, and pulls `τ'` back to `τ` at a point, carries the horizontal space of `τ` there
+  onto that of `τ'`.
 * `TauCeti.SmoothTwoForm.horizontalDistribution_eq_iff`: two forms that agree on pairs of
   vertical vectors, the first of them vertically nondegenerate, have the same horizontal spaces
   exactly when they agree on every pair of a vertical vector and any vector.
@@ -319,6 +324,31 @@ theorem val_eq_zero_of_mem_horizontalDistribution_of_mem_ker {x : M} {h e : Tang
     τ.val x ![h, e] = 0 := by
   rw [← SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_swap, SmoothBundleForm.eval₂_apply,
     val_eq_zero_of_mem_ker_of_mem_horizontalDistribution he hh, neg_zero]
+
+/-- **Naturality of the connection of a two-form.** Let `Φ : M → M'` cover a map `ψ` of the
+bases near `x`, in the sense that `proj' ∘ Φ = ψ ∘ proj` near `x`. Suppose that `proj`, `Φ`, `ψ`
+and `proj'` are differentiable at `x`, `x`, `proj x` and `Φ x`, that the differential of `ψ` at
+`proj x` is injective and that of `Φ` at `x` is surjective, and that the pull-back of `τ'` by `Φ`
+takes the value of `τ` at `x`. Then the differential of `Φ` at `x` maps the horizontal space of
+`τ` at `x` onto the horizontal space of `τ'` at `Φ x`. -/
+theorem map_mfderiv_horizontalDistribution {EB' : Type*} [NormedAddCommGroup EB']
+    [NormedSpace ℝ EB'] {HB' : Type*} [TopologicalSpace HB'] {IB' : ModelWithCorners ℝ EB' HB'}
+    {B' : Type*} [TopologicalSpace B'] [ChartedSpace HB' B'] {EM' : Type*}
+    [NormedAddCommGroup EM'] [NormedSpace ℝ EM'] {HM' : Type*} [TopologicalSpace HM']
+    {IM' : ModelWithCorners ℝ EM' HM'} {M' : Type*} [TopologicalSpace M'] [ChartedSpace HM' M']
+    [IsManifold IM' ∞ M'] {proj' : M' → B'} {τ' : SmoothTwoForm IM' M'} {Φ : M → M'}
+    {ψ : B → B'} {x : M} (hcomm : proj' ∘ Φ =ᶠ[nhds x] ψ ∘ proj)
+    (hproj : MDifferentiableAt IM IB proj x) (hΦ : MDifferentiableAt IM IM' Φ x)
+    (hψ : MDifferentiableAt IB IB' ψ (proj x)) (hproj' : MDifferentiableAt IM' IB' proj' (Φ x))
+    (hψi : Injective (mfderiv IB IB' ψ (proj x))) (hΦs : Surjective (mfderiv IM IM' Φ x))
+    (hτ : mpullback IM IM' Φ τ'.val x = τ.val x) :
+    (horizontalDistribution IB proj τ x).map (mfderiv IM IM' Φ x).toLinearMap =
+      horizontalDistribution IB' proj' τ' (Φ x) := by
+  rw [horizontalDistribution_def, horizontalDistribution_def,
+    ← hcomm.map_ker_mfderiv hproj hΦ hψ hproj' hψi hΦs]
+  refine LinearMap.BilinForm.map_orthogonal_of_surjective hΦs (fun v w ↦ ?_) _
+  rw [ContinuousLinearMap.coe_coe, SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply,
+    SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, ← mpullback_apply_pair, hτ]
 
 /-- For a vertically nondegenerate two-form, the horizontal space at every point is a
 complement of the vertical space. -/
