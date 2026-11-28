@@ -14,7 +14,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Trivial
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.TwoForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Trilinear
 
 /-!
@@ -192,7 +192,7 @@ variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
 Milestone: *Levi-Civita derivative of a compatible almost complex structure*. -/
 theorem Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply
     (hJ : σ.Compatible J) :
-    letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
+    letI := hJ.riemannianBundle
     ∀ x (u v w : TangentSpace I x),
       ((CovariantDerivative.leviCivitaConnection I M).hom
             (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism x v).comp
@@ -215,8 +215,8 @@ theorem Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply
             (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism x (J x v) =
           -(J.toEndomorphism x).comp ((CovariantDerivative.leviCivitaConnection I M).hom
             (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism x v)) := by
-  let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
-  have hg := hJ.inner_eq_eval₂
+  let := hJ.riemannianBundle
+  have hg := hJ.inner_riemannianBundle
   have hL := CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection I (M := M)
   intro x u v w
   refine ⟨ContinuousLinearMap.ext fun a ↦ ?_, ?_,

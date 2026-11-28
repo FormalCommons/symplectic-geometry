@@ -32,6 +32,8 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 
 ## Main definitions
 
+* `TauCeti.SmoothTwoForm.Compatible.riemannianBundle`: the metric `g_J` of a compatible pair as a
+  `RiemannianBundle` structure on the tangent spaces, for statements to install with `letI`.
 * `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv`: for a fixed `J`, the bijection
   `g ↦ g(J ·, ·)` from the Riemannian metrics compatible with `J` to the two-forms compatible
   with `J`, which are nondegenerate (`TauCeti.SmoothTwoForm.Compatible.isNondegenerate`).
@@ -41,6 +43,8 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothTwoForm.Compatible.metric_eq_tangentEquiv_symm_metric`: Tau Ceti's metric of a
   compatible pair is the metric of this library's bundle construction.
 * `TauCeti.SmoothTwoForm.Compatible.metric_inner_apply_apply`: `g_J` is invariant under `J`.
+* `TauCeti.SmoothTwoForm.Compatible.inner_riemannianBundle`: with `g_J` installed on the tangent
+  spaces as `TauCeti.SmoothTwoForm.Compatible.riemannianBundle`, `⟪u, w⟫ = σ(u, J w)`.
 * `TauCeti.SmoothTwoForm.Compatible.exists_eval₂_apply_le_mul_norm_sq`: on a compact set,
   `g_J(v, v) = σ(v, J v)` is at most a constant times `‖v‖ ^ 2` for any continuous Riemannian
   metric on `TM`, by Tau Ceti's `IsCompact.exists_bound_of_continuousOn_bilinear_bundle`.
@@ -107,6 +111,35 @@ theorem Compatible.metric_inner_apply_apply (hc : σ.Compatible J) (x : M)
   rw [hc.metric_eq_tangentEquiv_symm_metric]
   simpa using
     (ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 hc).metric_inner_apply_apply x u v
+
+/-- The metric `g_J(u, v) = σ(u, J v)` of a compatible pair `(σ, J)`, as a `RiemannianBundle`
+structure on the tangent spaces of `M`. Statements install it with `letI`. -/
+@[instance_reducible]
+def Compatible.riemannianBundle (hc : σ.Compatible J) :
+    RiemannianBundle (fun x : M ↦ TangentSpace I x) :=
+  ⟨hc.metric.toRiemannianMetric⟩
+
+/-- The `RiemannianBundle` structure of a compatible pair is that of its metric
+`TauCeti.SmoothTwoForm.Compatible.metric`. -/
+theorem Compatible.riemannianBundle_def (hc : σ.Compatible J) :
+    hc.riemannianBundle = ⟨hc.metric.toRiemannianMetric⟩ :=
+  (rfl)
+
+/-- With the metric of a compatible pair `(σ, J)` installed on the tangent spaces, the inner
+product is `⟪u, w⟫ = σ(u, J w)`. -/
+theorem Compatible.inner_riemannianBundle (hc : σ.Compatible J) :
+    letI := hc.riemannianBundle
+    ∀ x (u w : TangentSpace I x), ⟪u, w⟫ = σ.eval₂ x u (J x w) := by
+  rw [hc.riemannianBundle_def]
+  exact hc.inner_eq_eval₂
+
+/-- The metric of a compatible pair, installed on the tangent spaces, is smooth. -/
+instance Compatible.isContMDiffRiemannianBundle (hc : σ.Compatible J) :
+    letI := hc.riemannianBundle
+    IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x) :=
+  letI := hc.riemannianBundle
+  ⟨⟨hc.metric.inner, hc.metric.contMDiff, fun x u w ↦ by
+    rw [hc.inner_riemannianBundle, metric_inner]⟩⟩
 
 /-- **The metric of a compatible pair is bounded on a compact set by any continuous metric.** If
 `σ` is compatible with `J` and `TM` carries a continuous Riemannian metric, then on a compact set
