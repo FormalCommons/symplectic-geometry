@@ -8,8 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.FundamentalVectorField.Isotropy
 public import Mathlib.Analysis.InnerProductSpace.Orthogonal
+public import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
+public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import TauCeti.RepresentationTheory.Continuous.Unitary.Basic
 import Mathlib.Analysis.InnerProductSpace.Projection.Basic
-import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
+import TauCeti.RepresentationTheory.Continuous.InvariantComplement
 
 /-!
 # The normal space of the complex orbit at a zero of the moment map
@@ -29,18 +32,24 @@ For a complexified action of a complexification `Gc` of `G`, `T` is the orbit ta
 `Gc` at `x` (`SymplecticGeometry.IsComplexifiedAction.orbitTangent_eq_complexOrbitTangent`),
 since `X_ζ = X_{re ζ} + J X_{im ζ}`. If `-μ` is an equivariant moment map and `μ x = 0`, the
 orbit through `x` is isotropic, `σ_x(X_ξ, X_η) = -μ x ⁅ξ, η⁆ = 0`, so `W` and `J x W` are
-orthogonal for `g`, and in particular they meet only in `0`
-(`SymplecticGeometry.disjoint_orbitTangent_map_orbitTangent`).
+orthogonal for `g`
+(`SymplecticGeometry.inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero`), and
+in particular `W` is totally real for `J x`: it meets `J x W` only in `0`
+(`SymplecticGeometry.isTotallyReal_orbitTangent_of_moment_eq_zero`).
 
 The space `S` is a complement of `T` (`SymplecticGeometry.isCompl_complexOrbitTangent`) and is
 invariant under `J x` (`SymplecticGeometry.apply_mem_complexOrbitNormal`), since `J x` preserves
 `T` and `g`. If the stabilizer `H` of `x` preserves `σ` and `J`, then each `dh_x` preserves `W`
-and `g`, so `S` is invariant under `dh_x`
-(`SymplecticGeometry.mfderiv_smul_apply_mem_complexOrbitNormal`), and, differentiating along
+and `g`: the tangent representation of `H` is unitary
+(`SymplecticGeometry.isUnitary_tangentRepresentation`), so `S` is invariant under `dh_x`
+(`SymplecticGeometry.mfderiv_smul_apply_mem_complexOrbitNormal`, through Tau Ceti's
+`TauCeti.ContRepresentation.IsUnitary.apply_mem_orthogonal`), and, differentiating along
 `exp (t ξ)`, under the linearized isotropy action `A_ξ` for `ξ` in the isotropy algebra
 (`SymplecticGeometry.isotropyLinearization_apply_mem_complexOrbitNormal`), through Tau Ceti's
-`TauCeti.isotropyLinearization_apply_mem_of_forall_mem`. This is the invariance that equation
-(12.6) of [GeorgoulasRobbinSalamon2021] gives, `A_ξ (X_η x) = X_⁅ξ, η⁆ x` with `A_ξ` skew.
+`TauCeti.isotropyLinearization_apply_mem_of_forall_mem`, as in Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.isotropyLinearization_apply_mem_orthogonal`. This is the
+invariance that equation (12.6) of [GeorgoulasRobbinSalamon2021] gives,
+`A_ξ (X_η x) = X_⁅ξ, η⁆ x` with `A_ξ` skew.
 
 Tau Ceti's symplectic slice `TauCeti.SmoothTwoForm.IsNondegenerate.SymplecticSlice` is the
 quotient `W^σ ⧸ (W ∩ W^σ)` of the `σ_x`-orthogonal of `W`, which `J x` does not preserve; the
@@ -56,10 +65,14 @@ why `S` is taken as the `g`-orthogonal complement of `T` instead.
 
 * `SymplecticGeometry.IsComplexifiedAction.orbitTangent_eq_complexOrbitTangent`: for a
   complexified action, the orbit tangent space of `Gc` is `W + J x W`.
-* `SymplecticGeometry.disjoint_orbitTangent_map_orbitTangent`: at a zero of the moment map, `W`
-  and `J x W` meet only in `0`.
+* `SymplecticGeometry.inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero`: at
+  a zero of the moment map, `W` and `J x W` are orthogonal.
+* `SymplecticGeometry.isTotallyReal_orbitTangent_of_moment_eq_zero`: at a zero of the moment map,
+  `W` is totally real for `J x`.
 * `SymplecticGeometry.isCompl_complexOrbitTangent`: `T` and `S` are complementary.
 * `SymplecticGeometry.apply_mem_complexOrbitNormal`: `S` is `J x`-invariant.
+* `SymplecticGeometry.isUnitary_tangentRepresentation`: the stabilizer acts on `T_x M` by
+  isometries.
 * `SymplecticGeometry.mfderiv_smul_apply_mem_complexOrbitNormal`: `S` is invariant under the
   differentials at `x` of the elements of the stabilizer.
 * `SymplecticGeometry.isotropyLinearization_apply_mem_complexOrbitNormal`: `S` is invariant under
@@ -95,6 +108,15 @@ attribute [local instance] ContMDiffMul.boundarylessManifold
 
 /-! ### The complex orbit tangent space -/
 
+omit [CompleteSpace E'] in
+/-- A vector lies in the image of a subspace `W` of `T_x M` under `J x` exactly when it is `J x w`
+for some `w ∈ W`. -/
+theorem _root_.TauCeti.SmoothAlmostComplexStructure.mem_map_toEndomorphism_iff
+    {J : SmoothAlmostComplexStructure I' M} {x : M} {W : Submodule ℝ (TangentSpace I' x)}
+    {v : TangentSpace I' x} :
+    v ∈ W.map (J.toEndomorphism x).toLinearMap ↔ ∃ w ∈ W, J x w = v :=
+  Submodule.mem_map
+
 variable (I G) in
 /-- The **complex orbit tangent space** at `x`: the sum `W + J x W` of the orbit tangent space
 `W = 𝔤 · x` of the action of `G` and its image under `J x`. For a complexified action it is the
@@ -118,7 +140,8 @@ theorem mem_complexOrbitTangent_iff {J : SmoothAlmostComplexStructure I' M} {x :
     {v : TangentSpace I' x} :
     v ∈ complexOrbitTangent I G J x ↔ ∃ ξ η : GroupLieAlgebra I G,
       fundamentalVectorField I' ξ x + J x (fundamentalVectorField I' η x) = v := by
-  simp only [complexOrbitTangent_def, Submodule.mem_sup, Submodule.mem_map,
+  simp only [complexOrbitTangent_def, Submodule.mem_sup,
+    SmoothAlmostComplexStructure.mem_map_toEndomorphism_iff,
     InfinitesimalAction.orbitTangent_eq_range, LinearMap.mem_range,
     InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply]
   constructor
@@ -133,6 +156,8 @@ theorem apply_mem_complexOrbitTangent {J : SmoothAlmostComplexStructure I' M} {x
     J x v ∈ complexOrbitTangent I G J x := by
   obtain ⟨ξ, η, rfl⟩ := mem_complexOrbitTangent_iff.1 hv
   refine mem_complexOrbitTangent_iff.2 ⟨-η, ξ, ?_⟩
+  -- `J x` is the coercion of the continuous linear map `J.toEndomorphism x`, whose `map_add`
+  -- applies once the coercion is unfolded: Tau Ceti states no `map_add` for `J x` itself.
   have h1 : J x (fundamentalVectorField I' ξ x + J x (fundamentalVectorField I' η x)) =
       J x (fundamentalVectorField I' ξ x) + J x (J x (fundamentalVectorField I' η x)) :=
     map_add (J.toEndomorphism x) _ _
@@ -196,7 +221,8 @@ variable [FiniteDimensional ℝ E]
 /-- **The orbit through a zero of the moment map is isotropic.** If `-μ` is an equivariant moment
 map for `σ`, the metric is `g(u, w) = σ(u, J w)` and `μ x = 0`, then `X_ξ x` and `J x (X_η x)`
 are orthogonal for all `ξ, η`. -/
-theorem inner_fundamentalVectorField_apply_eq_zero {σ : SmoothTwoForm I' M}
+theorem inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero
+    {σ : SmoothTwoForm I' M}
     {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
@@ -207,22 +233,22 @@ theorem inner_fundamentalVectorField_apply_eq_zero {σ : SmoothTwoForm I' M}
   rw [real_inner_comm, SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hg]
   exact hcoc
 
-/-- **The two halves of the complex orbit tangent space meet only in `0`** at a zero of the
-moment map: if `-μ` is an equivariant moment map for `σ`, the metric is `g(u, w) = σ(u, J w)`
-and `μ x = 0`, then the orbit tangent space `W` and its image under `J x` are disjoint. -/
-theorem disjoint_orbitTangent_map_orbitTangent {σ : SmoothTwoForm I' M}
+/-- **The orbit tangent space is totally real at a zero of the moment map**: if `-μ` is an
+equivariant moment map for `σ`, the metric is `g(u, w) = σ(u, J w)` and `μ x = 0`, then the
+orbit tangent space `W` meets its image under `J x` only in `0`. -/
+theorem isTotallyReal_orbitTangent_of_moment_eq_zero {σ : SmoothTwoForm I' M}
     {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
-    Disjoint ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)
-      (((InfinitesimalAction.fundamental I G I' M).orbitTangent x).map
-        (J.toEndomorphism x).toLinearMap) := by
-  rw [Submodule.disjoint_def]
-  simp only [Submodule.mem_map, InfinitesimalAction.orbitTangent_eq_range, LinearMap.mem_range,
+    IsTotallyReal (J.toEndomorphism x).toLinearMap
+      ((InfinitesimalAction.fundamental I G I' M).orbitTangent x) := by
+  rw [isTotallyReal_iff, Submodule.disjoint_def]
+  simp only [SmoothAlmostComplexStructure.mem_map_toEndomorphism_iff,
+    InfinitesimalAction.orbitTangent_eq_range, LinearMap.mem_range,
     InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply]
   rintro v ⟨ξ, rfl⟩ ⟨_, ⟨η, rfl⟩, hv⟩
-  have h := inner_fundamentalVectorField_apply_eq_zero hμ hg hx ξ η
-  rw [show J x (fundamentalVectorField I' η x) = fundamentalVectorField I' ξ x from hv] at h
+  have h := inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero hμ hg hx ξ η
+  simp only [hv] at h
   exact inner_self_eq_zero.1 h
 
 instance (J : SmoothAlmostComplexStructure I' M) (x : M) :
@@ -255,6 +281,32 @@ theorem apply_mem_complexOrbitNormal {σ : SmoothTwoForm I' M}
   rw [← SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg x u,
     SmoothAlmostComplexStructure.apply_apply, inner_neg_right, h, neg_zero]
 
+omit [CompleteSpace E] [LieGroup I ∞ G] [CompleteSpace E'] [FiniteDimensional ℝ E] in
+/-- **The stabilizer acts by isometries.** Let the stabilizer of `x` preserve the two-form `σ`
+and the almost complex structure `J`, and let the metric be `g(u, w) = σ(u, J w)`. Then the
+tangent representation of the stabilizer on `T_x M` is unitary for the metric. -/
+theorem isUnitary_tangentRepresentation {σ : SmoothTwoForm I' M}
+    {J : SmoothAlmostComplexStructure I' M} {x : M}
+    (hd : ∀ g ∈ stabilizer G x, MDifferentiableAt I' I' (fun y : M ↦ g • y) x)
+    (hσG : ∀ g ∈ stabilizer G x, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
+    (hJG : ∀ g ∈ stabilizer G x, ∀ v : TangentSpace I' x,
+      mfderiv I' I' (fun y : M ↦ g • y) x (J x v) =
+        J (g • x) (mfderiv I' I' (fun y : M ↦ g • y) x v))
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) :
+    (tangentRepresentation hd).IsUnitary := by
+  -- `IsUnitary` asks that each action map preserve the inner product. Its body is not exposed to
+  -- this file, so the goal is reached through Tau Ceti's equivalent statement for norms.
+  refine (ContRepresentation.isUnitary_iff_norm_map _).2 fun k ↦
+    (LinearMap.norm_map_iff_inner_map_map (tangentRepresentation hd k)).2 fun u w ↦ ?_
+  have hkx : (k : G) • x = x := k.property
+  have hJ := hJG k k.property w
+  rw [hkx] at hJ
+  have h := SmoothForm.eval₂_mpullback (fun y : M ↦ (k : G) • y)
+    (ContMDiffSMul.contMDiff_const_smul (I := I) (k : G)) σ x u (J x w)
+  rw [hσG k k.property, hkx, hJ] at h
+  rw [hg, hg, h, tangentRepresentation_apply]
+
 omit [FiniteDimensional ℝ E] in
 /-- **The complex orbit normal space is invariant under the stabilizer.** Let the stabilizer of
 `x` preserve the two-form `σ` and the almost complex structure `J`, and let the metric be
@@ -282,13 +334,6 @@ theorem mfderiv_smul_apply_mem_complexOrbitNormal {σ : SmoothTwoForm I' M}
     rw [show (k : G) • x = x from k.property] at h
     rw [tangentRepresentation_apply]
     exact h
-  -- Each `ρ k` preserves the metric, since it preserves `σ` and commutes with `J x`.
-  have hinner (k : stabilizer G x) (u w : TangentSpace I' x) :
-      ⟪(ρ k u : TangentSpace I' x), ρ k w⟫ = ⟪u, w⟫ := by
-    have h := SmoothForm.eval₂_mpullback (fun y : M ↦ (k : G) • y)
-      (ContMDiffSMul.contMDiff_const_smul (I := I) (k : G)) σ x u (J x w)
-    rw [hσG k k.property] at h
-    rw [hg, hg, ← hJ, h, tangentRepresentation_apply, show (k : G) • x = x from k.property]
   -- Each `ρ k` preserves the complex orbit tangent space.
   have hT (k : stabilizer G x) {u : TangentSpace I' x} (hu : u ∈ complexOrbitTangent I G J x) :
       (ρ k u : TangentSpace I' x) ∈ complexOrbitTangent I G J x := by
@@ -297,20 +342,12 @@ theorem mfderiv_smul_apply_mem_complexOrbitNormal {σ : SmoothTwoForm I' M}
     refine ⟨ρ k a, tangentRepresentation_mem_orbitTangent_fundamental hd k ha, _,
       ⟨ρ k b, tangentRepresentation_mem_orbitTangent_fundamental hd k hb, (hJ k b).symm⟩,
       (map_add (ρ k) a _).symm⟩
-  let k : stabilizer G x := ⟨g, hgx⟩
-  have hρ : (mfderiv I' I' (fun y : M ↦ g • y) x : E' →L[ℝ] E') = ρ k :=
-    (tangentRepresentation_apply hd k).symm
+  have hρ : (mfderiv I' I' (fun y : M ↦ g • y) x : E' →L[ℝ] E') = ρ ⟨g, hgx⟩ :=
+    (tangentRepresentation_apply hd ⟨g, hgx⟩).symm
   rw [hρ]
-  rw [mem_complexOrbitNormal_iff] at hv
-  -- The membership is stated at the type `TangentSpace I' (g • x)` of the value of `dg_x`, which
-  -- is `TangentSpace I' x` only up to unfolding, so the lemma is applied rather than rewritten.
-  refine mem_complexOrbitNormal_iff.2 fun u hu ↦ ?_
-  have hu' : (ρ k (ρ k⁻¹ u) : TangentSpace I' x) = u := by
-    have h := congrArg (fun m ↦ ρ m u) (mul_inv_cancel k)
-    simpa only [map_mul, map_one, ContinuousLinearMap.mul_def, ContinuousLinearMap.comp_apply,
-      one_apply_eq_self] using h
-  rw [← hu']
-  exact (hinner k _ v).trans (hv _ (hT _ hu))
+  rw [complexOrbitNormal_def] at hv ⊢
+  exact (isUnitary_tangentRepresentation (I := I) hd hσG hJG hg).apply_mem_orthogonal
+    (fun k _ hu ↦ hT k hu) ⟨g, hgx⟩ hv
 
 omit [FiniteDimensional ℝ E] in
 /-- **The complex orbit normal space is invariant under the isotropy algebra.** Under the
