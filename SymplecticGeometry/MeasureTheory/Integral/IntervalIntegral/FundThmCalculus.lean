@@ -18,9 +18,10 @@ derivative of these integrals (Tau Ceti's `ContinuousOn.integral_hasDerivAt_of_m
 are constant; at the ends it vanishes by continuity.
 
 The derivative of a `T`-periodic function, differentiable on an interval of length `T` with an
-integrable derivative there, integrates to zero over that interval
-(`Function.Periodic.intervalIntegral_deriv_eq_zero`), by Mathlib's
-`intervalIntegral.integral_deriv_eq_sub`.
+integrable derivative there, integrates to zero over that interval, by Mathlib's
+`intervalIntegral.integral_eq_sub_of_hasDerivAt`; this is stated with `HasDerivAt`
+(`Function.Periodic.intervalIntegral_eq_zero_of_hasDerivAt`) and with `deriv`
+(`Function.Periodic.intervalIntegral_deriv_eq_zero`).
 -/
 
 public section
@@ -43,12 +44,20 @@ theorem ContinuousOn.eqOn_zero_of_forall_intervalIntegral_eq_zero
   exact hzero.of_subset_closure hg continuousOn_const Ioo_subset_Icc_self
     (closure_Ioo hab.ne).ge
 
+/-- If a `T`-periodic function `g` has derivative `g' x` at each `x ∈ [a, a + T]`, and `g'` is
+integrable on `[a, a + T]`, then `g'` integrates to zero over `[a, a + T]`. -/
+theorem Function.Periodic.intervalIntegral_eq_zero_of_hasDerivAt {T : ℝ}
+    (hg : Function.Periodic g T) {g' : ℝ → E} (hd : ∀ x ∈ uIcc a (a + T), HasDerivAt g (g' x) x)
+    (hint : IntervalIntegrable g' MeasureTheory.volume a (a + T)) :
+    ∫ x in a..a + T, g' x = 0 := by
+  rw [intervalIntegral.integral_eq_sub_of_hasDerivAt hd hint, hg a, sub_self]
+
 /-- The derivative of a `T`-periodic function, differentiable on `[a, a + T]` with an integrable
 derivative there, integrates to zero over `[a, a + T]`. -/
 theorem Function.Periodic.intervalIntegral_deriv_eq_zero {T : ℝ} (hg : Function.Periodic g T)
     (hd : ∀ x ∈ uIcc a (a + T), DifferentiableAt ℝ g x)
     (hint : IntervalIntegrable (deriv g) MeasureTheory.volume a (a + T)) :
-    ∫ x in a..a + T, deriv g x = 0 := by
-  rw [intervalIntegral.integral_deriv_eq_sub hd hint, hg a, sub_self]
+    ∫ x in a..a + T, deriv g x = 0 :=
+  hg.intervalIntegral_eq_zero_of_hasDerivAt (fun x hx ↦ (hd x hx).hasDerivAt) hint
 
 end
