@@ -3402,7 +3402,8 @@ Differential topology and complex analysis only; it waits for no part of
 - **Files:** in `Geometry/Manifold/FiberBundle/Principal/`, beside the
   merged `CircleConnection.lean` and `BasicForm.lean`: `Connection/`
   (`Basic.lean`, `Existence.lean` and `Curvature.lean`: connection
-  one-forms with values in `GroupLieAlgebra I G`,
+  one-forms with values in the model space of `G`, which is
+  `GroupLieAlgebra I G`,
   `SymplecticGeometry.IsConnectionForm`: $A(p\xi)=\xi$ and
   $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$; their horizontal spaces; existence
   over a paracompact base and the affine structure over
