@@ -31,8 +31,8 @@ particular in the preferred chart `extChartAt 𝓘(ℝ, E) x`
 (`TauCeti.BirthDeathChart.exists_ker_fderiv_fderiv_eq_span_singleton`). Near `q x`, `f` read in
 `q` is the normal form composed with the transition map `τ = q.symm.trans ψ` to the chart `ψ` of
 `φ`, which is `C³` with invertible derivative since both charts lie in the maximal atlas
-(`TauCeti.contDiffAt_symm_trans_of_mem_maximalAtlas`). The chain rules
-`SymplecticGeometry.ker_fderiv_fderiv_comp_of_fderiv_eq_zero` and
+(`TauCeti.contDiffAt_symm_trans_of_mem_maximalAtlas`, `TauCeti.exists_hasFDerivAt_symm_trans`).
+The chain rules `SymplecticGeometry.ker_fderiv_fderiv_comp_of_fderiv_eq_zero` and
 `SymplecticGeometry.fderiv_fderiv_fderiv_comp_apply_of_fderiv_eq_zero` carry the vanishing
 differential, the one-dimensional kernel of the Hessian and the nonzero cubic term back through
 `τ`, the kernel vector being `Dτ⁻¹ e`.
@@ -199,12 +199,8 @@ private theorem exists_coordChange (hq : q ∈ IsManifold.maximalAtlas 𝓘(ℝ,
   have hsrc : (q.symm.trans ψ).source ∈ 𝓝 (q x) := (q.symm.trans ψ).open_source.mem_nhds hu
   refine ⟨q.symm.trans ψ, contDiffAt_symm_trans_of_mem_maximalAtlas hq hψ hu,
     by simp [ψ, hx, φ.toMorseBottChart.apply_self], ?_, ?_⟩
-  · have hτ : ⇑(𝓘(ℝ, E).extendCoordChange q ψ) = ⇑(q.symm.trans ψ) := by
-      ext z
-      simp [ModelWithCorners.extendCoordChange]
-    have hs : (𝓘(ℝ, E).extendCoordChange q ψ).source = (q.symm.trans ψ).source := by simp
-    have := 𝓘(ℝ, E).isInvertible_fderivWithin_extendCoordChange (by simp) hq hψ (hs ▸ hu)
-    rwa [hτ, hs, fderivWithin_of_mem_nhds hsrc] at this
+  · obtain ⟨A, hA⟩ := exists_hasFDerivAt_symm_trans (by simp) hq hψ hu
+    exact ⟨A, hA.fderiv.symm⟩
   · filter_upwards [hsrc] with z hz
     exact φ.eqOn_normalForm hz.2
 
