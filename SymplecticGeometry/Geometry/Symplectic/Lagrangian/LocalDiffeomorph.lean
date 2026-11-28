@@ -172,8 +172,8 @@ back to `σ` has symplectic tangent images for `σ'` exactly when `f` has them f
 theorem hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff
     {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {σ' : SmoothTwoForm I' M'}
     {hσ' : σ'.IsNondegenerate} (f : SmoothEmbedding J I ∞ N M) (ψ : M ≃ₘ⟮I, I'⟯ M')
-    (hn : 1 ≤ (∞ : ℕ∞ω)) (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ) :
-    hσ'.HasSymplecticTangentImages J (f.transDiffeomorphOfBoundaryless ψ hn) ↔
+    (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ) :
+    hσ'.HasSymplecticTangentImages J (f.transDiffeomorphOfBoundaryless ψ (by simp)) ↔
       hσ.HasSymplecticTangentImages J f := by
   rw [coe_transDiffeomorphOfBoundaryless]
   exact SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ

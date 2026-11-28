@@ -9,9 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
+import TauCeti.Geometry.Symplectic.Manifold.Moser.Path
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Surface
 import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
 import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
@@ -46,9 +46,11 @@ The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`,
 2. Since `σ` and `ω₀` have the same integral, `σ - ω₀` is exact on the connected closed surface
    (`TauCeti.sub_mem_exactForms_iff_integralTopForm_eq`); hence so is
    `σ_t - σ_0 = t (σ - ω₀)`.
-3. The slices `σ_t` form a smooth family over `[0, 1]`, so Moser stability
-   (`TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq`) gives a diffeotopy `Ψ` with
-   `Ψ_t^* σ_t = ω₀`; its slice at `t = 1` is `ψ`.
+3. For a primitive `β` of `σ - ω₀`, Tau Ceti's Moser theorem along an exact path
+   (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_add_smoothTransition_smul_eq`) gives an
+   isotopy `ψ_t` with `ψ_t^* σ_{c(t)} = ω₀`, `c = Real.smoothTransition`. Its restriction to
+   `[0, 1]` (`TauCeti.Diffeotopy.ofReal`) is a diffeotopy `Ψ` whose time-one map is `ψ_1`, and
+   `c(1) = 1`.
 
 ## Main results
 
@@ -93,25 +95,16 @@ theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace 
     (hω : o.IsPositive ω₀.val) (hσ : o.IsPositive σ.val)
     (hint : integralTopForm o σ.val = integralTopForm o ω₀.val) :
     ∃ Ψ : Diffeotopy I ∞ M, SmoothForm.mpullback Ψ.final Ψ.final.contMDiff σ = ω₀ := by
-  -- The segment from `ω₀` to `σ`.
-  set α : unitInterval → SmoothTwoForm I M := fun t ↦ ω₀ + (t : ℝ) • (σ - ω₀) with hα
-  -- Step 1: every form of the segment is symplectic.
-  have hsymp (t : unitInterval) : IsSymplectic (α t) :=
-    isSymplectic_add_smul_sub hω hσ t.property
-  -- Step 2: `σ` and `ω₀` have the same integral, so `σ - ω₀` is exact.
-  have hexact : σ - ω₀ ∈ exactForms I M 2 := (sub_mem_exactForms_iff_integralTopForm_eq o).2 hint
-  -- Step 3: Moser stability along the segment.
-  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp <| (isSmoothFamily_const (J := 𝓡∂ 1) ω₀).add
-    ((isSmoothFamily_const (σ - ω₀)).fun_smul (contMDiff_subtypeVal_Icc (x := 0) (y := 1)))
-  have hΩα (t : unitInterval) :
-      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω = α t := hΩ t
-  obtain ⟨Ψ, hΨ⟩ := exists_diffeotopy_mpullback_eq Ω (fun t ↦ by rw [hΩα]; exact hsymp t)
-    fun t ↦ by
-      rw [hΩα, hΩα, hα]
-      simpa using Submodule.smul_mem _ (t : ℝ) hexact
-  refine ⟨Ψ, ?_⟩
-  rw [Diffeotopy.final_def]
-  simpa [hΩα, hα] using hΨ 1
+  -- Step 1 gives that every form of the segment is symplectic, and step 2 a primitive `β` of
+  -- `σ - ω₀`.
+  obtain ⟨β, hβ⟩ : σ - ω₀ ∈ LinearMap.range (mextDerivₗ I 1) :=
+    exactForms_succ (I := I) (M := M) 1 ▸ (sub_mem_exactForms_iff_integralTopForm_eq o).2 hint
+  -- Step 3: Moser's theorem along the exact path from `ω₀` to `σ`.
+  obtain ⟨ψ, hψ, hψ₀, hψσ⟩ := exists_isotopy_mpullback_add_smoothTransition_smul_eq ω₀ σ β
+    (by rw [← hβ, mextDerivₗ_apply]) fun _ hs ↦ isSymplectic_add_smul_sub hω hσ hs
+  refine ⟨Diffeotopy.ofReal ψ hψ hψ₀, ?_⟩
+  rw [Diffeotopy.final_ofReal]
+  simpa [Real.smoothTransition.one] using hψσ 1
 
 /-- **Moser's theorem for area forms**, as a diffeomorphism. Let `M` be a closed surface, connected
 or empty, with an orientation `o`, and let `ω₀` and `σ` be smooth two-forms on `M`, both positive
