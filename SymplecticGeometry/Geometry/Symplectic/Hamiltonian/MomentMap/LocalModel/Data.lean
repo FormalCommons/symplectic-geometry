@@ -302,14 +302,17 @@ theorem ι𝔪_def :
       D.equivDual𝔪.toLinearMap :=
   (rfl)
 
+/-- `ι𝔪 η` evaluates `equivDual𝔪 η` on the `𝔪`-component of a vector, taken along `𝔥 ⊕ 𝔮`. -/
+theorem ι𝔪_apply (η : A) (ξ : GroupLieAlgebra I G) :
+    D.ι𝔪 η ξ = D.equivDual𝔪 η (Submodule.projectionOnto _ _ D.isCompl_𝔪_sup ξ) := by
+  rw [ι𝔪_def, LinearMap.comp_apply, LinearMap.dualMap_apply, LinearEquiv.coe_coe]
+
 @[simp]
 theorem ι𝔪_apply_coe (η : A) (ξ : D.𝔪) : D.ι𝔪 η ξ = D.equivDual𝔪 η ξ := by
-  rw [ι𝔪_def, LinearMap.comp_apply, LinearMap.dualMap_apply, LinearEquiv.coe_coe,
-    Submodule.projectionOnto_apply_left]
+  rw [ι𝔪_apply, Submodule.projectionOnto_apply_left]
 
 theorem ι𝔪_apply_of_mem_sup (η : A) {ξ} (hξ : ξ ∈ D.𝔥 ⊔ D.𝔮) : D.ι𝔪 η ξ = 0 := by
-  rw [ι𝔪_def, LinearMap.comp_apply, LinearMap.dualMap_apply,
-    Submodule.projectionOnto_apply_of_mem_right _ hξ, map_zero]
+  rw [ι𝔪_apply, Submodule.projectionOnto_apply_of_mem_right _ hξ, map_zero]
 
 /-! ### The moment map, the covectors and the two-form -/
 
