@@ -64,6 +64,8 @@ the polystable `Gc`-orbits.
   `C.polar (ξ, u) = C.expI ξ * C.toHom u`.
 * `SymplecticGeometry.kempfNessFunction_toHom`: `Φ_p` vanishes on `G`.
 * `SymplecticGeometry.kempfNessFunction_mul_toHom`: `Φ_p (g * C.toHom u) = Φ_p g`.
+* `SymplecticGeometry.abs_kempfNessFunction_expI_mul_toHom_le`: if `√(‖μ‖²) ≤ L` on `M`, for a
+  symmetric nonnegative form `B`, then `|Φ_p (C.expI η * C.toHom u)| ≤ L * √(B η η)`.
 * `SymplecticGeometry.kempfNessFunctionQuotient_mk`: the induced function on cosets agrees with
   `Φ_p` on representatives.
 * `SymplecticGeometry.contDiff_moment_expI_neg_smul_smul_apply`: the integrand
@@ -234,6 +236,21 @@ theorem kempfNessFunction_mul_toHom (g : Gc) (u : G) :
     ⟨_, _, C.expI_mul_toHom_polar_symm g⟩
   rw [mul_assoc, ← map_mul, kempfNessFunction_expI_mul_toHom,
     kempfNessFunction_expI_mul_toHom]
+
+/-- **A bound by the polar radius.** For a symmetric nonnegative form `B` on the Lie algebra, if
+`√(‖μ y‖²) ≤ L` for every `y`, where `‖μ y‖²` is `momentNormSq μ (B.toDual hB).symm y`, then
+`|Φ_p (C.expI η * C.toHom u)| ≤ L * √(B η η)`. -/
+theorem abs_kempfNessFunction_expI_mul_toHom_le [FiniteDimensional ℝ E]
+    {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate} (hBs : B.IsSymm)
+    (hpos : B.IsNonneg) {L : ℝ} (hL : ∀ y, √(TauCeti.momentNormSq μ (B.toDual hB).symm y) ≤ L)
+    (η : GroupLieAlgebra I G) (u : G) :
+    |kempfNessFunction C μ p (C.expI η * C.toHom u)| ≤ L * √(B η η) := by
+  rw [kempfNessFunction_expI_mul_toHom, ← Real.norm_eq_abs]
+  have := intervalIntegral.norm_integral_le_of_norm_le_const (a := 0) (b := 1)
+    (f := fun t : ℝ ↦ μ (C.expI (-(t • η)) • p) η) fun t _ ↦
+      (abs_apply_le_sqrt_momentNormSq_mul_sqrt (hB := hB) hBs hpos η).trans
+        (mul_le_mul_of_nonneg_right (hL (C.expI (-(t • η)) • p)) (Real.sqrt_nonneg _))
+  simpa using this
 
 /-- The function that the Kempf–Ness function induces on the space `Gc ⧸ C.toHom.range` of cosets
 `g G`, well defined by `kempfNessFunction_mul_toHom`. -/
