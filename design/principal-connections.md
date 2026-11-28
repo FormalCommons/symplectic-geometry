@@ -146,8 +146,8 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
   The table of shared definitions is corrected.
 
 Two files are added that `DESIGN.md` does not name:
-`Geometry/Lie/MaurerCartan.lean` (the Maurer–Cartan form, from which local
-connection forms are built) and
+`Geometry/Lie/MaurerCartan.lean` (the law of Tau Ceti's Maurer–Cartan form
+under right translations, which local connection forms need) and
 `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` (the
 diffeomorphism $\Phi$ above).
 
@@ -155,7 +155,7 @@ diffeomorphism $\Phi$ above).
 
 | File | Contents |
 |---|---|
-| `Geometry/Lie/MaurerCartan.lean` | the left Maurer–Cartan form of a Lie group as a smooth $\mathfrak g$-valued one-form |
+| `Geometry/Lie/MaurerCartan.lean` | the law of Tau Ceti's left Maurer–Cartan form under right translations, as smooth forms |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | the properties of the curvature of a connection form |
@@ -165,17 +165,14 @@ diffeomorphism $\Phi$ above).
 
 ### `Geometry/Lie/MaurerCartan.lean`
 
-Tau Ceti has the Maurer–Cartan form evaluated on a vector field
-(`TauCeti.leftMaurerCartanEval`, `Geometry/Lie/InvariantVectorField/Basic.lean`).
-This file names it as a form.
+Tau Ceti has the Maurer–Cartan form as a form,
+`TauCeti.leftMaurerCartanForm IG G : SmoothForm IG G EG 1`, with values in the
+model space `EG` of $G$, which is $\mathfrak g$
+(`TauCeti/Geometry/Lie/MaurerCartan.lean`), with its value
+`TauCeti.leftMaurerCartanForm_apply` and its value
+`TauCeti.leftMaurerCartanForm_apply_mulInvariantVectorField` on
+left-invariant fields.
 
-- `leftMaurerCartanForm IG G : SmoothForm IG G (GroupLieAlgebra IG G) 1`,
-  whose value at $g$ on $v$ is
-  `mfderiv IG IG (fun h ↦ g⁻¹ * h) g v` (`leftMaurerCartanForm_apply`).
-  It is Tau Ceti's left-invariant extension `TauCeti.leftInvariantSmoothForm`
-  of the identity of $\mathfrak g$, which gives its smoothness.
-- `leftMaurerCartanForm_apply_mulInvariantVectorField`: the value on the
-  left-invariant field of $\xi$ is $\xi$.
 - `mpullback_mul_right_leftMaurerCartanForm`: the pull-back by right
   multiplication by $h$ is `mapCoeff (adjointContinuousLinearMap h⁻¹)` of
   the form.
