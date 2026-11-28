@@ -395,8 +395,7 @@ This is a hypothesis of the statements below, not a definition.
   $\xi\in\Lambda$) and $g\in G^{\mathbb C}$,
   with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq B hB μ (g • p))`.
 - `exists_momentWeight_pos_of_not_isSemistable`: a destabilizing
-  $\xi\in\Lambda$ (the limit of the flow of $f$, and continuity of
-  weights for torus actions).
+  $\xi\in\Lambda$, by the route of *The destabilizing direction* below.
 - `isSemistable_iff_momentWeight_nonpos`,
   `isPolystable_iff_isSemistable_and_limitPoint_mem_orbit`,
   `isStable_iff_momentWeight_neg`, and `hilbertMumford`, their
@@ -405,6 +404,148 @@ This is a hypothesis of the statements below, not a definition.
 
 Edge cases: `G` trivial has $\Lambda=\emptyset$, and every point is
 stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
+
+### The destabilizing direction
+
+The route needs a direction of positive weight, not one of maximal weight,
+so it avoids the generalized Kempf existence theorem of
+[GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 10.4) and its geodesics in
+$G^{\mathbb C}/G$, on which the design puts no metric. It follows the
+argument of Lemma 10.5 there along the flow of `momentNormSq`, and
+Theorem 11.1 there for continuity, whose inequality reverses under the
+*Sign* bullet. Norms are those of `B`, written $|\xi|=\sqrt{B(\xi,\xi)}$.
+For `ξ`, write `𝔞 ξ` for the set `{ζ | ∀ ζ', ⁅ζ', ξ⁆ = 0 → ⁅ζ', ζ⁆ = 0}`:
+a subspace that contains `ξ`. Its elements commute pairwise: each
+commutes with `ξ`, so lies in the centralizer of `ξ`, and so commutes
+with every element of `𝔞 ξ`. It is a set in the statements below; a
+proof that needs it as a `Submodule` builds it there.
+
+- `sqrt_polar_symm_fst_le_add_mul` (`Geometry/Lie/Complexification.lean`,
+  with the polar radius): for connected `G`, a symmetric `Ad`-invariant `B`,
+  a curve `a` with `HasLeftTrivializedDerivOn a v univ` and
+  `√(B (C.im (v t)) (C.im (v t))) ≤ K` for all `t`, the polar radius
+  `√(B η η)` of `a t`, for `(η, u) = C.polar.symm (a t)`, is at most that of
+  `a 0` plus `K * t` for `t ≥ 0`. Proof: `hasDerivAt_polar_symm_fst_comp`,
+  Cauchy–Schwarz for `B` and `Ad`-invariance bound the derivative of
+  `B η η` by `2 * K * √(B η η)`; compare with the boundary
+  `(√(B η₀ η₀) + (K + ε) * t + ε) ^ 2` by
+  `image_le_of_deriv_right_lt_deriv_boundary` and let `ε → 0`. The
+  moment-weight inequality uses it too, for
+  `a t = g * C.expI (-(t • ξ))` and `K = √(B ξ ξ)`; whichever of the two
+  building issues comes first proves it.
+- `hasDerivAt_moment_apply_expI` (`KempfNess/Basic.lean`): the derivative
+  of `s ↦ μ (C.expI (s • η) • p) ξ` at `t` is the negative of the inner
+  product of `X_ξ` and `X_η` at the moving point, from
+  `mgradient_moment_apply` and `isMIntegralCurve_expI_smul`, as in
+  `hasDerivAt_moment_expI`, its case `η = ξ`.
+- `momentWeight_smul` (`HilbertMumford.lean`): for `0 < c`,
+  `momentWeight C μ p (c • ξ) = c * momentWeight C μ p ξ`, by
+  `expI_smul` and the change of time `t ↦ c * t` in `tendsto_momentWeight`.
+- `momentWeight_expI_smul_of_lie_eq_zero`: if `⁅η, ξ⁆ = 0` then
+  `momentWeight C μ (C.expI η • p) ξ = momentWeight C μ p ξ`. Proof:
+  `C.expI η` and `C.expI (t • ξ)` commute (`commute_lieExp_of_lie_eq_zero`
+  in `Gc`, since `C.cplx` and `C.lieMap` preserve brackets up to sign:
+  `cplx_lie_cplx`), so the limit point moves to
+  `C.expI η • limitPoint C p ξ`. The limit point is a critical point of
+  `x ↦ μ x ξ` (`limitPoint_mem_criticalPoints`), so `X_ξ` vanishes there
+  (`mgradient_moment_apply`), and every `C.expI (t • ξ)` fixes it
+  (`expI_smul_smul_eq_self_iff`). They commute with `C.expI (s • η)`, so
+  they also fix each `C.expI (s • η) • limitPoint C p ξ`, where `X_ξ`
+  vanishes too. By `hasDerivAt_moment_apply_expI`,
+  `s ↦ μ (C.expI (s • η) • limitPoint C p ξ) ξ` is then constant, and
+  `momentWeight_eq_moment_limitPoint` concludes.
+- `continuousOn_momentWeight`: for a submodule `𝔞` of pairwise commuting
+  elements, `momentWeight C μ p` is continuous on `𝔞`. Proof: let `K` be the
+  closure of `{C.expI η • p | η ∈ 𝔞}`, compact since `M` is. For `ξ ∈ 𝔞`,
+  `momentWeight C μ p ξ` is the infimum of `μ y ξ` over `y ∈ K`: it is
+  attained at `limitPoint C p ξ ∈ K` (`tendsto_limitPoint`,
+  `momentWeight_eq_moment_limitPoint`), and it is at most `μ y ξ` for
+  `y = C.expI η • p` by `momentWeight_le` and
+  `momentWeight_expI_smul_of_lie_eq_zero`, hence for `y ∈ K` by continuity.
+  The map `(y, ξ) ↦ μ y ξ` is continuous (`𝔤` is finite-dimensional), so
+  `IsCompact.continuous_sInf` gives continuity.
+- `exists_pow_mem_of_mem_nhds_one` (`Topology/Algebra/Group/Recurrence.lean`,
+  with its additive version): in a compact topological group, every
+  neighbourhood of `1` contains `g ^ n` for some `n > 0`. Proof: the powers
+  `g ^ n` have a cluster point, so two of them, `g ^ k` and `g ^ l` with
+  `k < l`, lie in one translate `x * W` of a neighbourhood `W` with
+  `W⁻¹ * W ⊆ V`. No such lemma turned up in Mathlib or Tau Ceti at the
+  pinned versions; its building issue searches again first.
+- `mem_closure_smul_nonzeroPeriods` (`Geometry/Lie/Exponential/Periods.lean`):
+  for compact `G` and `ξ ≠ 0`, `ξ` lies in the closure of the positive
+  multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof,
+  with an `Ad`-invariant `B` from
+  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`:
+  given `δ` with `0 < δ < |ξ|` and the `B`-ball of radius `δ` inside the
+  source of `mulInvariantExpOpenPartialHomeomorph` and inside a set on
+  which `mulInvariantExp` is injective
+  (`exists_injOn_mulInvariantExp_modelSpace`), its image is a neighbourhood
+  of `1`, so by `exists_pow_mem_of_mem_nhds_one` some `m ≥ 1` has
+  `mulInvariantExp (m • ξ) = mulInvariantExp η` with `|η| < δ`. For `ζ'`
+  commuting with `ξ`, `h = mulInvariantExp (s • ζ')` commutes with
+  `mulInvariantExp (m • ξ)` (`commute_lieExp_of_lie_eq_zero`), so
+  `conj_lieExp` (with `lieExp_eq_mulInvariantExp`) and injectivity on the
+  `Ad`-invariant ball give `Ad h η = η`, and `hasDerivAt_Ad_lieExp_smul_apply_zero` gives
+  `⁅ζ', η⁆ = 0`. So `η ∈ 𝔞 ξ`, in particular `⁅ξ, η⁆ = 0`, and
+  `λ = m • ξ - η` has `mulInvariantExp λ = 1`
+  (`lieExp_add_of_lie_eq_zero`), lies in `𝔞 ξ`, is nonzero because
+  `|m • ξ| ≥ |ξ| > δ > |η|`, and `|ξ - m⁻¹ • λ| = |η| / m < δ`. The
+  route through Tau Ceti's tori (`isTorus_closedOneParameterSubgroup`,
+  `Exponential/CommutativeGroup/Kronecker.lean`) would need the Lie algebra
+  of the closed subgroup inside `𝔤` and its exponential, which this route
+  does not.
+- `isSemistable_of_iInf_momentNormSq_smul_eq_zero` (`KempfNess/Stability.lean`,
+  the converse of `IsSemistable.iInf_momentNormSq_smul_eq_zero`): in the
+  setting of `momentNormSq_limit_eq_iInf`, if
+  `⨅ g : Gc, momentNormSq B hB μ (g • p) = 0` then `p` is semistable: the
+  limit of the flow (`tendsto_maximalIntegralCurve_momentNormSq`) lies in
+  the closure of the orbit (`exists_mem_orbit_maximalIntegralCurve`), and
+  `momentNormSq_limit_eq_iInf` and `momentNormSq_eq_zero_iff` make it a
+  zero of `μ`. The proof of
+  `isSemistable_iff_bddBelow_kempfNessFunction` has this step inline; the
+  building issue moves it here.
+- `exists_momentWeight_pos_of_iInf_momentNormSq_pos` (`HilbertMumford.lean`):
+  in that setting, if `0 < m²` for `m² := ⨅ g : Gc, momentNormSq B hB μ (g • p)`,
+  some `ξ` with `B ξ ξ = 1` has `0 < momentWeight C μ p ξ`. Proof: take
+  the flow curve `g` of `exists_mem_orbit_maximalIntegralCurve`, so
+  `Φ_p (g t) ≤ -2 * m² * t` for `t ≥ 0` (`Φ_p 1 = 0` by
+  `kempfNessFunction_toHom`), and let `r t` be the polar radius
+  of `g t`, with `g t = C.expI (r t • ζ t) * C.toHom (u t)` and
+  `B (ζ t) (ζ t) = 1` when `r t > 0` (`expI_mul_toHom_polar_symm`). Let `L`
+  be the maximum of `√(momentNormSq B hB μ)` on `M`; `L ≥ m > 0`.
+  1. `r t ≤ 2 * L * t`, by `sqrt_polar_symm_fst_le_add_mul`, since the
+     imaginary part of the left-trivialized derivative is
+     `-2 • momentSharp B hB μ ((g t)⁻¹ • p)` (`im_cplx_lieMap`).
+  2. `r t ≥ 2 * m² * t / √(momentNormSq B hB μ p)`, by
+     `kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le` at `g = 1`; so
+     `r t → ∞`.
+  3. The `ζ t` lie on the unit sphere of `B`, which is compact, so
+     `ζ (t n) → ζ₀` along a sequence `t n → ∞`.
+  4. `s ↦ Φ_p (C.expI (s • ζ))` is convex
+     (`convexOn_kempfNessFunction_geodesic` at `g = 1`) and vanishes at `0`,
+     and `Φ_p (g t) = Φ_p (C.expI (r t • ζ t))` by
+     `kempfNessFunction_mul_toHom`. So for `0 < s ≤ r (t n)`,
+     `Φ_p (C.expI (s • ζ (t n))) / s ≤ Φ_p (g (t n)) / r (t n) ≤ -m² / L`
+     by 1. Letting `n → ∞` (`contMDiff_kempfNessFunction`),
+     `Φ_p (C.expI (s • ζ₀)) ≤ -(m² / L) * s` for every `s ≥ 0`.
+  5. By the slope identity `tendsto_deriv_kempfNessFunction` at `-ζ₀`, the
+     derivative of `s ↦ Φ_p (C.expI (s • ζ₀))` tends to
+     `-momentWeight C μ p (-ζ₀)`. A derivative that tends to `D` bounds the
+     growth (`Convex.mul_sub_le_image_sub_of_le_deriv`), so
+     `Φ_p (C.expI (s • ζ₀)) / s → D`, and
+     `momentWeight C μ p (-ζ₀) ≥ m² / L > 0`. Take `ξ = -ζ₀`.
+- `exists_momentWeight_pos_of_not_isSemistable`: if `p` is not semistable,
+  some `λ ∈ nonzeroPeriods I G` has `0 < momentWeight C μ p λ`. Proof:
+  `isSemistable_of_iInf_momentNormSq_smul_eq_zero` and
+  `momentNormSq_nonneg` give `0 < m²`, and
+  `exists_momentWeight_pos_of_iInf_momentNormSq_pos` a unit `ξ` of
+  positive weight. The weight is continuous at `ξ` on `𝔞 ξ`
+  (`continuousOn_momentWeight`), so it is positive on a neighbourhood of
+  `ξ` in `𝔞 ξ`, which contains some `c • λ` with `c > 0` and
+  `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ` (`mem_closure_smul_nonzeroPeriods`).
+  Then `momentWeight_smul` gives `0 < momentWeight C μ p λ`.
+- `isSemistable_iff_momentWeight_nonpos` is this together with
+  `IsSemistable.momentWeight_nonpos`, which the slope identity gives.
 
 ## What it uses
 
@@ -416,7 +557,15 @@ stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
   (`Geometry/Manifold/Riemannian/Gradient/`);
   `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`; the Morse–Bott
   results named in decision 5; the semialgebraic geometry and the
-  symplectic slice named in decision 4.
+  symplectic slice named in decision 4; for the destabilizing direction,
+  `mulInvariantExpOpenPartialHomeomorph` and
+  `exists_injOn_mulInvariantExp_modelSpace`
+  (`Geometry/Lie/Exponential/LocalInverse.lean`),
+  `commute_lieExp_of_lie_eq_zero` and `lieExp_add_of_lie_eq_zero`
+  (`Geometry/Lie/Adjoint/Exponential/Formula.lean`), `conj_lieExp` and
+  `hasDerivAt_Ad_lieExp_smul_apply_zero`.
+- From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
+  and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`.
 - From other parts: none on `main` is needed. The local normal form (c)
   is not Tau Ceti's weight chart of part 37 (*Equivariant normal forms*),
   which holds only at fixed points; it generalizes it along orbits.
@@ -453,6 +602,20 @@ Each is a few hundred lines; each is blocked by the issues it names.
     `HilbertMumford.lean`. Blocked by 3 and 7.
 12. **Destabilizing directions, and the second milestone.**
     The rest of `HilbertMumford.lean`, from the moment-weight inequality on. Blocked by 10 and 11.
+    The destabilizing direction is these issues, in this order:
+    1. `sqrt_polar_symm_fst_le_add_mul`, unless the moment-weight
+       inequality has proved it. No blockers.
+    2. `hasDerivAt_moment_apply_expI`, `momentWeight_smul`,
+       `momentWeight_expI_smul_of_lie_eq_zero` and
+       `continuousOn_momentWeight`. No blockers.
+    3. `exists_pow_mem_of_mem_nhds_one` and
+       `mem_closure_smul_nonzeroPeriods`. No blockers.
+    4. `isSemistable_of_iInf_momentNormSq_smul_eq_zero` and
+       `exists_momentWeight_pos_of_iInf_momentNormSq_pos`. Blocked by 12.1
+       and by the slope identity (#7892).
+    5. `exists_momentWeight_pos_of_not_isSemistable` and
+       `isSemistable_iff_momentWeight_nonpos`. Blocked by 12.2, 12.3 and
+       12.4.
 
 Issues 1, 5, 7 and 8 can start at once; the Kempf–Ness milestone
 (issue 10) comes before the Hilbert–Mumford one (issue 12).

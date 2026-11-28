@@ -201,9 +201,8 @@ theorem homologyMap_shufflePair_singularRelativeCross (p q n : ℕ) (h : p + q =
       (TopPair.ofSubset B).singularChainComplex S).linearYonedaObj k P |>.homology n,
       homologyMap ((TauCeti.ChainComplex.linearYonedaFunctor k P).map
         (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
-          (TopPair.ofSubset B).singularChainComplex S)).op) n x = x := fun x ↦ by
-    rw [op_id, CategoryTheory.Functor.map_id]
-    exact ConcreteCategory.congr_hom (homologyMap_id _ n) x
+          (TopPair.ofSubset B).singularChainComplex S)).op) n x = x := fun x ↦
+    ConcreteCategory.congr_hom (ChainComplex.homologyMap_linearYonedaFunctor_map_id k P _ n) x
   -- The shuffle map of the pairs factors through the small chains, on which the relative cross
   -- product is the cup product along the relative Alexander–Whitney diagonal.
   rw [← shuffleSmallPair_comp_smallSingularSubcomplexPairToUnion]
