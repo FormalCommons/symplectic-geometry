@@ -457,6 +457,20 @@ theorem horizontalDistribution_eq_of_forall
     rw [horizontalDistribution_def, horizontalDistribution_def]
     exact LinearMap.BilinForm.orthogonal_eq_orthogonal_of_forall (h x)
 
+/-- Adding the pull-back of a two-form on the base does not change the horizontal spaces, since
+the pull-back vanishes when one of its arguments is vertical. -/
+theorem horizontalDistribution_add_mpullback [IsManifold IB ∞ B] (hproj : ContMDiff IM IB ∞ proj)
+    (τ : SmoothTwoForm IM M) (γ : SmoothTwoForm IB B) :
+    horizontalDistribution IB proj (τ + SmoothForm.mpullback proj hproj γ) =
+      horizontalDistribution IB proj τ := by
+  refine horizontalDistribution_eq_of_forall fun x η hη v ↦ ?_
+  rw [LinearMap.mem_ker] at hη
+  simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, Submodule.coe_add,
+    Pi.add_apply, ContinuousAlternatingMap.add_apply, SmoothForm.coe_mpullback,
+    mpullback_apply_pair]
+  rw [show mfderiv IM IB proj x η = 0 from hη]
+  exact add_eq_left.2 ((γ.val (proj x)).map_coord_zero 0 rfl)
+
 /-- `τ` pairs a vertical vector with a horizontal one to zero. -/
 theorem val_eq_zero_of_mem_ker_of_mem_horizontalDistribution {x : M} {e h : TangentSpace IM x}
     (he : e ∈ (mfderiv IM IB proj x).ker) (hh : h ∈ horizontalDistribution IB proj τ x) :

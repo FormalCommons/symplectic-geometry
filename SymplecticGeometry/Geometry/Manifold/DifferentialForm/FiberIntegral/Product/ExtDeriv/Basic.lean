@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Flat
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -83,6 +84,15 @@ theorem prodFiberIntegral_mextDeriv {m : ℕ} (o : Manifold.Orientation J F (Fin
     ← SmoothForm.mextDerivₗ_mpullback, prodFiberIntegral_mextDeriv_opens,
     prodFiberIntegral_mpullback_prodMap o hf, SmoothForm.mextDerivₗ_mpullback]
 
+
+/-- **The fibre integral of a closed form is closed**, by `prodFiberIntegral_mextDeriv`. -/
+theorem isClosed_prodFiberIntegral {m : ℕ} (o : Manifold.Orientation J F (Fin m))
+    {α : SmoothForm (I.prod J) (B × F) ℝ (r + m)} (hα : α.IsClosed) :
+    (prodFiberIntegral o α).IsClosed := by
+  have h0 : mextDerivₗ (I.prod J) (r + m) α = 0 :=
+    Subtype.ext ((mextDerivₗ_apply (φ := α) ..).trans ((SmoothForm.isClosed_def α).1 hα))
+  rw [SmoothForm.isClosed_def, ← mextDerivₗ_apply, ← prodFiberIntegral_mextDeriv, h0,
+    map_zero, map_zero, Submodule.coe_zero]
 end SymplecticGeometry
 
 end
