@@ -13,10 +13,10 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 /-!
 # Restricting a smooth homomorphism to embedded Lie subgroups
 
-Let `f : G → G'` be a smooth homomorphism of finite-dimensional real Lie groups, the model of `G'`
-having no boundary, and let `K ≤ G`, `K' ≤ G'` be subgroups with `f` mapping `K` into `K'`, each
-carrying an embedded Lie subgroup structure (`TauCeti.Lie.EmbeddedLieSubgroupData`), for instance
-the one that Cartan's closed-subgroup theorem gives a closed subgroup,
+Let `f : G → G'` be a smooth homomorphism of real Lie groups, `G'` finite-dimensional and its
+model having no boundary, and let `K ≤ G`, `K' ≤ G'` be subgroups with `f` mapping `K` into
+`K'`, each carrying an embedded Lie subgroup structure (`TauCeti.Lie.EmbeddedLieSubgroupData`),
+for instance the one that Cartan's closed-subgroup theorem gives a closed subgroup,
 `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`.
 
 The restriction `K → K'` of `f` is again a smooth homomorphism: its composite with the inclusion
@@ -77,6 +77,7 @@ def restrict (f : ContMDiffMonoidMorphism I I' ∞ G G') (d : EmbeddedLieSubgrou
 
 /-- The underlying homomorphism of `ContMDiffMonoidMorphism.restrict` is the restriction of `f`
 to `K`, with its codomain cut down to `K'`. -/
+@[simp]
 theorem toMonoidHom_restrict (f : ContMDiffMonoidMorphism I I' ∞ G G')
     (d : EmbeddedLieSubgroupData I K F) (d' : EmbeddedLieSubgroupData I' K' F')
     (h : Set.MapsTo f K K') :
@@ -102,16 +103,10 @@ theorem restrict_injective {f : ContMDiffMonoidMorphism I I' ∞ G G'} (hf : Fun
     (h : Set.MapsTo f K K') :
     let _ := d.chartedSpace
     let _ := d'.chartedSpace
-    Function.Injective (f.restrict d d' h) := by
-  let _ := d.chartedSpace
-  let _ := d'.chartedSpace
-  dsimp only
-  intro k l hkl
-  have := congrArg (fun x : K' ↦ (x : G')) hkl
-  simp only [coe_restrict_apply] at this
-  exact Subtype.ext (hf this)
+    Function.Injective (f.restrict d d' h) :=
+  h.restrict_inj.2 hf.injOn
 
-variable [FiniteDimensional ℝ E] [LieGroup I ∞ G] [CompleteSpace F] [CompleteSpace F']
+variable [CompleteSpace E] [LieGroup I ∞ G] [CompleteSpace F] [CompleteSpace F']
 
 /-- **The differentials at `1` of a restriction to embedded Lie subgroups commute with the
 inclusions**: for `ζ` in the Lie algebra of `K`, the differential of the inclusion `K' → G'` at the
