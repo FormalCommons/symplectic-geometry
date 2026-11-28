@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.GluedAlong
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ComplTube
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.Remodel
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.BasepointChange
+import SymplecticGeometry.GroupTheory.Subgroup.NormalClosure
 
 /-!
 # The fundamental group of a fibre sum with a simply connected piece
@@ -47,6 +48,21 @@ carried into the sum by `inl` (`FiberSum.inlEmbedding`,
 `FiberSum.map_normalClosure_basepointChangeSubgroup_range_map`). This is what lets one sum again
 along a second embedding after a first sum.
 
+Summing in this way once along each of finitely many pairwise disjoint framed symplectic tori
+`ι k` in a compact, connected, symplectic four-manifold `X` gives
+`exists_fundamentalGroup_mulEquiv_quotient_tori`: a compact, connected, symplectic `Y` with
+`π₁(Y)` isomorphic to `π₁(X, x)` modulo the normal closure of all the `(ι k)_* π₁(T, t)`, moved to
+`x` along paths. The proof is an induction on the finite index type
+(`Finite.induction_empty_option`). For `Option κ`, a product neighbourhood of `ι none` is taken
+inside the complement of the other tori (`ProductNeighborhood.exists_range_subset`), so that they
+miss its tube and are carried into the sum with their forms and framings
+(`FiberSum.inlEmbedding`, `FiberSum.inlEmbeddingFraming`); the sum is compact
+(`FiberSum.instCompactSpace`), and the induction hypothesis applies to it. The two quotients match
+because the isomorphism of `fibreSum_fundamentalGroupMulEquiv`, after the quotient map, carries
+the normal closure of each remaining torus in `X` onto that of the torus carried into the sum
+(`fibreSum_map_normalClosure_basepointChangeSubgroup_range_map`), and by the third isomorphism
+theorem in the form `QuotientGroup.liftEquiv`.
+
 ## Main results
 
 * `SymplecticGeometry.FiberSum.instPathConnectedSpace`: the fibre sum is path connected.
@@ -64,6 +80,8 @@ along a second embedding after a first sum.
 * `SymplecticGeometry.FiberSum.map_normalClosure_basepointChangeSubgroup_range_map` and
   `SymplecticGeometry.fibreSum_map_normalClosure_basepointChangeSubgroup_range_map`: the case of
   an embedding that misses the tube and the embedding carried to the sum.
+* `SymplecticGeometry.exists_fundamentalGroup_mulEquiv_quotient_tori`: the sum with a copy of the
+  rational elliptic surface along each of finitely many disjoint framed symplectic tori.
 
 ## References
 
@@ -174,7 +192,6 @@ theorem fundamentalGroupMulEquiv_mk (p : Q × annulus ℂ δ ε)
   exact (congrArg (fundamentalGroupMulEquivCollar f₁ f₂ hδ hδε _) (congrArg QuotientGroup.mk
     (MulEquiv.apply_symm_apply _ _))).trans
       (fundamentalGroupMulEquivCollar_mk f₁ f₂ hδ hδε ⟨_, f₁.collarMap_mem_collar hδε p⟩ γ)
-
 
 /-- **Fundamental groups of maps carried to the fibre sum.** Let `φ : W → M₁ ∖ tube` be a
 continuous map into the complement of the closed tube, `k : W → M₁` the map it gives into `M₁`
@@ -359,6 +376,244 @@ theorem fibreSum_map_normalClosure_basepointChangeSubgroup_range_map {EQ' HQ' : 
   FiberSum.map_normalClosure_basepointChangeSubgroup_range_map f₁ f₂ hδ hδε ι' hι' w q' γ η
 
 end RationalEllipticSurface
+
+section Tori
+
+/-! ### Sums along finitely many disjoint tori -/
+
+universe u w
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  (e : (Fin 2 → ℂ) ≃L[ℝ] V) (p : Unit ⊕ Unit → ℝ) [∀ i, Fact (0 < p i)]
+
+open FundamentalGroup in
+/-- The step of the induction in `exists_fundamentalGroup_mulEquiv_quotient_tori`, on fundamental
+groups. Sum `X` with the rational elliptic surface along the torus `ι none`, by product
+neighbourhoods `f₁` and `f₂`, such that the other tori `ι (some k)` miss the closed tube. If a
+group `G` is `π₁` of the sum, at the collar point over `ι none t`, modulo the normal closure of the
+images of the carried tori, then `G` is `π₁(X, x)` modulo the normal closure of the images of all
+the `ι k`. -/
+private theorem nonempty_mulEquiv_quotient_of_fiberSum {κ : Type w} {X : Type u}
+    [TopologicalSpace X] [ChartedSpace V X] [IsManifold 𝓘(ℝ, V) ∞ X] [T2Space X]
+    [ConnectedSpace X] {σ : SmoothTwoForm 𝓘(ℝ, V) X} {hσ : σ.IsNondegenerate}
+    (ι : Option κ → SmoothEmbedding (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) 𝓘(ℝ, V) ∞
+      (∀ i, AddCircle (p i)) X)
+    {hι : hσ.HasSymplecticTangentImages (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
+      (ι none)}
+    {hP : finrank ℝ ℂ = finrank ℝ V - finrank ℝ (Unit ⊕ Unit → ℝ)}
+    {Φ : SymplecticFraming hι hP} {ε δ : ℝ} (f₁ : ProductNeighborhood Φ ε)
+    (f₂ : ProductNeighborhood (rationalEllipticSurface.OnModel.torusFraming.{_, u} e p) ε)
+    (hδ : 0 ≤ δ) (hδε : δ < ε) (hmem : ∀ k q, ι (some k) q ∈ f₁.complTube hδε)
+    (t : ∀ i, AddCircle (p i)) (z₀ : annulus ℂ δ ε) (x : X) (ψ : ∀ k, Path (ι k t) x)
+    {G : Type*} [Group G]
+    (θ : G ≃* FundamentalGroup (FiberSum f₁ f₂ hδ hδε)
+        (GluedAlong.inlContinuousMap _ (f₁.collarMap hδε (t, z₀))) ⧸
+      Subgroup.normalClosure (⋃ k, (basepointChangeSubgroup (PathConnectedSpace.somePath _
+        (GluedAlong.inlContinuousMap _ (f₁.collarMap hδε (t, z₀))))
+        (map (FiberSum.inlEmbedding f₂ hδ (ι (some k)) (hmem k)).toContinuousMap t).range :
+          Set (FundamentalGroup (FiberSum f₁ f₂ hδ hδε)
+            (GluedAlong.inlContinuousMap _ (f₁.collarMap hδε (t, z₀))))))) :
+    Nonempty (G ≃* FundamentalGroup X x ⧸ Subgroup.normalClosure
+      (⋃ k, (basepointChangeSubgroup (ψ k) (map (ι k).toContinuousMap t).range :
+        Set (FundamentalGroup X x)))) := by
+  -- `φ`: the quotient map at `ι none t` followed by the isomorphism onto `π₁` of the sum
+  let Ψ := fibreSum_fundamentalGroupMulEquiv e p f₁ f₂ hδ hδε (t, z₀)
+  let φ := Ψ.toMonoidHom.comp (QuotientGroup.mk' _)
+  let c := GluedAlong.inlContinuousMap (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
+    (f₁.collarMap hδε (t, z₀))
+  -- the subgroup `K₀` at `ι none t` that corresponds to the one at `x`
+  let ρ := ψ none
+  let R : ∀ k, Subgroup (FundamentalGroup X (ι k t)) := fun k ↦
+    (FundamentalGroup.map (ι k).toContinuousMap t).range
+  let χ : ∀ k, Path (ι k t) (ι none t) := fun k ↦ (ψ k).trans ρ.symm
+  let K₀ := Subgroup.normalClosure (⋃ k, (basepointChangeSubgroup (χ k) (R k) :
+    Set (FundamentalGroup X (ι none t))))
+  have hA : K₀.map (fundamentalGroupMulEquivOfPath ρ).toMonoidHom = Subgroup.normalClosure
+      (⋃ k, (basepointChangeSubgroup (ψ k) (R k) : Set (FundamentalGroup X x))) := by
+    rw [Subgroup.map_normalClosure _ _ (MulEquiv.surjective _), image_iUnion]
+    refine Subgroup.normalClosure_iUnion_congr fun k ↦ ?_
+    rw [← Subgroup.coe_map, ← basepointChangeSubgroup_eq_map, ← basepointChangeSubgroup_trans]
+    exact normalClosure_basepointChangeSubgroup_eq _ _ _
+  have hN₀ : Subgroup.normalClosure (basepointChangeSubgroup (χ none) (R none) :
+      Set (FundamentalGroup X (ι none t))) =
+        Subgroup.normalClosure (range (map (ι none).toContinuousMap t)) := by
+    rw [normalClosure_basepointChangeSubgroup_eq (χ none) (Path.refl _),
+      basepointChangeSubgroup_eq_map, fundamentalGroupMulEquivOfPath_refl]
+    simp [R]
+  have hφN₀ : (Subgroup.normalClosure (range (map (ι none).toContinuousMap t))).map φ = ⊥ :=
+    (Subgroup.map_eq_bot_iff _).2 fun g hg ↦ by
+      simpa [φ] using hg
+  have hker : φ.ker ≤ K₀ := fun g hg ↦ by
+    refine (hN₀ ▸ Subgroup.normalClosure_mono (subset_iUnion (fun k ↦
+      (basepointChangeSubgroup (χ k) (R k) : Set (FundamentalGroup X (ι none t)))) none) :
+        Subgroup.normalClosure (range (map (ι none).toContinuousMap t)) ≤ K₀) ?_
+    exact (QuotientGroup.eq_one_iff g).1 (Ψ.map_eq_one_iff.1 hg)
+  have hφs : Function.Surjective φ := Ψ.surjective.comp (QuotientGroup.mk'_surjective _)
+  let L := Subgroup.normalClosure (⋃ k, (basepointChangeSubgroup (PathConnectedSpace.somePath _ c)
+    (map (FiberSum.inlEmbedding f₂ hδ (ι (some k)) (hmem k)).toContinuousMap t).range :
+      Set (FundamentalGroup _ c)))
+  -- `φ` carries `K₀` onto the subgroup of the sum that the induction hypothesis kills
+  have hC : K₀.map φ = L := by
+    rw [Subgroup.map_normalClosure _ _ hφs, iUnion_option, image_union,
+      Subgroup.normalClosure_union, ← Subgroup.map_normalClosure _ _ hφs, hN₀, hφN₀, bot_sup_eq,
+      image_iUnion]
+    refine Subgroup.normalClosure_iUnion_congr fun k ↦ ?_
+    rw [← Subgroup.map_normalClosure _ _ hφs]
+    exact fibreSum_map_normalClosure_basepointChangeSubgroup_range_map e p f₁ f₂ hδ hδε
+      (ι (some k)) (hmem k) (t, z₀) t (χ (some k)) _
+  have hK : K₀ = ((QuotientGroup.mk' L).comp φ).ker := by
+    rw [← MonoidHom.comap_ker, QuotientGroup.ker_mk']
+    exact (Subgroup.comap_map_eq_self hker).symm.trans (congrArg (Subgroup.comap φ) hC)
+  exact ⟨θ.trans ((QuotientGroup.liftEquiv K₀ (φ := (QuotientGroup.mk' L).comp φ)
+    ((QuotientGroup.mk'_surjective L).comp hφs) hK).symm.trans
+    (QuotientGroup.congr K₀ (Subgroup.normalClosure
+      (⋃ k, (basepointChangeSubgroup (ψ k) (R k) : Set (FundamentalGroup X x))))
+      (fundamentalGroupMulEquivOfPath ρ) hA))⟩
+
+/-- The conclusion of `exists_fundamentalGroup_mulEquiv_quotient_tori` for the tori indexed by
+`κ`, for every compact symplectic `X` on the model `V` in `Type u`; its proof is an induction on
+`κ`. -/
+private def SumsAlongTori (κ : Type w) : Prop :=
+  ∀ (X : Type u) [TopologicalSpace X] [ChartedSpace V X] [IsManifold 𝓘(ℝ, V) ∞ X] [T2Space X]
+    [CompactSpace X] [ConnectedSpace X] {σ : SmoothTwoForm 𝓘(ℝ, V) X} (hσ : σ.IsSymplectic)
+    (ι : κ → SmoothEmbedding (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) 𝓘(ℝ, V) ∞
+      (∀ i, AddCircle (p i)) X)
+    (hι : ∀ k, hσ.isNondegenerate.HasSymplecticTangentImages
+      (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (ι k)),
+    (∀ k, SmoothForm.mpullback (ι k) (ι k).contMDiff σ = torusSymplecticForm p) →
+    ∀ {hP : finrank ℝ ℂ = finrank ℝ V - finrank ℝ (Unit ⊕ Unit → ℝ)},
+    (∀ k, SymplecticFraming (hι k) hP) →
+    (Pairwise fun k l ↦ Disjoint (range (ι k)) (range (ι l))) →
+    ∃ (Y : Type u) (_ : TopologicalSpace Y) (_ : ChartedSpace V Y)
+      (_ : IsManifold 𝓘(ℝ, V) ∞ Y), T2Space Y ∧ CompactSpace Y ∧ ConnectedSpace Y ∧
+      (∃ τ : SmoothTwoForm 𝓘(ℝ, V) Y, τ.IsSymplectic) ∧
+      ∀ (t : ∀ i, AddCircle (p i)) (x : X) (y : Y) (ψ : ∀ k, Path (ι k t) x),
+        Nonempty (FundamentalGroup Y y ≃* FundamentalGroup X x ⧸ Subgroup.normalClosure
+          (⋃ k, (FundamentalGroup.basepointChangeSubgroup (ψ k)
+            (FundamentalGroup.map (ι k).toContinuousMap t).range :
+              Set (FundamentalGroup X x))))
+
+private theorem sumsAlongTori_of_equiv {α β : Type w} (eqv : α ≃ β)
+    (h : SumsAlongTori.{u} p α (V := V)) : SumsAlongTori.{u} p β (V := V) := by
+  unfold SumsAlongTori at *
+  intro X _ _ _ _ _ _ σ hσ ι hι hισ hP Φ hdisj
+  obtain ⟨Y, _, _, _, h₁, h₂, h₃, h₄, hY⟩ := h X hσ (ι ∘ eqv) (fun k ↦ hι (eqv k))
+    (fun k ↦ hισ (eqv k)) (fun k ↦ Φ (eqv k)) (hdisj.comp_of_injective eqv.injective)
+  refine ⟨Y, _, _, _, h₁, h₂, h₃, h₄, fun t x y ψ ↦ ?_⟩
+  obtain ⟨φ⟩ := hY t x y (fun k ↦ ψ (eqv k))
+  refine ⟨φ.trans (QuotientGroup.quotientMulEquivOfEq (congrArg Subgroup.normalClosure ?_))⟩
+  exact eqv.iSup_comp (g := fun k ↦ (FundamentalGroup.basepointChangeSubgroup (ψ k)
+    (FundamentalGroup.map (ι k).toContinuousMap t).range : Set (FundamentalGroup X x)))
+
+private theorem sumsAlongTori_empty : SumsAlongTori.{u} p PEmpty.{w + 1} (V := V) := by
+  unfold SumsAlongTori at *
+  intro X _ _ _ _ _ _ σ hσ ι _ _ _ _ _
+  have := ChartedSpace.locallyPathConnectedSpace V X
+  have : PathConnectedSpace X := pathConnectedSpace_iff_connectedSpace.2 inferInstance
+  refine ⟨X, _, _, _, inferInstance, inferInstance, inferInstance, ⟨σ, hσ⟩, fun t x y ψ ↦ ?_⟩
+  refine ⟨(FundamentalGroup.fundamentalGroupMulEquivOfPath (PathConnectedSpace.somePath y x)).trans
+    ((QuotientGroup.quotientBot).symm.trans (QuotientGroup.quotientMulEquivOfEq ?_))⟩
+  simp
+
+include e in
+open FundamentalGroup in
+private theorem sumsAlongTori_option {κ : Type w} [Finite κ] (h : SumsAlongTori.{u} p κ (V := V)) :
+    SumsAlongTori.{u} p (Option κ) (V := V) := by
+  unfold SumsAlongTori at *
+  intro X _ _ _ _ _ _ σ hσ ι hι hισ hP Φ hdisj
+  have := ChartedSpace.locallyPathConnectedSpace V X
+  have : PathConnectedSpace X := pathConnectedSpace_iff_connectedSpace.2 inferInstance
+  -- product neighbourhoods of `ι none` inside the complement `U` of the other tori, and of the
+  -- fibre torus of the rational elliptic surface, of one radius `ε`
+  let U : Set X := (⋃ k, range (ι (some k)))ᶜ
+  have hU : IsOpen U := (isClosed_iUnion_of_finite fun k ↦
+    (isCompact_range (ι (some k)).contMDiff.continuous).isClosed).isOpen_compl
+  have hιU : range (ι none) ⊆ U := fun x hx ↦ by
+    simp only [U, mem_compl_iff, mem_iUnion, not_exists]
+    exact fun k hk ↦ (hdisj (Option.some_ne_none k).symm).ne_of_mem hx hk rfl
+  obtain ⟨ε₁, hε₁, hf₁⟩ := ProductNeighborhood.exists_range_subset hσ (Φ none) hU hιU
+  obtain ⟨ε₂, hε₂, hf₂⟩ := ProductNeighborhood.exists
+    (rationalEllipticSurface.OnModel.isSymplectic_symplecticForm.{_, u} e p)
+    (rationalEllipticSurface.OnModel.torusFraming.{_, u} e p)
+  let ε := min ε₁ ε₂
+  have hε : 0 < ε := lt_min hε₁ hε₂
+  obtain ⟨f₁, hf₁U⟩ := hf₁ ε (min_le_left _ _)
+  obtain ⟨f₂⟩ := hf₂ ε (min_le_right _ _)
+  have hδ : (0 : ℝ) ≤ ε / 2 := by positivity
+  have hδε : ε / 2 < ε := half_lt_self hε
+  have hσ₁₂ : SmoothForm.mpullback (ι none) (ι none).contMDiff σ =
+      SmoothForm.mpullback _ (rationalEllipticSurface.OnModel.torusEmbedding.{_, u} e p).contMDiff
+        (rationalEllipticSurface.OnModel.symplecticForm e p) :=
+    (hισ none).trans
+      (rationalEllipticSurface.OnModel.mpullback_torusEmbedding_symplecticForm e p).symm
+  -- the sum `Y₁` of `X` with `E(1)` along `ι none`, and the other tori carried into it
+  have hω := FiberSum.isSymplectic_symplecticForm (f₁ := f₁) (f₂ := f₂) (hδ := hδ)
+    (hδε := hδε) hσ₁₂ hσ (rationalEllipticSurface.OnModel.isSymplectic_symplecticForm e p)
+  have hmem (k : κ) (q : ∀ i, AddCircle (p i)) : ι (some k) q ∈ f₁.complTube hδε :=
+    f₁.mem_complTube.2 fun hq ↦
+      hf₁U (image_subset_range _ _ hq) (mem_iUnion.2 ⟨k, mem_range_self q⟩)
+  let ι' := fun k ↦ FiberSum.inlEmbedding f₂ hδ (ι (some k)) (hmem k)
+  have hι' (k : κ) : hω.isNondegenerate.HasSymplecticTangentImages
+      (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (ι' k) :=
+    (FiberSum.hasSymplecticTangentImages_inlEmbedding_iff (ι (some k)) (hmem k)
+      hω.isNondegenerate).2 (hι (some k))
+  have hισ' (k : κ) : SmoothForm.mpullback (ι' k) (ι' k).contMDiff
+      (FiberSum.symplecticForm f₁ f₂ hδ hδε hσ₁₂) = torusSymplecticForm p :=
+    (FiberSum.mpullback_inlEmbedding_symplecticForm (ι (some k)) (hmem k) hσ₁₂).trans
+      (hισ (some k))
+  have hdisj' : Pairwise fun k l ↦ Disjoint (range (ι' k)) (range (ι' l)) := fun k l hkl ↦ by
+    refine disjoint_left.2 ?_
+    rintro _ ⟨a, rfl⟩ ⟨b, hb⟩
+    simp only [ι', FiberSum.inlEmbedding_apply] at hb
+    exact disjoint_left.1 (hdisj ((Option.some_injective _).ne hkl)) ⟨a, rfl⟩
+      ⟨b, congrArg Subtype.val ((GluedAlong.isOpenEmbedding_inl _).injective hb)⟩
+  obtain ⟨Y, _, _, _, h₁, h₂, h₃, hτ, hY⟩ := h (FiberSum f₁ f₂ hδ hδε) hω ι' hι' hισ'
+    (fun k ↦ FiberSum.inlEmbeddingFraming hω.isNondegenerate (Φ (some k))) hdisj'
+  refine ⟨Y, _, _, _, h₁, h₂, h₃, hτ, fun t x y ψ ↦ ?_⟩
+  -- the base point of the sum, on the collar over `ι none t`
+  let z₀ : annulus ℂ (ε / 2) ε := ⟨((3 * ε / 4 : ℝ) : ℂ), mem_annulus.2 (by
+    rw [Complex.norm_real, Real.norm_of_nonneg (by positivity)]; constructor <;> linarith)⟩
+  obtain ⟨θ⟩ := hY t (GluedAlong.inlContinuousMap _ (f₁.collarMap hδε (t, z₀))) y
+    fun k ↦ PathConnectedSpace.somePath _ _
+  exact nonempty_mulEquiv_quotient_of_fiberSum e p ι f₁ f₂ hδ hδε hmem t z₀ x ψ θ
+
+include e in
+/-- **Summing with the rational elliptic surface along finitely many disjoint tori.** Let `X` be
+a compact, connected, Hausdorff manifold modelled on a real space `V` isomorphic to `ℂ²`, with a
+symplectic form `σ`, and let `ι k`, for `k` in a finite type `κ`, be pairwise disjoint embeddings
+of the standard torus `T = ∀ i, AddCircle (p i)` with symplectic tangent images, which pull `σ`
+back to `TauCeti.torusSymplecticForm p`, with symplectic framings. Then there is a compact,
+connected, Hausdorff manifold `Y` on the same model and in the same universe as `X`, with a
+symplectic form, such that for all points `x` of `X` and `y` of `Y`, a point `t` of `T` and paths
+`ψ k` from `ι k t` to `x`, `π₁(Y, y)` is isomorphic to `π₁(X, x)` modulo the normal closure of the
+images of the `(ι k)_* π₁(T, t)`, each moved to `x` along `ψ k`.
+
+`Y` is the sum of `X` with a separate copy of the rational elliptic surface along each `ι k`
+(`fibreSum_fundamentalGroupMulEquiv`). -/
+theorem exists_fundamentalGroup_mulEquiv_quotient_tori (κ : Type w) [Finite κ]
+    {X : Type u} [TopologicalSpace X] [ChartedSpace V X] [IsManifold 𝓘(ℝ, V) ∞ X] [T2Space X]
+    [CompactSpace X] [ConnectedSpace X] {σ : SmoothTwoForm 𝓘(ℝ, V) X} (hσ : σ.IsSymplectic)
+    (ι : κ → SmoothEmbedding (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) 𝓘(ℝ, V) ∞
+      (∀ i, AddCircle (p i)) X)
+    (hι : ∀ k, hσ.isNondegenerate.HasSymplecticTangentImages
+      (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (ι k))
+    (hισ : ∀ k, SmoothForm.mpullback (ι k) (ι k).contMDiff σ = torusSymplecticForm p)
+    {hP : finrank ℝ ℂ = finrank ℝ V - finrank ℝ (Unit ⊕ Unit → ℝ)}
+    (Φ : ∀ k, SymplecticFraming (hι k) hP)
+    (hdisj : Pairwise fun k l ↦ Disjoint (range (ι k)) (range (ι l))) :
+    ∃ (Y : Type u) (_ : TopologicalSpace Y) (_ : ChartedSpace V Y)
+      (_ : IsManifold 𝓘(ℝ, V) ∞ Y), T2Space Y ∧ CompactSpace Y ∧ ConnectedSpace Y ∧
+      (∃ τ : SmoothTwoForm 𝓘(ℝ, V) Y, τ.IsSymplectic) ∧
+      ∀ (t : ∀ i, AddCircle (p i)) (x : X) (y : Y) (ψ : ∀ k, Path (ι k t) x),
+        Nonempty (FundamentalGroup Y y ≃* FundamentalGroup X x ⧸ Subgroup.normalClosure
+          (⋃ k, (FundamentalGroup.basepointChangeSubgroup (ψ k)
+            (FundamentalGroup.map (ι k).toContinuousMap t).range :
+              Set (FundamentalGroup X x)))) :=
+  Finite.induction_empty_option (P := SumsAlongTori.{u} p (V := V))
+    (fun eqv h ↦ sumsAlongTori_of_equiv p eqv h) (sumsAlongTori_empty p)
+    (fun h ↦ sumsAlongTori_option e p h) κ X hσ ι hι hισ Φ hdisj
+
+end Tori
 
 end SymplecticGeometry
 
