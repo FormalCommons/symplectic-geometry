@@ -14,6 +14,8 @@ public import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Algebra.Category.ModuleCat.Injective
 import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
+import TauCeti.AlgebraicTopology.Cohomology.Point
+import TauCeti.LinearAlgebra.Projectivization.Basic
 
 /-!
 # Linear embeddings of complex projective spaces on real second cohomology
@@ -27,6 +29,8 @@ says that restricting to a projective line is injective on `H²(ℙ ℂ W; ℝ)`
 
 * `Projectivization.injective_singularCohomologyMap_map_real`: `g^*` is injective on
   `H²(-; ℝ)`, the cohomology of real chains with real values.
+* `Projectivization.isZero_singularCohomology_of_finrank_eq_one`: for `finrank K E = 1`, the
+  point `ℙ K E` has no singular cohomology in positive degrees, for any coefficients.
 
 ## Proof
 
@@ -46,7 +50,9 @@ public section
 
 noncomputable section
 
-open CategoryTheory AlgebraicTopology Module
+universe w v u
+
+open CategoryTheory Limits AlgebraicTopology Module
 open scoped LinearAlgebra.Projectivization MonoidalCategory
 
 namespace Projectivization
@@ -64,5 +70,19 @@ theorem injective_singularCohomologyMap_map_real (f : V →ₗ[ℂ] W) (hf : Fun
       (M := ModuleCat.of ℝ ℝ) (TopCat.ofHom (mapContinuousMap f hf)) 2) :=
   TopCat.injective_singularCohomologyMap_of_surjective ℝ _ 2
     (bijective_singularHomologyMap_map_two f hf hV hn).2
+
+/-- For a one-dimensional vector space `E` over a division ring `K`, the projective space `ℙ K E`
+is a point, so its singular cohomology, with any coefficients, vanishes in every positive
+degree. -/
+theorem isZero_singularCohomology_of_finrank_eq_one {C : Type u} [Category.{v} C]
+    [HasCoproducts.{w} C] [Abelian C] (R : C) (k : Type*) [Ring k] [Linear k C] (M : C)
+    {K : Type*} {E : Type w} [DivisionRing K] [AddCommGroup E] [TopologicalSpace E] [Module K E]
+    (hE : finrank K E = 1) (hn : n ≠ 0) :
+    IsZero ((TopCat.of (ℙ K E)).singularCohomology R k M n) := by
+  have : Nontrivial E := Module.nontrivial_of_finrank_eq_succ hE
+  have : Module.Finite K E := Module.finite_of_finrank_eq_succ hE
+  have : Subsingleton (ℙ K E) :=
+    subsingleton_of_rank_le_one (by rw [← Module.finrank_eq_rank, hE]; simp)
+  exact TauCeti.isZero_singularCohomology_of_contractibleSpace R k M (TopCat.of (ℙ K E)) hn
 
 end Projectivization

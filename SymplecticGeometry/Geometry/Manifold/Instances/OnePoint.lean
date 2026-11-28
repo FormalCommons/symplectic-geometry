@@ -14,10 +14,12 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+import SymplecticGeometry.Geometry.Manifold.Algebra.Inv
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Analysis.InnerProductSpace.Euclidean.CoordinateHyperplane
+import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
@@ -42,6 +44,8 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   `OnePoint.equivProjectivization_symm_mk_eq_invChart_symm`: the point `[a : b]` is `a / b` when
   `b ≠ 0`, and the inverse of Tau Ceti's inverted chart `OnePoint.invChart` at `b / a` when
   `a ≠ 0`;
+* `OnePoint.contMDiff_equivProjectivization_symm_mk`: for `C^n` complex functions `f` and `g` on
+  a real manifold without common zero, `y ↦ [f y : g y]` is a `C^n` map to the sphere;
 * `OnePoint.ofTopForm_fubiniStudyForm`: the orientation of Tau Ceti's `OnePoint.fubiniStudyForm`
   is the canonical orientation `SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ)` of the
   Riemann sphere as a complex manifold;
@@ -132,6 +136,29 @@ theorem equivProjectivization_symm_mk_eq_invChart_symm {K : Type*} [Nontrivially
   by_cases hb : b = 0
   · simp [hb]
   · simp [ha, hb, div_eq_inv_mul]
+
+/-- For `C^n` complex functions `f` and `g` on a real manifold, without common zero, the map
+`y ↦ [f y : g y]` to the Riemann sphere, read through `OnePoint.equivProjectivization`, is
+`C^n`. -/
+theorem contMDiff_equivProjectivization_symm_mk {E H M : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
+    [ChartedSpace H M] {n : ℕ∞ω} {f g : M → ℂ} (hf : ContMDiff I 𝓘(ℝ, ℂ) n f)
+    (hg : ContMDiff I 𝓘(ℝ, ℂ) n g) (h : ∀ y, ![f y, g y] ≠ 0) :
+    ContMDiff I 𝓘(ℝ, ℂ) n
+      (fun y ↦ (equivProjectivization ℂ).symm (Projectivization.mk ℂ ![f y, g y] (h y))) := by
+  intro x
+  by_cases hx : g x = 0
+  · -- Near `x`, where `f` does not vanish, the map reads through the inverted chart.
+    have hfx : f x ≠ 0 := fun h' ↦ h x (by simp [h', hx])
+    refine (contMDiff_invChart_symm_real.contMDiffAt.comp x
+      ((hg x).div₀ (hf x) hfx)).congr_of_eventuallyEq ?_
+    filter_upwards [(hf x).continuousAt.eventually_ne hfx] with y hy
+    exact equivProjectivization_symm_mk_eq_invChart_symm (h y) hy
+  · -- Near `x`, where `g` does not vanish, the map reads through the inclusion of `ℂ`.
+    refine (contMDiff_coe_real.contMDiffAt.comp x
+      ((hf x).div₀ (hg x) hx)).congr_of_eventuallyEq ?_
+    filter_upwards [(hg x).continuousAt.eventually_ne hx] with y hy
+    exact equivProjectivization_symm_mk_of_ne_zero (h y) hy
 
 /-! ### Orientations -/
 

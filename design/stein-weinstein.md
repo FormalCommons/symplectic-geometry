@@ -175,7 +175,7 @@ fit Tau Ceti's without a change of sign.
 | File | Contents | Issues |
 |---|---|---|
 | `Geometry/Manifold/Morse/GradientLike.lean` | gradient-like fields and their API | 1 |
-| `Geometry/Manifold/Morse/BirthDeath.lean` | birth–death charts, generalized Morse functions | 2 |
+| `Geometry/Manifold/Morse/BirthDeath/Basic.lean` | birth–death charts, generalized Morse functions | 2 |
 | `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean` (existing) | $\lambda_f$ and $\omega_f$ under composition, and $\omega_f$ as $2\,i\partial\bar\partial f$ | 3 |
 | `Geometry/Manifold/Complex/Plurisubharmonic.lean` | Stein functions, positivity | 4 |
 | `Geometry/Symplectic/Weinstein/Basic.lean` | Weinstein structures and domains | 5 |
@@ -218,7 +218,7 @@ for a boundaryless `M` over `𝓘(ℝ, E)` with `E` finite-dimensional:
 
 Expected size: 300 lines.
 
-### `Geometry/Manifold/Morse/BirthDeath.lean`
+### `Geometry/Manifold/Morse/BirthDeath/Basic.lean`
 
 In `TauCeti`, beside Tau Ceti's `Morse/Lemma.lean`:
 
@@ -2813,7 +2813,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Gradient-like vector fields | `Morse/GradientLike.lean` | — | 300 |
-| 2 | Birth–death points and generalized Morse functions | `Morse/BirthDeath.lean` | — | 350 |
+| 2 | Birth–death points and generalized Morse functions | `Morse/BirthDeath/Basic.lean` | — | 350 |
 | 3 | The primitive $-df\circ J$ and the form $\omega_f$ | `Dolbeault/Potential.lean` | — | 300 |
 | 4 | Stein functions, positivity and the Kähler form | `Complex/Plurisubharmonic.lean` | 3 | 350 |
 | 5 | Weinstein structures and domains | `Weinstein/Basic.lean` | 1, 2 | 450 |

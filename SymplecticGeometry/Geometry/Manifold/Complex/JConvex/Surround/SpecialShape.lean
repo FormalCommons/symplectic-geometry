@@ -268,9 +268,10 @@ theorem tendsto_deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
   rw [deriv_struweShape hδ hK c hu, one_div]
   rfl
 
-/-- Struwe's shape is smooth on `(δ, ∞)`. -/
-theorem contDiffOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
-    ContDiffOn ℝ ∞ (struweShape δ K c) (Ioi δ) := by
+/-- Struwe's shape is `Cⁿ` on `(δ, ∞)`, for every `n`. -/
+theorem contDiffOn_struweShape {n : ℕ∞} (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    ContDiffOn ℝ n (struweShape δ K c) (Ioi δ) := by
+  refine ContDiffOn.of_le (n := ∞) ?_ (by exact_mod_cast le_top)
   have hL : ∀ u ∈ Ioi δ, 0 < log (u / δ) := fun u hu ↦ log_pos ((one_lt_div hδ).2 hu)
   refine (contDiffOn_infty_iff_deriv_of_isOpen isOpen_Ioi).2
     ⟨fun r hr ↦ (hasDerivAt_struweShape hδ hK c hr).differentiableAt.differentiableWithinAt, ?_⟩
