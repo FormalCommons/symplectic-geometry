@@ -61,7 +61,9 @@ Tau Ceti's stationary-time gluing `ContMDiff.glue_collaredHalves`, of maps on `M
 holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`). The concatenation of two
 families `a b : [0, 1] → α` with these time maps is `SymplecticGeometry.collaredConcat a b`; it
 starts where `a` starts and ends where `b` ends (`collaredConcat_zero`, `collaredConcat_one`), and
-it is `C^n` when `a` and `b` are and meet at the seam (`ContMDiff.collaredConcat`).
+it is `C^n` when `a` and `b` are and meet at the seam (`ContMDiff.collaredConcat`). Two such
+concatenations give a smooth path in the square `[0, 1] × [0, 1]` from `(0, 0)` to `(1, 0)` that
+stays on the three other sides (`unitInterval.exists_contMDiff_path_sq_boundary`).
 
 The infinite concatenation `SymplecticGeometry.infiniteConcat a e` of families
 `a k : [0, 1] → α`, `k : ℕ`, runs through `a k` on the times `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹]`,
@@ -403,6 +405,33 @@ theorem ContMDiff.collaredConcat {a b : unitInterval → N} (ha : ContMDiff (�
     (hb.comp contMDiff_fst) (fun _ ↦ hab) hn).comp (contMDiff_id.prodMk contMDiff_const :
       ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) n
         fun t : unitInterval ↦ (t, (0 : unitInterval)))
+
+namespace unitInterval
+
+open SymplecticGeometry
+
+/-- A smooth path in the square `[0, 1] × [0, 1]` from `(0, 0)` to `(1, 0)` that runs along the
+three other sides: each of its points lies on `{0} × [0, 1]`, on `{1} × [0, 1]` or on
+`[0, 1] × {1}`. -/
+theorem exists_contMDiff_path_sq_boundary :
+    ∃ γ : unitInterval → unitInterval × unitInterval,
+      ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) ∞ γ ∧ γ 0 = (0, 0) ∧ γ 1 = (1, 0) ∧
+      ∀ t, (γ t).1 = 0 ∨ (γ t).1 = 1 ∨ (γ t).2 = 1 := by
+  -- Up the side `{0} × [0, 1]`, along the top, and down the side `{1} × [0, 1]`.
+  let a : unitInterval → unitInterval × unitInterval := fun u ↦ (0, u)
+  let b : unitInterval → unitInterval × unitInterval := fun u ↦ (u, 1)
+  let c : unitInterval → unitInterval × unitInterval := fun u ↦ (1, symm u)
+  have ha : ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) ∞ a := contMDiff_const.prodMk contMDiff_id
+  have hb : ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) ∞ b := contMDiff_id.prodMk contMDiff_const
+  have hc : ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) ∞ c :=
+    contMDiff_const.prodMk contMDiff_symm
+  refine ⟨collaredConcat a (collaredConcat b c),
+    ha.collaredConcat (hb.collaredConcat hc (by simp [b, c]) le_rfl) (by simp [a, b]) le_rfl,
+    by simp [a], by simp [c], fun t ↦ ?_⟩
+  rw [collaredConcat_def, collaredConcat_def]
+  split_ifs <;> simp [a, b, c]
+
+end unitInterval
 
 end Glue
 
