@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Model
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+import SymplecticGeometry.Geometry.Symplectic.Complex.ImInner
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Analysis.InnerProductSpace.Adjoint
 import TauCeti.Geometry.Manifold.VectorField.Regularity
@@ -45,8 +46,8 @@ linearization near a compact subset of the core, and the gradient-like property,
 * `SymplecticGeometry.isotropicLiftField_apply_of_mem_range_modelDisc`: on the core the lift is
   tangent to the core and equals `Y` there, `Ŷ (ι₀ x) = ι₀ (Y x)`, so its zeros on the core are
   those of `Y` (`SymplecticGeometry.isotropicLiftField_modelDisc_eq_zero_iff`).
-* `SymplecticGeometry.isotropicLiftField_neg`: for `Y = -id` the lift is the standard handle
-  field `SymplecticGeometry.modelHandleField k m`.
+* `SymplecticGeometry.isotropicLiftField_neg_id_eq_modelHandleField`: for `Y = -id` the lift is
+  the standard handle field `SymplecticGeometry.modelHandleField k m`.
 
 In the book the lift is `p ∂_p + z ∂_z / 2 + X_H` on `T^*ℝᵏ × ℂᵐ`, with `H = ⟨p, Y(q)⟩`. Tau
 Ceti's `TauCeti.cotangentLiouvilleField` and Hamiltonian fields live on cotangent models whose
@@ -66,21 +67,6 @@ public section
 
 open Complex Set
 open scoped Manifold ContDiff InnerProductSpace
-
-namespace TauCeti
-
-/-- The form `Im ⟪·, ·⟫_ℂ` of `ℂⁿ` in the real coordinates `z = x + i y` of
-`TauCeti.complexEuclideanEquivRealProd`: `ω (x₁ + i y₁, x₂ + i y₂) = ⟪x₁, y₂⟫ - ⟪y₁, x₂⟫`. -/
-theorem imInnerSymplecticForm_apply_eq_inner_complexEuclideanEquivRealProd {ι : Type*}
-    [Fintype ι] (z z' : EuclideanSpace ℂ ι) :
-    imInnerSymplecticForm (EuclideanSpace ℂ ι) z z' =
-      ⟪(complexEuclideanEquivRealProd ι z).1, (complexEuclideanEquivRealProd ι z').2⟫_ℝ -
-        ⟪(complexEuclideanEquivRealProd ι z).2, (complexEuclideanEquivRealProd ι z').1⟫_ℝ := by
-  simpa using SymplecticForm.isSymplectomorphism_iff.1
-    (isSymplectomorphism_complexEuclideanEquivRealProd_symm (ι := ι))
-    (complexEuclideanEquivRealProd ι z) (complexEuclideanEquivRealProd ι z')
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -156,12 +142,14 @@ theorem contMDiff_isotropicLiftField {Y : EuclideanSpace ℝ (Fin k) → Euclide
     ((hY.of_le le_self_add).comp hx) (hy.sub ((hDY.comp hx).clm_adjoint.clm_apply hy))))
     (contDiff_snd.const_smul _)
 
-/-- **The derivative of the Liouville lift.** For `Y` of class `C²`, at `p = (x + i y, w)` the
-derivative of the lift sends `u = (ξ + i η, ζ)` to
+/-- **The derivative of the Liouville lift.** At `p = (x + i y, w)`, for `Y` of class `C²` at
+`x`, the derivative of the lift sends `u = (ξ + i η, ζ)` to
 `(DY(x) ξ + i (η - (D²Y(x) ξ)ᵀ y - DY(x)ᵀ η), ζ / 2)`. -/
 theorem fderiv_isotropicLiftField_apply
-    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} (hY : ContDiff ℝ 2 Y)
-    (p u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)}
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+    (hY : ContDiffAt ℝ 2 Y (complexEuclideanEquivRealProd (Fin k) p.1).1)
+    (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     fderiv ℝ (isotropicLiftField m Y) p u =
       ((complexEuclideanEquivRealProd (Fin k)).symm
           (fderiv ℝ Y (complexEuclideanEquivRealProd (Fin k) p.1).1
@@ -181,9 +169,9 @@ theorem fderiv_isotropicLiftField_apply
     (ContinuousLinearMap.snd ℝ _ _) ∘L e.toContinuousLinearMap ∘L
       (ContinuousLinearMap.fst ℝ _ _)
   have hY₁ : HasFDerivAt Y (fderiv ℝ Y (Lx p)) (Lx p) :=
-    (hY.differentiable (by norm_num) _).hasFDerivAt
+    (hY.differentiableAt (by norm_num)).hasFDerivAt
   have hB : HasFDerivAt (fderiv ℝ Y) (fderiv ℝ (fderiv ℝ Y) (Lx p)) (Lx p) :=
-    ((hY.fderiv_right (m := 1) (by norm_num)).differentiable (by norm_num) _).hasFDerivAt
+    ((hY.fderiv_right (m := 1) (by norm_num)).differentiableAt (by norm_num)).hasFDerivAt
   have h : HasFDerivAt (fun p ↦ (e.symm (Y (Lx p), Ly p - (fderiv ℝ Y (Lx p)).adjoint (Ly p)),
       (2⁻¹ : ℝ) • p.2)) _ p := (e.symm.hasFDerivAt.comp p ((hY₁.comp p Lx.hasFDerivAt).prodMk
     (Ly.hasFDerivAt.sub ((hB.comp p Lx.hasFDerivAt).clm_adjoint.clm_apply Ly.hasFDerivAt)))).prodMk
@@ -193,10 +181,13 @@ theorem fderiv_isotropicLiftField_apply
   simp [Lx, Ly, sub_sub, add_comm]
 
 /-- The derivative of the Liouville lift scales the constant product form at rate one:
-`ω (A u) v + ω u (A v) = ω u v` for `A` the derivative at any point, when `Y` is `C²`. -/
+`ω (A u) v + ω u (A v) = ω u v` for `A` the derivative at `p = (x + i y, w)`, when `Y` is `C²`
+at `x`. -/
 theorem prod_imInnerSymplecticForm_fderiv_isotropicLiftField_add
-    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} (hY : ContDiff ℝ 2 Y)
-    (p u v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)}
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+    (hY : ContDiffAt ℝ 2 Y (complexEuclideanEquivRealProd (Fin k) p.1).1)
+    (u v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     (imInnerSymplecticForm _).prod (imInnerSymplecticForm _)
           (fderiv ℝ (isotropicLiftField m Y) p u) v +
         (imInnerSymplecticForm _).prod (imInnerSymplecticForm _) u
@@ -206,13 +197,13 @@ theorem prod_imInnerSymplecticForm_fderiv_isotropicLiftField_add
   -- The second derivative of `Y` is symmetric.
   have hS (a b : EuclideanSpace ℝ (Fin k)) :
       fderiv ℝ (fderiv ℝ Y) (e p.1).1 a b = fderiv ℝ (fderiv ℝ Y) (e p.1).1 b a :=
-    hY.contDiffAt.isSymmSndFDerivAt (by simp) a b
+    hY.isSymmSndFDerivAt (by simp) a b
   have hw : imInnerSymplecticForm (EuclideanSpace ℂ (Fin m)) ((2⁻¹ : ℝ) • u.2) v.2 +
       imInnerSymplecticForm (EuclideanSpace ℂ (Fin m)) u.2 ((2⁻¹ : ℝ) • v.2) =
         imInnerSymplecticForm (EuclideanSpace ℂ (Fin m)) u.2 v.2 := by
     simp only [map_smul, LinearMap.smul_apply, smul_eq_mul]
     ring
-  simp only [SymplecticForm.prod_apply, fderiv_isotropicLiftField_apply hY,
+  simp only [SymplecticForm.prod_apply, fderiv_isotropicLiftField_apply p hY,
     imInnerSymplecticForm_apply_eq_inner_complexEuclideanEquivRealProd (ι := Fin k),
     ContinuousLinearEquiv.apply_symm_apply, inner_sub_left, inner_sub_right,
     ContinuousLinearMap.adjoint_inner_left, ContinuousLinearMap.adjoint_inner_right]
@@ -232,7 +223,7 @@ theorem isLiouvilleVectorField_isotropicLiftField
         (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →
           TangentSpace 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) p) :=
   SymplecticForm.isLiouvilleVectorField_constSmooth_of_fderiv _
-    (prod_imInnerSymplecticForm_fderiv_isotropicLiftField_add hY)
+    fun p ↦ prod_imInnerSymplecticForm_fderiv_isotropicLiftField_add p hY.contDiffAt
 
 /-! ### The lift on the core -/
 
@@ -264,11 +255,12 @@ theorem isotropicLiftField_modelDisc_eq_zero_iff
 
 /-- **The standard handle field is a Liouville lift**: for `Y = -id`, the lift
 `(x + i y, w) ↦ (-x + 2 i y, w / 2)` is `SymplecticGeometry.modelHandleField k m`. -/
-theorem isotropicLiftField_neg (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    isotropicLiftField m (fun x ↦ -x) p = modelHandleField k m p := by
+theorem isotropicLiftField_neg_id_eq_modelHandleField :
+    isotropicLiftField m (fun x ↦ -x) = ⇑(modelHandleField k m) := by
   have hD (x : EuclideanSpace ℝ (Fin k)) :
       fderiv ℝ (fun x : EuclideanSpace ℝ (Fin k) ↦ -x) x = -ContinuousLinearMap.id ℝ _ := by
     exact (hasFDerivAt_id x).neg.fderiv
+  funext p
   refine Prod.ext ?_ (by simp)
   ext j
   rw [isotropicLiftField_apply, hD, modelHandleField_apply_fst_apply]
