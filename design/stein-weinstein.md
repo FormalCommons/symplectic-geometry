@@ -2177,7 +2177,7 @@ are set on compact manifolds. Three pieces are missing:
   the Hessian (`hessianQuadraticForm`, by `associated_hessianQuadraticForm`)
   of `f` read in `extChartAt 𝓘(ℝ, E) p`:
   `IsGradientLike.exists_pos_mul_norm_sq_le_hessian` (in `TauCeti`, a
-  `c > 0` with $c\|v\|^2\le H(v,Av)$),
+  `c > 0` with $c\|v\|^2\le H(v,Av)$; in `Morse/Linearization.lean`),
   `IsGradientLike.exists_projection_exponential_bounds` (the dichotomy),
   `IsGradientLike.finrank_range_eq_manifoldMorseIndex` (for the projection
   of any such dichotomy),
@@ -2554,7 +2554,7 @@ agree (forms pulled back by `Subtype.val`).
   the symplectic Lie algebra), hyperbolic with a stable subspace of
   dimension `k` (15c's `IsGradientLike.exists_projection_exponential_bounds`
   and the isotropy of `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`),
-  and the Hessian is a Lyapunov form of it (`Handle/Linearization.lean`).
+  and the Hessian is a Lyapunov form of it (`Morse/Linearization.lean`).
   Two such fields need not have a common Lyapunov form, and 18b keeps
   the function while 18c keeps the field, so neither applies to
   `(X, f)` and `(X', f')` at once. The steps:
