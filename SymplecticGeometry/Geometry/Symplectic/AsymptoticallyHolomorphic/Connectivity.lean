@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.CellDimension
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
@@ -27,15 +28,12 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.MorseBott
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Tube
 import SymplecticGeometry.Topology.Category.TopCat.Pushout
 import SymplecticGeometry.Topology.CWComplex.Gluing
-import TauCeti.AlgebraicTopology.Homotopy.Relative.Skeleton
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
 import TauCeti.Geometry.Manifold.Morse.Deformation.Cofibration
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.ContMDiff.Log
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
-import TauCeti.Topology.CWComplex.Classical.Skeleton.Basic
 import TauCeti.Topology.Homeomorph.SetCongr
-import TauCeti.Topology.Homotopy.HomotopyGroup.WeakHomotopyEquivalence
 
 /-!
 # Critical points of `log |s_k|²` and Lefschetz connectivity for uniformly transverse sequences
@@ -121,8 +119,8 @@ along `A = T ∩ W` (`CategoryTheory.IsPushout.of_interior_union_interior_eq_uni
 model of `W` over `A` to the tube, and moving the base to its deformation retract `Z`
 (`SymplecticGeometry.exists_relCWComplex_homotopyEquiv_of_isPushout`), keeps the cells. When `Z`
 is nonempty, its inclusion into `M` is then `(dim M / 2 - 1)`-connected
-(`SymplecticGeometry.IsUniformlyTransverse.isNConnected_zeroSet_inclusion`), by Tau Ceti's
-`TauCeti.isNConnected_inclusion_skeletonLT`, since the skeleton below `dim M / 2` is the base;
+(`SymplecticGeometry.IsUniformlyTransverse.isNConnected_zeroSet_inclusion`), by
+`ContinuousMap.IsNConnected.of_relCWComplex_homotopyEquiv`, as there are no cells below `dim M / 2`;
 a transverse zero also forces `dim M ≥ 2`, the real rank of the line bundle.
 
 ## References
@@ -625,18 +623,8 @@ theorem IsUniformlyTransverse.isNConnected_zeroSet_inclusion [I.Boundaryless]
     rw [((PowerModel.toComplex (k := k)).toLinearEquiv.restrictScalars ℝ).finrank_eq,
       Complex.finrank_real_complex] at h2
     omega
-  have hA : (RelCWComplex.skeletonLT (Set.univ : Set X)
-      ((Module.finrank ℝ E / 2 - 1 : ℕ) + 1) : Set X) = Set.range j := by
-    rw [show ((Module.finrank ℝ E / 2 - 1 : ℕ) : ℕ∞) + 1 = (Module.finrank ℝ E / 2 : ℕ) by
-      exact_mod_cast Nat.sub_add_cancel hn]
-    exact skeletonLT_eq_base_of_isEmpty_cell _ _ hcell
-  have hc := (isNConnected_inclusion_skeletonLT hA (Set.subset_univ _)).comp
-    (hj.isEmbedding.toHomeomorph.toHomotopyEquiv.isWeakHomotopyEquivalence.isNConnected _)
-  have hc' := ((Homeomorph.Set.univ X).toHomotopyEquiv.isWeakHomotopyEquivalence.isNConnected
-    (Module.finrank ℝ E / 2 - 1)).comp hc
-  convert (h.isWeakHomotopyEquivalence.isNConnected _).comp hc' using 1
-  ext z
-  exact (hh z).symm
+  exact ContinuousMap.IsNConnected.of_relCWComplex_homotopyEquiv h hj.isEmbedding hh
+    fun m hm ↦ hcell m (by omega)
 
 end SymplecticGeometry
 
