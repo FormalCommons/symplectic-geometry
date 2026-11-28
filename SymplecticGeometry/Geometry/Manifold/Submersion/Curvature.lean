@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftFiel
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 public import Mathlib.LinearAlgebra.SesquilinearForm.Basic
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import TauCeti.Geometry.Manifold.VectorBundle.Tensoriality
@@ -33,6 +34,21 @@ a Riemannian submersion to those of an Ehresmann connection.
 
 Since `[v₁, v₂]♯` is the horizontal part of `[v₁♯, v₂♯]`, the curvature is its vertical part,
 and it vanishes at a point exactly when the bracket of the lifts is horizontal there.
+
+The curvature is local: the horizontal lift at a point only sees the horizontal space there and
+the value of the field below it, so two connections that agree near `x` have the same lifts near
+`x` of fields that agree near `f x`. As the bracket at a point only depends on the fields near
+it (`Filter.EventuallyEq.mlieBracket_vectorField_eq`), the curvatures at `x` agree.
+
+The curvature is natural. Let `Φ : P → P'` cover `ψ : B → B'` near `x`, so that
+`f' ∘ Φ = ψ ∘ f` near `x`, with derivative carrying `D` into the horizontal spaces `D'` of a
+connection on `f'`. Then `dΦ` maps the lift of `v (f x)` at `x` to the lift at `Φ x` of its
+image under `dψ`, since that image is horizontal and projects correctly; this is the argument of
+Tau Ceti's `TauCeti.IsEhresmannConnectionHom.mfderiv_horizontalLift`, here for maps that cover each
+other only near a point, such as maps defined on a coordinate patch. So lifts of `ψ`-related
+fields are `Φ`-related, and naturality of the bracket on `P` and on `B`
+(`TauCeti.mfderiv_mlieBracket_of_eventually_related`) carries the curvature of `D` at `x` to that
+of `D'` at `Φ x`. No invertibility of `Φ` or `ψ` is needed.
 
 The curvature is alternating, additive in each argument, and linear over differentiable functions
 on the base: `g • v₁` has curvature `(g ∘ f) • curvature v₁ v₂`, by the Leibniz rule for the
@@ -75,6 +91,15 @@ and their curvature is `-curvature`.
 * `TauCeti.IsEhresmannConnection.curvature_mem_ker`: the curvature is vertical.
 * `TauCeti.IsEhresmannConnection.curvature_eq_zero_iff_mem`: the curvature vanishes at a point
   exactly when the bracket of the two lifts is horizontal there.
+* `TauCeti.IsEhresmannConnection.horizontalLiftField_eventuallyEq` and
+  `TauCeti.IsEhresmannConnection.curvature_apply_eq_of_eventuallyEq`: horizontal lifts and the
+  curvature are local in the connection and in the fields.
+* `TauCeti.IsEhresmannConnection.mfderiv_horizontalLiftField_eq_of_related` and
+  `TauCeti.IsEhresmannConnection.eventually_mfderiv_horizontalLiftField_eq_of_related`: a map
+  covering another and carrying one connection into the other relates the horizontal lifts of
+  related fields.
+* `TauCeti.IsEhresmannConnection.mfderiv_curvature_of_related`: such a map carries the curvature
+  on related fields to the curvature.
 * `TauCeti.IsEhresmannConnection.curvature_swap`,
   `TauCeti.IsEhresmannConnection.curvature_add_left` and
   `TauCeti.IsEhresmannConnection.curvature_smul_left`, with their right-hand versions: the
@@ -93,6 +118,8 @@ and their curvature is `-curvature`.
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §6.4.
 * [V. Guillemin, E. Lerman, S. Sternberg, *Symplectic Fibrations and Multiplicity
   Diagrams*][GuilleminLermanSternberg1996], §1.3.
+* John M. Lee, *Introduction to Smooth Manifolds*, second edition, Graduate Texts in Mathematics
+  218, Springer, 2013, Chapter 8 (naturality of the Lie bracket).
 * I. Kolář, P. W. Michor, J. Slovák, *Natural Operations in Differential Geometry*, Springer
   (1993), §9.
 -/
@@ -102,7 +129,7 @@ public section
 noncomputable section
 
 open Function Bundle Filter VectorField
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
 
 namespace TauCeti
 
@@ -165,6 +192,99 @@ theorem curvature_zero_left : hD.curvature 0 v₂ = 0 := by
 @[simp]
 theorem curvature_zero_right : hD.curvature v₁ 0 = 0 := by
   simp [curvature_def, horizontalLiftField_zero]
+
+section Locality
+
+/-! ### Locality -/
+
+variable {m : ℕ∞ω} {D' : Π x : P, Submodule 𝕜 (TangentSpace I x)}
+  (hD' : IsEhresmannConnection I J m f D')
+
+/-- Two Ehresmann connections on `f` with the same horizontal space at `x` lift vector fields
+`V V'` that agree at `f x` to the same vector at `x`. -/
+theorem horizontalLiftField_apply_eq_of_eq {x : P} (hx : D x = D' x)
+    {V V' : Π b : B, TangentSpace J b} (hV : V (f x) = V' (f x)) :
+    hD.horizontalLiftField V x = hD'.horizontalLiftField V' x := by
+  rw [horizontalLiftField_apply, horizontalLiftField_apply]
+  exact congrArg Subtype.val ((hD'.eq_horizontalLift_iff
+    (w := ⟨_, hx ▸ (hD.horizontalLift x (V (f x))).property⟩)).2
+    (by rw [mfderiv_horizontalLift, hV]))
+
+/-- Horizontal lifts are local: if two Ehresmann connections on `f` agree near `x` and two
+vector fields `V V'` agree near `f x`, then their horizontal lifts agree near `x`. -/
+theorem horizontalLiftField_eventuallyEq {x : P} (hDD' : ∀ᶠ y in 𝓝 x, D y = D' y)
+    {V V' : Π b : B, TangentSpace J b} (hV : V =ᶠ[𝓝 (f x)] V') :
+    hD.horizontalLiftField V =ᶠ[𝓝 x] hD'.horizontalLiftField V' := by
+  filter_upwards [hDD', (hD.mdifferentiable x).continuousAt.preimage_mem_nhds hV]
+    with y hy hVy
+  exact hD.horizontalLiftField_apply_eq_of_eq hD' hy hVy
+
+/-- **The curvature is local.** The curvature at `x` of two Ehresmann connections on `f` that
+agree near `x`, on vector fields that agree near `f x`, is the same. -/
+theorem curvature_apply_eq_of_eventuallyEq {x : P} (hDD' : ∀ᶠ y in 𝓝 x, D y = D' y)
+    {v₁ v₁' v₂ v₂' : Π b : B, TangentSpace J b} (h₁ : v₁ =ᶠ[𝓝 (f x)] v₁')
+    (h₂ : v₂ =ᶠ[𝓝 (f x)] v₂') :
+    hD.curvature v₁ v₂ x = hD'.curvature v₁' v₂' x := by
+  rw [curvature_apply, curvature_apply,
+    (hD.horizontalLiftField_eventuallyEq hD' hDD' h₁).mlieBracket_vectorField_eq
+      (hD.horizontalLiftField_eventuallyEq hD' hDD' h₂),
+    hD.horizontalLiftField_apply_eq_of_eq hD' hDD'.self_of_nhds
+      (h₁.mlieBracket_vectorField_eq h₂)]
+
+end Locality
+
+section Naturality
+
+/-! ### Naturality of horizontal lifts -/
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {P' : Type*} [TopologicalSpace P'] [ChartedSpace H' P'] [IsManifold I' 1 P']
+  {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
+  {G' : Type*} [TopologicalSpace G'] {J' : ModelWithCorners 𝕜 F' G'}
+  {B' : Type*} [TopologicalSpace B'] [ChartedSpace G' B']
+  {n' : ℕ∞ω} {f' : P' → B'} {D' : Π x : P', Submodule 𝕜 (TangentSpace I' x)}
+  (hD' : IsEhresmannConnection I' J' n' f' D') {Φ : P → P'} {ψ : B → B'}
+
+/-- **Naturality of horizontal lifts** at a point. Let `Φ : P → P'` cover `ψ : B → B'` near `x`
+(`f' ∘ Φ = ψ ∘ f` near `x`), with `Φ` differentiable at `x`, `ψ` differentiable at `f x`, and
+the derivative of `Φ` at `x` mapping `D x` into `D' (Φ x)`. If the derivative of `ψ` maps
+`v (f x)` to `v' (f' (Φ x))`, then the derivative of `Φ` maps the horizontal lift of `v` at
+`x` to the horizontal lift of `v'` at `Φ x`. -/
+theorem mfderiv_horizontalLiftField_eq_of_related {x : P} {v : Π b : B, TangentSpace J b}
+    {v' : Π b : B', TangentSpace J' b} (hΦ : MDifferentiableAt I I' Φ x)
+    (hψ : MDifferentiableAt J J' ψ (f x)) (hfΦ : f' ∘ Φ =ᶠ[𝓝 x] ψ ∘ f)
+    (hΦD : ∀ w ∈ D x, mfderiv I I' Φ x w ∈ D' (Φ x))
+    (hv : mfderiv J J' ψ (f x) (v (f x)) = v' (f' (Φ x))) :
+    mfderiv I I' Φ x (hD.horizontalLiftField v x) = hD'.horizontalLiftField v' (Φ x) := by
+  rw [horizontalLiftField_apply, horizontalLiftField_apply]
+  refine congrArg Subtype.val ((hD'.eq_horizontalLift_iff
+    (w := ⟨_, hΦD _ (hD.horizontalLift x (v (f x))).property⟩)).2 ?_)
+  rw [← mfderiv_comp_apply x (hD'.mdifferentiable (Φ x)) hΦ, hfΦ.mfderiv_eq,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply,
+    mfderiv_comp_apply x hψ (hD.mdifferentiable x), mfderiv_horizontalLift, hv]
+
+/-- **Naturality of horizontal lifts.** Let `Φ : P → P'` cover `ψ : B → B'` near `x`
+(`f' ∘ Φ = ψ ∘ f` near `x`), with `Φ` differentiable near `x`, `ψ` differentiable near `f x`,
+and the derivative of `Φ` mapping `D` into `D'` near `x`. If the vector fields `v` and `v'` are
+`ψ`-related near `f x`, then their horizontal lifts are `Φ`-related near `x`. -/
+theorem eventually_mfderiv_horizontalLiftField_eq_of_related {x : P}
+    {v : Π b : B, TangentSpace J b} {v' : Π b : B', TangentSpace J' b}
+    (hΦ : ∀ᶠ y in 𝓝 x, MDifferentiableAt I I' Φ y)
+    (hψ : ∀ᶠ b in 𝓝 (f x), MDifferentiableAt J J' ψ b) (hfΦ : f' ∘ Φ =ᶠ[𝓝 x] ψ ∘ f)
+    (hΦD : ∀ᶠ y in 𝓝 x, ∀ w ∈ D y, mfderiv I I' Φ y w ∈ D' (Φ y))
+    (hv : ∀ᶠ b in 𝓝 (f x), mfderiv J J' ψ b (v b) = v' (ψ b)) :
+    ∀ᶠ y in 𝓝 x,
+      mfderiv I I' Φ y (hD.horizontalLiftField v y) = hD'.horizontalLiftField v' (Φ y) := by
+  have hf := (hD.mdifferentiable x).continuousAt
+  filter_upwards [hΦ, hf.preimage_mem_nhds hψ, hfΦ.eventuallyEq_nhds, hΦD,
+    hf.preimage_mem_nhds hv] with y hΦy hψy hfΦy hΦDy hvy
+  refine hD.mfderiv_horizontalLiftField_eq_of_related hD' hΦy hψy hfΦy hΦDy ?_
+  have hy : f' (Φ y) = ψ (f y) := hfΦy.self_of_nhds
+  rw [hy]
+  exact hvy
+
+end Naturality
 
 section Smooth
 
@@ -331,6 +451,68 @@ theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F
       ((hf _).of_le (SymplecticGeometry.two_le_add_one_of_one_le hn)) hDi hv₁ hv₂⟩
 
 end Smooth
+
+section NaturalitySmooth
+
+/-! ### Naturality of the curvature -/
+
+variable [IsRCLikeNormedField 𝕜] [CompleteSpace E] [CompleteSpace F]
+  [IsManifold I 2 P] [IsManifold J 2 B]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [CompleteSpace E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {P' : Type*} [TopologicalSpace P'] [ChartedSpace H' P'] [IsManifold I' 2 P']
+  {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] [CompleteSpace F']
+  {G' : Type*} [TopologicalSpace G'] {J' : ModelWithCorners 𝕜 F' G'}
+  {B' : Type*} [TopologicalSpace B'] [ChartedSpace G' B'] [IsManifold J' 2 B']
+  {n' : ℕ∞ω} {f' : P' → B'} {D' : Π x : P', Submodule 𝕜 (TangentSpace I' x)}
+  (hD' : IsEhresmannConnection I' J' n' f' D') {Φ : P → P'} {ψ : B → B'}
+
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
+
+/-- **Naturality of the curvature.** Let `D` and `D'` be `C^n` and `C^n'` Ehresmann connections,
+with `1 ≤ n` and `1 ≤ n'`, on maps `f : P → B` and `f' : P' → B'` that are `C^2` at `x` and at
+`Φ x`. Let `Φ : P → P'`, of class `C^2` at `x`, cover `ψ : B → B'`, of class `C^2` at `f x`,
+near `x` (`f' ∘ Φ = ψ ∘ f` near `x`), with the derivative of `Φ` mapping `D` into `D'` near
+`x`. If the vector fields `v₁ v₂` on `B`, `C^1` at `f x`, are `ψ`-related near `f x` to the
+vector fields `v₁' v₂'` on `B'`, `C^1` at `f' (Φ x)`, then the derivative of `Φ` at `x` maps the
+curvature of `D` on `v₁ v₂` at `x` to the curvature of `D'` on `v₁' v₂'` at `Φ x`. -/
+theorem mfderiv_curvature_of_related (hn : 1 ≤ n) (hn' : 1 ≤ n') {x : P}
+    (hf : ContMDiffAt I J 2 f x) (hf' : ContMDiffAt I' J' 2 f' (Φ x))
+    (hΦ : ContMDiffAt I I' 2 Φ x) (hψ : ContMDiffAt J J' 2 ψ (f x))
+    (hfΦ : f' ∘ Φ =ᶠ[𝓝 x] ψ ∘ f)
+    (hΦD : ∀ᶠ y in 𝓝 x, ∀ w ∈ D y, mfderiv I I' Φ y w ∈ D' (Φ y))
+    {v₁ v₂ : Π b : B, TangentSpace J b} {v₁' v₂' : Π b : B', TangentSpace J' b}
+    (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
+    (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x))
+    (hv₁' : ContMDiffAt J' J'.tangent 1 (T% v₁') (f' (Φ x)))
+    (hv₂' : ContMDiffAt J' J'.tangent 1 (T% v₂') (f' (Φ x)))
+    (h₁ : ∀ᶠ b in 𝓝 (f x), mfderiv J J' ψ b (v₁ b) = v₁' (ψ b))
+    (h₂ : ∀ᶠ b in 𝓝 (f x), mfderiv J J' ψ b (v₂ b) = v₂' (ψ b)) :
+    mfderiv I I' Φ x (hD.curvature v₁ v₂ x) = hD'.curvature v₁' v₂' (Φ x) := by
+  have hx : f' (Φ x) = ψ (f x) := hfΦ.self_of_nhds
+  have hrel {v : Π b : B, TangentSpace J b} {v' : Π b : B', TangentSpace J' b}
+      (h : ∀ᶠ b in 𝓝 (f x), mfderiv J J' ψ b (v b) = v' (ψ b)) :=
+    hD.eventually_mfderiv_horizontalLiftField_eq_of_related hD'
+      (hΦ.eventually_mdifferentiableAt two_ne_zero) (hψ.eventually_mdifferentiableAt two_ne_zero)
+      hfΦ hΦD h
+  -- The brackets on the base are `ψ`-related at `f x`.
+  have hbr : mfderiv J J' ψ (f x) (mlieBracket J v₁ v₂ (f x)) =
+      mlieBracket J' v₁' v₂' (f' (Φ x)) := by
+    rw [hx]
+    rw [hx] at hv₁' hv₂'
+    exact mfderiv_mlieBracket_of_eventually_related hψ (by simp)
+      (hv₁.mdifferentiableAt one_ne_zero) (hv₂.mdifferentiableAt one_ne_zero)
+      (hv₁'.mdifferentiableAt one_ne_zero) (hv₂'.mdifferentiableAt one_ne_zero) h₁ h₂
+  rw [curvature_apply, curvature_apply, map_sub,
+    mfderiv_mlieBracket_of_eventually_related hΦ (by simp)
+      (hD.mdifferentiableAt_horizontalLiftField hn hf hv₁)
+      (hD.mdifferentiableAt_horizontalLiftField hn hf hv₂)
+      (hD'.mdifferentiableAt_horizontalLiftField hn' hf' hv₁')
+      (hD'.mdifferentiableAt_horizontalLiftField hn' hf' hv₂') (hrel h₁) (hrel h₂),
+    hD.mfderiv_horizontalLiftField_eq_of_related hD' (hΦ.mdifferentiableAt two_ne_zero)
+      (hψ.mdifferentiableAt two_ne_zero) hfΦ hΦD.self_of_nhds hbr]
+
+end NaturalitySmooth
 
 section Pointwise
 
