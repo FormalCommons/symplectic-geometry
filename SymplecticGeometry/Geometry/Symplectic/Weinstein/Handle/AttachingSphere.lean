@@ -273,10 +273,9 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
   -- On the compact band `f ⁻¹' Icc a (f x)`, the reversed field `-X` decreases `f`.
   have hneg : ∀ y, a ≤ f y → f y ≤ f x → mvfderiv 𝓘(ℝ, E) f y ((-X) y) < 0 := by
     intro y hay hyx
-    have hy : y ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
-      eq_empty_iff_forall_notMem.1 hc y ⟨h, hay, hyx.trans_lt hx.2⟩
     rw [Pi.neg_apply, map_neg, neg_lt_zero]
-    exact hW.isGradientLike.mvfderiv_apply_pos (by rwa [mem_criticalPoints] at hy)
+    exact hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_eq_empty hc
+      ⟨hay, hyx.trans_lt hx.2⟩
   obtain ⟨T, hT0, hT⟩ := exists_forall_isMIntegralCurve_apply_lt
     hW.contMDiff_field.neg_section.continuous (hf.of_le (by simp)) hx.1
     (hW.isProperMap.isCompact_preimage isCompact_Icc) hneg
