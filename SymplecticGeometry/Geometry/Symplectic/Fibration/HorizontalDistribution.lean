@@ -296,6 +296,16 @@ theorem mem_horizontalDistribution_iff {x : M} {v : TangentSpace IM x} :
       ∀ η ∈ (mfderiv IM IB proj x).ker, τ.bilinFormAt x η v = 0 := by
   rw [horizontalDistribution_def, LinearMap.BilinForm.mem_orthogonal_iff]
 
+/-- Two two-forms that agree on `(η, v)` for every vertical vector `η` and every tangent vector
+`v` have the same horizontal spaces. -/
+theorem horizontalDistribution_eq_of_forall
+    (h : ∀ x, ∀ η ∈ (mfderiv IM IB proj x).ker, ∀ v : TangentSpace IM x,
+      τ₁.bilinFormAt x η v = τ₂.bilinFormAt x η v) :
+    horizontalDistribution IB proj τ₁ = horizontalDistribution IB proj τ₂ :=
+  funext fun x ↦ Submodule.ext fun v ↦ by
+    simp only [mem_horizontalDistribution_iff]
+    exact forall₂_congr fun η hη ↦ by rw [h x η hη v]
+
 /-- `τ` pairs a vertical vector with a horizontal one to zero. -/
 theorem val_eq_zero_of_mem_ker_of_mem_horizontalDistribution {x : M} {e h : TangentSpace IM x}
     (he : e ∈ (mfderiv IM IB proj x).ker) (hh : h ∈ horizontalDistribution IB proj τ x) :
