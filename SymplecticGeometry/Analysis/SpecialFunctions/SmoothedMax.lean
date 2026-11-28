@@ -99,7 +99,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   (`monotone_smoothedMaxChain`), lie above the `A j` they are built from
   (`le_smoothedMaxChain_of_le`) and at most `i δ / 2` above one of them
   (`exists_smoothedMaxChain_le_add`), keep the bounds of the slopes of the `A j`
-  (`le_deriv_smoothedMaxChain`, `deriv_smoothedMaxChain_le`), and are `A i` where the `A j` climb
+  (`le_deriv_smoothedMaxChain`, `deriv_smoothedMaxChain_le`, `abs_deriv_smoothedMaxChain_le`),
+  and are `A i` where the `A j` climb
   by at least `δ` from each to the next (`smoothedMaxChain_eq`,
   `smoothedMaxChain_eventuallyEq`).
 * `SymplecticGeometry.abs_smoothedMax_sub_le`, `SymplecticGeometry.abs_deriv_smoothedMax_sub_le`
@@ -974,6 +975,14 @@ theorem deriv_smoothedMaxChain_le (δ : ℝ) {G : ℝ} (hA : ∀ j ≤ i, Differ
     exact (deriv_smoothedMax_le_max (differentiableAt_smoothedMaxChain δ hA')
       (hA (i + 1) le_rfl)).trans
         (max_le (ih hA' fun j hj ↦ hG j (Nat.le_succ_of_le hj)) (hG (i + 1) le_rfl))
+
+/-- The derivative at `r` of a member of the chain of smoothed maxima is at most `G` in absolute
+value if those of the functions it is built from are. -/
+theorem abs_deriv_smoothedMaxChain_le (δ : ℝ) {G : ℝ}
+    (hA : ∀ j ≤ i, DifferentiableAt ℝ (A j) r) (hG : ∀ j ≤ i, |deriv (A j) r| ≤ G) :
+    |deriv (smoothedMaxChain δ A i) r| ≤ G :=
+  abs_le.2 ⟨le_deriv_smoothedMaxChain δ hA fun j hj ↦ (abs_le.1 (hG j hj)).1,
+    deriv_smoothedMaxChain_le δ hA fun j hj ↦ (abs_le.1 (hG j hj)).2⟩
 
 /-- For `δ > 0`, if at `r` each of `A 0, …, A i` lies at least `δ` below the next, then the
 `i`-th member of the chain of smoothed maxima is `A i` at `r`. -/
