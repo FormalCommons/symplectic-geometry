@@ -12,7 +12,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Log.Unbounded
 
@@ -207,9 +207,7 @@ theorem field_toChart_symm {z : E} (hz : z ∈ φ.toChart.target) :
     φ.field (φ.toChart.symm z) = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm z
       (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i)) := by
   refine (φ.eq_field_of_coord_mfderiv (φ.toChart.map_target hz) ?_).symm
-  have hmd := mdifferentiable_of_mem_maximalAtlas φ.mem_maximalAtlas_one
-  rw [φ.toChart.mfderiv_apply_mfderiv_symm_apply hz
-    (hmd.mdifferentiableAt (φ.toChart.map_target hz)) (hmd.mdifferentiableAt_symm hz)
+  rw [φ.toChart.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas φ.mem_maximalAtlas_one hz
     (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i) : E),
     φ.toChart.right_inv hz, LinearEquiv.apply_symm_apply]
 
