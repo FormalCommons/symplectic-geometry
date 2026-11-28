@@ -143,7 +143,10 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
     TopPair.hom_ext_of_fst _ (by
       refine TopCat.ext fun x ↦ ?_
       rw [TopPair.Hom.fst_comp, TopCat.comp_app, TopPair.excisionMap_fst_apply]
-      erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+      -- The proof `fun _ hx ↦ hx` above typechecks only after unfolding `ofSubset`, which keeps
+      -- `rw` from matching; `generalize_proofs` replaces it by a hypothesis.
+      generalize_proofs
+      rw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
       rfl)
   -- The inclusion of `W` carries the fundamental class of `W` along `f(Z)` to that of `X`.
   have h1 : (TopPair.singularHomologyMap (TopPair.ofSubsetMap (X := TopCat.of W)

@@ -119,12 +119,13 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
   refine congrArg (fun g ↦ TopPair.singularHomologyMap g (ModuleCat.of ℤ (ULift.{0} ℤ)) n _)
     (TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_))
   simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-  -- `erw`: the goal matches the left sides of these lemmas only up to unfolding the spaces of
-  -- the pairs `TopPair.ofSubset`, so `rw` does not find them.
-  erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
+  -- The `MapsTo` proofs of the pairs typecheck only after unfolding `ofSubset`, which keeps `rw`
+  -- from matching; `generalize_proofs` replaces them by hypotheses.
+  generalize_proofs
+  rw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
     TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, tubePairIso_inv_fst_apply]
   simp only [TopCat.hom_ofHom, TopCat.hom_id, ContinuousMap.coe_mk, tubeMap_apply,
-    Diffeomorph.apply_symm_apply]
+    Diffeomorph.apply_symm_apply, ContinuousMap.id_apply]
   exact congrArg Subtype.val (ContinuousMap.id_apply (α := W) w)
 
 /-- **A local class of the tube's fundamental class, read in a chart of the total space.** Let `c`

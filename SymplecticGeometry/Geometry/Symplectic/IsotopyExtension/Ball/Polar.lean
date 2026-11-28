@@ -10,7 +10,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Polar
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
@@ -32,7 +32,7 @@ are smooth in `t ∈ ℝ` (`SymplecticGeometry.IsSymplecticBallFamily.contDiff_f
 Seeley's extension does not keep them symplectic outside `[0, 1]`, but they stay invertible on
 an open neighbourhood of `[0, 1]`. So after a smooth change of time that is the identity on
 `[0, 1]` and maps `ℝ` into that neighbourhood
-(`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_of_isOpen`), the polar decomposition of a
+(Tau Ceti's `TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`), the polar decomposition of a
 smooth family of invertible matrices (`Matrix.exists_contDiff_polar`) applies, and its factors
 are symplectic at the times in `[0, 1]`.
 
@@ -117,8 +117,13 @@ theorem IsSymplecticBallFamily.exists_polar_fderiv_zero {δ : ℝ} (hδ : 0 < δ
   have hO : IsOpen {t | IsUnit (Ψ₀ t)} := by
     simp_rw [isUnit_iff_isUnit_det, isUnit_iff_ne_zero]
     exact isOpen_ne_fun hΨ₀.continuous.matrix_det continuous_const
-  obtain ⟨φ, hφ, hφt, hφO⟩ := exists_contDiff_eqOn_id_Icc_mem_of_isOpen zero_le_one hO
+  obtain ⟨g, hg, hgt⟩ := (⟨_, hO⟩ : TopologicalSpace.Opens ℝ).exists_contMDiff_eventuallyEq_id
+    (convex_Icc 0 1) isCompact_Icc (nonempty_Icc.2 zero_le_one)
     fun t ht ↦ (isUnit_iff_isUnit_det _).2 (SymplecticGroup.symplectic_det (hΨ₀sp ⟨t, ht⟩))
+  set φ : ℝ → ℝ := fun t ↦ g t
+  have hφ : ContDiff ℝ ∞ φ := contMDiff_iff_contDiff.1 (contMDiff_subtypeVal.comp hg)
+  have hφt : EqOn φ id (Icc 0 1) := fun t ht ↦ (hgt t ht).eq_of_nhds
+  have hφO (t : ℝ) : IsUnit (Ψ₀ (φ t)) := (g t).property
   -- The polar decomposition of `Ψ₀ ∘ φ`.
   obtain ⟨U', Q', hU', hQ', hU'o, hQ'0, hQ'add, hΨQU, hsp, h1⟩ :=
     exists_contDiff_polar (hΨ₀.comp hφ) hφO

@@ -17,7 +17,8 @@ For a smooth diffeomorphism `φ : M → N`, an almost complex structure `J` on `
 `pullback_refl` and `pullback_trans`, from which it follows.
 
 In the group `TauCeti.Diff I M ∞` of smooth self-diffeomorphisms, where `φ * ψ = ψ.trans φ`,
-those two lemmas become `pullback_one` and `pullback_mul`: pulling back is a right action.
+those two lemmas become `pullback_one` and `pullback_mul`: pulling back is a right action. The
+group form of `pullback_symm_eq_iff` is `pullback_inv_eq_iff`.
 
 ## References
 
@@ -57,6 +58,12 @@ along `ψ`. -/
 theorem pullback_mul (J : SmoothAlmostComplexStructure I M) (φ ψ : TauCeti.Diff I M ∞) :
     J.pullback (φ * ψ) = (J.pullback φ).pullback ψ := by
   rw [Diffeomorph.mul_def, pullback_trans]
+
+/-- In the diffeomorphism group, `φ⁻¹` pulls `K` back to `J` exactly when `φ` pulls `J` back to
+`K`. -/
+theorem pullback_inv_eq_iff (φ : TauCeti.Diff I M ∞) {J K : SmoothAlmostComplexStructure I M} :
+    K.pullback φ⁻¹ = J ↔ J.pullback φ = K := by
+  rw [Diffeomorph.inv_def, pullback_symm_eq_iff]
 
 end TauCeti.SmoothAlmostComplexStructure
 
