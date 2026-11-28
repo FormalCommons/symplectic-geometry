@@ -31,6 +31,9 @@ partial derivatives into estimates that hold uniformly on the rectangle:
   `IsCompact.uniformContinuousOn_of_continuous`), and so
   `IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn`: it stays uniformly close to its
   values on the side `{b} × K` for `ℓ` in some interval `[c, b]`;
+* `IsCompact.exists_pos_add_le_of_continuousOn`: a function continuous on the rectangle and
+  strictly below its values on the side `{b} × K` over `[a, c] × K` is below them by a uniform
+  gap there, by `IsCompact.exists_forall_le'`;
 * `IsCompact.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn`: the same for the first `n`
   derivatives in `r` of a family whose derivatives of order at most `n` are continuous on the
   rectangle, with one step in `ℓ` for all of them.
@@ -131,6 +134,22 @@ theorem IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn {g : ℝ × �
     H r hr b (right_mem_Icc.2 (hac₀.trans hc₀b.le)) ℓ ⟨by linarith [hℓ.1], hℓ.2⟩ ?_⟩
   rw [abs_le]
   constructor <;> linarith [hℓ.1, hℓ.2, min_le_left h ((b - c₀) / 2)]
+
+/-- A function continuous on the compact rectangle `[a, b] × K` that is strictly below its values
+on the side `{b} × K` over `[a, c] × K`, for some `c ≤ b`, is below them by a uniform gap there:
+there is `ε > 0` with `g (ℓ, r) + ε ≤ g (b, r)` for all `ℓ ∈ [a, c]` and `r ∈ K`. -/
+theorem IsCompact.exists_pos_add_le_of_continuousOn {g : ℝ × ℝ → ℝ} (hK : IsCompact K)
+    (hg : ContinuousOn g (Icc a b ×ˢ K)) {c : ℝ} (hcb : c ≤ b)
+    (hlt : ∀ ℓ ∈ Icc a c, ∀ r ∈ K, g (ℓ, r) < g (b, r)) :
+    ∃ ε > 0, ∀ ℓ ∈ Icc a c, ∀ r ∈ K, g (ℓ, r) + ε ≤ g (b, r) := by
+  have hsub : Icc a c ×ˢ K ⊆ Icc a b ×ˢ K := prod_mono (Icc_subset_Icc_right hcb) subset_rfl
+  have hcont : ContinuousOn (fun x : ℝ × ℝ ↦ g (b, x.2) - g x) (Icc a c ×ˢ K) :=
+    (hg.comp (continuous_const.prodMk continuous_snd).continuousOn
+      fun x (hx : x ∈ Icc a c ×ˢ K) ↦ ⟨⟨hx.1.1.trans (hx.1.2.trans hcb), le_rfl⟩, hx.2⟩).sub
+        (hg.mono hsub)
+  obtain ⟨ε, hε, hle⟩ := (isCompact_Icc.prod hK).exists_forall_le' hcont
+    fun x hx ↦ sub_pos.2 (hlt x.1 hx.1 x.2 hx.2)
+  exact ⟨ε, hε, fun ℓ hℓ r hr ↦ by linarith [hle (ℓ, r) ⟨hℓ, hr⟩]⟩
 
 /-- Let `f : ℝ → ℝ → ℝ` be a family whose derivatives `∂ᵏf/∂rᵏ` of order `k ≤ n` are continuous
 on the compact rectangle `[a, b] × K`. Then they are uniformly continuous in `ℓ`, with one step
