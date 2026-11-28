@@ -14,8 +14,9 @@ import TauCeti.Geometry.Lie.Subgroup.Kernel
 
 Tau Ceti states the Lie functor on smooth homomorphisms in two forms: `lieMap φ`, on
 left-invariant derivations, and `ContMDiffMonoidMorphism.groupLieAlgebraLieHom φ`, on the tangent
-spaces at `1`. Its results on the exponential and on injectivity are stated for `lieMap`. This file
-moves them to `groupLieAlgebraLieHom`, and states there the naturality of the adjoint action.
+spaces at `1`. Its exponential law is stated for `lieMap`, and its injectivity result for `mfderiv`
+at every point. This file restates both for `groupLieAlgebraLieHom`, the second for an injective
+`ContMDiffMonoidMorphism`, and states there the naturality of the adjoint action.
 
 ## Main results
 
