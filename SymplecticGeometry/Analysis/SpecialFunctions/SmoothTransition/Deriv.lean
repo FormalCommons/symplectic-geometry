@@ -26,7 +26,8 @@ also `|x τ'(x)| ≤ τ'(x)` (`Real.smoothTransition.abs_mul_deriv_le_deriv`), a
 `τ'((x - a) / L) / L` and `x τ''((x - a) / L) / L²`, which by the chain rule are the first
 derivative and `x` times the second derivative of the cutoff `x ↦ τ ((x - a) / L)` of width `L`,
 are small once `L` is large compared with these bounds
-(`Real.smoothTransition.abs_deriv_sub_div_le`).
+(`Real.smoothTransition.abs_deriv_sub_div_le`), so that for `0 ≤ a` and `0 < ε` both are at most
+`ε` everywhere for all large enough `L` (`Real.smoothTransition.eventually_abs_deriv_sub_div_le`).
 -/
 
 public section
@@ -140,6 +141,20 @@ theorem abs_deriv_sub_div_le {A B M L a ε : ℝ} (hA : ∀ x, |deriv smoothTran
     have hA₀ : 0 ≤ A := (abs_nonneg _).trans (hA 0)
     refine h1.trans ?_
     nlinarith
+
+/-- For `0 ≤ a` and `0 < ε`, for all large enough `L`, both `τ'((x - a) / L) / L` and
+`x τ''((x - a) / L) / L²` are at most `ε` in absolute value at every `x`, for the smooth transition
+function `τ`. -/
+theorem eventually_abs_deriv_sub_div_le {a ε : ℝ} (ha : 0 ≤ a) (hε : 0 < ε) :
+    ∀ᶠ L in Filter.atTop, ∀ x, |deriv smoothTransition ((x - a) / L) / L| ≤ ε ∧
+      |x * (deriv (deriv smoothTransition) ((x - a) / L) / L ^ 2)| ≤ ε := by
+  obtain ⟨A, hA⟩ := exists_forall_norm_deriv_le
+  obtain ⟨B, hB⟩ := exists_forall_norm_deriv_deriv_le
+  obtain ⟨M, hM⟩ := exists_forall_norm_mul_deriv_deriv_le
+  simp only [Real.norm_eq_abs] at hA hB hM
+  filter_upwards [Filter.eventually_ge_atTop 1,
+    Filter.eventually_ge_atTop ((A + a * B + M) / ε)] with L hL₁ hL
+  exact abs_deriv_sub_div_le hA hB hM ha hL₁ ((div_le_iff₀ hε).1 hL |>.trans_eq (mul_comm L ε))
 
 end Real.smoothTransition
 

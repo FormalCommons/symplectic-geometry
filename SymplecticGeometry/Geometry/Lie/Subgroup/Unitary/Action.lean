@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Lie.Subgroup.Unitary.LieAlgebra
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
-import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
@@ -29,8 +28,6 @@ matrices followed by the continuous linear map `A ↦ A *ᵥ y`, whose different
 
 ## Main results
 
-* `TauCeti.Lie.contMDiff_unitarySubgroup_coe_matrix`: the inclusion of the unitary group into the
-  matrices is smooth.
 * `TauCeti.Lie.instContMDiffSMulUnitarySubgroup`: the action on `n → 𝕜` is smooth.
 * `TauCeti.Lie.fundamentalVectorField_unitarySubgroup`: its fundamental vector field of `ξ` at
   `y` is `matrixUnitaryLieAlgebraEquiv ξ *ᵥ y`.
@@ -49,15 +46,6 @@ open scoped ContDiff Manifold Matrix Matrix.Norms.Operator TauCeti.Lie.MatrixUni
 namespace TauCeti.Lie
 
 variable {n 𝕜 : Type*} [Fintype n] [DecidableEq n] [RCLike 𝕜]
-
-/-- The inclusion of the unitary group `unitarySubgroup (GL n 𝕜)`, with Tau Ceti's
-closed-subgroup charts, into `Matrix n n 𝕜` is smooth. -/
-theorem contMDiff_unitarySubgroup_coe_matrix :
-    ContMDiff 𝓘(ℝ, (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n 𝕜))
-        (unitarySubgroup (GL n 𝕜))).toSubmodule) 𝓘(ℝ, Matrix n n 𝕜) ∞
-      (fun k : unitarySubgroup (GL n 𝕜) ↦ ((k : GL n 𝕜) : Matrix n n 𝕜)) :=
-  Units.contMDiff_val.comp
-    (matrixUnitaryEmbeddedLieSubgroupData (n := n) (𝕜 := 𝕜)).contMDiff_subtypeVal
 
 /-- The unitary group `unitarySubgroup (GL n 𝕜)` acts smoothly on column vectors,
 `g • v = g *ᵥ v`. -/
