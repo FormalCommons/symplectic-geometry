@@ -438,7 +438,7 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
   set ψ := D.chart k x
   have hzt : z ∈ ψ.target := D.ball_subset_target hk x hz
   have hψz : ψ (ψ.symm z) = z := ψ.right_inv hzt
-  have hU : IsOpen (ψ.symm '' ball 0 (ρ₀ * √k)) := D.isOpen_image_symm_ball hk x
+  have hU : IsOpen (ψ.symm '' ball 0 (ρ₀ * √k)) := D.isOpen_image_symm_ball hk x le_rfl
   -- The coordinate of `s` in the frame, as a function on `M` with values in `PowerModel k`, is
   -- `g ∘ ψ`, with `g` the reading followed by the real-linear equivalence `L`.
   set L : ℂ ≃L[ℝ] PowerModel k :=
@@ -730,7 +730,8 @@ theorem contMDiffAt_of_contDiffAt_reading (hρ₀ : 0 < ρ₀) {n : ℕ∞} {k :
     ContMDiffAt I (I.prod 𝓘(ℝ, PowerModel k)) n
       (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)) x := by
   set ψ := D.chart k x
-  have hU : ψ.symm '' ball 0 (ρ₀ * √k) ∈ 𝓝 x := D.image_symm_ball_mem_nhds hρ₀ hk hk0 x
+  have hU : ψ.symm '' ball 0 (ρ₀ * √k) ∈ 𝓝 x := D.image_symm_ball_mem_nhds hk x
+    (by have := Nat.pos_of_ne_zero hk0; positivity) le_rfl
   -- The frame is smooth at `x`, and so is the reading composed with the chart.
   have hF : ContMDiffAt I (I.prod (𝓡 1)) n
       (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, D.frame k x y⟩) x :=
