@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod
-import TauCeti.Geometry.Manifold.Flow.TimeDependent
 
 /-!
 # Values of product vector fields
@@ -23,9 +22,8 @@ In particular, let `v` be a vector of a real normed space `E` and `N` a manifold
 `(1, 0)` its image under a differential is the derivative of a slice `s ↦ f (s, y)`
 (`MDifferentiableAt.mfderiv_uncurry_apply_mk_zero`).
 
-The time field `∂_t = (1, 0)` on `ℝ × M` is smooth by Tau Ceti's
-`TauCeti.contMDiff_const_prod_field`, applied to the zero field, the argument that Tau Ceti writes
-inline in the definition of `TauCeti.SmoothForm.timeDeriv`. So it is a smooth section
+The field `(v, 0)` is smooth, as the product of two smooth fields. For `E = ℝ` and `v = 1` this
+gives the smoothness of the time field `∂_t = (1, 0)` on `ℝ × M`, so it is a smooth section
 `SymplecticGeometry.timeField` of the tangent bundle of `ℝ × M`, whose underlying field is the
 product field `(1, 0)` above (`SymplecticGeometry.coe_timeField_eq_prodVectorField`).
 
@@ -34,8 +32,9 @@ product field `(1, 0)` above (`SymplecticGeometry.coe_timeField_eq_prodVectorFie
 * `TauCeti.Manifold.prodVectorField_apply`: the value of a product field `(X, Y)` at `p` is the
   pair `(X p.1, Y p.2)` of the model space.
 * `TauCeti.Manifold.prodVectorField_constVectorField_zero_apply`: the value of `(v, 0)`.
-* `TauCeti.Manifold.contMDiff_prodVectorField_const_zero`: the field `(v, 0)` is `C^n` for every
-  `n`.
+* `TauCeti.Manifold.contMDiff_prodVectorField_constVectorField_zero`: the field `(v, 0)` is `C^n`
+  for every `n`; `TauCeti.Manifold.contMDiff_prodVectorField_const_zero` states it with the
+  constant field written as `fun x ↦ v`.
 * `SymplecticGeometry.contMDiff_timeField`: the time field `∂_t = (1, 0)` on `ℝ × M` is smooth.
 * `SymplecticGeometry.timeField`: the time field, as a smooth section of the tangent bundle.
 * `SymplecticGeometry.coe_timeField_eq_prodVectorField`: the time field is the product of the
@@ -86,14 +85,24 @@ theorem prodVectorField_constVectorField_zero_apply (v : E) (p : E × N) :
   -- The zero of `TangentSpace J p.2` is that of `E'` under another name of the instance.
   rfl
 
+/-- The product field `(v, 0)` on `E × N`, of the constant field `TauCeti.constVectorField v` of
+`E` and the zero field of `N`, is a `C^n` section of the tangent bundle, for every `n`. -/
+theorem contMDiff_prodVectorField_constVectorField_zero [IsManifold J 1 N] (v : E)
+    {n : WithTop ℕ∞} :
+    ContMDiff (𝓘(ℝ, E).prod J) (𝓘(ℝ, E).prod J).tangent n
+      (T% (prodVectorField (constVectorField v) (0 : Π y : N, TangentSpace J y))) :=
+  contMDiff_prodVectorField (contMDiff_constVectorField v)
+    (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))
+
 /-- The product field `(v, 0)` on `E × N`, of the constant field `v` of `E` and the zero field
-of `N`, is a `C^n` section of the tangent bundle, for every `n`. -/
+of `N`, is a `C^n` section of the tangent bundle, for every `n`. This is
+`contMDiff_prodVectorField_constVectorField_zero` with the constant field written as
+`fun x ↦ v`. -/
 theorem contMDiff_prodVectorField_const_zero [IsManifold J 1 N] (v : E) {n : WithTop ℕ∞} :
     ContMDiff (𝓘(ℝ, E).prod J) (𝓘(ℝ, E).prod J).tangent n
       (T% (prodVectorField (I := 𝓘(ℝ, E)) (fun x : E ↦ (v : TangentSpace 𝓘(ℝ, E) x))
         (0 : Π y : N, TangentSpace J y))) :=
-  contMDiff_prodVectorField (contMDiff_tangentBundle_mk_const v)
-    (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))
+  constVectorField_eq v ▸ contMDiff_prodVectorField_constVectorField_zero v
 
 end TauCeti.Manifold
 
@@ -109,9 +118,9 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 /-- The time field `∂_t = (1, 0)` on `ℝ × M` is a smooth section of the tangent bundle. -/
 theorem contMDiff_timeField :
     ContMDiff (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I).tangent ∞
-      (fun p : ℝ × M ↦ (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) :=
-  TauCeti.contMDiff_const_prod_field 1 (X := 0)
-    ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
+      (fun p : ℝ × M ↦ (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) := by
+  simpa only [TauCeti.Manifold.prodVectorField_constVectorField_zero_apply] using
+    TauCeti.Manifold.contMDiff_prodVectorField_constVectorField_zero (N := M) (1 : ℝ)
 
 /-- The time field `∂_t = (1, 0)` on `ℝ × M`, as a smooth section of the tangent bundle. -/
 noncomputable def timeField :

@@ -74,6 +74,10 @@ and the triple is a Weinstein structure.
   `ContinuousLinearMap.stableSubspace_prodMap`, `ContinuousLinearMap.stableSubspace_smul_id_of_neg`
   and `ContinuousLinearMap.stableSubspace_smul_id_of_nonneg` (`Analysis/ODE/Linear.lean`), carried
   through the coordinates by `ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv`.
+  The block-diagonal step is
+  `SymplecticGeometry.stableSubspace_conjContinuousAlgEquiv_prodMap_eq_map_modelDisc`: a field that
+  is `A ⊕ B ⊕ ½ • id` in real coordinates, with `B` having no nonzero stable vector, has stable
+  subspace `ι₀ (A.stableSubspace)`. `Homotopy/IsotropicLift.lean` uses it for the Liouville lift.
 * `SymplecticGeometry.prod_imInnerSymplecticForm_eq_zero_of_mem_range_modelDisc`: the core is
   isotropic for the product form, by `ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace`
   (`Analysis/ODE/Linear.lean`) applied to the identity above.
@@ -362,6 +366,24 @@ theorem modelHandleField_flow_modelDisc (t : ℝ) (x : EuclideanSpace ℝ (Fin k
   rw [modelHandleField_flow_apply]
   ext j <;> simp
 
+/-- **Stable subspaces of block-diagonal fields on the handle.** For `A B : ℝᵏ →L[ℝ] ℝᵏ` with
+`B.stableSubspace = ⊥`, the field on `ℂᵏ × ℂᵐ` that is `A ⊕ B ⊕ ½ I` in the real coordinates
+`(x + i y, w) ↦ ((x, y), w)` has stable subspace the image of `A.stableSubspace` under `ι₀`. -/
+theorem stableSubspace_conjContinuousAlgEquiv_prodMap_eq_map_modelDisc
+    (A B : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k))
+    (hB : B.stableSubspace = ⊥) :
+    (((complexEuclideanEquivRealProd (Fin k)).prodCongr
+        (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))).symm.conjContinuousAlgEquiv
+        ((A.prodMap B).prodMap ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _))).stableSubspace =
+      A.stableSubspace.map (modelDisc k m).toLinearMap := by
+  rw [ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv,
+    ContinuousLinearMap.stableSubspace_prodMap, ContinuousLinearMap.stableSubspace_prodMap, hB,
+    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num), ← Submodule.map_inl,
+    ← Submodule.map_inl, ← Submodule.map_comp, ← Submodule.map_comp]
+  congr 1
+  refine LinearMap.ext fun y ↦
+    Prod.ext ((complexEuclideanEquivRealProd (Fin k)).injective ?_) ?_ <;> simp
+
 /-- **The stable set of the handle field is the core**: the points whose orbit under the flow of
 `(x + i y, w) ↦ (-x + 2 i y, w / 2)` tends to `0` are those of `ι₀ (ℝᵏ) = {(x, 0)}`. In real
 coordinates the field is `(-1) • id ⊕ 2 • id ⊕ ½ • id`, whose stable subspace is `ℝᵏ × 0 × 0`. -/
@@ -369,23 +391,16 @@ theorem stableSubspace_modelHandleField :
     ((modelHandleField k m).stableSubspace :
         Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))) =
       range (modelDisc k m) := by
-  set e := (complexEuclideanEquivRealProd (Fin k)).prodCongr
-      (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))
-  have h : modelHandleField k m = e.symm.conjContinuousAlgEquiv
+  have h : modelHandleField k m = ((complexEuclideanEquivRealProd (Fin k)).prodCongr
+      (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))).symm.conjContinuousAlgEquiv
       ((((-1 : ℝ) • ContinuousLinearMap.id ℝ _).prodMap
           ((2 : ℝ) • ContinuousLinearMap.id ℝ _)).prodMap
         ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _)) := by
-    ext p j <;> simp [modelHandleField_apply_fst_apply, e]
-  rw [h, ContinuousLinearEquiv.stableSubspace_conjContinuousAlgEquiv,
-    ContinuousLinearMap.stableSubspace_prodMap, ContinuousLinearMap.stableSubspace_prodMap,
-    ContinuousLinearMap.stableSubspace_smul_id_of_neg (by norm_num),
-    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num),
-    ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num), ← Submodule.map_inl,
-    ← Submodule.map_inl, ← Submodule.map_comp, ← Submodule.map_comp, Submodule.map_top,
-    LinearMap.coe_range]
-  congr 1
-  funext x
-  refine Prod.ext ((complexEuclideanEquivRealProd (Fin k)).injective ?_) ?_ <;> simp [e]
+    ext p j <;> simp [modelHandleField_apply_fst_apply]
+  rw [h, stableSubspace_conjContinuousAlgEquiv_prodMap_eq_map_modelDisc _ _
+      (ContinuousLinearMap.stableSubspace_smul_id_of_nonneg (by norm_num)),
+    ContinuousLinearMap.stableSubspace_smul_id_of_neg (by norm_num), Submodule.map_top,
+    LinearMap.coe_range, ContinuousLinearMap.coe_coe]
 
 /-- **The core of the handle is isotropic**: the constant form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`
 vanishes on pairs of vectors of `ι₀ (ℝᵏ)`. The core is the stable subspace of the handle field,

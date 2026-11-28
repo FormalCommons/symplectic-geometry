@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.WithSeminorms
 
@@ -119,11 +120,13 @@ theorem continuous_frameTopology_of_continuous_totalSpaceMap [CompleteSpace 𝕜
   let e' : M → Trivialization (F₁ →L[𝕜] F₂) (π (F₁ →L[𝕜] F₂) (fun x ↦ V x →L[𝕜] W x)) :=
     fun x₀ ↦ (trivializationAt F₁ V x₀).continuousLinearMap (RingHom.id 𝕜)
       (trivializationAt F₂ W x₀)
-  let U' : M → Opens M := fun x₀ ↦ ⟨_, (e' x₀).open_baseSet⟩
-  have hU' : ∀ x₀, (U' x₀ : Set M) ⊆ (e' x₀).baseSet := fun _ ↦ subset_rfl
+  let U' : M → Opens M := fun x₀ ↦ (e' x₀).baseSetOpens
+  have hU' : ∀ x₀, (U' x₀ : Set M) ⊆ (e' x₀).baseSet := fun x₀ ↦
+    (e' x₀).coe_baseSetOpens.subset
   have hcover' : ∀ x, ∃ x₀, x ∈ U' x₀ := fun x ↦
-    ⟨x, FiberBundle.mem_baseSet_trivializationAt F₁ V x,
-      FiberBundle.mem_baseSet_trivializationAt F₂ W x⟩
+    ⟨x, Bundle.Trivialization.mem_baseSetOpens_iff.2
+      ⟨FiberBundle.mem_baseSet_trivializationAt F₁ V x,
+        FiberBundle.mem_baseSet_trivializationAt F₂ W x⟩⟩
   refine @Continuous.comp _ _ _ _ (frameTopology (I := I) (n := n) e' U' hU')
     (frameTopology (I := I) (n := n) e U hU) _ _
     (continuous_id_of_le (frameTopology_le_of_cover e' U' hU' hcover' e U hU)) ?_
@@ -131,7 +134,7 @@ theorem continuous_frameTopology_of_continuous_totalSpaceMap [CompleteSpace 𝕜
   let b := Module.finBasis 𝕜 F₁
   let tV := trivializationAt F₁ V x₀
   let tW := trivializationAt F₂ W x₀
-  have hy : ∀ y : U' x₀, (y : M) ∈ tV.baseSet ∩ tW.baseSet := fun y ↦ y.property
+  have hy : ∀ y : U' x₀, (y : M) ∈ tV.baseSet ∩ tW.baseSet := fun y ↦ hU' x₀ y.property
   -- The point of `V` over `y` with coordinate `b j`, as a `C^n` map on the frame domain.
   let σ : Fin (Module.finrank 𝕜 F₁) → C^n⟮I, U' x₀; I.prod 𝓘(𝕜, F₁), TotalSpace F₁ V⟯ :=
     fun j ↦ ⟨fun y ↦ tV.toOpenPartialHomeomorph.symm ((y : M), b j),

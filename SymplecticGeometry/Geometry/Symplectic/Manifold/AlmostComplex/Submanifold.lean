@@ -17,7 +17,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -492,14 +492,14 @@ theorem compatible_of_compatible_restrictOpen {ι : Type*} (U : ι → Topologic
     obtain ⟨i, hx⟩ := hU x <;> lift x to U i using hx
   · have := (h i).invariant.apply x ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm v)
       ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm w)
-    simp only [eval₂_mpullback_subtypeVal, SmoothAlmostComplexStructure.restrictOpen_apply,
-      ContinuousLinearEquiv.apply_symm_apply] at this
-    simpa only [Manifold.tangentSpaceOpenEquiv_symm_apply] using this
+    simpa only [SmoothAlmostComplexStructure.restrictOpen_apply,
+      ContinuousLinearEquiv.apply_symm_apply,
+      SmoothForm.eval₂_mpullback_subtypeVal_tangentSpaceOpenEquiv_symm] using this
   · have := tames_iff.1 (h i).tames x ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm v)
       ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm.map_ne_zero_iff.2 hv)
-    simp only [eval₂_mpullback_subtypeVal, SmoothAlmostComplexStructure.restrictOpen_apply,
-      ContinuousLinearEquiv.apply_symm_apply] at this
-    simpa only [Manifold.tangentSpaceOpenEquiv_symm_apply] using this
+    simpa only [SmoothAlmostComplexStructure.restrictOpen_apply,
+      ContinuousLinearEquiv.apply_symm_apply,
+      SmoothForm.eval₂_mpullback_subtypeVal_tangentSpaceOpenEquiv_symm] using this
 
 end SmoothTwoForm
 
