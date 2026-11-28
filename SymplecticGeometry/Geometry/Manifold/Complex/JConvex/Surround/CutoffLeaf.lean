@@ -101,6 +101,17 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   (`SymplecticGeometry.sqrtAddLeaf_sub_struweShape_mem_Icc`), and is at least `2` for `r ≥ 2`
   and `ℓ ∈ [0, 7]` (`SymplecticGeometry.two_le_sqrtAddLeaf_sub_struweShape`). These comparisons
   say where each of the two pieces of the smoothed maximum is the larger one.
+* Consequences for `ℓ ∈ [0, 7 δ]`: from `2 δ` on the leaf is `sqrtAddLeaf L δ ℓ`
+  (`SymplecticGeometry.struweSwitchLeaf_of_two_mul_le`), hence standard from `(2 + L) δ` on
+  (`SymplecticGeometry.struweSwitchLeaf_of_ge`), and on `(δ, 257 δ / 256]` the leaf `7 δ` is
+  Struwe's shape with value `65 δ / 8` at `δ`
+  (`SymplecticGeometry.struweSwitchLeaf_seven_mul_of_mem_Ioc`).
+* Near the cylinder, for `ℓ > 6 δ`, the leaf is Struwe's shape on some `[δ, δ + ε)`
+  (`SymplecticGeometry.exists_eqOn_struweSwitchLeaf_struweShape`), since the gap `ℓ - 6 δ` at `δ`
+  exceeds the width. So every leaf is continuous on `[δ, ∞)`
+  (`SymplecticGeometry.continuousOn_struweSwitchLeaf`; the cutoff leaves are continuous,
+  `SymplecticGeometry.continuous_cutoffLeaf`), and its slope tends to `+∞` at `δ`
+  (`SymplecticGeometry.tendsto_deriv_struweSwitchLeaf`).
 * `SymplecticGeometry.isConvexShapeAt_struweSwitchLeaf` and
   `SymplecticGeometry.exists_forall_isConvexShapeAt_struweSwitchLeaf`: for `L` large enough,
   every leaf with `ℓ ∈ [0, 7 δ]` is an `i`-convex shape at every `r > δ`. For `ℓ ≤ 6 δ` the leaf
@@ -357,6 +368,15 @@ theorem tendsto_deriv_cutoffLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (b c : 
   filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < 2 * δ)] with r hr
   rw [deriv_cutoffLeaf_of_lt hL hδ.le hr.1 hr.2, deriv_sqrt_sub (by nlinarith [hr.1])]
 
+/-- The cutoff leaf is continuous in `r`, for all `L`, `δ`, `b` and `c`. -/
+theorem continuous_cutoffLeaf (L δ b c : ℝ) : Continuous (cutoffLeaf L δ b c) := by
+  have h : Continuous fun r : ℝ ↦ smoothTransition ((r - 2 * δ) / (L * δ)) :=
+    smoothTransition.continuous.comp ((continuous_id.sub continuous_const).div_const _)
+  rw [show cutoffLeaf L δ b c = _ from funext (cutoffLeaf_def L δ b c)]
+  exact (continuous_const.mul (continuous_const.sub h)).add
+    ((continuous_const.mul ((continuous_id.pow 2).sub continuous_const)).add
+      (continuous_const.mul h)).sqrt
+
 /-- The radicand `64 (r² - δ²) + c h r` of the cutoff leaf is positive where `δ² < r²` and
 `0 < 64 (r² - δ²) + c`: it lies between these two values, the cutoff `h r` being in `[0, 1]`. -/
 theorem cutoffLeaf_radicand_pos (L : ℝ) {c r : ℝ} (hr : δ ^ 2 < r ^ 2)
@@ -600,6 +620,11 @@ theorem tendsto_deriv_sqrtAddLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ :
   rw [sqrtAddLeaf_eq_cutoffLeaf]
   exact tendsto_deriv_cutoffLeaf hL hδ _ _
 
+/-- Each leaf `sqrtAddLeaf L δ ℓ` is continuous. -/
+theorem continuous_sqrtAddLeaf (L δ ℓ : ℝ) : Continuous (sqrtAddLeaf L δ ℓ) := by
+  rw [sqrtAddLeaf_eq_cutoffLeaf]
+  exact continuous_cutoffLeaf _ _ _ _
+
 /-- Between `δ` and `2 δ`, the slope of each leaf is that of the bottom leaf,
 `64 r / √(64 r² - 64 δ²)`. -/
 theorem deriv_sqrtAddLeaf_of_lt {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : δ < r)
@@ -720,6 +745,116 @@ theorem two_le_sqrtAddLeaf_sub_struweShape (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ �
       rw [sqrt_mul (by norm_num), show (64 : ℝ) = 8 ^ 2 by norm_num, sqrt_sq (by norm_num)]]
     exact le_sqrt_of_sq_le (by nlinarith)
   linarith
+
+/-! ### The far part, the germ and the vertical tangent of the Struwe switch leaves -/
+
+/-- For `ℓ ∈ [0, 7]` and `r ≥ 2`, the leaf `ℓ` for the radius `1` is `sqrtAddLeaf L 1 ℓ`. -/
+private theorem struweSwitchLeaf_one_of_two_le (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ ∈ Icc 0 7)
+    (hr : 2 ≤ r) : struweSwitchLeaf L 1 ℓ r = sqrtAddLeaf L 1 ℓ r := by
+  rcases le_or_gt ℓ (6 * 1) with h | h
+  · rw [struweSwitchLeaf_of_le h]
+  · have h2 := two_le_sqrtAddLeaf_sub_struweShape L hℓ hr
+    rw [struweSwitchLeaf_of_lt h]
+    dsimp only
+    rw [mul_one, mul_one] at *
+    exact smoothedMax_eq_left (div_pos (by linarith) (by norm_num)) (by linarith [hℓ.2])
+
+/-- From `2 δ` on, the leaf `ℓ ∈ [0, 7 δ]` is `sqrtAddLeaf L δ ℓ`, for `δ > 0`: there
+`sqrtAddLeaf L δ ℓ` exceeds Struwe's shape by at least `2 δ`
+(`SymplecticGeometry.two_le_sqrtAddLeaf_sub_struweShape`), more than the width of the smoothed
+maximum. -/
+theorem struweSwitchLeaf_of_two_mul_le (L : ℝ) (hδ : 0 < δ) {ℓ r : ℝ}
+    (hℓ : ℓ ∈ Icc 0 (7 * δ)) (hr : 2 * δ ≤ r) :
+    struweSwitchLeaf L δ ℓ r = sqrtAddLeaf L δ ℓ r := by
+  rw [struweSwitchLeaf_eq_mul_struweSwitchLeaf_one hδ, sqrtAddLeaf_eq_mul_sqrtAddLeaf_one hδ]
+  dsimp only
+  rw [struweSwitchLeaf_one_of_two_le L ⟨div_nonneg hℓ.1 hδ.le, (div_le_iff₀ hδ).2 hℓ.2⟩
+    ((le_div_iff₀ hδ).2 hr)]
+
+/-- From `(2 + L) δ` on, for `L, δ > 0`, the leaf `ℓ ∈ [0, 7 δ]` is the standard shape
+`√(64 r² + ℓ²)`. -/
+theorem struweSwitchLeaf_of_ge {L : ℝ} (hL : 0 < L) (hδ : 0 < δ) {ℓ r : ℝ}
+    (hℓ : ℓ ∈ Icc 0 (7 * δ)) (hr : (2 + L) * δ ≤ r) :
+    struweSwitchLeaf L δ ℓ r = √(64 * r ^ 2 + ℓ ^ 2) := by
+  rw [struweSwitchLeaf_of_two_mul_le L hδ hℓ (by nlinarith), sqrtAddLeaf_of_ge hL hδ hr]
+
+/-- For `0 ≤ L` and `r ∈ (1, 257 / 256]`, the leaf `7` for the radius `1` is Struwe's shape with
+value `65 / 8` at `1`. -/
+private theorem struweSwitchLeaf_one_seven {L r : ℝ} (hL : 0 ≤ L) (hr : r ∈ Ioc 1 (257 / 256)) :
+    struweSwitchLeaf L 1 7 r = struweShape 1 1 (65 / 8) r := by
+  have h := (sqrtAddLeaf_sub_struweShape_mem_Icc hL 7 ⟨hr.1.le, by linarith [hr.2]⟩).2
+  have hr2 : r ^ 2 ≤ (257 / 256) ^ 2 := pow_le_pow_left₀ (by linarith [hr.1]) hr.2 2
+  -- Here `√(r² - 1) ≤ 1 / 11`, so `sqrtAddLeaf L 1 7 r` is below Struwe's shape by `3 / 11`.
+  have hw : √(r ^ 2 - 1) ≤ 1 / 11 := by
+    rw [sqrt_le_left (by norm_num)]
+    linarith
+  rw [show (2 * 7 - 47 / 8 : ℝ) = 65 / 8 by norm_num] at h
+  rw [struweSwitchLeaf_of_lt (by norm_num)]
+  dsimp only
+  rw [show (2 * 7 - 47 * 1 / 8 : ℝ) = 65 / 8 by norm_num]
+  exact smoothedMax_eq_right (by norm_num) (by linarith)
+
+/-- **The germ of the leaf `7 δ`.** For `0 ≤ L` and `δ > 0`, near the cylinder, on
+`(δ, 257 δ / 256]`, the leaf `7 δ` is Struwe's shape with value `65 δ / 8` at `δ`. -/
+theorem struweSwitchLeaf_seven_mul_of_mem_Ioc {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) {r : ℝ}
+    (hr : r ∈ Ioc δ (257 * δ / 256)) :
+    struweSwitchLeaf L δ (7 * δ) r = struweShape δ 1 (65 * δ / 8) r := by
+  rw [struweSwitchLeaf_eq_mul_struweSwitchLeaf_one hδ, struweShape_eq_mul_struweShape_one hδ.ne',
+    mul_div_cancel_right₀ _ hδ.ne', show 65 * δ / 8 / δ = 65 / 8 by field_simp]
+  dsimp only
+  rw [struweSwitchLeaf_one_seven hL ⟨(lt_div_iff₀ hδ).2 (by linarith [hr.1]),
+    (div_le_iff₀ hδ).2 (by linarith [hr.2])⟩]
+
+/-- For `0 ≤ L`, `δ > 0` and `ℓ > 6 δ`, the leaf `ℓ` is Struwe's shape with value
+`2 ℓ - 47 δ / 8` at `δ` on some interval `[δ, δ + ε)`: at `δ` this shape exceeds
+`sqrtAddLeaf L δ ℓ` by `ℓ - 6 δ`, more than the width `(ℓ - 6 δ) / 200` of the smoothed
+maximum. -/
+theorem exists_eqOn_struweSwitchLeaf_struweShape {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) {ℓ : ℝ}
+    (hℓ : 6 * δ < ℓ) :
+    ∃ ε > 0, EqOn (struweSwitchLeaf L δ ℓ) (struweShape δ 1 (2 * ℓ - 47 * δ / 8))
+      (Ico δ (δ + ε)) := by
+  set T := struweShape δ 1 (2 * ℓ - 47 * δ / 8)
+  have hc : ContinuousWithinAt (fun r ↦ sqrtAddLeaf L δ ℓ r + (ℓ - 6 * δ) / 200 - T r) (Ici δ) δ :=
+    ((continuous_sqrtAddLeaf L δ ℓ).add continuous_const).continuousWithinAt.sub
+      (continuousOn_struweShape hδ le_rfl _ δ self_mem_Ici)
+  have hT : T δ = 2 * ℓ - 47 * δ / 8 := by
+    simpa using struweShape_apply_mul δ 1 (2 * ℓ - 47 * δ / 8)
+  have hA : sqrtAddLeaf L δ ℓ δ = δ / 8 + ℓ := by
+    rw [sqrtAddLeaf_of_le hL hδ.le (by linarith)]
+    simp
+  have h0 : sqrtAddLeaf L δ ℓ δ + (ℓ - 6 * δ) / 200 - T δ < 0 := by
+    rw [hA, hT]
+    linarith
+  obtain ⟨u, hu, hsub⟩ := mem_nhdsGE_iff_exists_Ico_subset.1 (hc (Iio_mem_nhds h0))
+  refine ⟨u - δ, sub_pos.2 hu, fun r hr ↦ ?_⟩
+  rw [add_sub_cancel] at hr
+  have hr' : sqrtAddLeaf L δ ℓ r + (ℓ - 6 * δ) / 200 - T r < 0 := hsub hr
+  rw [struweSwitchLeaf_of_lt hℓ]
+  exact smoothedMax_eq_right (div_pos (sub_pos.2 hℓ) (by norm_num)) (by linarith)
+
+/-- For `δ > 0`, each leaf `struweSwitchLeaf L δ ℓ` is continuous on `[δ, ∞)`. -/
+theorem continuousOn_struweSwitchLeaf (L : ℝ) (hδ : 0 < δ) (ℓ : ℝ) :
+    ContinuousOn (struweSwitchLeaf L δ ℓ) (Ici δ) := by
+  rcases le_or_gt ℓ (6 * δ) with hℓ | hℓ
+  · rw [struweSwitchLeaf_of_le hℓ]
+    exact (continuous_sqrtAddLeaf L δ ℓ).continuousOn
+  · rw [struweSwitchLeaf_of_lt hℓ]
+    exact (contDiff_smoothedMax (n := 0) _).continuous.comp_continuousOn
+      ((continuous_sqrtAddLeaf L δ ℓ).continuousOn.prodMk (continuousOn_struweShape hδ le_rfl _))
+
+/-- For `0 ≤ L` and `δ > 0`, the slope of every leaf `struweSwitchLeaf L δ ℓ` tends to `+∞` at
+`δ`: for `ℓ ≤ 6 δ` the leaf is `sqrtAddLeaf L δ ℓ`, and for `ℓ > 6 δ` it is Struwe's shape near
+`δ` (`SymplecticGeometry.exists_eqOn_struweSwitchLeaf_struweShape`). -/
+theorem tendsto_deriv_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
+    Tendsto (deriv (struweSwitchLeaf L δ ℓ)) (𝓝[>] δ) atTop := by
+  rcases le_or_gt ℓ (6 * δ) with hℓ | hℓ
+  · rw [struweSwitchLeaf_of_le hℓ]
+    exact tendsto_deriv_sqrtAddLeaf hL hδ ℓ
+  · obtain ⟨ε, hε, h⟩ := exists_eqOn_struweSwitchLeaf_struweShape hL hδ hℓ
+    refine (tendsto_deriv_struweShape hδ le_rfl (2 * ℓ - 47 * δ / 8)).congr' ?_
+    filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < δ + ε)] with r hr
+    refine (EventuallyEq.deriv_eq ?_).symm
+    filter_upwards [Ioo_mem_nhds hr.1 hr.2] with x hx using h ⟨hx.1.le, hx.2⟩
 
 /-- The case `δ = 1`, `ℓ ∈ (6, 7]` of `isConvexShapeAt_struweSwitchLeaf`. With
 `A = sqrtAddLeaf L 1 ℓ`, `T` Struwe's shape with value `2 ℓ - 47 / 8` at `1` and the width
