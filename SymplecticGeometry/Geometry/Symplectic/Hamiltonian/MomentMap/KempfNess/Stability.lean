@@ -14,7 +14,7 @@ import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import TauCeti.LinearAlgebra.BilinearForm.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
-import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 
 /-!
 # Stability and the Kempf–Ness function
@@ -480,9 +480,8 @@ theorem kempfNess (h : IsComplexifiedAction C J) (hK : σ.IsKahler J)
         ∃ u : G, u • x = y) ∧
     Function.Bijective (zeroLevelToPolystable C h hμ).orbitRelQuotientMap := by
   -- Install the metric `σ(·, J ·)` of the compatible pair.
-  let : RiemannianBundle (fun x : M ↦ TangentSpace I' x) :=
-    ⟨hK.compatible.metric.toRiemannianMetric⟩
-  have hgm := hK.compatible.inner_eq_eval₂
+  let := hK.compatible.riemannianBundle
+  have hgm := hK.compatible.inner_riemannianBundle
   have hσc := hK.isClosed
   have hσ := hK.isNondegenerate
   refine ⟨fun p ↦ ⟨existsUnique_kempfNessFunction C μ p h hμ hgm,
