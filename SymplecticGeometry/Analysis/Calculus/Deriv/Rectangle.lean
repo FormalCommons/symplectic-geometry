@@ -28,7 +28,9 @@ partial derivatives into estimates that hold uniformly on the rectangle:
   Lipschitz in `ℓ`, with one constant for all `r ∈ K`;
 * `IsCompact.exists_pos_abs_sub_lt_of_continuousOn`: a function continuous on the rectangle is
   uniformly continuous in `ℓ`, uniformly in `r ∈ K` (Heine–Cantor,
-  `IsCompact.uniformContinuousOn_of_continuous`);
+  `IsCompact.uniformContinuousOn_of_continuous`), and so
+  `IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn`: it stays uniformly close to its
+  values on the side `{b} × K` for `ℓ` in some interval `[c, b]`;
 * `IsCompact.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn`: the same for the first `n`
   derivatives in `r` of a family whose derivatives of order at most `n` are continuous on the
   rectangle, with one step in `ℓ` for all of them.
@@ -114,6 +116,21 @@ theorem IsCompact.exists_pos_abs_sub_lt_of_continuousOn {g : ℝ × ℝ → ℝ}
     rw [Prod.dist_eq, dist_self, Real.dist_eq, max_eq_left (abs_nonneg _)]
     linarith)
   rwa [Real.dist_eq] at h
+
+/-- A function continuous on the compact rectangle `[a, b] × K` is close to its values on the
+side `{b} × K` near that side: for every `ε > 0` and `c₀ ∈ [a, b)` there is `c ∈ (c₀, b)` such
+that `|g (ℓ, r) - g (b, r)| < ε` for all `ℓ ∈ [c, b]` and `r ∈ K`. -/
+theorem IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn {g : ℝ × ℝ → ℝ}
+    (hK : IsCompact K) (hg : ContinuousOn g (Icc a b ×ˢ K)) {ε c₀ : ℝ} (hε : 0 < ε)
+    (hac₀ : a ≤ c₀) (hc₀b : c₀ < b) :
+    ∃ c ∈ Ioo c₀ b, ∀ ℓ ∈ Icc c b, ∀ r ∈ K, |g (ℓ, r) - g (b, r)| < ε := by
+  obtain ⟨h, hh, H⟩ := hK.exists_pos_abs_sub_lt_of_continuousOn hg hε
+  have hm : 0 < min h ((b - c₀) / 2) := lt_min hh (by linarith)
+  have hm' : min h ((b - c₀) / 2) ≤ (b - c₀) / 2 := min_le_right _ _
+  refine ⟨b - min h ((b - c₀) / 2), ⟨by linarith, by linarith⟩, fun ℓ hℓ r hr ↦
+    H r hr b (right_mem_Icc.2 (hac₀.trans hc₀b.le)) ℓ ⟨by linarith [hℓ.1], hℓ.2⟩ ?_⟩
+  rw [abs_le]
+  constructor <;> linarith [hℓ.1, hℓ.2, min_le_left h ((b - c₀) / 2)]
 
 /-- Let `f : ℝ → ℝ → ℝ` be a family whose derivatives `∂ᵏf/∂rᵏ` of order `k ≤ n` are continuous
 on the compact rectangle `[a, b] × K`. Then they are uniformly continuous in `ℓ`, with one step

@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
@@ -242,7 +243,8 @@ theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
     [IB.Boundaryless] [IG.Boundaryless] {k : ℕ}
     {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k}
     (hβ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) β = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) β)
+      (contMDiff_const_smul (op g)) β =
+        SmoothForm.mapCoeff (F := EG) (G := EG) (Lie.adjointContinuousLinearMap (I := IG) g⁻¹) β)
     (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
     (v : Fin k → TangentSpace (IB.prod IG) x) :
     mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v =
@@ -261,16 +263,16 @@ theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
     swap
     · exact ContinuousAlternatingMap.apply_apply.symm
     funext t
-    have e := DFunLike.congr_fun
-      (congrFun (congrArg Subtype.val (hβ (mulInvariantExp (t • ξ)))) x) v
-    simp only [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply] at e
+    have e := (SmoothForm.mpullback_eq_mapCoeff_iff _).1 (hβ (mulInvariantExp (t • ξ))) x v
     dsimp only
     refine (Lie.tangentAd_apply (I := IG) _ _).trans ?_
-    rw [smul_neg, mulInvariantExp_neg, ← GroupLieAlgebra.adjointL_apply, ← e]
+    rw [smul_neg, mulInvariantExp_neg]
+    refine e.symm.trans ?_
     -- `Function.comp_apply` does not rewrite here, as the values lie in the fibre `Trivial _ EG x`;
-    -- `ContinuousAlternatingMap.apply_apply` closes the goal through the composition.
-    rw [SmoothForm.coe_mpullback]
-    exact ContinuousAlternatingMap.apply_apply (E := TangentSpace (IB.prod IG) x) (F := EG) |>.symm
+    -- `ContinuousAlternatingMap.apply_apply` and `TauCeti.mpullback_apply` close the goal through
+    -- the composition.
+    exact (ContinuousAlternatingMap.apply_apply (E := TangentSpace (IB.prod IG) x) (F := EG)).trans
+      (TauCeti.mpullback_apply _ _ x v) |>.symm
   have hd := Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero (I := IG) (-ξ) (β.val x v)
   refine (hv.unique hd).trans
     ((LieAlgebra.ad_apply ℝ (GroupLieAlgebra IG G) (-ξ) _).trans ((neg_lie ξ _).trans ?_))

@@ -59,20 +59,23 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField
-open TauCeti.PrincipalBundle (IsConnectionForm)
 open scoped Manifold ContDiff
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
-namespace SymplecticGeometry
+namespace TauCeti.PrincipalBundle
+
+open SymplecticGeometry
 
 variable {EG HG G : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [FiniteDimensional ℝ EG]
   [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G]
   [Group G] [LieGroup IG ∞ G]
 
+namespace IsConnectionForm
+
 /-- **The curvature of a connection form is equivariant**: its pull-back by the action of `g` is
 its image under `Ad(g⁻¹)`. -/
-theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.mpullback_op_smul_gaugeCurvature
+theorem mpullback_op_smul_gaugeCurvature
     {EB HB B : Type*}
     [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
     {IB : ModelWithCorners ℝ EB HB}
@@ -85,10 +88,11 @@ theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.mpullback_op_smul_gaugeC
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
         (contMDiff_const_smul (op g))
         (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) =
-      SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹)
+      SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹)
         (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) := by
   rw [mpullback_gaugeCurvature, hA.mpullback_op_smul,
-    gaugeCurvature_mapCoeff _ _ _ fun a b ↦ GroupLieAlgebra.adjointL_bracketL g⁻¹ a b]
+    gaugeCurvature_mapCoeff (𝔨 := EG) (𝔨' := EG) _ _ _ fun a b ↦
+      GroupLieAlgebra.adjointContinuousLinearMap_bracketL (I := IG) g⁻¹ a b]
 
 section Tensorial
 
@@ -103,8 +107,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 /-- The curvature of a connection form vanishes when its first argument is the value of a
 fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket
 `[A(ξ^♯), A] = [ξ, A]` cancels. -/
-theorem
-    _root_.TauCeti.PrincipalBundle.IsConnectionForm.gaugeCurvature_apply_rightFundamentalVectorField
+theorem gaugeCurvature_apply_rightFundamentalVectorField
     (hA : IsConnectionForm A) (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
     (w : TangentSpace (IB.prod IG) x) :
     (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val x
@@ -121,7 +124,7 @@ theorem
 
 /-- **The curvature of a connection form is horizontal**: it is semibasic for the projection,
 that is, it vanishes as soon as one of its arguments is vertical. -/
-theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω}
+theorem isSemibasic_gaugeCurvature {n : ℕ∞ω}
     (hA : IsConnectionForm A) :
     RoughForm.IsSemibasic (F := EG) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG)
@@ -136,7 +139,7 @@ theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.isSemibasic_gaugeCurvatu
 
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
-theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.isTensorialForm_gaugeCurvature
+theorem isTensorialForm_gaugeCurvature
     (hA : IsConnectionForm A) :
     IsTensorialForm (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) where
   mpullback_op_smul := hA.mpullback_op_smul_gaugeCurvature
@@ -144,6 +147,8 @@ theorem _root_.TauCeti.PrincipalBundle.IsConnectionForm.isTensorialForm_gaugeCur
 
 end Tensorial
 
-end SymplecticGeometry
+end IsConnectionForm
+
+end TauCeti.PrincipalBundle
 
 end
