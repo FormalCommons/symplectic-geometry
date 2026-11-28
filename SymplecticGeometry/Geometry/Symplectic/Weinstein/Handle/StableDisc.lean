@@ -386,7 +386,7 @@ theorem exists_forall_flow_mem_source_and_norm_centeredExtChartAt_le {p : M}
   obtain ⟨r₀, hr₀, hsub, h⟩ :=
     hW.isGradientLike.exists_forall_mem_source_and_norm_centeredExtChartAt_le
       (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) hW.contMDiff_field.continuous
-      (hp.eventually_notMem_criticalPoints.mono fun _ hy ↦ by rwa [mem_criticalPoints] at hy)
+      hp.eventually_notMem_criticalPoints
   refine ⟨r₀, hr₀, hsub, fun r hr ↦ ?_⟩
   obtain ⟨ε, hε, hconf⟩ := h r hr
   have h₀ (x : M) : hW.flow 0 x = x := hW.flow.map_zero_apply x
