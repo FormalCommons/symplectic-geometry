@@ -628,7 +628,8 @@ and the prerequisites, placed by topic.
   `RelCWComplex (univ : Set X) (range j)` with no cell of dimension less
   than $n$, and `h : X ≃ₕ M` with `h (j z) = z`. It is assembled from the
   Morse–Bott attachment near $Z_k$ and the Morse CW models away from it.
-  Its corollary `IsUniformlyTransverse.isNConnected_zeroSet_inclusion` (for nonempty $Z_k$, $Z_k\hookrightarrow M$ is
+  Its corollary `IsUniformlyTransverse.isNConnected_zeroSet_inclusion` (for
+  nonempty $Z_k$, $Z_k\hookrightarrow M$ is
   $(n-1)$-connected) follows through `TauCeti.isNConnected_inclusion_skeletonLT`
   and the homotopy equivalence.
 - `Hypersurface.lean`: the milestone `exists_symplecticHypersurface`: for
