@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
-import TauCeti.Geometry.Lie.Adjoint.InvariantForm
+import TauCeti.Analysis.Calculus.Deriv.Growth
 import TauCeti.LinearAlgebra.BilinearForm.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
@@ -61,11 +61,12 @@ Weights and limit points move as expected under `G` and under the parabolic subg
 in `C.parabolic ξ`, `exp (i t ξ) q x` is the conjugate `exp (i t ξ) q exp (-i t ξ)`, which
 converges, acting on `exp (i t ξ) x` (`limitPoint_smul_of_mem_parabolic`). For the weight, the
 quotient `Φ_p (exp (-i s ξ)) / s` tends to `-w_μ(p, ξ)`
-(`tendsto_kempfNessFunction_expI_neg_smul_div`), and by the cocycle identity
-`kempfNessFunction_mul` the functions for `q x` and `x` differ along `exp (-i s ξ)` by a bounded
-amount, since the conjugates of `q⁻¹` have bounded polar radius
-(`abs_kempfNessFunction_expI_mul_toHom_le`); so `w_μ(q x, ξ) = w_μ(x, ξ)`
-(`momentWeight_smul_of_mem_parabolic`).
+(`tendsto_kempfNessFunction_expI_neg_smul_div`, by Tau Ceti's
+`tendsto_inv_smul_atTop_of_tendsto_deriv` and the limit of the derivative), and by the cocycle
+identity `kempfNessFunction_mul` the functions for `q x` and `x` differ along `exp (-i s ξ)` by
+a bounded amount, since the conjugates of `q⁻¹` converge and so have bounded polar radius
+(`abs_kempfNessFunction_expI_mul_toHom_le`, `exists_eventually_abs_kempfNessFunction_le`); so
+`w_μ(q x, ξ) = w_μ(x, ξ)` (`momentWeight_smul_of_mem_parabolic`).
 
 ## Main definitions
 
@@ -100,6 +101,8 @@ amount, since the conjugates of `q⁻¹` have bounded polar radius
   `C.parabolic ξ`, `(q x)⁺_ξ = C.parabolicLimit ξ q • x⁺_ξ` and `w_μ(q x, ξ) = w_μ(x, ξ)`.
 * `SymplecticGeometry.tendsto_kempfNessFunction_expI_neg_smul_div`:
   `Φ_p (C.expI (-(s • ξ))) / s → -w_μ(p, ξ)` as `s → ∞`.
+* `SymplecticGeometry.exists_eventually_abs_kempfNessFunction_le`: along a convergent curve in
+  `Gc`, `Φ_p` is eventually bounded, uniformly in `p`.
 * `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
   is nonpositive.
 
@@ -436,76 +439,64 @@ theorem tendsto_kempfNessFunction_expI_neg_smul_div (h : IsComplexifiedAction C 
     (p : M) (ξ : GroupLieAlgebra I G) :
     Tendsto (fun s : ℝ ↦ kempfNessFunction C μ p (C.expI (-(s • ξ))) / s) atTop
       (𝓝 (-momentWeight C μ p ξ)) := by
-  set f := fun s : ℝ ↦ kempfNessFunction C μ p (C.expI (-(s • ξ)))
-  have hd := hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ
-  refine tendsto_order.2 ⟨fun a ha ↦ ?_, fun a ha ↦ ?_⟩
-  · -- From some `T` on the slope of `f` exceeds `b`, for `a < b < -w_μ(p, ξ)`, so `f` grows at
-    -- least like `b * s`.
-    obtain ⟨b, hab, hb⟩ := exists_between ha
-    obtain ⟨T, hT⟩ := eventually_atTop.1
-      ((tendsto_order.1 (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg).1 b hb)
-    have hmv {s : ℝ} (hs : T ≤ s) : b * (s - T) ≤ f s - f T :=
-      (convex_Ici T).mul_sub_le_image_sub_of_le_deriv
-        (fun y _ ↦ (hd y).continuousAt.continuousWithinAt)
-        (fun y _ ↦ (hd y).differentiableAt.differentiableWithinAt)
-        (fun y hy ↦ by
-          rw [(hd y).deriv]
-          exact (hT y (interior_Ici.subset hy).le).le)
-        T (Set.mem_Ici.2 le_rfl) s hs hs
-    have h0 : Tendsto (fun s : ℝ ↦ (f T - b * T) / s) atTop (𝓝 0) :=
-      tendsto_const_nhds.div_atTop tendsto_id
-    filter_upwards [(tendsto_order.1 h0).1 (a - b) (by linarith), eventually_ge_atTop T,
-      eventually_gt_atTop 0] with s hs hTs hs0
-    rw [lt_div_iff₀ hs0] at hs ⊢
-    linarith [hmv hTs]
-  · -- `f s ≤ -(w_μ(p, ξ) * s)` for `s ≥ 0`.
-    filter_upwards [eventually_gt_atTop 0] with s hs
-    rw [div_lt_iff₀ hs]
-    nlinarith [kempfNessFunction_expI_neg_smul_le h hμ hg p ξ hs.le]
+  simpa [div_eq_inv_mul] using tendsto_inv_smul_atTop_of_tendsto_deriv
+    (.of_forall (hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ))
+    (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
+
+omit [ConnectedSpace G] [FiniteDimensional ℝ E'] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+  [ContMDiffSMul IC I' ∞ Gc M] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+/-- **Kempf–Ness functions along a convergent curve.** On a compact manifold, with `-μ` a moment
+map for `σ`, if `k` converges along `l`, then `Φ_p (k s)` is eventually bounded along `l`,
+uniformly in `p`. -/
+theorem exists_eventually_abs_kempfNessFunction_le
+    {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (hμ : σ.IsMomentMap a fun x ↦ -μ x)
+    {α : Type*} {l : Filter α} {k : α → Gc} {g₀ : Gc} (hk : Tendsto k l (𝓝 g₀)) :
+    ∃ R, ∀ᶠ s in l, ∀ p, |kempfNessFunction C μ p (k s)| ≤ R := by
+  -- A positive definite form `B` on the Lie algebra, from an inner product through `e`.
+  let e := ContinuousLinearEquiv.ofFinrankEq (𝕜 := ℝ) (E := GroupLieAlgebra I G)
+    (F := EuclideanSpace ℝ (Fin (Module.finrank ℝ (GroupLieAlgebra I G)))) (by simp)
+  let B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G) :=
+    (innerₗ _).compl₁₂ e.toLinearEquiv.toLinearMap e.toLinearEquiv.toLinearMap
+  have hBe (v : GroupLieAlgebra I G) : B v v = ‖e v‖ ^ 2 := by
+    simp [B]
+  have hBp : B.toQuadraticMap.PosDef := fun v hv ↦ by
+    rw [LinearMap.BilinMap.toQuadraticMap_apply, hBe]
+    exact pow_pos (norm_pos_iff.2 (e.map_ne_zero_iff.2 hv)) 2
+  have hBs : B.IsSymm := ⟨fun v w ↦ by simp [B, real_inner_comm]⟩
+  have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
+  -- A bound `L` for `√(‖μ‖²)` on `M`, so `|Φ_p (k s)|` is at most `L` times the polar radius.
+  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
+    (hμ.contMDiff_momentNormSq.continuous.sqrt.continuousOn :
+      ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
+  have hL' (y : M) : √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
+    simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
+  have hc : Continuous fun g : Gc ↦ L * ‖e (C.polar.symm g).1‖ :=
+    continuous_const.mul (e.continuous.comp (continuous_fst.comp C.polar.symm.continuous)).norm
+  obtain ⟨R, hR⟩ := ((hc.tendsto g₀).comp hk).isBoundedUnder_le
+  refine ⟨R, (eventually_map.1 hR).mono fun s hs p ↦ ?_⟩
+  rw [← C.expI_mul_toHom_polar_symm (k s)]
+  refine (abs_kempfNessFunction_expI_mul_toHom_le C μ p hBs
+    (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hL' _ _).trans ?_
+  -- The polar radius lies in `E`, which is the Lie algebra `GroupLieAlgebra I G`.
+  calc L * √(B ((C.polar.symm (k s)).1 : GroupLieAlgebra I G) (C.polar.symm (k s)).1)
+      = L * ‖e (C.polar.symm (k s)).1‖ :=
+        congrArg (L * ·) ((congrArg Real.sqrt (hBe _)).trans (Real.sqrt_sq (norm_nonneg _)))
+    _ ≤ R := hs
 
 /-- **Moment weights under the parabolic subgroup.** Under the hypotheses of
-`tendsto_deriv_kempfNessFunction`, with `G` compact, `w_μ(q x, ξ) = w_μ(x, ξ)` for every `q` in the
+`tendsto_deriv_kempfNessFunction`, `w_μ(q x, ξ) = w_μ(x, ξ)` for every `q` in the
 parabolic subgroup `C.parabolic ξ`. -/
-theorem momentWeight_smul_of_mem_parabolic [T2Space G] [CompactSpace G]
-    (h : IsComplexifiedAction C J)
+theorem momentWeight_smul_of_mem_parabolic (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {ξ : GroupLieAlgebra I G} (q : C.parabolic ξ) (x : M) :
     momentWeight C μ ((q : Gc) • x) ξ = momentWeight C μ x ξ := by
   have := topologicalGroup_of_lieGroup IC ∞ (G := Gc)
-  -- A positive definite form `B` on the Lie algebra, and a bound `L` for `√(‖μ‖²)` on `M`.
-  obtain ⟨b, hbs, hbpos, -⟩ :=
-    Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant (I := I) (G := G)
-  set B := b.toBilinForm
-  have hBs : B.IsSymm := ⟨fun v w ↦ hbs v w⟩
-  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 fun v ↦ by
-    rcases eq_or_ne v 0 with rfl | hv
-    · simp [B]
-    · exact (hbpos v hv).le
-  have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic
-    (B.anisotropic_toQuadraticMap_iff.2 fun v hv ↦ by_contra fun hv0 ↦ (hbpos v hv0).ne' hv)
-  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
-    (hμ.toIsMomentMap.contMDiff_momentNormSq.continuous.sqrt.continuousOn :
-      ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
-  have hL' (y : M) : √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
-    simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
-  -- The conjugates `k s = exp (i s ξ) q⁻¹ exp (-i s ξ)` converge, so their polar radii are bounded.
+  -- The conjugates `k s = exp (i s ξ) q⁻¹ exp (-i s ξ)` converge, so `Φ` is bounded along them.
   set k : ℝ → Gc := fun s ↦ C.expI (s • ξ) * (q : Gc)⁻¹ * C.expI (-(s • ξ))
   have hk : Tendsto k atTop (𝓝 (C.parabolicLimit ξ q⁻¹)) := by
     simpa only [Subgroup.coe_inv] using C.tendsto_parabolicLimit ξ q⁻¹
-  have hη : Tendsto (fun s ↦ L * √(B (C.polar.symm (k s)).1 (C.polar.symm (k s)).1)) atTop
-      (𝓝 (L * √(B (C.polar.symm (C.parabolicLimit ξ q⁻¹)).1
-        (C.polar.symm (C.parabolicLimit ξ q⁻¹)).1))) := by
-    have hc : Continuous fun a : Gc ↦ L * √(b (C.polar.symm a).1 (C.polar.symm a).1) := by
-      have h1 : Continuous fun a : Gc ↦ (C.polar.symm a).1 :=
-        continuous_fst.comp C.polar.symm.continuous
-      have hb : Continuous fun v : E ↦ b v v :=
-        (ContinuousLinearMap.continuous₂ (E := E) (F := E) b).comp
-          (continuous_id.prodMk continuous_id)
-      exact continuous_const.mul ((hb.comp h1).sqrt)
-    exact (hc.tendsto _).comp hk
-  obtain ⟨R, hR⟩ := hη.isBoundedUnder_le
-  rw [eventually_map] at hR
+  obtain ⟨R, hR⟩ := exists_eventually_abs_kempfNessFunction_le (C := C) hμ.toIsMomentMap hk
   -- `Φ_{q x} (exp (-i s ξ)) = Φ_x (exp (-i s ξ)) + Φ_y (k s) - Φ_x q⁻¹` with `y = exp (i s ξ) x`.
   have hid (s : ℝ) : kempfNessFunction C μ ((q : Gc) • x) (C.expI (-(s • ξ))) =
       kempfNessFunction C μ x (C.expI (-(s • ξ))) +
@@ -527,8 +518,7 @@ theorem momentWeight_smul_of_mem_parabolic [T2Space G] [CompactSpace G]
     filter_upwards [hR, eventually_gt_atTop 0] with s hRs hs
     rw [norm_div, Real.norm_of_nonneg hs.le, Real.norm_eq_abs, id_eq]
     refine div_le_div_of_nonneg_right ((abs_sub _ _).trans (add_le_add_left ?_ _)) hs.le
-    rw [← C.expI_mul_toHom_polar_symm (k s)]
-    exact (abs_kempfNessFunction_expI_mul_toHom_le C μ _ hBs hpos hL' _ _).trans hRs
+    exact hRs _
   have := tendsto_nhds_unique (tendsto_kempfNessFunction_expI_neg_smul_div h hμ hg _ ξ)
     (((tendsto_kempfNessFunction_expI_neg_smul_div h hμ hg x ξ).add hsmall).congr fun s ↦ by
       rw [hid, add_div])

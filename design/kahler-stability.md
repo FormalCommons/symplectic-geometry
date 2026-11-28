@@ -529,10 +529,9 @@ This is a hypothesis of the statements below, not a definition.
   `limitPoint_eq_of_tendsto`.
 - `tendsto_kempfNessFunction_expI_neg_smul_div`:
   `Φ_p (C.expI (-(s • ξ))) / s → -momentWeight C μ p ξ` as `s → ∞`. The
-  upper bound is `kempfNessFunction_expI_neg_smul_le`; for the lower bound,
-  the derivative `hasDerivAt_kempfNessFunction_expI_neg_smul` tends to
-  `-momentWeight C μ p ξ` (`tendsto_momentWeight`), and
-  `Convex.mul_sub_le_image_sub_of_le_deriv` bounds the growth from some time on.
+  derivative `hasDerivAt_kempfNessFunction_expI_neg_smul` tends to
+  `-momentWeight C μ p ξ` (`tendsto_momentWeight`), so Tau Ceti's
+  `TauCeti.tendsto_inv_smul_atTop_of_tendsto_deriv` gives the limit.
 - `abs_kempfNessFunction_expI_mul_toHom_le` (in `KempfNess/Function.lean`): if `√(momentNormSq μ (B.toDual hB).symm y) ≤ L`
   for all `y`, then `|Φ_p (C.expI η * C.toHom u)| ≤ L * √(B η η)` for every
   `p`, from `kempfNessFunction_expI_mul_toHom` and
