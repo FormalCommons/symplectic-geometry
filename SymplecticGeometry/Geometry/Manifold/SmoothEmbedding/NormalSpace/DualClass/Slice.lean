@@ -372,18 +372,18 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       (TopCat.ofHom ⟨O.domRestrict (Ψ ∘ g), (hΨc.comp hgO hOW).domRestrict⟩)
       (B := {⟨0, hO0⟩}ᶜ) (B' := zeroSectionCompl P _)
       fun w hw ↦ mem_zeroSectionCompl.2 (hψ0 w w.property fun h ↦ hw (Subtype.ext h))
-  have hψ (w : O) : TopPair.Hom.fst ψ w = Ψ (g w) :=
-    TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (B := {⟨0, hO0⟩}ᶜ) _ _ w
   have hLψ : LO = ψ ≫ (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom ≫
       TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
     rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
       ConcreteCategory.comp_apply]
     refine Eq.trans ?_ (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ _ _).symm
-    -- No `rw [hψ]`: the right side applies `Φ` to a point typed in the pair of `ψ`, so it
-    -- typechecks only after unfolding `ofSubset`.
-    exact (TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (B := {⟨0, hO0⟩}ᶜ) _ _ w).trans
-      ((hΦΨ (hOW _ (show O from w).property)).symm.trans (congrArg (fun v ↦ (Φ v : X)) (hψ w).symm))
+    simp only [LO, ψ]
+    -- The `MapsTo` proofs of `LO` and `ψ` typecheck only after unfolding `ofSubset`, which keeps
+    -- `rw` from matching; `generalize_proofs` replaces them by hypotheses.
+    generalize_proofs
+    rw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+    exact (hΦΨ (hOW _ (show O from w).property)).symm
   rw [hLψ, TopPair.singularCohomologyMap_comp_apply, normalSlice_def,
     ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom]
   -- Since `Φ` is normalized, the fibre coordinate of `g` has derivative the identity at `0`.
