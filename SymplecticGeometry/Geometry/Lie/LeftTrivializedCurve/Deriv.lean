@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+public import TauCeti.Topology.Algebra.Group.Connected
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 
@@ -57,6 +58,13 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   for an action of `G` on `M` and `p : M`, the orbit curve `t ↦ (g t)⁻¹ • p` has derivative
   `-ξ_M((g t)⁻¹ • p)`: in matrix notation, if `g⁻¹ g' = ξ`, then `y = g⁻¹ p` solves
   `y' = -X_ξ(y)`.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_smul`: for a smooth action,
+  the forward orbit curve `t ↦ g t • p` has derivative `d(g t • ·)_p (ξ_M p)`.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.smul_eq_smul_of_fundamentalVectorField_eq_zero`,
+  `SymplecticGeometry.HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer`:
+  if the fundamental vector field of every `ξ t` vanishes at `x`, then `t ↦ g t • x` is constant
+  on a preconnected `s`, and a curve through `1` stays in the identity component of the
+  stabilizer of `x`.
 
 ## Implementation notes
 
@@ -78,7 +86,9 @@ at `t`, and so has its translate `u ↦ g u * (h u)⁻¹`. A curve whose derivat
 preconnected subset of `ℝ` is constant on it (`Convex.apply_eq_of_hasMFDerivWithinAt_zero`).
 
 The derivative of the orbit curve is the chain rule along `g`, with the derivative of
-`h ↦ h⁻¹ • p` from `TauCeti.mfderiv_inv_smul_apply`.
+`h ↦ h⁻¹ • p` from `TauCeti.mfderiv_inv_smul_apply`; for the forward orbit curve
+`t ↦ g t • p`, Tau Ceti's `mfderiv_smul_mulInvariantVectorField` gives the derivative of the
+orbit map of `p` along the left-invariant vector field.
 -/
 
 public section
@@ -350,7 +360,62 @@ theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul_of_contMDiffSMul [
     ((ContMDiffSMul.contMDiff_smul_const p).comp (contMDiff_inv I 1)).mdifferentiableAt
       one_ne_zero
 
+/-- **The forward orbit curve.** If `g` has left-trivialized derivative `ξ` on `s` and `G` acts
+smoothly on `M`, then for `t ∈ s` the curve `u ↦ g u • p` has derivative within `s` at `t` equal
+to `d(g t • ·)_p (ξ_M p)`, the image under the action of `g t` of the fundamental vector field of
+`ξ t` at `p`. -/
+theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_smul [LieGroup I 1 G]
+    [ContMDiffSMul I I' 1 G M] (hg : HasLeftTrivializedDerivOn g ξ s) {t : ℝ} (ht : t ∈ s) :
+    HasMFDerivWithinAt 𝓘(ℝ) I' (fun u ↦ g u • p) s t ((1 : ℝ →L[ℝ] ℝ).smulRight
+      (mfderiv I' I' (g t • ·) p (fundamentalVectorField (I := I) (G := G) I' (ξ t) p))) := by
+  refine ((ContMDiffSMul.mdifferentiableAt_smul_const (I := I) (I' := I') p
+    (g t)).hasMFDerivAt.comp_hasMFDerivWithinAt t
+      (hasLeftTrivializedDerivOn_iff.1 hg t ht)).congr_mfderiv ?_
+  rw [ContinuousLinearMap.smulRight_one_eq_toSpanSingleton,
+    ContinuousLinearMap.smulRight_one_eq_toSpanSingleton]
+  exact (ContinuousLinearMap.comp_toSpanSingleton (R₁ := ℝ) _ _).trans (by
+    rw [mfderiv_smul_mulInvariantVectorField])
+
 end InvSMul
+
+section Isotropy
+
+variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+  [IsManifold I' 1 M] [MulAction G M] [LieGroup I 1 G] [ContMDiffSMul I I' 1 G M] {x : M}
+
+/-- **Curves along the isotropy algebra.** For a `C¹` action of `G` on `M`, if `g` has
+left-trivialized derivative `ξ` on a preconnected set `s` of times and the fundamental vector
+field of each `ξ t`, `t ∈ s`, vanishes at `x`, then `t ↦ g t • x` is constant on `s`. -/
+theorem HasLeftTrivializedDerivOn.smul_eq_smul_of_fundamentalVectorField_eq_zero
+    (hg : HasLeftTrivializedDerivOn g ξ s) (hs : IsPreconnected s)
+    (hξ : ∀ t ∈ s, fundamentalVectorField (I := I) (G := G) I' (ξ t) x = 0) {t t₀ : ℝ}
+    (ht : t ∈ s) (ht₀ : t₀ ∈ s) : g t • x = g t₀ • x := by
+  -- The derivative of `u ↦ g u • x` at `t` is the image of `X_{ξ t} x = 0`.
+  have hd (t : ℝ) (ht : t ∈ s) : HasMFDerivWithinAt 𝓘(ℝ) I' (fun u ↦ g u • x) s t 0 := by
+    refine (hg.hasMFDerivWithinAt_smul ht).congr_mfderiv ?_
+    rw [hξ t ht, map_zero, ContinuousLinearMap.smulRight_one_eq_toSpanSingleton]
+    exact ContinuousLinearMap.toSpanSingleton_zero ℝ
+  exact hs.convex.apply_eq_of_hasMFDerivWithinAt_zero hd ht ht₀
+
+/-- **Curves along the isotropy algebra stay in the identity component of the stabilizer.** For
+a `C¹` action of `G` on `M`, if `g` has left-trivialized derivative `ξ` on a preconnected set `s`
+of times, passes through `1` at some `t₀ ∈ s`, and the fundamental vector field of each `ξ t`,
+`t ∈ s`, vanishes at `x`, then `g t` lies in the identity component of the stabilizer of `x` for
+every `t ∈ s`. -/
+theorem HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer
+    [IsTopologicalGroup G] (hg : HasLeftTrivializedDerivOn g ξ s) (hs : IsPreconnected s)
+    (hξ : ∀ t ∈ s, fundamentalVectorField (I := I) (G := G) I' (ξ t) x = 0) {t₀ : ℝ}
+    (ht₀ : t₀ ∈ s) (h₀ : g t₀ = 1) {t : ℝ} (ht : t ∈ s) :
+    g t ∈ (MulAction.stabilizer G x).ambientConnectedComponentOfOne := by
+  have hmaps : MapsTo g s (MulAction.stabilizer G x) := fun u hu ↦ by
+    rw [SetLike.mem_coe, MulAction.mem_stabilizer_iff,
+      hg.smul_eq_smul_of_fundamentalVectorField_eq_zero hs hξ hu ht₀, h₀, one_smul]
+  rw [← SetLike.mem_coe, Subgroup.coe_ambientConnectedComponentOfOne, ← h₀]
+  exact (hs.image g hg.continuousOn).subset_connectedComponentIn (mem_image_of_mem g ht₀)
+    hmaps.image_subset (mem_image_of_mem g ht)
+
+end Isotropy
 
 end SymplecticGeometry
 

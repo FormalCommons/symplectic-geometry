@@ -746,17 +746,17 @@ other.
 **`KempfNess/Stabilizer.lean`** (the complexified stabilizer, Step 1 of
 the source, first half).
 
-- `polar_symm_mem_stabilizer_iff_of_moment_eq_zero`: if `μ x = 0`, then
+- `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`: if `μ x = 0`, then
   `g ∈ MulAction.stabilizer Gc x` exactly when, for
   `(η, u) = C.polar.symm g`, `X_η x = 0` and `u ∈ H` (Lemma 2.3 of the
   source). Backward: `C.expI η` fixes `x` (`expI_smul_smul_eq_self_iff`).
   Forward: `y = C.toHom u • x` has `μ y = 0` (`moment_toHom_smul`) and
-  `C.expI η • y = x`; `t ↦ μ (C.expI (t • η) • y) η` is antitone
-  (`antitone_moment_expI`) and vanishes at `t = 0` and `t = 1`, so it is
-  constant there, `X_η` vanishes along the curve (`hasDerivAt_moment_expI`),
-  the curve is constant, and `y = x`.
-- `mem_stabilizer_of_hasLeftTrivializedDerivOn`: a curve `k : ℝ → Gc`
-  on an interval `s` with `k t₀ = 1` and left-trivialized derivative in
+  `C.expI η • y = x`, so `y = x` (`expI_smul_eq_self_of_moment_apply_le`);
+  then `C.expI (-η)` fixes `x`, and `moment_expI_neg_smul_apply_pos` gives
+  `X_η x = 0`.
+- `HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer`
+  (`Geometry/Lie/LeftTrivializedCurve/Deriv.lean`): a curve `k : ℝ → Gc`
+  on a preconnected `s` with `k t₀ = 1` and left-trivialized derivative in
   `𝔤c_x` on `s` takes values in the identity component `Gc₀` of
   `MulAction.stabilizer Gc x` (Tau Ceti's
   `Subgroup.ambientConnectedComponentOfOne`). The curve `t ↦ k t • x` has
@@ -899,12 +899,14 @@ because the orbit of a zero of `μ` is isotropic (Tau Ceti's
   `k t = (h t₀)⁻¹ * (g t₀)⁻¹ * g t * h t`, one has
   `e.symm (v t) = (k t)⁻¹ • e.symm (v t₀)` for `t ≥ t₀`. Differentiating,
   `ker_sliceOperator_eq` puts the left-trivialized derivative of `k` in
-  `𝔤c_x`, so `k t ∈ Gc₀` (`mem_stabilizer_of_hasLeftTrivializedDerivOn`),
+  `𝔤c_x`, so `k t ∈ Gc₀`
+  (`HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer`),
   and `v t = ρ (k t)⁻¹ (v t₀)`, where `ρ` is the tangent representation
   `g ↦ mfderiv (g • ·) x` of `Gc₀` on `S` (Tau Ceti's
   `tangentRepresentation`): both sides solve the same linear equation
   (`ODE_solution_unique_of_mem_Icc`). `ρ` preserves `S` and is
-  `J x`-linear, since by `polar_symm_mem_stabilizer_iff_of_moment_eq_zero`
+  `J x`-linear, since by
+  `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`
   every element of `Gc₀` is `C.expI η * C.toHom u` with `η ∈ 𝔥` and
   `u ∈ H₀`, and `ρ (C.expI η)` is `NormedSpace.exp (J x ∘ A η)` by
   `expI_smul_chart_symm`. In an orthonormal basis of `S` for the
@@ -1180,9 +1182,10 @@ Each is a few hundred lines; each is blocked by the issues it names.
        14 and 15.
     9. `exists_mem_nonzeroPeriods_tendsto_expI_smul`, by the route of
        *The local criterion*, in these issues, in this order:
-       1. `polar_symm_mem_stabilizer_iff_of_moment_eq_zero` and
-          `mem_stabilizer_of_hasLeftTrivializedDerivOn`, in
-          `KempfNess/Stabilizer.lean`. No blockers.
+       1. `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, in
+          `KempfNess/Stabilizer.lean`, and
+          `HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer`,
+          in `Geometry/Lie/LeftTrivializedCurve/Deriv.lean`. No blockers.
        2. `stabilizerComplexification`, `stabilizerComplexification_expI`
           and `mem_nonzeroPeriods_of_stabilizer`. Blocked by 12.9.1.
        3. `KempfNess/HolomorphicChart.lean`:
