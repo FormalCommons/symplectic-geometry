@@ -37,6 +37,8 @@ sides are terms of `R`, to which the lemmas about `R` apply.
   in `R`.
 * `coe_mulInvariantExp_eq_exp_complex`: `(mulInvariantExp v : ℂ) = Complex.exp v` on `ℂˣ`, with
   `v` read in `ℂ`.
+* `ContMDiffMonoidMorphism.contMDiff_coe`: for a smooth homomorphism `ρ` into `Rˣ`, the map
+  `g ↦ (ρ g : R)` is smooth.
 * `ContMDiffMonoidMorphism.mfderiv_coe_apply_one`: for a smooth homomorphism `ρ` into `Rˣ`, the
   derivative at `1` of `g ↦ (ρ g : R)` is `ρ.groupLieAlgebraLieHom`, read in `R`.
 * `ContMDiffMonoidMorphism.coe_map_mulInvariantExp`: `(ρ (mulInvariantExp ξ) : R) = exp (dρ ξ)`
@@ -83,12 +85,16 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
   {R : Type*} [NormedRing R] [NormedAlgebra ℝ R] [CompleteSpace R]
 
+/-- For a smooth homomorphism `ρ : G → Rˣ`, the map `g ↦ (ρ g : R)` is smooth. -/
+theorem ContMDiffMonoidMorphism.contMDiff_coe (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) :
+    ContMDiff I 𝓘(ℝ, R) ∞ (fun g ↦ (ρ g : R)) :=
+  Units.contMDiff_val.comp ρ.contMDiff_toFun
+
 /-- For a smooth homomorphism `ρ : G → Rˣ`, the map `g ↦ (ρ g : R)` is differentiable at `1`. -/
 theorem ContMDiffMonoidMorphism.mdifferentiableAt_coe_one
     (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) :
     MDifferentiableAt I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 :=
-  (Units.hasMFDerivAt_val (𝕜 := ℝ) (ρ 1)).mdifferentiableAt.comp 1
-    (ρ.contMDiff_toFun.mdifferentiableAt (by simp))
+  (ρ.contMDiff_coe 1).mdifferentiableAt (by simp)
 
 variable [CompleteSpace E] [LieGroup I ∞ G]
 
