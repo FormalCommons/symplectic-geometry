@@ -238,9 +238,9 @@ theorem mextDeriv_prod_apply_inl_eq_zero [ConnectedSpace M] {n : ℕ}
   -- Along `M`, `y ↦ dφ_(p, y)((a₀, 0), …, (aₙ, 0))` has zero derivative.
   set g : M → F := fun y ↦ mextDeriv φ (p, y) (fun i ↦ (a i, 0))
   have hg : MDifferentiable I 𝓘(ℝ, F) g := fun y ↦ by
-    have hV (i : Fin (n + 1)) := Manifold.mdifferentiableAt_prodVectorField (p := (p, y))
-      ((contMDiff_tangentBundle_mk_const (E := P) (a i)).mdifferentiableAt one_ne_zero)
-      ((contMDiff_zeroSection ℝ (TangentSpace I)).mdifferentiableAt one_ne_zero)
+    have hV (i : Fin (n + 1)) :=
+      (Manifold.contMDiff_prodVectorField_const_zero (J := I) (N := M) (a i) (n := 1)
+        ).mdifferentiableAt one_ne_zero (x := (p, y))
     have h := (mdifferentiableAt_apply_vectorField (hdφd (z := (p, y)) ⟨hp, trivial⟩) hV).comp y
       (mdifferentiableAt_const.prodMk mdifferentiableAt_id)
     convert h using 1
