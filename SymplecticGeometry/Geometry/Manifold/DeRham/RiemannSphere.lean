@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.DeRham.Map
-public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
+public import TauCeti.Geometry.Manifold.Instances.OnePoint.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Smale
 import TauCeti.Geometry.Manifold.DeRham.Sphere
 
