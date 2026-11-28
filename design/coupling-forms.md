@@ -262,7 +262,9 @@ About 500 lines.
   the field $V_{ij}$ on `F` with
   $\iota(V_{ij})\sigma=\partial_i\alpha_j-\partial_j\alpha_i-d\big(\sigma(X_i,X_j)\big)$,
   the formula of the page's corrected hint to Exercise 6.4.9. Then
-  `hasHamiltonianCurvature_iff_local`: the curvature is Hamiltonian exactly
+  `hasHamiltonianCurvature_iff_local`, in `Fibration/HamiltonianCurvature.lean`
+  (it uses `PatchForm.lean`, which imports this file): the curvature is
+  Hamiltonian exactly
   when, in every symplectic chart over a coordinate patch,
   every $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive on `F`, at
   every `x` (the page's 2 ⇔ 3).
@@ -450,12 +452,13 @@ The corollary. About 150 lines.
 In the order they can be done; each is one pull request of a few hundred
 lines, and waits only for what it names.
 
-1. **The curvature identity and the local formula.** The first five items
+1. **The curvature identity and the local formula.** The first items
    of `Fibration/Curvature.lean`:
    `apply_curvature_eq_mvfderiv_sub_mextDeriv` (milestone line),
    `curvatureIn`, `HasHamiltonianCurvature`,
-   `hasHamiltonianCurvature_of_isClosed`, `curvatureIn_local` and
-   `hasHamiltonianCurvature_iff_local`. Waits for *Symplectic fibrations*
+   `hasHamiltonianCurvature_of_isClosed`, `curvatureIn_local`; and
+   `hasHamiltonianCurvature_iff_local`, in
+   `Fibration/HamiltonianCurvature.lean`. Waits for *Symplectic fibrations*
    (`HorizontalDistribution.lean`, `LocalForm.lean`) and *Parallel
    transport* (`Curvature.lean`).
 2. **Holonomy around discs.** `Fibration/Holonomy.lean`. Waits for

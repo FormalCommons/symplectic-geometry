@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Basic
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Formula
 import TauCeti.Geometry.Lie.Exponential.Generation
 import TauCeti.Geometry.Lie.Interior
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 
 /-!
 # Linear maps commuting with the adjoint action
@@ -68,7 +69,14 @@ theorem map_tangentAd_apply_of_map_lie [PreconnectedSpace G]
       ((groupLieAlgebraEquivModelVectorSpace (I := I) (G := G)).conj
         (LieAlgebra.ad ℝ (GroupLieAlgebra I G) x))
     let J' : E →L[ℝ] E := LinearMap.toContinuousLinearMap J
-    have hc : Commute J' A := ContinuousLinearMap.ext fun z ↦ hJ x z
+    -- `A` and `J'` act on `E` as `ad x` and `J` act on `GroupLieAlgebra I G`, so `hJ` says
+    -- that they commute.
+    have hA := toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_ad_apply (E := E) x
+    have hJ' := LinearMap.coe_toContinuousLinearMap' J
+    have hc : Commute J' A := ContinuousLinearMap.ext fun z ↦
+      (mul_apply_eq_comp J' A z).trans <| (congrFun hJ' (A z)).trans <|
+      (congrArg J (hA z)).trans <| (hJ x z).trans <| (hA (J z)).symm.trans <|
+      (congrArg A (congrFun hJ' z).symm).trans (mul_apply_eq_comp A J' z).symm
     have h (z : E) : J' (NormedSpace.exp A z) = NormedSpace.exp A (J' z) := by
       rw [← mul_apply_eq_comp, ← mul_apply_eq_comp, hc.exp_right.eq]
     have h₁ := tangentAd_mulInvariantExp_apply (I := I) (G := G) x y
