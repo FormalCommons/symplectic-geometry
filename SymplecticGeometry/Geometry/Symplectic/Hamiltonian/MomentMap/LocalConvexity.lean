@@ -13,6 +13,7 @@ import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Analysis.Calculus.Implicit
 import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
@@ -251,10 +252,7 @@ theorem exists_weightModelChart_isotropy
     (α k : F →ₗ[ℝ] ℝ) ∘ₗ c.toLinearMap
   have hβ (k : Fin n) (η : GroupLieAlgebra 𝓘(ℝ, F) K) : β k η = α k η := by
     simp only [β, c, LinearMap.coe_comp, Function.comp_apply, LinearEquiv.coe_coe,
-      ContinuousLinearMap.coe_coe]
-    -- Tau Ceti defines `groupLieAlgebraEquivModelVectorSpace` as `LinearEquiv.refl` and gives it
-    -- no evaluation lemma, so this step is by definition.
-    rfl
+      ContinuousLinearMap.coe_coe, groupLieAlgebraEquivModelVectorSpace_apply]
   let α' : Fin n → StrongDual ℝ 𝔤ₓ := fun k ↦
     LinearMap.toContinuousLinearMap (β k ∘ₗ e.symm.toLinearMap)
   have hα' (k : Fin n) (ξ : 𝔤ₓ) : α' k ξ = α k (e.symm ξ) := by
