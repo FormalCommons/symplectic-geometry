@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
+public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath.Basic
 import Mathlib.Analysis.Normed.Module.FiniteDimension
 import SymplecticGeometry.Analysis.Calculus.MeanValue
 
