@@ -31,6 +31,7 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import SymplecticGeometry.Analysis.InnerProductSpace.Ellipsoid
 import TauCeti.Analysis.ODE.ExponentialDichotomy
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # The linearization of a gradient-like field at a nondegenerate critical point
@@ -247,7 +248,7 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
     have := g.pos p (X p) hne
     nlinarith [sq_nonneg ‖mgradient 𝓘(ℝ, E) f p‖]
   have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
-    (hf.eventually (by simp)).mono fun u hu ↦ hu.differentiableAt (by norm_num)
+    hf.eventually_differentiableAt (by simp)
   obtain ⟨κ, hκ, hev⟩ :=
     exists_eventually_mul_norm_sq_add_sq_le g hc (Filter.mem_of_superset hU hg) hF (Y := Y) rfl
   have hB : HasFDerivAt (fderiv ℝ (f ∘ φ.symm)) B (φ p) := hf.hasFDerivAt_fderiv le_rfl
