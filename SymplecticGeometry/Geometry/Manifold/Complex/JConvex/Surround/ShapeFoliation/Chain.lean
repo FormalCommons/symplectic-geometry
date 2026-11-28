@@ -61,10 +61,10 @@ These paths, between consecutive members `M i` and `M (i + 1)` of the chain of s
   `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`); for continuous `A i`, the
   joints match near `r` once they match strictly at `r`
   (`SymplecticGeometry.eventually_forall_sub_add_le_smoothedMaxChain`). Its members are then
-  `i`-convex shapes at each `r` where the joints match nearby, the `A i` are `C²` and `i`-convex
-  shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, and the `A (i + 1) - η` are `i`-convex
-  shapes at `r` (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the mesh, `M N`
-  after it, and a path between smoothed maxima on each of its intervals. Where moreover
+  `i`-convex shapes at each `r` where the joints match nearby, the `A i` are `C²` at `r` and
+  `i`-convex shapes there with `deriv (A i) r ≤ G` and `δ G ≤ r`, and the `A (i + 1) - η` are
+  `i`-convex shapes at `r` (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the
+  mesh, `M N` after it, and a path between smoothed maxima on each of its intervals. Where moreover
   `A 0, …, A j` climb by `δ` near `r`, so that `M j = A j` there, a member on the `j`-th interval
   is the smoothed maximum of `A j` and some `A (j + 1) - c`, `c ∈ [0, η]`, near `r`; its value and
   first two derivatives at `r` are then within the farther of those of `A j` and `A (j + 1)` of
@@ -187,10 +187,10 @@ theorem exists_mem_Icc_smoothedMaxPath_eq (hη : 0 ≤ η) (σ : ℝ) :
   ⟨_, one_sub_collaredSmoothTransition_mul_mem_Icc hη σ,
     funext fun r ↦ smoothedMaxPath_def δ η M A σ r⟩
 
-/-- For `η ≥ 0`, the path consists of `i`-convex shapes at `r` if `M` and `A` are `C²`, `M` and
-`A - η` are `i`-convex shapes at `r`, and `δ (M' r + A' r) ≤ 2 r`. -/
-theorem isConvexShapeAt_smoothedMaxPath (hδ : 0 < δ) (hη : 0 ≤ η) (hM : ContDiff ℝ 2 M)
-    (hA : ContDiff ℝ 2 A) (hcM : IsConvexShapeAt M r)
+/-- For `η ≥ 0`, the path consists of `i`-convex shapes at `r` if `M` and `A` are `C²` at `r`,
+`M` and `A - η` are `i`-convex shapes at `r`, and `δ (M' r + A' r) ≤ 2 r`. -/
+theorem isConvexShapeAt_smoothedMaxPath (hδ : 0 < δ) (hη : 0 ≤ η) (hM : ContDiffAt ℝ 2 M r)
+    (hA : ContDiffAt ℝ 2 A r) (hcM : IsConvexShapeAt M r)
     (hcA : IsConvexShapeAt (fun r ↦ A r - η) r)
     (hδr : δ * (deriv M r + deriv A r) ≤ 2 * r) (σ : ℝ) :
     IsConvexShapeAt (smoothedMaxPath δ η M A σ) r := by
@@ -199,7 +199,7 @@ theorem isConvexShapeAt_smoothedMaxPath (hδ : 0 < δ) (hη : 0 ≤ η) (hM : Co
   have hAc : IsConvexShapeAt (fun r ↦ A r - c) r := by
     convert hcA.add_const (c := η - c) (by linarith [hc.2]) using 2
     ring
-  exact isConvexShapeAt_smoothedMax hM.contDiffAt (hA.sub contDiff_const).contDiffAt hδ hcM hAc
+  exact isConvexShapeAt_smoothedMax hM (hA.sub contDiffAt_const) hδ hcM hAc
     (by rwa [deriv_sub_const])
 
 /-- **The path keeps the smaller margin in (4.3).** For `δ > 0`, `0 ≤ η < A r`, `M r > 0` and
@@ -389,19 +389,19 @@ theorem eventually_forall_sub_add_le_smoothedMaxChain (hδ : 0 < δ)
   exact (hr' i hi).le.trans (le_smoothedMaxChain hδ A i r')
 
 /-- **The chain of paths consists of `i`-convex shapes.** For `δ, h > 0` and `η ≥ 0`, let the
-`A i`, `i ≤ N`, be `C²` and `i`-convex shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, let
-the `A (i + 1) - η`, `i < N`, be `i`-convex shapes at `r`, and let the joints match near `r`:
-`A (i + 1) - η + δ ≤ M i` for `i < N`, with `M = smoothedMaxChain δ A`. Then every member of the
-chain of paths between smoothed maxima is an `i`-convex shape at `r`. -/
+`A i`, `i ≤ N`, be `C²` at `r` and `i`-convex shapes there with `deriv (A i) r ≤ G` and
+`δ G ≤ r`, let the `A (i + 1) - η`, `i < N`, be `i`-convex shapes at `r`, and let the joints match
+near `r`: `A (i + 1) - η + δ ≤ M i` for `i < N`, with `M = smoothedMaxChain δ A`. Then every member
+of the chain of paths between smoothed maxima is an `i`-convex shape at `r`. -/
 theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 0 ≤ η)
-    (hA : ∀ i ≤ N, ContDiff ℝ 2 (A i))
+    (hA : ∀ i ≤ N, ContDiffAt ℝ 2 (A i) r)
     (hJ : ∀ᶠ r' in 𝓝 r, ∀ i < N, A (i + 1) r' - η + δ ≤ smoothedMaxChain δ A i r')
     (hc : ∀ i ≤ N, IsConvexShapeAt (A i) r)
     (hcη : ∀ i < N, IsConvexShapeAt (fun r ↦ A (i + 1) r - η) r)
     (hG : ∀ i ≤ N, deriv (A i) r ≤ G) (hδG : δ * G ≤ r) (ℓ : ℝ) :
     IsConvexShapeAt (shapeChain δ η a h A N ℓ) r := by
   have hM {j : ℕ} (hj : j ≤ N) : IsConvexShapeAt (smoothedMaxChain δ A j) r :=
-    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ (hA i (hi.trans hj)).contDiffAt)
+    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ hA i (hi.trans hj))
       (fun i hi ↦ hc i (hi.trans hj)) (fun i hi ↦ hG i (hi.trans hj)) hδG
   rcases le_or_gt ℓ a with hℓa | hℓa
   · rw [shapeChain_of_le hh (by linarith)]
@@ -415,11 +415,11 @@ theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 
   refine IsConvexShapeAt.congr_of_eventuallyEq ?_
     (shapeChain_eventuallyEq_smoothedMaxPath hδ hh hJ hj hℓj)
   have hd : ∀ i ≤ j, DifferentiableAt ℝ (A i) r := fun i hi ↦
-    ((hA i (hi.trans hj.le)).differentiable two_ne_zero).differentiableAt
+    (hA i (hi.trans hj.le)).differentiableAt two_ne_zero
   have hdM := deriv_smoothedMaxChain_le δ hd fun i hi ↦ hG i (hi.trans hj.le)
   have hdA := hG (j + 1) hj
   refine isConvexShapeAt_smoothedMaxPath hδ hη
-    (contDiff_smoothedMaxChain δ fun i hi ↦ hA i (hi.trans hj.le)) (hA (j + 1) hj) (hM hj.le)
+    (contDiffAt_smoothedMaxChain δ fun i hi ↦ hA i (hi.trans hj.le)) (hA (j + 1) hj) (hM hj.le)
     (hcη j hj) ?_ _
   nlinarith
 
@@ -749,7 +749,7 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
     have hδG : δ * G ≤ x.2 := by
       have := (le_div_iff₀ hG).1 hcG
       linarith [hx.2.1, mul_le_mul_of_nonneg_right hδc hG.le]
-    exact isConvexShapeAt_shapeChain hδ hh hη.le (fun i _ ↦ hA2 i) (hJ x.2 hx.2)
+    exact isConvexShapeAt_shapeChain hδ hh hη.le (fun i _ ↦ (hA2 i).contDiffAt) (hJ x.2 hx.2)
       (fun i _ ↦ (hjc x.2 hx.2).2.1 i) (fun i _ ↦ (hjc x.2 hx.2).2.2 (i + 1))
       (fun i _ ↦ hGA i x.2 hx.2) hδG x.1
   · -- Flat near `a`.
