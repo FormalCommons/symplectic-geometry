@@ -399,9 +399,7 @@ theorem one_add_mvfderiv_attachmentTime_pos (hg : MDifferentiable 𝓘(ℝ, E) �
   -- `dτ(X)` at `x` is the derivative of `τ` along the orbit of `x` at time `0`.
   have hτ : HasDerivAt (hW.attachmentTime g b μ ∘ fun t ↦ hW.flow t x)
       (mvfderiv 𝓘(ℝ, E) (hW.attachmentTime g b μ) x (X x)) 0 := by
-    have hc := Manifold.hasDerivAt_comp_curve
-      (γ := fun t ↦ hW.flow t x) (by rwa [Flow.map_zero_apply]) (hW.isMIntegralCurve_flow x 0)
-    beta_reduce at hc
+    have hc := hW.hasDerivAt_comp_flow (t := 0) (by rwa [Flow.map_zero_apply])
     rwa [Flow.map_zero_apply] at hc
   by_cases h : ∃ t, g (hW.flow t x) = 0
   swap
