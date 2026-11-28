@@ -11,6 +11,8 @@ public import TauCeti.LinearAlgebra.BilinearForm.Basic
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
+import Mathlib.LinearAlgebra.Dual.Lemmas
+import SymplecticGeometry.Analysis.Normed.Operator.Functional
 
 /-!
 # Continuous bilinear forms
@@ -99,6 +101,15 @@ applied to a single form, so its sublevel sets `{x | B x x ≤ c}` are compact.
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 * `LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply`: for nondegenerate `B` in finite
   dimension, `B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f`.
+* `ContinuousLinearMap.ker_eq_ker_of_mul_norm_sq_add_norm_sq_le`: a form `B` and an operator `A`
+  with `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` have the same kernel.
+* `ContinuousLinearMap.exists_apply_eq_of_ker_le_ker`: in finite dimension, a symmetric form
+  `B` takes as values `B w` every linear form that vanishes on its kernel.
+* `ContinuousLinearMap.apply_eq_zero_of_apply_eq_zero_of_mul_norm_sq_add_norm_sq_le`: if two
+  symmetric forms `B`, `B'` and two linear forms `T`, `T'` satisfy
+  `c * (‖β w‖ ^ 2 + ‖B w + T‖ ^ 2) ≤ (B w + T) (β w)` and the same with `B'`, `T'`, `c'`, for
+  one map `β`, where `B e = 0` and the kernel of `B'` lies in `ℝ ∙ e`, then `T' e = 0` forces
+  `T e = 0`.
 * `LinearMap.BilinForm.isCompact_setOfPred_apply_self_le`: on a finite-dimensional real normed
   space, the sublevel sets of a positive definite form are compact.
 -/
@@ -425,5 +436,54 @@ theorem isCompact_setOfPred_apply_self_le {E : Type*} [NormedAddCommGroup E] [No
   simpa using (hle () rfl x).trans hx
 
 end LinearMap.BilinForm
+
+namespace ContinuousLinearMap
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- If `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for every `v`, with `c > 0`, then the continuous
+bilinear form `B` and the operator `A` have the same kernel. -/
+theorem ker_eq_ker_of_mul_norm_sq_add_norm_sq_le {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {A : E →L[ℝ] F} {B : E →L[ℝ] F →L[ℝ] ℝ} {c : ℝ} (hc : 0 < c)
+    (h : ∀ v, c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)) : B.ker = A.ker := by
+  ext v
+  simpa using eq_zero_iff_eq_zero_of_mul_le_apply hc (h v)
+
+/-- In finite dimension, a symmetric continuous bilinear form `B` takes as values `B w` every
+continuous linear form `ℓ` that vanishes on the kernel of `B`. -/
+theorem exists_apply_eq_of_ker_le_ker [FiniteDimensional ℝ E] {B : E →L[ℝ] E →L[ℝ] ℝ}
+    (hB : ∀ v w, B v w = B w v) {ℓ : E →L[ℝ] ℝ} (hℓ : B.ker ≤ ℓ.ker) : ∃ w, B w = ℓ := by
+  have hmem : ℓ.toLinearMap ∈ (LinearMap.ker B.toLinearMap₁₂).dualAnnihilator := by
+    rw [Submodule.mem_dualAnnihilator]
+    intro v hv
+    refine hℓ (LinearMap.mem_ker.2 (ext fun w ↦ ?_))
+    exact LinearMap.congr_fun (LinearMap.mem_ker.1 hv) w
+  rw [LinearMap.dualAnnihilator_ker_eq_range_flip] at hmem
+  obtain ⟨w, hw⟩ := hmem
+  exact ⟨w, ext fun v ↦ by rw [hB]; exact LinearMap.congr_fun hw v⟩
+
+/-- Let `B` and `B'` be symmetric continuous bilinear forms in finite dimension, with `B e = 0`
+and the kernel of `B'` in `ℝ ∙ e`. Let `T` and `T'` be continuous linear forms and `β : E → E`
+a map such that, for every `w`, `c * (‖β w‖ ^ 2 + ‖B w + T‖ ^ 2) ≤ (B w + T) (β w)` and
+`c' * (‖β w‖ ^ 2 + ‖B' w + T'‖ ^ 2) ≤ (B' w + T') (β w)`, with `c, c' > 0`. Then `T' e = 0`
+implies `T e = 0`. -/
+theorem apply_eq_zero_of_apply_eq_zero_of_mul_norm_sq_add_norm_sq_le [FiniteDimensional ℝ E]
+    {B B' : E →L[ℝ] E →L[ℝ] ℝ}
+    (hB : ∀ v w, B v w = B w v) (hB' : ∀ v w, B' v w = B' w v) {e : E} (hBe : B e = 0)
+    (hker : B'.ker ≤ ℝ ∙ e) {T T' : E →L[ℝ] ℝ} {β : E → E} {c c' : ℝ} (hc : 0 < c)
+    (hc' : 0 < c') (h : ∀ w, c * (‖β w‖ ^ 2 + ‖B w + T‖ ^ 2) ≤ (B w + T) (β w))
+    (h' : ∀ w, c' * (‖β w‖ ^ 2 + ‖B' w + T'‖ ^ 2) ≤ (B' w + T') (β w)) (hT' : T' e = 0) :
+    T e = 0 := by
+  -- Some `w` makes `B' w + T'` vanish, since `-T'` vanishes on the kernel of `B'`.
+  obtain ⟨w, hw⟩ := exists_apply_eq_of_ker_le_ker hB' (ℓ := -T') fun v hv ↦ by
+    obtain ⟨a, rfl⟩ := Submodule.mem_span_singleton.1 (hker hv)
+    simp [hT']
+  have hw' : B' w + T' = 0 := by rw [hw, neg_add_cancel]
+  -- Then `β w = 0`, so `B w + T = 0`, and `(B w + T) e = T e` since `B w e = B e w = 0`.
+  have hβ : β w = 0 := (eq_zero_iff_eq_zero_of_mul_le_apply hc' (h' w)).1 hw'
+  have hBT : B w + T = 0 := (eq_zero_iff_eq_zero_of_mul_le_apply hc (h w)).2 hβ
+  simpa [hB w e, hBe] using congrArg (· e) hBT
+
+end ContinuousLinearMap
 
 end
