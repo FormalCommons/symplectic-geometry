@@ -34,6 +34,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContDiffBound
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere
@@ -468,11 +469,14 @@ preconnected space and on which `J ↦ D_J` is continuous into the operator norm
 private theorem exists_preconnectedSpace_continuous_twistOneDelBarSobolev (hi : σ.Tames 𝒊)
     (k : ℕ) : ∃ _ : TopologicalSpace {J // σ.Tames J}, PreconnectedSpace {J // σ.Tames J} ∧
       Continuous fun J : {J // σ.Tames J} ↦ twistOneDelBarSobolev J.val k := by
-  let e (x : OnePoint ℂ) := trivializationAt (ℂ →L[ℝ] ℂ)
-    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x) x
-  let U (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e x).open_baseSet⟩
-  have hU : ∀ x, (U x : Set (OnePoint ℂ)) ⊆ (e x).baseSet := fun _ ↦ subset_rfl
-  have hcover : ∀ x, ∃ y, x ∈ U y := fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩
+  let e := trivializationAt (ℂ →L[ℝ] ℂ)
+    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
+  let U := FiberBundle.baseSetOpensAt (ℂ →L[ℝ] ℂ)
+    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
+  have hU := FiberBundle.baseSetOpensAt_subset_baseSet (ℂ →L[ℝ] ℂ)
+    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
+  have hcover := FiberBundle.exists_mem_baseSetOpensAt (ℂ →L[ℝ] ℂ)
+    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
   have := hi.isNondegenerate.contractibleSpace_tames e U hU hcover
   exact ⟨_, inferInstance, continuous_twistOneDelBarSobolev_tames e U hU hcover σ k⟩

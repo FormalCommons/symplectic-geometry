@@ -30,6 +30,9 @@ two trivializations, these inclusions differ by the coordinate change.
 * `Bundle.Trivialization.fiberInclusionMap`: the inclusion of the model fibre onto the fibre over a
   point of the base set of a trivialization, as a continuous map. Tau Ceti's
   `Bundle.Trivialization.fiberInclusion` is the same inclusion as a morphism of `TopCat`.
+* `FiberBundle.baseSetOpensAt`: the base set of the preferred trivialization at a point, as an
+  open set of the base. With `trivializationAt F E`, these sets form a frame system that covers
+  the base (`FiberBundle.baseSetOpensAt_subset_baseSet`, `FiberBundle.exists_mem_baseSetOpensAt`).
 
 ## Main results
 
@@ -269,6 +272,50 @@ cover its base. -/
 @[simp]
 theorem iUnion_baseSet_trivializationAt : ⋃ b, (trivializationAt F E b).baseSet = Set.univ :=
   Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, mem_baseSet_trivializationAt F E b⟩
+
+variable (F E) in
+/-- The base set of the preferred trivialization `trivializationAt F E b` of a fibre bundle, as an
+open set of the base. With `trivializationAt F E`, these sets form a frame system indexed by the
+points of the base, which covers it. -/
+def baseSetOpensAt (b : B) : TopologicalSpace.Opens B :=
+  ⟨(trivializationAt F E b).baseSet, (trivializationAt F E b).open_baseSet⟩
+
+variable (F E) in
+theorem baseSetOpensAt_def (b : B) :
+    baseSetOpensAt F E b =
+      ⟨(trivializationAt F E b).baseSet, (trivializationAt F E b).open_baseSet⟩ :=
+  (rfl)
+
+variable (F E) in
+/-- The open set `baseSetOpensAt F E b` is the base set of `trivializationAt F E b`. -/
+@[simp]
+theorem coe_baseSetOpensAt (b : B) :
+    (baseSetOpensAt F E b : Set B) = (trivializationAt F E b).baseSet :=
+  (rfl)
+
+/-- A point lies in `baseSetOpensAt F E b` if and only if it lies in the base set of
+`trivializationAt F E b`. -/
+@[simp]
+theorem mem_baseSetOpensAt_iff {b x : B} :
+    x ∈ baseSetOpensAt F E b ↔ x ∈ (trivializationAt F E b).baseSet :=
+  Iff.rfl
+
+variable (F E) in
+/-- The open set `baseSetOpensAt F E b` lies in the base set of `trivializationAt F E b`. -/
+theorem baseSetOpensAt_subset_baseSet (b : B) :
+    (baseSetOpensAt F E b : Set B) ⊆ (trivializationAt F E b).baseSet :=
+  (coe_baseSetOpensAt F E b).subset
+
+variable (F E) in
+/-- Every point `x` of the base lies in `baseSetOpensAt F E x`, so these open sets cover the
+base. -/
+theorem mem_baseSetOpensAt_self (x : B) : x ∈ baseSetOpensAt F E x :=
+  mem_baseSetOpensAt_iff.2 (mem_baseSet_trivializationAt F E x)
+
+variable (F E) in
+/-- The open sets `baseSetOpensAt F E b` cover the base: each point lies in one of them. -/
+theorem exists_mem_baseSetOpensAt (x : B) : ∃ b, x ∈ baseSetOpensAt F E b :=
+  ⟨x, mem_baseSetOpensAt_self F E x⟩
 
 /-- A set `s` of the total space of a fibre bundle is open if there is an open set `t` of the
 model fibre such that, for each point `b` of the base, a point `q` of the source of the
