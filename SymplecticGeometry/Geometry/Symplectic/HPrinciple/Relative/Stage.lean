@@ -148,16 +148,17 @@ theorem continuous_tangentEquiv_symm_stagePath (hcover : ∀ x, ∃ j, x ∈ W j
     ((hs.comp continuous_fst).prodMk (hA.comp continuous_snd)))
   -- The correction `α l - τ l + d (B' (s l))`, pulled back along the end of the isotopy.
   have h₂ := hT.comp (((hα.sub hτ).comp continuous_fst).prodMk
-    ((hs.comp continuous_fst).prodMk (continuous_const : Continuous fun _ : Λ × unitInterval ↦ (1 : unitInterval))))
-  have h₃ := ((hB'.mextDeriv.mpullback_family (f := fun q : S × M ↦ e ((q.1, 1), q.2))
-    (he.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd))).continuous_tangentEquiv_symm
-      fr W hW).comp (hs.comp (continuous_fst (X := Λ) (Y := unitInterval)))
+    ((hs.comp continuous_fst).prodMk
+      (continuous_const (X := Λ × unitInterval) (y := (1 : unitInterval)))))
+  have he₁ : ContMDiff (𝓘(ℝ, S).prod I) I ∞ fun q : S × M ↦ e ((q.1, 1), q.2) :=
+    he.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd)
+  have h₃ := ((hB'.mextDeriv.mpullback_family he₁).continuous_tangentEquiv_symm fr W hW).comp
+    (hs.comp (continuous_fst (X := Λ) (Y := unitInterval)))
   refine (h₁.add ((hC.comp continuous_snd).smul
     ((Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_smul fr W hW ⟨ρ, hρ⟩).comp
       (h₂.add h₃)))).congr fun p ↦ ?_
   simp only [Pi.add_apply, Pi.smul_apply', Pi.sub_apply, Function.comp_apply, stagePath_def,
-    map_add, map_sub, map_smul,
-    LinearEquiv.apply_symm_apply, F, ContMDiffMap.coeFn_mk]
+    map_add, map_sub, map_smul, LinearEquiv.apply_symm_apply, F, ContMDiffMap.coeFn_mk]
   abel_nf
 
 end Continuous
@@ -235,6 +236,113 @@ theorem BandCore.exists_stage_family (c : BandCore I g a₀ a b) (hg : Continuou
     exact ⟨h₂, h₁⟩
 
 end Stage
+
+section ContinuousStage
+
+open _root_.Bundle
+
+variable [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [SigmaCompactSpace M]
+  [FiniteDimensional ℝ S] {g : M → ℝ} {a₀ a b : ℝ}
+  {P : Type*} [TopologicalSpace P] [CompactSpace P] [T2Space P] {ι : Type*}
+  (fr : ι → Trivialization (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (E [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (fr j)]
+  (W : ι → TopologicalSpace.Opens M) (hW : ∀ j, (W j : Set M) ⊆ (fr j).baseSet)
+
+/-- **One stage of the relative h-principle, for continuous families.** Let `c` be a band core of
+a continuous `g : M → ℝ` for the levels `a₀`, `a`, `b`, let `P` be a compact Hausdorff space and
+`P₀ ⊆ P` closed. Let `τ` and `α` be families over `P` of two-forms on `M`, continuous into the
+frame topology of a covering frame system, with every `α l` closed and every `τ l`
+nondegenerate, and let the one-forms be `B (s l)`, for a smooth family `B` over a
+finite-dimensional normed space `S` and a continuous `s : P → S`, such that
+`τ l = α l + d (B (s l))` on an open `N ⊇ {g ≤ a}` for every `l`, and on all of `M` for `l ∈ P₀`.
+Then there are a family `H` over `P × [0, 1]` of two-forms and a family `α'` over `P` of
+two-forms, both continuous into the frame topology, continuous maps `σ i : P → Fin (n i) → ℝ`,
+one for each cube `i`, a smooth family `B''` of one-forms over
+`S × ((i : c.ι) → Fin (n i) → ℝ)`, a neighbourhood `V` of `{g ≤ a}` and an open `N' ⊇ {g ≤ b}`
+such that, with the new one-forms `β' l := B'' (s l, fun i ↦ σ i l)`,
+
+* `H (l, 0) = τ l`, and every `H (l, t)` is nondegenerate;
+* on `V`, `H (l, t) = τ l`, `α' l = α l` and `β' l = B (s l)`;
+* every `α' l` is closed, and `α' l = α l + d γ` for a one-form `γ` vanishing on `V`;
+* on `N'`, `H (l, 1) = α' l + d (β' l)`;
+* for `l ∈ P₀`, `H (l, 1) = α' l + d (β' l)` on all of `M`, and every `H (l, t)` is closed with
+  `H (l, t) - α l` exact. -/
+theorem BandCore.exists_stage_continuous_family (c : BandCore I g a₀ a b) (hg : Continuous g)
+    (hcover : ∀ x, ∃ j, x ∈ W j) {P₀ : Set P} (hP₀ : IsClosed P₀)
+    {τ α : P → SmoothTwoForm I M}
+    (hτ : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (τ l))
+    (hα : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (α l))
+    (hαc : ∀ l, mextDerivₗ I 2 (α l) = 0) (hnd : ∀ l, (τ l).IsNondegenerate)
+    {B : S → SmoothForm I M ℝ 1} (hB : IsSmoothFamily 𝓘(ℝ, S) B) {s : P → S}
+    (hs : Continuous s) {N : Set M} (hN : IsOpen N) (haN : {x | g x ≤ a} ⊆ N)
+    (hτN : ∀ l, ∀ x ∈ N, (τ l).val x = (α l + mextDerivₗ I 1 (B (s l))).val x)
+    (hτP₀ : ∀ l ∈ P₀, τ l = α l + mextDerivₗ I 1 (B (s l))) :
+    ∃ (H : P × unitInterval → SmoothTwoForm I M) (α' : P → SmoothTwoForm I M)
+      (n : c.ι → ℕ) (σ : ∀ i, P → Fin (n i) → ℝ)
+      (B'' : S × ((i : c.ι) → Fin (n i) → ℝ) → SmoothForm I M ℝ 1) (V N' : Set M),
+      (let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW;
+        Continuous fun p ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (H p)) ∧
+      (let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW;
+        Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (α' l)) ∧
+      (∀ i, Continuous (σ i)) ∧ IsSmoothFamily 𝓘(ℝ, S × ((i : c.ι) → Fin (n i) → ℝ)) B'' ∧
+      (∀ l, H (l, 0) = τ l) ∧ (∀ l t, (H (l, t)).IsNondegenerate) ∧
+      V ∈ 𝓝ˢ {x | g x ≤ a} ∧ (∀ l t, ∀ x ∈ V, (H (l, t)).val x = (τ l).val x ∧
+        (α' l).val x = (α l).val x ∧ (B'' (s l, fun i ↦ σ i l)).val x = (B (s l)).val x) ∧
+      (∀ l, mextDerivₗ I 2 (α' l) = 0 ∧
+        ∃ γ : SmoothForm I M ℝ 1, α' l = α l + mextDerivₗ I 1 γ ∧ ∀ x ∈ V, γ.val x = 0) ∧
+      IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧
+      (∀ l, ∀ x ∈ N', (H (l, 1)).val x =
+        (α' l + mextDerivₗ I 1 (B'' (s l, fun i ↦ σ i l))).val x) ∧
+      ∀ l ∈ P₀, H (l, 1) = α' l + mextDerivₗ I 1 (B'' (s l, fun i ↦ σ i l)) ∧
+        ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - α l ∈ exactForms I M 2 := by
+  obtain ⟨n, σ, Φ, B', N₁, U, hσ, hΦ, -, hΦd, hΦ₀, hB', hN₁, haN₁, hN₁N, hΦN₁, hB'N₁, -, hB'P₀,
+      hU, hKU, hUc, hUnd⟩ :=
+    c.exists_approximation_continuous_family fr W hW hg hcover hP₀ hτ hα hnd hB hs hN haN hτN
+      hτP₀
+  -- The parameter of the approximation, `s' l = (s l, fun i ↦ σ i l)`.
+  set s' : P → S × ((i : c.ι) → Fin (n i) → ℝ) := fun l ↦ (s l, fun i ↦ σ i l) with hs'_def
+  have hs' : Continuous s' := hs.prodMk (continuous_pi hσ)
+  obtain ⟨φ, hφ, ρ, hρ, V, N', -, hφ₀, hV, hVa, hVN₁, hφV, hN', hbN', -, hρN', hHnd⟩ :=
+    exists_stagePath c hg isCompact_univ hs' (fun l _ ↦ hnd l) hΦ hΦd hΦ₀ hN₁ haN₁ hΦN₁ hU
+      hKU (fun l _ ↦ hUc l) fun p hp _ ↦ hUnd p hp
+  -- The end of the isotopy, as a smooth family of maps over the parameters of the approximation.
+  have hφ₁ : ContMDiff (𝓘(ℝ, S × ((i : c.ι) → Fin (n i) → ℝ)).prod I) I ∞
+      fun q : (S × ((i : c.ι) → Fin (n i) → ℝ)) × M ↦ φ ((q.1, 1), q.2) :=
+    hφ.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd)
+  refine ⟨stagePath hφ hρ s' τ α B',
+    fun l ↦ SmoothForm.mpullback (fun x ↦ φ ((s' l, 1), x))
+      (hφ.comp (contMDiff_const.prodMk contMDiff_id)) (α l), n, σ,
+    fun q ↦ SmoothForm.mpullback (fun x ↦ φ ((q, 1), x))
+      (hφ.comp (contMDiff_const.prodMk contMDiff_id)) (B' q), V, N',
+    continuous_tangentEquiv_symm_stagePath fr W hW hcover hφ hρ hs' hτ hα hB', ?_, hσ,
+    hB'.mpullback_family hφ₁, fun l ↦ stagePath_zero hφ hρ s' τ α B' (hφ₀ (s' l)),
+    fun l t ↦ hHnd l (mem_univ l) t, hVa, fun l t x hx ↦ ?_, fun l ↦ ⟨?_, ?_⟩, hN', hbN',
+    stagePath_one_eqOn hφ hρ s' τ α B' hρN', fun l hl ↦ ?_⟩
+  · -- `α' l` is `α l` pulled back along the end of the isotopy at the parameter `s' l`.
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+    have hT := Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod fr W hW fr W
+      hW ⟨φ, hφ⟩ hcover
+    refine (hT.comp (hα.prodMk (hs'.prodMk (continuous_const (y := (1 : unitInterval)))))).congr
+      fun l ↦ ?_
+    simp only [Function.comp_apply, LinearEquiv.apply_symm_apply, ContMDiffMap.coeFn_mk]
+  · -- Nothing changes on `V`, where the isotopy is the identity, `B' = B` and `τ = α + d B`.
+    obtain ⟨h₁, h₂, h₃⟩ := stagePath_eqOn_nhdsSet hφ hρ s' τ α B' hV (fun t ↦ hφV (s' l, t))
+      (B := fun q ↦ B q.1) (fun x hx ↦ hB'N₁ (s' l) x (hVN₁ hx))
+      fun x hx ↦ hτN l x (hN₁N (hVN₁ hx))
+    exact ⟨h₁ t x hx, h₂ x hx, h₃ x hx⟩
+  · rw [SmoothForm.mextDerivₗ_mpullback, hαc, map_zero]
+  · obtain ⟨γ, hγ, hγV⟩ := exists_mextDerivₗ_eq_endPullback_sub hφ s' α (hφ₀ (s' l)) (hαc l)
+      (V := V) fun t ↦ hφV (s' l, t)
+    exact ⟨γ, eq_add_of_sub_eq' hγ.symm, hγV⟩
+  · -- For `l ∈ P₀` the correction vanishes, since `B' (s' l) = B (s l)` there.
+    have hτl : τ l = α l + mextDerivₗ I 1 (B' (s' l)) := by rw [hB'P₀ l hl, hτP₀ l hl]
+    obtain ⟨h₁, h₂⟩ := stagePath_of_mem hφ hρ s' τ α B' (hφ₀ (s' l)) (hαc l) hτl
+    exact ⟨h₂, h₁⟩
+
+end ContinuousStage
 
 end SymplecticGeometry
 
