@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartSection
 import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
-import SymplecticGeometry.Topology.MetricSpace.SeparatedSum
 
 /-!
 # Peak sections
