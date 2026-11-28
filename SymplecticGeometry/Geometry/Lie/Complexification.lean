@@ -24,6 +24,7 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Bracket
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
@@ -488,14 +489,7 @@ theorem conj_cplx_lieMap (ξ : GroupLieAlgebra I G) :
 
 /-- The conjugation is a morphism of real Lie algebras: `conj ⁅x, y⁆ = ⁅conj x, conj y⁆`. -/
 theorem conj_lie (x y : GroupLieAlgebra IC Gc) : C.conj ⁅x, y⁆ = ⁅C.conj x, C.conj y⁆ := by
-  -- `im_conj` negates in the tangent space, `lie_neg` in the Lie ring: the two agree only up to
-  -- unfolding the instances, so `simp` does not apply `lie_neg` (#8266), and the instances of
-  -- `neg_lie` and `lie_neg` are given as terms.
-  refine C.ext_re_im ?_ ?_
-  · rw [re_conj, re_lie, re_lie, re_conj, re_conj, im_conj, im_conj,
-      (neg_lie (C.im x) (-C.im y)).trans (congrArg Neg.neg (lie_neg (C.im x) (C.im y))), neg_neg]
-  · rw [im_conj, im_lie, im_lie, re_conj, re_conj, im_conj, im_conj, neg_add,
-      ← lie_neg (C.re x) (C.im y), ← neg_lie (C.im x) (C.re y)]
+  exact C.ext_re_im (by simp) (by simp [add_comm])
 
 /-- The conjugation anticommutes with `ad (cplx (lieMap ξ))`:
 `conj ⁅cplx (lieMap ξ), x⁆ = -⁅cplx (lieMap ξ), conj x⁆`. -/
