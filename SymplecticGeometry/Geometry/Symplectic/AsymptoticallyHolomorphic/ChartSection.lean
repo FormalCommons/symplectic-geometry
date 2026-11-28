@@ -98,6 +98,10 @@ whose model `∂̄` has Gaussian bounds with that factor.
   the `∂̄` reading against the model `∂̄` in the chart at the centre.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_dbarJetNorm_sectionOfReading_le`: Gaussian
   decay of the `∂̄` jet norms, with a factor `k ^ (-1 / 2)`.
+* `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_sectionOfReading`: for
+  smooth families with Gaussian jet bounds at every order, whose model `∂̄` has such bounds with a
+  factor `k ^ (-1 / 2)`, the sections extended by zero form an asymptotically holomorphic
+  sequence, for any sequence of centres.
 
 ## References
 
@@ -629,6 +633,68 @@ theorem exists_dbarJetNorm_sectionOfReading_le [T2Space M] [I.Boundaryless]
         · exact jetNormAt_nonneg _ _ _
         · exact le_max_left _ _
     _ = max C₁ 0 * A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + d) ^ (2 * r) * T := by ring
+
+/-- **Sections extended by zero from Gaussian families are asymptotically holomorphic.** Let `M`
+be a Hausdorff boundaryless manifold, let `σ` be compatible with `J`, let `M` carry a Riemannian
+metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `α` be a connection form and `ρ₀ > 0`.
+Let `f k` be, for large `k`, smooth functions on `StdSpace ι` whose closed supports lie, for every
+`ε > 0`, in the ball of radius `ε * √k` for large `k`, and assume that for every order `r`, the
+`r`-jet norms of `f k` are at most `A * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` and those of the model
+`∂̄` of `f k` at most `A * k ^ (-1 / 2) * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)`, for large `k` and
+constants `A`, `N` and `c > 0` depending on `r`. Then for every sequence of centres `x k`, the
+sections extended by zero from `f k` in the charts at `x k` form an asymptotically holomorphic
+sequence. -/
+theorem isAsymptoticallyHolomorphic_sectionOfReading [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀)
+    {f : ℕ → StdSpace ι → ℂ} (hfs : ∀ᶠ k in Filter.atTop, ContDiff ℝ ∞ (f k))
+    (hfb : ∀ ε > 0, ∀ᶠ k : ℕ in Filter.atTop, tsupport (f k) ⊆ ball 0 (ε * √k))
+    (hfg : ∀ r : ℕ, ∃ A : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k in Filter.atTop, ∀ z,
+      jetNormAt ℝ r (f k) z ≤ A * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))
+    (hdg : ∀ r : ℕ, ∃ A : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ z,
+      jetNormAt ℝ r (modelDbar (f k)) z ≤
+        A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2))
+    (x : ℕ → M) :
+    D.IsAsymptoticallyHolomorphic fun k ↦ D.sectionOfReading k (x k) (f k) := by
+  refine (D.isAsymptoticallyHolomorphic_def _).2 ⟨?_, fun r ↦ ?_⟩
+  · filter_upwards [hfs, hfb ρ₀ hρ₀, Filter.eventually_ge_atTop k₀] with k hfs hb hk y
+    exact D.contDiffAt_reading_and_dbarReading_sectionOfReading hk (x k) hb hfs.contDiffOn y
+  have hfs' (n : ℕ) : ∀ᶠ k in Filter.atTop, ContDiff ℝ n (f k) :=
+    hfs.mono fun k h ↦ h.of_le (by exact_mod_cast le_top)
+  obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := D.exists_jetNorm_sectionOfReading_le hg hJ hα hρ₀ r
+    (hfs' r) hfb (hfg r)
+  obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_sectionOfReading_le hg hJ hα hρ₀ r
+    (by exact_mod_cast hfs' (r + 1)) hfb (hfg (r + 1)) (hdg r)
+  set B₁ := max C₁ 0 * Real.exp (N₁ ^ 2 / (4 * c₁))
+  set B₂ := max C₂ 0 * Real.exp (N₂ ^ 2 / (4 * c₂))
+  refine ⟨max B₁ B₂, ?_⟩
+  filter_upwards [h₁, h₂] with k h₁ h₂ y
+  set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I (x k) y).toReal
+  have hd : -1 ≤ d := by linarith [ENNReal.toReal_nonneg (a := ENNReal.ofReal √(2 * Real.pi * k) *
+    Manifold.riemannianEDist I (x k) y)]
+  have hk : 0 ≤ (k : ℝ) ^ (-1 / 2 : ℝ) := by positivity
+  have hW (N : ℕ) (c : ℝ) : 0 ≤ (1 + d) ^ N * Real.exp (-c * d ^ 2) :=
+    mul_nonneg (pow_nonneg (by linarith) _) (Real.exp_pos _).le
+  have hB₁ : max C₁ 0 * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) ≤ B₁ :=
+    mul_le_mul_of_nonneg_left (Real.one_add_pow_mul_exp_neg_mul_sq_le_exp N₁ hd hc₁)
+      (le_max_right _ _)
+  have hB₂ : max C₂ 0 * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) ≤ B₂ :=
+    mul_le_mul_of_nonneg_left (Real.one_add_pow_mul_exp_neg_mul_sq_le_exp N₂ hd hc₂)
+      (le_max_right _ _)
+  constructor
+  · calc D.jetNorm k r (D.sectionOfReading k (x k) (f k)) y
+        ≤ C₁ * (1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2) := h₁ (x k) y
+      _ = C₁ * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) := by ring
+      _ ≤ max C₁ 0 * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) :=
+          mul_le_mul_of_nonneg_right (le_max_left _ _) (hW _ _)
+      _ ≤ max B₁ B₂ := hB₁.trans (le_max_left _ _)
+  · calc D.dbarJetNorm k r (D.sectionOfReading k (x k) (f k)) y
+        ≤ C₂ * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2) := h₂ (x k) y
+      _ = C₂ * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
+      _ ≤ max C₂ 0 * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) * (k : ℝ) ^ (-1 / 2 : ℝ) :=
+          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (le_max_left _ _) (hW _ _)) hk
+      _ ≤ max B₁ B₂ * (k : ℝ) ^ (-1 / 2 : ℝ) :=
+          mul_le_mul_of_nonneg_right (hB₂.trans (le_max_right _ _)) hk
 
 /-- **Lower bound of sections extended by zero near the centre.** Let `M` be Hausdorff, with a
 Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let `ρ₀ > 0`. Let `f k` be

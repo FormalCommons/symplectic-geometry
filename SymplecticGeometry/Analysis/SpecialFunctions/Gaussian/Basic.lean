@@ -17,6 +17,9 @@ public import Mathlib.Analysis.SpecialFunctions.Exp
   Donaldson's peak sections.
 * `Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le`: for `t ≥ 0`, the weight
   `(1 + t) ^ N * exp (-c * t ^ 2)` grows with `N` and decreases as `c` grows.
+* `Real.one_add_pow_mul_exp_neg_mul_sq_le_exp`: for `c > 0`, the weight
+  `(1 + t) ^ N * exp (-c * t ^ 2)` is at most `exp (N ^ 2 / (4 * c))` for `t ≥ -1`, so that
+  Gaussian bounds are uniform bounds.
 
 ## References
 
@@ -55,6 +58,20 @@ theorem one_add_pow_mul_exp_neg_mul_sq_le_of_le {t c c' : ℝ} {N N' : ℕ} (ht 
     (1 + t) ^ N * exp (-c * t ^ 2) ≤ (1 + t) ^ N' * exp (-c' * t ^ 2) := by
   gcongr
   linarith
+
+/-- For `c > 0` and `t ≥ -1`, the weight `(1 + t) ^ N * exp (-c * t ^ 2)` is at most
+`exp (N ^ 2 / (4 * c))`, a bound independent of `t`. -/
+theorem one_add_pow_mul_exp_neg_mul_sq_le_exp {t c : ℝ} (N : ℕ) (ht : -1 ≤ t) (hc : 0 < c) :
+    (1 + t) ^ N * exp (-c * t ^ 2) ≤ exp (N ^ 2 / (4 * c)) := by
+  calc (1 + t) ^ N * exp (-c * t ^ 2) ≤ exp t ^ N * exp (-c * t ^ 2) := by
+        gcongr
+        · linarith
+        · linarith [add_one_le_exp t]
+    _ = exp (N * t + -c * t ^ 2) := by rw [← exp_natCast_mul, ← exp_add]
+    _ ≤ exp (N ^ 2 / (4 * c)) := by
+        gcongr
+        rw [le_div_iff₀ (by positivity)]
+        nlinarith [sq_nonneg (2 * c * t - N)]
 
 end Real
 
