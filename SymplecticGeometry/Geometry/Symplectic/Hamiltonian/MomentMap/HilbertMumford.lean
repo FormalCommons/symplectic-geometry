@@ -9,8 +9,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Kempf
 public import SymplecticGeometry.Geometry.Lie.Subgroup.Parabolic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
+import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
 import TauCeti.Analysis.Calculus.Deriv.Growth
 import TauCeti.LinearAlgebra.BilinearForm.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
@@ -452,17 +454,14 @@ theorem exists_eventually_abs_kempfNessFunction_le
     {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (hμ : σ.IsMomentMap a fun x ↦ -μ x)
     {α : Type*} {l : Filter α} {k : α → Gc} {g₀ : Gc} (hk : Tendsto k l (𝓝 g₀)) :
     ∃ R, ∀ᶠ s in l, ∀ p, |kempfNessFunction C μ p (k s)| ≤ R := by
-  -- A positive definite form `B` on the Lie algebra, from an inner product through `e`.
-  let e := ContinuousLinearEquiv.ofFinrankEq (𝕜 := ℝ) (E := GroupLieAlgebra I G)
-    (F := EuclideanSpace ℝ (Fin (Module.finrank ℝ (GroupLieAlgebra I G)))) (by simp)
-  let B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G) :=
-    (innerₗ _).compl₁₂ e.toLinearEquiv.toLinearMap e.toLinearEquiv.toLinearMap
-  have hBe (v : GroupLieAlgebra I G) : B v v = ‖e v‖ ^ 2 := by
-    simp [B]
-  have hBp : B.toQuadraticMap.PosDef := fun v hv ↦ by
-    rw [LinearMap.BilinMap.toQuadraticMap_apply, hBe]
-    exact pow_pos (norm_pos_iff.2 (e.map_ne_zero_iff.2 hv)) 2
-  have hBs : B.IsSymm := ⟨fun v w ↦ by simp [B, real_inner_comm]⟩
+  -- A positive definite form `B` on the Lie algebra, from an inner product on it. The norm
+  -- of `E` on the Lie algebra is opened only to state `innerProducts`.
+  open scoped GroupLieAlgebra in
+  obtain ⟨g, hg⟩ := innerProducts_nonempty (GroupLieAlgebra I G)
+  obtain ⟨hgs, hgp⟩ := mem_innerProducts.1 hg
+  let B := g.toBilinForm
+  have hBp : B.toQuadraticMap.PosDef := hgp
+  have hBs : B.IsSymm := ⟨hgs⟩
   have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
   -- A bound `L` for `√(‖μ‖²)` on `M`, so `|Φ_p (k s)|` is at most `L` times the polar radius.
   obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
@@ -470,18 +469,15 @@ theorem exists_eventually_abs_kempfNessFunction_le
       ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
   have hL' (y : M) : √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
     simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
-  have hc : Continuous fun g : Gc ↦ L * ‖e (C.polar.symm g).1‖ :=
-    continuous_const.mul (e.continuous.comp (continuous_fst.comp C.polar.symm.continuous)).norm
+  have hc : Continuous fun g' : Gc ↦
+      L * √(B ((C.polar.symm g').1 : GroupLieAlgebra I G) (C.polar.symm g').1) :=
+    continuous_const.mul (((LinearMap.continuous_apply_self B).comp
+      (continuous_fst.comp C.polar.symm.continuous)).sqrt)
   obtain ⟨R, hR⟩ := ((hc.tendsto g₀).comp hk).isBoundedUnder_le
   refine ⟨R, (eventually_map.1 hR).mono fun s hs p ↦ ?_⟩
   rw [← C.expI_mul_toHom_polar_symm (k s)]
-  refine (abs_kempfNessFunction_expI_mul_toHom_le C μ p hBs
-    (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hL' _ _).trans ?_
-  -- The polar radius lies in `E`, which is the Lie algebra `GroupLieAlgebra I G`.
-  calc L * √(B ((C.polar.symm (k s)).1 : GroupLieAlgebra I G) (C.polar.symm (k s)).1)
-      = L * ‖e (C.polar.symm (k s)).1‖ :=
-        congrArg (L * ·) ((congrArg Real.sqrt (hBe _)).trans (Real.sqrt_sq (norm_nonneg _)))
-    _ ≤ R := hs
+  exact (abs_kempfNessFunction_expI_mul_toHom_le C μ p hBs
+    (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hL' _ _).trans hs
 
 /-- **Moment weights under the parabolic subgroup.** Under the hypotheses of
 `tendsto_deriv_kempfNessFunction`, `w_μ(q x, ξ) = w_μ(x, ξ)` for every `q` in the
