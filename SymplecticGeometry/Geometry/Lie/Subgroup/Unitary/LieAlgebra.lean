@@ -9,8 +9,6 @@ public import TauCeti.Algebra.Lie.Unitary
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Unitary.Basic
-import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
-import TauCeti.Geometry.Lie.Adjoint.Units.Basic
 import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 
 /-!
@@ -40,9 +38,16 @@ in the ambient group (`TauCeti.Lie.EmbeddedLieSubgroupData.lieEquivLieSubalgebra
 the algebra coordinates `TauCeti.Lie.unitsLieAlgebraLieEquiv` on the Lie algebra of `GL n ℂ`,
 in which the Lie algebra of the unitary group is the skew-Hermitian matrices
 (`TauCeti.Lie.unitsLieAlgebraLieEquiv_symm_mem_lieSubalgebraOfSubgroup_iff_conjTranspose_eq_neg`).
-The adjoint actions match because the inclusion into `GL n ℂ` is a smooth homomorphism, which
-intertwines the adjoint actions (`ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd`), and
-the adjoint action of `GL n ℂ` is conjugation (`TauCeti.Lie.tangentAd_units`).
+The adjoint actions match by Tau Ceti's `MonoidHom.mvfderiv_adjointContinuousLinearMap`: for a
+homomorphism of a Lie group into the units of a normed algebra, its derivative at `1` carries
+`Ad_g` to conjugation by the image of `g`. Here it is applied to the inclusion of the unitary
+group in `Matrix n n ℂ`.
+
+Two declarations adapt Tau Ceti's versions for the special linear group:
+`TauCeti.Lie.unitsLieAlgebraLieEquiv_map_lieSubalgebraOfSubgroup_unitarySubgroup` follows the
+statement and proof of `TauCeti.Lie.unitsLieAlgebraLieEquiv_map_lieSubalgebraOfSubgroup_range_toGL`,
+and `TauCeti.Lie.matrixUnitaryLieAlgebraEquiv` is assembled as
+`Matrix.SpecialLinearGroup.lieAlgebraLieEquiv` is, with `slCoordinateEquiv`.
 
 ## Main definitions and results
 
@@ -92,6 +97,7 @@ variable {n : Type*} [Fintype n] [DecidableEq n]
 
 /-- In the algebra coordinates of the Lie algebra of `GL n ℂ`, the Lie algebra of the unitary
 subgroup is `unitaryLieAlgebra n`, the skew-Hermitian matrices. -/
+@[simp]
 theorem unitsLieAlgebraLieEquiv_map_lieSubalgebraOfSubgroup_unitarySubgroup :
     (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n ℂ)) (unitarySubgroup (GL n ℂ))).map
       (unitsLieAlgebraLieEquiv (R := Matrix n n ℂ)).toLieHom = unitaryLieAlgebra n := by
@@ -174,25 +180,17 @@ theorem matrixUnitaryLieAlgebraEquiv_tangentAd (g : unitarySubgroup (GL n ℂ))
     matrixUnitaryLieAlgebraEquiv (tangentAd (I := 𝓘(ℝ, 𝔨[n])) g ξ) =
       unitaryAdjointRepresentation n (unitarySubgroupUnitsEquiv g)
         (matrixUnitaryLieAlgebraEquiv ξ) := by
-  have h := 𝔡[n].subtypeVal.groupLieAlgebraLieHom_tangentAd g ξ
-  rw [tangentAd_units (R := Matrix n n ℂ) (𝔡[n].subtypeVal g)
-    (𝔡[n].subtypeVal.groupLieAlgebraLieHom ξ)] at h
+  have h := ((Units.coeHom (Matrix n n ℂ)).comp (unitarySubgroup (GL n ℂ)).subtype
+    ).mvfderiv_adjointContinuousLinearMap (I := 𝓘(ℝ, 𝔨[n])) g ξ
   have hg : star ((g : GL n ℂ) : Matrix n n ℂ) = ((g⁻¹ : GL n ℂ) : Matrix n n ℂ) := by
     simpa only [unitarySubgroupUnitsEquiv_apply_coe] using
       Units.mem_unitary_iff_star_eq_inv.1 (unitarySubgroupUnitsEquiv g).prop
-  -- Conjugation by the image of `g` in `GL n ℂ`, stated for an arbitrary matrix so that it
-  -- applies to the image of `ξ` in the tangent Lie algebra of `GL n ℂ`.
-  have hconj (X : Matrix n n ℂ) :
-      ((𝔡[n].subtypeVal g : GL n ℂ) : Matrix n n ℂ) * X *
-          ((𝔡[n].subtypeVal g)⁻¹ : GL n ℂ) =
-        (g : GL n ℂ) * X * star ((g : GL n ℂ) : Matrix n n ℂ) := by
-    rw [hg, EmbeddedLieSubgroupData.subtypeVal_apply]
   apply Subtype.ext
-  rw [coe_unitaryAdjointRepresentation_apply,
-    coe_matrixUnitaryLieAlgebraEquiv_apply_eq_groupLieAlgebraLieHom,
-    coe_matrixUnitaryLieAlgebraEquiv_apply_eq_groupLieAlgebraLieHom, h,
-    unitarySubgroupUnitsEquiv_apply_coe]
-  exact hconj _
+  rw [coe_unitaryAdjointRepresentation_apply, coe_matrixUnitaryLieAlgebraEquiv_apply,
+    tangentAd_apply, coe_matrixUnitaryLieAlgebraEquiv_apply, unitarySubgroupUnitsEquiv_apply_coe,
+    hg]
+  simpa only [mvfderiv_apply_eq_mfderiv_apply, MonoidHom.coe_comp, Units.coeHom_apply,
+    Subgroup.coe_subtype, Function.comp_def, Subgroup.coe_inv] using h
 
 /-- **The identification intertwines the adjoint representations.**
 `matrixUnitaryLieAlgebraEquiv`
