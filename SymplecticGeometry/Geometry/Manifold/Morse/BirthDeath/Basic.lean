@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Geometry.Manifold.Morse.Bott.Chart.Hessian
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -281,13 +282,10 @@ theorem fderiv_normalForm_apply (z v : E) :
         φ.toMorseBottChart.coord z φ.cubicIndex ^ 2 * φ.toMorseBottChart.coord v φ.cubicIndex := by
   have := φ.toMorseBottChart.finiteDimensional
   have hc : HasFDerivAt (fun z ↦ φ.toMorseBottChart.coord z φ.cubicIndex)
-      ((ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin (Module.finrank ℝ E) ↦ ℝ)
-        φ.cubicIndex).comp (φ.toMorseBottChart.coordL : E →L[ℝ] _)) z := by
-    convert ((ContinuousLinearMap.proj (R := ℝ)
-      (φ := fun _ : Fin (Module.finrank ℝ E) ↦ ℝ) φ.cubicIndex).comp
-        (φ.toMorseBottChart.coordL : E →L[ℝ] _)).hasFDerivAt (x := z) using 1
-    ext w
-    simp
+      (φ.toMorseBottChart.coordFun φ.cubicIndex) z := by
+    convert (φ.toMorseBottChart.coordFun φ.cubicIndex).hasFDerivAt (x := z) using 1
+    funext w
+    exact (φ.toMorseBottChart.coordFun_apply φ.cubicIndex w).symm
   have h := (φ.toMorseBottChart.hasFDerivAt_quadratic z).add
     ((hasDerivAt_birthDeathPotential 0 _).comp_hasFDerivAt z hc)
   have hN : φ.normalForm = φ.toMorseBottChart.quadratic +

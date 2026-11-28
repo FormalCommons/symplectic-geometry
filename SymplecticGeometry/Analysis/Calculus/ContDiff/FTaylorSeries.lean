@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Union
 import SymplecticGeometry.Topology.ContinuousOn
 
 /-!
@@ -34,20 +35,11 @@ union. -/
 theorem HasFTaylorSeriesUpToOn.union (hs : HasFTaylorSeriesUpToOn n f p s)
     (ht : HasFTaylorSeriesUpToOn n f p t) (hst : closure s ∩ t ⊆ s) (hts : closure t ∩ s ⊆ t) :
     HasFTaylorSeriesUpToOn n f p (s ∪ t) := by
-  have key : ∀ x ∈ s ∪ t, (x ∈ s ∨ x ∉ closure s) ∧ (x ∈ t ∨ x ∉ closure t) := by
-    rintro x (hx | hx)
-    · exact ⟨.inl hx, (em (x ∈ closure t)).imp (fun h ↦ hts ⟨h, hx⟩) id⟩
-    · exact ⟨(em (x ∈ closure s)).imp (fun h ↦ hst ⟨h, hx⟩) id, .inl hx⟩
   constructor
   · rintro x (hx | hx)
     exacts [hs.zero_eq x hx, ht.zero_eq x hx]
-  · intro m hm x hx
-    obtain ⟨h₁, h₂⟩ := key x hx
-    apply HasFDerivWithinAt.union
-    · rcases h₁ with h | h
-      exacts [hs.fderivWithin m hm x h, .of_notMem_closure h]
-    · rcases h₂ with h | h
-      exacts [ht.fderivWithin m hm x h, .of_notMem_closure h]
+  · exact fun m hm x ↦ .union_of_closure_inter_subset (hs.fderivWithin m hm x)
+      (ht.fderivWithin m hm x) hst hts
   · exact fun m hm ↦ (hs.cont m hm).union_of_closure_inter_subset (ht.cont m hm) hst hts
 
 /-- Functions that agree on an open set `s` have iterated derivatives of every order that agree

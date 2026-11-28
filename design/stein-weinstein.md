@@ -175,7 +175,7 @@ fit Tau Ceti's without a change of sign.
 | File | Contents | Issues |
 |---|---|---|
 | `Geometry/Manifold/Morse/GradientLike.lean` | gradient-like fields and their API | 1 |
-| `Geometry/Manifold/Morse/BirthDeath.lean` | birth–death charts, generalized Morse functions | 2 |
+| `Geometry/Manifold/Morse/BirthDeath/Basic.lean` | birth–death charts, generalized Morse functions | 2 |
 | `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean` (existing) | $\lambda_f$ and $\omega_f$ under composition, and $\omega_f$ as $2\,i\partial\bar\partial f$ | 3 |
 | `Geometry/Manifold/Complex/Plurisubharmonic.lean` | Stein functions, positivity | 4 |
 | `Geometry/Symplectic/Weinstein/Basic.lean` | Weinstein structures and domains | 5 |
@@ -218,7 +218,7 @@ for a boundaryless `M` over `𝓘(ℝ, E)` with `E` finite-dimensional:
 
 Expected size: 300 lines.
 
-### `Geometry/Manifold/Morse/BirthDeath.lean`
+### `Geometry/Manifold/Morse/BirthDeath/Basic.lean`
 
 In `TauCeti`, beside Tau Ceti's `Morse/Lemma.lean`:
 
@@ -716,7 +716,8 @@ containing `ι '' closedBall 0 1`:
   (Proposition 4.27): for `0 < γ` and all small enough `δ ∈ Ioo 0 γ`, a
   family `χ : ℝ → ℝ → ℝ`, `ℓ ∈ Icc (-8 * δ) 1`, continuous in
   `(ℓ, r)` and smooth in `r` on `Ioi δ` for each `ℓ`, with every
-  `χ ℓ` increasing and a convex shape at every `r > δ`,
+  `χ ℓ` continuous and strictly increasing on `Ici δ` and a convex shape
+  at every `r > δ`,
   `χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)`, `χ ℓ r` equal to the
   standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`, and, for some
   `r₀ ∈ Ioo δ γ`, for all `r ≥ r₀` when `ℓ` is near `-8 * δ` (as issue
@@ -724,10 +725,10 @@ containing `ι '' closedBall 0 1`:
   leaf has a finite slope at `δ`),
   `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop`, `χ ℓ ≤ χ 1` on `Ioi δ` and
   `1 < χ 1 δ < 1 + γ`. The book's family is piecewise smooth in `ℓ`,
-  smooth in `(ℓ, r)` on each piece, so the statement asks for `χ`,
-  `∂χ/∂r` and `∂²χ/∂r²` to be jointly continuous on
-  `Icc (-8 * δ) 1 ×ˢ Ioi δ`, which is what issue 14d6 uses, and not for
-  smoothness in `ℓ`.
+  smooth in `(ℓ, r)` on each piece, so the statement asks for every
+  `r`-derivative `iteratedDeriv k (χ ℓ) r`, `χ` included, to be jointly
+  continuous on `Icc (-8 * δ) 1 ×ˢ Ioi δ` (issue 14d6 uses `k ≤ 2`), and
+  not for smoothness in `ℓ`.
   - `isConvexShapeAt_sqrt_sub` (in `Surround/SpecialShape.lean`, next to
     `isConvexShapeAt_sqrt`): for `1 < a`, `0 < r` and `c < a * r ^ 2`,
     `r ↦ √(a * r ^ 2 - c)` is a convex shape at `r`. With
@@ -2813,7 +2814,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Gradient-like vector fields | `Morse/GradientLike.lean` | — | 300 |
-| 2 | Birth–death points and generalized Morse functions | `Morse/BirthDeath.lean` | — | 350 |
+| 2 | Birth–death points and generalized Morse functions | `Morse/BirthDeath/Basic.lean` | — | 350 |
 | 3 | The primitive $-df\circ J$ and the form $\omega_f$ | `Dolbeault/Potential.lean` | — | 300 |
 | 4 | Stein functions, positivity and the Kähler form | `Complex/Plurisubharmonic.lean` | 3 | 350 |
 | 5 | Weinstein structures and domains | `Weinstein/Basic.lean` | 1, 2 | 450 |
