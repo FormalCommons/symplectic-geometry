@@ -114,8 +114,9 @@ private theorem smul_mem_orthogonalComplexStructures (g : specialOrthogonalGroup
     {J : AlmostComplexStructure (EuclideanSpace ℝ n)} (hJ : J ∈ orthogonalComplexStructures n) :
     g • J ∈ orthogonalComplexStructures n := by
   rw [mem_orthogonalComplexStructures_iff_mem_orthogonalGroup] at hJ ⊢
-  rw [specialOrthogonalGroup_smul_def, homeomorphMatrix_generalLinearGroup_smul]
-  have hg := (mem_specialOrthogonalGroup_iff.1 g.property).1
+  rw [specialOrthogonalGroup_smul_def, homeomorphMatrix_generalLinearGroup_smul,
+    Unitary.val_toUnits_apply]
+  have hg := (specialOrthogonalGroup.toOrthogonalGroup g).property
   exact mul_mem (mul_mem hg hJ) (Unitary.star_mem hg)
 
 /-- A special orthogonal matrix preserves and reflects orthogonality of complex structures. -/
@@ -213,7 +214,11 @@ theorem exists_specialOrthogonalGroup_smul_stdComplexStructure_eq
   have hpos := (isPositivelyOriented_smul_stdComplexStructure_iff _).1 (hU ▸ hJ')
   have hdet := (det_eq_one_or_neg_one_of_mem_orthogonalGroup U.property).resolve_right
     (by simp only [Unitary.val_toUnits_apply] at hpos; linarith)
-  exact ⟨⟨U, mem_specialOrthogonalGroup_iff.2 ⟨U.property, hdet⟩⟩, hU⟩
+  refine ⟨⟨U, mem_specialOrthogonalGroup_iff.2 ⟨U.property, hdet⟩⟩, ?_⟩
+  have hincl : specialOrthogonalGroup.toOrthogonalGroup
+      ⟨U, mem_specialOrthogonalGroup_iff.2 ⟨U.property, hdet⟩⟩ = U :=
+    Subtype.ext (specialOrthogonalGroup.coe_toOrthogonalGroup _)
+  rwa [specialOrthogonalGroup_smul_def, hincl]
 
 /-- `SO(2n)` acts transitively on the orthogonal positively oriented complex structures. -/
 instance instIsPretransitivePositiveOrthogonalComplexStructures :

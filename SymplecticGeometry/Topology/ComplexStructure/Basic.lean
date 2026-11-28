@@ -11,6 +11,7 @@ public import TauCeti.Topology.Algebra.Star.Unitary
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 import SymplecticGeometry.LinearAlgebra.Matrix.NonsingularInverse
 import SymplecticGeometry.Algebra.Ring.Units
+import SymplecticGeometry.Topology.Algebra.Matrix.UnitaryGroup
 import TauCeti.Algebra.Ring.Hom
 
 /-!
@@ -215,10 +216,8 @@ instance : ContinuousSMul (Matrix.specialOrthogonalGroup n ℝ)
     (AlmostComplexStructure (EuclideanSpace ℝ n)) where
   continuous_smul := by
     have hφ : Continuous fun g : Matrix.specialOrthogonalGroup n ℝ ↦
-        (Unitary.toUnits (Submonoid.inclusion
-          (Matrix.specialUnitaryGroup_le_unitaryGroup (n := n) (α := ℝ)) g) : GL n ℝ) :=
-      Unitary.continuous_toUnits.comp
-        (continuous_inclusion Matrix.specialUnitaryGroup_le_unitaryGroup)
+        (Unitary.toUnits (Matrix.specialOrthogonalGroup.toOrthogonalGroup g) : GL n ℝ) :=
+      Unitary.continuous_toUnits.comp Matrix.specialOrthogonalGroup.continuous_toOrthogonalGroup
     simp_rw [specialOrthogonalGroup_smul_def]
     exact (hφ.comp continuous_fst).smul continuous_snd
 
