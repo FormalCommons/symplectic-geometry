@@ -881,9 +881,9 @@ the chart of `exists_equivariant_holomorphic_chart`, and `T ⊆ E'` the
 complex orbit tangent space `{X_Z x | Z}`, which is the `g_J`-orthogonal
 sum of `{X_ξ x | ξ}` and its image under `J x`: the two are orthogonal
 because the orbit of a zero of `μ` is isotropic (Tau Ceti's
-`TauCeti.SmoothTwoForm.IsMomentMap.orbitTangent_inf_orthogonal`).
+`TauCeti.SmoothTwoForm.momentCocycle_eq_zero_iff`).
 
-- `slice`: the `g_J`-orthogonal complement `S` of `T` at `x`, a
+- `complexOrbitNormal`: the `g_J`-orthogonal complement `S` of `T` at `x`, a
   `J x`-invariant subspace, invariant under `A ξ` and under
   `mfderiv (h • ·) x` for `ξ ∈ 𝔥` and `h ∈ H` (equation (12.6) of the
   source: `A ξ (X_η x) = X_⁅ξ, η⁆ x`, and `A ξ` is skew). Tau Ceti's
@@ -1204,7 +1204,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
           `tendsto_smul_zero_of_momentWeight_pos` and
           `exists_mem_nonzeroPeriods_tendsto_smul_zero`. Blocked by 12.9.4
           and by 12.5.
-       6. `slice`, `ker_sliceOperator_eq` and
+       6. `complexOrbitNormal`, `ker_sliceOperator_eq` and
           `exists_eventually_eq_expI_mul_smul_chart_symm`, in
           `KempfNess/HolomorphicSlice.lean`. Blocked by 12.9.3.
        7. `exists_mem_stabilizer_slice_eq` with the representation of
