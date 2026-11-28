@@ -45,6 +45,8 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
   commutative subgroup is a torus.
 * `TauCeti.Lie.lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne_stabilizer`: `Lie(G_x⁰)` is
   the isotropy algebra.
+* `TauCeti.Lie.isClosed_ambientConnectedComponentOfOne_stabilizer`: for a smooth action on a `T₁`
+  manifold, `G_x⁰` is closed, so that it is a Lie group as a closed subgroup.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.injective_groupLieAlgebraMap_subtype` and
   `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype`: the differential of the
   inclusion of an embedded Lie subgroup is injective, with range its Lie algebra.

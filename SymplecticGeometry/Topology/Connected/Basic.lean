@@ -36,14 +36,14 @@ theorem connectedComponentIn_prod (s : Set α) (t : Set β) (x : α) (y : β) :
     have hmem : (x, y) ∈ s ×ˢ t := ⟨hx, hy⟩
     have hC := isPreconnected_connectedComponentIn (F := s ×ˢ t) (x := (x, y))
     have hCs := connectedComponentIn_subset (s ×ˢ t) (x, y)
-    refine subset_antisymm (fun p hp ↦ ⟨?_, ?_⟩) ?_
-    rotate_left
-    · exact (hC.image _ continuous_fst.continuousOn).subset_connectedComponentIn
-        ⟨_, mem_connectedComponentIn hmem, rfl⟩ (image_subset_iff.2 fun q hq ↦ (hCs hq).1)
-        (mem_image_of_mem Prod.fst hp)
-    · exact (hC.image _ continuous_snd.continuousOn).subset_connectedComponentIn
-        ⟨_, mem_connectedComponentIn hmem, rfl⟩ (image_subset_iff.2 fun q hq ↦ (hCs hq).2)
-        (mem_image_of_mem Prod.snd hp)
+    refine subset_antisymm ?_ ?_
+    · intro p hp
+      exact ⟨(hC.image _ continuous_fst.continuousOn).subset_connectedComponentIn
+          ⟨_, mem_connectedComponentIn hmem, rfl⟩ (image_subset_iff.2 fun q hq ↦ (hCs hq).1)
+          (mem_image_of_mem Prod.fst hp),
+        (hC.image _ continuous_snd.continuousOn).subset_connectedComponentIn
+          ⟨_, mem_connectedComponentIn hmem, rfl⟩ (image_subset_iff.2 fun q hq ↦ (hCs hq).2)
+          (mem_image_of_mem Prod.snd hp)⟩
     · exact (isPreconnected_connectedComponentIn.prod isPreconnected_connectedComponentIn)
         |>.subset_connectedComponentIn
           (show (x, y) ∈ connectedComponentIn s x ×ˢ connectedComponentIn t y from

@@ -20,11 +20,25 @@ fixes `x` exactly when `u` fixes `x` and the fundamental vector field of `η` va
 other words, the polar decomposition maps the product of the isotropy algebra and the stabilizer
 of `x` in `G` onto the stabilizer of `x` in `Gc`.
 
+Being a homeomorphism that sends `(0, 1)` to `1`, the polar decomposition then carries the
+connected component of `(0, 1)` in that product, which is the product of the isotropy algebra and
+the identity component `H₀` of the stabilizer in `G`, onto the identity component `Gc₀` of the
+stabilizer in `Gc`. With the Lie group structures that `H₀` and `Gc₀` get as closed subgroups,
+this restriction is a diffeomorphism from the product of the Lie algebra of `H₀` and `H₀` onto
+`Gc₀`: a polar decomposition of `Gc₀`.
+
 ## Main results
 
 * `SymplecticGeometry.IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`: if `μ x = 0`,
   then `g` fixes `x` exactly when, for `(η, u) = C.polar.symm g`, the fundamental vector field of
   `η` vanishes at `x` and `u` fixes `x`.
+* `SymplecticGeometry.IsComplexifiedAction.image_polar_isotropy_prod_stabilizer`: if `μ x = 0`,
+  then `C.polar` maps `𝔤_x × G_x` onto `Gc_x`.
+* `SymplecticGeometry.IsComplexifiedAction.image_polar_isotropy_prod_ambientConnectedComponentOfOne`
+  (`H₀` and `Gc₀` being the identity components): it maps `𝔤_x × H₀` onto `Gc₀`.
+* `SymplecticGeometry.IsComplexifiedAction.stabilizerPolar`: the restriction of `C.polar`, as a
+  diffeomorphism from the product of the Lie algebra of `H₀` and `H₀` onto `Gc₀`, and
+  `SymplecticGeometry.IsComplexifiedAction.coe_stabilizerPolar_apply`, its value.
 
 ## Implementation notes
 
@@ -35,6 +49,13 @@ The proof follows [GeorgoulasRobbinSalamon2021], Lemma 2.3. If `g` fixes `x`, th
 fixes `x`, so does `expI (-η)`, and `moment_expI_neg_smul_apply_pos` rules out a nonzero
 fundamental vector field of `η` at `x`. Conversely `expI η` fixes the zeros of the fundamental
 vector field of `η` (`IsComplexifiedAction.expI_smul_smul_eq_self_iff`).
+
+The restriction is smooth in both directions because its composites with the inclusions of the
+closed subgroups are (`TauCeti.Lie.EmbeddedLieSubgroupData.isSmoothEmbedding_subtypeVal`,
+`Manifold.IsSmoothEmbedding.contMDiff_iff_comp`). The first coordinate is read in the Lie algebra
+of `G` through the differential at `1` of the inclusion `H₀ → G`, whose range is the isotropy
+algebra (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`); a linear left
+inverse of that differential makes the inverse map smooth in it.
 
 ## References
 
@@ -145,6 +166,7 @@ theorem IsComplexifiedAction.image_polar_isotropy_prod_ambientConnectedComponent
   refine congrArg (C.polar '' ·) ?_
   exact ((connectedComponentIn_prod _ (MulAction.stabilizer G x : Set G) _ 1).trans
     (congrArg (· ×ˢ connectedComponentIn (MulAction.stabilizer G x : Set G) 1) h𝔥)).symm
+
 section StabilizerPolar
 
 open Lie
@@ -192,20 +214,20 @@ noncomputable def IsComplexifiedAction.stabilizerPolar (h : IsComplexifiedAction
       C.polar.symm g ∈
         (((InfinitesimalAction.fundamental I G I' M).isotropy x : Set (GroupLieAlgebra I G)) ×ˢ
           ((MulAction.stabilizer G x).ambientConnectedComponentOfOne : Set G) : Set (E × G)) := by
-    have hg₀ := g.2
+    have hg₀ := g.property
     rw [← SetLike.mem_coe, ← himg] at hg₀
     obtain ⟨p, hp, hpg⟩ := hg₀
     rw [← hpg, C.polar.symm_apply_apply]
     exact hp
   { toFun p := ⟨C.polar ((e p.1 : GroupLieAlgebra I G), p.2), by
       rw [← SetLike.mem_coe, ← himg]
-      exact Set.mem_image_of_mem _ ⟨(e p.1).2, p.2.2⟩⟩
+      exact Set.mem_image_of_mem _ ⟨(e p.1).property, p.2.property⟩⟩
     invFun g := (e.symm ⟨(C.polar.symm g).1, (hmem g).1⟩, ⟨(C.polar.symm g).2, (hmem g).2⟩)
     left_inv p := by
       refine Prod.ext ((LinearEquiv.symm_apply_eq e).2 (Subtype.ext ?_)) (Subtype.ext ?_) <;>
         simp only [Diffeomorph.symm_apply_apply]
-    right_inv g := by
-      exact Subtype.ext (by simp only [LinearEquiv.apply_symm_apply, Prod.mk.eta, Diffeomorph.apply_symm_apply])
+    right_inv g := Subtype.ext <| by
+      simp only [LinearEquiv.apply_symm_apply, Prod.mk.eta, Diffeomorph.apply_symm_apply]
     contMDiff_toFun := by
       refine dK.isSmoothEmbedding_subtypeVal.contMDiff_iff_comp.2 ?_
       refine (C.polar.contMDiff.comp ((ι.contMDiff.comp contMDiff_fst).prodMk
@@ -224,6 +246,22 @@ noncomputable def IsComplexifiedAction.stabilizerPolar (h : IsComplexifiedAction
             ⟨_, (hmem g).1⟩))
       · refine dH.isSmoothEmbedding_subtypeVal.contMDiff_iff_comp.2 ?_
         exact contMDiff_snd.comp (C.polar.symm.contMDiff.comp dK.contMDiff_subtypeVal) }
+
+/-- The value of `IsComplexifiedAction.stabilizerPolar` at `(ξ, u)`, read in `Gc`, is
+`C.expI ξ' * C.toHom u`, where `ξ'` is the image of `ξ` in the Lie algebra of `G` under the
+differential at `1` of the inclusion `H₀ → G`. -/
+theorem IsComplexifiedAction.coe_stabilizerPolar_apply (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let H₀ := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+    let E₀ := (lieSubalgebraOfSubgroup (I := I) H₀).toSubmodule
+    let _ := (EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (isClosed_ambientConnectedComponentOfOne_stabilizer I I' (G := G) x)).chartedSpace
+    ∀ (ξ : E₀) (u : H₀), (h.stabilizerPolar hμ hg hx (ξ, u) : Gc) =
+      C.expI (H₀.subtype.groupLieAlgebraMap 𝓘(ℝ, E₀) I ξ) * C.toHom u := by
+  intro H₀ E₀ _ ξ u
+  exact (C.polar_apply _ _).trans (congrArg (C.expI · * C.toHom u)
+    (EmbeddedLieSubgroupData.coe_groupLieAlgebraEquivIsotropy (I' := I') _ ξ))
 
 end StabilizerPolar
 
