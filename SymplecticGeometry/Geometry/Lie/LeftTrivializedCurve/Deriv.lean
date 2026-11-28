@@ -58,6 +58,8 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   for an action of `G` on `M` and `p : M`, the orbit curve `t ↦ (g t)⁻¹ • p` has derivative
   `-ξ_M((g t)⁻¹ • p)`: in matrix notation, if `g⁻¹ g' = ξ`, then `y = g⁻¹ p` solves
   `y' = -X_ξ(y)`.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_smul`: for a smooth action,
+  the forward orbit curve `t ↦ g t • p` has derivative `d(g t • ·)_p (ξ_M p)`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.smul_eq_smul_of_fundamentalVectorField_eq_zero`,
   `SymplecticGeometry.HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer`:
   if the fundamental vector field of every `ξ t` vanishes at `x`, then `t ↦ g t • x` is constant
@@ -84,7 +86,9 @@ at `t`, and so has its translate `u ↦ g u * (h u)⁻¹`. A curve whose derivat
 preconnected subset of `ℝ` is constant on it (`Convex.apply_eq_of_hasMFDerivWithinAt_zero`).
 
 The derivative of the orbit curve is the chain rule along `g`, with the derivative of
-`h ↦ h⁻¹ • p` from `TauCeti.mfderiv_inv_smul_apply`.
+`h ↦ h⁻¹ • p` from `TauCeti.mfderiv_inv_smul_apply`; for the forward orbit curve
+`t ↦ g t • p`, Tau Ceti's `mfderiv_smul_mulInvariantVectorField` gives the derivative of the
+orbit map of `p` along the left-invariant vector field.
 -/
 
 public section
@@ -356,6 +360,22 @@ theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul_of_contMDiffSMul [
     ((ContMDiffSMul.contMDiff_smul_const p).comp (contMDiff_inv I 1)).mdifferentiableAt
       one_ne_zero
 
+/-- **The forward orbit curve.** If `g` has left-trivialized derivative `ξ` on `s` and `G` acts
+smoothly on `M`, then for `t ∈ s` the curve `u ↦ g u • p` has derivative within `s` at `t` equal
+to `d(g t • ·)_p (ξ_M p)`, the image under the action of `g t` of the fundamental vector field of
+`ξ t` at `p`. -/
+theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_smul [LieGroup I 1 G]
+    [ContMDiffSMul I I' 1 G M] (hg : HasLeftTrivializedDerivOn g ξ s) {t : ℝ} (ht : t ∈ s) :
+    HasMFDerivWithinAt 𝓘(ℝ) I' (fun u ↦ g u • p) s t ((1 : ℝ →L[ℝ] ℝ).smulRight
+      (mfderiv I' I' (g t • ·) p (fundamentalVectorField (I := I) (G := G) I' (ξ t) p))) := by
+  refine ((ContMDiffSMul.mdifferentiableAt_smul_const (I := I) (I' := I') p
+    (g t)).hasMFDerivAt.comp_hasMFDerivWithinAt t
+      (hasLeftTrivializedDerivOn_iff.1 hg t ht)).congr_mfderiv ?_
+  rw [ContinuousLinearMap.smulRight_one_eq_toSpanSingleton,
+    ContinuousLinearMap.smulRight_one_eq_toSpanSingleton]
+  exact (ContinuousLinearMap.comp_toSpanSingleton (R₁ := ℝ) _ _).trans (by
+    rw [mfderiv_smul_mulInvariantVectorField])
+
 end InvSMul
 
 section Isotropy
@@ -371,25 +391,11 @@ theorem HasLeftTrivializedDerivOn.smul_eq_smul_of_fundamentalVectorField_eq_zero
     (hg : HasLeftTrivializedDerivOn g ξ s) (hs : IsPreconnected s)
     (hξ : ∀ t ∈ s, fundamentalVectorField (I := I) (G := G) I' (ξ t) x = 0) {t t₀ : ℝ}
     (ht : t ∈ s) (ht₀ : t₀ ∈ s) : g t • x = g t₀ • x := by
-  -- At each `t ∈ s`, `g u • x = g t • ((g t)⁻¹ * g u) • x`, and the curve `(g t)⁻¹ * g u`
-  -- passes through `1` at `t` with velocity `ξ t`, which the orbit map of `x` sends to `0`.
+  -- The derivative of `u ↦ g u • x` at `t` is the image of `X_{ξ t} x = 0`.
   have hd (t : ℝ) (ht : t ∈ s) : HasMFDerivWithinAt 𝓘(ℝ) I' (fun u ↦ g u • x) s t 0 := by
-    have h1 := (ContMDiffSMul.mdifferentiableAt_smul_const (I := I) (I' := I') x
-      ((g t)⁻¹ * g t)).hasMFDerivAt.comp_hasMFDerivWithinAt t (hg.hasMFDerivWithinAt_inv_mul ht)
-    -- The orbit map at `(g t)⁻¹ * g t`, which is only propositionally `1`, sends `ξ t` to `0`.
-    have key : ∀ a : G, a = 1 →
-        (mfderiv I I' (fun h : G ↦ h • x) a).comp ((1 : ℝ →L[ℝ] ℝ).smulRight (ξ t)) = 0 := by
-      rintro a rfl
-      rw [ContinuousLinearMap.smulRight_one_eq_toSpanSingleton,
-        ContinuousLinearMap.comp_toSpanSingleton, ← fundamentalVectorField_apply, hξ t ht]
-      exact ContinuousLinearMap.toSpanSingleton_zero ℝ
-    replace h1 := h1.congr_mfderiv (key _ (inv_mul_cancel (g t)))
-    have h2 := ((ContMDiffSMul.mdifferentiable_const_smul (I := I) one_ne_zero (g t))
-      _).hasMFDerivAt.comp_hasMFDerivWithinAt t h1
-    convert h2 using 1
-    · funext u
-      simp [← mul_smul]
-    · exact (ContinuousLinearMap.comp_zero _).symm
+    refine (hg.hasMFDerivWithinAt_smul ht).congr_mfderiv ?_
+    rw [hξ t ht, map_zero, ContinuousLinearMap.smulRight_one_eq_toSpanSingleton]
+    exact ContinuousLinearMap.toSpanSingleton_zero ℝ
   exact hs.convex.apply_eq_of_hasMFDerivWithinAt_zero hd ht ht₀
 
 /-- **Curves along the isotropy algebra stay in the identity component of the stabilizer.** For
