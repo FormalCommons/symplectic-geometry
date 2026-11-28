@@ -22,9 +22,11 @@ smooth family over `N × [0, 1]` (`SymplecticGeometry.IsSmoothFamily.infiniteCon
 
 Before time `1` the concatenation is, near each time, one of the families `Φ n` reparametrized
 by a smooth time step that is constant near the ends of its stage
-(`SymplecticGeometry.infiniteConcat_of_mem_Ioo`), so it is smooth there. Near time `1` and a
+(`SymplecticGeometry.infiniteConcat_of_mem_Ioo`, on the neighbourhood of
+`unitInterval.eventually_two_sub_two_pow_mul_mem_Ioo`), so it is smooth there. Near time `1` and a
 point of `V n` it is constant in time, equal to `Φ n (l, 1)`
-(`SymplecticGeometry.infiniteConcat_mem_of_le`). Smoothness of a family is local in the point,
+(`SymplecticGeometry.infiniteConcat_mem_of_le`, with
+`unitInterval.eventually_two_pow_mul_one_sub_lt`). Smoothness of a family is local in the point,
 by `SymplecticGeometry.isSmoothFamily_iff_contMDiff`.
 
 The end forms exist, and have there the exterior derivatives of the `Φ n (l, 1)`, by
@@ -76,7 +78,7 @@ protected theorem IsSmoothFamily.infiniteConcat {ε : N → SmoothForm I M F k}
   rintro ⟨⟨l, t⟩, x⟩
   rcases lt_or_ge (t : ℝ) 1 with ht | ht
   · -- Before time `1`, near the stage `n` of `t`, the concatenation is `Φ n` reparametrized.
-    obtain ⟨n, hn₀, hn₁⟩ := exists_mem_Ico_two_sub_two_pow_mul ht
+    obtain ⟨n, hn⟩ := exists_mem_Ico_two_sub_two_pow_mul ht
     have hs : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun s : unitInterval ↦ 2 - 2 ^ (n + 1) * (1 - (s : ℝ)) :=
       (contDiff_const.sub (contDiff_const.mul (contDiff_const.sub contDiff_id))).contMDiff.comp
         contMDiff_subtypeVal_Icc
@@ -86,31 +88,26 @@ protected theorem IsSmoothFamily.infiniteConcat {ε : N → SmoothForm I M F k}
         (hs.comp contMDiff_snd)))
     rw [isSmoothFamily_iff_contMDiff] at hG
     refine (hG _).congr_of_eventuallyEq ?_
-    have hc : Continuous fun q : (N × unitInterval) × M ↦
-        2 - 2 ^ (n + 1) * (1 - ((q.1.2 : unitInterval) : ℝ)) := by fun_prop
-    have hopen : IsOpen {q : (N × unitInterval) × M |
-        -1 / 8 < 2 - 2 ^ (n + 1) * (1 - ((q.1.2 : unitInterval) : ℝ)) ∧
-          2 - 2 ^ (n + 1) * (1 - ((q.1.2 : unitInterval) : ℝ)) < 9 / 8} :=
-      (isOpen_lt continuous_const hc).inter (isOpen_lt hc continuous_const)
-    filter_upwards [hopen.mem_nhds ⟨by linarith, by linarith⟩] with q hq
+    -- The families vary with `l`, so take the times near `t` where every concatenation of
+    -- families that meet is the reparametrized stage `n`, and pull them back along `q ↦ q.1.2`.
+    filter_upwards [(continuous_fst.snd.tendsto ((l, t), x)).eventually
+      (unitInterval.eventually_two_sub_two_pow_mul_mem_Ioo (t := t) (k := n)
+        ⟨by linarith [hn.1], by linarith [hn.2]⟩)] with q hq
     rw [sliceSection_apply, sliceSection_apply,
-      infiniteConcat_of_mem_Ioo (fun m ↦ hseam m q.1.1) hq.1 hq.2]
+      infiniteConcat_of_mem_Ioo (fun m ↦ hseam m q.1.1) hq]
   · -- Near time `1` and a point of `V n`, the concatenation is `Φ n (l, 1)` there.
     obtain ⟨n, hx⟩ := hV x
     have hG := (hΦ n).comp (fun p : N × unitInterval ↦ (p.1, (1 : unitInterval)))
       (contMDiff_fst.prodMk contMDiff_const : ContMDiff (J.prod (𝓡∂ 1)) (J.prod (𝓡∂ 1)) ∞ _)
     rw [isSmoothFamily_iff_contMDiff] at hG
     refine (hG _).congr_of_eventuallyEq ?_
-    have hc : Continuous fun q : (N × unitInterval) × M ↦
-        2 ^ (n + 1) * (1 - ((q.1.2 : unitInterval) : ℝ)) := by fun_prop
-    have hopen : IsOpen {q : (N × unitInterval) × M |
-        2 ^ (n + 1) * (1 - ((q.1.2 : unitInterval) : ℝ)) < 1 ∧ q.2 ∈ V n} :=
-      (isOpen_lt hc continuous_const).inter ((hVo n).preimage continuous_snd)
-    have h1 : (t : ℝ) = 1 := le_antisymm (unitInterval.le_one t) ht
-    filter_upwards [hopen.mem_nhds ⟨by simp [h1], hx⟩] with q hq
+    obtain rfl : t = 1 := Subtype.ext (le_antisymm (unitInterval.le_one t) ht)
+    filter_upwards [(continuous_fst.snd.tendsto ((l, 1), x)).eventually
+        (unitInterval.eventually_two_pow_mul_one_sub_lt n),
+      continuous_snd.tendsto ((l, 1), x) |>.eventually ((hVo n).mem_nhds hx)] with q hq hqV
     have hmem := infiniteConcat_mem_of_le (a := fun m s ↦ Φ m (q.1.1, s)) (e := ε q.1.1)
-      (s := {η | η.val q.2 = (Φ n (q.1.1, 1)).val q.2}) (fun m hm s ↦ hΦV n m hm _ q.2 hq.2)
-      (hε n q.1.1 q.2 hq.2) hq.1.le
+      (s := {η | η.val q.2 = (Φ n (q.1.1, 1)).val q.2}) (fun m hm s ↦ hΦV n m hm _ q.2 hqV)
+      (hε n q.1.1 q.2 hqV) hq.le
     rw [sliceSection_apply, sliceSection_apply]
     exact congrArg _ hmem
 
