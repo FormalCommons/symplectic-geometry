@@ -62,7 +62,7 @@ other centres are at rescaled distance at least `R - 2` and form a Gaussian tail
 `exists_jetNorm_sum_erase_affinePeakSection_le`), and at every point the whole sum has `1`-jet norm
 `O(δ)`.
 Both effects on the transversality quantity are bounded by
-`abs_max_norm_add_sub_max_norm_le_jetNorm`.
+`abs_transversalityQuantity_add_sub_le_jetNorm`.
 
 ## References
 
@@ -263,8 +263,8 @@ following holds for all large `k`. Let `T` be a finite set of centres with at mo
 distinct points are at rescaled distance at least `R ≥ 0`. Let `s` be a section of
 `PowerBundle P k` whose readings are `C²` and whose `∂̄` readings are `C¹` at the centre of every
 chart, with `D.jetNorm k 2 s ≤ B` and `D.dbarJetNorm k 1 s ≤ B * k ^ (-1 / 2)` everywhere. Then
-there are coefficients `w x` of norm at most `δ` on `T` such that the quantity
-`max ‖t y‖ ((2π k)^(-1/2) ‖∂ t(y)‖)` of `t = s - Σ_{x ∈ T} D.affinePeakSection k x (w x)` is
+there are coefficients `w x` of norm at most `δ` on `T` such that
+`transversalityQuantity J α k t y`, for `t = s - Σ_{x ∈ T} D.affinePeakSection k x (w x)`, is
 * at least `ε / 4 - C₂ * δ * exp (-c₂ * R ^ 2)` at `y = (D.chart k x).symm z`, for `x ∈ T` and
   `‖z‖ ≤ 1`;
 * at least the same quantity for `s` minus `C₁ * δ`, at every point `y`. -/
@@ -284,15 +284,10 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
         ∃ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ T, ‖w x‖ ≤ δ) ∧
           (∀ x ∈ T, ∀ z ∈ closedBall (0 : StdSpace ι) 1,
             δ / Real.log (1 / δ) ^ p / 4 - C₂ * δ * Real.exp (-c₂ * R ^ 2) ≤
-              max ‖(s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) ((D.chart k x).symm z)‖
-                ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k
-                  (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) ((D.chart k x).symm z))‖)) ∧
-          ∀ y : M,
-            max ‖s y‖ ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart
-                (powerConnection α k s y)‖) - C₁ * δ ≤
-              max ‖(s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) y‖
-                ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k
-                  (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) y)‖) := by
+              transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x'))
+                ((D.chart k x).symm z)) ∧
+          ∀ y : M, transversalityQuantity J α k s y - C₁ * δ ≤
+            transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) y := by
   classical
   obtain ⟨ρ₁, hρ₁, hρ₁₀, h₁⟩ := D.jetNormAt_reading_le_of_chart_change hg hJ hα hρ₀
   obtain ⟨C₃, hC₃, h₃⟩ := h₁ 2
@@ -359,7 +354,7 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
           -∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x') := by
       rw [← Finset.add_sum_erase T _ hx]
       abel
-    have hstab := D.abs_max_norm_add_sub_max_norm_le_jetNorm hg hα hρ₀ hk hk0
+    have hstab := D.abs_transversalityQuantity_add_sub_le_jetNorm hg hα hρ₀ hk hk0
       (s := s - D.affinePeakSection k x (w x))
       (t := -∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x')) (y := y)
       (by rw [reading_sub]; exact (hdiff y).self_of_nhds.sub
@@ -369,7 +364,7 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
     have htail' := htail T R hR hT hsep x hx y (hdist x hz1) δ w hδ.le fun x' _ ↦ hw x'
     have := hwQ x z hz
     linarith [(abs_le.1 hstab).1]
-  · have hstab := D.abs_max_norm_add_sub_max_norm_le_jetNorm hg hα hρ₀ hk hk0
+  · have hstab := D.abs_transversalityQuantity_add_sub_le_jetNorm hg hα hρ₀ hk hk0
       (s := s) (t := -∑ x' ∈ T, D.affinePeakSection k x' (w x')) (y := y)
       (hdiff y).self_of_nhds
       (by rw [reading_neg]; exact ((hsm _ w y).1.differentiableAt (by simp)).neg)
