@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
+import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
@@ -34,11 +36,20 @@ Hamiltonian vector fields of differentiable functions sum over a finite set, wit
 summed (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.sum`), by induction from Tau Ceti's
 `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add`.
 
+For a closed `σ`, a differentiable Hamiltonian vector field `X` of a `C²` function `f` preserves
+`σ`: `L_X σ = 0` (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mlieDerivForm_eq_zero`). By
+Cartan's formula for closed forms, Tau Ceti's
+`TauCeti.SmoothForm.mlieDerivForm_eq_mextDeriv_interior`, `L_X σ = d(ι_X σ) = d(df) = 0`. For a
+smooth field and a smooth function this also follows from Tau Ceti's
+`TauCeti.SmoothTwoForm.mem_symplecticVectorFields_of_isHamiltonianVectorField` and
+`TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero`.
+
 The results extend Tau Ceti's file of the same path, in its namespace.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.1
+  (a Hamiltonian vector field preserves the symplectic form)
 -/
 
 public section
@@ -80,6 +91,15 @@ theorem IsHamiltonianVectorField.sum {ι : Type*} {s : Finset ι} {f : ι → M 
     refine (hX a (s.mem_insert_self a)).add (ih (fun i hi ↦ hX i (s.mem_insert_of_mem hi))
       fun i hi ↦ hf i (s.mem_insert_of_mem hi)) (hf a (s.mem_insert_self a))
       (MDifferentiable.sum fun i hi ↦ hf i (s.mem_insert_of_mem hi))
+
+/-- **A Hamiltonian vector field preserves a closed form.** If `σ` is closed and `X` is a
+differentiable Hamiltonian vector field of a `C²` function `f`, then `L_X σ = 0`. -/
+theorem IsHamiltonianVectorField.mlieDerivForm_eq_zero {X : (x : M) → TangentSpace I x}
+    (hX : σ.IsHamiltonianVectorField f X) (hσ : σ.IsClosed) (hf : ContMDiff I 𝓘(ℝ) 2 f)
+    (hXd : MDifferentiable I I.tangent (fun y ↦ (X y : TangentBundle I M))) :
+    mlieDerivForm X σ.val = 0 := by
+  rw [SmoothForm.mlieDerivForm_eq_mextDeriv_interior hXd hσ,
+    isHamiltonianVectorField_iff_interior_eq.1 hX, mextDeriv_mextDeriv_ofFunction hf]
 
 end TauCeti.SmoothTwoForm
 
