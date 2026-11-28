@@ -21,7 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Lin
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHessian
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
 import TauCeti.Geometry.Manifold.Morse.Deformation.Cofibration
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
