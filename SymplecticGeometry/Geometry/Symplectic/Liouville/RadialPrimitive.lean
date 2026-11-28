@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Liouville.Radial.Basic
-import Mathlib.Tactic.FinCases
+import Mathlib.Data.Fin.Tuple.Reflection
 
 /-!
 # Homogeneity of the radial primitive
@@ -40,7 +40,7 @@ theorem mpullback_const_smul_radialPrimitive (a : ℝ) :
     mpullback 𝓘(ℝ, V) 𝓘(ℝ, V) (a • ·) B.radialPrimitive.val = a ^ 2 • B.radialPrimitive.val := by
   funext x
   ext v
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by funext i; fin_cases i; rfl⟩
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq v).symm⟩
   -- `w` is a tangent vector at `x` and its image one at `a • x`; both sides are read in `V`.
   have hm : @Eq V (mfderiv 𝓘(ℝ, V) 𝓘(ℝ, V) (a • ·) x w) (a • w) :=
     congrArg (· w) ((hasFDerivAt_id x).const_smul a).hasMFDerivAt.mfderiv
