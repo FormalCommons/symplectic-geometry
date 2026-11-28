@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
+import TauCeti.Geometry.Manifold.Flow.TimeDependent.Related
 import TauCeti.Geometry.Manifold.Flow.Parametric
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
@@ -52,9 +53,9 @@ the lift is an integral curve exactly when the curve is a solution; and
 `TauCeti.contMDiff_const_prod_field`, it follows.
 
 A time-dependent field on `M × N` that vanishes outside a compact set and has no component along
-`N` on a level `M × {y}` induces a field on `M`; the flow of that field, kept at the level `y`,
-solves the equation of the field on `M × N`, so by uniqueness of solutions the flow keeps the
-level (`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
+`N` on a level `M × {y}` induces a field on `M`, to which the inclusion `x ↦ (x, y)` relates it;
+by Tau Ceti's `MDifferentiable.apply_timeDependentFlowOf` the inclusion intertwines the two
+flows, so the flow keeps the level (`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
 
 A diffeomorphism `ψ` that carries one time-dependent field to another at every time carries the
 suspension of the first to that of the second through `id × ψ`
@@ -322,22 +323,12 @@ theorem timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero
       fun u x hx ↦ by
         simp only [Z, hXK u (x, y) fun h ↦ hx ⟨_, h, rfl⟩]
         exact Prod.fst_zero
-  -- The flow of `Z`, kept at the level `y`, solves the equation of `X`.
-  have hγ (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) (I.prod J)
-      (fun r ↦ (timeDependentFlowOf Z s r x, y)) u
-      ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (timeDependentFlowOf Z s u x, y))) := by
-    have h := (hasMFDerivAt_timeDependentFlowOf hZ (s := s) (t := u) (x := x)
-      (mem_timeDependentFlowDomain.2 (hcZ.mem_flowDomain _ _))).prodMk
-        (hasMFDerivAt_const (I := 𝓘(ℝ, ℝ)) (I' := J) y u)
-    have hXu : X u (timeDependentFlowOf Z s u x, y) = (Z u (timeDependentFlowOf Z s u x), 0) :=
-      Prod.ext rfl (hy _ _)
-    rw [hXu]
-    -- Both derivatives send `r` to `(r • Z u _, 0)`; the second component on the right is `r • 0`.
-    exact h.congr_mfderiv (ContinuousLinearMap.ext fun r ↦
-      Prod.ext rfl (smul_zero (M := ℝ) (A := E') r).symm)
-  have h := timeDependentFlowOf_eq_of_forall_hasMFDerivAt hX hγ s t
-  rw [timeDependentFlowOf_self] at h
-  rw [h]
+  -- `x ↦ (x, y)` carries `Z` to `X`, so it intertwines their flows.
+  have h := MDifferentiable.apply_timeDependentFlowOf (f := fun x : M ↦ (x, y))
+    (mdifferentiable_id.prodMk mdifferentiable_const) hZ hX
+    (fun u x ↦ by rw [mfderiv_prod_left]; exact Prod.ext rfl (hy u x).symm)
+    (mem_timeDependentFlowDomain.2 (hcZ.mem_flowDomain _ _)) (s := s) (t := t) (x := x)
+  rw [← h]
 
 end Level
 
