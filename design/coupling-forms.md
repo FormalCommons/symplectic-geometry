@@ -234,13 +234,13 @@ About 500 lines.
   $\tau([v_1^\sharp,v_2^\sharp],\eta)=\tau(\Omega_\Gamma(v_1,v_2),\eta)$
   because $[v_1,v_2]^\sharp$ is horizontal. Neither closedness nor vertical
   closedness is used, so the statement is more general than the page's.
-- `TauCeti.IsEhresmannConnection.curvatureIn hD e b v₁ v₂ : Π y : F, TangentSpace IF y`,
+- `TauCeti.IsEhresmannConnection.curvatureIn hD IF e b v₁ v₂ : Π y : F, TangentSpace IF y`,
   the curvature on the fibre over `b` read in the chart `e`: the image of
   `hD.curvature v₁ v₂ (e.symm (b, y))` under the derivative of
   `fun x ↦ (e x).2`. With `curvatureIn_def` and `curvatureIn_coordChange`.
 - `TauCeti.IsEhresmannConnection.HasHamiltonianCurvature hD A σ`: for every
   chart `e = A.trivAt b'`, every `b ∈ e.baseSet` and smooth `v₁ v₂`, some
-  smooth `f : F → ℝ` has `σ.IsHamiltonianVectorField f (hD.curvatureIn e b v₁ v₂)`.
+  smooth `f : F → ℝ` has `σ.IsHamiltonianVectorField f (hD.curvatureIn IF e b v₁ v₂)`.
   This is the page's condition 2 of the equivalence in Tau Ceti's sign (see
   *Signs*). With `hasHamiltonianCurvature_iff_forall_exists` (one chart per
   point suffices: symplectomorphisms carry Hamiltonian fields to

@@ -64,6 +64,9 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
   `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`: the derivative of a fibre inclusion is
   injective, and its range is the kernel of the derivative of `proj`.
+* `Bundle.Trivialization.mfderiv_snd_apply_of_mfderiv_proj_eq_zero`: on vertical vectors, the
+  derivatives of the fibre coordinates of two trivializations differ by the derivative of their
+  coordinate change.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
@@ -320,6 +323,44 @@ theorem mfderiv_proj_mfderiv_symm_apply
   rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev] at h
   rw [← e.fiberInclusionMap_apply hb, mfderiv_proj_apply hv (he.mdifferentiableAt hv)]
   exact congrArg Prod.fst h
+
+variable {e'} in
+/-- **Vertical vectors under a change of trivialization.** Let `e` and `e'` be trivializations
+of `proj` that are differentiable with differentiable inverses, and `b` a point of both base
+sets. On a vertical vector `u` at `e⁻¹ (b, v)`, the derivative of the fibre coordinate of `e'` is
+the derivative at `v` of the coordinate change from `e` to `e'` over `b`, applied to the image of
+`u` under the derivative of the fibre coordinate of `e`. -/
+theorem mfderiv_snd_apply_of_mfderiv_proj_eq_zero
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF))
+    (he' : e'.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (hb' : b ∈ e'.baseSet) (v : F) {u : TangentSpace IM (e.fiberInclusionMap hb v)}
+    (hu : mfderiv IM IB proj (e.fiberInclusionMap hb v) u = 0) :
+    mfderiv IM IF (fun x ↦ (e' x).2) (e.fiberInclusionMap hb v) u =
+      mfderiv IF IF (e.coordChange e' b) v
+        (mfderiv IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) u) := by
+  have hu' : u ∈ (mfderiv IF IM (e.fiberInclusionMap hb) v).range := by
+    rw [range_mfderiv_fiberInclusionMap he hb v]
+    exact hu
+  obtain ⟨w, rfl⟩ := hu'
+  have hι := mdifferentiable_fiberInclusionMap he hb v
+  have hsnd {e₀ : Trivialization F proj}
+      (he₀ : e₀.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb₀ : b ∈ e₀.baseSet) :
+      MDifferentiableAt IM IF (fun x ↦ (e₀ x).2) (e.fiberInclusionMap hb v) :=
+    mdifferentiableAt_snd.comp _ (he₀.mdifferentiableAt
+      (e₀.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb₀)))
+  have hc : (fun x ↦ (e' x).2) ∘ e.fiberInclusionMap hb = e.coordChange e' b := funext fun y ↦ by
+    rw [comp_apply, ← e.coordChange_apply_snd e' (p := e.fiberInclusionMap hb y)
+      ((e.proj_fiberInclusionMap hb y).symm ▸ hb), e.proj_fiberInclusionMap hb]
+    exact congrArg _ (e.leftInverse_snd_fiberInclusionMap hb y)
+  rw [ContinuousLinearMap.coe_coe]
+  have h₁ := mfderiv_comp_apply v (hsnd he' hb') hι w
+  have h₂ := mfderiv_comp_apply v (hsnd he hb) hι w
+  rw [hc] at h₁
+  rw [(e.leftInverse_snd_fiberInclusionMap hb).comp_eq_id, mfderiv_id,
+    ContinuousLinearMap.id_apply] at h₂
+  -- `h₂` identifies `w` with its image under the two derivatives; the tangent spaces of `F` at
+  -- `v` and at `(e (e.fiberInclusionMap hb v)).2` agree only by definition.
+  exact h₁.symm.trans (congrArg _ h₂)
 
 /-! ### Coordinate changes -/
 
