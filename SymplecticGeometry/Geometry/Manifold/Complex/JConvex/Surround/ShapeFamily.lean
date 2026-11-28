@@ -889,7 +889,7 @@ theorem continuousOn_iteratedDeriv_surroundFamily {ℓₜ : ℝ} (hL : 0 < L) (h
       ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv k (surroundFamily L δ ℓ₀ M F q.1) q.2)
         (Icc a c ×ˢ Ioi δ) := by
     rw [← Icc_union_Icc_eq_Icc hab hbc]
-    exact h₁.union_prod_of_isClosed h₂ isClosed_Icc isClosed_Icc isOpen_Ioi
+    exact h₁.union_prod_of_isClosed h₂ isClosed_Icc isClosed_Icc
   have hbridge {ℓ : ℝ} (hℓ₁ : 7 * δ ≤ ℓ) (hℓ₂ : ℓ ≤ 2 * ℓ₀) :=
     surroundFamily_eqOn_bridgeFamily (L := L) (M := M) (F := F) hδ ⟨hℓ₁, hℓ₂⟩
   -- The leaves `ℓ ≤ 0`.
