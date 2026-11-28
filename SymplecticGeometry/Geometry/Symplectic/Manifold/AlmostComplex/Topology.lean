@@ -7,6 +7,12 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Hom
+public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.TangentMap
+public import TauCeti.Geometry.Diffeomorphism.Topology
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
+import TauCeti.Geometry.Diffeomorphism.Inversion
+import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Continuity of almost complex structures from their action on the tangent bundle
@@ -22,12 +28,23 @@ the case of the tangent endomorphism bundle of
 `ContMDiffSection.continuous_frameTopology_of_continuous_totalSpaceMap`, through Tau Ceti's
 `TauCeti.SmoothAlmostComplexStructure.continuous_frameTopology_iff`.
 
+For a diffeomorphism `φ : M → N`, the map of the tangent bundle given by the pull-back `φ^* J` is
+`Tφ⁻¹ ∘ J ∘ Tφ` (`TauCeti.SmoothAlmostComplexStructure.tangentBundleMap_pullback`). So, for
+compact manifolds with finite-dimensional models, `N` Hausdorff, `φ ↦ φ^* J` is continuous from the
+diffeomorphisms with the weak Whitney topology to the `C^∞` topology
+(`TauCeti.SmoothAlmostComplexStructure.continuous_pullback`): the tangent map is continuous
+(`ContMDiffMap.continuous_tangentMap_manifoldWeakWhitney`), and so are inversion
+(`Diffeomorph.continuous_symm`) and composition
+(`ContMDiffMap.continuous_comp_manifoldWeakWhitney`) in Tau Ceti.
+
 ## Main definitions and results
 
 * `TauCeti.SmoothAlmostComplexStructure.tangentBundleMap`, with
   `TauCeti.SmoothAlmostComplexStructure.tangentBundleMap_def` and
   `TauCeti.SmoothAlmostComplexStructure.tangentBundleMap_apply`
 * `TauCeti.SmoothAlmostComplexStructure.continuous_frameTopology_of_continuous_tangentBundleMap`
+* `TauCeti.SmoothAlmostComplexStructure.tangentBundleMap_pullback`
+* `TauCeti.SmoothAlmostComplexStructure.continuous_pullback`
 
 ## References
 
@@ -40,7 +57,7 @@ the case of the tangent endomorphism bundle of
 public section
 
 open Bundle TopologicalSpace
-open scoped ContDiff Manifold TauCeti.ManifoldWeakWhitney
+open scoped ContDiff Manifold TauCeti.ManifoldWeakWhitney TauCeti.DiffeomorphWeakWhitney
 
 namespace TauCeti.SmoothAlmostComplexStructure
 
@@ -85,6 +102,48 @@ theorem continuous_frameTopology_of_continuous_tangentBundleMap [FiniteDimension
   exact (continuous_frameTopology_iff e U hU).mpr
     (ContMDiffSection.continuous_frameTopology_of_continuous_totalSpaceMap e U hU
       (by simpa only [tangentBundleMap_def] using hJ))
+
+variable [FiniteDimensional ℝ E] {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
+
+/-- The map of the tangent bundle given by the pull-back `φ^* J` is `Tφ⁻¹ ∘ J ∘ Tφ`. -/
+theorem tangentBundleMap_pullback (φ : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexStructure I' N) :
+    (J.pullback φ).tangentBundleMap =
+      (φ.symm.toContMDiffMap.tangentMap ENat.coe_top_add_one.le).comp
+        (J.tangentBundleMap.comp (φ.toContMDiffMap.tangentMap ENat.coe_top_add_one.le)) := by
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  refine ContMDiffMap.ext fun ⟨x, v⟩ ↦ ?_
+  rw [ContMDiffMap.comp_apply, ContMDiffMap.comp_apply, ContMDiffMap.coe_tangentMap,
+    ContMDiffMap.coe_tangentMap, tangentBundleMap_apply, tangentBundleMap_apply]
+  refine Bundle.TotalSpace.ext (φ.symm_apply_apply x).symm (heq_of_eq ?_)
+  -- The two fibres are `TangentSpace I x` and `TangentSpace I (φ.symm (φ x))`, both `E`.
+  change ((J.pullback φ) x v : E) = mfderiv I' I φ.symm (φ x) (J (φ x) (mfderiv I I' φ x v))
+  rw [pullback_apply]
+  exact (φ.isInvertible_mfderiv hn).inverse_apply_eq.2
+    (φ.mfderiv_apply_mfderiv_symm_apply hn x _).symm
+
+/-- Let `M` and `N` be compact manifolds with finite-dimensional models, `N` Hausdorff. For any
+frame system of `End(TM)`, the pull-back `φ ↦ φ^* J` of a smooth almost complex structure `J` on
+`N` along diffeomorphisms `φ : M → N` is continuous from the weak Whitney topology to the `C^∞`
+topology. -/
+theorem continuous_pullback [CompactSpace M] [CompactSpace N] [T2Space N] {ι : Type*}
+    (e : ι → Trivialization (E →L[ℝ] E)
+      (π (E →L[ℝ] E) (fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)))
+    [∀ i, MemTrivializationAtlas (e i)]
+    (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+    (J : SmoothAlmostComplexStructure I' N) :
+    letI := frameTopology e U hU
+    Continuous fun φ : M ≃ₘ⟮I, I'⟯ N ↦ J.pullback φ := by
+  refine continuous_frameTopology_of_continuous_tangentBundleMap e U hU ?_
+  simp only [tangentBundleMap_pullback]
+  exact ContMDiffMap.continuous_comp_manifoldWeakWhitney.comp
+    ((ContMDiffMap.continuous_tangentMap_manifoldWeakWhitney.comp
+      (Diffeomorph.continuous_toContMDiffMap.comp Diffeomorph.continuous_symm)).prodMk
+      ((ContMDiffMap.continuous_postcomp_manifoldWeakWhitney _).comp
+        (ContMDiffMap.continuous_tangentMap_manifoldWeakWhitney.comp
+          Diffeomorph.continuous_toContMDiffMap)))
 
 end TauCeti.SmoothAlmostComplexStructure
 
