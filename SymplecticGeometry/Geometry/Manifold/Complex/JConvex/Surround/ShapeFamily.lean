@@ -123,7 +123,7 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`, and `ℓₜ = 1`. Its leaves are
   standard from `γ` on once `t₁ + 2 δ ≤ 6 γ`, lie below the top leaf once `2 t₁ + 18 ℓ₀ ≤ 1`,
   and the leaves near the bottom one are standard from `(2 + L) δ` on; both bounds on `t₁` hold
-  for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ`.
+  for small `δ`, as `t₁ ≤ 6 ℓ₀ + (30 + 8 L) δ` (`SymplecticGeometry.bridgeHeight_le`).
 
 ## References
 
@@ -1103,12 +1103,7 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
   set ℓ₀ := C * δ with hℓ₀def
   have hℓ₀ : 24 * δ ≤ ℓ₀ := mul_le_mul_of_nonneg_right hC hδ.le
   have hℓ₀₁ : 2 * ℓ₀ < 1 := by nlinarith
-  -- The height `t₁` of the bridge leaves is at most `6 ℓ₀ + (30 + 8 L) δ`.
-  have ht₁ : bridgeHeight L δ ℓ₀ ≤ 6 * ℓ₀ + (30 + 8 * L) * δ := by
-    have h30 : √30 ≤ 6 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
-    have := (struweShape_four_zero_self_mem_Icc hδ).1
-    rw [bridgeHeight_def]
-    nlinarith
+  have ht₁ := bridgeHeight_le L hδ ℓ₀
   have hsmall : 2 * bridgeHeight L δ ℓ₀ + 9 * (2 * ℓ₀) ≤ 1 := by nlinarith
   have hfar : (bridgeHeight L δ ℓ₀ + 2 * δ) / 6 ≤ γ := by
     rw [div_le_iff₀ (by norm_num)]

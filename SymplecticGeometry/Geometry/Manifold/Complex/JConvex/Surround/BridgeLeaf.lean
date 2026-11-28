@@ -803,6 +803,15 @@ theorem add_le_bridgeHeight (L : ℝ) (hδ : 0 < δ) (ℓ₀ : ℝ) :
   rw [bridgeHeight_def]
   linarith [(struweShape_four_zero_self_mem_Icc hδ).2]
 
+/-- For `δ > 0`, the height `t₁ = bridgeHeight L δ ℓ₀` of the bridge family is at most
+`6 ℓ₀ + (30 + 8 L) δ`, since `S δ ≥ -√30 δ ≥ -6 δ` for `S = struweShape δ 4 0`. -/
+theorem bridgeHeight_le (L : ℝ) (hδ : 0 < δ) (ℓ₀ : ℝ) :
+    bridgeHeight L δ ℓ₀ ≤ 6 * ℓ₀ + (30 + 8 * L) * δ := by
+  have h30 : √30 ≤ 6 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
+  have := (struweShape_four_zero_self_mem_Icc hδ).1
+  rw [bridgeHeight_def]
+  nlinarith
+
 /-- For `L, δ, ℓ₀ ≥ 0`, the height `t₀ = 65 δ / 8 - S δ`, with `S = struweShape δ 4 0`, from
 which the first stage of the bridge family starts is at most the height
 `t₁ = bridgeHeight L δ ℓ₀` to which it rises. -/
