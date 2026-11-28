@@ -338,16 +338,12 @@ theorem isTensorialForm_sub (hA : IsConnectionForm A)
     (hA' : IsConnectionForm A') : IsTensorialForm (A - A') where
   mpullback_op_smul g := by
     rw [map_sub, map_sub, hA.mpullback_op_smul, hA'.mpullback_op_smul]
-  isSemibasic := SmoothForm.isSemibasic_iff.mpr fun x v j hv ↦ by
+  isSemibasic := RoughForm.isSemibasic_iff_of_degree_one.mpr fun x v hv ↦ by
     -- A vertical vector is the value of the fundamental vector field of some `ξ`.
-    obtain rfl : j = 0 := Subsingleton.elim _ _
     rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
-    set ξ := (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).symm ⟨v 0, hv⟩
-    have hv : v = ![rightFundamentalVectorField (IB.prod IG) ξ x] := by
-      funext i
-      rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
-        PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
-    rw [hv]
+    set ξ := (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).symm ⟨v, hv⟩
+    rw [show v = rightFundamentalVectorField (IB.prod IG) ξ x from
+      (PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm x ⟨v, hv⟩).symm]
     exact hA.sub_apply_rightFundamentalVectorField_eq_zero hA' x ξ
 
 /-- **The connection forms are an affine space over the tensorial one-forms.** Any connection

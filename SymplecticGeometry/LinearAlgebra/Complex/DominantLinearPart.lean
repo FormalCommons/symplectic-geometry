@@ -67,6 +67,11 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
 * `TauCeti.SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt`: the same,
   read the other way: the symplectic orientation of the kernel, followed by the complex orientation
   of `W` (`Orientation.ofExact`), is the symplectic orientation of `V`.
+* `ContinuousLinearMap.surjective_add_of_norm_lt`: surjectivity alone needs neither `ω` nor an
+  inner product. For any norm on `V`, any map `J : V → V`, and `A, B : V →L[ℝ] W` to a complex
+  line `W` with `A (J v) = i • A v`, `B (J v) = -(i • B v)` and `‖B‖ < ‖A‖`, the sum `A + B` is
+  surjective. Pick `v` with `‖B v‖ < ‖A v‖`; then `z ↦ (A + B) (re z • v + im z • J v)` is
+  `z ↦ z • A v + conj z • B v`, which is injective, hence bijective from `ℂ` onto `W`.
 
 The proof is direct rather than by deforming `A + t B`: the Riesz vectors `a`, `b` of the real
 parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`, with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and
@@ -501,3 +506,43 @@ theorem SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt
 end Line
 
 end TauCeti
+
+namespace ContinuousLinearMap
+
+variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup W]
+  [NormedSpace ℝ W] [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W]
+
+/-- **A real-linear map to a complex line with dominant complex-linear part is surjective, for
+any norm.** Let `V` be a real normed space with a map `J : V → V`, let `W` be a complex normed
+space of dimension one, and let `A, B : V →L[ℝ] W` satisfy `A (J v) = i • A v` and
+`B (J v) = -(i • B v)`, with `‖B‖ < ‖A‖`. Then `A + B` is surjective. -/
+theorem surjective_add_of_norm_lt (hW : finrank ℂ W = 1) {J : V → V} {A B : V →L[ℝ] W}
+    (hA : ∀ v, A (J v) = I • A v) (hB : ∀ v, B (J v) = -(I • B v)) (h : ‖B‖ < ‖A‖) :
+    Function.Surjective (A + B) := by
+  obtain ⟨v, hv1, hv⟩ := A.exists_lt_apply_of_lt_opNorm h
+  have hb : ‖B v‖ < ‖A v‖ :=
+    (B.le_opNorm v).trans_lt ((mul_le_of_le_one_right (norm_nonneg _) hv1.le).trans_lt hv)
+  -- The real-linear map `z ↦ re z • v + im z • J v` from `ℂ` to `V`.
+  set g : ℂ →ₗ[ℝ] V := reLm.smulRight v + imLm.smulRight (J v)
+  have hφ (z : ℂ) : (A + B) (g z) = z • A v + (starRingEnd ℂ z) • B v := by
+    conv_rhs => rw [← re_add_im z]
+    simp only [g, LinearMap.add_apply, LinearMap.smulRight_apply, reLm_coe, imLm_coe, add_apply,
+      map_add, map_smul, hA, hB, map_mul, conj_ofReal, conj_I]
+    module
+  have hinj : Function.Injective ((A + B : V →L[ℝ] W).toLinearMap ∘ₗ g) := by
+    rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
+    intro z hz
+    rw [LinearMap.comp_apply, coe_coe, hφ, add_eq_zero_iff_eq_neg] at hz
+    have hn := congrArg norm hz
+    rw [norm_neg, norm_smul, norm_smul, Complex.norm_conj] at hn
+    by_contra hz0
+    exact hb.ne' (mul_left_cancel₀ (norm_ne_zero_iff.2 hz0) hn)
+  have : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
+  have : FiniteDimensional ℝ W := .trans ℝ ℂ W
+  have hdim : finrank ℝ ℂ = finrank ℝ W := by
+    rw [← Module.finrank_mul_finrank ℝ ℂ W, hW, mul_one]
+  have hsurj := (LinearMap.injective_iff_surjective_of_finrank_eq_finrank hdim).1 hinj
+  rw [LinearMap.coe_comp] at hsurj
+  exact hsurj.of_comp
+
+end ContinuousLinearMap
