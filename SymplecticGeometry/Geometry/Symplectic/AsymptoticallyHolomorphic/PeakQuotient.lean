@@ -1,0 +1,281 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
+import TauCeti.Analysis.SpecialFunctions.Pow.Real
+import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
+
+/-!
+# Quotients by the cut-off Gaussian and their flat `∂̄`
+
+To correct a section near a point `x`, its reading `f` in the chart centred at `x` is divided by
+the cut-off Gaussian `SymplecticGeometry.peakFunction k`. On a ball of fixed radius `R`, and for
+`k` so large that `R < k ^ (1 / 6)`, the cut-off is `1` and the quotient is
+`q = f * exp (‖z‖ ^ 2 / 4)` (`SymplecticGeometry.div_peakFunction_eventuallyEq`). This file bounds
+the jets of `q` and of its flat `∂̄` there, with constants that depend only on the order and on
+`R`.
+
+The Gaussian `G = exp (-‖z‖ ^ 2 / 4)` has model `∂̄` zero (`modelDbar_gaussian`), so by the
+Leibniz rule `modelDbar_mul` the model `∂̄` of `f = q * G` for the constant structure `J₀` is
+`G • flatDbar q`. For a field `J` of structures, `modelDbarWith_eq_add` writes the model `∂̄`
+of `f` for `J` as the one for `J₀` plus `(i / 2) ∇f ∘ (J - J₀)`, with `∇f` the model connection
+`modelConnection f`, and `exists_jetNormAt_modelDbarWith_sub_le` bounds the jets of that
+difference.
+
+## Main results
+
+* `SymplecticGeometry.flatDbar_mul_exp_eq_smul_modelDbar`: `flatDbar q = exp (‖z‖ ^ 2 / 4) •
+  modelDbar f` at every point where `f` is differentiable, and
+  `SymplecticGeometry.flatDbar_mul_exp_eq`: for a field `J`,
+  `flatDbar q = exp (‖z‖ ^ 2 / 4) • (modelDbarWith J f - (i / 2) ∇f ∘ (J - J₀))`.
+* `SymplecticGeometry.exists_jetNormAt_div_peakFunction_le`: on the closed ball of radius `R` and
+  for `R < k ^ (1 / 6)`, the `r`-jet norm of `f / peakFunction k` is at most `C` times that
+  of `f`.
+* `SymplecticGeometry.exists_jetNormAt_flatDbar_div_peakFunction_le`: there, the `r`-jet norm of
+  its flat `∂̄` is at most `C` times the `r`-jet norm of `modelDbarWith J f` plus the `r`-jet norm
+  of `J - J₀` times the `(r + 1)`-jet norm of `f`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_flatDbar_reading_div_peakFunction_le`:
+  for the readings of sections in rescaled unitary charts of radius `ρ₀ > 0`, for large `k`, the
+  `r`-jet norm of the flat `∂̄` of the quotient is at most `C` times the `r`-jet norm of the `∂̄`
+  reading plus `k ^ (-1 / 2)` times the `(r + 1)`-jet norm of the reading. The structure read in
+  the chart is `J_{k,x}`, whose distance to `J₀` is bounded by
+  `RescaledUnitaryCharts.exists_jetNormAt_chartPushforward_sub_le`. The orders `r = 0` and `r = 1`
+  bound the flat `∂̄` of the quotient and its derivative (`norm_le_jetNormAt`,
+  `norm_fderiv_le_jetNormAt`).
+
+## References
+
+* [D. Auroux, *A remark about Donaldson's construction of symplectic submanifolds*][Auroux2002],
+  proof of Proposition 2
+* [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996]
+-/
+
+public section
+
+open Metric TauCeti
+open scoped Topology Manifold ContDiff
+
+namespace SymplecticGeometry
+
+variable {ι : Type*} [Fintype ι]
+
+/-- **The flat `∂̄` of the quotient by the Gaussian.** For `f` differentiable at `w`, the flat `∂̄`
+of `q = f * exp (‖·‖ ^ 2 / 4)` at `w` is `exp (‖w‖ ^ 2 / 4)` times the model `∂̄` of `f` at `w`, for
+the constant structure `J₀`. -/
+theorem flatDbar_mul_exp_eq_smul_modelDbar {f : StdSpace ι → ℂ} {w : StdSpace ι}
+    (hf : DifferentiableAt ℝ f w) :
+    flatDbar (fun y ↦ f y * Real.exp (‖y‖ ^ 2 / 4)) w =
+      (Real.exp (‖w‖ ^ 2 / 4) : ℂ) • modelDbar f w := by
+  set E : StdSpace ι → ℂ := fun y ↦ Real.exp (‖y‖ ^ 2 / 4)
+  set G : StdSpace ι → ℂ := fun y ↦ Real.exp (-‖y‖ ^ 2 / 4)
+  have hEG (y : StdSpace ι) : E y * G y = 1 := by
+    simp only [E, G, ← Complex.ofReal_mul, ← Real.exp_add]
+    ring_nf
+    simp
+  have hq : DifferentiableAt ℝ (fun y ↦ f y * E y) w :=
+    hf.mul ((contDiff_ofReal_exp_norm_sq_div_four (n := 1)).differentiable one_ne_zero w)
+  have hG : DifferentiableAt ℝ G w :=
+    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian : ContDiff ℝ 1 G)).differentiable
+      one_ne_zero w
+  have hf' : f = fun y ↦ (f y * E y) * G y := by
+    funext y
+    rw [mul_assoc, hEG, mul_one]
+  -- The Gaussian has model `∂̄` zero, so the Leibniz rule leaves `G • flatDbar q`.
+  have hmodel : modelDbar f w = G w • flatDbar (fun y ↦ f y * E y) w := by
+    conv_lhs => rw [hf']
+    have h0 : modelDbar G w = 0 := by rw [modelDbar_gaussian, Pi.zero_apply]
+    rw [modelDbar_mul hq hG, h0]
+    ext v
+    simp
+  rw [hmodel, smul_smul, show E w * G w = 1 from hEG w, one_smul]
+
+/-- **The flat `∂̄` of the quotient by the Gaussian, for a field of structures.** For a field `J`
+of real-linear endomorphisms of `StdSpace ι` and `f` differentiable at `w`, the flat `∂̄` of
+`q = f * exp (‖·‖ ^ 2 / 4)` at `w` is `exp (‖w‖ ^ 2 / 4)` times the model `∂̄` of `f` for `J`
+minus `(i / 2) ∇f ∘ (J w - J₀)`, for `∇f` the model connection of `f` at `w`. -/
+theorem flatDbar_mul_exp_eq (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) {f : StdSpace ι → ℂ}
+    {w : StdSpace ι} (hf : DifferentiableAt ℝ f w) :
+    flatDbar (fun y ↦ f y * Real.exp (‖y‖ ^ 2 / 4)) w =
+      (Real.exp (‖w‖ ^ 2 / 4) : ℂ) • (modelDbarWith J f w -
+        (((2⁻¹ : ℂ) * Complex.I) • modelConnection f w).comp
+          (J w - LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)) := by
+  rw [flatDbar_mul_exp_eq_smul_modelDbar hf, modelDbarWith_eq_add J
+    (fun _ ↦ LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) f w,
+    ← modelDbar_def, add_sub_cancel_right]
+
+/-- **Jets of the quotient by the cut-off Gaussian.** For every order `r` and radius `R` there is
+a constant `C` such that, for every `k` with `R < k ^ (1 / 6)`, every `f` and every `z` with
+`‖z‖ ≤ R` where `f` is `C^r`, the `r`-jet norm of `f / peakFunction k` at `z` is at most `C` times
+that of `f`. -/
+theorem exists_jetNormAt_div_peakFunction_le (r : ℕ) (R : ℝ) :
+    ∃ C, ∀ (k : ℕ) (f : StdSpace ι → ℂ) {z : StdSpace ι}, ‖z‖ ≤ R →
+      R < (k : ℝ) ^ (1 / 6 : ℝ) → ContDiffAt ℝ r f z →
+      jetNormAt ℝ r (fun y ↦ f y / peakFunction k y) z ≤ C * jetNormAt ℝ r f z := by
+  obtain ⟨A, hA⟩ := exists_jetNormAt_le_of_isCompact
+    (contDiff_ofReal_exp_norm_sq_div_four (E := StdSpace ι) (n := r)) (isCompact_closedBall 0 R)
+  refine ⟨2 ^ r * A, fun k f z hz hk hf ↦ ?_⟩
+  rw [jetNormAt_congr_of_eventuallyEq r (div_peakFunction_eventuallyEq k f (hz.trans_lt hk))]
+  have he : (fun y ↦ f y * (Real.exp (‖y‖ ^ 2 / 4) : ℂ)) =
+      fun y ↦ (Real.exp (‖y‖ ^ 2 / 4) : ℂ) • f y :=
+    funext fun y ↦ by rw [smul_eq_mul, mul_comm]
+  rw [he]
+  calc _ ≤ 2 ^ r * jetNormAt ℝ r (fun y : StdSpace ι ↦ (Real.exp (‖y‖ ^ 2 / 4) : ℂ)) z *
+        jetNormAt ℝ r f z :=
+        jetNormAt_fun_smul_le contDiff_ofReal_exp_norm_sq_div_four.contDiffAt hf
+    _ ≤ 2 ^ r * A * jetNormAt ℝ r f z := by
+        gcongr
+        · exact jetNormAt_nonneg _ _ _
+        · exact hA z (mem_closedBall_zero_iff.2 hz)
+
+/-- **Jets of the flat `∂̄` of the quotient by the cut-off Gaussian.** For every order `r` and
+radius `R` there is a constant `C` such that, for every `k` with `R < k ^ (1 / 6)`, every field
+`J` of real-linear endomorphisms of `StdSpace ι`, every `f` and every `z` with `‖z‖ ≤ R` where `f`
+is `C^(r + 1)` and `J` is `C^r`, the `r`-jet norm at `z` of the flat `∂̄` of `f / peakFunction k`
+is at most `C` times the `r`-jet norm of the model `∂̄` of `f` for `J` plus the product of the
+`r`-jet norm of `J - J₀` and the `(r + 1)`-jet norm of `f`. -/
+theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
+    ∃ C, ∀ (k : ℕ) (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
+      {z : StdSpace ι}, ‖z‖ ≤ R → R < (k : ℝ) ^ (1 / 6 : ℝ) →
+      ContDiffAt ℝ (r + 1 : ℕ) f z → ContDiffAt ℝ r J z →
+      jetNormAt ℝ r (flatDbar fun y ↦ f y / peakFunction k y) z ≤
+        C * (jetNormAt ℝ r (modelDbarWith J f) z +
+          jetNormAt ℝ r (fun w ↦ J w -
+              LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z *
+            jetNormAt ℝ (r + 1) f z) := by
+  obtain ⟨A, hA⟩ := exists_jetNormAt_le_of_isCompact
+    (contDiff_ofReal_exp_norm_sq_div_four (E := StdSpace ι) (n := r)) (isCompact_closedBall 0 R)
+  obtain ⟨C₁, hC₁⟩ := exists_jetNormAt_modelDbarWith_sub_le (ι := ι) r
+  set J₀ := LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
+  set K := |C₁| * (1 + |R|)
+  refine ⟨2 ^ r * |A| * (1 + K), fun k J f z hz hk hf hJ ↦ ?_⟩
+  set E : StdSpace ι → ℂ := fun y ↦ Real.exp (‖y‖ ^ 2 / 4)
+  set T := fun w ↦ modelDbarWith J f w - modelDbarWith (fun _ ↦ J₀) f w
+  have hE : ContDiffAt ℝ r E z := contDiff_ofReal_exp_norm_sq_div_four.contDiffAt
+  have hf1 : ContDiffAt ℝ (r + 1) f z := by exact_mod_cast hf
+  -- Near `z`, the quotient's flat `∂̄` is `E • modelDbar f`, by
+  -- `flatDbar_mul_exp_eq_smul_modelDbar`, and `modelDbar f` is `modelDbarWith J f - T`.
+  have hdiff : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ f w :=
+    (hf.eventually (by simp)).mono fun w hw ↦ hw.differentiableAt (by simp)
+  have hq : flatDbar (fun y ↦ f y / peakFunction k y) =ᶠ[𝓝 z]
+      fun w ↦ E w • (modelDbarWith J f w + -T w) := by
+    have h1 := (div_peakFunction_eventuallyEq k f (hz.trans_lt hk)).eventually_nhds
+    filter_upwards [h1, hdiff] with w hw hfw
+    rw [flatDbar_def, flatDbarWith_congr_of_eventuallyEq hw, ← flatDbar_def,
+      flatDbar_mul_exp_eq_smul_modelDbar hfw, modelDbar_def]
+    simp only [T, E, J₀, neg_sub, add_sub_cancel]
+  rw [jetNormAt_congr_of_eventuallyEq r hq]
+  have hD : ContDiffAt ℝ r (modelDbarWith J f) z := contDiffAt_modelDbarWith hJ hf1
+  have hT : ContDiffAt ℝ r T z := hD.sub (contDiffAt_modelDbarWith contDiffAt_const hf1)
+  have hsum := jetNormAt_add_le hD hT.neg
+  rw [show jetNormAt ℝ r (fun w ↦ -T w) z = jetNormAt ℝ r T z from jetNormAt_neg r _ z] at hsum
+  have hTle : jetNormAt ℝ r T z ≤
+      K * (jetNormAt ℝ r (fun w ↦ J w - J₀) z * jetNormAt ℝ (r + 1) f z) := by
+    have h := hC₁ J (fun _ ↦ J₀) f hf hJ contDiffAt_const
+    have h1 : C₁ * (1 + ‖z‖) ≤ K := by
+      have : ‖z‖ ≤ |R| := hz.trans (le_abs_self R)
+      calc C₁ * (1 + ‖z‖) ≤ |C₁| * (1 + ‖z‖) :=
+            mul_le_mul_of_nonneg_right (le_abs_self _) (by positivity)
+        _ ≤ |C₁| * (1 + |R|) := by gcongr
+    refine h.trans ?_
+    rw [mul_assoc]
+    exact mul_le_mul_of_nonneg_right h1
+      (mul_nonneg (jetNormAt_nonneg _ _ _) (jetNormAt_nonneg _ _ _))
+  have hK : 0 ≤ K := by positivity
+  have hP := jetNormAt_fun_smul_le hE (hD.add hT.neg)
+  have hAz : jetNormAt ℝ r E z ≤ |A| :=
+    (hA z (mem_closedBall_zero_iff.2 hz)).trans (le_abs_self A)
+  set a := jetNormAt ℝ r (modelDbarWith J f) z
+  set b := jetNormAt ℝ r (fun w ↦ J w - J₀) z * jetNormAt ℝ (r + 1) f z
+  have ha : 0 ≤ a := jetNormAt_nonneg _ _ _
+  have hb : 0 ≤ b := mul_nonneg (jetNormAt_nonneg _ _ _) (jetNormAt_nonneg _ _ _)
+  calc _ ≤ 2 ^ r * jetNormAt ℝ r E z *
+        jetNormAt ℝ r (fun w ↦ modelDbarWith J f w + -T w) z := hP
+    _ ≤ 2 ^ r * |A| * (a + K * b) := by
+        gcongr
+        · exact jetNormAt_nonneg _ _ _
+        · exact hsum.trans (add_le_add le_rfl hTle)
+    _ ≤ 2 ^ r * |A| * (1 + K) * (a + b) := by
+        have : a + K * b ≤ (1 + K) * (a + b) := by nlinarith
+        calc 2 ^ r * |A| * (a + K * b) ≤ 2 ^ r * |A| * ((1 + K) * (a + b)) := by gcongr
+          _ = _ := by ring
+
+namespace RescaledUnitaryCharts
+
+open _root_.Bundle MulOpposite
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] [I.Boundaryless]
+  {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
+  [FiberBundle Circle P] [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P]
+  [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
+  {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
+  {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1} {k₀ : ℕ} {ρ₀ : ℝ}
+  (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
+
+/-- **The flat `∂̄` of a reading divided by the cut-off Gaussian.** For every order `r` and radius
+`R` there is a constant `C` such that, for rescaled unitary charts of radius `ρ₀ > 0`, for all
+large `k`, every centre `x`, every section `s` of `PowerBundle P k` and every `z` with `‖z‖ ≤ R`
+where the reading `f` of `s` is `C^(r + 1)`, the
+`r`-jet norm at `z` of the flat `∂̄` of `f / peakFunction k` is at most `C` times the `r`-jet norm
+of the `∂̄` reading of `s` plus `k ^ (-1 / 2)` times the `(r + 1)`-jet norm of `f`. -/
+theorem exists_jetNormAt_flatDbar_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (r : ℕ) (R : ℝ) :
+    ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
+      ‖z‖ ≤ R → ContDiffAt ℝ (r + 1 : ℕ) (D.reading k x s) z →
+      jetNormAt ℝ r (flatDbar fun y ↦ D.reading k x s y / peakFunction k y) z ≤
+        C * (jetNormAt ℝ r (D.dbarReading k x s) z +
+          (k : ℝ) ^ (-1 / 2 : ℝ) * jetNormAt ℝ (r + 1) (D.reading k x s) z) := by
+  obtain ⟨C, hC⟩ := exists_jetNormAt_flatDbar_div_peakFunction_le (ι := ι) r R
+  obtain ⟨C₀, hC₀⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
+  set C' := |C₀| * (1 + |R|)
+  have h6 : ∀ᶠ k : ℕ in Filter.atTop, R < (k : ℝ) ^ (1 / 6 : ℝ) :=
+    ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 6)).comp
+      tendsto_natCast_atTop_atTop).eventually_gt_atTop R
+  have hρ : ∀ᶠ k : ℕ in Filter.atTop, R < ρ₀ * √k :=
+    (((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
+      hρ₀).eventually_gt_atTop R)
+  refine ⟨|C| * (1 + |C'|), ?_⟩
+  filter_upwards [Filter.eventually_ge_atTop k₀, h6, hρ] with k hk hk6 hkρ x s z hz hf
+  have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
+  have hJ : ContDiffAt ℝ r (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
+    (J.contDiffAt_chartPushforward (D.chart k x) (D.ball_subset_target hk x hzb)).of_le
+      (by exact_mod_cast le_top)
+  have h := hC k _ _ hz hk6 hf hJ
+  rw [← funext (D.dbarReading_def k x s)] at h
+  have hj := hC₀ hk x hzb
+  rw [Real.inv_sqrt_eq_rpow] at hj
+  refine h.trans ?_
+  set a := jetNormAt ℝ r (D.dbarReading k x s) z
+  set b := jetNormAt ℝ (r + 1) (D.reading k x s) z
+  set j := jetNormAt ℝ r (fun w ↦ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w -
+    LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z
+  set t := (k : ℝ) ^ (-1 / 2 : ℝ)
+  have ha : 0 ≤ a := jetNormAt_nonneg _ _ _
+  have hb : 0 ≤ b := jetNormAt_nonneg _ _ _
+  have hj0 : 0 ≤ j := jetNormAt_nonneg _ _ _
+  have ht : 0 ≤ t := by positivity
+  have hz' : 1 + ‖z‖ ≤ 1 + |R| := by linarith [le_abs_self R]
+  have hj' : j ≤ |C'| * t := by
+    refine hj.trans ?_
+    rw [abs_of_nonneg (by positivity : 0 ≤ C')]
+    calc C₀ * t * (1 + ‖z‖) ≤ |C₀| * t * (1 + |R|) := by gcongr; exact le_abs_self _
+      _ = C' * t := by ring
+  calc C * (a + j * b) ≤ |C| * (a + j * b) :=
+        mul_le_mul_of_nonneg_right (le_abs_self _) (by positivity)
+    _ ≤ |C| * (a + |C'| * t * b) := by gcongr
+    _ ≤ |C| * (1 + |C'|) * (a + t * b) := by
+        have : a + |C'| * t * b ≤ (1 + |C'|) * (a + t * b) := by
+          nlinarith [abs_nonneg C', mul_nonneg ht hb]
+        calc |C| * (a + |C'| * t * b) ≤ |C| * ((1 + |C'|) * (a + t * b)) := by gcongr
+          _ = _ := by ring
+
+end RescaledUnitaryCharts
+
+end SymplecticGeometry
+
+end

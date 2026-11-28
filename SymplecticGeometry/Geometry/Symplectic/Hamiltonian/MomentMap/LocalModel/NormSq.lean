@@ -21,7 +21,7 @@ induces on `𝔤*`.
 
 For an `Ad`-invariant `B`, the norm square `B^∨ (μ_Y [g, p]) (μ_Y [g, p])` does not depend on
 `g`: it is `B^∨ (ν p) (ν p)`, by the `G`-invariance of the norm square of an equivariant map
-(`SymplecticGeometry.momentNormSq_smul`). And for any `B`, the function
+(`TauCeti.momentNormSq_smul`). And for any `B`, the function
 `p ↦ B^∨ (ν p) (ν p)` on `A × V` is a polynomial function (`Module.polynomialFunctions`), and
 so a real polynomial in the coordinates of any finite basis of `A × V`: `ν` is the sum of a
 constant, a linear map of `η` and the quadratic map `μ_V` of `v`, and `B^∨` is bilinear.
@@ -83,10 +83,13 @@ theorem dualForm_descendedMomentMap_mk
           (BalancedProduct.mk K (K.toRightTranslation g) p)) =
       B.dualForm hB (D.covector p) (D.covector p) := by
   let := D.fiberDistribMulAction
-  have h := momentNormSq_smul (hB := hB) hBG D.balancedProductInducedMomentMap_smul g
-    (BalancedProduct.mk K (K.toRightTranslation 1) p)
-  rw [BalancedProduct.smul_mk_toRightTranslation, mul_one, momentNormSq_def, momentNormSq_def,
-    balancedProductInducedMomentMap_mk (g := 1), coe_covectorCLM, map_one, one_apply_eq_self] at h
+  have h := momentNormSq_smul (ρ := adjointRepresentation ℝ I G)
+    (by simpa only [coadjointRepresentation_def] using D.balancedProductInducedMomentMap_smul)
+    (hBG.toDual_symm_dual_apply hB) g (BalancedProduct.mk K (K.toRightTranslation 1) p)
+  rw [BalancedProduct.smul_mk_toRightTranslation, mul_one,
+    momentNormSq_toDual_symm_eq_dualForm, momentNormSq_toDual_symm_eq_dualForm,
+    balancedProductInducedMomentMap_mk (g := 1), coe_covectorCLM, map_one,
+    one_apply_eq_self] at h
   exact h
 
 /-- The composite of the covectors `ν = D.covector` of the local model with any linear functional

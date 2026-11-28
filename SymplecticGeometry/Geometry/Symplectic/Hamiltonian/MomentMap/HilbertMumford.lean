@@ -34,8 +34,9 @@ stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limi
 The Kempf–Ness function `Φ_p` has derivative `-⟨μ (exp (i t ξ) p), ξ⟩` along
 `t ↦ exp (-i t ξ)` (`hasDerivAt_kempfNessFunction_expI_neg_smul`), so this derivative tends
 to `-w_μ(p, ξ)` (`tendsto_deriv_kempfNessFunction`). Since the moment weight is also a lower
-bound for `⟨μ (exp (i t ξ) p), ξ⟩`, a positive weight bounds that derivative above by
-`-w_μ(p, ξ) < 0`, so `Φ_p` is not bounded below (`nonneg_of_bddBelow_of_hasDerivAt_le`). By
+bound for `⟨μ (exp (i t ξ) p), ξ⟩`, that derivative is at most `-w_μ(p, ξ)`, so
+`Φ_p (exp (-i t ξ)) ≤ -w_μ(p, ξ) t` for `t ≥ 0` (`kempfNessFunction_expI_neg_smul_le`), and a
+positive weight makes `Φ_p` unbounded below. By
 `isSemistable_iff_bddBelow_kempfNessFunction`, the weights of a semistable point are therefore
 nonpositive (`IsSemistable.momentWeight_nonpos`), which is one half of the
 numerical criterion for semistability in [GeorgoulasRobbinSalamon2021].
@@ -46,10 +47,9 @@ and holds for every `ξ`, periodic or not. Write `exp (-i t ξ) = g⁻¹ a(t)` w
 `a(t) = g exp (-i t ξ)`. The tangent line of `Φ_p` at `g⁻¹` (convexity along geodesics, through
 `kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le`) bounds `Φ_p (exp (-i t ξ))` below by
 `Φ_p (g⁻¹) - ‖μ (g p)‖ r(t)`, where `r(t)` is the polar radius of `a(t)`, which grows at most
-like `‖ξ‖ t` (`LieComplexification.sqrt_polar_symm_fst_le_add_mul`). Since
-`⟨μ (exp (i t ξ) p), ξ⟩` never drops below `w_μ(p, ξ)`,
-`Φ_p (exp (-i t ξ)) ≤ -w_μ(p, ξ) t` (`kempfNessFunction_expI_neg_smul_le`); dividing by `t` and
-letting `t → ∞` gives the inequality.
+like `‖ξ‖ t` (`LieComplexification.sqrt_polar_symm_fst_le_add_mul`). Against the upper bound
+`Φ_p (exp (-i t ξ)) ≤ -w_μ(p, ξ) t` above, dividing by `t` and letting `t → ∞` gives the
+inequality.
 
 ## Main definitions
 
@@ -71,10 +71,10 @@ letting `t → ∞` gives the inequality.
 * `SymplecticGeometry.momentWeight_eq_moment_limitPoint`: `w_μ(p, ξ) = ⟨μ (p⁺_ξ), ξ⟩`.
 * `SymplecticGeometry.tendsto_deriv_kempfNessFunction`: the slope identity, the derivative of
   `t ↦ Φ_p (C.expI (-(t • ξ)))` tends to `-w_μ(p, ξ)` as `t → ∞`.
-* `SymplecticGeometry.not_bddBelow_kempfNessFunction_of_momentWeight_pos`: a positive weight
-  makes `Φ_p` unbounded below.
 * `SymplecticGeometry.kempfNessFunction_expI_neg_smul_le`: `Φ_p (C.expI (-(t • ξ))) ≤ -w_μ(p, ξ) t`
   for `t ≥ 0`.
+* `SymplecticGeometry.not_bddBelow_kempfNessFunction_of_momentWeight_pos`: a positive weight
+  makes `Φ_p` unbounded below.
 * `SymplecticGeometry.momentWeight_le_mul_norm`: the moment-weight inequality
   `w_μ(p, ξ) ≤ √(B ξ ξ) * √(‖μ (g • p)‖²)`.
 * `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
@@ -330,20 +330,6 @@ theorem tendsto_deriv_kempfNessFunction (h : IsComplexifiedAction C J)
   rw [hd]
   exact (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
 
-/-- If the moment weight `w_μ(p, ξ)` is positive, then the Kempf–Ness function `Φ_p` is not
-bounded below, under the hypotheses of `tendsto_deriv_kempfNessFunction`: along
-`t ↦ C.expI (-(t • ξ))` it decreases with slope at least `w_μ(p, ξ)`. -/
-theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAction C J)
-    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
-    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
-    {p : M} {ξ : GroupLieAlgebra I G} (hw : 0 < momentWeight C μ p ξ) :
-    ¬BddBelow (Set.range (kempfNessFunction C μ p)) :=
-  fun hb ↦ (neg_neg_of_pos hw).not_ge <| nonneg_of_bddBelow_of_hasDerivAt_le (a := 0)
-    (f := fun t : ℝ ↦ kempfNessFunction C μ p (C.expI (-(t • ξ))))
-    (hb.mono (by rintro _ ⟨t, -, rfl⟩; exact ⟨_, rfl⟩))
-    (fun t _ ↦ hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ t)
-    fun t _ ↦ neg_le_neg (momentWeight_le_moment_expI_smul h hμ.toIsMomentMap hg p ξ t)
-
 /-- Along `t ↦ C.expI (-(t • ξ))`, the Kempf–Ness function decreases with slope at least
 `w_μ(p, ξ)`: `Φ_p (C.expI (-(t • ξ))) ≤ -(w_μ(p, ξ) * t)` for `t ≥ 0`, under the hypotheses of
 `tendsto_deriv_kempfNessFunction`. -/
@@ -359,21 +345,36 @@ theorem kempfNessFunction_expI_neg_smul_le (h : IsComplexifiedAction C J)
   simp only [zero_smul, neg_zero, C.expI_zero, kempfNessFunction_one, sub_zero] at this
   linarith
 
+/-- If the moment weight `w_μ(p, ξ)` is positive, then the Kempf–Ness function `Φ_p` is not
+bounded below, under the hypotheses of `tendsto_deriv_kempfNessFunction`: along
+`t ↦ C.expI (-(t • ξ))` it is at most `-(w_μ(p, ξ) * t)` for `t ≥ 0`. -/
+theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {p : M} {ξ : GroupLieAlgebra I G} (hw : 0 < momentWeight C μ p ξ) :
+    ¬BddBelow (Set.range (kempfNessFunction C μ p)) := by
+  rintro ⟨m, hm⟩
+  -- At `t = (|m| + 1) / w_μ(p, ξ)` the upper bound `-(w_μ(p, ξ) * t)` is below `m`.
+  have ht : 0 ≤ (|m| + 1) / momentWeight C μ p ξ := by positivity
+  have hup := kempfNessFunction_expI_neg_smul_le h hμ hg p ξ ht
+  rw [mul_div_cancel₀ _ hw.ne'] at hup
+  linarith [(hm ⟨_, rfl⟩).trans hup, neg_abs_le m]
+
 /-- **The moment-weight inequality.** For a complexified action on a compact manifold, with `-μ`
 an equivariant moment map for `σ`, the metric `g(u, w) = σ(u, J w)` and a symmetric, nonnegative,
 nondegenerate, `Ad`-invariant form `B` on the Lie algebra of the connected group `G`,
 `w_μ(p, ξ) ≤ √(B ξ ξ) * √(‖μ (g • p)‖²)` for every `ξ` and every `g : Gc`, where `‖μ x‖²` is
-`momentNormSq B hB μ x`: both norms are those of `B`. -/
+`momentNormSq μ (B.toDual hB).symm x`: both norms are those of `B`. -/
 theorem momentWeight_le_mul_norm (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate} (hBs : B.IsSymm)
     (hpos : B.IsNonneg) (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     (p : M) (ξ : GroupLieAlgebra I G) (g : Gc) :
-    momentWeight C μ p ξ ≤ √(B ξ ξ) * √(momentNormSq B hB μ (g • p)) := by
+    momentWeight C μ p ξ ≤ √(B ξ ξ) * √(momentNormSq μ (B.toDual hB).symm (g • p)) := by
   set w := momentWeight C μ p ξ
   set K := √(B ξ ξ)
-  set S := √(momentNormSq B hB μ (g • p))
+  set S := √(momentNormSq μ (B.toDual hB).symm (g • p))
   -- The curve `a t = g * exp (-i t ξ)`, with constant left-trivialized derivative
   -- `-cplx (lieMap ξ)`, whose imaginary part is `-ξ`.
   set a : ℝ → Gc := fun t ↦ g * C.expI (-(t • ξ))

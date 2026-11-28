@@ -133,20 +133,12 @@ theorem mem_ker_mfderiv_mk_one_zero_iff [I.Boundaryless]
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  -- `K` fixes `0 ∈ A × V`, so its fundamental vector fields vanish there.
-  have h0 (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) :
-      fundamentalVectorField 𝓘(ℝ, A × V) ξ ((0 : A), (0 : V)) = 0 :=
-    fundamentalVectorField_eq_zero_of_forall_smul_eq (fun k ↦ smul_zero k) ξ
-  rw [BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff, tangentSpaceProdEquiv_apply]
-  simp only [h0, mulInvariantVectorField_one]
-  constructor
-  · rintro ⟨ξ, rfl⟩
-    exact ⟨neg_mem (D.groupLieAlgebraMap_subtype_mem_𝔥 ξ), (Submodule.mem_bot ℝ).2 rfl⟩
-  · rintro ⟨hξ, hab⟩
-    obtain ⟨ξ, hξ'⟩ := D.range_groupLieAlgebraMap_subtype.ge (neg_mem hξ)
-    refine ⟨ξ, Prod.ext ?_ ((Submodule.mem_bot ℝ).1 hab)⟩
-    simp only [ContinuousLinearMap.coe_coe] at hξ'
-    rw [hξ', neg_neg]
+  -- `K` fixes `0 ∈ A × V`, and the image of its Lie algebra in `𝔤` is `𝔥`.
+  rw [BalancedProduct.ker_mfderiv_mk_toRightTranslation_one_of_forall_smul_eq F
+    (fun k ↦ smul_zero k), D.range_groupLieAlgebraMap_subtype, tangentSpaceProdEquiv_apply]
+  -- The two memberships differ only in reading `u` as a vector of `TangentSpace` or of
+  -- `E × (A × V)`, which agree by definition.
+  exact Iff.rfl
 
 
 /-! ### The descended form, read on `G × (A × V)` -/
