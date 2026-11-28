@@ -356,7 +356,7 @@ theorem exceptionalClass_restrict_divisor :
 
 /-- **The real exceptional class is nonzero when `1 ≤ n`**: for the blowup of a manifold of
 complex dimension `n + 1 ≥ 2`, the real image of the exceptional class `e` in `H²(Blowup c; ℝ)`
-is not zero. (For `n = 0` the exceptional divisor is a point.) -/
+is not zero. -/
 theorem singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero (hn : 1 ≤ n) :
     (TopCat.of (Blowup c)).singularCohomologyRealImageAddMonoidHom 2 (exceptionalClass c) ≠ 0 := by
   intro h
