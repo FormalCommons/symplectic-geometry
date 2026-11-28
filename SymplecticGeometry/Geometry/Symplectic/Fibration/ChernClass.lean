@@ -134,14 +134,10 @@ same form `σ` along a smooth atlas of `proj` have the same restriction to the v
 theorem RestrictsTo.restrictTwoForm_eq (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ)
     (hτ' : A.RestrictsTo σ τ')
     (hD : IsContMDiffDistribution IM ∞ k fun x ↦ (mfderiv IM IB proj x).ker) :
-    hD.restrictTwoForm τ = hD.restrictTwoForm τ' := by
-  refine hD.restrictTwoForm_eq_iff.2 fun x u hu v hv ↦ ?_
-  have hb := A.mem_baseSet_trivAt (proj x)
-  have h := (A.trivAt (proj x)).apply_eq_of_mpullback_fiberInclusionMap_eq
-    (hA.mdifferentiable_trivAt (by simp) _) hb
-    ((restrictsTo_iff.1 hτ _ _ hb).trans (restrictsTo_iff.1 hτ' _ _ hb).symm)
-    (u := ![u, v]) fun i ↦ by fin_cases i <;> assumption
-  simpa [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply] using h
+    hD.restrictTwoForm τ = hD.restrictTwoForm τ' :=
+  hD.restrictTwoForm_eq_iff.2 fun x u hu v hv ↦ by
+    simpa [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply] using
+      hτ.apply_eq hA hτ' (u := ![u, v]) (Fin.forall_fin_two.2 ⟨hu, hv⟩)
 
 end TauCeti.MapFiber.Atlas
 
