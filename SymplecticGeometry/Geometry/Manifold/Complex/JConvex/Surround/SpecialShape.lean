@@ -1142,7 +1142,7 @@ theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
   have hδ : 0 < δ := hδ
   have hKδ : 0 < K * δ := by positivity
   set S := struweShape δ K (1 + d * K * δ)
-  obtain ⟨-, -, ⟨hlow, hup⟩, htend⟩ := isConvexShapeAt_struweShape hd.1 hδ hKd.ge hδK.le
+  obtain ⟨-, -, ⟨hlow, hup⟩, -⟩ := isConvexShapeAt_struweShape hd.1 hδ hKd.ge hδK.le
   obtain ⟨G, hGs, hGc, hGS, hGL⟩ := exists_isConvexShapeAt_eq_struweShape_eq_linear (ℓ := 1)
     hd.1 hδ hKd.ge hK₄ (by linarith) (by linarith) (by linarith)
   -- `χ` is `G` below `β` and `ψ` beyond `3 K δ / 2`.
@@ -1161,19 +1161,17 @@ theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
     rcases lt_or_ge x β with h | h
     · exact (hGs.contDiffAt (Ioi_mem_nhds hx)).congr_of_eventuallyEq (hχG x h)
     · exact hψs.contDiffAt.congr_of_eventuallyEq (hχψ x (by linarith))
-  have hχδ : χ δ = S δ := (hχS δ (by nlinarith)).eq_of_nhds
-  refine ⟨δ, ⟨hδ, by nlinarith [hβ.2]⟩, χ, hχs, fun x (hx : δ ≤ x) ↦ ?_, fun r hr ↦ ?_,
-    fun r hr ↦ ?_, htend.congr' ?_, ?_, ?_⟩
-  · rcases hx.eq_or_lt with rfl | hx
-    · exact (continuousOn_struweShape hδ hK.le _ δ le_rfl).congr_of_eventuallyEq
-        (nhdsWithin_le_nhds (hχS δ (by nlinarith))) hχδ
-    · exact (hχs.continuousOn.continuousAt (Ioi_mem_nhds hx)).continuousWithinAt
+  have hu : δ < 3 * K * δ / 4 := by nlinarith
+  have hχS' : EqOn χ S (Ico δ (3 * K * δ / 4)) := fun x hx ↦ (hχS x hx.2).eq_of_nhds
+  have hχδ : χ δ = S δ := hχS' ⟨le_rfl, hu⟩
+  refine ⟨δ, ⟨hδ, by nlinarith [hβ.2]⟩, χ, hχs,
+    continuousOn_Ici_of_eqOn_struweShape hδ hK.le hχs.continuousOn hu hχS', fun r hr ↦ ?_,
+    fun r hr ↦ ?_, tendsto_deriv_of_eqOn_struweShape hδ hK.le hu (hχS'.mono Ioo_subset_Ico_self),
+    ?_, ?_⟩
   · rcases le_or_gt r (2 * K * δ) with h | h
     · exact (hGc r ⟨hr, h⟩).congr_of_eventuallyEq (hχG r (by linarith))
     · exact (hψc r (by linarith)).congr_of_eventuallyEq (hχψ r (by linarith))
   · rw [(hχψ r (by linarith [hβ.2])).eq_of_nhds, hψS r hr]
-  · filter_upwards [Ioo_mem_nhdsGT (show δ < 3 * K * δ / 4 by nlinarith)] with x hx
-    exact (hχS x hx.2).deriv_eq.symm
   · rw [hχδ]
     nlinarith [hd.1]
   · rw [hχδ]
