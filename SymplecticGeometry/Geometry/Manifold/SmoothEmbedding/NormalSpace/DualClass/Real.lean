@@ -299,10 +299,11 @@ the standard orientation of `ℝ²` to `o x`. Let `B` be a neighbourhood of `0` 
 `g : ℝ² → X` a map continuous on `B`, with `g 0 = f x`, sending no other point of `B` into
 `f(Z)`, and with a derivative `A` at `0` such that the normal class of each `A w` is `m w`. Pull
 `realRelDualClass f hn hdim hf o hr` back along `g`, as a map of pairs
-`(B, B ∖ {0}) ⟶ (X, X ∖ f(Z))`. Let `σ` be a smooth `2`-simplex of `ℝ²` as in
-`singularKronecker_normalSlice_realRelDualClass_relClass`, positively oriented around `0`, and
-`τ` a singular simplex of `B` that the inclusion carries to `σ`. Then the pulled-back class,
-read through integral chains, pairs with the class of `τ` in `H₂(B, B ∖ {0}; ℤ)` to `-1`.
+`(B, B ∖ {0}) ⟶ (X, X ∖ f(Z))`. Let `σ` be a smooth `2`-simplex of `ℝ²`, the restriction to
+`Δ²` of a map `φ` that is an open embedding preserving the standard orientation on an open
+neighbourhood `U` of `Δ²`, with `0 ∈ φ (interior Δ²)`, and `τ` a singular simplex of `B` that
+the inclusion carries to `σ`. Then the pulled-back class, read through integral chains, pairs
+with the class of `τ` in `H₂(B, B ∖ {0}; ℤ)` to `-1`.
 
 By `singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`, `g` pulls the class back as the
 normal slice of a normalized tube read through `m` does, after the inclusion of `B` into `ℝ²`;

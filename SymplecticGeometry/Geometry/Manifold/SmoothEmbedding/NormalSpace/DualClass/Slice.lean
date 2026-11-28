@@ -575,7 +575,6 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv {f : SmoothEmbedd
   rw [← h1, TopPair.singularCohomologyMap_comp_apply, h,
     ← TopPair.singularCohomologyMap_comp_apply, ← h2]
 
-
 /-- **The normal slices of two normalized tubes agree in cohomology.** For normalized tubes `Φ`
 and `Φ'` of `f` and a point `x : Z`, the normal slices of `Φ` and of `Φ'` at `x` pull every class
 of `(X, X ∖ f(Z))` back to the same class of `(ν_x, ν_x ∖ 0)`, in every degree. -/
