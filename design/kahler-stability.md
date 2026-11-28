@@ -496,7 +496,8 @@ This is a hypothesis of the statements below, not a definition.
 - `tendsto_deriv_kempfNessFunction`: the slope identity, the limit of the
   derivative of $t\mapsto\Phi_p(\exp(-it\xi))$ is $-w_\mu(p,\xi)$.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,
-  $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for $\xi\in\Lambda$ and $g\in G^{\mathbb C}$,
+  $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for every $\xi\in\mathfrak g$ (in particular
+  $\xi\in\Lambda$) and $g\in G^{\mathbb C}$,
   with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq B hB μ (g • p))`.
 - `momentWeight_toHom_smul : momentWeight C μ (C.toHom u • x) (Ad u ξ) = momentWeight C μ x ξ`
   and `limitPoint_toHom_smul : limitPoint C (C.toHom u • x) (Ad u ξ) = C.toHom u • limitPoint C x ξ`,
@@ -573,7 +574,7 @@ with every element of `𝔞 ξ`. It is a set in the statements below; a
 proof that needs it as a `Submodule` builds it there.
 
 - `sqrt_polar_symm_fst_le_add_mul` (`Geometry/Lie/Complexification.lean`,
-  with the polar radius): for connected `G`, a symmetric `Ad`-invariant `B`,
+  with the polar radius): for connected `G`, a symmetric, nonnegative, `Ad`-invariant `B`,
   a curve `a` with `HasLeftTrivializedDerivOn a v univ` and
   `√(B (C.im (v t)) (C.im (v t))) ≤ K` for all `t`, the polar radius
   `√(B η η)` of `a t`, for `(η, u) = C.polar.symm (a t)`, is at most that of
