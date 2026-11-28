@@ -29,6 +29,7 @@ import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.Deriv.Slope
+import TauCeti.Geometry.Manifold.GroupAction.Restrict
 
 /-!
 # Complexified actions, stability and the gradient of the moment map
@@ -71,7 +72,7 @@ and the moment weights.
   with `J` multiplication by `i`, is a complexified action of the rotation action of `Circle`, for
   the complexification `LieComplexification.circle`.
 * `SymplecticGeometry.IsComplexifiedAction.contMDiffSMul`: the action of `G` is smooth, as that
-  of `Gc` along `C.toHom`.
+  of `Gc` along `C.toHom`, by Tau Ceti's `Manifold.IsSmoothEmbedding.contMDiffSMul`.
 * `SymplecticGeometry.IsComplexifiedAction.moment_toHom_smul`: if `-μ` is an equivariant moment
   map, then `μ (C.toHom u • x) = Ad*_u (μ x)`.
 * `SymplecticGeometry.IsStable.isPolystable`, `SymplecticGeometry.IsPolystable.isSemistable`:
@@ -371,13 +372,11 @@ theorem expI_smul_smul_eq_self_iff [T2Space M] [BoundarylessManifold I' M]
   exact ⟨fun h0 ↦ J.injective x (h0.trans (map_zero _).symm), fun h0 ↦ by simp [h0]⟩
 
 /-- For a complexified action, the action of `G` on `M` is smooth, since it is the smooth action
-of `Gc` along the smooth homomorphism `C.toHom`. -/
-theorem contMDiffSMul (h : IsComplexifiedAction C J) : ContMDiffSMul I I' ∞ G M where
-  contMDiff_smul := by
-    have hG : (fun p : G × M ↦ p.1 • p.2) = fun p ↦ C.toHom p.1 • p.2 :=
-      funext fun p ↦ (h.toHom_smul p.1 p.2).symm
-    rw [hG]
-    exact (C.toHom.contMDiff_toFun.comp contMDiff_fst).smul contMDiff_snd
+of `Gc` along the smooth homomorphism `C.toHom`: Tau Ceti's
+`Manifold.IsSmoothEmbedding.contMDiffSMul` for the identity embedding of `M`. -/
+theorem contMDiffSMul (h : IsComplexifiedAction C J) : ContMDiffSMul I I' ∞ G M :=
+  Manifold.IsSmoothEmbedding.id.contMDiffSMul C.toHom.contMDiff_toFun
+    fun u x ↦ (h.toHom_smul u x).symm
 
 omit [ContMDiffSMul IC I' ∞ Gc M] in
 /-- For a complexified action and a map `μ` whose negative is an equivariant moment map, `μ` is
