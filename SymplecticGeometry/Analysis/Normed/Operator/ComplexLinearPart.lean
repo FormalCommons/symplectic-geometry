@@ -13,6 +13,7 @@ public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
 import SymplecticGeometry.Analysis.InnerProductSpace.Basic
+import TauCeti.Algebra.Ring.Hom
 import TauCeti.Analysis.Normed.Module.RCLike.Basic
 
 /-!
@@ -258,13 +259,6 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
   exact ((hf.clm_apply contDiffOn_const).add
     ((hf.clm_apply contDiffOn_const).const_smul Complex.I)).const_smul _
 
-/-- A continuous linear endomorphism that squares to `-1` does so as a linear map. -/
-theorem ContinuousLinearMap.coe_comp_self_eq_neg_id {R M : Type*} [Ring R] [AddCommGroup M]
-    [Module R M] [TopologicalSpace M] [IsTopologicalAddGroup M] {J : M →L[R] M}
-    (h : J ∘L J = -1) : (J : M →ₗ[R] M) ∘ₗ J = -LinearMap.id := by
-  ext v
-  simpa using DFunLike.congr_fun h v
-
 /-! ### The algebraic complex-linear and complex-antilinear parts as continuous operators -/
 
 namespace TauCeti
@@ -382,8 +376,9 @@ theorem isComplexLinear_complexLinearPartContinuousLinearMap {J : V →L[ℝ] V}
     IsComplexLinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
       (complexLinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) := by
   rw [coe_complexLinearPartContinuousLinearMap_apply]
-  exact isComplexLinear_complexLinearPart (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ)
-    (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ') _
+  exact isComplexLinear_complexLinearPart
+    (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ)
+    (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ') _
 
 /-- The value at `F` of `TauCeti.complexAntilinearPartContinuousLinearMap J J'` is complex
 antilinear for `J` and `J'`, when both square to `-1`. -/
@@ -392,8 +387,9 @@ theorem isComplexAntilinear_complexAntilinearPartContinuousLinearMap {J : V →L
     IsComplexAntilinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
       (complexAntilinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) := by
   rw [coe_complexAntilinearPartContinuousLinearMap_apply]
-  exact isComplexAntilinear_complexAntilinearPart (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ)
-    (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ') _
+  exact isComplexAntilinear_complexAntilinearPart
+    (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ)
+    (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ') _
 
 /-- A map that is complex linear for `J` and `J'` has zero continuous complex-antilinear part,
 when `J'` squares to `-1`. -/
@@ -403,7 +399,8 @@ theorem IsComplexLinear.complexAntilinearPartContinuousLinearMap_eq_zero {J : V 
     (hJ' : J' ∘L J' = -1) : complexAntilinearPartContinuousLinearMap J J' F = 0 :=
   ContinuousLinearMap.coe_injective <| by
     rw [coe_complexAntilinearPartContinuousLinearMap_apply,
-      h.complexAntilinearPart_eq_zero (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ'),
+      h.complexAntilinearPart_eq_zero
+        (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ'),
       ContinuousLinearMap.toLinearMap_zero]
 
 /-- A map that is complex antilinear for `J` and `J'` has zero continuous complex-linear part,
@@ -414,7 +411,8 @@ theorem IsComplexAntilinear.complexLinearPartContinuousLinearMap_eq_zero {J : V 
     (hJ' : J' ∘L J' = -1) : complexLinearPartContinuousLinearMap J J' F = 0 :=
   ContinuousLinearMap.coe_injective <| by
     rw [coe_complexLinearPartContinuousLinearMap_apply,
-      h.complexLinearPart_eq_zero (ContinuousLinearMap.coe_comp_self_eq_neg_id hJ'),
+      h.complexLinearPart_eq_zero
+        (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ'),
       ContinuousLinearMap.toLinearMap_zero]
 
 /-- For a field `J` of continuous endomorphisms of `V` and a field `F` of operators `V →L[ℝ] W`,

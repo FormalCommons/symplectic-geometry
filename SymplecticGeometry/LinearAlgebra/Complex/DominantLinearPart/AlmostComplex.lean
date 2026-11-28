@@ -11,6 +11,7 @@ public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
 import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
+import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 
 /-!
@@ -95,14 +96,10 @@ theorem surjective_of_norm_complexAntilinearPart_lt [FiniteDimensional ℝ V]
       ‖complexLinearPartContinuousLinearMap (LinearMap.toContinuousLinearMap J.toLinearMap)
         (smulIEquiv W : W →L[ℝ] W) F‖) :
     Function.Surjective F := by
-  have hJ : LinearMap.toContinuousLinearMap J.toLinearMap ∘L
-      LinearMap.toContinuousLinearMap J.toLinearMap = -1 := by
-    ext v
-    simp
-  have hA := isComplexLinear_complexLinearPartContinuousLinearMap hJ
-    (smulIEquiv_comp_smulIEquiv W) F
-  have hB := isComplexAntilinear_complexAntilinearPartContinuousLinearMap hJ
-    (smulIEquiv_comp_smulIEquiv W) F
+  have hA := isComplexLinear_complexLinearPartContinuousLinearMap
+    J.toContinuousLinearMap_mul_self (smulIEquiv_comp_smulIEquiv W) F
+  have hB := isComplexAntilinear_complexAntilinearPartContinuousLinearMap
+    J.toContinuousLinearMap_mul_self (smulIEquiv_comp_smulIEquiv W) F
   rw [LinearMap.coe_toContinuousLinearMap, coe_smulIEquiv_eq_ofComplexModule] at hA hB
   have hs := IsComplexLinear.surjective_of_norm_lt hW hA hB h
   rwa [complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
