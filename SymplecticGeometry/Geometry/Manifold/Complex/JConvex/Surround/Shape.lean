@@ -849,12 +849,9 @@ theorem iInter_setOfPred_shape_le_eq :
       · simp [h2]
   · rintro ⟨x, hx, rfl⟩ γ hγ
     rw [mem_closedBall, dist_zero_right] at hx
-    have hx2 : ∑ j, x j ^ 2 ≤ 1 := by
-      have := pow_le_one₀ (n := 2) (norm_nonneg x) hx
-      simpa [EuclideanSpace.norm_sq_eq] using this
     refine ⟨by simpa using sq_nonneg (γ : ℝ), ?_⟩
-    simp only [shape_fst, modelDisc_apply_fst_apply, Complex.ofReal_re]
-    nlinarith [hγ.1]
+    simp only [shape_modelDisc]
+    nlinarith [hγ.1, norm_nonneg x]
 
 end Handle
 
