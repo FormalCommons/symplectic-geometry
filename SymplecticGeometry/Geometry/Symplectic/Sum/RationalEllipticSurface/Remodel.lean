@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreTorus
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.AffineCoordinate
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreComplement
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.SmoothEmbedding
 import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
@@ -195,18 +196,17 @@ theorem range_torusEmbedding :
 theorem mpullback_torusEmbedding_symplecticForm :
     SmoothForm.mpullback (torusEmbedding e p) (torusEmbedding e p).contMDiff
       (symplecticForm e p) = torusSymplecticForm p := by
-  rw [← mpullback_fibreEmbedding_comp_torusDiffeomorph p,
-    ← mpullback_diffeomorph_symplecticForm e p, SmoothForm.mpullback_mpullback]
-  exact SmoothForm.mpullback_congr _ _ (coe_torusEmbedding e p) _
+  rw [torusEmbedding_def, SmoothEmbedding.mpullback_transDiffeomorphOfBoundaryless _ _ _
+    (mpullback_diffeomorph_symplecticForm e p), ← mpullback_fibreEmbedding_comp_torusDiffeomorph p]
+  exact SmoothForm.mpullback_congr _ _ (SmoothEmbedding.coe_compDiffeomorphOfBoundaryless _ _ _) _
 
 /-- The embedded torus has symplectic tangent images for the form of `OnModel e`. -/
 theorem hasSymplecticTangentImages_torusEmbedding :
     (isSymplectic_symplecticForm e p).isNondegenerate.HasSymplecticTangentImages
       (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (torusEmbedding e p) := by
-  rw [torusEmbedding_def, SmoothEmbedding.coe_transDiffeomorphOfBoundaryless]
-  exact (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff
-    (diffeomorph e)
-    (mpullback_diffeomorph_symplecticForm e p)).2
+  rw [torusEmbedding_def]
+  exact (SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff _
+    (diffeomorph e) _ (mpullback_diffeomorph_symplecticForm e p)).2
     (hasSymplecticTangentImages_fibreEmbedding_compDiffeomorph_torusDiffeomorph p)
 
 /-- **The symplectic framing of the embedded torus.** The framing `fibreFraming` of the fibre over
