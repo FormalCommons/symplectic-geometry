@@ -12,6 +12,7 @@ import SymplecticGeometry.Analysis.Calculus.ConvexProfile
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Prod
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Analysis.Calculus.Morse.Index
 
 /-!
@@ -274,8 +275,8 @@ theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : Cont
     (fun h ↦ hΛ0 h) (fun h ↦ hΛ'zero h) (hΛ'' t) (hΛle t) (by linarith [hn ▸ Nat.le_ceil t])
     (((le_max_left _ _).trans_eq hLt.symm).trans (le_max_left _ _)) hM2 with h | ⟨hy12, h⟩
   · refine ⟨(1, 0), ?_⟩
-    rwa [hHess, fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero (g := fun z : V ↦ β ‖z‖)
-      hg2 hΛ2]
+    rwa [hHess, fderiv_fderiv_comp_snd_mul_comp_fst_apply_mk_zero (g := fun z : V ↦ β ‖z‖)
+      hg2 hΛ2, TauCeti.fderiv_fderiv_apply_one_one]
   · have hy0 : y ≠ 0 := norm_ne_zero_iff.1 (by linarith)
     refine ⟨(0, ‖y‖⁻¹ • y), ?_⟩
     rwa [hHess, fderiv_fderiv_comp_snd_mul_comp_fst_apply_zero_mk (g := fun z : V ↦ β ‖z‖) hg2

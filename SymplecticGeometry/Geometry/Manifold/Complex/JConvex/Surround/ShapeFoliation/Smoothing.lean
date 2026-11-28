@@ -685,8 +685,8 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
       rw [abs_le]
       constructor <;> linarith [hx.1.1, hx.1.2]) (by simp [hd.le])
   -- The gap `g` between `χ ℓ₁` and the members over `[a, b]`.
-  have hχcont : ContinuousOn (fun x : ℝ × ℝ ↦ χ x.1 x.2) Q := by
-    simpa [iteratedDeriv_zero] using hcont 0 (by norm_num)
+  have hχcont : ContinuousOn (fun x : ℝ × ℝ ↦ χ x.1 x.2) Q :=
+    ContinuousOn.uncurry_of_iteratedDeriv hcont
   obtain ⟨g, hg, hgap⟩ : ∃ g > 0, ∀ ℓ ∈ Icc a b, ∀ r ∈ Icc r₁ r₂, χ ℓ r + g ≤ χ ℓ₁ r := by
     have hKab : IsCompact (Icc a b ×ˢ Icc r₁ r₂) := isCompact_Icc.prod isCompact_Icc
     have hcf : ContinuousOn (fun x : ℝ × ℝ ↦ χ ℓ₁ x.2 - χ x.1 x.2) (Icc a b ×ˢ Icc r₁ r₂) := by
@@ -702,7 +702,7 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
     linarith
   -- The point `c ∈ (b, ℓ₁)` from which on the members are within `g / 4` of `χ ℓ₁`.
   obtain ⟨w', hw', hu'⟩ := isCompact_Icc.exists_pos_abs_sub_lt_of_continuousOn
-    (hcont 0 (by norm_num)) (by positivity : 0 < g / 4)
+    hχcont (by positivity : 0 < g / 4)
   set c := ℓ₁ - min w' (s / 2)
   have hbc : b < c := by
     have : min w' (s / 2) ≤ s / 2 := min_le_right _ _
@@ -715,7 +715,6 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
     have := hu' r hr' ℓ₁ (right_mem_Icc.2 hℓ.le) ℓ ⟨by linarith [hℓ'.1], hℓ'.2⟩ (by
       rw [abs_le]
       constructor <;> linarith [hℓ'.1, hℓ'.2, min_le_left w' (s / 2)])
-    simp only [iteratedDeriv_zero] at this
     linarith [(abs_lt.1 this).1]
   -- The raise `q`, a smooth step from `0` at `a₀ = ℓ₀ + s / 4` to `κ` at `c`.
   set κ := min (τ / 4) (g / 4)

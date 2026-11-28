@@ -6,15 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
-import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Prod
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
 
 /-!
 # Iterated derivatives in the second variable of a function of two variables
 
 * `ContDiffAt.continuousAt_iteratedDeriv_prod_right`: if `f : P × 𝕜 → F` is `Cⁿ` at `(p, x)`,
   then for `m ≤ n` the `m`-th iterated derivative of the slices `y ↦ f (q.1, y)`, evaluated at
-  `q.2`, is continuous in `q` at `(p, x)`. It is the one-variable form of
-  `ContDiffAt.continuousAt_iteratedFDeriv_prod_right`.
+  `q.2`, is continuous in `q` at `(p, x)`. It is Tau Ceti's `ContDiffAt.iteratedFDeriv_snd`
+  with smoothness order `0` (continuity) and derivative order `i = m`, read through
+  `iteratedDeriv_eq_iteratedFDeriv`.
 * `ContinuousOn.uncurry_of_iteratedDeriv` and `ContinuousOn.deriv_of_iteratedDeriv`: if the
   iterated derivatives of orders up to `m` of the members `G p` of a family are jointly
   continuous in `(p, x)` on a set, then so are the values and, for `1 ≤ m`, the derivatives.
@@ -34,7 +35,9 @@ theorem ContDiffAt.continuousAt_iteratedDeriv_prod_right {n : WithTop ℕ∞} {f
     {p : P} {x : 𝕜} (hf : ContDiffAt 𝕜 n f (p, x)) {m : ℕ} (hm : m ≤ n) :
     ContinuousAt (fun q : P × 𝕜 ↦ iteratedDeriv m (fun y ↦ f (q.1, y)) q.2) (p, x) := by
   simp only [iteratedDeriv_eq_iteratedFDeriv]
-  exact (continuous_eval_const _).continuousAt.comp (hf.continuousAt_iteratedFDeriv_prod_right hm)
+  rw [← Function.uncurry_curry f] at hf
+  exact (continuous_eval_const _).continuousAt.comp
+    (hf.iteratedFDeriv_snd (m := 0) (by simpa using hm)).continuousAt
 
 section Family
 
