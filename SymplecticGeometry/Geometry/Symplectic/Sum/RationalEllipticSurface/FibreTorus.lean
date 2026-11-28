@@ -118,11 +118,9 @@ private theorem eval₂_mpullback_fibreEmbedding_mfderiv_latticeTorusCover_pos (
     refine (map_ne_zero_iff _ ?_).2 (one_ne_zero (α := ℂ))
     refine TauCeti.injective_mfderiv_comp (J := ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
       (TauCeti.injective_mfderiv_comp
-        (fibreEmbedding.isImmersion.mfderiv_injective (by simp) _) ?_) ?_
-    · rw [← φ.symm.isLocalDiffeomorph.mfderivToContinuousLinearEquiv_coe (by simp)]
-      exact ContinuousLinearEquiv.injective _
-    · rw [← hπ.mfderivToContinuousLinearEquiv_coe (by simp)]
-      exact ContinuousLinearEquiv.injective _
+        (fibreEmbedding.isImmersion.mfderiv_injective (by simp) _)
+        (φ.symm.isInvertible_mfderiv (by simp)).injective)
+      (hπ.isInvertible_mfderiv (by simp) z).injective
   have h := SmoothForm.eval₂_mpullback (latticeTorusCover p fermatPeriodBasis) hπ.contMDiff
     (SmoothForm.mpullback (fibreEmbedding ∘ φ.symm)
       (fibreEmbedding.contMDiff.comp φ.symm.contMDiff) symplecticForm) z (1 : ℂ) I
