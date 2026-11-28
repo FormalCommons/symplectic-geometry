@@ -160,9 +160,13 @@ private theorem criticalHessian_add_criticalHessian_eq [I.Boundaryless]
     rw [(D.chart k x).criticalHessian_apply_eq_fderiv_fderiv (by simp) hsrc hg hcrit, hfg, hx0]
   have hJv : stdComplexStructure ι (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) =
       mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) := by
-    refine (D.chartPushforward_zero hk x _).symm.trans (Eq.trans (α := StdSpace ι) ?_
-      (J.mfderiv_apply_eq_chartPushforward_apply (D.chart k x) hsrc v).symm)
-    rw [hx0]
+    have h : J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x x)
+        (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) =
+          mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) := by
+      rw [J.chartPushforward_toOpenPartialHomeomorph]
+      exact (D.chart k x).pushforwardEndomorphism_mfderiv_apply J hsrc v
+    rw [hx0] at h
+    exact (D.chartPushforward_zero hk x _).symm.trans h
   rw [hH, hH, hJv]
 
 omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]

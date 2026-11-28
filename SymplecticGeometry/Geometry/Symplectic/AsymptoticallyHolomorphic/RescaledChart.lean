@@ -38,7 +38,7 @@ read in all of them on that ball.
 
 The uniformity comes from two inputs: the uniform bound on the normal forms,
 `SymplecticGeometry.exists_forall_isSymplectomorphism_stdForm_norm_le`, applied to the structures
-`J.chartPushforwardAt φ` on the compact set `φ '' K`; and the radius and derivative bounds that
+`φ.pushforwardAt J` on the compact set `φ '' K`; and the radius and derivative bounds that
 `SmoothAlmostComplexStructure.exists_forall_norm_iteratedFDeriv_chartPushforward_transAffine_le`
 gives for any family of recentred charts whose linear parts are bounded with their inverses.
 
@@ -246,9 +246,9 @@ theorem exists_transAffine_darbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
     rw [Subtype.isCompact_iff, Subtype.image_preimage_coe, Set.inter_eq_right.2 hLt]
     exact hK.image_of_continuousOn (φ.contMDiffOn.continuousOn.mono hKφ)
   obtain ⟨C₁, hC₁⟩ := exists_forall_isSymplectomorphism_stdForm_norm_le
-    (J := fun p : φ.target ↦ J.chartPushforwardAt φ p.property) finrank_stdSpace hLX
-    (J.continuous_toContinuousLinearMap_chartPushforwardAt φ).continuousOn
-    fun p _ ↦ J.compatible_chartPushforwardAt hJ φ hφ p.property
+    (J := fun p : φ.target ↦ φ.pushforwardAt J p.property) finrank_stdSpace hLX
+    (φ.continuous_toContinuousLinearMap_pushforwardAt J).continuousOn
+    fun p _ ↦ hJ.compatible_pushforwardAt φ hφ p.property
   have hex (x : M) : ∃ Ψ : StdSpace ι ≃L[ℝ] StdSpace ι, x ∈ K →
       IsSymplectomorphism (stdForm ι) (stdForm ι) Ψ.toLinearEquiv ∧
       (∀ w, Ψ (stdComplexStructure ι w) =
@@ -258,7 +258,8 @@ theorem exists_transAffine_darbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
     by_cases hx : x ∈ K
     · obtain ⟨Ψ, h₁, h₂, h₃, h₄⟩ := hC₁ ⟨φ x, φ.map_source (hKφ hx)⟩ (Set.mem_image_of_mem φ hx)
       refine ⟨Ψ, fun _ ↦ ⟨h₁, fun w ↦ ?_, h₃, h₄⟩⟩
-      simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using LinearMap.congr_fun h₂ w
+      exact (LinearMap.congr_fun h₂ w).trans
+        (φ.pushforwardAt_apply_eq_chartPushforward_apply J _ (Ψ w))
     · exact ⟨ContinuousLinearEquiv.refl ℝ _, fun h ↦ absurd h hx⟩
   choose Ψ hΨ using hex
   -- The radius and the derivative bounds, from the bounds on `Ψ x` and its inverse.
@@ -849,8 +850,12 @@ theorem abs_eval₂_apply_sub_norm_sq_le {k : ℕ} (hk : k₀ ≤ k) (x : M) {y 
     LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
   have hJv : mvfderiv I (D.chart k x) y (J y v) =
       stdComplexStructure ι (mvfderiv I (D.chart k x) y v) + A (mvfderiv I (D.chart k x) y v) := by
-    rw [mvfderiv_apply_eq_mfderiv_apply, J.mfderiv_apply_eq_chartPushforward_apply _ hy,
-      ← mvfderiv_apply_eq_mfderiv_apply]
+    have h : J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x y)
+        (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) y v) =
+          mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) y (J y v) := by
+      rw [J.chartPushforward_toOpenPartialHomeomorph]
+      exact (D.chart k x).pushforwardEndomorphism_mfderiv_apply J hy v
+    rw [mvfderiv_apply_eq_mfderiv_apply, ← h, ← mvfderiv_apply_eq_mfderiv_apply]
     simp only [A, sub_apply, LinearMap.coe_toContinuousLinearMap', add_sub_cancel]
   rw [D.eval₂_eq hk x y hy, hJv]
   set u := mvfderiv I (D.chart k x) y v

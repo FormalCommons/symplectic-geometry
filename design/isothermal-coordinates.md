@@ -299,11 +299,12 @@ follows from `hE`.
   The chart at `x` followed by `I` and `E ≃L[ℝ] ℂ` pushes `J` forward to
   a smooth field on its target
   (`contDiffOn_chartPushforward`, squaring to `-1` by
-  `chartPushforward_apply_chartPushforward_apply` of the library's `Chart.lean`); the smooth planar
+  Tau Ceti's `PartialDiffeomorph.pushforwardEndomorphism_apply_pushforwardEndomorphism`); the
+  smooth planar
   chart of `TauCeti.Beltrami.exists_centered_smooth_isothermal_chart`,
   smooth with smooth inverse, composed with
   it is `ψ`, its
-  equation from `mfderiv_apply_eq_chartPushforward_apply` of the library's `Chart.lean`.
+  equation from Tau Ceti's `PartialDiffeomorph.pushforwardEndomorphism_mfderiv_apply`.
   The conversions to `PartialDiffeomorph` are Tau Ceti's
   `OpenPartialHomeomorph.toPartialDiffeomorphOfMemMaximalAtlas` and
   `PartialDiffeomorph.ofOpenPartialHomeomorph`, with Mathlib's
