@@ -82,15 +82,17 @@ namespace TauCeti.Lie
 
 /-! ### The setting of the matrix unitary Lie group
 
-The scope `TauCeti.Lie.MatrixUnitary` holds what a statement about the Lie group
-`unitarySubgroup (GL n ℂ)` needs besides `Matrix.Norms.Operator`: the instances on matrices for
-which Tau Ceti builds `matrixUnitaryLieGroup`, and the notation `𝔨[n]` for its model vector
-space. Other files open both, with `open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary`.
+The scope `TauCeti.Lie.MatrixUnitary` holds the setting in which Tau Ceti builds the Lie group
+`matrixUnitaryLieGroup` on `unitarySubgroup (GL n 𝕜)`, for any `RCLike 𝕜`: the operator-norm
+topology on matrices, the continuity of `star` for it, and the instance
+`LieGroup.minSmoothness_of_isRCLikeNormedField` on the smoothness of Lie groups. It also holds
+the notation `𝔨[n]` for the model vector space of the unitary group over `ℂ`.
 -/
 
 namespace MatrixUnitary
 
--- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
+-- The operator-norm topology on matrices, continuity of `star`, and the Lie group
+-- `minSmoothness` instance.
 attribute [scoped instance] NormedAddCommGroup.toSeminormedAddCommGroup
 attribute [scoped instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
 attribute [scoped instance] LieGroup.minSmoothness_of_isRCLikeNormedField

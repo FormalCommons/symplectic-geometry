@@ -79,8 +79,7 @@ instance instContMDiffSMulUnitarySubgroup :
 algebra of `unitarySubgroup (GL n ℂ)` takes at `y` the value `X *ᵥ y`, where `X` is the
 skew-Hermitian matrix `matrixUnitaryLieAlgebraEquiv ξ`. -/
 theorem fundamentalVectorField_unitarySubgroup
-    (ξ : GroupLieAlgebra 𝓘(ℝ, (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n ℂ))
-      (unitarySubgroup (GL n ℂ))).toSubmodule) (unitarySubgroup (GL n ℂ))) (y : n → ℂ) :
+    (ξ : GroupLieAlgebra 𝓘(ℝ, 𝔨[n]) (unitarySubgroup (GL n ℂ))) (y : n → ℂ) :
     fundamentalVectorField 𝓘(ℝ, n → ℂ) ξ y =
       (matrixUnitaryLieAlgebraEquiv ξ : Matrix n n ℂ) *ᵥ y := by
   -- The orbit map of `y` is the inclusion into the matrices followed by `A ↦ A *ᵥ y`.
