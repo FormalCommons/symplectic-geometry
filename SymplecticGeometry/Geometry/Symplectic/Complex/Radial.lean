@@ -461,8 +461,8 @@ noncomputable def radialShell (h : ℝ → ℝ) (hs : ContDiffOn ℝ ∞ h (Ioi 
         (TauCeti.isOpenMap_domRestrict_of_hasStrictFDerivAt_of_isInvertible isOpen_Ioi
           (fun t ht ↦ ((hs.contDiffAt (isOpen_Ioi.mem_nhds ht)).hasStrictDerivAt_deriv
             (by simp)).hasStrictFDerivAt)
-          (fun t ht ↦ ⟨ContinuousLinearEquiv.unitsEquivAut ℝ (Units.mk0 _ (hd t ht).ne'),
-            by ext; simp⟩)).isOpen_range :
+          (fun t ht ↦ ContinuousLinearMap.isInvertible_toSpanSingleton_iff.2
+            (hd t ht).ne')).isOpen_range :
         IsOpen (h '' Ioi 0)).preimage
       (contDiff_norm_sq_complexToRealEuclidean (n := 0)).continuous⟩
 

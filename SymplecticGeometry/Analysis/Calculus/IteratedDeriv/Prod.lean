@@ -13,8 +13,9 @@ import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
 
 * `ContDiffAt.continuousAt_iteratedDeriv_prod_right`: if `f : P × 𝕜 → F` is `Cⁿ` at `(p, x)`,
   then for `m ≤ n` the `m`-th iterated derivative of the slices `y ↦ f (q.1, y)`, evaluated at
-  `q.2`, is continuous in `q` at `(p, x)`. It is the case `m = 0` (continuity) of Tau Ceti's
-  `ContDiffAt.iteratedFDeriv_snd`, read through `iteratedDeriv_eq_iteratedFDeriv`.
+  `q.2`, is continuous in `q` at `(p, x)`. It is Tau Ceti's `ContDiffAt.iteratedFDeriv_snd`
+  with smoothness order `0` (continuity) and derivative order `i = m`, read through
+  `iteratedDeriv_eq_iteratedFDeriv`.
 -/
 
 public section
