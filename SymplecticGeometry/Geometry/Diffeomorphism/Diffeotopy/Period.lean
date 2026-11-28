@@ -7,9 +7,9 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
-import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Naturality
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
+import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Cohomological.Primitive
 
 /-!
@@ -22,12 +22,11 @@ Let `Φ` be a diffeotopy of a manifold `M` and `α` a closed `C¹` one-form on `
 The proof goes through the periods on first singular homology (`TauCeti.homologyPeriodHom`): the
 restriction of `Φ` to the identity embedding is a smooth isotopy, whose slices pull `α` back to
 forms with the same periods (`TauCeti.SmoothIsotopy.homologyPeriodHom_mpullback_eq`), and the
-period on the class of a loop is the line integral along it.
+period on the class of a loop is the line integral along it
+(`TauCeti.homologyPeriodHom_mpullback_loopClass`).
 
 ## Main results
 
-* `TauCeti.homologyPeriodHom_mpullback_loopClass`: the period of a pullback `f^* α` on the class
-  of a `C¹` loop `c` is the line integral of `α` along `f ∘ c`.
 * `TauCeti.Diffeotopy.pathIntegral_apply_eq`: the line integral of a closed one-form along a loop
   moved by a slice of a diffeotopy is its line integral along the loop.
 
@@ -48,25 +47,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
   {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-
-/-- **The period of a pullback on the class of a loop.** Let `γ` be a loop in `M` that agrees on
-`[0, 1]` with a `C¹` curve `c : ℝ → M`. For a `C²` map `f : M → M'` and a closed `C¹` one-form `α`
-on `M'`, the period of `f^* α` on the class of `γ` in `H₁(M; ℤ)` is the line integral of `α` along
-`f ∘ c` from `0` to `1`. -/
-theorem homologyPeriodHom_mpullback_loopClass {E' H' : Type*} [NormedAddCommGroup E']
-    [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
-    {I' : ModelWithCorners ℝ E' H'} {M' : Type} [TopologicalSpace M'] [ChartedSpace H' M']
-    [IsManifold I' ∞ M'] [T2Space M'] {f : M → M'} (hf : ContMDiff I I' 2 f)
-    {α : RoughForm I' M' F 1} (hα : IsSmoothForm I' 1 α) (hcl : mextDeriv α = 0) {c : ℝ → M}
-    (hc : ContMDiff 𝓘(ℝ) I 1 c) {γ : Path (c 0) (c 0)} (hγ : ∀ t : unitInterval, γ t = c t) :
-    homologyPeriodHom (mpullback I I' f α)
-        (H₁AddEquivHomology ℤ (.of M) (loopClass ℤ (X := .of M) γ)) =
-      pathIntegral α (f ∘ c) 0 1 := by
-  rw [← homologyPeriodHom_singularHomologyMap hf hα hcl,
-    ContinuousMap.singularHomologyMap_loopClass, homologyPeriodHom_loopClass]
-  refine pathClassIntegral_mk_eq_pathIntegral hα hcl
-    ((hf.of_le (by norm_num)).comp hc) fun t ↦ ?_
-  simp [hγ]
 
 /-- **Line integrals of a closed one-form are unchanged along the slices of a diffeotopy.** For a
 diffeotopy `Φ` of `M`, a closed `C¹` one-form `α`, a `C¹` curve `c : ℝ → M` with `c 1 = c 0` (such
