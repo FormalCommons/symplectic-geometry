@@ -10,8 +10,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Disc
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Analysis.Complex.Circle
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
+import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.InnerProductSpace.Calculus
 
@@ -106,7 +108,7 @@ differentiable at every `s ∈ [0, 1]`, so that its derivative there is `X_s`
 * `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_one_apply`: at `t = 1` the
   derivative of the cylinder in `s` is the image under `d(e⁻¹)` of `(0, X_s)`, with `X_s` the
   velocity of `Φ`, for every `s ∈ [0, 1]`, ends included.
-* `TauCeti.IsEhresmannConnection.restrictsTo_apply_mfderiv_transportedCylinder_one`: for a form
+* `TauCeti.IsEhresmannConnection.apply_mfderiv_transportedCylinder_one_of_restrictsTo`: for a form
   `τ` that restricts to `σ` along an atlas containing `e`, its value at `t = 1` on the derivatives
   of the cylinder in `s` and `θ` is `σ (X_s, ∂_θ Φ (s, c θ))`, the integrand of the line
   integral of `ι_{X_s} σ` along the curve `θ ↦ Φ (s, c θ)`.
@@ -656,16 +658,18 @@ theorem mfderiv_transportedCylinder_one_apply (hf : ContMDiff IM IB ∞ proj)
   have hesd : MDifferentiableAt (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s) :=
     (he_symm.contMDiffAt (e.open_target.mem_nhds (e.mem_target.2 hx))).mdifferentiableAt
       (by simp)
-  have h₁ := hCd.hasMFDerivAt.comp (s : ℝ) hι
-  have h₂ : HasMFDerivWithinAt 𝓘(ℝ, ℝ) IM (C ∘ fun r : ℝ ↦ (r, (1 : ℝ), θ)) (Icc 0 1) s
-      ((mfderiv (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s)).comp
-        ((0 : ℝ →L[ℝ] EB).prod (mfderiv 𝓘(ℝ, ℝ) IF g s))) :=
-    (hesd.hasMFDerivAt.comp (s : ℝ) ((hasMFDerivAt_const x (s : ℝ)).prodMk
-      hg.hasMFDerivAt)).hasMFDerivWithinAt.congr_mono
-      (fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩])
-      (by rw [comp_apply, comp_apply, hC1 s, ← hgΦ s]) subset_rfl
+  have h₁ := (hCd.hasMFDerivAt.comp (s : ℝ) hι).mfderiv
+  have h₂ := (hesd.hasMFDerivAt.comp (s : ℝ)
+    ((hasMFDerivAt_const x (s : ℝ)).prodMk hg.hasMFDerivAt)).mfderiv
+  -- Both maps are differentiable at `s` and agree on `[0, 1]`.
   have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
-    (uniqueDiffOn_Icc zero_lt_one s s.property)).eq h₁.hasMFDerivWithinAt h₂
+    (uniqueDiffOn_Icc zero_lt_one s s.property)).mfderiv_eq_of_eqOn
+    (f := C ∘ fun r : ℝ ↦ (r, (1 : ℝ), θ))
+    (g := e.toOpenPartialHomeomorph.symm ∘ fun r ↦ (x, g r)) s.property
+    (hCd.comp (s : ℝ) hι.mdifferentiableAt)
+    (hesd.comp (s : ℝ) (mdifferentiableAt_const.prodMk hg))
+    fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩]
+  rw [h₁, h₂] at h
   refine (DFunLike.congr_fun h 1).trans ?_
   rw [hX, ← hgΦ]
   -- The tangent space of `B × F` at `(x, g s)` is `EB × EF` only by definition, so the composite
@@ -680,7 +684,7 @@ restricts to `σ` along `A`, then for `s ∈ [0, 1]` the value of `τ` at the po
 the transported cylinder `C`, on the derivatives of `C` in `s` and in `θ`, is
 `σ (X_s, ∂_θ Φ (s, c θ))` at `Φ (s, c θ)`, where `X_s` is the velocity of `Φ`: the integrand of
 the line integral of the contraction of `σ` with `X_s` along the curve `θ ↦ Φ (s, c θ)`. -/
-theorem restrictsTo_apply_mfderiv_transportedCylinder_one {A : MapFiber.Atlas F proj} {b : B}
+theorem apply_mfderiv_transportedCylinder_one_of_restrictsTo {A : MapFiber.Atlas F proj} {b : B}
     (hA : A.trivAt b = e) {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
     (hτ : A.RestrictsTo σ τ) (hf : ContMDiff IM IB ∞ proj)
     (hfp : IsProperMap proj) (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
@@ -710,24 +714,19 @@ theorem restrictsTo_apply_mfderiv_transportedCylinder_one {A : MapFiber.Atlas F 
   have hCι : (fun θ' : ℝ ↦ C ((s : ℝ), 1, θ')) = ι ∘ φ := funext fun θ' ↦ by
     simp only [comp_apply, C, ι, φ, Φ, (A.trivAt b).fiberInclusionMap_apply,
       transportedCylinder_one_of_isSmoothDisc hf hfp he he_symm hΔ hx]
-  have hιd : MDifferentiableAt IF IM ι (φ θ) := by
-    rw [(A.trivAt b).coe_fiberInclusionMap hx]
-    exact hesd.comp _ (mdifferentiableAt_const.prodMk mdifferentiableAt_id)
+  have hιd : MDifferentiableAt IF IM ι (φ θ) :=
+    ((A.trivAt b).contMDiff_fiberInclusionMap he_symm hx).mdifferentiableAt (by simp)
   have hCd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) :=
     (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc s.property).mdifferentiableAt
       (by simp)
-  have hθ : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun θ' : ℝ ↦ ((s : ℝ), (1 : ℝ), θ')) θ
-      (ContinuousLinearMap.inr ℝ ℝ (ℝ × ℝ) ∘L ContinuousLinearMap.inr ℝ ℝ ℝ) :=
-    hasMFDerivAt_iff_hasFDerivAt.2
-      ((hasFDerivAt_prodMk_right (s : ℝ) ((1 : ℝ), θ)).comp θ
-        (hasFDerivAt_prodMk_right (1 : ℝ) θ))
   -- The derivative in `θ`.
   have hdθ : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) (0, 0, 1) =
       mfderiv IF IM ι (φ θ) (Manifold.curveVelocity IF φ θ) := by
-    have h := (hCd.hasMFDerivAt.comp θ hθ).mfderiv
-    rw [Manifold.curveVelocity_apply]
-    exact (DFunLike.congr_fun h 1).symm.trans
-      ((congrArg (fun f ↦ mfderiv 𝓘(ℝ, ℝ) IM f θ 1) hCι).trans (mfderiv_comp_apply θ hιd hφ 1))
+    rw [← hCd.curveVelocity_comp_mfderiv (g := fun r : ℝ ↦ ((s : ℝ), (1 : ℝ), r))
+      ((hasDerivAt_const θ (s : ℝ)).prodMk ((hasDerivAt_const θ (1 : ℝ)).prodMk
+        (hasDerivAt_id θ))), comp_def, hCι, ← Manifold.curveVelocityWithin_univ,
+      ← Manifold.curveVelocityWithin_univ,
+      Manifold.curveVelocityWithin_map hιd uniqueDiffWithinAt_univ hφ.mdifferentiableWithinAt]
   -- The derivative in `s`.
   have hds : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) (1, 0, 0) =
       mfderiv IF IM ι (φ θ) (Φ.velocity s (Φ (s, c θ))) := by
