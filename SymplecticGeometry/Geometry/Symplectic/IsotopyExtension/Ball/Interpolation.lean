@@ -144,11 +144,9 @@ private theorem exists_contDiff_path_mpullback_eq [FiniteDimensional ℝ E]
   -- `κ s` is `σ` at `F (s, 0)` read through an isomorphism, so it is nondegenerate.
   have hfin : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E := by
     rw [finrank_stdSpace, Fintype.card_fin, hdim]
-  have hsurj (s : ℝ) : Surjective (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) 0) :=
-    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank hfin).1 (himm s)
   have hnd (s : ℝ) : (κ s).toBilinForm.Nondegenerate := by
-    let e := LinearEquiv.ofBijective
-      (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) 0).toLinearMap ⟨himm s, hsurj s⟩
+    let e := (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) 0).toLinearMap
+      |>.linearEquivOfInjective (himm s) hfin
     have heq : (κ s).toBilinForm =
         LinearMap.BilinForm.congr e.symm (σ.bilinFormAt (F (s, 0))) := by
       ext v w
@@ -156,7 +154,8 @@ private theorem exists_contDiff_path_mpullback_eq [FiniteDimensional ℝ E]
       -- the vectors live in a tangent space that is only definitionally `StdSpace (Fin n)`.
       change κ s v w = σ.bilinFormAt (F (s, 0)) (e.symm.symm v) (e.symm.symm w)
       rw [LinearEquiv.symm_symm, hκ', SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply]
-      -- `e` applies the derivative (`LinearEquiv.ofBijective_apply`).
+      -- `e` applies the derivative (`LinearMap.linearEquivOfInjective_apply`), which `rw`
+      -- cannot use here for the same reason.
       rfl
     rw [heq]
     exact (hσ.nondegenerate_bilinFormAt (F (s, 0))).congr e.symm
@@ -204,8 +203,7 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
   set A₁ := mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ 1 (j₀ z)) 0
   have hfin : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E := by
     rw [finrank_stdSpace, Fintype.card_fin, hdim]
-  let e₁ := LinearEquiv.ofBijective A₁.toLinearMap ⟨hAinj 1,
-    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank hfin).1 (hAinj 1)⟩
+  let e₁ := A₁.toLinearMap.linearEquivOfInjective (hAinj 1) hfin
   let B : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n) :=
     (e₁.symm.toLinearMap ∘ₗ (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I j₁ 0).toLinearMap
       ).toContinuousLinearMap

@@ -344,7 +344,7 @@ theorem norm_homotopyOperator_mpullback_apply_le_of_affine {Φ : E × unitInterv
   -- The time derivative is the displacement `x - Φ (x, 0)`.
   have htime : mfderiv (𝓘(ℝ, E).prod (𝓡∂ 1)) 𝓘(ℝ, E) Φ (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) = x - Φ (x, 0) :=
-    mfderiv_apply_zero_one_of_eq_add_smul hΦt fun s ↦ by
+    mfderiv_apply_zero_one_of_eq_add_smul_Icc hΦt fun s ↦ by
       rw [haff, smul_sub, sub_smul, one_smul]
       abel
   -- The spatial derivative is the derivative of the stage `Φ (·, t)`.
