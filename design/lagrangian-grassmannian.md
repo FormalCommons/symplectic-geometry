@@ -250,7 +250,7 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
 A general fact about Tau Ceti's `Matrix.toEuclideanCLE`, beside Tau Ceti's
 file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
 
-- `Matrix.coe_toLinearEquiv_toEuclideanCLE (A : Matrix ι ι 𝕜) (hA : A.det ≠ 0)`
+- `Matrix.toLinearMap_toLinearEquiv_toEuclideanCLE (A : Matrix ι ι 𝕜) (hA : A.det ≠ 0)`
   (`@[simp]`): `((A.toEuclideanCLE hA).toLinearEquiv : _ →ₗ[𝕜] _) =
   A.toEuclideanLin`, the linear-map form of Tau Ceti's
   `Matrix.coe_toEuclideanCLE`. `Action.lean` uses it for
@@ -531,7 +531,7 @@ matrix in `Matrix.symplecticGroup` as invariance of `stdForm` under
   (`@[simp]`), and `coe_smul_eq_map_toEuclideanCLE`, the same subspace as the
   image of `Λ` under the linear equivalence
   `(Matrix.toEuclideanCLE g _).toLinearEquiv`, from
-  `Matrix.coe_toLinearEquiv_toEuclideanCLE`. The result is Lagrangian by
+  `Matrix.toLinearMap_toLinearEquiv_toEuclideanCLE`. The result is Lagrangian by
   `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul`
   (`Subspace.lean`) with `c = 1`, the map `toEuclideanLin g` preserving `ω₀` by
   `mem_symplecticGroup_iff_forall_stdForm`. On a frame,

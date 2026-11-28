@@ -329,7 +329,7 @@ private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         ((φ.toLinearEquiv.restrictScalars ℝ : W →ₗ[ℝ] ℂ) ∘ₗ (F : V →ₗ[ℝ] W)))‖ := by
   rw [complexAntilinearPartContinuousLinearMap_apply, complexLinearPartContinuousLinearMap_apply,
-    LinearMap.coe_toContinuousLinearMap, coe_smulIEquiv_eq_ofComplexModule] at h
+    LinearMap.coe_toContinuousLinearMap, toLinearMap_smulIEquiv_eq_ofComplexModule] at h
   obtain ⟨e⟩ := nonempty_linearIsometryEquiv_of_finrank_eq_one hW
   set φ := e.symm
   set ψ : W →ₗᵢ[ℝ] ℂ := ⟨φ.toLinearEquiv.restrictScalars ℝ, φ.norm_map⟩
