@@ -9,8 +9,9 @@ public import Mathlib.Geometry.Manifold.ContMDiffMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
-import TauCeti.Topology.VectorBundle.ZeroSection
 
 /-!
 # The map of the Riemann sphere given by two sections of `𝒪(k)`
@@ -66,10 +67,8 @@ theorem equivProjectivization_symm_mk_eventuallyEq_coe_div (hst : ∀ y, ![s y, 
     (hx : t x ≠ 0) :
     (fun y ↦ (equivProjectivization ℂ).symm (Projectivization.mk ℂ ![s y, t y] (hst y))) =ᶠ[𝓝 x]
       (↑) ∘ fun y ↦ s y / t y := by
-  filter_upwards [ht.preimage_mem_nhds
-    ((isOpen_zeroSectionCompl ℂ _).mem_nhds (mem_zeroSectionCompl.2 hx))] with y hy
-  replace hy : t y ≠ 0 := mem_zeroSectionCompl.1 hy
-  simp [equivProjectivization_symm_apply_mk, hy, div_eq_inv_mul]
+  filter_upwards [VectorBundle.eventually_ne_zero ℂ (b := id) ht hx] with y hy
+  exact equivProjectivization_symm_mk_of_ne_zero (hst y) hy
 
 /-- Near a point where the section `s` of `𝒪(k)`, continuous there, does not vanish,
 `y ↦ [s y : t y]` is the inverse of the inverted chart applied to the quotient `t / s`. -/
@@ -79,12 +78,8 @@ theorem equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div
     (hx : s x ≠ 0) :
     (fun y ↦ (equivProjectivization ℂ).symm (Projectivization.mk ℂ ![s y, t y] (hst y))) =ᶠ[𝓝 x]
       invChart.symm ∘ fun y ↦ t y / s y := by
-  filter_upwards [hs.preimage_mem_nhds
-    ((isOpen_zeroSectionCompl ℂ _).mem_nhds (mem_zeroSectionCompl.2 hx))] with y hy
-  replace hy : s y ≠ 0 := mem_zeroSectionCompl.1 hy
-  by_cases ht : t y = 0
-  · simp [equivProjectivization_symm_apply_mk, ht]
-  · simp [equivProjectivization_symm_apply_mk, ht, hy, div_eq_inv_mul]
+  filter_upwards [VectorBundle.eventually_ne_zero ℂ (b := id) hs hx] with y hy
+  exact equivProjectivization_symm_mk_eq_invChart_symm (hst y) hy
 
 /-- **The map `[s : t]` is smooth.** For `C^n` sections `s` and `t` of `𝒪(k)`, for the real
 structure, without common zero, the map `x ↦ [s x : t x]` of the Riemann sphere, read through
@@ -123,6 +118,7 @@ def ratioMap : C^n⟮𝓘(ℝ, ℂ), OnePoint ℂ; 𝓘(ℝ, ℂ), OnePoint ℂ�
 
 /-- The value of `ratioMap` at `x` is the point `[s x : t x]` of `ℙ¹(ℂ)`, read in
 `OnePoint ℂ`. -/
+@[simp]
 theorem ratioMap_apply (x : OnePoint ℂ) :
     ratioMap p x = (equivProjectivization ℂ).symm
       (Projectivization.mk ℂ (![p.val.1 x, p.val.2 x] : Fin 2 → ℂ) (p.property x)) :=
@@ -133,8 +129,8 @@ value `a / b`. The values are taken as complex numbers, which the fibres of `�
 theorem ratioMap_apply_of_ne_zero {a b : ℂ} (ha : p.val.1 x = a) (hb : p.val.2 x = b)
     (hb₀ : b ≠ 0) : ratioMap p x = ((a / b : ℂ) : OnePoint ℂ) := by
   subst ha hb
-  exact (equivProjectivization_symm_mk_eventuallyEq_coe_div p.property
-    (p.val.2.contMDiff x).continuousAt hb₀).self_of_nhds
+  rw [ratioMap_apply]
+  exact equivProjectivization_symm_mk_of_ne_zero (p.property x) hb₀
 
 /-- At a zero of `t`, `ratioMap` takes the value `∞`. -/
 theorem ratioMap_apply_of_eq_zero (hx : p.val.2 x = 0) : ratioMap p x = (∞ : OnePoint ℂ) := by
@@ -148,8 +144,8 @@ value of the inverse of the inverted chart at `b / a`. -/
 theorem ratioMap_apply_eq_invChart_symm {a b : ℂ} (ha : p.val.1 x = a) (hb : p.val.2 x = b)
     (ha₀ : a ≠ 0) : ratioMap p x = invChart.symm (b / a) := by
   subst ha hb
-  exact (equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div p.property
-    (p.val.1.contMDiff x).continuousAt ha₀).self_of_nhds
+  rw [ratioMap_apply]
+  exact equivProjectivization_symm_mk_eq_invChart_symm (p.property x) ha₀
 
 end OnePoint
 
