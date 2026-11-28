@@ -65,8 +65,7 @@ theorem conjContinuousAlgEquiv_leftInvariantDerivationLinearIsometryEquivModelVe
     LinearIsometryEquiv.coe_symm_toContinuousLinearEquiv, LinearMap.coe_toContinuousLinearMap',
     LieAlgebra.ad_apply]
   rw [he, LieEquiv.map_lie, ← he (e.symm w), e.apply_symm_apply,
-    leftInvariantDerivationLieEquivGroupLieAlgebra_apply, Module.End.toContinuousLinearMap_apply,
-    LinearEquiv.conj_apply_apply, groupLieAlgebraEquivModelVectorSpace_apply,
-    LieAlgebra.ad_apply, groupLieAlgebraEquivModelVectorSpace_symm_apply]
+    leftInvariantDerivationLieEquivGroupLieAlgebra_apply]
+  exact (toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_ad_apply _ w).symm
 
 end
