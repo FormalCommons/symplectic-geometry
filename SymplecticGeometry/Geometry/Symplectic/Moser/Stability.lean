@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Topology.Order.NhdsSet
 
@@ -282,9 +283,9 @@ private theorem mpullback_prodMk_timeInterior_apply_eq_zero (σ : SmoothTwoForm 
     rw [hΩK _ _ hp, ContinuousAlternatingMap.coe_zero, Pi.zero_apply,
       ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
   have hdCK : (mextDerivₗ (𝓘(ℝ, ℝ).prod I) 1 C).val (s, x) = 0 := by
-    rw [mextDerivₗ_apply, mextDeriv_congr_of_eventuallyEq (η := 0)
+    rw [mextDerivₗ_apply, mextDeriv_apply_eq_zero_of_eventuallyEq_zero
       (Filter.eventually_of_mem ((hK.isOpen_compl.preimage continuous_snd).mem_nhds hx)
-        fun q hq ↦ hCK q hq), mextDeriv_zero, Pi.zero_apply]
+        fun q hq ↦ hCK q hq)]
   ext v
   rw [SmoothForm.mpullback_apply, SmoothForm.timeInterior_add,
     SmoothForm.timeInterior_mpullback_snd, zero_add, SmoothForm.timeInterior_def,
@@ -310,9 +311,8 @@ theorem exists_diffeotopy_mpullback_eq_of_isSmoothFamily {τ : unitInterval → 
     rw [SmoothForm.coe_timeExtendSlice]
     exact timeExtend_eq_zero (F := E [⋀^Fin 1]→L[ℝ] ℝ) (fun t ↦ by rw [hΩ]; exact hβK t x hx) s
   have hdBK (s : ℝ) (x : M) (hx : x ∉ K) : (mextDerivₗ I 1 (Ω.timeExtendSlice s)).val x = 0 := by
-    rw [mextDerivₗ_apply, mextDeriv_congr_of_eventuallyEq (η := 0)
-      (Filter.eventually_of_mem (hK.isClosed.isOpen_compl.mem_nhds hx) fun y hy ↦ hBK s y hy),
-      mextDeriv_zero, Pi.zero_apply]
+    rw [mextDerivₗ_apply, mextDeriv_apply_eq_zero_of_eventuallyEq_zero
+      (Filter.eventually_of_mem (hK.isClosed.isOpen_compl.mem_nhds hx) fun y hy ↦ hBK s y hy)]
   -- Step 2: the closed form `ρ = pr_M^* τ_0 + d (timeExtend Ω)` on `ℝ × M`, whose slices
   -- `ρ_s = τ_0 + d B_s` are `τ_s` for `s ∈ [0, 1]`, and `τ_0` outside `K`.
   set ρ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2 :=

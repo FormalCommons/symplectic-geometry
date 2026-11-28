@@ -23,6 +23,7 @@ import TauCeti.Topology.Algebra.Support
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
 # Differential forms restricted to open subsets
@@ -407,8 +408,7 @@ theorem RoughForm.mextDeriv_extendByZeroOfOpens {U : Opens M} {ξ : RoughForm I 
   · rw [extendByZeroOfOpens_apply_of_mem _ hx]
     exact mextDeriv_extendByZeroOfOpens_coe ξ ⟨x, hx⟩
   · rw [extendByZeroOfOpens_apply_of_notMem _ hx]
-    have hz : ∀ᶠ y in 𝓝 x, extendByZeroOfOpens ξ y = (0 : RoughForm I M F k) y := hzero x hx
-    rw [mextDeriv_congr_of_eventuallyEq hz, mextDeriv_zero, Pi.zero_apply]
+    exact mextDeriv_apply_eq_zero_of_eventuallyEq_zero (hzero x hx)
 
 section Diffeomorph
 
@@ -614,9 +614,8 @@ theorem exists_smoothForm_mpullback_eq_and_mextDeriv_eq (Φ : PartialDiffeomorph
       ((β.contMDiff _).of_le (by simp))).2 ?_
     rw [TauCeti.mextDeriv_congr_of_eventuallyEq
       (Filter.eventually_of_mem (Φ.open_source.mem_nhds hy) hΦβ), hdα y hy]
-  · rw [TauCeti.mextDeriv_congr_of_eventuallyEq (η := 0)
-      (Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx) hβ0), TauCeti.mextDeriv_zero,
-      Pi.zero_apply, hτ x hx]
+  · rw [TauCeti.mextDeriv_apply_eq_zero_of_eventuallyEq_zero
+      (Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx) hβ0), hτ x hx]
 
 section Transport
 
