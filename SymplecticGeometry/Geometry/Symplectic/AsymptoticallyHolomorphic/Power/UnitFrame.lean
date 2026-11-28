@@ -6,9 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
+public import TauCeti.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
+import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
 # Unit sections of the powers of a principal circle bundle
@@ -35,6 +39,16 @@ For smoothness, write `u = [σ, f]` in a local section `σ` of `P`. The local fo
 section at a point, both terms are smooth near it
 (`SymplecticGeometry.isSmoothForm_real_inner_I_smul_powerConnection`).
 
+The curvature of `D_k` then gives `dβ = k F_α`, for `F_α` the curvature of `α`. On a section
+with `D_k u = (i β) • u`, the Leibniz rule of `D_k` for real functions, applied to the section
+`i u` with `D_k (i u) = i D_k u` (`powerConnection_const_smul`), and the invariant formula
+`dβ(X, Y) = X β(Y) - Y β(X) - β([X, Y])` (Tau Ceti's `TauCeti.SmoothForm.mextDeriv_apply_one`)
+give `R(X, Y) u = (i dβ(X, Y)) • u`; the terms in `β ∧ β` cancel since `β` is scalar. Comparing
+with `curvatureOperator_powerConnection`, where `u` has no zero, gives `dβ = k F_α` on vector
+fields, and so at each point, since Mathlib's `FiberBundle.extend` extends every tangent vector
+to a vector field differentiable at its base point. Hence a smooth section of `PowerBundle P k`
+with no zero makes `k F_α` exact.
+
 ## Main results
 
 * `SymplecticGeometry.powerConnection_eq_I_mul_real_inner_smul`: on a section `u` of norm one,
@@ -46,6 +60,12 @@ section at a point, both terms are smooth near it
 * `SymplecticGeometry.exists_powerConnection_eq_smul_of_norm_eq_one`: for a connection form `α`
   and a smooth section `u` of norm one, there is a smooth real one-form `β` with
   `D_k u = (i β) • u`.
+* `SymplecticGeometry.curvatureOperator_powerConnection_of_eq_smul`: if `D_k u = (i β) • u`,
+  then `R(X, Y) u = (i dβ(X, Y)) • u`.
+* `SymplecticGeometry.mextDeriv_eq_smul_curvature_of_powerConnection_eq_smul`: for a connection
+  form `α` and a `C²` section `u` with no zero and `D_k u = (i β) • u`, `dβ = k F_α`.
+* `SymplecticGeometry.smul_curvature_mem_exactForms_of_ne_zero`: if `PowerBundle P k` has a
+  smooth section with no zero, then `k F_α` is exact.
 
 ## References
 
@@ -209,6 +229,100 @@ theorem exists_powerConnection_eq_smul_of_norm_eq_one (hα : IsCircleConnectionF
     ContinuousAlternatingMap.ofSubsingleton_apply_apply, Matrix.cons_val_zero,
     ContinuousLinearMap.comp_apply, innerSL_apply_apply]
 
+/-! ### The curvature in a unit frame -/
+
+/-- Let `u` be a section of `PowerBundle P k`, differentiable at `x`, on which `D_k` acts as
+`D_k u = (i β) • u` for a smooth real one-form `β`. Then at `x` the curvature of `D_k` on `u`,
+along vector fields `X`, `Y` differentiable at `x`, is `R(X, Y) u = (i (dβ)_x (X x, Y x)) • u x`.
+-/
+theorem curvatureOperator_powerConnection_of_eq_smul {u : Π y, PowerBundle P k y} {x : B}
+    (hu : MDifferentiableAt IB (IB.prod 𝓘(ℝ, PowerModel k))
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (u y)) x) {β : SmoothForm IB B ℝ 1}
+    (hβ : ∀ y (v : TangentSpace IB y),
+      powerConnection α k u y v = (Complex.I * (β.val y ![v] : ℝ)) • u y)
+    {X Y : Π y : B, TangentSpace IB y} (hX : MDiffAt (T% X) x) (hY : MDiffAt (T% Y) x) :
+    (powerConnection α k).curvatureOperator X Y u x =
+      (Complex.I * (TauCeti.mextDeriv β.val x ![X x, Y x] : ℂ)) • u x := by
+  -- Along a field `Z`, `D_k u` is the real function `β(Z)` times the section `i u`.
+  have hD (Z : Π y : B, TangentSpace IB y) :
+      (fun y ↦ powerConnection α k u y (Z y)) = (fun y ↦ β.val y ![Z y]) • (Complex.I • u) := by
+    funext y
+    rw [hβ, Pi.smul_apply', Pi.smul_apply, mul_comm, mul_smul, Complex.coe_smul]
+    -- The values of `β` lie in `Trivial B ℝ y`, whose scalar action is that of `ℝ`.
+    rfl
+  have hout {Z W : Π y : B, TangentSpace IB y} (hW : MDiffAt (T% W) x) :
+      powerConnection α k (fun y ↦ powerConnection α k u y (W y)) x (Z x) =
+        ((β.val x ![W x] : ℝ) : ℂ) • (Complex.I • (Complex.I * (β.val x ![Z x] : ℝ)) • u x) +
+          mvfderiv IB (fun y ↦ β.val y ![W y]) x (Z x) • (Complex.I • u x) := by
+    rw [hD, (powerConnection α k).isCovariantDerivativeOnUniv.leibniz
+      (hu.const_smul_section Complex.I)
+      (β.mdifferentiableAt_apply_one hW),
+      powerConnection_const_smul α k Complex.I hu]
+    simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply, hβ, Pi.smul_apply,
+      Complex.coe_smul]
+    -- The values of `β` lie in `Trivial B ℝ x`, whose scalar action is that of `ℝ`.
+    rfl
+  rw [CovariantDerivative.curvatureOperator_apply, hout hY, hout hX, hβ,
+    SmoothForm.mextDeriv_apply_one hX hY]
+  match_scalars
+  simp only [Complex.coe_algebraMap]
+  ring
+
+
+/-- **The curvature in a unit frame.** Let `α` be a connection form with curvature `F_α`, and `u`
+a section of `PowerBundle P k` of class `C²` with no zero, on which `D_k u = (i β) • u` for a
+smooth real one-form `β`. Then `dβ = k F_α`. -/
+theorem mextDeriv_eq_smul_curvature_of_powerConnection_eq_smul [CompleteSpace EB]
+    [IB.Boundaryless] (hα : IsCircleConnectionForm α) {u : Π y, PowerBundle P k y}
+    (hu : ContMDiff IB (IB.prod 𝓘(ℝ, PowerModel k)) 2
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (u y)))
+    (h0 : ∀ y, u y ≠ 0) {β : SmoothForm IB B ℝ 1}
+    (hβ : ∀ y (v : TangentSpace IB y),
+      powerConnection α k u y v = (Complex.I * (β.val y ![v] : ℝ)) • u y) :
+    TauCeti.mextDeriv β.val = (k : ℝ) • hα.curvature.val := by
+  funext x
+  ext w
+  -- Extend `w 0` and `w 1` to vector fields differentiable at `x`, and compare the two formulas
+  -- for the curvature of `D_k` on `u`.
+  set X : Π y : B, TangentSpace IB y := FiberBundle.extend EB (w 0)
+  set Y : Π y : B, TangentSpace IB y := FiberBundle.extend EB (w 1)
+  have hX : MDiffAt (T% X) x := FiberBundle.mdifferentiableAt_extend IB EB (w 0)
+  have hY : MDiffAt (T% Y) x := FiberBundle.mdifferentiableAt_extend IB EB (w 1)
+  have h := (curvatureOperator_powerConnection_of_eq_smul α k
+    ((hu x).mdifferentiableAt two_ne_zero) hβ hX hY).symm.trans
+    (curvatureOperator_powerConnection α k hα hX hY (hu x))
+  rw [← sub_eq_zero, ← sub_smul, smul_eq_zero, sub_eq_zero] at h
+  have hw : w = ![X x, Y x] := by
+    ext i
+    fin_cases i <;> simp [X, Y]
+  rw [hw, Pi.smul_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul, ← Complex.ofReal_inj,
+    ← mul_right_inj' Complex.I_ne_zero, (h.resolve_right (h0 x))]
+  push_cast
+  ring
+
+/-- If `PowerBundle P k` has a smooth section with no zero, then `k F_α` is exact, for a
+connection form `α` with curvature `F_α`. -/
+theorem smul_curvature_mem_exactForms_of_ne_zero [CompleteSpace EB] [IB.Boundaryless]
+    (hα : IsCircleConnectionForm α) {s : Π y, PowerBundle P k y}
+    (hs : ContMDiff IB (IB.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)))
+    (h0 : ∀ y, s y ≠ 0) :
+    (k : ℝ) • hα.curvature ∈ exactForms IB B 2 := by
+  -- Divide `s` by its norm, and take the one-form `β` of the unit section.
+  set u : Π y, PowerBundle P k y := fun y ↦ ((‖s y‖⁻¹ : ℝ) : ℂ) • s y
+  have hu : ContMDiff IB (IB.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (u y)) := by
+    simp_rw [u, Complex.coe_smul]
+    exact hs.inv_norm_smul_bundle h0
+  have hnorm (y : B) : ‖u y‖ = 1 := by
+    simp_rw [u, Complex.coe_smul]
+    exact norm_smul_inv_norm (𝕜 := ℝ) (h0 y)
+  obtain ⟨β, hβ⟩ := exists_powerConnection_eq_smul_of_norm_eq_one α k hα hu hnorm
+  rw [exactForms_succ, LinearMap.mem_range]
+  refine ⟨β, Subtype.ext ?_⟩
+  rw [mextDerivₗ_apply, mextDeriv_eq_smul_curvature_of_powerConnection_eq_smul α k hα
+    (hu.of_le (by simp)) (fun y ↦ norm_ne_zero_iff.1 (by simp [hnorm y])) hβ,
+    Submodule.coe_smul]
 end SymplecticGeometry
 
 end
