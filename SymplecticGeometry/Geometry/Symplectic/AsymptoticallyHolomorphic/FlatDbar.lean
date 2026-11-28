@@ -45,8 +45,9 @@ functions.
   `SymplecticGeometry.flatDbar_smul`, `SymplecticGeometry.flatDbar_mul`: it is additive, commutes
   with negation and complex scalars and satisfies the Leibniz rule;
   `SymplecticGeometry.flatDbar_congr_of_eventuallyEq`: its value at `z` depends only on the germ
-  of `f` at `z`; `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a
-  complex coordinate vanishes.
+  of `f` at `z`, and `SymplecticGeometry.flatDbar_eventuallyEq` says the same of its germ;
+  `SymplecticGeometry.flatDbar_complexToRealEuclideanCoord`: the flat `∂̄` of a complex coordinate
+  vanishes.
 * `SymplecticGeometry.delFunction_eq_flatDel_comp`,
   `SymplecticGeometry.flatDel_apply_eq_delFunction`: the flat `∂` is Tau Ceti's `∂` on functions,
   `TauCeti.SmoothAlmostComplexStructure.delFunction`, for `J₀.constSmooth`;
@@ -72,10 +73,11 @@ depending on `z`, so that its jets can be taken with `jetNormAt`. The two agree 
 `dbarFunction_eq_flatDbar_comp`, and the vanishing criterion of the flat `∂̄` is read off from Tau
 Ceti's `dbarFunction_eq_zero_iff`. Its additivity, the commutation with negation and scalars, the
 Leibniz rule and the dependence on germs are the constant-`J₀` cases of the lemmas
-`flatDbarWith_add`, `flatDbarWith_neg`, `flatDbarWith_smul`, `flatDbarWith_mul` and
-`flatDbarWith_congr_of_eventuallyEq` for a field of structures. In the same way
-the flat `∂` agrees with Tau Ceti's `delFunction` by `delFunction_eq_flatDel_comp`, and its
-additivity and Leibniz rule come from `delFunction_add` and `delFunction_smul`.
+`flatDbarWith_add`, `flatDbarWith_neg`, `flatDbarWith_smul`, `flatDbarWith_mul`,
+`flatDbarWith_congr_of_eventuallyEq` and `flatDbarWith_eventuallyEq` for a field of structures.
+In the same way the flat `∂` agrees with Tau Ceti's `delFunction` by
+`delFunction_eq_flatDel_comp`, and its additivity and Leibniz rule come from `delFunction_add`
+and `delFunction_smul`.
 
 ## References
 
@@ -190,6 +192,11 @@ theorem flatDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differe
 theorem flatDbar_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
     (h : f =ᶠ[𝓝 z] g) : flatDbar f z = flatDbar g z := by
   simp only [flatDbar_def, flatDbarWith_congr_of_eventuallyEq h]
+
+/-- If `f` and `g` agree near `z`, then so do their flat `∂̄`. -/
+theorem flatDbar_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι} (h : f =ᶠ[𝓝 z] g) :
+    flatDbar f =ᶠ[𝓝 z] flatDbar g :=
+  (flatDbarWith_eventuallyEq h).mono fun w hw ↦ by rw [flatDbar_def, flatDbar_def]; exact hw
 
 /-- The flat `∂̄` of the complex coordinate `z_j` vanishes: it is complex linear for `J₀`. -/
 @[simp]
