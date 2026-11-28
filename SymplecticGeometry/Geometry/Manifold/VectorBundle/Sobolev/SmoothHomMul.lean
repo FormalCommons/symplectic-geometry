@@ -404,7 +404,7 @@ variable
     (hΨ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
       fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Ψ x))
 
-private theorem chartValueL_homMulL_ae (w : SobolevSection A μ p k) (i : Fin A.n) :
+private theorem chartValueL_chartHomMulL_ae (w : SobolevSection A μ p k) (i : Fin A.n) :
     (A.ofBaseSet h).sectionChartData.chartValueL μ p k i (chartHomMulL A h μ p k hΦ w)
       =ᵐ[μ.restrict (A.image i)] fun y ↦
         (A.hom (𝕜 := ℝ) h).coord i Φ y (A.sectionChartData.chartValueL μ p k i w y) :=
@@ -419,7 +419,7 @@ private theorem bundleMapL_eq_chartHomMulL :
   refine eq_of_ae_eq_coord (s := fun x ↦ Φ x (s x)) (fun i ↦ chartValueL_bundleMapL_ae_coord hs i)
     fun i ↦ ?_
   rw [image_ofBaseSet (A := A) (h := h) i]
-  filter_upwards [chartValueL_homMulL_ae hΦ w i, hs i,
+  filter_upwards [chartValueL_chartHomMulL_ae hΦ w i, hs i,
     ae_restrict_mem (A.image i).isOpen.measurableSet] with y hy hsy hyi
   rw [hy, hsy, A.coord_hom_apply h i Φ s hyi]
 
@@ -479,7 +479,7 @@ theorem chartValueL_bundleMapL_ae (w : SobolevSection A μ p k) (i : Fin A.n) :
       =ᵐ[μ.restrict (A.image i)] fun y ↦
         (A.hom (𝕜 := ℝ) h).coord i Φ y (A.sectionChartData.chartValueL μ p k i w y) := by
   rw [bundleMapL_eq_chartHomMulL]
-  exact chartValueL_homMulL_ae hΦ w i
+  exact chartValueL_chartHomMulL_ae hΦ w i
 
 /-- `TauCeti.SobolevSection.chartValueL_bundleMapL_ae` for a smooth section `Φ` of the
 endomorphism bundle of `V₁`, read in `A` itself: the chart data in chart `i` of `Φ w` are, almost
