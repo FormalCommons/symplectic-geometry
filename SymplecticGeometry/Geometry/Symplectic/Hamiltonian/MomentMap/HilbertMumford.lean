@@ -689,20 +689,6 @@ theorem le_momentWeight_neg_of_kempfNessFunction_expI_smul_le (h : IsComplexifie
 
 omit [ConnectedSpace G] [FiniteDimensional ℝ E'] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
   [ContMDiffSMul IC I' ∞ Gc M] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
-/-- On a compact manifold, with `-μ` a moment map for `σ`, the norm `√(‖μ‖²)` of `B` has a
-positive upper bound on `M`, for every nondegenerate form `B` on the Lie algebra. -/
-theorem exists_pos_forall_sqrt_momentNormSq_le
-    {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (hμ : σ.IsMomentMap a fun x ↦ -μ x)
-    (B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)) (hB : B.Nondegenerate) :
-    ∃ L, 0 < L ∧ ∀ y, √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
-  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
-    (hμ.contMDiff_momentNormSq.continuous.sqrt.continuousOn :
-      ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
-  refine ⟨max L 1, lt_max_of_lt_right one_pos, fun y ↦ le_max_of_le_left ?_⟩
-  simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
-
-omit [ConnectedSpace G] [FiniteDimensional ℝ E'] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
-  [ContMDiffSMul IC I' ∞ Gc M] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
 /-- **Kempf–Ness functions along a convergent curve.** On a compact manifold, with `-μ` a moment
 map for `σ`, if `k` converges along `l`, then `Φ_p (k s)` is eventually bounded along `l`,
 uniformly in `p`. -/
@@ -720,7 +706,8 @@ theorem exists_eventually_abs_kempfNessFunction_le
   have hBs : B.IsSymm := ContinuousLinearMap.isSymm_toBilinForm_iff.2 hgs
   have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
   -- A bound `L` for `√(‖μ‖²)` on `M`, so `|Φ_p (k s)|` is at most `L` times the polar radius.
-  obtain ⟨L, -, hL'⟩ := exists_pos_forall_sqrt_momentNormSq_le hμ B hB
+  obtain ⟨L, -, hL'⟩ :=
+    hμ.exists_pos_forall_sqrt_momentNormSq_le_of_neg (K := (B.toDual hB).symm)
   have hc : Continuous fun g' : Gc ↦
       L * √(B ((C.polar.symm g').1 : GroupLieAlgebra I G) (C.polar.symm g').1) :=
     continuous_const.mul (((LinearMap.continuous_apply_self B).comp
@@ -1040,7 +1027,8 @@ theorem exists_momentWeight_pos_of_iInf_momentNormSq_pos (h : IsComplexifiedActi
     ∃ ξ : GroupLieAlgebra I G, B ξ ξ = 1 ∧ 0 < momentWeight C μ p ξ := by
   set m := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)
   have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
-  obtain ⟨L, hL0, hL⟩ := exists_pos_forall_sqrt_momentNormSq_le hμ.toIsMomentMap B hB
+  obtain ⟨L, hL0, hL⟩ :=
+    hμ.toIsMomentMap.exists_pos_forall_sqrt_momentNormSq_le_of_neg (K := (B.toDual hB).symm)
   -- For each `n`, a direction `η n` of radius `r n ≤ 2 L (n + 1)` along which `Φ_p` is at most
   -- `-2 m² (n + 1)`; then also `2 m² (n + 1) ≤ L r n`.
   choose η hηr hηΦ using fun n : ℕ ↦ exists_sqrt_le_kempfNessFunction_expI_le (C := C) h hμ hg
