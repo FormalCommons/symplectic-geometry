@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.PullbackGroupoid
 public import TauCeti.Geometry.Symplectic.Coadjoint.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Prod
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
+import TauCeti.Topology.Homeomorph.IsEmbedding
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Prod
 
@@ -159,7 +160,8 @@ private def graphSnd (x : h.orbitLevel η) :
 private theorem orbitMap_graphSnd (x : h.orbitLevel η) :
     (Lie.coadjointRepresentation ℝ I G).orbitMap η (graphSnd h hemb x) = -μ x :=
   DFunLike.coe_injective <| by
-    rw [graphSnd, ← Topology.IsEmbedding.toHomeomorph_apply_coe hemb, Homeomorph.apply_symm_apply]
+    rw [graphSnd]
+    exact hemb.apply_toHomeomorph_symm _
 
 private theorem continuous_graphSnd : Continuous (graphSnd h hemb) := by
   refine hemb.toHomeomorph.symm.continuous.comp (Continuous.subtype_mk (continuous_pi fun ξ ↦ ?_) _)

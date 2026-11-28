@@ -94,8 +94,7 @@ theorem IsCollar.exists_homotopy_push [CompactSpace M] [T2Space M]
     rintro _ ⟨p, hp, rfl⟩
     rw [← I.compl_boundary, ← Subtype.range_coe (s := I.boundary M)]
     intro hb
-    have h : p.2 = ⟨0, by norm_num⟩ := (hc.preimage_range.subset hb).2
-    exact hp.1.ne' (congrArg Subtype.val h)
+    exact hp.1.ne' (hc.apply_mem_range_iff.1 hb)
   · rintro ⟨x, hx⟩
     exact ⟨c (⟨x, hx⟩, ⟨1 / 8, by norm_num, by norm_num⟩), mem_image_of_mem _
       (show (1 / 8 : ℝ) ∈ Ioo 0 (1 / 4) by norm_num)⟩

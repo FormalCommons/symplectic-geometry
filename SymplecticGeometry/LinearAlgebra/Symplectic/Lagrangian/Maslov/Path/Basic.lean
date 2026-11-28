@@ -10,6 +10,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Basi
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Localization
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Multiplicity
 public import TauCeti.LinearAlgebra.TotallyReal.Maslov.Transverse
+import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Transverse
 import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
@@ -356,30 +357,8 @@ theorem pathMaslovIndex_eq_transverseMaslovIndex {U U' : unitaryGroup ι ℂ} (�
     (h₁ : UnitaryGroup.realImagePath δ 1 = S₁.lagrangianChart) :
     pathMaslovIndex (δ.map continuous_unitaryFrame) (horizontal ι) =
       (UnitaryGroup.realImagePath δ).transverseMaslovIndex hS₀ hS₁ h₀ h₁ := by
-  have hS := isSymm_segment hS₀ hS₁
-  let S (t : I) : selfAdjoint (Matrix ι ι ℝ) :=
-    ⟨Path.segment S₀ S₁ t, isHermitian_iff_isSymm.2 (hS t)⟩
-  -- The path of chart points `{(S t y, y)}` along the segment from `S₀` to `S₁`, and a path of
-  -- unitary frames of it.
-  let P : Path (graphY (S 0)) (graphY (S 1)) :=
-    ⟨⟨fun t ↦ graphY (S t), continuous_graphY.comp
-      ((Path.segment S₀ S₁).continuous.subtype_mk _)⟩, rfl, rfl⟩
-  obtain ⟨_, δ', hδ'⟩ := exists_path_lift_unitaryFrame P (unitaryFrame_surjective _).choose_spec
-  have hδ'S (t : I) : (δ' t : Matrix ι ι ℂ).realImage = (Path.segment S₀ S₁ t).lagrangianChart := by
-    have h := congrArg toSubmodule (hδ' t)
-    simp only [P, Path.coe_mk_mk] at h
-    rw [coe_unitaryFrame_eq_map, coe_graphY_eq_map] at h
-    exact Submodule.map_injective_of_injective (complexToRealEuclideanIsometry ι).injective h
-  have hP : TotallyRealPath.ofLagrangianChart (Path.segment S₀ S₁) hS =
-      UnitaryGroup.realImagePath δ' :=
-    TotallyRealPath.ext fun t ↦ by
-      rw [TotallyRealPath.ofLagrangianChart_apply, UnitaryGroup.realImagePath_apply, hδ'S]
-  have hzero : UnitaryGroup.maslovIndex δ' = 0 :=
-    UnitaryGroup.maslovIndex_eq_zero_of_finrank_eq δ' (k := 0) fun t ↦ by
-      rw [hδ'S, lagrangianChart_inf_realSubspace, finrank_bot]
-  rw [pathMaslovIndex_map_unitaryFrame, TotallyRealPath.transverseMaslovIndex_eq_relativeMaslovIndex
-    _ _ hS, TotallyRealPath.relativeMaslovIndex_congr_right hP,
-    UnitaryGroup.relativeMaslovIndex_realImagePath, hzero, sub_zero]
+  rw [pathMaslovIndex_map_unitaryFrame, TotallyRealPath.transverseMaslovIndex_eq_maslovIndex _ δ
+    (UnitaryGroup.realImagePath_apply δ)]
 
 end LagrangianGrassmannian
 

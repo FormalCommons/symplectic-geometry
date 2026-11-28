@@ -23,8 +23,8 @@ import TauCeti.Topology.Algebra.Module.FiniteDimension
 For the first, Mathlib's `ContDiffAt.to_localInverse` makes the local inverse of `f` at `g a`
 a `C^n` map at `f (g a) = a`, and `Filter.eventuallyEq_of_left_inv_of_right_inv` shows that it
 agrees with `g` near `a`. For the second, the chain rule shows that `f'(g a) ∘ g'(a)` is the
-identity, so `f'(g a)` is onto, hence one-to-one in equal finite dimension, hence invertible
-by Tau Ceti's `ContinuousLinearMap.isInvertible_iff_injective_of_finrank_eq`.
+identity, so `f'(g a)` is onto, hence invertible in equal finite dimension by Tau Ceti's
+`ContinuousLinearMap.isInvertible_iff_surjective_of_finrank_eq`.
 
 In the second statement, differentiability of `g` at `a` cannot be weakened to continuity: the
 real cube root is a continuous right inverse of the smooth map `x ↦ x ^ 3` that is not
@@ -71,8 +71,7 @@ theorem of_local_left_inverse_of_finrank_eq [FiniteDimensional 𝕂 G] {f : G �
     ⟨fderiv 𝕂 g a y, by simpa using congrArg (· y) hcomp⟩
   have : FiniteDimensional 𝕂 F := Module.Finite.of_surjective (f' : G →ₗ[𝕂] F) hsurj
   have : CompleteSpace G := FiniteDimensional.completeSpace 𝕂 G
-  obtain ⟨L, hL⟩ := (f'.isInvertible_iff_injective_of_finrank_eq hdim.symm).2
-    ((LinearMap.injective_iff_surjective_of_finrank_eq_finrank hdim.symm).2 hsurj)
+  obtain ⟨L, hL⟩ := (f'.isInvertible_iff_surjective_of_finrank_eq hdim.symm).2 hsurj
   rw [← hL] at hf'
   exact of_local_left_inverse hf hf' hg.continuousAt hfg hn
 
