@@ -586,6 +586,7 @@ theorem patchChart_patchMap {b₀ : B} {q : EB × F} (hq : q.1 ∈ e.patchSet IB
 
 variable (e)
 
+variable (IB) in
 /-- The patch chart sends the points of the source of `e` over the source of the chart of `B` at
 `b₀` into the product of the patch with `F`. -/
 theorem mapsTo_patchChart (b₀ : B) :
@@ -597,6 +598,7 @@ theorem mapsTo_patchChart (b₀ : B) :
   rw [fst_patchChart, (extChartAt IB b₀).left_inv hpb]
   exact e.mem_source.1 hp.1
 
+variable (IB) in
 /-- The patch map sends the product of the patch with `F` into the points of the source of `e`
 over the source of the chart of `B` at `b₀`. -/
 theorem mapsTo_patchMap (b₀ : B) :
@@ -619,8 +621,8 @@ def patchPartialEquiv (b₀ : B) : PartialEquiv M (EB × F) where
   invFun := e.patchMap IB b₀
   source := e.source ∩ proj ⁻¹' (chartAt HB b₀).source
   target := e.patchSet IB b₀ ×ˢ univ
-  map_source' := e.mapsTo_patchChart b₀
-  map_target' := e.mapsTo_patchMap b₀
+  map_source' := e.mapsTo_patchChart IB b₀
+  map_target' := e.mapsTo_patchMap IB b₀
   left_inv' _ hp := patchMap_patchChart hp.1 hp.2
   right_inv' _ hq := patchChart_patchMap hq.1
 
@@ -643,6 +645,7 @@ theorem patchPartialEquiv_target (b₀ : B) :
     (e.patchPartialEquiv IB b₀).target = e.patchSet IB b₀ ×ˢ univ :=
   (rfl)
 
+variable (IB) in
 /-- The patch partial equivalence of `e` over the extended chart `φ` of `B` at `b₀` agrees, on
 its source, with the composite of `e` and `φ × id`, and has the same source. The two forward maps
 differ off the source of `e`, where `e p` need not lie over `proj p`. -/
@@ -651,14 +654,8 @@ theorem patchPartialEquiv_eqOnSource (b₀ : B) :
       (e.toPartialEquiv.trans ((extChartAt IB b₀).prod (PartialEquiv.refl F))) := by
   refine ⟨?_, fun p hp ↦ ?_⟩
   · ext p
-    simp only [patchPartialEquiv_source, PartialEquiv.trans_source, PartialEquiv.prod_source,
-      PartialEquiv.refl_source, extChartAt_source, OpenPartialHomeomorph.coe_toPartialEquiv,
-      coe_coe, mem_inter_iff, mem_preimage, mem_prod, mem_univ, and_true]
-    exact and_congr_right fun hp ↦ by rw [e.coe_fst hp]
-  · rw [patchPartialEquiv_source] at hp
-    simp only [coe_patchPartialEquiv, patchChart_def, PartialEquiv.coe_trans, comp_apply,
-      PartialEquiv.prod_coe, PartialEquiv.refl_coe, id_eq, OpenPartialHomeomorph.coe_toPartialEquiv,
-      coe_coe, e.coe_fst hp.1]
+    simp +contextual
+  · simp_all [patchChart_def]
 
 /-- For a trivialization `e` over a boundaryless base, the patch of `e` over the extended chart of
 `B` at `b₀` is open. -/
