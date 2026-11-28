@@ -341,6 +341,25 @@ theorem mpullback_prodMk_left_mpullback_snd (p : M') (β : SmoothForm I' M' F (k
       (mpullback Prod.snd contMDiff_snd β : SmoothForm (I.prod I') (M × M') F (k + 1)) = 0 := by
   simp [mpullback_mpullback, Function.comp_def]
 
+/-- The slice `y ↦ (b, y)` of the pullback of a smooth `(k + 1)`-form `γ` on `M` along the
+projection `M × M' → M` is zero, since the projection is constant on the slice. -/
+@[simp]
+theorem mpullback_prodMk_mpullback_fst (b : M) (γ : SmoothForm I M F (k + 1)) :
+    mpullback (Prod.mk b : M' → M × M') (contMDiff_const.prodMk contMDiff_id)
+      (mpullback Prod.fst contMDiff_fst γ : SmoothForm (I.prod I') (M × M') F (k + 1)) = 0 := by
+  simp [mpullback_mpullback, Function.comp_def]
+
+/-- Adding the pullback of a smooth `(k + 1)`-form `γ` on `M` along the projection `M × M' → M`
+to a smooth form `τ` on `M × M'` does not change the slice `y ↦ (b, y)` of `τ`. -/
+theorem mpullback_prodMk_add_mpullback_fst (b : M) (τ : SmoothForm (I.prod I') (M × M') F (k + 1))
+    (γ : SmoothForm I M F (k + 1)) :
+    TauCeti.mpullback (F := F) I' (I.prod I') (Prod.mk b)
+        (τ + mpullback Prod.fst contMDiff_fst γ).val =
+      TauCeti.mpullback I' (I.prod I') (Prod.mk b) τ.val := by
+  have h := congrArg Subtype.val (mpullback_prodMk_mpullback_fst (I' := I') (M' := M') b γ)
+  rw [coe_mpullback, ZeroMemClass.coe_zero] at h
+  rw [Submodule.coe_add, TauCeti.mpullback_add, h, add_zero]
+
 /-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth `k`-form `η` at
 `γ y` on the images under `dγ_y` of fixed vectors `v i` gives a smooth function of `y`. -/
 theorem contDiff_apply_mfderiv (η : SmoothForm I' M' F k) {γ : E → M'}

@@ -9,12 +9,14 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegra
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
-import SymplecticGeometry.LinearAlgebra.Alternating.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
-import TauCeti.Geometry.Manifold.DeRham.Wedge
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 /-!
@@ -27,13 +29,14 @@ its pull-backs along the inclusions `y ↦ (b, y)`, are all `σ`. The fibre inte
 cast `2 * (k + 1) = 2 + 2 * k`, is a two-form on `B`.
 
 Its integrand is computed pointwise. At `(b, y)`, pick a vector `x` tangent to `F` with
-`τ((w₁, x), (0, v)) = 0` for every `v`; it exists because `σ` is nondegenerate. Replacing
-`(w₁, 0)` by `(w₁, x)` does not change the integrand, since `x` lies in the `2 * k`-dimensional
-space that the last arguments span (`AlternatingMap.map_append_add_of_mem`), and then
+`τ((w₁, x), (0, v)) = 0` for every `v`; it exists because `σ` is nondegenerate. The integrand
+may be evaluated on the lifts `(w₁, x), (w₂, 0)`
+(`SymplecticGeometry.prodFiberIntegrand_apply_of_lift`), and then
 `ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero` gives the value
 `(k + 1) * τ((w₁, x), (w₂, 0)) * σᵏ` (`SymplecticGeometry.prodFiberIntegrand_wedgePow_apply`).
 Adding the pull-back `pr₁^* γ` of a two-form `γ` on `B` changes neither the slices nor the choice
-of `x` (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_fst`), so the fibre integral of
+of `x` (`TauCeti.SmoothForm.mpullback_prodMk_add_mpullback_fst`,
+`TauCeti.SmoothForm.isSemibasic_mpullback`), so the fibre integral of
 `(τ + pr₁^* γ) ^ (k + 1)` is that of `τ ^ (k + 1)` plus `(k + 1) * k! * V • γ`, with `V` the
 symplectic volume of `F` (`SymplecticGeometry.prodFiberIntegral_wedgePow_add_mpullback_fst`). The
 argument is that of `TauCeti.IsEhresmannConnection.fiberIntegral_wedgePow_apply` and
@@ -45,7 +48,7 @@ So, for `F` nonempty, subtracting `c • pr₁^* β`, with `β` the fibre integr
 (`SymplecticGeometry.prodFiberIntegral_wedgePow_sub_smul_mpullback_fst_eq_zero`). When `τ` is
 closed, so is `β` (`SymplecticGeometry.isClosed_prodFiberIntegral`), and the new form is closed,
 has the slices `σ`, and has the horizontal spaces of `τ`
-(`TauCeti.SmoothTwoForm.horizontalDistribution_add_mpullback`); this is
+(`TauCeti.SmoothTwoForm.horizontalDistribution_add_of_isSemibasic`); this is
 `SymplecticGeometry.isClosed_sub_smul_mpullback_fst_prodFiberIntegral`. It is the normalization
 of coupling forms of McDuff–Salamon [McDuffSalamon2017], equations (6.4.3)–(6.4.5), with the
 errata [McDuffSalamon2019Errata], over a product.
@@ -63,28 +66,6 @@ noncomputable section
 
 open Module
 open scoped Manifold ContDiff
-
-namespace TauCeti.SmoothForm
-
-variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
-  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
-  [ChartedSpace HB B] [IsManifold IB ∞ B]
-  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
-  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
-  [ChartedSpace HF F] [IsManifold IF ∞ F] {k : ℕ}
-
-/-- The slices `y ↦ (b, y)` of the pull-back of a form on `B` to `B × F` along the first
-projection vanish, for forms of positive degree. -/
-theorem mpullback_prodMk_mpullback_fst (γ : SmoothForm IB B ℝ (k + 1)) (b : B) :
-    TauCeti.mpullback IF (IB.prod IF) (Prod.mk b)
-      (mpullback (Prod.fst : B × F → B) contMDiff_fst γ).val = 0 := by
-  funext y
-  ext v
-  rw [TauCeti.mpullback_apply, mpullback_fst_apply]
-  simp only [mfderiv_prod_right]
-  exact (γ.val b).map_coord_zero 0 (by rw [Manifold.tangentSpaceProdEquiv_apply]; rfl)
-
-end TauCeti.SmoothForm
 
 namespace SymplecticGeometry
 
@@ -115,57 +96,26 @@ theorem prodFiberIntegrand_wedgePow_apply (hk : finrank ℝ EF = 2 * k)
       ((k + 1) * k.factorial * (τ.val (b, y) ![(w₁, x), (w₂, 0)] : ℝ)) •
         (σ.volumeForm k).val y := by
   ext v
-  set φ := τ.val (b, y)
-  let u : Fin 2 → TangentSpace (IB.prod IF) (b, y) := fun i ↦ (![w₁, w₂] i, 0)
-  let d : Fin 2 → TangentSpace (IB.prod IF) (b, y) := ![(0, x), 0]
-  let w : Fin (2 * k) → TangentSpace (IB.prod IF) (b, y) := fun j ↦ (0, v j)
-  -- The vectors tangent to the fibre form a subspace of dimension at most `2 * k`.
-  have : FiniteDimensional ℝ (TangentSpace IF y) := inferInstanceAs (FiniteDimensional ℝ EF)
-  let V : Submodule ℝ (TangentSpace (IB.prod IF) (b, y)) :=
-    LinearMap.range (LinearMap.inr ℝ (TangentSpace IB b) (TangentSpace IF y))
-  have : Module.Finite ℝ V := LinearMap.finiteDimensional_range _
-  have hV : finrank ℝ V ≤ 2 * k := (LinearMap.finrank_range_le _).trans hk.le
-  have hd (i : Fin 2) : d i ∈ V := by
-    fin_cases i
-    · exact ⟨x, rfl⟩
-    · exact ⟨0, rfl⟩
-  have hw (j : Fin (2 * k)) : w j ∈ V := ⟨v j, rfl⟩
-  let g := (φ.wedgePow (k + 1)).toAlternatingMap.domDomCongr
-    (finCongr (by ring : 2 * (k + 1) = 2 + 2 * k))
-  have hlhs : prodFiberIntegrand (LinearEquiv.cast (R := ℝ)
-        (M := fun q ↦ SmoothForm (IB.prod IF) (B × F) ℝ q)
-        (by ring : 2 * (k + 1) = 2 + 2 * k) (τ.wedgePow (k + 1))).val b ![w₁, w₂] y v =
-      g (Fin.append u w) := by
-    rw [prodFiberIntegrand_apply, SmoothForm.cast_apply, SmoothForm.wedgePow_apply]
-    have hfun : (fun p ↦ (Manifold.tangentSpaceProdEquiv (I := IB) (J := IF) (b, y)).symm
-        (Fin.append (fun i ↦ (![w₁, w₂] i, 0)) (fun j ↦ (0, v j)) p)) = Fin.append u w := by
-      funext p
-      refine Fin.addCases (fun i ↦ ?_) (fun j ↦ ?_) p <;>
-        simp only [Fin.append_left, Fin.append_right] <;>
-        exact Manifold.tangentSpaceProdEquiv_symm_apply _ _
-    rw [hfun]
-    -- `g` precomposes with `Fin.cast`, by the definition of `AlternatingMap.domDomCongr`.
-    rfl
-  have hud : u + d = ![(w₁, x), (w₂, 0)] := by
+  have hφ (j : Fin (2 * k)) :
+      τ.val (b, y) ![(w₁, x), ((0, v j) : TangentSpace (IB.prod IF) (b, y))] = 0 :=
+    hx (v j)
+  -- The lifts of `w₁, w₂` are `(w₁, x)` and `(w₂, 0)`.
+  have hlift : (fun i ↦ ((![w₁, w₂] i, ![x, 0] i) : TangentSpace (IB.prod IF) (b, y))) =
+      ![(w₁, x), (w₂, 0)] := by
     funext i
-    fin_cases i
-    · exact Prod.ext (add_zero w₁) (zero_add x)
-    · exact Prod.ext (add_zero w₂) (add_zero 0)
+    fin_cases i <;> rfl
   -- On the fibre, `τ ^ k` is `σ ^ k`, since the slice of `τ` is `σ`.
-  have hσk : (σ.val y).wedgePow k v = φ.wedgePow k w := by
+  have hσk : (σ.val y).wedgePow k v =
+      (τ.val (b, y)).wedgePow k fun j ↦ ((0, v j) : TangentSpace (IB.prod IF) (b, y)) := by
     rw [← hτ, ← TauCeti.mpullback_wedgePow_apply, mpullback_apply, SmoothForm.wedgePow_apply]
     congr 1
     funext j
     rw [mfderiv_prod_right]
     rfl
-  have hφ (j : Fin (2 * k)) : φ ![(u + d) 0, w j] = 0 := by
-    rw [hud]
-    exact hx (v j)
-  rw [hlhs, ← AlternatingMap.map_append_add_of_mem g hV u hd hw]
-  -- Unfold `g` again, to the form of `wedgePow_succ_apply_append_of_eq_zero`.
-  change φ.wedgePow (k + 1) (Fin.append (u + d) w ∘ Fin.cast (by ring)) = _
-  rw [ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero φ hφ, ← hσk, hud,
-    ← SmoothForm.wedgePow_apply, SmoothTwoForm.wedgePow_eq_factorial_smul_volumeForm]
+  rw [prodFiberIntegrand_apply_of_lift hk.le _ b _ y ![x, 0], hlift, SmoothForm.cast_apply,
+    SmoothForm.wedgePow_apply]
+  refine (ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero _ hφ).trans ?_
+  rw [← hσk, ← SmoothForm.wedgePow_apply, SmoothTwoForm.wedgePow_eq_factorial_smul_volumeForm]
   simp only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul]
   -- The two sides evaluate `τ` on the same vectors, written in two defeq types.
   exact (fun s t (hst : s = t) ↦ by subst hst; ring : ∀ s t : ℝ, s = t →
@@ -192,8 +142,8 @@ theorem prodFiberIntegral_wedgePow_add_mpullback_fst (hσ : σ.IsNondegenerate)
         integralTopForm (hσ.volumeOrientation hk) (σ.volumeForm k).val) • γ := by
   set τ' := τ + SmoothForm.mpullback Prod.fst contMDiff_fst γ
   set C : ℝ := ((k : ℝ) + 1) * k.factorial
-  have hτ' (b : B) : mpullback IF (IB.prod IF) (Prod.mk b) τ'.val = σ.val := by
-    rw [Submodule.coe_add, mpullback_add, hτ, SmoothForm.mpullback_prodMk_mpullback_fst, add_zero]
+  have hτ' (b : B) : mpullback IF (IB.prod IF) (Prod.mk b) τ'.val = σ.val :=
+    (SmoothForm.mpullback_prodMk_add_mpullback_fst b τ γ).trans (hτ b)
   refine SmoothBundleForm.ext fun b v ↦ ?_
   rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm]
   -- At each `y`, a vector `x y` tangent to `F` that makes `(v 0, x y)` orthogonal to the fibre.
@@ -219,8 +169,8 @@ theorem prodFiberIntegral_wedgePow_add_mpullback_fst (hσ : σ.IsNondegenerate)
   choose x hx using hx
   have hx' (y : F) (u : TangentSpace IF y) : τ'.val (b, y) ![(v 0, x y), (0, u)] = 0 := by
     rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply, hx, zero_add]
-    exact (SmoothForm.mpullback_fst_apply γ (b, y) _).trans
-      ((γ.val b).map_coord_zero 1 (by rw [Manifold.tangentSpaceProdEquiv_apply]; rfl))
+    exact (SmoothForm.isSemibasic_mpullback contMDiff_fst γ).apply_eq_zero _ _ 1
+      (mfderiv_fst_apply (I := IB) (J := IF) (b, y) (0, u))
   have hint : prodFiberIntegrand (LinearEquiv.cast (R := ℝ)
         (M := fun q ↦ SmoothForm (IB.prod IF) (B × F) ℝ q) (by ring : 2 * (k + 1) = 2 + 2 * k)
         (τ'.wedgePow (k + 1))).val b ![v 0, v 1] =
@@ -238,17 +188,15 @@ theorem prodFiberIntegral_wedgePow_add_mpullback_fst (hσ : σ.IsNondegenerate)
       refine congrArg _ ((SmoothForm.mpullback_fst_apply γ (b, y) _).trans (congrArg _ ?_))
       funext i
       fin_cases i <;> (rw [Manifold.tangentSpaceProdEquiv_apply]; rfl)
-    exact (fun s t r (h : s = t + r) ↦ by subst h; ring : ∀ s t r : ℝ, s = t + r →
-      ((k : ℝ) + 1) * k.factorial * s = (k + 1) * k.factorial * t + C * r) _ _ _ hsplit
+    rw [hsplit]
+    ring
   rw [prodFiberIntegral_apply, hint, integralTopForm_add_of_compactSpace _
       ((isSmoothForm_prodFiberIntegrand (SmoothForm.isSmoothForm _) b _).of_le bot_le)
       (((σ.volumeForm k).isSmoothForm.smul _).of_le bot_le),
     integralTopForm_smul, SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
     prodFiberIntegral_apply, SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
     smul_eq_mul]
-  congr 1
-  exact (fun s t c i (h : s = t) ↦ by subst h; ring : ∀ s t c i : ℝ, s = t →
-    c * s * i = c * i * t) _ _ _ _ rfl
+  ring
 
 /-- **The normalized form has vanishing fibre integral.** Let `σ` be nondegenerate on the
 nonempty `F`, of dimension `2 * k`, with symplectic volume `V`, and let all slices of the two-form
@@ -302,25 +250,16 @@ theorem isClosed_sub_smul_mpullback_fst_prodFiberIntegral [BoundarylessManifold 
         (M := fun q ↦ SmoothForm (IB.prod IF) (B × F) ℝ q) (by ring : 2 * (k + 1) = 2 + 2 * k)
         (τ'.wedgePow (k + 1))) = 0 := by
   intro β τ'
-  -- A degree cast of a closed form is closed.
-  have hcast {p q : ℕ} (h : p = q) {α : SmoothForm (IB.prod IF) (B × F) ℝ p} (hα : α.IsClosed) :
-      (LinearEquiv.cast (R := ℝ) (M := fun q ↦ SmoothForm (IB.prod IF) (B × F) ℝ q) h
-        α).IsClosed := by
-    subst h
-    exact hα
-  have hβ : β.IsClosed := isClosed_prodFiberIntegral _ (hcast _ <| (SmoothForm.isClosed_def _).2
-    ((mem_closedForms (I := IB.prod IF) _).1
-      (SmoothForm.wedgePow_mem_closedForms ((mem_closedForms (I := IB.prod IF) _).2
-        ((SmoothForm.isClosed_def _).1 hτ)) _)))
+  have hβ : β.IsClosed := isClosed_prodFiberIntegral _ ((hτ.wedgePow _).cast _)
   have hτ' : τ' = τ + SmoothForm.mpullback Prod.fst contMDiff_fst
       (-((1 / ((k + 1) * k.factorial *
         integralTopForm (hσ.volumeOrientation hk) (σ.volumeForm k).val) : ℝ) • β)) := by
     rw [map_neg, map_smul, ← sub_eq_add_neg]
   refine ⟨hβ, hτ.sub ((hβ.mpullback _ _).smul _), fun b ↦ ?_, ?_,
     prodFiberIntegral_wedgePow_sub_smul_mpullback_fst_eq_zero hσ hk hτσ⟩
-  · rw [hτ', Submodule.coe_add, mpullback_add, hτσ, SmoothForm.mpullback_prodMk_mpullback_fst,
-      add_zero]
+  · rw [hτ', SmoothForm.mpullback_prodMk_add_mpullback_fst, hτσ]
   · rw [hτ']
-    exact SmoothTwoForm.horizontalDistribution_add_mpullback _ τ _
+    exact SmoothTwoForm.horizontalDistribution_add_of_isSemibasic
+      (SmoothForm.isSemibasic_mpullback _ _) τ
 
 end SymplecticGeometry

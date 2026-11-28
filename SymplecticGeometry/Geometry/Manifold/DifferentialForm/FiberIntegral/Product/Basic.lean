@@ -83,6 +83,8 @@ are smooth there by the previous result.
 ## Main results
 
 * `SymplecticGeometry.prodFiberIntegrand_apply`: its value on tangent vectors of `F`.
+* `SymplecticGeometry.prodFiberIntegrand_apply_of_lift`: the same value on any lifts `(vᵢ, xᵢ)` of
+  the base vectors, when `F` has dimension at most `m`.
 * `SymplecticGeometry.prodFiberIntegrand_add`, `SymplecticGeometry.prodFiberIntegrand_smul`,
   `SymplecticGeometry.prodFiberIntegrand_zero`, `SymplecticGeometry.prodFiberIntegrand_neg`,
   `SymplecticGeometry.prodFiberIntegrand_sub`: it is linear in `α`;
@@ -160,6 +162,30 @@ theorem prodFiberIntegrand_apply (α : RoughForm (I.prod J) (B × F) ℝ (r + m)
   refine Fin.addCases (fun i ↦ ?_) (fun j ↦ ?_) p <;>
     simp only [Fin.append_left, Fin.append_right, comp_apply,
       ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe, ContinuousLinearMap.inr_apply]
+
+/-- **The integrand does not depend on the lifts.** Let the model space of `F` have dimension at
+most `m`. For tangent vectors `x₁, …, xᵣ` of `F` at `y`, the integrand at `y` sends `w` to the
+value of `α` at `(b, y)` on the lifts `(v₁, x₁), …, (vᵣ, xᵣ)` of the base vectors followed by
+`(0, w₁), …, (0, wₘ)`. -/
+theorem prodFiberIntegrand_apply_of_lift [FiniteDimensional ℝ E'] (hm : Module.finrank ℝ E' ≤ m)
+    (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) (y : F)
+    (x : Fin r → TangentSpace J y) (w : Fin m → TangentSpace J y) :
+    prodFiberIntegrand α b v y w =
+      α (b, y) (Fin.append (fun i ↦ (v i, x i)) fun j ↦ (0, w j)) := by
+  have : FiniteDimensional ℝ (TangentSpace J y) := inferInstanceAs (FiniteDimensional ℝ E')
+  -- The vectors tangent to the fibre form a subspace of dimension at most `m`.
+  let V : Submodule ℝ (TangentSpace (I.prod J) (b, y)) :=
+    LinearMap.range (LinearMap.inr ℝ (TangentSpace I b) (TangentSpace J y))
+  have : Module.Finite ℝ V := LinearMap.finiteDimensional_range _
+  have hV : Module.finrank ℝ V ≤ m := (LinearMap.finrank_range_le _).trans hm
+  have hx (i : Fin r) : ((0, x i) : TangentSpace (I.prod J) (b, y)) ∈ V := ⟨x i, rfl⟩
+  have hw (j : Fin m) : ((0, w j) : TangentSpace (I.prod J) (b, y)) ∈ V := ⟨w j, rfl⟩
+  have hsplit : (fun i ↦ ((v i, x i) : TangentSpace (I.prod J) (b, y))) =
+      (fun i ↦ ((v i, 0) : TangentSpace (I.prod J) (b, y))) + fun i ↦ (0, x i) :=
+    funext fun i ↦ Prod.ext (add_zero (v i)).symm (zero_add (x i)).symm
+  rw [prodFiberIntegrand_apply, hsplit]
+  refine Eq.trans ?_ (ContinuousAlternatingMap.map_append_add_of_mem (α (b, y)) hV _ hx hw).symm
+  exact congrArg (α (b, y)) (funext fun p ↦ Manifold.tangentSpaceProdEquiv_symm_apply _ _)
 
 /-- The integrand is additive in the form. -/
 @[simp]
