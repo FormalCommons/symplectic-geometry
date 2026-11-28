@@ -108,31 +108,30 @@ namespace SymplecticGeometry
 open Set Filter Topology
 open scoped ContDiff
 
-/-- **The piece of a strictly increasing family of `i`-convex shapes next to `ℓ₁`.** Let
+/-- **Joining a strictly increasing family to a raised function by a smoothed maximum.** Let
 `χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[b, ℓ₁] × [r₁, r₂]`, with
-`χ ℓ` an `i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the rectangle. Let `M` be a
-smooth function that is an `i`-convex shape on `[r₁, r₂]`, and `q` a smooth nondecreasing
-function with `q b ≥ 0` and `q' > 0` on `[b, c)`, where `b < c ≤ ℓ₁`. Suppose that
+`∂χ/∂ℓ > 0` at each point of the rectangle. Let `M` be a smooth function and `q` a smooth
+nondecreasing function with `q' > 0` on `[b, c)`, where `b < c ≤ ℓ₁`. Suppose that
 `χ b < M + q b` and that `M + q ℓ < χ ℓ` for `ℓ ∈ [c, ℓ₁]`, on `[r₁, r₂]`. Then for each
-`ε > 0` there are `δ ∈ (0, ε]` and `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that on the rectangle
-`T ℓ` is an `i`-convex shape at `r` with `∂T/∂ℓ > 0`; `T` equals `M r + q ℓ` near
-`{b} × [r₁, r₂]` and `χ` near `{ℓ₁} × [r₁, r₂]`; and at each point `(ℓ, r)` of the rectangle,
-`T ℓ` is the smoothed maximum `smoothedMax δ (M + q ℓ) (χ ℓ')` near `r` for some `ℓ' ∈ [b, ℓ₁]`,
-so that `T ℓ r` lies between `max (M r + q ℓ) (χ ℓ' r)` and that maximum plus `δ / 2`, its first
-`r`-derivative between those of `M` and `χ ℓ'`, and its second `r`-derivative is at least the
-smaller of those of `M` and `χ ℓ'`. -/
-theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
+`ε > 0` there are `δ ∈ (0, ε]` and `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that `∂T/∂ℓ > 0` on
+the rectangle; `T` equals `M r + q ℓ` near `{b} × [r₁, r₂]` and `χ` near `{ℓ₁} × [r₁, r₂]`; and
+at each point `(ℓ, r)` of the rectangle, `T ℓ` is the smoothed maximum
+`smoothedMax δ (M + q ℓ) (χ ℓ')` near `r` for some `ℓ' ∈ [b, ℓ₁]`, so that `T ℓ r` lies between
+`max (M r + q ℓ) (χ ℓ' r)` and that maximum plus `δ / 2`, its first `r`-derivative between
+those of `M` and `χ ℓ'`, and its second `r`-derivative is at least the smaller of those of `M`
+and `χ ℓ'`.
+
+No convexity is assumed or claimed: `exists_smoothedMax_shapeFamily` and its form over `R`,
+`exists_smoothedMin_shapeFamilyOverR`, add it. -/
+theorem exists_smoothedMax_family {χ : ℝ → ℝ → ℝ} {M q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
     {b c ℓ₁ r₁ r₂ ε : ℝ} (hbc : b < c) (hcℓ : c ≤ ℓ₁) (hU : IsOpen U)
     (hRU : Icc b ℓ₁ ×ˢ Icc r₁ r₂ ⊆ U) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) U)
-    (hχc : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, IsConvexShapeAt (χ x.1) x.2)
     (hχℓ : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1)
-    (hM : ContDiff ℝ ∞ M) (hMc : ∀ r ∈ Icc r₁ r₂, IsConvexShapeAt M r)
-    (hq : ContDiff ℝ ∞ q) (hqm : Monotone q) (hqb : 0 ≤ q b)
+    (hM : ContDiff ℝ ∞ M) (hq : ContDiff ℝ ∞ q) (hqm : Monotone q)
     (hq' : ∀ ℓ ∈ Ico b c, 0 < deriv q ℓ)
     (hgb : ∀ r ∈ Icc r₁ r₂, χ b r < M r + q b)
     (hgc : ∀ ℓ ∈ Icc c ℓ₁, ∀ r ∈ Icc r₁ r₂, M r + q ℓ < χ ℓ r) (hε : 0 < ε) :
     ∃ δ ∈ Ioc 0 ε, ∃ T : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry T) ∧
-      (∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, IsConvexShapeAt (T x.1) x.2) ∧
       (∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ T ℓ x.2) x.1) ∧
       Function.uncurry T =ᶠ[𝓝ˢ ({b} ×ˢ Icc r₁ r₂)] (fun x ↦ M x.2 + q x.1) ∧
       Function.uncurry T =ᶠ[𝓝ˢ ({ℓ₁} ×ˢ Icc r₁ r₂)] Function.uncurry χ ∧
@@ -180,7 +179,6 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
       have := hval (ℓ₁, r) ⟨right_mem_Icc.2 hbℓ, hr'⟩
       simp only at this ⊢
       linarith [hgc ℓ₁ ⟨hcℓ, le_rfl⟩ r hr']
-  -- The width `δ₀` below which the smoothed maxima are `i`-convex shapes.
   have hFM : ContDiff ℝ ∞ fun x : ℝ × ℝ ↦ M x.2 + q x.1 :=
     (hM.comp contDiff_snd).add (hq.comp contDiff_fst)
   have hFA : ContDiff ℝ ∞ fun x : ℝ × ℝ ↦ χ' (L x.1, x.2) :=
@@ -189,27 +187,14 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
     (hFA.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)
   have hM2 : ∀ p : ℝ, ContDiff ℝ 2 fun r ↦ M r + q p := fun p ↦
     (hFM.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)
-  have hAc : ∀ p ∈ Icc b ℓ₁, ∀ r ∈ Icc r₁ r₂, IsConvexShapeAt (fun r ↦ χ' (L p, r)) r :=
-    fun p hp r hr' ↦ (hχc (L p, r) ⟨hLmem p hp, hr'⟩).congr_of_eventuallyEq
-      (hsliceR (L p, r) ⟨hLmem p hp, hr'⟩)
-  obtain ⟨δ₀, hδ₀, hconv⟩ := exists_forall_isConvexShapeAt_smoothedMax (P := ℝ)
-    (K := Icc b ℓ₁) isCompact_Icc (M := fun p r ↦ M r + q p) (A := fun p r ↦ χ' (L p, r))
-    (r₁ := r₁) (r₂ := r₂) (fun p _ _ _ ↦ (hM2 p).contDiffAt) (fun p _ _ _ ↦ (hA2 p).contDiffAt)
-    (fun p hp r hr' ↦ (hMc r hr').add_const (hqb.trans (hqm hp.1))) hAc
-    (fun _ _ _ _ ↦ (hFM.contDiffAt.continuousAt_iteratedDeriv_prod_right
-      (by exact_mod_cast le_top)).continuousWithinAt)
-    (fun _ _ _ _ ↦ (hFA.contDiffAt.continuousAt_iteratedDeriv_prod_right
-      (by exact_mod_cast le_top)).continuousWithinAt)
-  set δ := min (min ε δ₀) (min (g₀ / 2) (g₁ / 2))
-  have hδ : 0 < δ := lt_min (lt_min hε hδ₀) (lt_min (half_pos hg₀) (half_pos hg₁))
-  have hδε : δ ≤ ε := (min_le_left _ _).trans (min_le_left _ _)
-  have hδδ₀ : δ ≤ δ₀ := (min_le_left _ _).trans (min_le_right _ _)
+  set δ := min ε (min (g₀ / 2) (g₁ / 2))
+  have hδ : 0 < δ := lt_min hε (lt_min (half_pos hg₀) (half_pos hg₁))
+  have hδε : δ ≤ ε := min_le_left _ _
   have hδg₀ : δ < g₀ := (min_le_right _ _).trans_lt ((min_le_left _ _).trans_lt (half_lt_self hg₀))
   have hδg₁ : δ < g₁ :=
     (min_le_right _ _).trans_lt ((min_le_right _ _).trans_lt (half_lt_self hg₁))
   refine ⟨δ, ⟨hδ, hδε⟩, fun ℓ r ↦ smoothedMax δ (M r + q ℓ) (χ' (L ℓ, r)),
-    (contDiff_smoothedMax δ).comp (hFM.prodMk hFA),
-    fun x hx ↦ hconv δ ⟨hδ, hδδ₀⟩ x.1 hx.1 x.2 hx.2, ?_, ?_, ?_, ?_⟩
+    (contDiff_smoothedMax δ).comp (hFM.prodMk hFA), ?_, ?_, ?_, ?_⟩
   · -- The `ℓ`-derivative.
     intro x hx
     obtain ⟨⟨hb, hℓ⟩, hr'⟩ := hx
@@ -291,23 +276,90 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
       exact min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax (hM2 x.1).contDiffAt
         (hA2 x.1).contDiffAt hδ.le
 
-/-- **The piece of a strictly increasing family of `i`-convex shapes next to `ℓ₀`.** Let
-`χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[ℓ₀, a] × [r₁, r₂]`, with
-`χ ℓ` an `i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the rectangle, and let `q` be
-a smooth nondecreasing function that vanishes near `ℓ₀` and has `q' > 0` on `[a₁, a]`, where
-`ℓ₀ < a₁ < a`. Then there is `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that on the rectangle `T ℓ`
-is an `i`-convex shape at `r` with `∂T/∂ℓ > 0`; `T` equals `χ` near `{ℓ₀} × [r₁, r₂]` and
+/-- **The piece of a strictly increasing family of `i`-convex shapes next to `ℓ₁`.** Let
+`χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[b, ℓ₁] × [r₁, r₂]`, with
+`χ ℓ` an `i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the rectangle. Let `M` be a
+smooth function that is an `i`-convex shape on `[r₁, r₂]`, and `q` a smooth nondecreasing
+function with `q b ≥ 0` and `q' > 0` on `[b, c)`, where `b < c ≤ ℓ₁`. Suppose that
+`χ b < M + q b` and that `M + q ℓ < χ ℓ` for `ℓ ∈ [c, ℓ₁]`, on `[r₁, r₂]`. Then for each
+`ε > 0` there are `δ ∈ (0, ε]` and `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that on the rectangle
+`T ℓ` is an `i`-convex shape at `r` with `∂T/∂ℓ > 0`; `T` equals `M r + q ℓ` near
+`{b} × [r₁, r₂]` and `χ` near `{ℓ₁} × [r₁, r₂]`; and at each point `(ℓ, r)` of the rectangle,
+`T ℓ` is the smoothed maximum `smoothedMax δ (M + q ℓ) (χ ℓ')` near `r` for some `ℓ' ∈ [b, ℓ₁]`,
+so that `T ℓ r` lies between `max (M r + q ℓ) (χ ℓ' r)` and that maximum plus `δ / 2`, its first
+`r`-derivative between those of `M` and `χ ℓ'`, and its second `r`-derivative is at least the
+smaller of those of `M` and `χ ℓ'`. -/
+theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
+    {b c ℓ₁ r₁ r₂ ε : ℝ} (hbc : b < c) (hcℓ : c ≤ ℓ₁) (hU : IsOpen U)
+    (hRU : Icc b ℓ₁ ×ˢ Icc r₁ r₂ ⊆ U) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) U)
+    (hχc : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, IsConvexShapeAt (χ x.1) x.2)
+    (hχℓ : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1)
+    (hM : ContDiff ℝ ∞ M) (hMc : ∀ r ∈ Icc r₁ r₂, IsConvexShapeAt M r)
+    (hq : ContDiff ℝ ∞ q) (hqm : Monotone q) (hqb : 0 ≤ q b)
+    (hq' : ∀ ℓ ∈ Ico b c, 0 < deriv q ℓ)
+    (hgb : ∀ r ∈ Icc r₁ r₂, χ b r < M r + q b)
+    (hgc : ∀ ℓ ∈ Icc c ℓ₁, ∀ r ∈ Icc r₁ r₂, M r + q ℓ < χ ℓ r) (hε : 0 < ε) :
+    ∃ δ ∈ Ioc 0 ε, ∃ T : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry T) ∧
+      (∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, IsConvexShapeAt (T x.1) x.2) ∧
+      (∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ T ℓ x.2) x.1) ∧
+      Function.uncurry T =ᶠ[𝓝ˢ ({b} ×ˢ Icc r₁ r₂)] (fun x ↦ M x.2 + q x.1) ∧
+      Function.uncurry T =ᶠ[𝓝ˢ ({ℓ₁} ×ˢ Icc r₁ r₂)] Function.uncurry χ ∧
+      ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, ∃ ℓ' ∈ Icc b ℓ₁,
+        T x.1 =ᶠ[𝓝 x.2] (fun r ↦ smoothedMax δ (M r + q x.1) (χ ℓ' r)) ∧
+        max (M x.2 + q x.1) (χ ℓ' x.2) ≤ T x.1 x.2 ∧
+        T x.1 x.2 ≤ max (M x.2 + q x.1) (χ ℓ' x.2) + δ / 2 ∧
+        min (deriv M x.2) (deriv (χ ℓ') x.2) ≤ deriv (T x.1) x.2 ∧
+        deriv (T x.1) x.2 ≤ max (deriv M x.2) (deriv (χ ℓ') x.2) ∧
+        min (iteratedDeriv 2 M x.2) (iteratedDeriv 2 (χ ℓ') x.2) ≤
+          iteratedDeriv 2 (T x.1) x.2 := by
+  -- A globally smooth `χ'` that agrees with `uncurry χ` near the rectangle, and the width `δ₀`
+  -- below which the smoothed maxima of `M + q ℓ` and a member of `χ'` are `i`-convex shapes.
+  obtain ⟨χ', hχ', hχ'eq⟩ := hχ.exists_contDiff_eventuallyEq_nhdsSet
+    (isCompact_Icc.prod isCompact_Icc) (hU.mem_nhdsSet.2 hRU)
+  have hsliceR : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, (fun r ↦ χ' (x.1, r)) =ᶠ[𝓝 x.2] χ x.1 :=
+    fun x hx ↦ (hχ'eq.filter_mono (nhds_le_nhdsSet hx)).comp_tendsto
+      (Continuous.tendsto' (by fun_prop) x.2 x rfl)
+  have hFM : ContDiff ℝ ∞ fun x : (ℝ × ℝ) × ℝ ↦ M x.2 + q x.1.1 :=
+    (hM.comp contDiff_snd).add (hq.comp (contDiff_fst.comp contDiff_fst))
+  have hFA : ContDiff ℝ ∞ fun x : (ℝ × ℝ) × ℝ ↦ χ' (x.1.2, x.2) :=
+    hχ'.comp ((contDiff_snd.comp contDiff_fst).prodMk contDiff_snd)
+  obtain ⟨δ₀, hδ₀, hconv⟩ := exists_forall_isConvexShapeAt_smoothedMax
+    (K := Icc b ℓ₁ ×ˢ Icc b ℓ₁) (isCompact_Icc.prod isCompact_Icc)
+    (M := fun p r ↦ M r + q p.1) (A := fun p r ↦ χ' (p.2, r)) (r₁ := r₁) (r₂ := r₂)
+    (fun p _ _ _ ↦ ((hFM.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)).contDiffAt)
+    (fun p _ _ _ ↦ ((hFA.comp (contDiff_const.prodMk contDiff_id)).of_le (by simp)).contDiffAt)
+    (fun p hp r hr' ↦ (hMc r hr').add_const (hqb.trans (hqm hp.1.1)))
+    (fun p hp r hr' ↦ (hχc (p.2, r) ⟨hp.2, hr'⟩).congr_of_eventuallyEq
+      (hsliceR (p.2, r) ⟨hp.2, hr'⟩))
+    (fun _ _ _ _ ↦ (hFM.contDiffAt.continuousAt_iteratedDeriv_prod_right
+      (by exact_mod_cast le_top)).continuousWithinAt)
+    (fun _ _ _ _ ↦ (hFA.contDiffAt.continuousAt_iteratedDeriv_prod_right
+      (by exact_mod_cast le_top)).continuousWithinAt)
+  obtain ⟨δ, hδ, T, hT, hTℓ, hTb, hTℓ₁, hTx⟩ := exists_smoothedMax_family hbc hcℓ hU hRU hχ hχℓ
+    hM hq hqm hq' hgb hgc (lt_min hε hδ₀)
+  refine ⟨δ, ⟨hδ.1, hδ.2.trans (min_le_left _ _)⟩, T, hT, fun x hx ↦ ?_, hTℓ, hTb, hTℓ₁, hTx⟩
+  obtain ⟨ℓ', hℓ', hloc, -⟩ := hTx x hx
+  exact (hconv δ ⟨hδ.1, hδ.2.trans (min_le_right _ _)⟩ (x.1, ℓ') ⟨hx.1, hℓ'⟩ x.2
+    hx.2).congr_of_eventuallyEq (hloc.trans ((hsliceR (ℓ', x.2) ⟨hℓ', hx.2⟩).mono
+      fun r hr' ↦ congrArg (smoothedMax δ (M r + q x.1)) hr'.symm))
+
+/-- **Reparametrizing a strictly increasing family and raising it.** Let `χ : ℝ → ℝ → ℝ` be
+smooth in `(ℓ, r)` on an open set containing `[ℓ₀, a] × [r₁, r₂]`, with `∂χ/∂ℓ > 0` at each
+point of the rectangle, and let `q` be a smooth nondecreasing function that vanishes near `ℓ₀`
+and has `q' > 0` on `[a₁, a]`, where `ℓ₀ < a₁ < a`. Then there is `T : ℝ → ℝ → ℝ`, smooth on
+`ℝ²`, such that `∂T/∂ℓ > 0` on the rectangle; `T` equals `χ` near `{ℓ₀} × [r₁, r₂]` and
 `χ a r + q ℓ` near `{a} × [r₁, r₂]`; and at each point `(ℓ, r)` of the rectangle, `T ℓ` agrees
-near `r` with `χ ℓ' + q ℓ` for some `ℓ' ∈ [ℓ₀, a]`. -/
-theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
+near `r` with `χ ℓ' + q ℓ` for some `ℓ' ∈ [ℓ₀, a]`.
+
+No convexity is assumed or claimed: `exists_comp_add_shapeFamily` and its form over `R`,
+`exists_comp_sub_shapeFamilyOverR`, add it. -/
+theorem exists_comp_add_family {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
     {ℓ₀ a₁ a r₁ r₂ : ℝ} (hℓa₁ : ℓ₀ < a₁) (ha₁a : a₁ < a) (hU : IsOpen U)
     (hRU : Icc ℓ₀ a ×ˢ Icc r₁ r₂ ⊆ U) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) U)
-    (hχc : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, IsConvexShapeAt (χ x.1) x.2)
     (hχℓ : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1)
     (hq : ContDiff ℝ ∞ q) (hqm : Monotone q) (hq₀ : q =ᶠ[𝓝 ℓ₀] fun _ ↦ 0)
     (hqa : ∀ ℓ ∈ Icc a₁ a, 0 < deriv q ℓ) :
     ∃ T : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry T) ∧
-      (∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, IsConvexShapeAt (T x.1) x.2) ∧
       (∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ T ℓ x.2) x.1) ∧
       Function.uncurry T =ᶠ[𝓝ˢ ({ℓ₀} ×ˢ Icc r₁ r₂)] Function.uncurry χ ∧
       Function.uncurry T =ᶠ[𝓝ˢ ({a} ×ˢ Icc r₁ r₂)] (fun x ↦ χ a x.2 + q x.1) ∧
@@ -332,14 +384,9 @@ theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ}
   have hLℓ₀ : L ℓ₀ = ℓ₀ := hLid (mem_Iic.2 hℓa'.le)
   have hLmem : ∀ ℓ ∈ Icc ℓ₀ a, L ℓ ∈ Icc ℓ₀ a := fun ℓ hℓ ↦
     ⟨hLℓ₀ ▸ hLm hℓ.1, hLle ℓ⟩
-  have hqnn : ∀ ℓ, ℓ₀ ≤ ℓ → 0 ≤ q ℓ := fun ℓ hℓ ↦ hq₀.eq_of_nhds ▸ hqm hℓ
   refine ⟨fun ℓ r ↦ χ' (L ℓ, r) + q ℓ,
     (hχ'.comp ((hLs.comp contDiff_fst).prodMk contDiff_snd)).add (hq.comp contDiff_fst),
-    fun x hx ↦ ?_, fun x hx ↦ ?_, ?_, ?_, fun x hx ↦ ⟨L x.1, hLmem x.1 hx.1, ?_⟩⟩
-  · -- The members are `i`-convex shapes.
-    have hx₁ : (L x.1, x.2) ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂ := ⟨hLmem x.1 hx.1, hx.2⟩
-    exact ((hχc (L x.1, x.2) ⟨hLmem x.1 hx.1, hx.2⟩).congr_of_eventuallyEq
-      (hsliceR _ hx₁)).add_const (hqnn x.1 hx.1.1)
+    fun x hx ↦ ?_, ?_, ?_, fun x hx ↦ ⟨L x.1, hLmem x.1 hx.1, ?_⟩⟩
   · -- The `ℓ`-derivative.
     obtain ⟨⟨hℓ₀x, hxa⟩, hr'⟩ := hx
     have hx₁ : (L x.1, x.2) ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂ := ⟨hLmem x.1 ⟨hℓ₀x, hxa⟩, hr'⟩
@@ -383,6 +430,53 @@ theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ}
   · -- At each point, the family is a member of `χ` raised by `q ℓ`.
     exact (hsliceR (L x.1, x.2) ⟨hLmem x.1 hx.1, hx.2⟩).mono fun r hr' ↦
       congrArg (· + q x.1) hr'
+
+/-- **The piece of a strictly increasing family of `i`-convex shapes next to `ℓ₀`.** Let
+`χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[ℓ₀, a] × [r₁, r₂]`, with
+`χ ℓ` an `i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the rectangle, and let `q` be
+a smooth nondecreasing function that vanishes near `ℓ₀` and has `q' > 0` on `[a₁, a]`, where
+`ℓ₀ < a₁ < a`. Then there is `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that on the rectangle `T ℓ`
+is an `i`-convex shape at `r` with `∂T/∂ℓ > 0`; `T` equals `χ` near `{ℓ₀} × [r₁, r₂]` and
+`χ a r + q ℓ` near `{a} × [r₁, r₂]`; and at each point `(ℓ, r)` of the rectangle, `T ℓ` agrees
+near `r` with `χ ℓ' + q ℓ` for some `ℓ' ∈ [ℓ₀, a]`. -/
+theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
+    {ℓ₀ a₁ a r₁ r₂ : ℝ} (hℓa₁ : ℓ₀ < a₁) (ha₁a : a₁ < a) (hU : IsOpen U)
+    (hRU : Icc ℓ₀ a ×ˢ Icc r₁ r₂ ⊆ U) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) U)
+    (hχc : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, IsConvexShapeAt (χ x.1) x.2)
+    (hχℓ : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1)
+    (hq : ContDiff ℝ ∞ q) (hqm : Monotone q) (hq₀ : q =ᶠ[𝓝 ℓ₀] fun _ ↦ 0)
+    (hqa : ∀ ℓ ∈ Icc a₁ a, 0 < deriv q ℓ) :
+    ∃ T : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry T) ∧
+      (∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, IsConvexShapeAt (T x.1) x.2) ∧
+      (∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ T ℓ x.2) x.1) ∧
+      Function.uncurry T =ᶠ[𝓝ˢ ({ℓ₀} ×ˢ Icc r₁ r₂)] Function.uncurry χ ∧
+      Function.uncurry T =ᶠ[𝓝ˢ ({a} ×ˢ Icc r₁ r₂)] (fun x ↦ χ a x.2 + q x.1) ∧
+      ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, ∃ ℓ' ∈ Icc ℓ₀ a,
+        T x.1 =ᶠ[𝓝 x.2] fun r ↦ χ ℓ' r + q x.1 := by
+  obtain ⟨T, hT, hTℓ, hT₀, hTa, hTx⟩ :=
+    exists_comp_add_family hℓa₁ ha₁a hU hRU hχ hχℓ hq hqm hq₀ hqa
+  refine ⟨T, hT, fun x hx ↦ ?_, hTℓ, hT₀, hTa, hTx⟩
+  obtain ⟨ℓ', hℓ', hloc⟩ := hTx x hx
+  exact ((hχc (ℓ', x.2) ⟨hℓ', hx.2⟩).add_const
+    (hq₀.eq_of_nhds ▸ hqm hx.1.1)).congr_of_eventuallyEq hloc
+
+/-- **Smoothness of the blend by a cutoff in `r`.** Let `ρ` be smooth and equal to `1` on
+`(-∞, r₃]`, let `ψ₀` be smooth on `ℝ²`, and let `χ` be smooth in `(ℓ, r)` on an open set `V`.
+Then the blend `ρ r * ψ₀ ℓ r + (1 - ρ r) * χ ℓ r` is smooth on `(ℝ × (-∞, r₃)) ∪ V`: below `r₃`
+it is `ψ₀`, and on `V` both terms are smooth. -/
+theorem contDiffOn_blend {ψ₀ χ : ℝ → ℝ → ℝ} {ρ : ℝ → ℝ} {V : Set (ℝ × ℝ)} {r₃ : ℝ}
+    (hρs : ContDiff ℝ ∞ ρ) (hρ1 : EqOn ρ 1 (Iic r₃)) (hψ₀ : ContDiff ℝ ∞ (Function.uncurry ψ₀))
+    (hV : IsOpen V) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) V) :
+    ContDiffOn ℝ ∞ (fun x : ℝ × ℝ ↦ ρ x.2 * ψ₀ x.1 x.2 + (1 - ρ x.2) * χ x.1 x.2)
+      (univ ×ˢ Iio r₃ ∪ V) := by
+  refine fun x hx ↦ ContDiffAt.contDiffWithinAt ?_
+  rcases hx with ⟨-, hx⟩ | hx
+  · refine hψ₀.contDiffAt.congr_of_eventuallyEq ?_
+    filter_upwards [(isOpen_univ.prod isOpen_Iio).mem_nhds ⟨mem_univ x.1, hx⟩] with y hy
+    simp [hρ1 (mem_Iic.2 (mem_Iio.1 hy.2).le), Function.uncurry_def]
+  · have hχV : ContDiffAt ℝ ∞ (Function.uncurry χ) x := hχ.contDiffAt (hV.mem_nhds hx)
+    have hρ' : ContDiffAt ℝ ∞ (fun y : ℝ × ℝ ↦ ρ y.2) x := (hρs.comp contDiff_snd).contDiffAt
+    exact (hρ'.mul hψ₀.contDiffAt).add ((contDiffAt_const.sub hρ').mul hχV)
 
 /-- **Blending a family of `i`-convex shapes with `χ` near `r₂`.** Let `χ : ℝ → ℝ → ℝ` be
 smooth in `(ℓ, r)` on an open set `V` containing the band `[ℓ₀, ℓ₁] × [r₃, r₂]`, with `χ ℓ` an
@@ -429,15 +523,7 @@ theorem exists_blend_shapeFamily {χ : ℝ → ℝ → ℝ} {V : Set (ℝ × ℝ
         (by exact_mod_cast le_top)).continuousWithinAt)
       (hρs.of_le (by simp)) fun x _ ↦ (hρI x.2).1
   refine ⟨ρ, hρs, hρI, hρ1, hρ0, τ, hτ, fun ψ₀ hψ₀ hψ₀c hψ₀ℓ hclose ↦ ⟨?_, ?_, ?_⟩⟩
-  · -- Smoothness: below `r₃` the blend is `ψ₀`, and on `V` both terms are smooth.
-    refine fun x hx ↦ ContDiffAt.contDiffWithinAt ?_
-    rcases hx with ⟨-, hx⟩ | hx
-    · refine hψ₀.contDiffAt.congr_of_eventuallyEq ?_
-      filter_upwards [(isOpen_univ.prod isOpen_Iio).mem_nhds ⟨mem_univ x.1, hx⟩] with y hy
-      simp [hρ1 (mem_Iic.2 (mem_Iio.1 hy.2).le), Function.uncurry_def]
-    · have hχV : ContDiffAt ℝ ∞ (Function.uncurry χ) x := hχ.contDiffAt (hV.mem_nhds hx)
-      have hρ' : ContDiffAt ℝ ∞ (fun y : ℝ × ℝ ↦ ρ y.2) x := (hρs.comp contDiff_snd).contDiffAt
-      exact (hρ'.mul hψ₀.contDiffAt).add ((contDiffAt_const.sub hρ').mul hχV)
+  · exact contDiffOn_blend hρs hρ1 hψ₀ hV hχ
   · -- Convexity: below `r₃` the blend is `ψ₀` near `r`; on the band, the blend lemma.
     intro x hx
     rcases lt_or_ge x.2 r₃ with h | h
