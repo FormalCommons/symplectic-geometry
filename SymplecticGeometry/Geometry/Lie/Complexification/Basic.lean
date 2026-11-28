@@ -11,6 +11,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.CompatibleForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.Functor
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 import SymplecticGeometry.Analysis.RCLike.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 
@@ -181,8 +182,6 @@ finite-dimensional: it is the sum of the images of `lieMap` and `cplx ∘ lieMap
 instance, since instance search cannot find `C`; use it as `have := C.finiteDimensional`. -/
 theorem finiteDimensional (C : LieComplexification I G IC Gc) [FiniteDimensional ℝ E] :
     FiniteDimensional ℝ EC := by
-  -- The Lie algebra of `G` is the model space `E` by definition.
-  have : FiniteDimensional ℝ (GroupLieAlgebra I G) := inferInstanceAs (FiniteDimensional ℝ E)
   have hs : Surjective (C.lieMap.toLinearMap.coprod (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)) :=
     LinearMap.range_eq_top.1 (by rw [LinearMap.range_coprod, C.isCompl_range_lieMap.sup_eq_top])
   exact Module.Finite.of_surjective _ hs

@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Lie.Exponential.Periods
 public import SymplecticGeometry.Geometry.Lie.Subgroup.Parabolic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
@@ -229,8 +230,7 @@ private theorem tendsto_moment_expI_iInf (h : IsComplexifiedAction C J)
     Tendsto (fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ) atTop
       (𝓝 (⨅ t : ℝ, μ (C.expI (t • ξ) • p) ξ)) := by
   -- `x ↦ μ x ξ` is continuous on the compact space `M`, so the function is bounded below.
-  have hc : Continuous fun x : M ↦ μ x ξ := by
-    simpa using (hμ.contMDiff ξ).continuous.neg
+  have hc : Continuous fun x : M ↦ μ x ξ := (hμ.contMDiff_of_neg ξ).continuous
   have hbdd : BddBelow (Set.range fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ) := by
     obtain ⟨m, hm⟩ := isCompact_univ.bddBelow_image hc.continuousOn
     exact ⟨m, Set.forall_mem_range.2 fun t ↦ hm ⟨_, Set.mem_univ _, rfl⟩⟩
@@ -431,8 +431,7 @@ theorem momentWeight_eq_moment_limitPoint (h : IsComplexifiedAction C J)
     (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     (p : M) (ξ : GroupLieAlgebra I G) :
     momentWeight C μ p ξ = μ (limitPoint C p ξ) ξ := by
-  have hc : Continuous fun x : M ↦ μ x ξ := by
-    simpa using (hμ.contMDiff ξ).continuous.neg
+  have hc : Continuous fun x : M ↦ μ x ξ := (hμ.contMDiff_of_neg ξ).continuous
   exact tendsto_nhds_unique (tendsto_momentWeight h hμ hg p ξ)
     ((hc.tendsto _).comp (tendsto_limitPoint h hμ hg p ξ))
 
@@ -520,7 +519,6 @@ theorem continuousOn_momentWeight (h : IsComplexifiedAction C J)
     (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     (p : M) {𝔞 : Submodule ℝ (GroupLieAlgebra I G)} (h𝔞 : ∀ η ∈ 𝔞, ∀ ξ ∈ 𝔞, ⁅η, ξ⁆ = 0) :
     ContinuousOn (momentWeight C μ p) 𝔞 := by
-  have : FiniteDimensional ℝ (GroupLieAlgebra I G) := inferInstanceAs (FiniteDimensional ℝ E)
   have hc (ξ : GroupLieAlgebra I G) : Continuous fun x : M ↦ μ x ξ :=
     (hμ.contMDiff_of_neg ξ).continuous
   -- `(ξ, y) ↦ μ y ξ` is continuous, since `μ` is continuous as a map to `E →L[ℝ] ℝ`; the Lie

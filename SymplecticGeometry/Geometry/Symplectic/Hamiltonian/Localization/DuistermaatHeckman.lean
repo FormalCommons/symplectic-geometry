@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Real
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Complex.RealIdentity
 import Mathlib.Analysis.Normed.Module.Connected
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
@@ -89,8 +90,8 @@ theorem integral_exp_neg_mul_eq_finsum_of_pos (hσ : σ.IsSymplectic)
     ∫ x, Real.exp (-ħ * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n =
       ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
         Real.exp (-ħ * μ p circlePeriodOneGenerator) / (ħ ^ n * ∏ j, (k p j : ℝ)) := by
-  have hc : ContMDiff I 𝓘(ℝ) ∞ fun x ↦ μ x circlePeriodOneGenerator := by
-    simpa using (hμ.contMDiff circlePeriodOneGenerator).neg
+  have hc : ContMDiff I 𝓘(ℝ) ∞ fun x ↦ μ x circlePeriodOneGenerator :=
+    hμ.contMDiff_of_neg circlePeriodOneGenerator
   obtain ⟨H, hH⟩ : ∃ H : C^∞⟮I, M; ℝ⟯, ∀ x, H x = μ x circlePeriodOneGenerator :=
     ⟨⟨_, hc⟩, fun x ↦ by rw [ContMDiffMap.coeFn_mk]⟩
   have h := integralTopForm_exp_neg_mul_eq_finsum_of_pos hσ hinv hμ hiso k hk hH hħ
@@ -130,8 +131,8 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints (hσ : σ.IsSymplectic)
       ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
         Complex.exp (-ħ * μ p circlePeriodOneGenerator) / (ħ ^ n * ∏ j, (k p j : ℂ)) := by
   classical
-  have hc : Continuous fun x ↦ μ x circlePeriodOneGenerator := by
-    simpa using (hμ.contMDiff circlePeriodOneGenerator).continuous.neg
+  have hc : Continuous fun x ↦ μ x circlePeriodOneGenerator :=
+    (hμ.contMDiff_of_neg circlePeriodOneGenerator).continuous
   have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
   have hS := finite_fixedPoints hiso
   -- The left side is `complexMGF H λ_σ (-ħ)`, an entire function of `ħ`.
@@ -192,8 +193,8 @@ theorem tendsto_finsum_fixedPoints_liouvilleMeasure (hσ : σ.IsSymplectic)
     Tendsto (fun ħ : ℂ ↦ ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
         Complex.exp (-ħ * μ p circlePeriodOneGenerator) / (ħ ^ n * ∏ j, (k p j : ℂ)))
       (𝓝[≠] 0) (𝓝 ((σ.liouvilleMeasure n univ).toReal : ℂ)) := by
-  have hc : Continuous fun x ↦ μ x circlePeriodOneGenerator := by
-    simpa using (hμ.contMDiff circlePeriodOneGenerator).continuous.neg
+  have hc : Continuous fun x ↦ μ x circlePeriodOneGenerator :=
+    (hμ.contMDiff_of_neg circlePeriodOneGenerator).continuous
   -- The left side `complexMGF H λ_σ (-ħ)` is continuous at `0`, with value the total measure.
   obtain ⟨a, ha⟩ := (isCompact_range hc).bddBelow
   obtain ⟨b, hb⟩ := (isCompact_range hc).bddAbove

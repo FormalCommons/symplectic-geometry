@@ -480,8 +480,7 @@ theorem maximalIntegralCurve_neg_mgradient_moment [T2Space M] [BoundarylessManif
     (ξ : GroupLieAlgebra I G) (p : M) :
     maximalIntegralCurve (-Manifold.mgradient I' fun y ↦ μ y ξ) p =
       fun t : ℝ ↦ C.expI (t • ξ) • p := by
-  have hf : ContMDiff I' 𝓘(ℝ) 2 fun y ↦ μ y ξ := by
-    simpa using ((hμ.contMDiff ξ).of_le (by simp)).neg
+  have hf : ContMDiff I' 𝓘(ℝ) 2 fun y ↦ μ y ξ := (hμ.contMDiff_of_neg ξ).of_le (by simp)
   have hv : -Manifold.mgradient I' (fun y ↦ μ y ξ) =
       fun x ↦ J x (fundamentalVectorField I' ξ x) := by
     funext x
