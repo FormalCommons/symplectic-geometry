@@ -49,6 +49,11 @@ a local diffeomorphism defined on all of `M`, to a chart defined on an open subs
   of the transition between two smooth charts intertwines the pushforwards along them.
 * `TauCeti.SmoothAlmostComplexStructure.forall_chartPushforward_apply_eq_iff`: a chart pushes `J`
   forward to a fixed map exactly when its derivative intertwines `J` with that map.
+* `TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward_toOpenPartialHomeomorph` and
+  `TauCeti.SmoothAlmostComplexStructure.contDiffAt_chartPushforward`: on a boundaryless manifold,
+  the pushforward along a smooth chart is smooth on its target, and at each point of it; Tau
+  Ceti's `TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward` applied to the
+  smoothness of the chart and of its inverse.
 * `TauCeti.SmoothAlmostComplexStructure.chartPushforwardAt`: the pushforward at a point of the
   target, as an almost complex structure, and
   `TauCeti.SmoothAlmostComplexStructure.continuous_toContinuousLinearMap_chartPushforwardAt`: its
@@ -159,6 +164,21 @@ theorem forall_chartPushforward_apply_eq_iff (ψ : PartialDiffeomorph I 𝓘(ℝ
     exact (h _ (ψ.map_target hp) _).trans
       (congrArg J₀ (ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hp w))
 
+/-- On a boundaryless manifold, the pushforward of `J` along a smooth chart `ψ` into a normed
+space is smooth on the target of `ψ`. -/
+theorem contDiffOn_chartPushforward_toOpenPartialHomeomorph [I.Boundaryless]
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) :
+    ContDiffOn ℝ ∞ (J.chartPushforward ψ.toOpenPartialHomeomorph) ψ.target :=
+  J.contDiffOn_chartPushforward ψ.contMDiffOn ψ.symm.contMDiffOn
+
+/-- On a boundaryless manifold, the pushforward of `J` along a smooth chart `ψ` into a normed
+space is smooth at every point of the target of `ψ`. -/
+theorem contDiffAt_chartPushforward [I.Boundaryless] (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞)
+    {p : G} (hp : p ∈ ψ.target) :
+    ContDiffAt ℝ ∞ (J.chartPushforward ψ.toOpenPartialHomeomorph) p :=
+  (J.contDiffOn_chartPushforward_toOpenPartialHomeomorph ψ).contDiffAt
+    (ψ.open_target.mem_nhds hp)
+
 /-! ### The pushforward at a point as an almost complex structure -/
 
 /-- At a point `p` of the target of a smooth chart `ψ` into a normed space, the pushforward of `J`
@@ -221,7 +241,7 @@ theorem continuous_toContinuousLinearMap_chartPushforwardAt [I.Boundaryless]
       LinearMap.toContinuousLinearMap (J.chartPushforwardAt ψ p.property).toLinearMap := by
   simp only [toContinuousLinearMap_chartPushforwardAt]
   exact continuousOn_iff_continuous_domRestrict.1
-    (J.contDiffOn_chartPushforward ψ.contMDiffOn ψ.symm.contMDiffOn).continuousOn
+    (J.contDiffOn_chartPushforward_toOpenPartialHomeomorph ψ).continuousOn
 
 /-- Let `ψ` be a smooth chart into a normed space `G` that pulls a symplectic form `σ₀` on `G`
 back to the two-form `σ` on its source. If `σ` is compatible with `J`, then at every point `p` of

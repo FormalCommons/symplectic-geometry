@@ -20,6 +20,7 @@ import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.LinearAlgebra.Dimension.Submodule
+import TauCeti.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 
 /-!
@@ -665,11 +666,9 @@ theorem exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection
     (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z))
   have hsurj : Function.Surjective B :=
     (X.surjective_comp_fderiv_chartLift_iff hℓ ((X.linearSection_eq_zero_iff ℓ z).1 hz)).2 htr
-  have hinj : Function.Injective B.toLinearMap :=
-    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank rfl).2 hsurj
-  refine ⟨ContinuousLinearEquiv.ofBijective B (LinearMap.ker_eq_bot.2 hinj)
-    (LinearMap.range_eq_top.2 hsurj), ?_⟩
-  rw [ContinuousLinearEquiv.coe_ofBijective]
+  obtain ⟨e, he⟩ := (B.isInvertible_iff_surjective_of_finrank_eq rfl).2 hsurj
+  refine ⟨e, ?_⟩
+  rw [he]
   exact X.hasFDerivAt_trivializationAt_linearSection ℓ z
 
 /-- **The transversality condition along a parametrized line.** Let `L : ℂ² → ℂ^{n+2}` be injective

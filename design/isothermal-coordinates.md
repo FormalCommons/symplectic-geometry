@@ -317,7 +317,7 @@ About 250 lines.
 
 **Issue 4** adds, importing `Geometry/Manifold/Complex/Integrable.lean` of
 *Nijenhuis tensor* (#862) and Tau Ceti's
-`Riemannian/Orientation/Rotation.lean` and `VectorBundle/Hom.lean`, and, for
+`Riemannian/Orientation/Rotation.lean` and `VectorBundle/Hom/Basic.lean`, and, for
 its proofs only, `Analysis/InnerProductSpace/TwoDim.lean` (below) and
 `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` of *Moser isotopy*:
 

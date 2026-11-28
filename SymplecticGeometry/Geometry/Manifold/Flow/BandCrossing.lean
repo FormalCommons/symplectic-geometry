@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.MeanValue
-import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
+import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
@@ -29,9 +29,9 @@ within a common time.
 While an integral curve is in the band, `f` decreases strictly along it: on an interval of times
 that the curve spends in the band, this is Tau Ceti's `IsMIntegralCurveOn.strictAntiOn_comp`,
 which asks for `df(v) < 0` only at interior times of the interval. That the curve cannot leave
-the band upwards, or come back into it from below, is Tau Ceti's
-`IsMIntegralCurveOn.lt_apply_of_le_apply` and `IsMIntegralCurveOn.apply_lt_of_apply_le`, applied
-to `-f`.
+the band upwards, or come back into it from below, is `IsMIntegralCurve.lt_apply_of_le_apply`
+and `IsMIntegralCurve.apply_lt_of_apply_le` applied to `-f`: the forms for all times of Tau
+Ceti's `IsMIntegralCurveOn.lt_apply_of_le_apply` and `IsMIntegralCurveOn.apply_lt_of_apply_le`.
 
 The proofs of the band-crossing results follow those of Tau Ceti's
 `TauCeti.comp_maximalIntegralCurve_neg_mgradient_le_sub_mul`,
@@ -132,25 +132,22 @@ theorem IsMIntegralCurve.apply_lt_of_mvfderiv_apply_le_neg (hγ : IsMIntegralCur
     {s t : ℝ} (hs : f (γ s) ≤ b) (hst : s ≤ t) (hεt : b - a < ε * (t - s)) : f (γ t) < a := by
   have hε0 : 0 < ε := by nlinarith
   by_contra! h
-  have hγ' := hγ.isMIntegralCurveOn univ
-  have hcont : ContinuousOn ((-f) ∘ γ) (Icc s t) := fun u _ ↦
-    ((hf u).neg.continuousAt.comp hγ.continuous.continuousAt).continuousWithinAt
+  have hcont : Continuous ((-f) ∘ γ) :=
+    continuous_iff_continuousAt.2 fun u ↦ (hf u).neg.continuousAt.comp hγ.continuous.continuousAt
   -- At a level `c` of the band, `d(-f)(v) > 0`, so `-f` crosses it only upwards along `γ`.
-  have hlev (c : ℝ) (hac : a ≤ c) (hcb : c ≤ b) : ∀ u ∈ Icc s t, (-f) (γ u) = -c →
+  have hlev (c : ℝ) (hac : a ≤ c) (hcb : c ≤ b) : ∀ u, (-f) (γ u) = -c →
       MDifferentiableAt I 𝓘(ℝ) (-f) (γ u) ∧ 0 < mvfderiv I (-f) (γ u) (v (γ u)) := by
-    intro u _ hu
+    intro u hu
     have hfc : f (γ u) = c := neg_inj.1 hu
     refine ⟨(hf u).neg, ?_⟩
     rw [mvfderiv_neg, neg_apply]
     linarith [hε u (hfc ▸ hac) (hfc ▸ hcb)]
   -- So between the times `s` and `t` the curve stays in the band.
-  have hlow := hγ'.apply_lt_of_apply_le isOpen_univ (subset_univ _) hcont (hlev a le_rfl hab)
-    (neg_le_neg h)
-  have hup := hγ'.lt_apply_of_le_apply isOpen_univ (subset_univ _) hcont (hlev b hab le_rfl)
-    (neg_le_neg hs)
   have hle := (hγ.isMIntegralCurveOn (Icc s t)).apply_le_add_mul (fun u _ ↦ hf u)
-    (fun u hu ↦ hε u (neg_lt_neg_iff.1 (hlow ⟨hu.1.le, hu.2⟩)).le
-      (neg_lt_neg_iff.1 (hup ⟨hu.1, hu.2.le⟩)).le) hst
+    (fun u hu ↦ hε u (neg_lt_neg_iff.1 (hγ.apply_lt_of_apply_le hcont (hlev a le_rfl hab)
+        (neg_le_neg h) hu.2)).le
+      (neg_lt_neg_iff.1 (hγ.lt_apply_of_le_apply hcont (hlev b hab le_rfl) (neg_le_neg hs)
+        hu.1)).le) hst
   linarith
 
 namespace SymplecticGeometry

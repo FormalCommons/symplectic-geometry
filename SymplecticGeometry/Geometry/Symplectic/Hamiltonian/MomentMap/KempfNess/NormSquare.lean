@@ -680,7 +680,7 @@ theorem expI_smul_smul_eq_self_of_mgradient_momentNormSq_eq_zero (h : IsComplexi
   have hfix := (mulInvariantExp_smul_smul_eq_iff (I' := I') (x := x)
     (ξ := (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))).2
       (by rw [← mgradient_momentNormSq_eq_fundamentalVectorField h hμ hg hBs, hx]) (-(t / 2))
-  rw [C.expI_def, map_smul, map_smul]
+  rw [C.expI_smul]
   convert hfix using 3
   rw [smul_smul]
   norm_num
@@ -715,7 +715,7 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
     rw [inv_smul_eq_iff]
     convert (expI_smul_smul_eq_self_of_mgradient_momentNormSq_eq_zero h hμm hgm hBs hz
       (-2 * t)).symm using 2
-    rw [C.expI_def, map_smul, map_smul, smul_smul, mul_comm]
+    rw [C.expI_smul, smul_smul, mul_comm]
   set g : ℝ → Gc := fun t ↦
     mulInvariantExp (I := IC) (t • (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))
   set g' : ℝ → Gc := fun t ↦

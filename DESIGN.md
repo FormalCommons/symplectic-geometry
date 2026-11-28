@@ -1494,8 +1494,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `Geometry/Manifold/VectorBundle/Hom.lean` (for fibrewise equivalences
   whose map of total spaces is $C^n$, the $C^n$ section of the hom bundle
   formed by their inverses, `contMDiff_hom_bundle_symm`, in the
-  namespace `SymplecticGeometry`; the file has the name of the Tau Ceti file with
-  `TauCeti.contMDiff_hom_bundle_iff`, so that the two merge upstream),
+  namespace `SymplecticGeometry`; the file sits beside Tau Ceti's folder
+  `VectorBundle/Hom/`, whose `Basic.lean` has
+  `TauCeti.contMDiff_hom_bundle_iff`),
   `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`
   (precomposition with a $C^n$ section of a hom bundle as a $C^n$ map of the
   total spaces of bundles of alternating maps,
@@ -2425,8 +2426,8 @@ complete target and a function on the whole half-space.
   Tau Ceti has the
   direction from a Liouville field, `TauCeti.IsContactType.isContactForm_mpullback`;
   the converse comes from a relative
-  primitive), `Geometry/Symplectic/Liouville/Collar.lean` (named like Tau
-  Ceti's file: the collar of such a hypersurface, with
+  primitive), `Geometry/Symplectic/Liouville/Collar.lean` (beside Tau
+  Ceti's folder `Liouville/Collar/`, whose `Basic.lean` it builds on: the collar of such a hypersurface, with
   $\Phi^*\omega=-d(e^s\alpha)$ on a neighbourhood of $\{0\}\times Q$, of
   uniform width when $Q$ is compact, from Tau Ceti's collars for a given
   field, `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`,
