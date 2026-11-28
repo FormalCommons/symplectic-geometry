@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
-public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -235,16 +235,14 @@ theorem isLiouvilleVectorField_dCLiouvilleField
 strictly plurisubharmonic at every point, the Liouville field of `φ` is the gradient of `φ` for
 the Kähler metric `g(u, w) = ω_φ(u, J w)` of the compatible pair `(ω_φ, J)`. -/
 theorem dCLiouvilleField_eq_mgradient (hφ : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E φ x) :
-    letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) :=
-      ⟨(isKahler_mextDerivₗ_covectorComplexStructure hφ).compatible.metric.toRiemannianMetric⟩
+    letI := (isKahler_mextDerivₗ_covectorComplexStructure hφ).compatible.riemannianBundle
     dCLiouvilleField φ = mgradient 𝓘(ℝ, E) φ := by
   have hK := isKahler_mextDerivₗ_covectorComplexStructure hφ
-  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) :=
-    ⟨hK.compatible.metric.toRiemannianMetric⟩
+  let := hK.compatible.riemannianBundle
   funext x
   refine eq_mgradient_iff.2 fun v ↦ ?_
   -- `g(X, v) = ω_φ(X, J v) = λ_φ(J v) = -dφ(J J v) = dφ(v)`
-  rw [hK.compatible.inner_eq_eval₂, SmoothBundleForm.eval₂_apply,
+  rw [hK.compatible.inner_riemannianBundle, SmoothBundleForm.eval₂_apply,
     apply_dCLiouvilleField_of_isInvertible φ (hK.isSymplectic.isNondegenerate.isInvertible_flat x),
     covectorComplexStructure_apply_vec, SmoothAlmostComplexStructure.apply_apply,
     mextDerivₗ_zero_apply, SmoothForm.ofFunction_apply_zero, map_neg, _root_.neg_neg]
@@ -253,7 +251,7 @@ theorem dCLiouvilleField_eq_mgradient (hφ : ∀ x, IsManifoldStrictlyPlurisubha
 function. -/
 theorem isGradientLike_dCLiouvilleField (hφ : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E φ x) :
     IsGradientLike φ (dCLiouvilleField φ) := by
-  rw [dCLiouvilleField_eq_mgradient hφ]
+  rw [dCLiouvilleField_eq_mgradient hφ, SmoothTwoForm.Compatible.riemannianBundle_def]
   exact isGradientLike_mgradient _ _
 
 /-- **The Liouville field of `exp ∘ φ` moves `φ` at a bounded rate.** If `φ` is strictly
