@@ -386,7 +386,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
     simp only [V, Opens.mem_mk, Set.mem_ofPred_eq]
     rw [hΨ0, hμ.apply_smul, descendedMomentMap_mk_zero, hτ]
   · rw [← SmoothForm.mpullback_mpullback _ _ (contMDiff_inclusion hN'N) hΨ, hΨσ,
-      SmoothForm.mpullback_inclusion_mpullback_subtype_val]
+      SmoothForm.mpullback_inclusion_mpullback_subtypeVal]
 
 end LocalModelData
 

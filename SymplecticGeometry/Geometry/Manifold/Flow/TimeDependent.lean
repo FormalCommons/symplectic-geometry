@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
+import TauCeti.Geometry.Manifold.Flow.TimeDependent.Related
 import TauCeti.Geometry.Manifold.Flow.Parametric
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
@@ -15,7 +16,7 @@ import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Prod
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
@@ -52,16 +53,17 @@ the lift is an integral curve exactly when the curve is a solution; and
 `TauCeti.contMDiff_const_prod_field`, it follows.
 
 A time-dependent field on `M × N` that vanishes outside a compact set and has no component along
-`N` on a level `M × {y}` induces a field on `M`; the flow of that field, kept at the level `y`,
-solves the equation of the field on `M × N`, so by uniqueness of solutions the flow keeps the
-level (`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
+`N` on a level `M × {y}` induces a field on `M`, to which the inclusion `x ↦ (x, y)` relates it;
+by Tau Ceti's `MDifferentiable.apply_timeDependentFlowOf` the inclusion intertwines the two
+flows, so the flow keeps the level (`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
 
 A diffeomorphism `ψ` that carries one time-dependent field to another at every time carries the
 suspension of the first to that of the second through `id × ψ`
 (`TauCeti.mfderiv_prodMap_id_timeDependentSuspensionField`), so Tau Ceti's naturality of
 flows, `Diffeomorph.apply_flowOf` (`TauCeti/Geometry/Manifold/Flow/Diffeomorph.lean`), gives
 `Diffeomorph.apply_timeDependentFlowOf`. Tau Ceti's `Diffeomorph.mem_flowDomain_apply_iff`, from
-the same file, applied to the diffeomorphism `Diffeomorph.reflProdCongr ℝ ψ` of `ℝ × M` onto
+the same file, applied to the diffeomorphism
+`(Diffeomorph.refl 𝓘(ℝ, ℝ) ℝ n).prodCongrOfModels ψ` of `ℝ × M` onto
 `ℝ × M'`, shows that the flow domains correspond
 (`Diffeomorph.mem_timeDependentFlowDomain_apply_iff`).
 
@@ -321,22 +323,12 @@ theorem timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero
       fun u x hx ↦ by
         simp only [Z, hXK u (x, y) fun h ↦ hx ⟨_, h, rfl⟩]
         exact Prod.fst_zero
-  -- The flow of `Z`, kept at the level `y`, solves the equation of `X`.
-  have hγ (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) (I.prod J)
-      (fun r ↦ (timeDependentFlowOf Z s r x, y)) u
-      ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (timeDependentFlowOf Z s u x, y))) := by
-    have h := (hasMFDerivAt_timeDependentFlowOf hZ (s := s) (t := u) (x := x)
-      (mem_timeDependentFlowDomain.2 (hcZ.mem_flowDomain _ _))).prodMk
-        (hasMFDerivAt_const (I := 𝓘(ℝ, ℝ)) (I' := J) y u)
-    have hXu : X u (timeDependentFlowOf Z s u x, y) = (Z u (timeDependentFlowOf Z s u x), 0) :=
-      Prod.ext rfl (hy _ _)
-    rw [hXu]
-    -- Both derivatives send `r` to `(r • Z u _, 0)`; the second component on the right is `r • 0`.
-    exact h.congr_mfderiv (ContinuousLinearMap.ext fun r ↦
-      Prod.ext rfl (smul_zero (M := ℝ) (A := E') r).symm)
-  have h := timeDependentFlowOf_eq_of_forall_hasMFDerivAt hX hγ s t
-  rw [timeDependentFlowOf_self] at h
-  rw [h]
+  -- `x ↦ (x, y)` carries `Z` to `X`, so it intertwines their flows.
+  have h := MDifferentiable.apply_timeDependentFlowOf (f := fun x : M ↦ (x, y))
+    (mdifferentiable_id.prodMk mdifferentiable_const) hZ hX
+    (fun u x ↦ by rw [mfderiv_prod_left]; exact Prod.ext rfl (hy u x).symm)
+    (mem_timeDependentFlowDomain.2 (hcZ.mem_flowDomain _ _)) (s := s) (t := t) (x := x)
+  rw [← h]
 
 end Level
 
@@ -377,11 +369,11 @@ theorem mem_timeDependentFlowDomain_apply_iff (ψ : M ≃ₘ^n⟮I, I'⟯ M') (h
     ((s, t), ψ x) ∈ timeDependentFlowDomain Y ↔ ((s, t), x) ∈ timeDependentFlowDomain X := by
   -- The diffeomorphism `id × ψ` relates the suspensions, whose flow domains give the
   -- time-dependent ones.
-  have h := (ψ.reflProdCongr ℝ (J := 𝓘(ℝ, ℝ))).mem_flowDomain_apply_iff hn (t := t - s)
-    (x := (s, x)) (by
-      rw [coe_reflProdCongr]
+  have h := ((Diffeomorph.refl 𝓘(ℝ, ℝ) ℝ n).prodCongrOfModels ψ).mem_flowDomain_apply_iff hn
+    (t := t - s) (x := (s, x)) (by
+      rw [coe_prodCongrOfModels, coe_refl]
       exact mfderiv_prodMap_id_timeDependentSuspensionField (ψ.mdifferentiable hn) hXY)
-  rw [coe_reflProdCongr, Prod.map_apply, id_eq] at h
+  rw [coe_prodCongrOfModels, coe_refl, Prod.map_apply, id_eq] at h
   rw [mem_timeDependentFlowDomain, mem_timeDependentFlowDomain, h]
 
 variable [T2Space M'] [IsManifold I' 1 M'] [BoundarylessManifold I' M']
@@ -397,12 +389,12 @@ theorem apply_timeDependentFlowOf (ψ : M ≃ₘ^n⟮I, I'⟯ M') (hn : n ≠ 0)
     ψ (timeDependentFlowOf X s t x) = timeDependentFlowOf Y s t (ψ x) := by
   -- The diffeomorphism `id × ψ` of the extended phase spaces carries one suspension to the other.
   -- The time-dependent flows are read off the flows of the suspensions.
-  have h := (ψ.reflProdCongr ℝ (J := 𝓘(ℝ, ℝ))).apply_flowOf hn
+  have h := ((Diffeomorph.refl 𝓘(ℝ, ℝ) ℝ n).prodCongrOfModels ψ).apply_flowOf hn
     (contMDiff_timeDependentSuspensionField hY) (by
-      rw [coe_reflProdCongr]
+      rw [coe_prodCongrOfModels, coe_refl]
       exact mfderiv_prodMap_id_timeDependentSuspensionField (ψ.mdifferentiable hn) hXY)
     (t - s) (s, x)
-  rw [coe_reflProdCongr] at h
+  rw [coe_prodCongrOfModels, coe_refl] at h
   rw [timeDependentFlowOf_def, timeDependentFlowOf_def]
   simpa using congrArg Prod.snd h
 

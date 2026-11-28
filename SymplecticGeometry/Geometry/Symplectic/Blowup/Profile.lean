@@ -837,7 +837,7 @@ theorem profileForm_eq_on_compl {l ε : ℝ} {h : ℝ → ℝ} (hh : IsBlowupPro
   have hpU : p ∈ offDivisorOpens n := mem_offDivisorOpens.2 fun h0 ↦
     hp (exceptionalDivisor_subset_closedNbhd (add_pos hh.weight_pos hh.collar_pos) h0)
   rw [← sub_eq_zero, ← Pi.sub_apply, ← Submodule.coe_sub]
-  refine SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq (τ := 0)
+  refine SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtypeVal_apply_eq (τ := 0)
     (blowdownPuncturedDiffeomorph n) ⟨p, hpU⟩ ?_
   rw [mpullback_blowdownDiffeomorph_symm_profileForm_sub n hh, map_zero, map_zero,
     radialPotentialForm_apply_eq_zero _

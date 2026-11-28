@@ -2123,13 +2123,13 @@ along `Subtype.val` it uses:
   `U i` with `IsOpenCover U` (for the components,
   `pairwise_disjoint_opens` and `IsOpenCover.mk iSup_opens`), a family of
   smooth `k`-forms on the open submanifolds `U i` glues to one on `M`. With
-  `mpullback_subtype_val_ofDisjointCover` (its restriction to `U i` is
-  the `i`-th form) and `ext_of_mpullback_subtype_val` (forms with the same
+  `mpullback_subtypeVal_ofDisjointCover` (its restriction to `U i` is
+  the `i`-th form) and `ext_of_mpullback_subtypeVal` (forms with the same
   restrictions to all members of an open cover are equal), this gives the
   linear equivalence `TauCeti.SmoothForm.disjointCoverEquiv` with the
   product over the `U i`.
-- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtype_val`
-  and `mem_exactForms_iff_forall_mpullback_subtype_val`: a form is closed,
+- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtypeVal`
+  and `mem_exactForms_iff_forall_mpullback_subtypeVal`: a form is closed,
   or exact, exactly when each restriction to a `U i` is. Forward, as
   restriction commutes with `mextDerivₗ` (Tau Ceti's
   `SmoothForm.mextDerivₗ_mpullback`); back, for exactness, glue chosen

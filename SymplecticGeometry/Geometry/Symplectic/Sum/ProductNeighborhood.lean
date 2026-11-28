@@ -694,7 +694,7 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     (hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ') :
     SymplecticFraming hι' hP' where
   toFun q := (zeroSliceNormalEquiv J' Q' q).trans ((zeroSliceNormalEquiv J Q (χ q)).symm.trans
-    ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ q).symm))
+    ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ q).symm))
   contMDiff_toFun := by
     let := (zeroSlice J' Q').normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ'))
@@ -703,13 +703,13 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Read through the identification of normal spaces, the framing is `Φ` over `χ`, after the
     -- identifications of the normal bundles of the zero slices with `Q' × ℂ` and `Q × ℂ`.
-    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ _ (by simp) hP
+    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ (by simp) hP
       hP' le_rfl (u := TotalSpace.proj)).2 ?_
     exact Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
       (((χ.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd).comp
         contMDiff_zeroSliceNormalEquiv))
   symplecticNormalForm_toFun q v w := by
-    refine (ι.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ hι hι' q _
+    refine (ι.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ hι hι' q _
       _).symm.trans ?_
     simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply]
     -- On both zero slices the normal form is `ω₀`, read through `zeroSliceNormalEquiv`.
@@ -726,8 +726,7 @@ theorem compDiffeomorphOfBoundaryless_apply (Φ : SymplecticFraming hι hP) (χ 
     (hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ') (q : Q')
     (v : (zeroSlice J' Q').isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
     Φ.compDiffeomorphOfBoundaryless χ hι' hP' q v =
-      (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ (by simp)
-          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) q).symm
+      (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ (by simp) q).symm
         (Φ (χ q) ((zeroSliceNormalEquiv J Q (χ q)).symm (zeroSliceNormalEquiv J' Q' q v))) :=
   (rfl)
 

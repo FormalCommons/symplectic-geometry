@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.RelativeFundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.Relative
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
+import TauCeti.Data.Set.Image
 
 /-!
 # The boundary class of a compact manifold with collared boundary
@@ -107,8 +108,8 @@ theorem localHomologyMap_fundamentalClassRel_comap {d : ℕ} (o' : HomologicalOr
     (hf : IsCollared f) (hι' : IsOpenEmbedding ι') (hιf' : range ι' = (range f')ᶜ)
     (hf' : IsCollared f') (h : X ≃ₜ X') (φ : M ≃ₜ M') (hφ : h ∘ ι = ι' ∘ φ) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) (h : C(X, X'))
-        (by rw [ContinuousMap.coe_ofClass, ← φ.surjective.range_comp, ← hφ, range_comp,
-          h.preimage_image]) d
+        (by rw [ContinuousMap.coe_ofClass, ← φ.surjective.range_comp, ← hφ,
+          h.injective.preimage_range_comp]) d
         ((o'.comap φ.isOpenEmbedding).fundamentalClassRel hd hι hιf hf) =
       o'.fundamentalClassRel hd hι' hιf' hf' := by
   refine o'.eq_fundamentalClassRel hd hι' hιf' hf' fun x' ↦ ?_
@@ -135,7 +136,7 @@ theorem map_boundaryClass_comap (o' : HomologicalOrientation M' E (n + 1))
       (TopCat.ofHom g)).hom ((o'.comap φ.isOpenEmbedding).boundaryClass hn hι hιf hf) =
         o'.boundaryClass hn hι' hιf' hf' := by
   have hpre : (h : C(X, X')) ⁻¹' range ι' ⊆ range ι := by
-    rw [ContinuousMap.coe_ofClass, ← φ.surjective.range_comp, ← hφ, range_comp, h.preimage_image]
+    rw [ContinuousMap.coe_ofClass, ← φ.surjective.range_comp, ← hφ, h.injective.preimage_range_comp]
   set F := TopPair.ofSubsetMap (X := TopCat.of X) (Y := TopCat.of X') (B := (range ι)ᶜ)
     (B' := (range ι')ᶜ) (TopCat.ofHom (h : C(X, X')))
     ((mapsTo_preimage _ _).mono_left (compl_subset_compl.2 hpre))

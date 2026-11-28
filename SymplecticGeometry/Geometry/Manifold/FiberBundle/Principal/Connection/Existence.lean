@@ -113,8 +113,8 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
     {x : ManifoldTotalSpace G P}
     (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ e.baseSet)
     (ξ : GroupLieAlgebra IG G) :
-    (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
-        RoughForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1) x
+    (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+        (leftMaurerCartanForm IG G).val) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
   rw [mpullback_apply_one, e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ,
     leftMaurerCartanForm_apply_mulInvariantVectorField]

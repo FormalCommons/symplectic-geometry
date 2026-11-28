@@ -25,16 +25,16 @@ to the `U i` is. With the test of closedness on an open cover from
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.isNondegenerate_mpullback_subtype_val_iff`: the restriction of a
+* `TauCeti.SmoothTwoForm.isNondegenerate_mpullback_subtypeVal_iff`: the restriction of a
   two-form to an open set is nondegenerate exactly when the form is nondegenerate at each point of
   the set.
-* `TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val`: a closed two-form that is
+* `TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtypeVal`: a closed two-form that is
   nondegenerate at each point of an open set restricts to a symplectic form on it.
-* `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mpullback_subtype_val_apply`: at a
+* `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mpullback_subtypeVal_apply`: at a
   point of an open set, the restricted form is the ambient one.
-* `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_mpullback_subtype_val`: a two-form is
+* `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_mpullback_subtypeVal`: a two-form is
   nondegenerate exactly when its restriction to each member of an open cover is.
-* `TauCeti.SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtype_val`: a two-form is
+* `TauCeti.SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtypeVal`: a two-form is
   symplectic exactly when its restriction to each member of an open cover is.
 
 ## References
@@ -56,7 +56,7 @@ namespace TauCeti.SmoothTwoForm
 
 /-- The restriction of a two-form `σ` to an open set `U` is nondegenerate if and only if `σ` is
 nondegenerate at every point of `U`. -/
-theorem isNondegenerate_mpullback_subtype_val_iff {σ : SmoothTwoForm I M} {U : Opens M} :
+theorem isNondegenerate_mpullback_subtypeVal_iff {σ : SmoothTwoForm I M} {U : Opens M} :
     IsNondegenerate (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) ↔
       ∀ x ∈ U, (σ.bilinFormAt x).Nondegenerate :=
   ⟨fun h x hx ↦ (nondegenerate_bilinFormAt_mpullback_subtype_val_iff ⟨x, hx⟩).1
@@ -66,16 +66,16 @@ theorem isNondegenerate_mpullback_subtype_val_iff {σ : SmoothTwoForm I M} {U : 
 
 /-- A closed two-form `σ` that is nondegenerate at every point of an open set `U` restricts to a
 symplectic form on `U`. -/
-theorem _root_.TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val
+theorem _root_.TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtypeVal
     {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) {U : Opens M}
     (h : ∀ x ∈ U, (σ.bilinFormAt x).Nondegenerate) :
     IsSymplectic (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) :=
-  ⟨hσ.mpullback _ _, isNondegenerate_mpullback_subtype_val_iff.2 h⟩
+  ⟨hσ.mpullback _ _, isNondegenerate_mpullback_subtypeVal_iff.2 h⟩
 
 /-- At a point `x` of an open set `U`, the symplectic form on `T_x U` of the restriction of a
 nondegenerate two-form `σ` to `U` is the symplectic form of `σ` on `T_x M`, the two tangent spaces
 being the same model space. -/
-theorem IsNondegenerate.symplecticFormAt_mpullback_subtype_val_apply {σ : SmoothTwoForm I M}
+theorem IsNondegenerate.symplecticFormAt_mpullback_subtypeVal_apply {σ : SmoothTwoForm I M}
     (hσ : σ.IsNondegenerate) {U : Opens M} (x : U) (v w : TangentSpace I x) :
     (hσ.mpullback_subtype_val U).symplecticFormAt x v w = hσ.symplecticFormAt (x : M) v w :=
   ((hσ.mpullback_subtype_val U).symplecticFormAt_apply x v w).trans
@@ -85,26 +85,26 @@ theorem IsNondegenerate.symplecticFormAt_mpullback_subtype_val_apply {σ : Smoot
 
 /-- A two-form is nondegenerate exactly when its restriction to each member of an open cover is
 nondegenerate. -/
-theorem isNondegenerate_iff_forall_mpullback_subtype_val (hcover : IsOpenCover U)
+theorem isNondegenerate_iff_forall_mpullback_subtypeVal (hcover : IsOpenCover U)
     {σ : SmoothTwoForm I M} :
     σ.IsNondegenerate ↔
       ∀ i, IsNondegenerate (SmoothForm.mpullback (Subtype.val : U i → M) contMDiff_subtypeVal σ) :=
   ⟨fun h i ↦ h.mpullback_subtype_val (U i), fun h ↦
     isNondegenerate_def.2 fun x ↦
       let ⟨i, hx⟩ := hcover.exists_mem x
-      isNondegenerate_mpullback_subtype_val_iff.1 (h i) x hx⟩
+      isNondegenerate_mpullback_subtypeVal_iff.1 (h i) x hx⟩
 
 /-- A two-form is symplectic exactly when its restriction to each member of an open cover is
 symplectic. -/
-theorem isSymplectic_iff_forall_mpullback_subtype_val (hcover : IsOpenCover U)
+theorem isSymplectic_iff_forall_mpullback_subtypeVal (hcover : IsOpenCover U)
     {σ : SmoothTwoForm I M} :
     σ.IsSymplectic ↔
       ∀ i, IsSymplectic
         (SmoothForm.mpullback (Subtype.val : U i → M) contMDiff_subtypeVal σ) := by
   refine ⟨fun h i ↦ h.mpullback_subtype_val (U i), fun h ↦ ⟨?_,
-    (isNondegenerate_iff_forall_mpullback_subtype_val hcover).mpr fun i ↦ (h i).isNondegenerate⟩⟩
+    (isNondegenerate_iff_forall_mpullback_subtypeVal hcover).mpr fun i ↦ (h i).isNondegenerate⟩⟩
   rw [SmoothForm.isClosed_iff_mem_closedForms,
-    SmoothForm.mem_closedForms_iff_forall_mpullback_subtype_val hcover]
+    SmoothForm.mem_closedForms_iff_forall_mpullback_subtypeVal hcover]
   exact fun i ↦ (SmoothForm.isClosed_iff_mem_closedForms _).mp (h i).isClosed
 
 end TauCeti.SmoothTwoForm

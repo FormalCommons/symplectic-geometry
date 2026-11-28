@@ -215,9 +215,9 @@ to its target back to the restriction of `τ` to its source, as smooth forms.
 
 It also gives the `Subtype.val` counterparts of the Tau Ceti file's
 `Opens.inclusion` lemmas, in the namespace `TauCeti`:
-`mpullback_subtype_val_surjective`, `contMDiffAt_mpullback_subtype_val_iff`,
-`RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq` and
-`mpullback_subtype_val_mextDeriv`, the last with no regularity hypothesis.
+`mpullback_subtypeVal_surjective`, `contMDiffAt_mpullback_subtypeVal_iff`,
+`RoughForm.inChartAt_mpullback_subtypeVal_eventuallyEq` and
+`mpullback_subtypeVal_mextDeriv`, the last with no regularity hypothesis.
 `RelativePoincare.lean` uses them. The file is about forms in general, so any
 part may import it.
 

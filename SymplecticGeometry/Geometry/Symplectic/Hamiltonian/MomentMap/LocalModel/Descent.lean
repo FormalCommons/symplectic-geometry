@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 
-import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
+import TauCeti.Geometry.Lie.FundamentalVectorField.Coadjoint
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
@@ -34,9 +34,9 @@ vector lies in the kernel of the form by Tau Ceti's
 `X` hold here:
 
 * the derivative of `ν` along `X` is the infinitesimal coadjoint action, `dν_p(X) ζ = ν p ⁅ζ, ξ'⁆`,
-  which is `ν p ⁅-ξ', ζ⁆`. This is the derivative at `1` of the equivariance
-  `ν (k • p) = Ad*_k (ν p)` (`SymplecticGeometry.LocalModelData.covector_smul`), computed with
-  `TauCeti.Lie.mvfderiv_coadjointRepresentation_subtype_apply_one`;
+  which is `ν p ⁅-ξ', ζ⁆`. This is Tau Ceti's `TauCeti.mvfderiv_apply_fundamentalVectorField`,
+  applied to the equivariance `ν (k • p) = Ad*_k (ν p)`
+  (`SymplecticGeometry.LocalModelData.covector_smul`);
 * `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and the moment identity `dμ_V(v) b₂ ξ' = σ (ρ ξ' v, b₂)` gives
   `pr_V^* σ (X, (a₂, b₂)) = d(ν · ξ')_p (a₂, b₂)`, with the value of `pr_V^* σ` from
   `TauCeti.SymplecticForm.eval₂_mpullback_snd_constSmooth`.
@@ -55,9 +55,6 @@ follows `Module.Dual.coadjointOrbitForm`, `mpullback_mk_descendedForm` follows
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.mvfderiv_covector_apply_fundamentalVectorField`: the
-  derivative of `ν` along the infinitesimal action of the Lie algebra of `K` on `A × V` is the
-  infinitesimal coadjoint action.
 * `SymplecticGeometry.LocalModelData.ker_mfderiv_mk_le_ker_bilinFormAt_form`: the vertical
   directions of `G × (A × V) → G ×_K (A × V)` lie in the kernel of `D.form`, in the form of the
   hypothesis `hker` of `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`.
@@ -104,31 +101,6 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
   (D : LocalModelData (I := I) K (F := F) V A)
 
-/-- The derivative of the covectors `ν` of the local model along the infinitesimal action of the
-Lie algebra of `K` on `A × V` is the infinitesimal coadjoint action: in the direction of the
-fundamental vector field of `ξ` at `p`, the derivative of `y ↦ ν y ζ` is `ν p ⁅ζ, ξ'⁆`, where
-`ξ'` is the image of `ξ` in `𝔤`. This is the derivative at `1` of `ν (k • p) = Ad*_k (ν p)`, with
-the sign of `TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one`. -/
-theorem mvfderiv_covector_apply_fundamentalVectorField (p : A × V)
-    (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) (ζ : GroupLieAlgebra I G) :
-    letI := D.fiberDistribMulAction
-    mvfderiv 𝓘(ℝ, A × V) (fun y ↦ D.covector y ζ) p
-        (fundamentalVectorField 𝓘(ℝ, A × V) ξ p) =
-      D.covector p ⁅ζ, K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ⁆ := by
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  -- Along the orbit map `k ↦ k • p`, the component `y ↦ ν y ζ` becomes the coadjoint matrix
-  -- coefficient `k ↦ (Ad*_k (ν p)) ζ`, by `covector_smul`.
-  have hcomp : (fun y ↦ D.covector y ζ) ∘ (fun k : K ↦ k • p) =
-      fun k : K ↦ coadjointRepresentation ℝ I G k (D.covector p) ζ :=
-    funext fun k ↦ by rw [Function.comp_apply, covector_smul]
-  have hν : MDifferentiableAt 𝓘(ℝ, A × V) 𝓘(ℝ) (fun y ↦ D.covector y ζ) p :=
-    (D.contMDiff_covector_apply ζ).mdifferentiableAt (by simp)
-  have horb : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, A × V) (fun k : K ↦ k • p) 1 :=
-    (ContMDiffSMul.contMDiff_smul_const (I := 𝓘(ℝ, F)) (n := ∞) p).mdifferentiableAt (by simp)
-  rw [fundamentalVectorField_apply, ← mvfderiv_comp_apply_of_eq 1 hν horb (one_smul K p),
-    hcomp, mvfderiv_coadjointRepresentation_subtype_apply_one]
-
 /-- **The local model's form vanishes on vertical vectors.** At every point of `G × (A × V)`, the
 kernel of the differential of the projection `(g, p) ↦ [g, p]` onto the balanced product
 `G ×_K (A × V)` lies in the kernel of the two-form `D.form`: a vertical vector pairs to zero with
@@ -172,10 +144,21 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
   have h₁ (ζ : GroupLieAlgebra I G) :
       fderiv ℝ (fun y ↦ localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 y ζ) (η, v) X =
         localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 (η, v) ⁅-ξ', ζ⁆ := by
-    have h := D.mvfderiv_covector_apply_fundamentalVectorField (η, v) ξ ζ
-    simp only [covector_def] at h
-    rw [mvfderiv_eq_fderiv_apply] at h
-    rw [h, neg_lie, ← lie_skew]
+    have hK : MDifferentiableAt 𝓘(ℝ, F) I K.subtype 1 := by
+      rw [Subgroup.coe_subtype]
+      exact (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (n := ∞)).mdifferentiableAt
+        (by simp)
+    have h := mvfderiv_apply_fundamentalVectorField ((hf (η, v)).mdifferentiableAt (by simp))
+      K.subtype hK (fun k ↦ ContinuousLinearMap.ext fun ζ' ↦ ?_) ξ ζ
+    · rw [← hd, h, neg_lie, ← lie_skew]
+      -- `LinearMap.coe_toContinuousLinearMap'` does not rewrite here, as `GroupLieAlgebra I G`
+      -- carries no normed instances; the two sides agree by definition.
+      rfl
+    · have hk := congrArg (fun ν : Module.Dual ℝ (GroupLieAlgebra I G) ↦ ν ζ')
+        (D.covector_smul k (η, v))
+      rw [covector_def, covector_def] at hk
+      -- The goal is this with the linear forms read as continuous ones, by definition.
+      exact hk.trans (coadjointRepresentation_apply (I := I) (k : G) _ ζ')
   -- `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and `ι𝔥 (dμ_V(v) b) ξ' = σ (ρ ξ' v, b)`.
   have h₂ (a : A) : D.ι𝔪 a ξ' = 0 := D.ι𝔪_apply_of_mem_sup a (Submodule.mem_sup_left hξ')
   have h₃ (b : V) : D.ι𝔥 (D.σ.linearMomentMapCompPolar D.ρ v b) ξ' =
