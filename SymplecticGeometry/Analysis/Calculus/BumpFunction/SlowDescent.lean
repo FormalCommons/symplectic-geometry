@@ -21,7 +21,7 @@ So it climbs from `0` to `1` on `[-δ, 0]`, as steeply as needed, and comes back
 slope as small as wanted. The form used to reparametrize flow lines, `-1 < T₀ * μ' s` for a given
 `T₀ ≥ 0`, is `SymplecticGeometry.exists_contDiff_bump_neg_one_lt_mul_deriv`.
 
-The function is the product of the rescaled transition `s ↦ smoothTransition ((s + δ) / δ)`,
+The function is the product of the rescaled transition `ρ s = smoothTransition ((s + δ) / δ)`,
 which is `0` on `(-∞, -δ]` and `1` on `[0, ∞)`, with a nonincreasing step `ν` from `1` to `0`
 with `|ν'| < ε`, given by Tau Ceti's `TauCeti.exists_contDiff_antitone_cutoff_abs_deriv_le`. By
 the product rule `μ' = ρ' ν + ρ ν'`, where the first term is nonnegative and the second is at
