@@ -103,9 +103,10 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
       (IsManifold.chart_mem_maximalAtlas x)).trans L.toDiffeomorph.toPartialDiffeomorph
   have hx : x ∈ Φ.source := by simp [Φ]
   -- `J` pushed forward along `Φ`, a smooth field of operators squaring to `-1` on `Φ.target`.
-  set A := J.chartPushforward Φ.toOpenPartialHomeomorph
-  have hA (p : ℂ) (hp : p ∈ Φ.target) (w : ℂ) : A p (A p w) = -w :=
-    J.chartPushforward_apply_chartPushforward_apply Φ hp w
+  set A := J.chartPushforward Φ.toOpenPartialHomeomorph with hA_def
+  have hA (p : ℂ) (hp : p ∈ Φ.target) (w : ℂ) : A p (A p w) = -w := by
+    rw [hA_def, J.chartPushforward_toOpenPartialHomeomorph]
+    exact Φ.pushforwardEndomorphism_apply_pushforwardEndomorphism J hp w
   -- A smooth planar isothermal chart for `A` at `Φ x`.
   obtain ⟨e, hxe, -, -, hes, hesymm, hlin⟩ :=
     Beltrami.exists_centered_smooth_isothermal_chart
@@ -122,8 +123,9 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
   have hed : DifferentiableAt ℝ e (Φ y) :=
     (hes.contDiffAt (e.open_source.mem_nhds hy'.2)).differentiableAt hn
   -- The derivative of `Φ` carries `J` to `A`.
-  have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = A (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) :=
-    J.mfderiv_apply_eq_chartPushforward_apply Φ hy'.1 v
+  have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = A (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) := by
+    rw [hA_def, J.chartPushforward_toOpenPartialHomeomorph]
+    exact (Φ.pushforwardEndomorphism_mfderiv_apply J hy'.1 v).symm
   refine Eq.trans ?_
     ((ofComplexManifold_apply (E := ℂ) _ _).trans (smul_eq_mul (α := ℂ) _ _)).symm
   rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply, hc,

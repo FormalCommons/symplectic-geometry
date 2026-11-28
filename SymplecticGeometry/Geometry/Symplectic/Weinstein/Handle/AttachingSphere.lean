@@ -14,12 +14,13 @@ public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
-import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.RegularValue.SublevelBoundary
+import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Attachment
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 
 /-!
 # The stable set of a critical point in the lower level of a cobordism
@@ -71,11 +72,11 @@ that level, and horizontal for its contact form.
 * `SymplecticGeometry.IsWeinsteinCobordism.stableSet_inter_preimage_eq_empty`: in a Weinstein
   cobordism between the levels `a` and `b`, the stable set of a nondegenerate critical point of
   index zero does not meet the lower level `f ⁻¹' {a}`.
-* `SymplecticGeometry.IsWeinsteinStructure.exists_nonpos_flow_apply_eq`,
-  `.subsingleton_setOfPred_flow_apply_eq` and `.eq_levelCrossingTime_iff`: the orbit of a point of
-  `f ⁻¹' Ico a c` meets the level `f ⁻¹' {a}` exactly at the time
-  `Flow.levelCrossingTime φ f a x`; `.levelCrossingTime_nonpos`: that time is nonpositive;
-  `.mvfderiv_apply_pos_flow_levelCrossingTime`: the crossing is transverse.
+* `SymplecticGeometry.IsWeinsteinStructure.exists_nonpos_flow_apply_eq` and
+  `.eq_levelCrossingTime_iff`: the orbit of a point of `f ⁻¹' Ico a c` meets the level
+  `f ⁻¹' {a}` exactly at the time `Flow.levelCrossingTime φ f a x`; `.levelCrossingTime_nonpos`:
+  that time is nonpositive; `.mvfderiv_apply_pos_flow_levelCrossingTime`: the crossing is
+  transverse.
 * `SymplecticGeometry.IsWeinsteinStructure.mapsTo_flow_levelCrossingTime`,
   `.contMDiffOn_flow_levelCrossingTime` and `.mapsTo_flow_levelCrossingTime_stableSet`: the
   backward map to the lower level takes values in `f ⁻¹' {a}`, is smooth on `f ⁻¹' Ioo a c`, and
@@ -137,7 +138,8 @@ nondegeneracy nor the cobordism is needed. The backward orbit reaches the level 
 band `f ⁻¹' Icc a (f x)` is compact, since `f` is proper, and the reversed field `-X` decreases
 `f` on it, so that `SymplecticGeometry.exists_forall_isMIntegralCurve_apply_lt` applies to the
 reversed orbit. It meets the level at most once by
-`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`, again on the reversed orbit. The smoothness is
+`SymplecticGeometry.IsWeinsteinStructure.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos`
+with `g = f`, since `df(X) > 0` on a regular level. The smoothness is
 the implicit function theorem at the regular level `a`, in the form of Tau Ceti's
 `TauCeti.contMDiffOn_flow_levelCrossingTime`, and not the continuity of
 `Flow.levelCrossingTime` on a connecting set.
@@ -281,19 +283,6 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
     ⟨hlt.le, by simpa using hx.1⟩
   exact ⟨t, ht.2, hta⟩
 
-/-- **An orbit meets a regular level at most once.** For a regular value `a` of the function of a
-Weinstein structure, the orbit of every point meets the level `f ⁻¹' {a}` at most once. -/
-theorem subsingleton_setOfPred_flow_apply_eq (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) (x : M) :
-    {t | f (hW.flow t x) = a}.Subsingleton := by
-  -- Run the orbit backwards, so that `f` decreases along it.
-  have h := (hW.isMIntegralCurve_flow x).comp_neg.subsingleton_setOfPred_apply_eq (f := f) (c := a)
-    (fun s t hst ↦ hW.monotone_comp_flow x (neg_le_neg hst)) fun t ht ↦
-      ⟨hW.isGeneralizedMorse.contMDiff.mdifferentiableAt (by simp), by
-        rw [Pi.neg_apply, map_neg, neg_ne_zero]
-        exact (hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha ht).ne'⟩
-  intro s hs t ht
-  exact neg_inj.1 (h (show -s ∈ _ by simpa using hs) (show -t ∈ _ by simpa using ht))
-
 /-- **The time of the crossing of the lower level.** Let `f` have no critical point in
 `f ⁻¹' Ico a c`, and `a ≤ f x < c`. The times at which the orbit of `x` lies on the level
 `f ⁻¹' {a}` are exactly the crossing time `Flow.levelCrossingTime hW.flow f a x`. -/
@@ -305,7 +294,10 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
       eq_empty_iff_forall_notMem.1 hc y ⟨hy, hya.ge, hya.trans_lt (hx.1.trans_lt hx.2)⟩
   obtain ⟨s, -, hs⟩ := hW.exists_nonpos_flow_apply_eq hc hx
   have hlct := Flow.apply_flow_levelCrossingTime ⟨s, hs⟩
-  exact ⟨fun h ↦ h ▸ hlct, fun h ↦ hW.subsingleton_setOfPred_flow_apply_eq ha x h hlct⟩
+  have hf := hW.isGeneralizedMorse.contMDiff
+  exact ⟨fun h ↦ h ▸ hlct, fun h ↦ hW.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos
+    hf.continuous (fun y hy ↦ ⟨hf.mdifferentiableAt (by simp),
+      hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha hy⟩) x h hlct⟩
 
 /-- **The crossing of the lower level is in the past.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a ≤ f x < c`, the orbit of `x` crosses the level `f ⁻¹' {a}` at a time
@@ -428,34 +420,29 @@ theorem injective_comp_smul_coe_sphere {π : N → F} (hπ : ∀ z ∈ ball (0 :
     hπ _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL v))] at h'
   exact Subtype.ext (hL (smul_right_injective F hs.ne' h'))
 
-/-- **A scaled sphere in a disc is immersed.** If `ι` is differentiable with injective
-differential at every point of the ball of radius `ρ`, `L` is injective, and `0 < s` with
-`s * ‖L‖ < ρ`, then `u ↦ ι (s • L u)` has injective differential at every point of the unit
-sphere of `V`. -/
+/-- **A scaled sphere in a disc is immersed.** If `ι` has injective differential at every point
+of the ball of radius `ρ`, `L` is injective, and `0 < s` with `s * ‖L‖ < ρ`, then
+`u ↦ ι (s • L u)` has injective differential at every point of the unit sphere of `V`. -/
 theorem injective_mfderiv_comp_smul_coe_sphere [TopologicalSpace N] [ChartedSpace HN N]
     [Fact (finrank ℝ V = n + 1)]
-    (hι : ∀ z ∈ ball (0 : F) ρ, MDifferentiableAt 𝓘(ℝ, F) I ι z ∧
-      Injective (mfderiv 𝓘(ℝ, F) I ι z))
+    (hι : ∀ z ∈ ball (0 : F) ρ, Injective (mfderiv 𝓘(ℝ, F) I ι z))
     (hs : 0 < s) (hsL : s * ‖L‖ < ρ) (hL : Injective L) (u : sphere (0 : V) 1) :
     Injective (mfderiv (𝓡 n) I (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) u) := by
-  obtain ⟨hιd, hιi⟩ := hι _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u))
-  have hc : MDifferentiableAt (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u :=
-    (contMDiff_coe_sphere u).mdifferentiableAt one_ne_zero
-  have hg : MDifferentiableAt 𝓘(ℝ, V) 𝓘(ℝ, F) (s • L) (u : V) := (s • L).mdifferentiableAt
-  -- The map is `ι ∘ (s • L) ∘ (↑)` by definition; `mfderiv_comp` needs it written as that
-  -- composite to match.
-  rw [show (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) = ι ∘ (s • L) ∘ (↑) from rfl,
-    mfderiv_comp u hιd (hg.comp u hc), mfderiv_comp u hg hc, ContinuousLinearMap.mfderiv_eq]
   -- `mvfderiv` of the inclusion is its `mfderiv` followed by the identification of the tangent
   -- spaces of `V` with `V`.
   have h1 : Injective (mfderiv (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u) := by
     have h := injective_mvfderiv_subtypeVal_sphere (n := n) u
     rw [mvfderiv, ContinuousLinearMap.coe_comp] at h
     exact h.of_comp
-  have h2 : Injective (s • L) := fun a b h ↦ hL (smul_right_injective F hs.ne' h)
-  -- The tangent spaces of `V` and `F` are `V` and `F`, so the composition of the differentials is
-  -- that of the underlying maps.
-  exact hιi.comp (h2.comp h1)
+  have h2 : Injective (mfderiv 𝓘(ℝ, V) 𝓘(ℝ, F) (s • L) u) := by
+    rw [ContinuousLinearMap.mfderiv_eq]
+    exact fun a b h ↦ hL (smul_right_injective F hs.ne' h)
+  -- The map is `ι ∘ (s • L) ∘ (↑)` by definition; `TauCeti.injective_mfderiv_comp` needs it
+  -- written as that composite to match.
+  rw [show (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) = ι ∘ (s • L) ∘ (↑) from rfl]
+  exact TauCeti.injective_mfderiv_comp
+    (hι _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u)))
+    (TauCeti.injective_mfderiv_comp h2 h1)
 
 /-- **A scaled sphere misses the centre of the disc.** If `ι 0 = p`, `ι` has a left inverse `π`
 on the ball of radius `ρ`, `L` is injective, and `0 < s` with `s * ‖L‖ < ρ`, then
@@ -666,7 +653,7 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   refine ⟨σ, contMDiff_comp_smul_coe_sphere (fun z hz ↦ (hιs z hz).1) hs.le hsLρ,
     injective_comp_smul_coe_sphere hπι hs hsLρ L.injective,
     injective_mfderiv_comp_smul_coe_sphere
-      (fun z hz ↦ ⟨(hιs z hz).1.mdifferentiableAt (by simp), (hιs z hz).2⟩) hs hsLρ L.injective,
+      (fun z hz ↦ (hιs z hz).2) hs hsLρ L.injective,
     fun y hy ↦ ?_, ?_, ?_⟩
   · -- The sphere lies above the level `a` by the choice of `δ`.
     obtain ⟨⟨hys, hyp⟩, hyc⟩ := hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ

@@ -67,8 +67,8 @@ for it, for `k ≥ k₀`:
   `SymplecticGeometry.jetNormAt_le_of_norm_iteratedFDeriv_succ_le`);
 * if `σ` is compatible with `J`, then so is `ω₀` with `J` read in the chart at each point of its
   target, since the chart pulls `ω₀` back to `2π k σ`
-  (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_compatible_chartPushforwardAt`, from
-  `TauCeti.SmoothAlmostComplexStructure.compatible_chartPushforwardAt` and
+  (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_compatible_pushforwardAt`, from
+  `TauCeti.SmoothTwoForm.Compatible.compatible_pushforwardAt` and
   `TauCeti.SmoothTwoForm.Compatible.smul`); the forms `g_{k,x}(w)` are then symmetric and positive
   definite there;
 * since `J_x(w)² = -1`, each `g_{k,x}(w)` on the target is invertible as a map to the dual, with
@@ -424,9 +424,9 @@ theorem norm_iteratedFDeriv_associatedBilinFormInChart_le [I.Boundaryless] {k : 
 /-- At a point `w` of the target of the chart centred at `x`, for `k ≥ k₀`, `ω₀` is compatible
 with `J` read in the chart at `w`, provided that `σ` is compatible with `J`: the chart pulls `ω₀`
 back to `2π k σ`. -/
-theorem stdForm_compatible_chartPushforwardAt (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
+theorem stdForm_compatible_pushforwardAt (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
     (x : M) {w : StdSpace ι} (hw : w ∈ (D.chart k x).target) :
-    (stdForm ι).Compatible (J.chartPushforwardAt (D.chart k x) hw) := by
+    (stdForm ι).Compatible ((D.chart k x).pushforwardAt J hw) := by
   rcases Nat.eq_zero_or_pos k with rfl | hk0
   · -- For `k = 0` the chart pulls `ω₀` back to `0`, so `StdSpace ι` is trivial.
     have hsurj := ((D.chart 0 x).bijective_mvfderiv (by simp) (D.mem_source hk x)).surjective
@@ -438,7 +438,7 @@ theorem stdForm_compatible_chartPushforwardAt (hJ : σ.Compatible J) {k : ℕ} (
       exact (LinearMap.map_zero₂ _ _).symm
     exact .of_tames ((SymplecticForm.invariant_iff _ _).2 fun a b ↦ by rw [h0 a, h0 b]; simp)
       fun a ha ↦ absurd (h0 a) ha
-  · refine J.compatible_chartPushforwardAt (hJ.smul (2 * Real.pi * k) (by positivity))
+  · refine (hJ.smul (2 * Real.pi * k) (by positivity)).compatible_pushforwardAt
       (D.chart k x) (fun y hy u v ↦ ?_) hw
     rw [SmoothForm.eval₂_smul, smul_eq_mul]
     exact D.eval₂_eq hk x y hy u v
@@ -449,16 +449,18 @@ theorem stdForm_compatible_chartPushforwardAt (hJ : σ.Compatible J) {k : ℕ} (
 theorem associatedBilinFormInChart_apply_swap (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
     (x : M) {w : StdSpace ι} (hw : w ∈ (D.chart k x).target) (u v : StdSpace ι) :
     D.associatedBilinFormInChart k x w u v = D.associatedBilinFormInChart k x w v u := by
-  simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using
-    (D.stdForm_compatible_chartPushforwardAt hJ hk x hw).associatedBilinForm_apply_swap u v
+  simp only [associatedBilinFormInChart_apply,
+    ← PartialDiffeomorph.pushforwardAt_apply_eq_chartPushforward_apply _ J hw]
+  exact (D.stdForm_compatible_pushforwardAt hJ hk x hw).associatedBilinForm_apply_swap u v
 
 /-- **The forms read in the charts are positive definite.** If `σ` is compatible with `J`, then
 for `k ≥ k₀`, `w` in the target of the chart centred at `x` and `u ≠ 0`, `g_{k,x}(w)(u, u) > 0`. -/
 theorem associatedBilinFormInChart_apply_self_pos (hJ : σ.Compatible J) {k : ℕ} (hk : k₀ ≤ k)
     (x : M) {w : StdSpace ι} (hw : w ∈ (D.chart k x).target) {u : StdSpace ι} (hu : u ≠ 0) :
     0 < D.associatedBilinFormInChart k x w u u := by
-  simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using
-    (D.stdForm_compatible_chartPushforwardAt hJ hk x hw).associated_pos hu
+  rw [associatedBilinFormInChart_apply,
+    ← PartialDiffeomorph.pushforwardAt_apply_eq_chartPushforward_apply _ J hw]
+  exact (D.stdForm_compatible_pushforwardAt hJ hk x hw).tames u hu
 
 /-- **The forms read in the charts are nondegenerate.** At a point `w` of the target of the chart
 centred at `x`, the form `g_{k,x}(w)`, as a map from `StdSpace ι` to its dual, is invertible. This
@@ -466,8 +468,9 @@ only uses `J_x(w)² = -1`, not the compatibility of `J` with `σ`. -/
 theorem isInvertible_associatedBilinFormInChart {k : ℕ} {x : M} {w : StdSpace ι}
     (hw : w ∈ (D.chart k x).target) : (D.associatedBilinFormInChart k x w).IsInvertible := by
   rw [associatedBilinFormInChart_def]
-  exact isInvertible_stdFormCompRightL_apply
-    (J.chartPushforward_apply_chartPushforward_apply _ hw)
+  exact isInvertible_stdFormCompRightL_apply fun u ↦ by
+    rw [J.chartPushforward_toOpenPartialHomeomorph]
+    exact (D.chart k x).pushforwardEndomorphism_apply_pushforwardEndomorphism J hw u
 
 /-- **The inverse of the forms read in the charts.** At a point `w` of the target of the chart
 centred at `x`, the inverse of `g_{k,x}(w)` is `stdFormCompRightInverseL ι` applied to `J_x(w)`: it
@@ -477,7 +480,9 @@ theorem inverse_associatedBilinFormInChart {k : ℕ} {x : M} {w : StdSpace ι}
     (D.associatedBilinFormInChart k x w).inverse =
       stdFormCompRightInverseL ι (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w) := by
   rw [associatedBilinFormInChart_def]
-  exact inverse_stdFormCompRightL_apply (J.chartPushforward_apply_chartPushforward_apply _ hw)
+  exact inverse_stdFormCompRightL_apply fun u ↦ by
+    rw [J.chartPushforward_toOpenPartialHomeomorph]
+    exact (D.chart k x).pushforwardEndomorphism_apply_pushforwardEndomorphism J hw u
 
 /-- The norm of the inverse of `g_{k,x}(w)`, at a point `w` of the target of the chart centred
 at `x`, is at most the norm of `J_x(w)`. -/
@@ -605,8 +610,12 @@ theorem exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInCh
 derivative of the chart. -/
 theorem eval₂_apply_self_eq_norm_sq {k : ℕ} (hk : k₀ ≤ k) (x : M) (v : TangentSpace I x) :
     2 * Real.pi * k * σ.eval₂ x v (J x v) = ‖mvfderiv I (D.chart k x) x v‖ ^ 2 := by
-  rw [D.eval₂_eq hk x x (D.mem_source hk x), mvfderiv_apply_eq_mfderiv_apply (v := J x v),
-    J.mfderiv_apply_eq_chartPushforward_apply _ (D.mem_source hk x),
+  have h : mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) =
+      J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x x)
+        (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) := by
+    rw [J.chartPushforward_toOpenPartialHomeomorph]
+    exact ((D.chart k x).pushforwardEndomorphism_mfderiv_apply J (D.mem_source hk x) v).symm
+  rw [D.eval₂_eq hk x x (D.mem_source hk x), mvfderiv_apply_eq_mfderiv_apply (v := J x v), h,
     ← mvfderiv_apply_eq_mfderiv_apply, D.apply_self hk, D.chartPushforward_zero hk,
     stdForm_apply_stdComplexStructure, real_inner_self_eq_norm_sq]
 
