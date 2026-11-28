@@ -723,12 +723,17 @@ containing `ι '' closedBall 0 1`:
   `r₀ ∈ Ioo δ γ`, for all `r ≥ r₀` when `ℓ` is near `-8 * δ` (as issue
   14d7 needs; not for all `r > δ`, since for `-8 * δ < ℓ` the standard
   leaf has a finite slope at `δ`),
+  for some `ℓ₃ ∈ Ioo (-8 * δ) 0` both
+  `ContDiffOn ℝ ∞ (Function.uncurry χ) U` for some
+  `U ∈ 𝓝ˢ (Icc (-8 * δ) ℓ₃ ×ˢ Ioi δ)` and
+  `0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ` for `ℓ ∈ Icc (-8 * δ) ℓ₃` and
+  `δ < r` (as issue 14d7 needs),
   `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop`, `χ ℓ ≤ χ 1` on `Ioi δ` and
   `1 < χ 1 δ < 1 + γ`. The book's family is piecewise smooth in `ℓ`,
   smooth in `(ℓ, r)` on each piece, so the statement asks for every
   `r`-derivative `iteratedDeriv k (χ ℓ) r`, `χ` included, to be jointly
   continuous on `Icc (-8 * δ) 1 ×ˢ Ioi δ` (issue 14d6 uses `k ≤ 2`), and
-  not for smoothness in `ℓ`.
+  for smoothness in `ℓ` only on the low leaves, as above.
   - `isConvexShapeAt_sqrt_sub` (in `Surround/SpecialShape.lean`, next to
     `isConvexShapeAt_sqrt`): for `1 < a`, `0 < r` and `c < a * r ^ 2`,
     `r ↦ √(a * r ^ 2 - c)` is a convex shape at `r`. With
@@ -1464,7 +1469,7 @@ containing `ι '' closedBall 0 1`:
     `-8 * δ` is needed.
 
     The clause this uses is one that `exists_convexShapeFamily_surround`
-    does not state yet: for some `ℓ₃ ∈ Ioo (-8 * δ) 0`, `χ` is smooth in
+    states: for some `ℓ₃ ∈ Ioo (-8 * δ) 0`, `χ` is smooth in
     `(ℓ, r)` on a neighbourhood of `Icc (-8 * δ) ℓ₃ ×ˢ Ioi δ`, with
     `0 < ∂χ/∂ℓ` there. It holds for the leaves `sqrtSubLeaf L δ ℓ` that the
     family takes for `ℓ ≤ 0` (`exists_convexShapeFamily_sqrt_sub` has the

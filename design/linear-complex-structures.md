@@ -265,7 +265,7 @@ Declarations about Tau Ceti's type go in its namespace
 - `instance instMulActionSpecialOrthogonalGroup :
   MulAction (specialOrthogonalGroup n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`,
   `MulAction.compHom` of the matrix action along the inclusion
-  `Unitary.toUnits.comp (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)`
+  `Unitary.toUnits.comp specialOrthogonalGroup.toOrthogonalGroup`
   into `GL n ℝ` (no new name for that homomorphism). It has no apply lemma of
   its own: `@[simp] specialOrthogonalGroup_smul_def` rewrites `g • J` as the
   action of that unit, so `toLinearMap_generalLinearGroup_smul` serves both

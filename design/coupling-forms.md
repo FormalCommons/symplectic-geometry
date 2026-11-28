@@ -357,10 +357,11 @@ turn.
   surjective submersion when `F` is nonempty.
 - `IsCouplingTwoForm.unique`: two coupling two-forms of one connection are
   equal (the `β` of the previous item has `V • β = 0`).
-- `exists_isClosed_local` (local existence): in the setting of
-  `LocalForm.lean`, over a coordinate patch `U` and with `σ` constant in
-  the chart, if each $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive
-  on `F` at every `x`, there is a closed form on `U ×ˢ univ` with the same $\sigma$
+- `exists_isClosed_local` (local existence, in `Fibration/LocalClosedForm.lean`):
+  in the setting of `LocalForm.lean`, over an open patch `U` over which `τ` is
+  vertically closed, if each $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive
+  on `F` at every `x ∈ U`, there is a form, smooth and closed on `U ×ˢ univ`, that
+  agrees with `τ` on pairs with a vertical vector, so with the same $\sigma$
   and $\alpha_i$. The functions $f_{ij}$ are jointly smooth primitives
   from the library's `exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`
   (`Geometry/Manifold/DeRham/FamilyPrimitive.lean`), with the patch as
@@ -482,8 +483,8 @@ lines, and waits only for what it names.
    `eq_add_mpullback_of_isClosed` and `IsCouplingTwoForm.unique`. Waits for
    *Integration over the fibre* (`FiberIntegral/Basic.lean`) and
    *Symplectic fibrations* (`HorizontalDistribution.lean`).
-5. **Existence of the coupling form.** In `Fibration/Coupling.lean`:
-   `exists_isClosed_local` and
+5. **Existence of the coupling form.** In `Fibration/LocalClosedForm.lean`:
+   `exists_isClosed_local`, and in `Fibration/Coupling.lean`:
    `exists_isCouplingTwoForm_of_hasHamiltonianCurvature`. Waits for 1 and 4.
 6. **The coupling form theorem.** The milestone in
    `Fibration/Coupling.lean`. Waits for 3 and 5.
