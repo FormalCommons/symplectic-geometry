@@ -102,6 +102,9 @@ and the moment weights.
   `z ↦ μ ((γ z)⁻¹ • p) (C.im (a_u z))` satisfy `∂_v A_w = ∂_w A_v`. This is the closedness of the
   one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` on `Gc`, stated along maps so that no form on `Gc`
   is built.
+* `SymplecticGeometry.inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero`: at
+  a zero `x` of `μ`, the orbit of `G` through `x` is isotropic, so `X_ξ x` and `J x (X_η x)` are
+  orthogonal.
 * `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero`:
   at a zero `q` of `μ`, the fundamental vector field of `ζ` vanishes at `q` exactly when those
   of `C.re ζ` and `C.im ζ` do.
@@ -654,6 +657,19 @@ variable [FiniteDimensional ℝ E] [CompleteSpace E']
   {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {C : LieComplexification I G IC Gc}
 
+/-- **The orbit through a zero of the moment map is isotropic.** If `-μ` is an equivariant moment
+map for `σ`, the metric is `g(u, w) = σ(u, J w)` and `μ x = 0`, then `X_ξ x` and `J x (X_η x)`
+are orthogonal for all `ξ, η`. -/
+theorem inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
+    (ξ η : GroupLieAlgebra I G) :
+    ⟪fundamentalVectorField I' ξ x, J x (fundamentalVectorField I' η x)⟫ = 0 := by
+  have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero x) η ξ
+  simp only [InfinitesimalAction.fundamental_apply, hx, neg_zero, LinearMap.zero_apply] at hcoc
+  rw [real_inner_comm, SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hg]
+  exact hcoc
+
 /-- **The infinitesimal stabilizer in `Gc` at a zero of the moment map.** For a complexified
 action, with `-μ` an equivariant moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let
 `μ q = 0`. Then the fundamental vector field of `ζ` in the Lie algebra of `Gc` vanishes at `q`
@@ -670,16 +686,11 @@ theorem IsComplexifiedAction.fundamentalVectorField_eq_zero_iff_of_moment_eq_zer
   set v := fundamentalVectorField I' (C.im ζ) q
   refine ⟨fun h0 ↦ ?_, fun ⟨hu, hv⟩ ↦ by simp [hu, hv]⟩
   -- At a zero of `μ` the orbit of `G` is isotropic, so `u` and `J v` are orthogonal.
-  have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero q)
-    (C.im ζ) (C.re ζ)
-  simp only [InfinitesimalAction.fundamental_apply, hq, neg_zero,
-    LinearMap.zero_apply] at hcoc
-  have horth : ⟪J q v, u⟫ = 0 := by
-    rw [SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hg]
-    exact hcoc
+  have horth : ⟪u, J q v⟫ = 0 :=
+    inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero hμ hg hq _ _
   have hu : u = 0 := by
     have := congrArg (fun w ↦ ⟪u, w⟫) h0
-    rw [inner_add_right, real_inner_comm (J q v) u, horth, add_zero, inner_zero_right] at this
+    rw [inner_add_right, horth, add_zero, inner_zero_right] at this
     exact inner_self_eq_zero.1 this
   refine ⟨hu, ?_⟩
   rw [hu, zero_add] at h0
