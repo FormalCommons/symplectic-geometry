@@ -15,6 +15,7 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CoordRatio
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.ContinuousLinearMap
+import SymplecticGeometry.Geometry.Manifold.Algebra.Inv
 
 /-!
 # The line bundles `𝒪(k)` on the Riemann sphere as real vector bundles
@@ -212,7 +213,7 @@ theorem contMDiff_div_smul_twistCore_hom {k : ℤ} {n : ℕ∞ω}
     have hne : (e ⟨x₀, σ x₀⟩).2 ≠ 0 := by
       rw [he', twistCore_localTriv_apply, twistTransition_self, one_mul]
       exact hχσ x₀ hx₀
-    exact (hχ x₀).smul (((contDiffAt_inv ℂ hne).restrict_scalars ℝ).contMDiffAt.comp x₀ hσ')
+    exact (hχ x₀).smul (hσ'.inv₀ hne)
   refine ((contDiff_smul (𝕜 := ℝ) (𝕜' := ℂ) (F := ℂ →L[ℝ] ℂ)).contMDiff.contMDiffAt.comp x₀
     (hr.prodMk_space hα)).congr_of_eventuallyEq ?_
   have hU : ∀ᶠ p in 𝓝 x₀, p ∈ (chartAt ℂ x₀).source :=
