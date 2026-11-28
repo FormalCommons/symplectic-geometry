@@ -136,9 +136,8 @@ theorem mextDeriv_leftMaurerCartanForm_apply (g : G) (v w : TangentSpace I g) :
   obtain ⟨ξ, rfl⟩ := exists_mulInvariantVectorField_eq v
   obtain ⟨η, rfl⟩ := exists_mulInvariantVectorField_eq w
   have hvw : ![mulInvariantVectorField ξ g, mulInvariantVectorField η g] =
-      fun i ↦ mulInvariantVectorField (![ξ, η] i) g := by
-    ext i
-    fin_cases i <;> rfl
+      fun i ↦ mulInvariantVectorField (![ξ, η] i) g :=
+    FinVec.etaExpand_eq fun i ↦ mulInvariantVectorField (![ξ, η] i) g
   rw [leftMaurerCartanForm_apply_mulInvariantVectorField,
     leftMaurerCartanForm_apply_mulInvariantVectorField,
     leftMaurerCartanForm_eq_leftInvariantSmoothForm,
