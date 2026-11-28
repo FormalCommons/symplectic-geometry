@@ -13,7 +13,7 @@ import Mathlib.Analysis.Normed.Operator.Prod
 /-!
 # Iterated derivatives within a set of a composition with a continuous linear map
 
-This file gives within-a-set forms of two of the norm bounds of Tau Ceti's
+This file gives within-a-set forms of three of the norm bounds of Tau Ceti's
 `TauCeti/Analysis/Calculus/IteratedFDeriv/CompLinear.lean`.
 
 ## Main results
@@ -22,11 +22,15 @@ This file gives within-a-set forms of two of the norm bounds of Tau Ceti's
   linear map `g` multiplies the norm of the `i`-th derivative within `g ⁻¹' s` by at most
   `‖g‖ ^ i`. This is the within-a-set form of Tau Ceti's
   `ContinuousLinearMap.norm_iteratedFDeriv_comp_right_le`, with the same proof.
+* `ContinuousLinearMap.norm_iteratedFDerivWithin_le_norm_comp_right_mul_of_rightInverse`: if `g`
+  has a continuous linear right inverse `r`, the reverse bound holds with the factor `‖r‖ ^ i`.
+  This is the within-a-set form of Tau Ceti's
+  `ContinuousLinearMap.norm_iteratedFDeriv_le_norm_comp_right_mul_of_rightInverse`, with the same
+  proof.
 * `Prod.norm_iteratedFDerivWithin_comp_fst`: the iterated derivatives of `f ∘ Prod.fst` within
   `s ×ˢ univ` have the same norms as those of `f` within `s`. This is the within-a-set form of Tau
-  Ceti's `Prod.norm_iteratedFDeriv_comp_fst`. The reverse inequality adapts the proof of Tau
-  Ceti's `ContinuousLinearMap.norm_iteratedFDeriv_le_norm_comp_right_mul_of_rightInverse`,
-  precomposing with `ContinuousLinearMap.inl`.
+  Ceti's `Prod.norm_iteratedFDeriv_comp_fst`, derived as Tau Ceti derives it, from the two bounds
+  above applied to `ContinuousLinearMap.fst` and its right inverse `ContinuousLinearMap.inl`.
 -/
 
 public section
@@ -50,6 +54,26 @@ theorem ContinuousLinearMap.norm_iteratedFDerivWithin_comp_right_le (g : G →L[
   exact ((iteratedFDerivWithin 𝕜 i f s (g x)).norm_compContinuousLinearMap_le _).trans_eq
     (by rw [Fin.prod_const])
 
+/-- If a continuous linear map `g` has a continuous linear right inverse `r`, the norm of the
+`i`-th iterated derivative of `f` within `s` at `g x` is at most that of `f ∘ g` within `g ⁻¹' s`
+at `x` times `‖r‖ ^ i`, for `f` of class `C^n` on a set `s` of unique differentiability,
+`g ⁻¹' s` of unique differentiability, `g x ∈ s` and `i ≤ n`. -/
+theorem ContinuousLinearMap.norm_iteratedFDerivWithin_le_norm_comp_right_mul_of_rightInverse
+    (g : G →L[𝕜] E) (r : E →L[𝕜] G) (hgr : Function.RightInverse r g) {f : E → F} {s : Set E}
+    {n : WithTop ℕ∞} (hf : ContDiffOn 𝕜 n f s) (hs : UniqueDiffOn 𝕜 s)
+    (h's : UniqueDiffOn 𝕜 (g ⁻¹' s)) {x : G} (hx : g x ∈ s) {i : ℕ} (hi : i ≤ n) :
+    ‖iteratedFDerivWithin 𝕜 i f s (g x)‖ ≤
+      ‖iteratedFDerivWithin 𝕜 i (f ∘ g) (g ⁻¹' s) x‖ * ‖r‖ ^ i := by
+  rw [g.iteratedFDerivWithin_comp_right hf hs h's hx hi]
+  set M := iteratedFDerivWithin 𝕜 i f s (g x)
+  -- precomposing with `r` in every slot recovers `M`, since `g ∘ r = id`
+  calc ‖M‖ = ‖(M.compContinuousLinearMap fun _ ↦ g).compContinuousLinearMap fun _ ↦ r‖ := by
+        congr 1
+        ext m
+        simp [hgr _]
+    _ ≤ _ := ((M.compContinuousLinearMap _).norm_compContinuousLinearMap_le _).trans_eq
+        (by rw [Fin.prod_const])
+
 /-- The iterated derivatives of `f ∘ Prod.fst` within `s ×ˢ univ` at `p`, for `f` of class `C^n`
 on a set `s` of unique differentiability and `p.1 ∈ s`, have, up to order `n`, the same norms as
 those of `f` within `s` at `p.1`. -/
@@ -66,16 +90,9 @@ theorem Prod.norm_iteratedFDerivWithin_comp_fst {f : E → F} {s : Set E} {n : W
   refine le_antisymm (((ContinuousLinearMap.fst 𝕜 E G).norm_iteratedFDerivWithin_comp_right_le
     hf hs hS hp hi).trans (mul_le_of_le_one_right (norm_nonneg _)
       (pow_le_one₀ (norm_nonneg _) (ContinuousLinearMap.norm_fst_le 𝕜 E G)))) ?_
-  rw [ContinuousLinearMap.iteratedFDerivWithin_comp_right _ hf hs hS hp hi]
-  set M := iteratedFDerivWithin 𝕜 i f s p.1
-  -- precomposing with `inl` in every slot recovers `M`, since `fst ∘ inl = id`
-  calc ‖M‖ = ‖(M.compContinuousLinearMap fun _ ↦ ContinuousLinearMap.fst 𝕜 E G)
-        |>.compContinuousLinearMap fun _ ↦ ContinuousLinearMap.inl 𝕜 E G‖ := by
-        refine congrArg norm ?_
-        ext m
-        simp
-    _ ≤ _ := ((M.compContinuousLinearMap _).norm_compContinuousLinearMap_le _).trans
-        (mul_le_of_le_one_right (norm_nonneg _) (Finset.prod_le_one₀ (fun _ _ ↦ norm_nonneg _)
-          fun _ _ ↦ ContinuousLinearMap.norm_inl_le_one 𝕜 E G))
+  exact (ContinuousLinearMap.norm_iteratedFDerivWithin_le_norm_comp_right_mul_of_rightInverse
+    (ContinuousLinearMap.fst 𝕜 E G) (ContinuousLinearMap.inl 𝕜 E G) (fun _ ↦ by simp) hf hs hS
+      hp hi).trans (mul_le_of_le_one_right (norm_nonneg _)
+        (pow_le_one₀ (norm_nonneg _) (ContinuousLinearMap.norm_inl_le_one 𝕜 E G)))
 
 end

@@ -35,6 +35,8 @@ public section
 
 open Set
 
+namespace SymplecticGeometry
+
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
@@ -77,3 +79,7 @@ theorem norm_iteratedFDerivWithin_fderivWithin_apply_le {g : E → F} {s : Set E
         · exact hAi i hi
         · exact hBk _
     _ = _ := by ring
+
+end SymplecticGeometry
+
+end
