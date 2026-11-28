@@ -55,10 +55,8 @@ out as above.
 
 ## Main results
 
-* `SymplecticGeometry.IsWeinsteinStructure.lt_flow_apply_of_le_flow_apply`,
-  `SymplecticGeometry.IsWeinsteinStructure.flow_apply_lt_of_flow_apply_le` and
-  `SymplecticGeometry.IsWeinsteinStructure.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos`:
-  an orbit crosses a level of `g` on which `dg(X) > 0` at most once, and only upwards.
+* `SymplecticGeometry.IsWeinsteinStructure.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos`:
+  an orbit meets a level of `g` on which `dg(X) > 0` at most once.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_flow_apply_neg`: the backward orbit of a point
   of `{f ≤ b}` enters `{g < 0}`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_flow_apply_eq_upper`: the forward orbit of a
@@ -94,26 +92,6 @@ namespace IsWeinsteinStructure
 
 variable (hW : IsWeinsteinStructure ω X f) {g : M → ℝ} {c : ℝ}
 include hW
-
-/-- **An orbit crosses an upward level of `g` only upwards.** Let `g` be continuous, and
-differentiable with `dg(X) > 0` at each point of the level `g ⁻¹' {c}`. If
-`c ≤ g (Φ s x)` for the flow `Φ` of a Weinstein structure, then `c < g (Φ t x)` for every
-`t > s`. -/
-theorem lt_flow_apply_of_le_flow_apply (hg : Continuous g)
-    (hgX : ∀ x, g x = c → MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g x ∧ 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
-    (x : M) {s t : ℝ} (hs : c ≤ g (hW.flow s x)) (hst : s < t) : c < g (hW.flow t x) :=
-  (hW.isMIntegralCurve_flow x).lt_apply_of_le_apply (f := g)
-    (hg.comp (hW.isMIntegralCurve_flow x).continuous) (fun _ ↦ hgX _) hs hst
-
-/-- **An orbit crosses an upward level of `g` only upwards, looking backwards.** Let `g` be
-continuous, and differentiable with `dg(X) > 0` at each point of the level `g ⁻¹' {c}`. If
-`g (Φ t x) ≤ c` for the flow `Φ` of a Weinstein structure, then `g (Φ s x) < c` for every
-`s < t`. -/
-theorem flow_apply_lt_of_flow_apply_le (hg : Continuous g)
-    (hgX : ∀ x, g x = c → MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g x ∧ 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
-    (x : M) {s t : ℝ} (ht : g (hW.flow t x) ≤ c) (hst : s < t) : g (hW.flow s x) < c :=
-  (hW.isMIntegralCurve_flow x).apply_lt_of_apply_le (f := g)
-    (hg.comp (hW.isMIntegralCurve_flow x).continuous) (fun _ ↦ hgX _) ht hst
 
 /-- **An orbit meets an upward level of `g` at most once.** Let `g` be continuous, and
 differentiable with `dg(X) > 0` at each point of the level `g ⁻¹' {c}`. Then every orbit of the
