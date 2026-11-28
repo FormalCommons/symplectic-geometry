@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.SpecialShape
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.CutoffLeaf
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.BridgeLeaf
 
 import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
@@ -82,6 +83,20 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   slope of each leaf tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_sqrtSubLeaf`); and
   at each `r > δ` the leaves increase strictly with `ℓ`
   (`SymplecticGeometry.strictMonoOn_sqrtSubLeaf`).
+
+* `SymplecticGeometry.surroundFamily`: the family of Proposition 4.27 over the cylinder of
+  radius `δ`, glued from four pieces along `ℓ`: `sqrtSubLeaf` for `ℓ ≤ 0`, the Struwe switch
+  leaves `struweSwitchLeaf` (`Surround/CutoffLeaf.lean`) up to `7 δ`, the bridge family
+  `bridgeFamily` (`Surround/BridgeLeaf.lean`) up to `2 ℓ₀`, and a given family `F` beyond. On
+  `(δ, ∞)` neighbouring pieces agree at the junctions `0`, `7 δ` and `2 ℓ₀`
+  (`SymplecticGeometry.surroundFamily_eq_struweSwitchLeaf`,
+  `SymplecticGeometry.surroundFamily_eqOn_bridgeFamily`,
+  `SymplecticGeometry.surroundFamily_eqOn_of_ge`). Leaf by leaf, for `ℓ ∈ [-8 δ, ℓₜ]` and `F`
+  with the properties that the bridge family asks of it on `[ℓ₀, ℓₜ]`, each leaf is an
+  `i`-convex shape at every `r > δ` (`SymplecticGeometry.isConvexShapeAt_surroundFamily`),
+  smooth on `(δ, ∞)`, continuous on `[δ, ∞)` with slope tending to `+∞` at `δ`, and strictly
+  increasing on `[δ, ∞)` (`SymplecticGeometry.strictMonoOn_surroundFamily`); its leaf `-8 δ` is
+  `√(64 r² - 64 δ²)` (`SymplecticGeometry.surroundFamily_neg_eight_mul`).
 
 ## References
 
@@ -541,6 +556,20 @@ theorem contDiffOn_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) :
   exact (((contDiffAt_fst.add contDiffAt_const).div_const 64).cutoffLeaf
     (contDiffAt_const.sub (contDiffAt_fst.pow 2)) contDiffAt_snd hrad.ne').contDiffWithinAt
 
+/-- Each leaf `sqrtSubLeaf L δ ℓ` is continuous. -/
+theorem continuous_sqrtSubLeaf (L δ ℓ : ℝ) : Continuous (sqrtSubLeaf L δ ℓ) := by
+  rw [sqrtSubLeaf_eq_cutoffLeaf]
+  exact continuous_cutoffLeaf _ _ _ _
+
+/-- For `0 ≤ δ` and `|ℓ| ≤ 8 δ`, the leaf `sqrtSubLeaf L δ ℓ` is smooth on `(δ, ∞)`. -/
+theorem contDiffOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {ℓ : ℝ} (hℓ : |ℓ| ≤ 8 * δ) :
+    ContDiffOn ℝ ∞ (sqrtSubLeaf L δ ℓ) (Ioi δ) := by
+  have h := (contDiffOn_uncurry_sqrtSubLeaf L hδ).comp
+    (contDiff_const.prodMk contDiff_id).contDiffOn
+    (fun r hr ↦ ⟨hr, by dsimp only; linarith [mem_Ioi.1 hr]⟩ :
+      MapsTo (fun r ↦ (ℓ, r)) (Ioi δ) {p | δ < p.2 ∧ |p.1| < 8 * p.2})
+  exact h.congr fun r _ ↦ by simp
+
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtSubLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
     Tendsto (deriv (sqrtSubLeaf L δ ℓ)) (𝓝[>] δ) atTop := by
@@ -595,6 +624,234 @@ theorem exists_convexShapeFamily_sqrt_sub :
   · rw [sqrtSubLeaf_of_le (by linarith) hδ.le hr.2, add_comm]
   · rw [sqrtSubLeaf_of_ge (by linarith) hδ hr, abs_of_nonpos hℓ.2]
     ring_nf
+
+/-! ### The glued family over the cylinder -/
+
+/-- **The glued family over the cylinder of radius `δ`** (Cieliebak–Eliashberg, Proposition 4.27),
+for a cutoff parameter `L`, the parameters `ℓ₀` and `M` of the bridge family and a family `F` of
+leaves beyond `2 ℓ₀`. Its leaf `ℓ` is
+* `sqrtSubLeaf L δ ℓ` for `ℓ ≤ 0`;
+* `struweSwitchLeaf L δ ℓ` for `0 < ℓ ≤ 7 δ`;
+* the leaf `ℓ` of `bridgeFamily L δ ℓ₀ M F` for `7 δ < ℓ ≤ 2 ℓ₀`;
+* `F ℓ` for `2 ℓ₀ < ℓ`. -/
+noncomputable def surroundFamily (L δ ℓ₀ M : ℝ) (F : ℝ → ℝ → ℝ) (ℓ : ℝ) : ℝ → ℝ :=
+  if ℓ ≤ 0 then sqrtSubLeaf L δ ℓ
+  else if ℓ ≤ 7 * δ then struweSwitchLeaf L δ ℓ
+  else if ℓ ≤ 2 * ℓ₀ then bridgeFamily L δ ℓ₀ M F ℓ
+  else F ℓ
+
+theorem surroundFamily_def (L δ ℓ₀ M : ℝ) (F : ℝ → ℝ → ℝ) (ℓ : ℝ) :
+    surroundFamily L δ ℓ₀ M F ℓ =
+      if ℓ ≤ 0 then sqrtSubLeaf L δ ℓ
+      else if ℓ ≤ 7 * δ then struweSwitchLeaf L δ ℓ
+      else if ℓ ≤ 2 * ℓ₀ then bridgeFamily L δ ℓ₀ M F ℓ
+      else F ℓ :=
+  (rfl)
+
+section surroundFamily
+
+variable {L ℓ₀ M ℓ : ℝ} {F : ℝ → ℝ → ℝ}
+
+/-- The leaves `ℓ ≤ 0` of the glued family are the leaves `sqrtSubLeaf L δ ℓ`. -/
+theorem surroundFamily_of_nonpos (hℓ : ℓ ≤ 0) :
+    surroundFamily L δ ℓ₀ M F ℓ = sqrtSubLeaf L δ ℓ := by
+  rw [surroundFamily_def, ite_eq_left hℓ]
+
+/-- The leaves `0 < ℓ ≤ 7 δ` of the glued family are the Struwe switch leaves. -/
+theorem surroundFamily_of_pos_of_le (hℓ₁ : 0 < ℓ) (hℓ₂ : ℓ ≤ 7 * δ) :
+    surroundFamily L δ ℓ₀ M F ℓ = struweSwitchLeaf L δ ℓ := by
+  rw [surroundFamily_def, ite_eq_right hℓ₁.not_ge, ite_eq_left hℓ₂]
+
+/-- The leaves `7 δ < ℓ ≤ 2 ℓ₀` of the glued family, for `0 ≤ δ`, are those of the bridge
+family. -/
+theorem surroundFamily_of_lt_of_le (hδ : 0 ≤ δ) (hℓ₁ : 7 * δ < ℓ) (hℓ₂ : ℓ ≤ 2 * ℓ₀) :
+    surroundFamily L δ ℓ₀ M F ℓ = bridgeFamily L δ ℓ₀ M F ℓ := by
+  rw [surroundFamily_def, ite_eq_right (by linarith), ite_eq_right hℓ₁.not_ge, ite_eq_left hℓ₂]
+
+/-- The leaves `ℓ > max (7 δ) (2 ℓ₀)` of the glued family, for `0 ≤ δ`, are the leaves `F ℓ`. -/
+theorem surroundFamily_of_lt (hδ : 0 ≤ δ) (hℓ₁ : 7 * δ < ℓ) (hℓ₂ : 2 * ℓ₀ < ℓ) :
+    surroundFamily L δ ℓ₀ M F ℓ = F ℓ := by
+  rw [surroundFamily_def, ite_eq_right (by linarith), ite_eq_right hℓ₁.not_ge,
+    ite_eq_right hℓ₂.not_ge]
+
+/-- For `0 ≤ δ`, the leaves `ℓ ∈ [0, 7 δ]` of the glued family are the Struwe switch leaves: at
+`ℓ = 0` the leaf `sqrtSubLeaf L δ 0` is `sqrtAddLeaf L δ 0`, which is
+`struweSwitchLeaf L δ 0`. -/
+theorem surroundFamily_eq_struweSwitchLeaf (hδ : 0 ≤ δ) (hℓ : ℓ ∈ Icc 0 (7 * δ)) :
+    surroundFamily L δ ℓ₀ M F ℓ = struweSwitchLeaf L δ ℓ := by
+  rcases hℓ.1.eq_or_lt with rfl | hℓ₀
+  · rw [surroundFamily_of_nonpos le_rfl, ← sqrtAddLeaf_zero, struweSwitchLeaf_of_le (by linarith)]
+  · exact surroundFamily_of_pos_of_le hℓ₀ hℓ.2
+
+/-- For `0 < δ`, the leaves `ℓ ∈ [7 δ, 2 ℓ₀]` of the glued family are those of the bridge family
+on `(δ, ∞)`: at `ℓ = 7 δ` by `SymplecticGeometry.bridgeFamily_seven_mul_eqOn`. -/
+theorem surroundFamily_eqOn_bridgeFamily (hδ : 0 < δ) (hℓ : ℓ ∈ Icc (7 * δ) (2 * ℓ₀)) :
+    EqOn (surroundFamily L δ ℓ₀ M F ℓ) (bridgeFamily L δ ℓ₀ M F ℓ) (Ioi δ) := by
+  rcases hℓ.1.eq_or_lt with rfl | h7
+  · rw [surroundFamily_eq_struweSwitchLeaf hδ.le ⟨by linarith, le_rfl⟩]
+    exact (bridgeFamily_seven_mul_eqOn L hδ ℓ₀ M F).symm
+  · rw [surroundFamily_of_lt_of_le hδ.le h7 hℓ.2]
+    exact eqOn_refl _ _
+
+/-- For `0 < δ`, `24 δ ≤ ℓ₀` and `0 ≤ M`, the leaves `ℓ ≥ 2 ℓ₀` of the glued family are the
+leaves `F ℓ` on `(δ, ∞)`, once `F (2 ℓ₀) ≥ 2 ℓ₀` on `(δ, ∞)` and `F (2 ℓ₀)` is the standard
+leaf `r ↦ √(64 r² + (2 ℓ₀)²)` from `2 ℓ₀ / 4` on: at `ℓ = 2 ℓ₀` by
+`SymplecticGeometry.bridgeFamily_two_mul_eqOn`. -/
+theorem surroundFamily_eqOn_of_ge (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀) (hM : 0 ≤ M)
+    (hFℓ : ∀ r, δ < r → 2 * ℓ₀ ≤ F (2 * ℓ₀) r)
+    (hFs : ∀ r, 2 * ℓ₀ / 4 ≤ r → F (2 * ℓ₀) r = √(64 * r ^ 2 + (2 * ℓ₀) ^ 2))
+    (hℓ : 2 * ℓ₀ ≤ ℓ) : EqOn (surroundFamily L δ ℓ₀ M F ℓ) (F ℓ) (Ioi δ) := by
+  rcases hℓ.eq_or_lt with rfl | h
+  · rw [surroundFamily_of_lt_of_le hδ.le (by linarith) le_rfl]
+    exact bridgeFamily_two_mul_eqOn L hδ hℓ₀ hM hFℓ hFs
+  · rw [surroundFamily_of_lt hδ.le (by linarith) h]
+    exact eqOn_refl _ _
+
+/-- The bottom leaf of the glued family: for `0 ≤ δ`, the leaf `-8 δ` is `√(64 r² - 64 δ²)`. -/
+theorem surroundFamily_neg_eight_mul (hδ : 0 ≤ δ) (r : ℝ) :
+    surroundFamily L δ ℓ₀ M F (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2) := by
+  rw [surroundFamily_of_nonpos (by linarith), sqrtSubLeaf_neg_eight_mul]
+
+/-- **The leaves of the glued family are `i`-convex shapes.** Let `δ > 0`, `24 δ ≤ ℓ₀ ≤ ℓₜ / 2`
+and `M ≥ 8`, let `L ≥ 1` be large compared with bounds `A` of `smoothTransition'`, `B` of
+`smoothTransition''` and `N` of `x smoothTransition'' x`, let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be an
+`i`-convex shape at every `r > δ`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be `C²` on `(δ, ∞)`, a
+constant plus `struweShape δ 4 0` on `(δ, 9 δ / 2]`, at least `ℓ` on `(δ, ∞)`, the standard leaf
+`r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
+`[3 δ, ℓ / 4]`. Then for `ℓ ∈ [-8 δ, ℓₜ]` the leaf `ℓ` of the glued family is an `i`-convex
+shape at every `r > δ`. -/
+theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
+    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hN : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ N)
+    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
+    (hM : 8 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
+    (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
+    (hF2 : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀),
+      ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r)
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
+    (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
+    (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) (hr : δ < r) :
+    IsConvexShapeAt (surroundFamily L δ ℓ₀ M F ℓ) r := by
+  obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
+  have hsub : Icc ℓ₀ (2 * ℓ₀) ⊆ Icc ℓ₀ ℓₜ := Icc_subset_Icc_right hℓₜ
+  rcases le_or_gt ℓ 0 with h0 | h0
+  · -- The cutoff leaf with `b = (ℓ + 8 δ) / 64 ∈ [0, δ / 8]` and `c = 64 δ² - ℓ² ∈ [0, 64 δ²]`.
+    rw [surroundFamily_of_nonpos h0, sqrtSubLeaf_eq_cutoffLeaf]
+    exact isConvexShapeAt_cutoffLeaf hA hB hN hL₁ hL hδ (by linarith) (by linarith)
+      (by nlinarith) (by nlinarith) hr
+  rcases le_or_gt ℓ (7 * δ) with h7 | h7
+  · rw [surroundFamily_of_pos_of_le h0 h7]
+    exact isConvexShapeAt_struweSwitchLeaf hA hB hN hL₁ hL hδ ⟨h0.le, h7⟩ hr
+  rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
+  · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
+    exact isConvexShapeAt_bridgeFamily hA hB hN hL₁ hL hδ hℓ₀ hM (fun ℓ h ↦ hFc ℓ (hsub h))
+      hF2 hFS hFℓ hFs hFd ⟨h7.le, h2⟩ hr
+  · rw [surroundFamily_of_lt hδ.le h7 h2]
+    exact hFc ℓ ⟨by linarith, hℓ₂⟩ r hr
+
+/-- **The leaves of the glued family are `Cⁿ`.** For `0 ≤ L`, `0 < δ` and `2 ℓ₀ ≤ ℓₜ`, if
+every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, is `Cⁿ` on `(δ, ∞)`, then so is each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the
+glued family. -/
+theorem contDiffOn_surroundFamily {n : ℕ∞} {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
+    (hℓₜ : 2 * ℓ₀ ≤ ℓₜ) (hF : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ n (F ℓ) (Ioi δ))
+    (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) : ContDiffOn ℝ n (surroundFamily L δ ℓ₀ M F ℓ) (Ioi δ) := by
+  obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
+  rcases le_or_gt ℓ 0 with h0 | h0
+  · rw [surroundFamily_of_nonpos h0]
+    exact (contDiffOn_sqrtSubLeaf L hδ.le (by rw [abs_of_nonpos h0]; linarith)).of_le
+      (by exact_mod_cast le_top)
+  rcases le_or_gt ℓ (7 * δ) with h7 | h7
+  · rw [surroundFamily_of_pos_of_le h0 h7]
+    exact contDiffOn_struweSwitchLeaf hL hδ ℓ
+  rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
+  · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
+    exact contDiffOn_bridgeFamily hδ (fun ℓ h ↦ hF ℓ (Icc_subset_Icc_right hℓₜ h)) h2
+  · rw [surroundFamily_of_lt hδ.le h7 h2]
+    exact hF ℓ ⟨by linarith, hℓ₂⟩
+
+/-- **The leaves of the glued family are continuous up to the cylinder.** Let `0 ≤ L`, `0 < δ`,
+`15 δ / 2 < ℓ₀`, `0 ≤ M` and `2 ℓ₀ ≤ ℓₜ`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be continuous on
+`(δ, ∞)` and a constant plus `struweShape δ 4 0` on `[δ, 9 δ / 2]`. Then each leaf `ℓ ≤ ℓₜ` of
+the glued family is continuous on `[δ, ∞)`. -/
+theorem continuousOn_surroundFamily {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContinuousOn (F ℓ) (Ioi δ)) (hℓ : ℓ ≤ ℓₜ) :
+    ContinuousOn (surroundFamily L δ ℓ₀ M F ℓ) (Ici δ) := by
+  have hsub : Icc ℓ₀ (2 * ℓ₀) ⊆ Icc ℓ₀ ℓₜ := Icc_subset_Icc_right hℓₜ
+  rcases le_or_gt ℓ 0 with h0 | h0
+  · rw [surroundFamily_of_nonpos h0]
+    exact (continuous_sqrtSubLeaf L δ ℓ).continuousOn
+  rcases le_or_gt ℓ (7 * δ) with h7 | h7
+  · rw [surroundFamily_of_pos_of_le h0 h7]
+    exact continuousOn_struweSwitchLeaf L hδ ℓ
+  rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
+  · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
+    exact continuousOn_bridgeFamily hL hδ hℓ₀ hM (fun ℓ h ↦ hFS ℓ (hsub h))
+      (fun ℓ h ↦ hFc ℓ (hsub h)) ⟨h0.le, h2⟩
+  · -- Near the cylinder `F ℓ` is a Struwe shape.
+    rw [surroundFamily_of_lt hδ.le h7 h2]
+    have hmem : ℓ ∈ Icc ℓ₀ ℓₜ := ⟨by linarith, hℓ⟩
+    obtain ⟨c, hc⟩ := hFS ℓ hmem
+    exact continuousOn_Ici_of_eqOn_struweShape hδ (K := 4) (by norm_num) (hFc ℓ hmem)
+      (by linarith : δ < 9 * δ / 2) fun r hr ↦ by
+        rw [hc r ⟨hr.1, hr.2.le⟩, ← struweShape_add, add_zero]
+
+/-- **The leaves of the glued family meet the cylinder vertically.** Let `0 ≤ L`, `0 < δ`,
+`15 δ / 2 < ℓ₀`, `0 ≤ M` and `2 ℓ₀ ≤ ℓₜ`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be a constant
+plus `struweShape δ 4 0` on `[δ, 9 δ / 2]`. Then the slope of each leaf `ℓ ≤ ℓₜ` of the glued
+family tends to `+∞` at `δ`. -/
+theorem tendsto_deriv_surroundFamily {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hℓ : ℓ ≤ ℓₜ) : Tendsto (deriv (surroundFamily L δ ℓ₀ M F ℓ)) (𝓝[>] δ) atTop := by
+  rcases le_or_gt ℓ 0 with h0 | h0
+  · rw [surroundFamily_of_nonpos h0]
+    exact tendsto_deriv_sqrtSubLeaf hL hδ ℓ
+  rcases le_or_gt ℓ (7 * δ) with h7 | h7
+  · rw [surroundFamily_of_pos_of_le h0 h7]
+    exact tendsto_deriv_struweSwitchLeaf hL hδ ℓ
+  rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
+  · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
+    exact tendsto_deriv_bridgeFamily hL hδ hℓ₀ hM
+      (fun ℓ h ↦ hFS ℓ (Icc_subset_Icc_right hℓₜ h)) ⟨h0.le, h2⟩
+  · -- Near the cylinder `F ℓ` is a Struwe shape.
+    rw [surroundFamily_of_lt hδ.le h7 h2]
+    obtain ⟨c, hc⟩ := hFS ℓ ⟨by linarith, hℓ⟩
+    exact tendsto_deriv_of_eqOn_struweShape hδ (K := 4) (by norm_num)
+      (by linarith : δ < 9 * δ / 2)
+      fun r hr ↦ by rw [hc r ⟨hr.1.le, hr.2.le⟩, ← struweShape_add, add_zero]
+
+/-- **The leaves of the glued family are increasing.** Under the hypotheses of
+`SymplecticGeometry.isConvexShapeAt_surroundFamily`, if moreover every `F ℓ` with
+`ℓ ∈ [ℓ₀, ℓₜ]` is `C²` on `(δ, ∞)` and equal to a constant plus `struweShape δ 4 0` on
+`[δ, 9 δ / 2]`, then each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the glued family is strictly increasing
+on `[δ, ∞)`. -/
+theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
+    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hN : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ N)
+    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
+    (hM : 8 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
+    (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
+    (hF2 : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r)
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
+    (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
+    (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) : StrictMonoOn (surroundFamily L δ ℓ₀ M F ℓ) (Ici δ) :=
+  strictMonoOn_Ici_of_isConvexShapeAt
+    (continuousOn_surroundFamily (by linarith) hδ (by linarith) (by linarith) hℓₜ hFS
+      (fun ℓ h ↦ (hF2 ℓ h).continuousOn) hℓ.2)
+    fun _ hr ↦ isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc
+      (fun ℓ h ↦ hF2 ℓ (Icc_subset_Icc_right hℓₜ h))
+      (fun ℓ h ↦ (hFS ℓ (Icc_subset_Icc_right hℓₜ h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
+      hFℓ hFs hFd hℓ hr
+
+end surroundFamily
 
 end SymplecticGeometry
 
