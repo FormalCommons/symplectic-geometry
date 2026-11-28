@@ -11,8 +11,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.Riemannian.Isometry.Action
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Topology.Algebra.Module.Trace
-public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import Mathlib.Tactic.NoncommRing
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
@@ -55,8 +54,8 @@ does for its model geometries (`TauCeti.Nil`).
   `TauCeti.SymplecticForm.compatible_compatibleSpaceForm` and
   `TauCeti.SymplecticForm.isKahler_compatibleSpaceForm`: `Ω` is a Kähler form for
   `compatibleSpaceComplexStructure`.
-* `TauCeti.SymplecticForm.compatibleSpaceMetric`: the metric of the pair, the
-  `RiemannianBundle` instance of `𝒥 ω`, with `inner_compatibleSpace_eq_eval₂`:
+* The `RiemannianBundle` instance of `𝒥 ω`, the metric of the pair
+  (`TauCeti.SmoothTwoForm.Compatible.riemannianBundle`), with `inner_compatibleSpace_eq_eval₂`:
   `⟪a, b⟫ = Ω(a, j b)`, and `inner_compatibleSpace`: `⟪a, b⟫ = ½ tr(â b̂)`, half the pull-back of
   the trace form `ContinuousLinearMap.traceForm`
   (`inner_compatibleSpace_eq_smul_traceForm`, for the form `2⁻¹ • traceForm`).
@@ -286,39 +285,29 @@ theorem isKahler_compatibleSpaceForm :
 
 open _root_.Bundle
 
-variable (ω) in
-/-- The metric of the manifold of `ω`-compatible complex structures: the metric
-`g(a, b) = Ω(a, j b)` of the Kähler form `Ω` and the complex structure `j`. On tangent vectors
-with ambient readings `â` and `b̂` it is `½ tr(â b̂)` (`inner_compatibleSpace`). -/
-noncomputable def compatibleSpaceMetric :
-    Bundle.ContMDiffRiemannianMetric 𝓘(ℝ, ω.compatibleModel) ((⊤ : ℕ∞) : WithTop ℕ∞)
-      ω.compatibleModel (fun J : 𝒥 ↦ TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :=
-  compatible_compatibleSpaceForm.metric
-
-theorem compatibleSpaceMetric_def :
-    ω.compatibleSpaceMetric = compatible_compatibleSpaceForm.metric :=
-  (rfl)
-
-/-- The manifold of compatible complex structures carries the metric `compatibleSpaceMetric`. -/
+/-- The manifold of compatible complex structures carries the metric `g(a, b) = Ω(a, j b)` of the
+Kähler form `Ω` and the complex structure `j`. On tangent vectors with ambient readings `â` and
+`b̂` it is `½ tr(â b̂)` (`inner_compatibleSpace`). -/
 noncomputable instance : Bundle.RiemannianBundle
     (fun J : 𝒥 ↦ TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :=
-  ⟨ω.compatibleSpaceMetric.toRiemannianMetric⟩
+  compatible_compatibleSpaceForm.riemannianBundle
 
 /-- The metric of the manifold of compatible complex structures is smooth. -/
 instance : IsContMDiffRiemannianBundle 𝓘(ℝ, ω.compatibleModel) ((⊤ : ℕ∞) : WithTop ℕ∞)
     ω.compatibleModel (fun J : 𝒥 ↦ TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :=
-  Bundle.instIsContMDiffRiemannianBundle ω.compatibleSpaceMetric
+  compatible_compatibleSpaceForm.isContMDiffRiemannianBundle
 
 /-- The metric of the manifold of compatible complex structures is continuous. -/
 instance : IsContinuousRiemannianBundle ω.compatibleModel
     (fun J : 𝒥 ↦ TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :=
-  Bundle.instIsContinuousRiemannianBundle ω.compatibleSpaceMetric.toContinuousRiemannianMetric
+  IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle
+    (IB := 𝓘(ℝ, ω.compatibleModel)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
 
 /-- The inner product of the manifold of compatible complex structures is the metric of the
 Kähler form: `⟪a, b⟫ = Ω(a, j b)`. -/
 theorem inner_compatibleSpace_eq_eval₂ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ⟪a, b⟫ = ω.compatibleSpaceForm.eval₂ J a (ω.compatibleSpaceComplexStructure J b) :=
-  compatible_compatibleSpaceForm.inner_eq_eval₂ J a b
+  compatible_compatibleSpaceForm.inner_riemannianBundle J a b
 
 /-- **The metric.** At `J`, the inner product of tangent vectors with ambient readings `â` and
 `b̂` is `⟪a, b⟫ = ½ tr(â b̂)`. -/
