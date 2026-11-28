@@ -15,6 +15,7 @@ import SymplecticGeometry.Data.Matrix.Mul
 import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.Instances.ComplexProjectiveSpace.Projectivization
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
@@ -46,9 +47,6 @@ potentials in the affine charts. Most statements are proved on `ℂⁿ⁺¹ ∖ 
   holomorphic diffeomorphism `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`, and
   compatibility passes to pull-backs along pseudoholomorphic immersions
   (`TauCeti.SmoothTwoForm.Compatible.mpullback`).
-* `Projectivization.isPseudoholomorphic_mkNonzero` and `Projectivization.mfderiv_mkNonzero_I_smul`:
-  the projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is pseudoholomorphic, so its derivative carries multiplication by
-  `i` to `J`.
 * `SymplecticGeometry.isKahler_fubiniStudyForm`: the Fubini–Study form is Kähler for `J`.
 * `SymplecticGeometry.isKahler_mpullback_fubiniStudyForm`: on a smooth embedding `f : N → ℂPⁿ`
   with `J`-invariant tangent images, the pull-back of the Fubini–Study form is symplectic and
@@ -84,33 +82,6 @@ public section
 
 open Function Matrix TauCeti Projectivization
 open scoped Manifold ContDiff LinearAlgebra.Projectivization ComplexOrder
-
-namespace Projectivization
-
-variable {n : ℕ}
-
-open SmoothAlmostComplexStructure
-
-variable (n) in
-/-- The projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is pseudoholomorphic for the complex structures of the two
-complex manifolds. -/
-theorem isPseudoholomorphic_mkNonzero :
-    IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
-      (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) (mkNonzero ℂ n) :=
-  isPseudoholomorphic_ofComplexManifold_iff.2
-    ((contMDiff_mkNonzero_self 1).mdifferentiable one_ne_zero)
-
-/-- The real derivative of the projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` carries multiplication by `i` to the
-complex structure of `ℂPⁿ`. -/
-theorem mfderiv_mkNonzero_I_smul (z : puncturedSpace (Fin (n + 1) → ℂ))
-    (v : Fin (n + 1) → ℂ) :
-    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z (Complex.I • v) =
-      ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (mkNonzero ℂ n z)
-        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z v) := by
-  have h := ((isPseudoholomorphic_mkNonzero n).isPseudoholomorphicAt z).mfderiv_apply_commute v
-  rwa [ofComplexManifold_apply] at h
-
-end Projectivization
 
 namespace SymplecticGeometry
 

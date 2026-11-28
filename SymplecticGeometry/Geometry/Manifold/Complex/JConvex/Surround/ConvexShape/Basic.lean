@@ -8,14 +8,12 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
 import Mathlib.Analysis.InnerProductSpace.ProdL2
-import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
-import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.SecondDerivative
 
@@ -52,7 +50,9 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   is an open condition on `(r, χ r, χ' r, χ'' r)`, so for a compact family of shapes whose
   values and first two derivatives depend continuously on the point, one `η > 0` works for all:
   any function within `η` of a member in value and two derivatives at `r` is a shape at `r`.
-  The uniform `η` comes from `IsCompact.exists_thickening_subset_open`. Its one-sided form
+  The uniform `η` comes from `IsCompact.exists_thickening_subset_open`, through
+  `exists_forall_mem_of_abs_sub_lt_of_isOpen`, which holds for any open
+  condition on the `2`-jet. Its one-sided form
   `SymplecticGeometry.exists_forall_isConvexShapeAt_of_sub_lt_iteratedDeriv_two` only asks for
   `φ'' r > χ'' r - η`, since the conditions only get easier as `χ''` grows; the two-sided
   form follows from it.
@@ -61,9 +61,11 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   cutoff `ρ`. By `iteratedDeriv_mul_add_one_sub_mul_sub_iteratedDeriv`, the Leibniz rule for the
   blend, its derivatives minus those of `χ ℓ` are sums of derivatives of `ρ` times those of
   `φ - χ ℓ`; those of `ρ` over `K` are bounded by
-  `ContDiff.exists_norm_iteratedDeriv_le_of_isCompact`. In particular the second derivative of
-  the blend is `χ'' + ρ (φ'' - χ'') + 2 ρ' (φ' - χ') + ρ'' (φ - χ)`, so the one-sided stability
-  lemma only needs `ρ (φ'' - χ'') ≥ -|ρ| τ`: this is
+  `ContDiff.exists_norm_iteratedDeriv_le_of_isCompact`. These bounds, which do not involve the
+  convexity conditions, are
+  `exists_forall_abs_iteratedDeriv_mul_add_one_sub_mul_sub_lt`. In particular
+  the second derivative of the blend is `χ'' + ρ (φ'' - χ'') + 2 ρ' (φ' - χ') + ρ'' (φ - χ)`,
+  so the one-sided stability lemma only needs `ρ (φ'' - χ'') ≥ -|ρ| τ`: this is
   `SymplecticGeometry.exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_neg_abs_mul_le`, from
   which the two-sided form follows. So does, for a cutoff `ρ ≥ 0`, the form
   `SymplecticGeometry.exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two`
@@ -91,6 +93,17 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   are (4.3) and the case `σ = r` of (4.4). Unlike the slope of a shape, `ρ'` may vanish, as on
   the cylinder itself. `SymplecticGeometry.IsConvexShapeOverRAt.re_leviForm_pos` is its Levi
   theorem, at `R > 0`.
+* The criterion over `R` has the same stability as `IsConvexShapeAt`, with the inequalities of
+  `isConvexShapeOverRAt_iff`: it depends only on the germ
+  (`SymplecticGeometry.IsConvexShapeOverRAt.congr_of_eventuallyEq`), survives `ρ - c` for
+  `0 ≤ c < ρ R` (`SymplecticGeometry.IsConvexShapeOverRAt.sub_const`; over `R` the leaves rise as
+  `ρ` falls), holds uniformly near a compact family
+  (`SymplecticGeometry.exists_forall_isConvexShapeOverRAt_of_abs_sub_lt`) and for blends by a
+  cutoff. Since `ρ''` enters only through upper bounds, the one-sided forms bound `φ''` from
+  above: `SymplecticGeometry.exists_forall_isConvexShapeOverRAt_of_iteratedDeriv_two_lt_add` for
+  `φ` itself, and for the blend the general
+  `SymplecticGeometry.exists_forall_isConvexShapeOverRAt_mul_add_one_sub_mul_of_mul_le_abs_mul`,
+  whose case of a cutoff `β ≥ 0` asks only `φ'' < (ρ ℓ)'' + τ`.
 
 Both Levi theorems rest on
 `SymplecticGeometry.re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero`, which evaluates
@@ -109,7 +122,8 @@ are in `SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShap
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
   §4.2–4.3: (4.3) and (4.4), Proposition 4.8 (a), (b), Proposition 4.10, Corollary 4.11 (a),
-  Lemma 4.13 (a), (b) and Lemma 4.14 (a).
+  Lemma 4.13 (a), (b) and Lemma 4.14 (a); the stability lemmas over `R` serve the foliations of
+  Proposition 3.25 and Corollary 4.29.
 -/
 
 public section
@@ -247,7 +261,6 @@ theorem isConvexShapeAt_of_iteratedDeriv_two_nonpos (hr : 0 < r) (hχ : 0 < χ r
       div_le_div_of_nonneg_right (by linarith [sq_nonneg d]) hχ.le
     linarith
 
-open Metric in
 /-- **`i`-convex shapes are stable under small one-sided `C²` perturbations, uniformly on a
 compact set.** Let `K ⊆ ℝ × ℝ` be compact, with `χ ℓ` an `i`-convex shape at `r` for every
 `(ℓ, r) ∈ K`, and with `(ℓ, r) ↦ iteratedDeriv k (χ ℓ) r` continuous on `K` for `k ≤ 2`. Then
@@ -281,18 +294,10 @@ theorem exists_forall_isConvexShapeAt_of_sub_lt_iteratedDeriv_two {χ : ℝ → 
       ContinuousAt.eventually_lt (by fun_prop (disch := assumption))
         (by fun_prop (disch := assumption)) h₄
     filter_upwards [e₁, e₂, e₃, e₄] with q h₁ h₂ h₃ h₄ using ⟨h₁, h₂, h₃, h₄⟩
-  -- The values of `(r, χ ℓ r, (χ ℓ)' r, (χ ℓ)'' r)` on `K` form a compact subset of `U`.
-  set g : ℝ × ℝ → ℝ × ℝ × ℝ × ℝ :=
-    fun x ↦ (x.2, χ x.1 x.2, deriv (χ x.1) x.2, iteratedDeriv 2 (χ x.1) x.2) with hg_def
-  have hg : ContinuousOn g K := by
-    have h₀ := hcont 0 (by norm_num)
-    have h₁ := hcont 1 (by norm_num)
-    simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
-    exact continuousOn_snd.prodMk (h₀.prodMk (h₁.prodMk (hcont 2 le_rfl)))
-  obtain ⟨η, hη, hsub⟩ := (hK.image_of_continuousOn hg).exists_thickening_subset_open hU
-    (by rintro _ ⟨x, hx, rfl⟩; exact isConvexShapeAt_iff.1 (hc x hx))
+  obtain ⟨η, hη, hηU⟩ := exists_forall_mem_of_abs_sub_lt_of_isOpen hK hcont hU
+    fun x hx ↦ isConvexShapeAt_iff.1 (hc x hx)
   refine ⟨η, hη, fun φ x hx h₀ h₁ h₂ ↦ ?_⟩
-  -- Lowering `φ''` to at most `(χ ℓ)''` gives a point close to `g x`, hence in `U`.
+  -- Lowering `φ''` to at most `(χ ℓ)''` gives a point close to that of `χ ℓ`, hence in `U`.
   set e := min (iteratedDeriv 2 φ x.2) (iteratedDeriv 2 (χ x.1) x.2)
   have he : |e - iteratedDeriv 2 (χ x.1) x.2| < η := by
     have := min_le_right (iteratedDeriv 2 φ x.2) (iteratedDeriv 2 (χ x.1) x.2)
@@ -301,13 +306,9 @@ theorem exists_forall_isConvexShapeAt_of_sub_lt_iteratedDeriv_two {χ : ℝ → 
     · rcases min_cases (iteratedDeriv 2 φ x.2) (iteratedDeriv 2 (χ x.1) x.2) with h | h <;>
         linarith [h.1]
     · linarith
-  have hq : (x.2, φ x.2, deriv φ x.2, e) ∈ U := by
-    refine hsub (mem_thickening_iff.2 ⟨g x, Set.mem_image_of_mem g hx, ?_⟩)
-    simp only [hg_def, Prod.dist_eq, Real.dist_eq, sub_self, abs_zero]
-    exact max_lt hη (max_lt h₀ (max_lt h₁ he))
   -- `U` is a set-builder set, so membership in it is the conjunction of its conditions.
   obtain ⟨hr, hφ, h₃, h₄⟩ : 0 < x.2 ∧ 0 < φ x.2 ∧ 1 / φ x.2 < deriv φ x.2 / x.2 ∧
-      1 / φ x.2 < e + deriv φ x.2 ^ 3 / x.2 := hq
+      1 / φ x.2 < e + deriv φ x.2 ^ 3 / x.2 := hηU x hx _ _ _ h₀ h₁ he
   exact isConvexShapeAt_iff.2 ⟨hr, hφ, h₃, h₄.trans_le (by gcongr; exact min_le_left _ _)⟩
 
 /-- **`i`-convex shapes are stable under small `C²` perturbations, uniformly on a compact set.**
@@ -349,50 +350,13 @@ theorem exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_neg_abs_mul_le {χ 
         -(|ρ x.2| * τ) ≤ ρ x.2 * (iteratedDeriv 2 φ x.2 - iteratedDeriv 2 (χ x.1) x.2) →
           IsConvexShapeAt (fun r ↦ ρ r * φ r + (1 - ρ r) * χ x.1 r) x.2 := by
   obtain ⟨η, hη, hηK⟩ := exists_forall_isConvexShapeAt_of_sub_lt_iteratedDeriv_two hK hc hcont
-  -- A bound `B` for the first two derivatives of `ρ` over the projection of `K`.
-  obtain ⟨B, hB⟩ := hρ.exists_norm_iteratedDeriv_le_of_isCompact (hK.image continuous_snd)
-  have hd : 0 < 4 * (B : ℝ) + 1 := by positivity
-  set τ := η / (4 * B + 1)
-  have hτ : 0 < τ := div_pos hη hd
-  have hBτ : 4 * B * τ < η := by
-    rw [mul_div_assoc', div_lt_iff₀ hd]
-    nlinarith
+  obtain ⟨τ, hτ, hτK⟩ :=
+    exists_forall_abs_iteratedDeriv_mul_add_one_sub_mul_sub_lt (hK.image continuous_snd) hρ hη
   refine ⟨τ, hτ, fun φ x hx hφ hχ h₀ h₁ h₂ ↦ ?_⟩
-  have hBk : ∀ k ≤ 2, |iteratedDeriv k ρ x.2| ≤ B := fun k hk ↦ by
-    rw [← Real.norm_eq_abs]
-    exact hB k hk _ ⟨x, hx, rfl⟩
-  have hρ0 := hBk 0 (by norm_num)
-  have hρ1 := hBk 1 (by norm_num)
-  have hρ2 := hBk 2 le_rfl
-  simp only [iteratedDeriv_zero, iteratedDeriv_one] at hρ0 hρ1
-  -- The derivatives of the blend minus those of `χ ℓ`, by the Leibniz rule.
-  have e : ∀ k ≤ 2, iteratedDeriv k (fun r ↦ ρ r * φ r + (1 - ρ r) * χ x.1 r) x.2 -
-      iteratedDeriv k (χ x.1) x.2 = ∑ i ∈ Finset.range (k + 1), k.choose i *
-        iteratedDeriv i ρ x.2 * (iteratedDeriv (k - i) φ x.2 -
-          iteratedDeriv (k - i) (χ x.1) x.2) := fun k hk ↦ by
-    have hk' : (k : WithTop ℕ∞) ≤ 2 := by exact_mod_cast hk
-    exact iteratedDeriv_mul_add_one_sub_mul_sub_iteratedDeriv (hρ.of_le hk').contDiffAt
-      (hφ.of_le hk') (hχ.of_le hk')
-  have e₀ := e 0 (by norm_num)
-  have e₁ := e 1 (by norm_num)
-  have e₂ := e 2 le_rfl
-  simp only [Finset.sum_range_succ, Finset.sum_range_zero, Nat.choose_zero_right,
-    Nat.choose_self, Nat.choose_one_right, iteratedDeriv_zero,
-    iteratedDeriv_one, Nat.cast_one, Nat.cast_ofNat, zero_add, one_mul, Nat.sub_self,
-    tsub_zero, Nat.add_one_sub_one] at e₀ e₁ e₂
-  -- Each term is a derivative of `ρ`, at most `B`, times a difference, at most `τ`.
-  have hab : ∀ a b : ℝ, |a| ≤ B → |b| < τ → |a * b| ≤ B * τ := fun a b ha hb ↦ by
-    rw [abs_mul]
-    gcongr
-  refine hηK _ x hx ?_ ?_ ?_
-  · rw [e₀]
-    linarith [hab _ _ hρ0 h₀]
-  · rw [e₁]
-    linarith [abs_add_le (ρ x.2 * (deriv φ x.2 - deriv (χ x.1) x.2))
-      (deriv ρ x.2 * (φ x.2 - χ x.1 x.2)), hab _ _ hρ0 h₁, hab _ _ hρ1 h₀]
-  · have hρτ : |ρ x.2| * τ ≤ B * τ := by gcongr
-    linarith [neg_abs_le (deriv ρ x.2 * (deriv φ x.2 - deriv (χ x.1) x.2)),
-      neg_abs_le (iteratedDeriv 2 ρ x.2 * (φ x.2 - χ x.1 x.2)), hab _ _ hρ1 h₁, hab _ _ hρ2 h₀]
+  obtain ⟨k₀, k₁, k₂⟩ := hτK φ (χ x.1) x.2 ⟨x, hx, rfl⟩ hφ hχ h₀ h₁
+  refine hηK _ x hx k₀ k₁ ?_
+  linarith [neg_abs_le (iteratedDeriv 2 (fun r ↦ ρ r * φ r + (1 - ρ r) * χ x.1 r) x.2 -
+    iteratedDeriv 2 (χ x.1) x.2 - ρ x.2 * (iteratedDeriv 2 φ x.2 - iteratedDeriv 2 (χ x.1) x.2))]
 
 /-- **Blending a convex shape with a nearby function by a cutoff.** Let `K ⊆ ℝ × ℝ` be compact,
 with `χ ℓ` an `i`-convex shape at `r` for every `(ℓ, r) ∈ K` and
@@ -966,6 +930,152 @@ theorem isConvexShapeOverRAt_of_neg_div_le_deriv (hR : 0 < R) (hr : 0 < ρ R)
     field_simp
     ring
   nlinarith [mul_nonneg (sq_nonneg (deriv ρ R)) hd']
+
+namespace IsConvexShapeOverRAt
+
+/-- The criterion over `R` at `R` only depends on the germ of `ρ` at `R`. -/
+theorem congr_of_eventuallyEq {ψ : ℝ → ℝ} (h : IsConvexShapeOverRAt ρ R) (hψ : ψ =ᶠ[𝓝 R] ρ) :
+    IsConvexShapeOverRAt ψ R := by
+  rw [isConvexShapeOverRAt_iff, hψ.eq_of_nhds, hψ.deriv_eq, hψ.iteratedDeriv_eq 2]
+  exact isConvexShapeOverRAt_iff.1 h
+
+/-- A shape over `R` keeps the criterion over `R` when it is moved towards the axis `r = 0`:
+`ρ - c` satisfies it at `R` if `ρ` does and `0 ≤ c < ρ R`. Over `R` the leaves rise as `ρ`
+falls, so this is the analogue of `IsConvexShapeAt.add_const`. -/
+theorem sub_const {c : ℝ} (hc : 0 ≤ c) (hcR : c < ρ R) (h : IsConvexShapeOverRAt ρ R) :
+    IsConvexShapeOverRAt (fun R ↦ ρ R - c) R := by
+  obtain ⟨hR, -, h₁, h₂, h₃⟩ := isConvexShapeOverRAt_iff.1 h
+  have hle : 1 / ρ R ≤ 1 / (ρ R - c) := one_div_le_one_div_of_le (by linarith) (by linarith)
+  have hle' : (1 + deriv ρ R ^ 2) / ρ R ≤ (1 + deriv ρ R ^ 2) / (ρ R - c) :=
+    div_le_div_of_nonneg_left (by positivity) (by linarith) (by linarith)
+  rw [isConvexShapeOverRAt_iff, deriv_sub_const, iteratedDeriv_sub_const two_pos]
+  exact ⟨hR, by linarith, h₁.trans_le hle, by linarith, h₃.trans_le hle'⟩
+
+end IsConvexShapeOverRAt
+
+/-- **The criterion over `R` is stable under small one-sided `C²` perturbations, uniformly on a
+compact set.** Let `K ⊆ ℝ × ℝ` be compact, with `ρ ℓ` satisfying the criterion over `R` at `R`
+for every `(ℓ, R) ∈ K`, and with `(ℓ, R) ↦ iteratedDeriv k (ρ ℓ) R` continuous on `K` for
+`k ≤ 2`. Then there is `η > 0` such that every `φ : ℝ → ℝ` whose value and first derivative at
+`R` are within `η` of those of `ρ ℓ`, and whose second derivative at `R` is less than
+`(ρ ℓ)'' R + η`, for some `(ℓ, R) ∈ K`, satisfies the criterion over `R` at `R`.
+
+Only an upper bound on `φ''` is needed since `ρ''` enters `isConvexShapeOverRAt_iff` only
+through upper bounds. No differentiability of `φ` or of the `ρ ℓ` is assumed. -/
+theorem exists_forall_isConvexShapeOverRAt_of_iteratedDeriv_two_lt_add {ρ : ℝ → ℝ → ℝ}
+    {K : Set (ℝ × ℝ)} (hK : IsCompact K) (hc : ∀ x ∈ K, IsConvexShapeOverRAt (ρ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (ρ x.1) x.2) K) :
+    ∃ η > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K, |φ x.2 - ρ x.1 x.2| < η →
+      |deriv φ x.2 - deriv (ρ x.1) x.2| < η →
+        iteratedDeriv 2 φ x.2 < iteratedDeriv 2 (ρ x.1) x.2 + η →
+          IsConvexShapeOverRAt φ x.2 := by
+  -- The inequalities of `isConvexShapeOverRAt_iff`, as an open set of `(R, ρ R, ρ' R, ρ'' R)`.
+  set U : Set (ℝ × ℝ × ℝ × ℝ) := {p | 0 < p.1 ∧ 0 < p.2.1 ∧ p.2.2.1 / p.1 < 1 / p.2.1 ∧
+    p.2.2.2 < 1 / p.2.1 - p.2.2.1 ^ 3 / p.1 ∧ p.2.2.2 < (1 + p.2.2.1 ^ 2) / p.2.1}
+  have hU : IsOpen U := by
+    refine isOpen_iff_mem_nhds.2 fun p ⟨h₁, h₂, h₃, h₄, h₅⟩ ↦ ?_
+    have h₁' := h₁.ne'
+    have h₂' := h₂.ne'
+    have e₁ : ∀ᶠ q in 𝓝 p, 0 < q.1 := continuousAt_const.eventually_lt continuousAt_fst h₁
+    have e₂ : ∀ᶠ q in 𝓝 p, 0 < q.2.1 :=
+      continuousAt_const.eventually_lt (by fun_prop) h₂
+    have e₃ : ∀ᶠ q in 𝓝 p, q.2.2.1 / q.1 < 1 / q.2.1 :=
+      ContinuousAt.eventually_lt (by fun_prop (disch := assumption))
+        (by fun_prop (disch := assumption)) h₃
+    have e₄ : ∀ᶠ q in 𝓝 p, q.2.2.2 < 1 / q.2.1 - q.2.2.1 ^ 3 / q.1 :=
+      ContinuousAt.eventually_lt (by fun_prop) (by fun_prop (disch := assumption)) h₄
+    have e₅ : ∀ᶠ q in 𝓝 p, q.2.2.2 < (1 + q.2.2.1 ^ 2) / q.2.1 :=
+      ContinuousAt.eventually_lt (by fun_prop) (by fun_prop (disch := assumption)) h₅
+    filter_upwards [e₁, e₂, e₃, e₄, e₅] with q h₁ h₂ h₃ h₄ h₅ using ⟨h₁, h₂, h₃, h₄, h₅⟩
+  obtain ⟨η, hη, hηU⟩ := exists_forall_mem_of_abs_sub_lt_of_isOpen hK hcont hU
+    fun x hx ↦ isConvexShapeOverRAt_iff.1 (hc x hx)
+  refine ⟨η, hη, fun φ x hx h₀ h₁ h₂ ↦ ?_⟩
+  -- Raising `φ''` to at least `(ρ ℓ)''` gives a point close to that of `ρ ℓ`, hence in `U`.
+  set e := max (iteratedDeriv 2 φ x.2) (iteratedDeriv 2 (ρ x.1) x.2)
+  have he : |e - iteratedDeriv 2 (ρ x.1) x.2| < η := by
+    have := le_max_right (iteratedDeriv 2 φ x.2) (iteratedDeriv 2 (ρ x.1) x.2)
+    rw [abs_lt]
+    constructor
+    · linarith
+    · rcases max_cases (iteratedDeriv 2 φ x.2) (iteratedDeriv 2 (ρ x.1) x.2) with h | h <;>
+        linarith [h.1]
+  -- `U` is a set-builder set, so membership in it is the conjunction of its conditions.
+  obtain ⟨hR, hφ, h₃, h₄, h₅⟩ : 0 < x.2 ∧ 0 < φ x.2 ∧ deriv φ x.2 / x.2 < 1 / φ x.2 ∧
+      e < 1 / φ x.2 - deriv φ x.2 ^ 3 / x.2 ∧ e < (1 + deriv φ x.2 ^ 2) / φ x.2 :=
+    hηU x hx _ _ _ h₀ h₁ he
+  have hle : iteratedDeriv 2 φ x.2 ≤ e := le_max_left _ _
+  exact isConvexShapeOverRAt_iff.2 ⟨hR, hφ, h₃, hle.trans_lt h₄, hle.trans_lt h₅⟩
+
+/-- **The criterion over `R` is stable under small `C²` perturbations, uniformly on a compact
+set.** Let `K ⊆ ℝ × ℝ` be compact, with `ρ ℓ` satisfying the criterion over `R` at `R` for every
+`(ℓ, R) ∈ K`, and with `(ℓ, R) ↦ iteratedDeriv k (ρ ℓ) R` continuous on `K` for `k ≤ 2`. Then
+there is `η > 0` such that every `φ : ℝ → ℝ` whose value and first two derivatives at `R` are
+within `η` of those of `ρ ℓ`, for some `(ℓ, R) ∈ K`, satisfies the criterion over `R` at `R`. -/
+theorem exists_forall_isConvexShapeOverRAt_of_abs_sub_lt {ρ : ℝ → ℝ → ℝ} {K : Set (ℝ × ℝ)}
+    (hK : IsCompact K) (hc : ∀ x ∈ K, IsConvexShapeOverRAt (ρ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (ρ x.1) x.2) K) :
+    ∃ η > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K,
+      (∀ k ≤ 2, |iteratedDeriv k φ x.2 - iteratedDeriv k (ρ x.1) x.2| < η) →
+        IsConvexShapeOverRAt φ x.2 := by
+  obtain ⟨η, hη, h⟩ := exists_forall_isConvexShapeOverRAt_of_iteratedDeriv_two_lt_add hK hc hcont
+  refine ⟨η, hη, fun φ x hx hφ ↦ h φ x hx ?_ ?_ ?_⟩
+  · simpa only [iteratedDeriv_zero] using hφ 0 (by norm_num)
+  · simpa only [iteratedDeriv_one] using hφ 1 (by norm_num)
+  · linarith [(abs_lt.1 (hφ 2 le_rfl)).2]
+
+/-- **Blending a shape over `R` with a nearby function by a cutoff**, in a general one-sided
+form. Let `K ⊆ ℝ × ℝ` be compact, with `ρ ℓ` satisfying the criterion over `R` at `R` for every
+`(ℓ, R) ∈ K` and `(ℓ, R) ↦ iteratedDeriv k (ρ ℓ) R` continuous on `K` for `k ≤ 2`, and let
+`β : ℝ → ℝ` be `C²`. Then there is `τ > 0` such that for every `(ℓ, R) ∈ K` and every
+`φ : ℝ → ℝ` with `φ` and `ρ ℓ` both `C²` at `R`, whose value and first derivative at `R` are
+within `τ` of those of `ρ ℓ` and with `β R * (φ'' R - (ρ ℓ)'' R) ≤ |β R| τ`, the blend
+`R ↦ β R * φ R + (1 - β R) * ρ ℓ R` satisfies the criterion over `R` at `R`.
+
+The last condition holds when `|φ'' R - (ρ ℓ)'' R| < τ`, and also when `β R ≥ 0` and
+`φ'' R < (ρ ℓ)'' R + τ`. -/
+theorem exists_forall_isConvexShapeOverRAt_mul_add_one_sub_mul_of_mul_le_abs_mul
+    {ρ : ℝ → ℝ → ℝ} {K : Set (ℝ × ℝ)} (hK : IsCompact K)
+    (hc : ∀ x ∈ K, IsConvexShapeOverRAt (ρ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (ρ x.1) x.2) K)
+    {β : ℝ → ℝ} (hβ : ContDiff ℝ 2 β) :
+    ∃ τ > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K, ContDiffAt ℝ 2 φ x.2 → ContDiffAt ℝ 2 (ρ x.1) x.2 →
+      |φ x.2 - ρ x.1 x.2| < τ → |deriv φ x.2 - deriv (ρ x.1) x.2| < τ →
+        β x.2 * (iteratedDeriv 2 φ x.2 - iteratedDeriv 2 (ρ x.1) x.2) ≤ |β x.2| * τ →
+          IsConvexShapeOverRAt (fun R ↦ β R * φ R + (1 - β R) * ρ x.1 R) x.2 := by
+  obtain ⟨η, hη, hηK⟩ :=
+    exists_forall_isConvexShapeOverRAt_of_iteratedDeriv_two_lt_add hK hc hcont
+  obtain ⟨τ, hτ, hτK⟩ :=
+    exists_forall_abs_iteratedDeriv_mul_add_one_sub_mul_sub_lt (hK.image continuous_snd) hβ hη
+  refine ⟨τ, hτ, fun φ x hx hφ hρ h₀ h₁ h₂ ↦ ?_⟩
+  obtain ⟨k₀, k₁, k₂⟩ := hτK φ (ρ x.1) x.2 ⟨x, hx, rfl⟩ hφ hρ h₀ h₁
+  refine hηK _ x hx k₀ k₁ ?_
+  linarith [le_abs_self (iteratedDeriv 2 (fun R ↦ β R * φ R + (1 - β R) * ρ x.1 R) x.2 -
+    iteratedDeriv 2 (ρ x.1) x.2 - β x.2 * (iteratedDeriv 2 φ x.2 - iteratedDeriv 2 (ρ x.1) x.2))]
+
+/-- **Blending a shape over `R` with a function whose second derivative is bounded above by that
+of the shape up to a small error.** Let `K ⊆ ℝ × ℝ` be compact, with `ρ ℓ` satisfying the
+criterion over `R` at `R` for every `(ℓ, R) ∈ K` and `(ℓ, R) ↦ iteratedDeriv k (ρ ℓ) R`
+continuous on `K` for `k ≤ 2`, and let `β : ℝ → ℝ` be `C²` and nonnegative on the projection of
+`K` to `R`. Then there is `τ > 0` such that for every `(ℓ, R) ∈ K` and every `φ : ℝ → ℝ` with
+`φ` and `ρ ℓ` both `C²` at `R`, whose value and first derivative at `R` are within `τ` of those
+of `ρ ℓ` and whose second derivative at `R` is less than `(ρ ℓ)'' R + τ`, the blend
+`R ↦ β R * φ R + (1 - β R) * ρ ℓ R` satisfies the criterion over `R` at `R`. -/
+theorem exists_forall_isConvexShapeOverRAt_mul_add_one_sub_mul_of_iteratedDeriv_two_lt_add
+    {ρ : ℝ → ℝ → ℝ} {K : Set (ℝ × ℝ)} (hK : IsCompact K)
+    (hc : ∀ x ∈ K, IsConvexShapeOverRAt (ρ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (ρ x.1) x.2) K)
+    {β : ℝ → ℝ} (hβ : ContDiff ℝ 2 β) (hβ₀ : ∀ x ∈ K, 0 ≤ β x.2) :
+    ∃ τ > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K, ContDiffAt ℝ 2 φ x.2 → ContDiffAt ℝ 2 (ρ x.1) x.2 →
+      |φ x.2 - ρ x.1 x.2| < τ → |deriv φ x.2 - deriv (ρ x.1) x.2| < τ →
+        iteratedDeriv 2 φ x.2 < iteratedDeriv 2 (ρ x.1) x.2 + τ →
+          IsConvexShapeOverRAt (fun R ↦ β R * φ R + (1 - β R) * ρ x.1 R) x.2 := by
+  obtain ⟨τ, hτ, h⟩ :=
+    exists_forall_isConvexShapeOverRAt_mul_add_one_sub_mul_of_mul_le_abs_mul hK hc hcont hβ
+  refine ⟨τ, hτ, fun φ x hx hφ hρ h₀ h₁ h₂ ↦ h φ x hx hφ hρ h₀ h₁ ?_⟩
+  have hβx := hβ₀ x hx
+  rw [abs_of_nonneg hβx]
+  nlinarith [mul_nonneg hβx (by linarith : 0 ≤ iteratedDeriv 2 (ρ x.1) x.2 + τ -
+    iteratedDeriv 2 φ x.2)]
 
 /-- **The Levi form of a shape over `R`.** Let `ρ` be `C²` at `R` and satisfy the criterion over
 `R` there, and let `p ∈ ℂᵏ × ℂᵐ` lie on the hypersurface `r = ρ (R)`,

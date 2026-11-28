@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
-import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Induction
+import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Equiv
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.ChernWeil
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Realization
@@ -33,8 +33,8 @@ smooth map `f : M → ℂPᴺ` with Euler class `-a`
 metric. Under the library's signs, `deRhamHom` of the real first Chern class of such a bundle is
 minus the real image of its Euler class
 (`SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`), so it is the image of `a`,
-which is `deRhamHom [σ]`. By the de Rham theorem on a compact manifold
-(`TauCeti.injective_deRhamHom`), the real first Chern class of `L` is `[σ]`. So `-2π σ` is the
+which is `deRhamHom [σ]`. By the de Rham theorem (`TauCeti.bijective_deRhamHom`), the real
+first Chern class of `L` is `[σ]`. So `-2π σ` is the
 curvature of a connection form (`Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_iff`): an
 arbitrary connection form, corrected by the pull-back of a primitive of the difference of the two
 curvatures (`SymplecticGeometry.isCircleConnectionCurvature_iff`).
@@ -92,7 +92,7 @@ theorem exists_prequantumLineBundle (σ : SmoothForm I M ℝ 2) (hσ : σ ∈ cl
   refine ⟨N, f, hf, g, hI, he, ?_⟩
   -- By Chern–Weil and the de Rham theorem, the real first Chern class of `L` is `[σ]`.
   have hc : g.realFirstChernClass hI = deRhamCohomology.mk I 2 ⟨σ, hσ⟩ := by
-    refine injective_deRhamHom (I := I) 2 ?_
+    refine (bijective_deRhamHom I M 2).injective ?_
     rw [Bundle.deRhamHom_realFirstChernClass_eq_neg f hf g hI, he, map_neg, neg_neg, ha]
   rw [g.isConnectionCurvature_iff hI (Submodule.smul_mem _ (-(2 * Real.pi)) hσ), hc,
     ← _root_.map_smul, SetLike.mk_smul_mk]

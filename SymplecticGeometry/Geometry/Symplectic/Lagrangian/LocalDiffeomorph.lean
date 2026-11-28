@@ -33,7 +33,10 @@ through `normalSpaceEquiv_toContinuousLinearMap`.
 
 An embedding `f : N → M` followed by a diffeomorphism `ψ : M ≃ M'` onto a manifold on another
 model (`TauCeti.SmoothEmbedding.transDiffeomorphOfBoundaryless`) has symplectic tangent images for
-a nondegenerate two-form `σ'` on `M'` exactly when `f` has them for `σ = ψ^* σ'`.
+a nondegenerate two-form `σ'` on `M'` exactly when `f` has them for `σ = ψ^* σ'`. The same
+holds, for one and the same two-form, when `f : M → X` is instead precomposed with a
+diffeomorphism `e : M' ≃ M` from a manifold on another model
+(`TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless`).
 
 ## Main results
 
@@ -47,6 +50,8 @@ a nondegenerate two-form `σ'` on `M'` exactly when `f` has them for `σ = ψ^* 
   forms of a commuting triangle of embeddings.
 * `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff`: the
   symplectic tangent images of an embedding moved along a diffeomorphism.
+* `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff`: the
+  symplectic tangent images of an embedding reparametrised by a diffeomorphism of its source.
 
 ## References
 
@@ -174,6 +179,32 @@ theorem hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff
   exact SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ
 
 end TransDiffeomorphOfBoundaryless
+
+section CompDiffeomorphOfBoundaryless
+
+variable {E H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace X] [ChartedSpace H X] [IsManifold I ∞ X]
+  {E' H' M : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M] [ChartedSpace H' M]
+  {E'' H'' M' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E'']
+  [TopologicalSpace H''] {I'' : ModelWithCorners ℝ E'' H''} [I''.Boundaryless]
+  [TopologicalSpace M'] [ChartedSpace H'' M']
+  {n : ℕ∞ω} [IsManifold I n X] [IsManifold I'' n M']
+  {σ : SmoothTwoForm I X} {hσ : σ.IsNondegenerate}
+
+/-- The reparametrised embedding `f.compDiffeomorphOfBoundaryless e h1` has symplectic tangent
+images for a nondegenerate two-form `σ` on `X` exactly when `f` has: Tau Ceti's
+`hasSymplecticTangentImages_comp_diffeomorph_iff`, for the bundled embedding. -/
+theorem hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) :
+    hσ.HasSymplecticTangentImages I'' (f.compDiffeomorphOfBoundaryless e h1) ↔
+      hσ.HasSymplecticTangentImages I' f := by
+  rw [coe_compDiffeomorphOfBoundaryless]
+  exact hσ.hasSymplecticTangentImages_comp_diffeomorph_iff e
+    (ENat.one_le_iff_ne_zero_withTop.1 h1)
+
+end CompDiffeomorphOfBoundaryless
 
 end TauCeti.SmoothEmbedding
 
