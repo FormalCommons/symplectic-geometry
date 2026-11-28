@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.NormSquare
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nonneg
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
@@ -723,7 +724,7 @@ theorem exists_eventually_abs_kempfNessFunction_le
   refine ⟨R, (eventually_map.1 hR).mono fun s hs p ↦ ?_⟩
   rw [← C.expI_mul_toHom_polar_symm (k s)]
   exact (abs_kempfNessFunction_expI_mul_toHom_le C μ p hBs
-    (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hL' _ _).trans hs
+    (LinearMap.BilinForm.isNonneg_of_posDef hBp) hL' _ _).trans hs
 
 /-- **Moment weights under the parabolic subgroup.** Under the hypotheses of
 `tendsto_deriv_kempfNessFunction`, `w_μ(q x, ξ) = w_μ(x, ξ)` for every `q` in the
@@ -993,7 +994,7 @@ theorem exists_momentWeight_pos_of_iInf_momentNormSq_pos (h : IsComplexifiedActi
     (hm : 0 < ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)) :
     ∃ ξ : GroupLieAlgebra I G, B ξ ξ = 1 ∧ 0 < momentWeight C μ p ξ := by
   set m := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)
-  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
+  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_of_posDef hBp
   obtain ⟨L, hL0, hL⟩ :=
     hμ.toIsMomentMap.exists_pos_forall_sqrt_momentNormSq_le_of_neg (K := (B.toDual hB).symm)
   -- For each `n`, a direction `η n` of radius `r n ≤ 2 L (n + 1)` along which `Φ_p` is at most
