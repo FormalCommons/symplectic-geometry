@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.P
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
@@ -958,7 +959,9 @@ theorem norm_modelDel_reading_le [∀ y, Nonempty (P y)]
     gcongr
     exact le_max_left _ _
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-  rw [modelDel_def, complexLinearPartContinuousLinearMap_apply_apply, ← connectionReading_def]
+  rw [modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
+    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
+    ← connectionReading_def]
   -- For the structure `J_z` of the chart, the complex-linear part is `∂ s` read in the chart.
   have h1 : ‖complexLinearPart (Jz : StdSpace ι →ₗ[ℝ] StdSpace ι)
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (L : StdSpace ι →ₗ[ℝ] ℂ) u‖ ≤
