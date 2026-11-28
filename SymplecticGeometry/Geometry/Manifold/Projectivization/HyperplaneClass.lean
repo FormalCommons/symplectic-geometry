@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.RealImage
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
@@ -30,6 +32,9 @@ generator of `H²(ℂℙᵐ; ℤ)` for the complex orientation.
 * `Projectivization.complexManifoldEvalFundamentalClass_map_hyperplaneClass`: the same for the
   pull-back of the hyperplane class of `ℙ ℂ W` along the map induced by an injective linear map
   `ℂ² → W`.
+* `Projectivization.singularCohomologyRealImageAddMonoidHom_hyperplaneClass_ne_zero`: so the
+  hyperplane class of `ℙ ℂ W`, for `W` with an injective linear map from `ℂ²`, has a nonzero real
+  image in `H²(ℙ ℂ W; ℝ)`.
 
 ## Proof
 
@@ -131,6 +136,30 @@ theorem complexManifoldEvalFundamentalClass_map_hyperplaneClass {W : Type}
         2 (hyperplaneClass W)) = 1 := by
   rw [hyperplaneClass_map]
   exact complexManifoldEvalFundamentalClass_hyperplaneClass
+
+/-- **The hyperplane class has nonzero real image.** If some injective linear map `ℂ² → W`
+exists, the hyperplane class of `ℙ ℂ W`, read in `H²(ℙ ℂ W; ULift ℤ)`, has a nonzero real image
+in `H²(ℙ ℂ W; ℝ)`. -/
+theorem singularCohomologyRealImageAddMonoidHom_hyperplaneClass_ne_zero {W : Type}
+    [NormedAddCommGroup W] [NormedSpace ℂ W] (ι : (Fin 2 → ℂ) →ₗ[ℂ] W)
+    (hι : Function.Injective ι) :
+    (TopCat.of (ℙ ℂ W)).singularCohomologyRealImageAddMonoidHom 2
+      (((TopCat.of (ℙ ℂ W)).uliftIntegralCohomologyIso 2).inv (hyperplaneClass W)) ≠ 0 := by
+  intro h
+  refine (complexManifoldHomologicalOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))
+    (finrank_fin_fun ℂ)).singularCohomologyRealImageAddMonoidHom_ne_zero
+    (finrank_real_of_finrank_complex_eq_add_one (finrank_fin_fun ℂ)) (ContinuousMap.id _)
+    (c := TopCat.singularCohomologyMap (TopCat.ofHom (mapContinuousMap ι hι)) 2
+      (((TopCat.of (ℙ ℂ W)).uliftIntegralCohomologyIso 2).inv (hyperplaneClass W))) ?_ ?_
+  · intro h0
+    have h1 := complexManifoldEvalFundamentalClass_map_hyperplaneClass ι hι
+    rw [complexManifoldEvalFundamentalClass_def,
+      ← CategoryTheory.Iso.inv_hom_id_apply ((TopCat.of (ℙ ℂ W)).uliftIntegralCohomologyIso 2)
+        (hyperplaneClass W),
+      ← TopCat.uliftIntegralCohomologyIso_naturality_apply,
+      HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom, h0] at h1
+    simp at h1
+  · rw [TopCat.singularCohomologyRealImageAddMonoidHom_naturality, h, map_zero]
 
 end Projectivization
 
