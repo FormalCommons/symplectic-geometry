@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 public import SymplecticGeometry.Geometry.Lie.Subgroup.Restrict
-public import SymplecticGeometry.Geometry.Lie.Exponential.Periods
 public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Topology.Connected.Basic
@@ -37,8 +36,10 @@ Lie algebra of `Gc₀`, `C.cplx` gives that Lie algebra a complex structure whic
 brackets, and for which the Lie algebra of `H₀`, mapped by the restriction `H₀ → Gc₀` of
 `C.toHom`, is maximal totally real. These are the complex structure and the maximal totally real
 image of a complexification of `H₀` by `Gc₀`. Together with the restricted polar decomposition
-they make `Gc₀` a complexification of `H₀`, whose exponential of imaginary directions and whose
-nonzero periods are those of `C` and of `G`, read through the inclusions.
+they make `Gc₀` a complexification of `H₀`, whose exponential of imaginary directions, read in
+`Gc` through the inclusions, is that of `C`. The differential at `1` of the inclusion `H₀ → G`
+maps nonzero periods of `H₀` to nonzero periods of `G`; this one inclusion holds for any embedded
+Lie subgroup (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraMap_subtype_mem_nonzeroPeriods`).
 
 ## Main results
 
@@ -66,9 +67,7 @@ nonzero periods are those of `C` and of `G`, read through the inclusions.
   complexification of `H₀`, built from the restriction of `C.toHom`, `stabilizerCplx` and
   `stabilizerPolar`.
 * `SymplecticGeometry.IsComplexifiedAction.stabilizerComplexification_expI`: its `expI`, read in
-  `Gc`, is `C.expI` of the image in the Lie algebra of `G`; and
-  `SymplecticGeometry.mem_nonzeroPeriods_of_stabilizer`: a nonzero period of `H₀` maps to one of
-  `G`.
+  `Gc`, is `C.expI` of the image in the Lie algebra of `G`.
 
 ## Implementation notes
 
@@ -595,7 +594,6 @@ noncomputable def IsComplexifiedAction.stabilizerComplexification (h : IsComplex
       · exact (C.toHom.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict dH dK hmaps ξ).symm
       · exact (C.toHom.coe_restrict_apply dH dK hmaps u).symm }
 
-
 /-- The inclusion of `IsComplexifiedAction.stabilizerComplexification` is the restriction of
 `C.toHom` to the identity components of the stabilizers. -/
 theorem IsComplexifiedAction.stabilizerComplexification_toHom (h : IsComplexifiedAction C J)
@@ -681,22 +679,6 @@ theorem IsComplexifiedAction.stabilizerComplexification_expI (h : IsComplexified
     h.stabilizerComplexification_toHom,
     C.toHom.groupLieAlgebraMap_subtype_groupLieAlgebraLieHom_restrict]
 
-omit [TopologicalSpace M] [I.Boundaryless] [T2Space M] in
-/-- **A nonzero period of the identity component of `G_x` is one of `G`.** For any embedded Lie
-subgroup structure on the identity component `H₀` of the stabilizer of `x` in `G`, the
-differential at `1` of the inclusion `H₀ → G` maps `nonzeroPeriods` of `H₀` into those of `G`. -/
-theorem mem_nonzeroPeriods_of_stabilizer {x : M} {F : Type*} [NormedAddCommGroup F]
-    [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-    (d : EmbeddedLieSubgroupData I (MulAction.stabilizer G x).ambientConnectedComponentOfOne F) :
-    let _ := d.chartedSpace
-    let _ := d.lieGroup
-    ∀ {ξ}, ξ ∈ nonzeroPeriods 𝓘(ℝ, F) (MulAction.stabilizer G x).ambientConnectedComponentOfOne →
-      (MulAction.stabilizer G x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
-        𝓘(ℝ, F) I ξ ∈ nonzeroPeriods I G := by
-  intro _ _ ξ hξ
-  rw [mem_nonzeroPeriods] at hξ ⊢
-  refine ⟨(map_ne_zero_iff _ d.injective_groupLieAlgebraMap_subtype).2 hξ.1, ?_⟩
-  rw [← d.coe_mulInvariantExp, hξ.2, OneMemClass.coe_one]
 end StabilizerComplexification
 
 end SymplecticGeometry

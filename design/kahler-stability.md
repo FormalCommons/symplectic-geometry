@@ -777,7 +777,8 @@ the source, first half).
   homeomorphism, it maps the component `𝔥 × H₀` of `(0, 1)` onto `Gc₀`.
   `H₀` is compact and connected, so the setting holds for it.
 - `IsComplexifiedAction.stabilizerComplexification_expI` and
-  `mem_nonzeroPeriods_of_stabilizer`:
+  `EmbeddedLieSubgroupData.groupLieAlgebraMap_subtype_mem_nonzeroPeriods`
+  (in `Geometry/Lie/Exponential/Periods.lean`, for any embedded Lie subgroup):
   through the inclusion of Lie algebras, the `expI` of
   `h.stabilizerComplexification hμ hg hx` is that of `C`, and a nonzero period of
   `H₀` is one of `G` (`EmbeddedLieSubgroupData.coe_mulInvariantExp`,
@@ -925,7 +926,8 @@ because the orbit of a zero of `μ` is isotropic (Tau Ceti's
   stays in the ball of `S` where `e.symm` is defined, so by
   `expI_smul_chart_symm`, `C.expI (t • λ) • e.symm (v t₀) → e.symm 0 = x`,
   with `e.symm (v t₀) = (h t₀)⁻¹ • (g t₀)⁻¹ • p` in the orbit of `p`, and
-  `λ ∈ nonzeroPeriods I G` (`mem_nonzeroPeriods_of_stabilizer`).
+  `λ ∈ nonzeroPeriods I G`
+  (`EmbeddedLieSubgroupData.groupLieAlgebraMap_subtype_mem_nonzeroPeriods`).
 
 ### The destabilizing direction
 
@@ -1182,7 +1184,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
           `HasLeftTrivializedDerivOn.mem_ambientConnectedComponentOfOne_stabilizer`,
           in `Geometry/Lie/LeftTrivializedCurve/Deriv.lean`. No blockers.
        2. `stabilizerComplexification`, `stabilizerComplexification_expI`
-          and `mem_nonzeroPeriods_of_stabilizer`. Blocked by 12.9.1.
+          and `groupLieAlgebraMap_subtype_mem_nonzeroPeriods`. Blocked by
+          12.9.1.
        3. `KempfNess/HolomorphicChart.lean`:
           `exists_equivariant_holomorphic_chart`,
           `fundamentalVectorField_chart_symm` and `expI_smul_chart_symm`.
