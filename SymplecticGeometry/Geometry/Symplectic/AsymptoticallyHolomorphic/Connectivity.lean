@@ -239,9 +239,7 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
     exact hv hv'.symm
   refine (fderiv_fderiv_log_norm_sq_add_stdComplexStructure_le (hF.of_le (by simp)) hJd
     (D.chartPushforward_zero hk x) (hGd.differentiableAt (by simp))
-    (Filter.Eventually.of_forall fun z ↦ by
-      rw [D.dbarReading_def, modelDbarWith_def, complexAntilinearPartContinuousLinearMap_apply,
-        modelConnection_def])
+    (Filter.Eventually.of_forall (D.dbarReading_def k x (s k)))
     (norm_ne_zero_iff.1 (hF0 ▸ norm_ne_zero_iff.2 hx)) _).trans_lt ?_
   -- The error term is at most a constant times `k ^ (-1/2)`, which is below `1 / 4`.
   have hε := chartError_le D hρ₀ hk hk1 hη hjet hdbar (hF0 ▸ hle x hdiff hx hcrit)
