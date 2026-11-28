@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelDbar
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
@@ -37,10 +38,13 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
 * `SymplecticGeometry.peakFunction`: the cut-off Gaussian.
 * `SymplecticGeometry.peakFunction_mul`: a complex coordinate times the cut-off Gaussian.
 * `SymplecticGeometry.flatDbar`: the flat `∂̄` of a complex function on `StdSpace ι`, the
-  complex-antilinear part for `J₀` of `df_z`, through
-  `TauCeti.complexAntilinearPartContinuousLinearMap`.
+  complex-antilinear part for `J₀` of `df_z`: `SymplecticGeometry.flatDbarWith` for the constant
+  structure `J₀`.
 * `SymplecticGeometry.modelDbar`: the model `∂̄` of a complex function on `StdSpace ι`, the
-  complex-antilinear part for `J₀` of `v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`.
+  complex-antilinear part for `J₀` of `v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`:
+  `SymplecticGeometry.modelDbarWith` for the constant structure `J₀`. The smoothness of both,
+  and the linearity and Leibniz rule of `modelDbar`, come from those of `flatDbarWith` and
+  `modelDbarWith`.
 
 ## Main results
 
@@ -365,31 +369,36 @@ theorem exists_jetNormAt_peakFunction_mul_le (r : ℕ) :
 
 /-! ### The flat and the model `∂̄` -/
 
-/-- The **flat `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: the complex-antilinear part
-of `df_z`, for `J₀ = stdComplexStructure ι` and multiplication by `i` on `ℂ`, that is
+/-- The **flat `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: the flat `∂̄`
+`SymplecticGeometry.flatDbarWith` for the constant structure `J₀ = stdComplexStructure ι`, that
+is the complex-antilinear part of `df_z` for `J₀` and multiplication by `i` on `ℂ`,
 `v ↦ ½ (df_z v + i df_z (J₀ v))`. -/
 noncomputable def flatDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z)
+  flatDbarWith (fun _ ↦ LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) f z
 
 theorem flatDbar_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    flatDbar f z = complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z) :=
+    flatDbar f z =
+      flatDbarWith (fun _ ↦ LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+        f z :=
   (rfl)
+
+/-- The flat `∂̄` of `f` at `z` is the operator `TauCeti.complexAntilinearPartContinuousLinearMap`
+for `J₀` and multiplication by `i`, applied to `df_z`. -/
+theorem flatDbar_eq (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDbar f z = complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z) := by
+  rw [flatDbar_def, flatDbarWith_def, LinearMap.coe_toContinuousLinearMap]
 
 theorem flatDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     flatDbar f z v =
       (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z (stdComplexStructure ι v)) := by
-  simp only [flatDbar_def, complexAntilinearPartContinuousLinearMap_apply_apply,
-    complexAntilinearPart_apply,
-    ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul]
+  rw [flatDbar_def, flatDbarWith_apply, LinearMap.coe_toContinuousLinearMap']
 
 /-- The flat `∂̄` of `f` is `C^n` at a point where `f` is `C^(n + 1)`. -/
 theorem contDiffAt_flatDbar {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpace ι}
     (hf : ContDiffAt ℝ (n + 1) f z) : ContDiffAt ℝ n (flatDbar f) z := by
-  rw [show flatDbar f = _ ∘ fderiv ℝ f from funext (flatDbar_def f)]
-  exact (complexAntilinearPartContinuousLinearMap _ _).contDiff.contDiffAt.comp z
-    (hf.fderiv_right le_rfl)
+  rw [show flatDbar f = _ from funext (flatDbar_def f)]
+  exact contDiffAt_flatDbarWith contDiffAt_const hf
 
 /-- The flat `∂̄` of a `C^(n + 1)` function is `C^n`. -/
 theorem contDiff_flatDbar {n : ℕ∞} {f : StdSpace ι → ℂ} (hf : ContDiff ℝ (n + 1) f) :
@@ -463,29 +472,26 @@ theorem flatDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differe
 theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
     flatDbar (complexToRealEuclideanCoord ι j) = 0 := by
   ext z v : 2
-  rw [flatDbar_def, (complexToRealEuclideanCoord ι j).fderiv,
+  rw [flatDbar_eq, (complexToRealEuclideanCoord ι j).fderiv,
     complexAntilinearPartContinuousLinearMap_apply_apply,
     (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero
       (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
   simp
 
-/-- The **model `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
-complex-antilinear part `TauCeti.complexAntilinearPart`, for `J₀ = stdComplexStructure ι` and
-multiplication by `i` on `ℂ`, of the model connection reading
-`v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`, with `ω₀ = stdForm ι`. This is the formula of
-`RescaledUnitaryCharts.connectionReading` and `RescaledUnitaryCharts.dbarReading` with the
-structure of the chart replaced by `J₀`. -/
+/-- The **model `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: the model `∂̄`
+`SymplecticGeometry.modelDbarWith` for the constant structure `J₀ = stdComplexStructure ι`, that
+is Tau Ceti's complex-antilinear part `TauCeti.complexAntilinearPart`, for `J₀` and
+multiplication by `i` on `ℂ`, of the model connection `SymplecticGeometry.modelConnection f z`,
+`v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`, with `ω₀ = stdForm ι`. The `∂̄` reading
+`RescaledUnitaryCharts.dbarReading` is `SymplecticGeometry.modelDbarWith` for the structure of
+the chart instead. -/
 noncomputable def modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-    (fderiv ℝ f z - ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap
-      ((stdForm ι).toBilinForm z)).smulRight (Complex.I * f z))
+  modelDbarWith (fun _ ↦ LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) f z
 
 theorem modelDbar_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    modelDbar f z = complexAntilinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (fderiv ℝ f z - ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap
-        ((stdForm ι).toBilinForm z)).smulRight (Complex.I * f z)) :=
+    modelDbar f z =
+      modelDbarWith (fun _ ↦ LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap)
+        f z :=
   (rfl)
 
 /-- The model `∂̄` of `f` at `z`, applied to `v`, is the flat `∂̄` of `f` at `z`, applied to `v`,
@@ -494,51 +500,38 @@ theorem modelDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     modelDbar f z v =
       flatDbar f z v +
         (4⁻¹ : ℝ) • ((inner ℝ z v : ℝ) - Complex.I * (stdForm ι z v : ℝ)) * f z := by
-  simp only [modelDbar_def, flatDbar_apply, complexAntilinearPartContinuousLinearMap_apply_apply,
-    complexAntilinearPart_apply,
-    AlmostComplexStructure.ofComplexModule_apply, ContinuousLinearMap.coe_coe,
-    sub_apply, ContinuousLinearMap.smulRight_apply, LinearMap.coe_toContinuousLinearMap',
-    smul_apply, map_sub, smul_eq_mul, stdForm_apply_stdComplexStructure, Complex.real_smul]
+  rw [modelDbar_def, modelDbarWith_apply, flatDbar_apply, modelConnection_apply,
+    modelConnection_apply, LinearMap.coe_toContinuousLinearMap']
+  simp only [stdForm_apply_stdComplexStructure,
+    Complex.real_smul]
   push_cast
   linear_combination (-(4⁻¹ : ℂ) * f z * (inner ℝ z v : ℂ)) * Complex.I_sq
 
 /-- The model `∂̄` is additive on functions differentiable at `z`. -/
 theorem modelDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) : modelDbar (f + g) z = modelDbar f z + modelDbar g z := by
-  ext v
-  simp only [modelDbar_apply, flatDbar_add hf hg, add_apply, Pi.add_apply, Complex.real_smul]
-  ring
+  simp only [modelDbar_def, modelDbarWith_add hf hg]
 
 /-- The model `∂̄` commutes with complex scalars. -/
 @[simp]
 theorem modelDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     modelDbar (c • f) z = c • modelDbar f z := by
-  ext v
-  simp only [modelDbar_apply, flatDbar_smul, Pi.smul_apply, smul_apply, smul_eq_mul,
-    Complex.real_smul]
-  ring
+  simp only [modelDbar_def, modelDbarWith_smul]
 
 @[simp]
 theorem modelDbar_zero (z : StdSpace ι) : modelDbar (0 : StdSpace ι → ℂ) z = 0 := by
-  ext v
-  simp [modelDbar_apply]
+  simp only [modelDbar_def, modelDbarWith_zero]
 
 /-- Near `z`, the model `∂̄` of `f` depends only on the germ of `f` at `z`. -/
 theorem modelDbar_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
-    (h : f =ᶠ[nhds z] g) : modelDbar f =ᶠ[nhds z] modelDbar g := by
-  filter_upwards [h.eventuallyEq_nhds] with w hw
-  rw [modelDbar_def, modelDbar_def, hw.fderiv_eq, hw.eq_of_nhds]
+    (h : f =ᶠ[nhds z] g) : modelDbar f =ᶠ[nhds z] modelDbar g :=
+  (modelDbarWith_eventuallyEq h).mono fun w hw ↦ by rw [modelDbar_def, modelDbar_def, hw]
 
 /-- The model `∂̄` of `f` is `C^n` at a point where `f` is `C^(n + 1)`. -/
 theorem contDiffAt_modelDbar {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpace ι}
     (hf : ContDiffAt ℝ (n + 1) f z) : ContDiffAt ℝ n (modelDbar f) z := by
-  -- The connection term is linear in the point, through `ω₀`, times `i f`.
-  have hω : ContDiff ℝ n fun y : StdSpace ι ↦
-      (2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm y) :=
-    (stdForm ι).toBilinForm.toContinuousBilinearMap.contDiff.const_smul _
-  have hf' : ContDiffAt ℝ n f z := hf.of_le (by simp)
-  exact (complexAntilinearPartContinuousLinearMap _ _).contDiff.contDiffAt.comp z
-    ((hf.fderiv_right le_rfl).sub (hω.contDiffAt.smulRight (contDiffAt_const.mul hf')))
+  rw [show modelDbar f = _ from funext (modelDbar_def f)]
+  exact contDiffAt_modelDbarWith contDiffAt_const hf
 
 /-- The model `∂̄` of a `C^(n + 1)` function is `C^n`. -/
 theorem contDiff_modelDbar {n : ℕ∞} {f : StdSpace ι → ℂ} (hf : ContDiff ℝ (n + 1) f) :
@@ -551,11 +544,7 @@ theorem contDiff_modelDbar {n : ℕ∞} {f : StdSpace ι → ℂ} (hf : ContDiff
 theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) :
     modelDbar (fun y ↦ f y * g y) z = f z • modelDbar g z + g z • flatDbar f z := by
-  ext v
-  rw [add_apply, smul_apply, smul_apply, modelDbar_apply, modelDbar_apply, flatDbar_mul hf hg]
-  simp only [add_apply, smul_apply, smul_eq_mul, Complex.real_smul]
-  push_cast
-  ring
+  simp only [modelDbar_def, flatDbar_def, modelDbarWith_mul hf hg]
 
 /-- The derivative of the Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function. -/
 private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
@@ -632,8 +621,10 @@ private theorem exists_jetNormAt_cutoffDbar_le (r : ℕ) :
     Complex.ofRealCLM.contDiff.comp hχ
   have h1 : jetNormAt ℝ r (cutoffDbar (ι := ι) s) z ≤
       ‖P‖ * jetNormAt ℝ r (fderiv ℝ (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦
-        peakCutoff (‖y‖ / s))) z :=
-    jetNormAt_comp_left_le P (hχC.fderiv_right le_rfl).contDiffAt
+        peakCutoff (‖y‖ / s))) z := by
+    rw [show cutoffDbar (ι := ι) s = P ∘ fderiv ℝ (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦
+      peakCutoff (‖y‖ / s)) from funext fun y ↦ flatDbar_eq _ y]
+    exact jetNormAt_comp_left_le P (hχC.fderiv_right le_rfl).contDiffAt
   have h2 : jetNormAt ℝ r (fderiv ℝ (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦
       peakCutoff (‖y‖ / s))) z ≤ A := by
     have h := jetNormAt_comp_left_le Complex.ofRealCLM hχ.contDiffAt (z := z)
@@ -655,7 +646,8 @@ private theorem jetNormAt_cutoffDbar_eq_zero (r : ℕ) {s : ℝ} (hs : 0 < s) {z
           fun _ ↦ (c : ℂ) := by
         filter_upwards [hU.mem_nhds hy] with w hw
         rw [hc w hw]
-      rw [cutoffDbar, flatDbar_def, hconst.fderiv_eq, fderiv_const_apply, map_zero]
+      rw [cutoffDbar, flatDbar_def, flatDbarWith_congr_of_eventuallyEq hconst, flatDbarWith_def,
+        fderiv_const_apply, map_zero]
     rw [jetNormAt_congr_of_eventuallyEq r h, jetNormAt_const, norm_zero]
   rcases hz with hz | hz
   · refine key {y | ‖y‖ < s} (isOpen_lt continuous_norm continuous_const) hz ⟨1, fun y hy ↦ ?_⟩
