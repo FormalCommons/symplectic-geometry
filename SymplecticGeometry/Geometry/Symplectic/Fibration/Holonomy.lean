@@ -14,12 +14,12 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import SymplecticGeometry.Analysis.Complex.Circle
-import SymplecticGeometry.Analysis.SpecialFunctions.Trigonometric.ArctanReparam
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Period
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CylinderVariation
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
+import TauCeti.Analysis.Calculus.Deriv.BoundedReparametrization
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
@@ -78,13 +78,13 @@ For a two-form `τ` whose horizontal spaces form the connection, `τ (∂ₜC, �
 slice `(t, θ) ↦ C (s, t, θ)` has `τ`-area zero, and so has the derivative of that area in `s`.
 The library's first variation formula `TauCeti.hasDerivAt_rectangleIntegral_slice` computes this
 derivative; it needs a map smooth on all of `ℝ³`, so it is applied to `C` reparametrized in `s`
-by a smooth map of `ℝ` into a small interval about `s` that is tangent to the identity at `s`
-(`Real.exists_contDiff_mem_ball_hasDerivAt_one`). The term at `t = 0` vanishes, and the term at
-`t = 1` is the line integral of `ι_{X_s} σ` along the moved loop `θ ↦ Φ (s, c θ)` when `τ`
-restricts to `σ`. When `σ` is closed and the slices of `Φ` preserve it, `ι_{X_s} σ` is closed,
-and its line integral along the moved loop is its line integral along `c`
-(`TauCeti.Diffeotopy.pathIntegral_apply_eq`). This gives the variation of holonomy,
-`TauCeti.IsEhresmannConnection.period_interior_velocity_holonomyDiffeotopy`.
+by a smooth map of `ℝ` into a small interval about `s` that is tangent to the identity at `s`,
+built from Tau Ceti's bounded reparametrization `TauCeti.exists_contDiff_hasDerivAt_abs_le`.
+The term at `t = 0` vanishes, and the term at `t = 1` is the line integral of `ι_{X_s} σ` along
+the moved loop `θ ↦ Φ (s, c θ)` when `τ` restricts to `σ`. When `σ` is closed and the
+slices of `Φ` preserve it, `ι_{X_s} σ` is closed, and its line integral along the moved loop is
+its line integral along `c` (`TauCeti.Diffeotopy.pathIntegral_apply_eq`). This gives the
+variation of holonomy, `TauCeti.IsEhresmannConnection.period_interior_velocity_holonomyDiffeotopy`.
 
 ## Main definitions
 
@@ -930,7 +930,15 @@ theorem integral_mpullback_mextDeriv_transportedCylinder_add_eq_zero {τ : Smoot
     e.open_baseSet.preimage (hΔ.contMDiff.continuous.comp (by fun_prop))
   obtain ⟨δ, hδ, hball⟩ := Metric.isOpen_iff.1 hS s
     ((congrArg (· ∈ e.baseSet) (hΔ.apply_seam s)).mpr hx)
-  obtain ⟨ρ, hρ, hρmem, hρs, hρd⟩ := Real.exists_contDiff_mem_ball_hasDerivAt_one (s : ℝ) hδ
+  obtain ⟨ρ, hρ, hρmem, hρs, hρd⟩ : ∃ ρ : ℝ → ℝ, ContDiff ℝ ∞ ρ ∧
+      (∀ r, ρ r ∈ Metric.ball (s : ℝ) δ) ∧ ρ s = s ∧ HasDerivAt ρ 1 s := by
+    obtain ⟨φ, hφ, hφ0, hφd, hφb⟩ := TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hδ)
+    have h : HasDerivAt φ 1 ((s : ℝ) - s) := by rwa [sub_self]
+    refine ⟨fun r ↦ (s : ℝ) + φ (r - s),
+      contDiff_const.add ((hφ.of_le le_top).comp (contDiff_id.sub contDiff_const)), fun r ↦ ?_,
+      by simp [hφ0], (h.comp_sub_const (s : ℝ) (s : ℝ)).const_add (s : ℝ)⟩
+    rw [Metric.mem_ball, Real.dist_eq, add_sub_cancel_left]
+    exact (hφb _).trans_lt (half_lt_self hδ)
   -- The cylinder reparametrized by `ρ` in `s` is smooth everywhere, and has the derivative of
   -- `C` at the points `(s, t, θ)`.
   set g : ℝ × ℝ × ℝ → ℝ × ℝ × ℝ := fun p ↦ (ρ p.1, p.2)
