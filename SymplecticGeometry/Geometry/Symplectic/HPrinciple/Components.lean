@@ -142,7 +142,9 @@ theorem continuous_tangentEquiv_symm_ofDisjointCover_opens :
         ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) := by
   let eC (c : ConnectedComponents M) (x : c.opens) := trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
     (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x
-  let UC (c : ConnectedComponents M) (x : c.opens) : Opens c.opens := ⟨_, (eC c x).open_baseSet⟩
+  let UC (c : ConnectedComponents M) (x : c.opens) : Opens c.opens := (eC c x).baseSetOpens
+  have hUC (c : ConnectedComponents M) (x : c.opens) : (UC c x : Set c.opens) ⊆ (eC c x).baseSet :=
+    (eC c x).coe_baseSetOpens.subset
   -- Frames on `M` whose domains `D x` each lie in the component of `x`, where the frame
   -- coordinates of a form are those of its restriction to that component.
   choose D hxD hDU hD hD' hDω using fun x : M ↦
@@ -152,7 +154,7 @@ theorem continuous_tangentEquiv_symm_ofDisjointCover_opens :
       let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) _ D hD
       let _ (c : ConnectedComponents M) :=
         ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) (eC c) (UC c)
-          fun _ ↦ subset_rfl
+          (hUC c)
       Continuous fun σ : ∀ c : ConnectedComponents M,
           ContMDiffTwoForm I ⊤ E (TangentSpace I (M := c.opens)) ↦
         (ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.ofDisjointCover
@@ -171,7 +173,7 @@ theorem continuous_tangentEquiv_symm_ofDisjointCover_opens :
         (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).mp (contMDiff_inclusion (hDU x))⟩
     refine ((ContMDiffMap.continuous_comp_manifoldWeakWhitney.comp
       (((ContMDiffSection.continuous_frameCoordinates_of_cover (eC c) (UC c)
-        (fun _ ↦ subset_rfl) (fun y ↦ ⟨y, FiberBundle.mem_baseSet_trivializationAt' y⟩) _ _
+        (hUC c) (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _) _ _
           (hD' x)).comp (continuous_apply c)).prodMk (continuous_const (y := j))))).congr
             fun σ ↦ ContMDiffMap.ext fun z ↦ ?_
     rw [Function.comp_apply, hDω x _ z z.property, LinearEquiv.apply_symm_apply,
@@ -181,7 +183,7 @@ theorem continuous_tangentEquiv_symm_ofDisjointCover_opens :
     rfl
   intro _ tC
   -- The topology on each factor is the frame topology of the frames `eC c` over `UC c`.
-  rw [show tC = fun c ↦ ContMDiffSection.frameTopology (eC c) (UC c) fun _ ↦ subset_rfl from
+  rw [show tC = fun c ↦ ContMDiffSection.frameTopology (eC c) (UC c) (hUC c) from
     funext fun c ↦ ContMDiffTwoForm.trivializationAtFrameTopology_def I c.opens]
   exact continuous_le_rng
     (ContMDiffSection.frameTopology_le_of_cover _ D hD (fun x ↦ ⟨x, hxD x⟩) e W hW) key
@@ -205,9 +207,8 @@ noncomputable def restrictComponentsHomeomorph (hcover : ∀ x, ∃ i, x ∈ W i
     (continuous_tangentEquiv_symm_ofDisjointCover_opens e W hW).congr fun σ ↦ ?_⟩
   · have h := ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal e W hW
       (fun x : c.opens ↦ trivializationAt _ _ x)
-      (fun x ↦ ⟨_, (trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
-        (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x).open_baseSet⟩)
-      (fun _ ↦ subset_rfl) hcover
+      (fun x ↦ (trivializationAt _ _ x).baseSetOpens)
+      (fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset) hcover
     rw [← ContMDiffTwoForm.trivializationAtFrameTopology_def] at h
     refine h.congr fun ω ↦ ?_
     simp [Φ]
