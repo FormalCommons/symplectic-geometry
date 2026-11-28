@@ -9,6 +9,7 @@ public import SymplecticGeometry.LinearAlgebra.Complex.Complexification
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Topology.VectorBundle.Complexification
 public import TauCeti.Topology.VectorBundle.Conjugate
+import SymplecticGeometry.Topology.FiberBundle.Prod
 import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Topology.VectorBundle.Section
 
@@ -121,8 +122,7 @@ theorem continuous_complexificationEquiv :
     continuous_id
   have hJ := (continuous_hom_bundle_iff (fun b ↦ J b)).1 J.continuous
   have hJim := hJ.comp him
-  rw [(FiberBundle.Prod.isInducing_diag (F₁ := G) (E₁ := J.Fiber) (F₂ := Conjugate G)
-    (E₂ := ConjugateBundle J.Fiber)).continuous_iff, Function.comp_def, continuous_prodMk]
+  rw [Bundle.Prod.continuous_totalSpace_prod_iff]
   constructor
   · refine ((J.totalSpaceHomeomorph G).symm.continuous.comp
       (hre.add_totalSpace ℝ hJim)).congr fun p ↦ ?_

@@ -6,12 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelDbar
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
-public import TauCeti.LinearAlgebra.Complex.LinearPart
-public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
@@ -41,7 +40,11 @@ satisfies the triangle inequality.
 
 The connection `powerConnection α k` is read in the same chart and frame as
 `D.connectionReading k x s z = df_z + i A₀(z) f(z)`, for `f` the reading of `s` and
-`A₀(z) v = -ω₀(z, v) / 2` the model connection form, `ω₀` being `stdForm ι`.
+`A₀(z) v = -ω₀(z, v) / 2` the model connection form, `ω₀` being `stdForm ι`: it is
+`SymplecticGeometry.modelConnection` of the reading. The `∂̄` reading and `D.dbarFun` below are
+`SymplecticGeometry.modelDbarWith` and `SymplecticGeometry.flatDbarWith` for the structure `J`
+pushed forward by the chart, so that their linearity, Leibniz rules and smoothness come from
+the lemmas on those operators.
 `SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply` shows that, at a
 point `z` of the ball of radius `ρ₀ * √k` where the reading of `s` is differentiable, this is the
 coordinate of `D_k s` in the frame, at the image of `z` and on the image of a vector under the
@@ -245,7 +248,8 @@ theorem jetNorm_smul (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) (c : ℂ)
 
 /-! ### The connection and `∂̄` read in the chart -/
 
-/-- The **connection read in the chart**: at `z`, the real-linear map
+/-- The **connection read in the chart**: at `z`, the model connection
+`SymplecticGeometry.modelConnection f z`, that is the real-linear map
 `v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))` on `StdSpace ι`, for `f` the reading of `s` and `ω₀`
 the standard symplectic form. It is `df_z + i A₀(z) f(z)`, with `A₀(z) v = -ω₀(z, v) / 2` the
 model connection form of the rescaled unitary charts
@@ -255,22 +259,17 @@ the chart and the frame
 (`SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply`). -/
 noncomputable def connectionReading (k : ℕ) (x : M) (s : Π y, PowerBundle P k y)
     (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  fderiv ℝ (D.reading k x s) z -
-    ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm z)).smulRight
-      (Complex.I * D.reading k x s z)
+  modelConnection (D.reading k x s) z
 
 theorem connectionReading_def (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
-    D.connectionReading k x s z = fderiv ℝ (D.reading k x s) z -
-      ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm z)).smulRight
-        (Complex.I * D.reading k x s z) :=
+    D.connectionReading k x s z = modelConnection (D.reading k x s) z :=
   (rfl)
 
 theorem connectionReading_apply (k : ℕ) (x : M) (s : Π y, PowerBundle P k y)
     (z v : StdSpace ι) :
     D.connectionReading k x s z v = fderiv ℝ (D.reading k x s) z v -
       (2⁻¹ * stdForm ι z v : ℝ) • (Complex.I * D.reading k x s z) := by
-  rw [connectionReading_def, sub_apply, ContinuousLinearMap.smulRight_apply,
-    smul_apply, LinearMap.coe_toContinuousLinearMap', smul_eq_mul]
+  rw [connectionReading_def, modelConnection_apply]
 
 /-- The connection read in the chart is additive on sections whose readings are differentiable
 at `z`. -/
@@ -278,33 +277,23 @@ theorem connectionReading_add {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y} 
     (hs : DifferentiableAt ℝ (D.reading k x s) z) (ht : DifferentiableAt ℝ (D.reading k x t) z) :
     D.connectionReading k x (s + t) z =
       D.connectionReading k x s z + D.connectionReading k x t z := by
-  ext v
-  simp only [connectionReading_apply, reading_add, fderiv_add hs ht, Pi.add_apply,
-    add_apply, mul_add, smul_add]
-  abel
+  simp only [connectionReading_def, reading_add, modelConnection_add hs ht]
 
 @[simp]
 theorem connectionReading_neg (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     D.connectionReading k x (-s) z = -D.connectionReading k x s z := by
-  ext v
-  simp only [connectionReading_apply, reading_neg, fderiv_neg, Pi.neg_apply,
-    neg_apply, mul_neg, smul_neg]
-  abel
+  simp only [connectionReading_def, reading_neg, modelConnection_neg]
 
 @[simp]
 theorem connectionReading_smul (k : ℕ) (x : M) (c : ℂ) (s : Π y, PowerBundle P k y)
     (z : StdSpace ι) :
     D.connectionReading k x (c • s) z = c • D.connectionReading k x s z := by
-  ext v
-  simp only [connectionReading_apply, reading_smul, fderiv_const_smul_field, Pi.smul_apply,
-    smul_apply, smul_eq_mul, Complex.real_smul]
-  ring
+  simp only [connectionReading_def, reading_smul, modelConnection_smul]
 
 @[simp]
 theorem connectionReading_zero (k : ℕ) (x : M) (z : StdSpace ι) :
     D.connectionReading k x (0 : Π y, PowerBundle P k y) z = 0 := by
-  ext v
-  simp [connectionReading_apply]
+  simp only [connectionReading_def, reading_zero, modelConnection_zero]
 
 /-- **The connection in a rescaled unitary chart.** For `k₀ ≤ k`, at a point `z` of the ball of
 radius `ρ₀ * √k` where the reading of `s` is differentiable, `D_k s` at `(D.chart k x).symm z`,
@@ -370,26 +359,32 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
   push_cast
   ring
 
-/-- The **`∂̄` reading of a section** `s` of `PowerBundle P k` at `z`: the complex-antilinear part
-(Tau Ceti's `TauCeti.complexAntilinearPart`) of the connection read in the chart,
-`D.connectionReading k x s z`, for the structure `J` pushed forward by the chart at `z` and
+/-- The **`∂̄` reading of a section** `s` of `PowerBundle P k` at `z`: the model `∂̄`
+`SymplecticGeometry.modelDbarWith` of the reading of `s`, for the structure `J` pushed forward by
+the chart, that is the complex-antilinear part (Tau Ceti's `TauCeti.complexAntilinearPart`) of the
+connection read in the chart, `D.connectionReading k x s z`, for that structure at `z` and
 multiplication by `i` on `ℂ`. For `k₀ ≤ k`, at a point `z` of the ball of radius `ρ₀ * √k` where
 the reading of `s` is differentiable, it is the `(0,1)`-part `J.zeroOnePart` of `D_k s` read in
 the chart and the frame
 (`SymplecticGeometry.RescaledUnitaryCharts.zeroOnePart_powerConnection_chart_symm_apply`). -/
 noncomputable def dbarReading (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     StdSpace ι →L[ℝ] ℂ :=
-  LinearMap.toContinuousLinearMap (complexAntilinearPart
-    (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-    (D.connectionReading k x s z : StdSpace ι →ₗ[ℝ] ℂ))
+  modelDbarWith (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) (D.reading k x s) z
 
 theorem dbarReading_def (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
-    D.dbarReading k x s z = LinearMap.toContinuousLinearMap (complexAntilinearPart
-      (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (D.connectionReading k x s z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+    D.dbarReading k x s z =
+      modelDbarWith (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph)
+        (D.reading k x s) z :=
   (rfl)
+
+/-- The `∂̄` reading of `s` at `z`, applied to `v`, is `½ (∇v + i ∇(J_z v))`, for `∇` the
+connection read in the chart at `z` and `J_z` the structure `J` pushed forward by the chart
+at `z`. -/
+theorem dbarReading_apply (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z v : StdSpace ι) :
+    D.dbarReading k x s z v = (2⁻¹ : ℝ) • (D.connectionReading k x s z v +
+      Complex.I * D.connectionReading k x s z
+        (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z v)) := by
+  rw [dbarReading_def, modelDbarWith_apply, connectionReading_def]
 
 /-- **The `∂̄` reading is `∂̄ s` read in the chart.** For `k₀ ≤ k`, at a point `z` of the ball of
 radius `ρ₀ * √k` where the reading of `s` is differentiable, the `(0,1)`-part `J.zeroOnePart` of
@@ -406,11 +401,9 @@ theorem zeroOnePart_powerConnection_chart_symm_apply [∀ y, Nonempty (P y)]
   have hJ := J.mfderiv_symm_apply_chartPushforward_apply (D.chart k x)
     (D.ball_subset_target hk x hz) v
   rw [J.zeroOnePart_apply, ← hJ, D.powerConnection_chart_symm_apply hα hk hz hs,
-    D.powerConnection_chart_symm_apply hα hk hz hs, dbarReading_def,
-    LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply]
-  simp only [← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), ContinuousLinearMap.coe_coe,
-    AlmostComplexStructure.ofComplexModule_apply, ← map_smul, ← map_add, smul_eq_mul,
-    Complex.real_smul]
+    D.powerConnection_chart_symm_apply hα hk hz hs, dbarReading_apply]
+  simp only [← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ),
+    ← map_smul, ← map_add, smul_eq_mul, Complex.real_smul]
   rw [algebra_compatible_smul ℂ (2⁻¹ : ℝ), ← map_smul, ← map_smul, smul_eq_mul,
     Complex.coe_algebraMap]
 
@@ -418,29 +411,22 @@ theorem zeroOnePart_powerConnection_chart_symm_apply [∀ y, Nonempty (P y)]
 theorem dbarReading_add {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y} {z : StdSpace ι}
     (hs : DifferentiableAt ℝ (D.reading k x s) z) (ht : DifferentiableAt ℝ (D.reading k x t) z) :
     D.dbarReading k x (s + t) z = D.dbarReading k x s z + D.dbarReading k x t z := by
-  rw [dbarReading_def, D.connectionReading_add hs ht, ContinuousLinearMap.toLinearMap_add,
-    complexAntilinearPart_add, map_add, dbarReading_def, dbarReading_def]
+  simp only [dbarReading_def, reading_add, modelDbarWith_add hs ht]
 
 @[simp]
 theorem dbarReading_neg (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     D.dbarReading k x (-s) z = -D.dbarReading k x s z := by
-  rw [dbarReading_def, connectionReading_neg, ContinuousLinearMap.toLinearMap_neg,
-    complexAntilinearPart_neg, map_neg, dbarReading_def]
+  simp only [dbarReading_def, reading_neg, modelDbarWith_neg]
 
 @[simp]
 theorem dbarReading_smul (k : ℕ) (x : M) (c : ℂ) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     D.dbarReading k x (c • s) z = c • D.dbarReading k x s z := by
-  ext v
-  simp only [dbarReading_def, connectionReading_smul, LinearMap.coe_toContinuousLinearMap',
-    complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, smul_apply,
-    AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul, Complex.real_smul]
-  ring
+  simp only [dbarReading_def, reading_smul, modelDbarWith_smul]
 
 @[simp]
 theorem dbarReading_zero (k : ℕ) (x : M) (z : StdSpace ι) :
     D.dbarReading k x (0 : Π y, PowerBundle P k y) z = 0 := by
-  rw [dbarReading_def, connectionReading_zero, ContinuousLinearMap.toLinearMap_zero,
-    complexAntilinearPart_zero, map_zero]
+  simp only [dbarReading_def, reading_zero, modelDbarWith_zero]
 
 /-- The **`r`-jet norm of `∂̄ s` at `x`**: the jet norm `SymplecticGeometry.jetNormAt ℝ r` at `0`
 of the `∂̄` reading of `s` in the chart and the frame centred at `x`, that is, the sum over the
@@ -504,14 +490,8 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
 theorem contDiffAt_connectionReading {n : ℕ∞} {k : ℕ} {x : M}
     {s : Π y, PowerBundle P k y} {z : StdSpace ι}
     (hs : ContDiffAt ℝ (n + 1) (D.reading k x s) z) :
-    ContDiffAt ℝ n (D.connectionReading k x s) z := by
-  let B : StdSpace ι →ₗ[ℝ] StdSpace ι →L[ℝ] ℝ :=
-    LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ (stdForm ι).toBilinForm
-  have hB : ContDiff ℝ n fun w ↦ (2⁻¹ : ℝ) • B w :=
-    (LinearMap.toContinuousLinearMap B).contDiff.const_smul _
-  have h := (hs.fderiv_right le_rfl).sub
-    (hB.contDiffAt.smulRight ((contDiffAt_const (c := Complex.I)).mul (hs.of_le le_self_add)))
-  exact h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ connectionReading_def ..)
+    ContDiffAt ℝ n (D.connectionReading k x s) z :=
+  contDiffAt_modelConnection hs
 
 /-- The connection read in the chart, as a function:
 `w ↦ df_w - R (ω₀(w, ·) / 2) (i f(w))`, for `f` the reading of the section and
@@ -590,49 +570,42 @@ theorem contDiffAt_dbarReading [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M}
     ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
       (D.chart k x).symm.contMDiffOn).contDiffAt
       ((D.chart k x).open_target.mem_nhds hz)).of_le (by exact_mod_cast le_top)
-  have hC := D.contDiffAt_connectionReading hs
-  have h := (hC.add ((hC.clm_comp hJ).const_smul Complex.I)).const_smul (2⁻¹ : ℝ)
-  refine h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ ?_)
-  ext v
-  simp [dbarReading_def, complexAntilinearPart_apply,
-    AlmostComplexStructure.ofComplexModule_apply]
+  exact contDiffAt_modelDbarWith hJ hs
 
 /-- The connection read in the chart at `z` depends only on the germ at `z` of the reading. -/
 theorem connectionReading_congr_of_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
     {z : StdSpace ι} (h : D.reading k x s =ᶠ[𝓝 z] D.reading k x t) :
-    D.connectionReading k x s z = D.connectionReading k x t z := by
-  rw [connectionReading_def, connectionReading_def, h.fderiv_eq, h.eq_of_nhds]
+    D.connectionReading k x s z = D.connectionReading k x t z :=
+  modelConnection_congr_of_eventuallyEq h
 
 /-- The `∂̄` reading at `z` depends only on the germ at `z` of the reading. -/
 theorem dbarReading_congr_of_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
     {z : StdSpace ι} (h : D.reading k x s =ᶠ[𝓝 z] D.reading k x t) :
-    D.dbarReading k x s z = D.dbarReading k x t z := by
-  rw [dbarReading_def, dbarReading_def, D.connectionReading_congr_of_eventuallyEq h]
+    D.dbarReading k x s z = D.dbarReading k x t z :=
+  modelDbarWith_congr_of_eventuallyEq h
 
 /-- Sections whose readings have the same germ at `z` have `∂̄` readings with the same germ
 at `z`. -/
 theorem dbarReading_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
     {z : StdSpace ι} (h : D.reading k x s =ᶠ[𝓝 z] D.reading k x t) :
     D.dbarReading k x s =ᶠ[𝓝 z] D.dbarReading k x t :=
-  h.eventually_nhds.mono fun _ hw ↦ D.dbarReading_congr_of_eventuallyEq hw
+  modelDbarWith_eventuallyEq h
 
 /-! ### Products with complex functions -/
 
-/-- The **`∂̄` of a complex function `f` on the chart** at `z`: the complex-antilinear part
-(Tau Ceti's `TauCeti.complexAntilinearPart`) of its derivative `fderiv ℝ f z`, for the structure
-`J` pushed forward by the chart `D.chart k x` at `z` and multiplication by `i` on `ℂ`. -/
+/-- The **`∂̄` of a complex function `f` on the chart** at `z`: the flat `∂̄`
+`SymplecticGeometry.flatDbarWith` of `f` for the structure `J` pushed forward by the chart, that
+is the complex-antilinear part (Tau Ceti's `TauCeti.complexAntilinearPart`) of its derivative
+`fderiv ℝ f z`, for the structure `J` pushed forward by the chart `D.chart k x` at `z` and
+multiplication by `i` on `ℂ`. -/
 noncomputable def dbarFun (k : ℕ) (x : M) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     StdSpace ι →L[ℝ] ℂ :=
-  LinearMap.toContinuousLinearMap (complexAntilinearPart
-    (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ))
+  flatDbarWith (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) f z
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
 theorem dbarFun_def (k : ℕ) (x : M) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    D.dbarFun k x f z = LinearMap.toContinuousLinearMap (complexAntilinearPart
-      (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+    D.dbarFun k x f z =
+      flatDbarWith (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) f z :=
   (rfl)
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
@@ -640,35 +613,28 @@ omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
 `½ (df_z v + i df_z (J_z v))`, for `J_z` the structure `J` pushed forward by the chart at `z`. -/
 theorem dbarFun_apply (k : ℕ) (x : M) (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     D.dbarFun k x f z v = (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z
-      ((J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z : StdSpace ι →ₗ[ℝ] StdSpace ι)
-        v)) := by
-  simp only [dbarFun_def, LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
-    ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul]
+      (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z v)) := by
+  rw [dbarFun_def, flatDbarWith_apply]
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
 /-- `∂̄` is additive on functions that are differentiable at `z`. -/
 theorem dbarFun_add {k : ℕ} {x : M} {f g : StdSpace ι → ℂ} {z : StdSpace ι}
     (hf : DifferentiableAt ℝ f z) (hg : DifferentiableAt ℝ g z) :
-    D.dbarFun k x (f + g) z = D.dbarFun k x f z + D.dbarFun k x g z := by
-  rw [dbarFun_def, fderiv_add hf hg, ContinuousLinearMap.toLinearMap_add,
-    complexAntilinearPart_add, map_add, dbarFun_def, dbarFun_def]
+    D.dbarFun k x (f + g) z = D.dbarFun k x f z + D.dbarFun k x g z :=
+  flatDbarWith_add hf hg
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
 /-- `∂̄` commutes with multiplication by a complex constant. -/
 @[simp]
 theorem dbarFun_const_smul (k : ℕ) (x : M) (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    D.dbarFun k x (c • f) z = c • D.dbarFun k x f z := by
-  ext v
-  simp only [dbarFun_apply, fderiv_const_smul_field c, Pi.smul_apply, smul_apply,
-    smul_eq_mul, Complex.real_smul]
-  ring
+    D.dbarFun k x (c • f) z = c • D.dbarFun k x f z :=
+  flatDbarWith_smul c f z
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
 @[simp]
 theorem dbarFun_zero (k : ℕ) (x : M) (z : StdSpace ι) :
-    D.dbarFun k x (0 : StdSpace ι → ℂ) z = 0 := by
-  ext v
-  simp [dbarFun_apply]
+    D.dbarFun k x (0 : StdSpace ι → ℂ) z = 0 :=
+  flatDbarWith_zero z
 
 /-- The reading of the product of a section `s` with a function `g : M → ℂ` is the product of
 the reading of `s` with `g` read in the chart. -/
@@ -688,10 +654,8 @@ theorem connectionReading_fun_smul {k : ℕ} {x : M} {g : M → ℂ} {s : Π y, 
     D.connectionReading k x (fun y ↦ g y • s y) z =
       g ((D.chart k x).symm z) • D.connectionReading k x s z +
         D.reading k x s z • fderiv ℝ (fun w ↦ g ((D.chart k x).symm w)) z := by
-  ext v
-  simp only [connectionReading_apply, reading_fun_smul, smul_eq_mul, fderiv_fun_mul hg hs,
-    add_apply, smul_apply, Complex.real_smul]
-  ring
+  simp only [connectionReading_def, reading_fun_smul, smul_eq_mul]
+  exact modelConnection_mul hg hs
 
 /-- The **Leibniz rule for `∂̄` read in the chart**: for `G` the function `g` read in the chart
 and `f` the reading of `s`, both differentiable at `z`, the `∂̄` reading of `g • s` at `z` is
@@ -702,12 +666,8 @@ theorem dbarReading_fun_smul {k : ℕ} {x : M} {g : M → ℂ} {s : Π y, PowerB
     D.dbarReading k x (fun y ↦ g y • s y) z =
       g ((D.chart k x).symm z) • D.dbarReading k x s z +
         D.reading k x s z • D.dbarFun k x (fun w ↦ g ((D.chart k x).symm w)) z := by
-  ext v
-  simp only [dbarReading_def, dbarFun_def, D.connectionReading_fun_smul hg hs,
-    LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply, ContinuousLinearMap.coe_coe,
-    add_apply, smul_apply, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul,
-    Complex.real_smul, map_add]
-  ring
+  simp only [dbarReading_def, dbarFun_def, reading_fun_smul, smul_eq_mul]
+  exact modelDbarWith_mul hg hs
 
 /-- The Leibniz rule for `∂̄` read in the chart, as an equality of germs at `z₀`, where `g` read
 in the chart and the reading of `s` are differentiable near `z₀`. -/
