@@ -10,8 +10,6 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Basic
 
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
-
 /-!
 # The data of the Marle–Guillemin–Sternberg local model
 

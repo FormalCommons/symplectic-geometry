@@ -86,7 +86,7 @@ theorem dualForm_descendedMomentMap_mk
   have h := momentNormSq_smul (hB := hB) hBG D.balancedProductInducedMomentMap_smul g
     (BalancedProduct.mk K (K.toRightTranslation 1) p)
   rw [BalancedProduct.smul_mk_toRightTranslation, mul_one, momentNormSq_def, momentNormSq_def,
-    balancedProductInducedMomentMap_mk (g := 1), map_one, one_apply_eq_self] at h
+    balancedProductInducedMomentMap_mk (g := 1), coe_covectorCLM, map_one, one_apply_eq_self] at h
   exact h
 
 /-- The composite of the covectors `ν = D.covector` of the local model with any linear functional
