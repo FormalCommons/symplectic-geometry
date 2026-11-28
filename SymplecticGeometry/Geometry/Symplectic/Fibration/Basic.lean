@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 
 /-!
 # Vertically nondegenerate two-forms and forms compatible with an oriented atlas
@@ -44,6 +45,10 @@ to the product orientation `oB × oF`.
   a vertically nondegenerate form pulls back to a nondegenerate form along the fibre inclusions of
   a smooth trivialization, and conversely
   `TauCeti.MapFiber.Atlas.isVerticallyNondegenerate_of_isNondegenerate_mpullback`.
+* `IsVerticallyNondegenerate.exists_forall_ge_forall_nondegenerate_add_smul_comp` (in
+  `TauCeti.SmoothTwoForm`): on a compact `M`, if `proj` has surjective derivative everywhere, a
+  vertically nondegenerate form plus `K` times the pull-back of a nondegenerate form on the base
+  is nondegenerate at every point once `K` is large.
 * `TauCeti.MapFiber.Atlas.IsOrientedCompatible.isVerticallyNondegenerate`: a form compatible with
   an oriented atlas is vertically nondegenerate.
 * `TauCeti.MapFiber.Atlas.IsOrientedCompatible.finrank_eq`: if `M` has a point, a form compatible
@@ -165,6 +170,26 @@ theorem IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusionMap
   exact (e.nondegenerate_restrict_ker_mfderiv_iff_separatingLeft hd hb _ τ v).1
     (isVerticallyNondegenerate_iff.1 hτ _) u
     fun w ↦ by rw [SmoothForm.bilinFormAt_apply]; exact hu w
+
+omit [IsManifold IF ∞ F] in
+/-- **Vertically nondegenerate forms plus a large multiple of a base form are nondegenerate.**
+Let `M` be compact, `proj : M → B` a `C¹` map with surjective derivative at every point, `τ` a
+two-form on `M` that is vertically nondegenerate for `proj`, and `β` a nondegenerate two-form
+on `B`. Then there is `K₀` such that, for every `K ≥ K₀` and every point `x`, the bilinear form
+`τ_x + K β_{proj x}(d_x proj ·, d_x proj ·)` is nondegenerate. -/
+theorem IsVerticallyNondegenerate.exists_forall_ge_forall_nondegenerate_add_smul_comp
+    [FiniteDimensional ℝ EM] [FiniteDimensional ℝ EB] [IsManifold IB ∞ B] [CompactSpace M]
+    (hv : IsVerticallyNondegenerate IB proj τ) (hproj : ContMDiff IM IB 1 proj)
+    (hs : ∀ x, Surjective (mfderiv IM IB proj x)) {β : SmoothTwoForm IB B}
+    (hβ : β.IsNondegenerate) :
+    ∃ K₀ : ℝ, ∀ K ≥ K₀, ∀ x, (τ.bilinFormAt x + K • (β.bilinFormAt (proj x)).comp
+      (mfderiv IM IB proj x : TangentSpace IM x →ₗ[ℝ] _) (mfderiv IM IB proj x)).Nondegenerate :=
+  SmoothTwoForm.exists_forall_ge_forall_nondegenerate_add_smul_comp hproj τ β
+    (fun x ↦ hβ.nondegenerate_bilinFormAt (proj x)) fun x ↦
+      (LinearMap.BilinForm.nondegenerate_pullbackProd_zero_iff
+        (SmoothForm.isAlt_bilinFormAt τ x) (SmoothForm.isAlt_bilinFormAt β (proj x))
+        (hβ.nondegenerate_bilinFormAt (proj x)) (hs x)).2
+        (isVerticallyNondegenerate_iff.1 hv x)
 
 end TauCeti.SmoothTwoForm
 

@@ -428,12 +428,9 @@ theorem dbarReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm α) {
     (J' := (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap)
     (D.connectionReading k x s (D.chartTransition k x y w) : StdSpace ι →ₗ[ℝ] ℂ)) v
   simp only [LinearMap.comp_apply, complexAntilinearPart_apply, ContinuousLinearMap.coe_coe,
-    AlmostComplexStructure.ofComplexModule_apply] at h
-  rw [dbarReading_def, D.connectionReading_eq_frameChange_smul_comp hα hk hw hs, smul_apply,
-    ContinuousLinearMap.comp_apply, dbarReading_def]
-  simp only [LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
-    ContinuousLinearMap.coe_coe, smul_apply, ContinuousLinearMap.comp_apply,
-    AlmostComplexStructure.ofComplexModule_apply] at h ⊢
+    AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul] at h
+  rw [dbarReading_apply, D.connectionReading_eq_frameChange_smul_comp hα hk hw hs]
+  simp only [smul_apply, ContinuousLinearMap.comp_apply, dbarReading_apply]
   rw [← h]
   simp only [smul_eq_mul, Complex.real_smul]
   ring

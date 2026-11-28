@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautolog
 public import SymplecticGeometry.Topology.VectorBundle.TrivialEmbedding
 public import TauCeti.Topology.VectorBundle.IdempotentRange
 import SymplecticGeometry.Analysis.InnerProductSpace.Projection.Basic
+import SymplecticGeometry.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.VectorBundle.Complement
 
 /-!
@@ -414,10 +415,8 @@ theorem continuous_pullbackEquivTautologicalProdComplement :
   have : ∀ b, IsTopologicalAddGroup (E b) := VectorBundle.isTopologicalAddGroup 𝕜 G E
   have : ∀ b, ContinuousSMul 𝕜 (E b) := VectorBundle.continuousSMul 𝕜 G E
   have hp := FiberBundle.continuous_proj G (projection 𝕜 G E *ᵖ E)
-  rw [(FiberBundle.Prod.isInducing_diag 𝕜 (Tautological 𝕜 G E) (Fin (finrank 𝕜 G - 1) → 𝕜)
-    (tautologicalComplement 𝕜 G E)).continuous_iff]
-  refine Continuous.prodMk (continuous_totalSpace_tautological_iff.2 ⟨hp, ?_⟩)
-    ((TauCeti.isEmbedding_totalSpace_range _ _).continuous_iff.2 ?_)
+  refine Bundle.Prod.continuous_totalSpace_prod_iff.2 ⟨continuous_totalSpace_tautological_iff.2
+    ⟨hp, ?_⟩, (TauCeti.isEmbedding_totalSpace_range _ _).continuous_iff.2 ?_⟩
   · have hL := (Pullback.continuous_lift G E (projection 𝕜 G E)).comp
       ((TauCeti.continuous_bundleComplementFiberEquiv_symm_fst (F := G)
         (E := projection 𝕜 G E *ᵖ E) (pullbackEmbedding 𝕜 G E)
