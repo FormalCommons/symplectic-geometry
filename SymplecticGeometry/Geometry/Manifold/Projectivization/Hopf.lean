@@ -35,7 +35,8 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   smooth of every order (`contMDiff_mkNonzero`), holomorphic over `𝕜` itself
   (`contMDiff_mkNonzero_self`). Its derivative at `v`, over `𝕜` and over `ℝ` alike, is Tau
   Ceti's derivative `Projectivization.mfderivMk v` of the projection `w ↦ [w]`
-  (`mfderiv_mkNonzero_self`, `mfderiv_mkNonzero`, with their `_apply` forms). By Tau Ceti's
+  (`mfderiv_mkNonzero_self`, `mfderiv_mkNonzero`, with their `_apply` forms). Since `[c • w] = [w]`,
+  `mfderivMk (c • v) (c • w) = mfderivMk v w` for `c ≠ 0` (`mfderivMk_smul_smul`). By Tau Ceti's
   `Projectivization.surjective_mfderivMk` and `Projectivization.ker_mfderivMk`, `mkNonzero` is
   regular at every point (`isRegularPoint_mkNonzero`), so a submersion (`isSubmersion_mkNonzero`),
   and the kernel of its real derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`). Its
@@ -153,6 +154,39 @@ theorem mfderiv_mkNonzero_self (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜
     mfderiv 𝓘(𝕜, Fin (n + 1) → 𝕜) 𝓘(𝕜, Fin n → 𝕜) (mkNonzero 𝕜 n) v =
       mfderivMk (v : Fin (n + 1) → 𝕜) :=
   ContinuousLinearMap.ext (mfderiv_mkNonzero_self_apply v)
+
+/-- The derivative of the projection `w ↦ [w]` is homogeneous of degree zero: for `v ≠ 0` and
+`c ≠ 0`, its derivative at `c • v` sends `c • w` to the image of `w` under its derivative at `v`.
+This is the chain rule for `[c • w] = [w]`. -/
+theorem mfderivMk_smul_smul {v : Fin (n + 1) → 𝕜} (hv : v ≠ 0) {c : 𝕜} (hc : c ≠ 0)
+    (w : Fin (n + 1) → 𝕜) :
+    mfderivMk (c • v) (c • w) = mfderivMk v w := by
+  set z : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) := ⟨v, TauCeti.mem_puncturedSpace.2 hv⟩
+  let L : (Fin (n + 1) → 𝕜) →L[𝕜] Fin (n + 1) → 𝕜 := c • ContinuousLinearMap.id 𝕜 _
+  -- `mkNonzero` sends `x` to `[L x] = [c • x]`, so the chain rule computes its derivative at `v`
+  -- through the derivative of the projection at `c • v`.
+  have h := mfderiv_eq_mfderivMk_comp (f := mkNonzero 𝕜 n) (x := z)
+    ((L.contMDiff.comp contMDiff_subtypeVal).mdifferentiableAt one_ne_zero)
+    (Filter.Eventually.of_forall fun x ↦ ⟨by
+      simpa [L, hc] using TauCeti.mem_puncturedSpace.1 x.property, by
+      rw [mkNonzero_apply, mk_eq_mk_iff']
+      exact ⟨c⁻¹, by simp [L, smul_smul, hc]⟩⟩)
+  have hd : mfderiv 𝓘(𝕜, Fin (n + 1) → 𝕜) 𝓘(𝕜, Fin (n + 1) → 𝕜)
+      (L ∘ Subtype.val : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) → _) z w = c • w :=
+    (mfderiv_modelSpace_comp_subtypeVal_apply (f := L) (x := z) w).trans (by
+      rw [L.fderiv]
+      -- The two sides are `c • w` for the scalar actions on the tangent space and on
+      -- `Fin (n + 1) → 𝕜`, which agree by definition but not syntactically.
+      exact rfl)
+  -- `rw [ContinuousLinearMap.comp_apply]` fails here, as the tangent spaces in `h` are not
+  -- syntactically the model spaces; the composite applied to `w` unfolds to the same term.
+  have h' : mfderivMk v w = mfderivMk (L v) (mfderiv 𝓘(𝕜, Fin (n + 1) → 𝕜)
+      𝓘(𝕜, Fin (n + 1) → 𝕜) (L ∘ Subtype.val : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) → _)
+        z w) := by
+    rw [← mfderiv_mkNonzero_self_apply z w]
+    exact DFunLike.congr_fun h w
+  rw [h', hd]
+  simp [L]
 
 variable [NormedAlgebra ℝ 𝕜]
 
