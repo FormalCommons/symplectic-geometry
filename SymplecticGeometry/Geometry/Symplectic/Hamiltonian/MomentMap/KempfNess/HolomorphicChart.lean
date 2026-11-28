@@ -341,8 +341,7 @@ theorem expI_smul_chart_symm {C : LieComplexification I G IC Gc}
       simpa only [ContinuousLinearMap.flow_apply] using
         (T.isMIntegralCurve_flow v).isMIntegralCurveOn _
     refine hlin.map_of_mfderiv_eq (f := e.chart.symm) (fun s hs ↦ ?_) (fun s hs ↦ ?_)
-    · exact ((e.contMDiffOn_symm _ (hv s hs)).contMDiffAt
-        (e.chart.open_target.mem_nhds (hv s hs))).mdifferentiableAt (by simp)
+    · exact e.mdifferentiableAt_chart_symm (hv s hs)
     · have h := fundamentalVectorField_chart_symm hC e hJ 0 ξ (hv s hs)
       -- `simp` does not see `0 : E'` as the zero of the tangent space, so `map_zero` is applied
       -- at the model space.
