@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
@@ -156,7 +157,7 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
         (hpt v).symm
   · -- The tangent spaces are `ℂ` and `Fin 1 → ℂ`, so the statement is read on those.
     have key : Orientation.map (Fin 2) (Lc.restrictScalars' ℝ).toLinearEquiv
-        (Orientation.reindex ℝ ℂ (finCongr (m := 2) (by simp)) (complexOrientation ℂ)) =
+        (Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self) (complexOrientation ℂ)) =
           Orientation.reindex ℝ (Fin 1 → ℂ) (finCongr (by simp))
             (complexOrientation (Fin 1 → ℂ)) := by
       rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
