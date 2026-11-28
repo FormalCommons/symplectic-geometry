@@ -609,7 +609,7 @@ theorem hasMFDerivAt_expI_mul_smul_chart_symm {C : LieComplexification I G IC Gc
       C.toHom (mulInvariantExp (I := I) ((Q 0).2 : GroupLieAlgebra I G)) = 1 := by
     rw [map_zero]
     -- The zeros of `E × E`, read in the Lie algebra.
-    show C.expI 0 * C.toHom (mulInvariantExp (0 : GroupLieAlgebra I G)) = 1
+    change C.expI 0 * C.toHom (mulInvariantExp (0 : GroupLieAlgebra I G)) = 1
     rw [C.expI_zero, mulInvariantExp_zero, map_one, one_mul]
   have hF : HasMFDerivAt (IC.prod 𝓘(ℝ, S)) I'
       (fun q : Gc × S ↦ q.1 • e.chart.symm (q.2 : TangentSpace I' x))
@@ -671,7 +671,7 @@ theorem hasStrictFDerivAt_chart_expI_mul_smul_chart_symm {C : LieComplexificatio
   have hΦ0 : Φ 0 = x := by
     simp only [hΦ_def, Prod.fst_zero, Prod.snd_zero, ZeroMemClass.coe_zero]
     -- The zeros are those of `E` and of `T_x M`, read in the Lie algebra and in `E'`.
-    show (C.expI 0 * C.toHom (mulInvariantExp (0 : GroupLieAlgebra I G))) •
+    change (C.expI 0 * C.toHom (mulInvariantExp (0 : GroupLieAlgebra I G))) •
       e.chart.symm (0 : E') = x
     rw [C.expI_zero, mulInvariantExp_zero, map_one, one_mul, one_smul, e.symm_zero]
   have hopen : IsOpen {p : K × K × S | (p.2.2 : TangentSpace I' x) ∈ e.chart.target} :=
