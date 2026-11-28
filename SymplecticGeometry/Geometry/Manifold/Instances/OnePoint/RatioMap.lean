@@ -117,7 +117,7 @@ theorem equivProjectivization_symm_mk_eventuallyEq_invChart_symm_div
 /-- In a trivialization of `𝒪(k)`, over a point of its base set, the coordinates of two vectors
 of the fibre that do not both vanish do not both vanish. -/
 theorem vec_trivialization_ne_zero_twistCore
-    (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) k).Fiber)) [MemTrivializationAtlas e]
+    (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) k).Fiber)) [e.IsLinear ℂ]
     {y : OnePoint ℂ} (hy : y ∈ e.baseSet) {a b : (twistCore (𝕜 := ℂ) k).Fiber y}
     (h : (![a, b] : Fin 2 → ℂ) ≠ 0) : (![(e ⟨y, a⟩).2, (e ⟨y, b⟩).2] : Fin 2 → ℂ) ≠ 0 :=
   fun h' ↦ h <| by
@@ -133,7 +133,7 @@ theorem vec_trivialization_ne_zero_twistCore
 /-- In a trivialization of `𝒪(k)`, over a point of its base set, the point `[a : b]` of `ℙ¹(ℂ)`
 does not change when `a` and `b` are replaced by their coordinates. -/
 theorem mk_trivialization_twistCore (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) k).Fiber))
-    [MemTrivializationAtlas e] {y : OnePoint ℂ} (hy : y ∈ e.baseSet)
+    [e.IsLinear ℂ] {y : OnePoint ℂ} (hy : y ∈ e.baseSet)
     {a b : (twistCore (𝕜 := ℂ) k).Fiber y} (h : (![a, b] : Fin 2 → ℂ) ≠ 0)
     (h' : (![(e ⟨y, a⟩).2, (e ⟨y, b⟩).2] : Fin 2 → ℂ) ≠ 0) :
     Projectivization.mk ℂ _ h' = Projectivization.mk ℂ _ h := by
@@ -163,16 +163,22 @@ theorem contMDiff_equivProjectivization_symm_mk_twistCore
   -- Work on the base set `U` of the trivialization `e` at `x`, in the coordinates of `e`.
   let e := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x
   let U : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, e.open_baseSet⟩
-  have hc {u : OnePoint ℂ → ℂ} (hu : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) n
-      (fun y ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) y (u y))) :
-      ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) n fun y : U ↦ (e ⟨y, u y⟩).2 := fun y ↦
-    contMDiffAt_subtype_iff.2 ((e.contMDiffAt_section_iff y.property).1 (hu y))
-  have hne (y : U) : (![(e ⟨y, s y⟩).2, (e ⟨y, t y⟩).2] : Fin 2 → ℂ) ≠ 0 :=
+  let c (u : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) :=
+    e.frameCoordinates (I := 𝓘(ℝ, ℂ)) (n := n) (U := U) subset_rfl u
+  have hc (u : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯) (y : U) :
+      c u y = (e ⟨y, u y⟩).2 :=
+    Bundle.Trivialization.frameCoordinates_apply _ _ _ _
+  have hne₀ (y : U) : (![(e ⟨y, s y⟩).2, (e ⟨y, t y⟩).2] : Fin 2 → ℂ) ≠ 0 :=
     vec_trivialization_ne_zero_twistCore e y.property (hst y)
+  have hne (y : U) : (![c ⟨s, hs⟩ y, c ⟨t, ht⟩ y] : Fin 2 → ℂ) ≠ 0 := by
+    rw [hc, hc]
+    exact hne₀ y
   refine (contMDiffAt_subtype_iff (U := U) (x := ⟨x, mem_baseSet_trivializationAt ℂ _ x⟩)).1 ?_
-  refine (contMDiff_equivProjectivization_symm_mk (hc hs) (hc ht) hne _).congr_of_eventuallyEq
-    (Eventually.of_forall fun y ↦ ?_)
-  exact congrArg _ (mk_trivialization_twistCore e y.property (hst y) (hne y)).symm
+  refine (contMDiff_equivProjectivization_symm_mk (c ⟨s, hs⟩).contMDiff (c ⟨t, ht⟩).contMDiff
+    hne _).congr_of_eventuallyEq (Eventually.of_forall fun y ↦ ?_)
+  have h := mk_trivialization_twistCore e y.property (hst y) (hne₀ y)
+  simp only [hc] at h ⊢
+  exact congrArg _ h.symm
 
 variable (p : {p : Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ ×
   Cₛ^n⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) k).Fiber⟯ // ∀ x, (![p.1 x, p.2 x] : Fin 2 → ℂ) ≠ 0})
