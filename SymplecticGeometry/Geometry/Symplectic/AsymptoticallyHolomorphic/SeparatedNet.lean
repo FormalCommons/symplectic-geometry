@@ -138,11 +138,9 @@ theorem card_filter_rescaledDist_le [T2Space M] [PreconnectedSpace M]
     ((S.filter fun x ↦ rescaledDist I k x y ≤ r).card : ℝ) ≤
       (1 + 2 * √3 * r / r₀) ^ finrank ℝ (StdSpace ι) := by
   have h := D.card_filter_rescaledEDist_le hg hρ₁₀ hk y hcmp hr₀ hr hrρ (S := S)
-    fun x hx x' hx' hne ↦ by
-      rw [← ofReal_rescaledDist]
-      exact ENNReal.ofReal_le_ofReal (hS x hx x' hx' hne)
+    fun x hx x' hx' hne ↦ ofReal_le_rescaledEDist_iff.2 (hS x hx x' hx' hne)
   convert h using 4 with x
-  rw [← ofReal_rescaledDist, ENNReal.ofReal_le_ofReal_iff hr]
+  exact (rescaledEDist_le_ofReal_iff hr).symm
 
 include D in
 /-- **The size of a separated set, uniformly in `k`.** Let `M` be compact and Hausdorff, with a
@@ -242,9 +240,8 @@ theorem exists_forall_card_le_of_le_rescaledDist [CompactSpace M] [T2Space M]
       (∀ x ∈ S, ∀ x' ∈ S, x ≠ x' → r₀ ≤ rescaledDist I k x x') →
         (S.card : ℝ) ≤ C * (1 + √k) ^ finrank ℝ (StdSpace ι) := by
   obtain ⟨C, hC⟩ := D.exists_forall_card_le_of_le_rescaledEDist hg hρ₀ hr₀
-  refine ⟨C, fun hk S hS ↦ hC hk S fun x hx x' hx' hne ↦ ?_⟩
-  rw [← ofReal_rescaledDist]
-  exact ENNReal.ofReal_le_ofReal (hS x hx x' hx' hne)
+  exact ⟨C, fun hk S hS ↦ hC hk S fun x hx x' hx' hne ↦
+    ofReal_le_rescaledEDist_iff.2 (hS x hx x' hx' hne)⟩
 
 include D in
 /-- **Points of a separated set in a `d_k`-ball, uniformly in `k`.** Let `M` be compact and
@@ -316,11 +313,9 @@ theorem exists_forall_card_filter_rescaledDist_le [CompactSpace M] [T2Space M]
           C * (1 + r) ^ finrank ℝ (StdSpace ι) := by
   obtain ⟨C, hC⟩ := D.exists_forall_card_filter_rescaledEDist_le hg hρ₀ hr₀
   refine ⟨C, fun hk S hS y r hr ↦ ?_⟩
-  have h := hC hk S (fun x hx x' hx' hne ↦ by
-    rw [← ofReal_rescaledDist]
-    exact ENNReal.ofReal_le_ofReal (hS x hx x' hx' hne)) y hr
+  have h := hC hk S (fun x hx x' hx' hne ↦ ofReal_le_rescaledEDist_iff.2 (hS x hx x' hx' hne)) y hr
   convert h using 4 with x
-  rw [← ofReal_rescaledDist, ENNReal.ofReal_le_ofReal_iff hr]
+  exact (rescaledEDist_le_ofReal_iff hr).symm
 
 end RescaledUnitaryCharts
 

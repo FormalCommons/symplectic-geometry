@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.NormSquare
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nonneg
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
@@ -123,6 +124,17 @@ the radius, for the unit directions `ζ` of the polar decomposition. These accum
 (`tendsto_kempfNessFunction_expI_neg_smul_div`) gives `w_μ(p, -ζ₀) ≥ m² / L`
 (`le_momentWeight_neg_of_kempfNessFunction_expI_smul_le`).
 
+That direction need not be a period. If `p` is not semistable, the infimum `m²` is positive
+(`isSemistable_of_iInf_momentNormSq_smul_eq_zero`), so some `ξ` has positive weight. Every `ζ`
+that brackets to zero with all that brackets to zero with `ξ` commutes with every other such
+`ζ'`, so the weight is continuous on the subspace of these elements
+(`continuousOn_momentWeight`), and positive near `ξ` there. Positive multiples of periods of that
+subspace accumulate at `ξ` (`mem_closure_smul_nonzeroPeriods`), and by homogeneity one of these
+periods has positive weight (`exists_momentWeight_pos_of_not_isSemistable`). With
+`IsSemistable.momentWeight_nonpos`, this is the semistable numerical criterion
+(`isSemistable_iff_momentWeight_nonpos`) of [GeorgoulasRobbinSalamon2021] (arXiv v2,
+Theorem 12.2) and [McDuffSalamon2017], Theorem 5.7.2.
+
 ## Main definitions
 
 * `SymplecticGeometry.momentWeight C μ p ξ`: the limit of `μ (C.expI (t • ξ) • p) ξ` as
@@ -183,12 +195,18 @@ the radius, for the unit directions `ζ` of the polar decomposition. These accum
   `ξ` with `w_μ(p, ξ) = 0` and `p⁺_ξ` outside the orbit.
 * `SymplecticGeometry.exists_momentWeight_pos_of_iInf_momentNormSq_pos`: if the infimum of `‖μ‖²`
   over the orbit of `p` is positive, some `ξ` with `B ξ ξ = 1` has `0 < w_μ(p, ξ)`.
+* `SymplecticGeometry.exists_momentWeight_pos_of_not_isSemistable`: a point that is not
+  semistable has a period `λ ∈ nonzeroPeriods I G` with `0 < w_μ(p, λ)`.
+* `SymplecticGeometry.isSemistable_iff_momentWeight_nonpos`: `p` is semistable exactly when
+  `w_μ(p, λ) ≤ 0` for every `λ ∈ nonzeroPeriods I G`.
 
 ## References
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemmas 7.5 and 10.5 and Theorem 7.4.
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemmas 7.5 and 10.5 and Theorems 7.4
+  and 12.2 (arXiv v2).
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7,
+  Theorem 5.7.2.
 -/
 
 public section
@@ -706,7 +724,7 @@ theorem exists_eventually_abs_kempfNessFunction_le
   refine ⟨R, (eventually_map.1 hR).mono fun s hs p ↦ ?_⟩
   rw [← C.expI_mul_toHom_polar_symm (k s)]
   exact (abs_kempfNessFunction_expI_mul_toHom_le C μ p hBs
-    (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) hL' _ _).trans hs
+    (LinearMap.BilinForm.isNonneg_of_posDef hBp) hL' _ _).trans hs
 
 /-- **Moment weights under the parabolic subgroup.** Under the hypotheses of
 `tendsto_deriv_kempfNessFunction`, `w_μ(q x, ξ) = w_μ(x, ξ)` for every `q` in the
@@ -976,7 +994,7 @@ theorem exists_momentWeight_pos_of_iInf_momentNormSq_pos (h : IsComplexifiedActi
     (hm : 0 < ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)) :
     ∃ ξ : GroupLieAlgebra I G, B ξ ξ = 1 ∧ 0 < momentWeight C μ p ξ := by
   set m := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)
-  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
+  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_of_posDef hBp
   obtain ⟨L, hL0, hL⟩ :=
     hμ.toIsMomentMap.exists_pos_forall_sqrt_momentNormSq_le_of_neg (K := (B.toDual hB).symm)
   -- For each `n`, a direction `η n` of radius `r n ≤ 2 L (n + 1)` along which `Φ_p` is at most
@@ -1100,6 +1118,102 @@ theorem exists_momentWeight_eq_zero_limitPoint_not_mem_orbit (h : IsComplexified
     exact hxp
 
 end Polystable
+
+/-! ### The semistable criterion -/
+
+section SemistableCriterion
+
+open _root_.Bundle
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [CompactSpace G] [T2Space G] [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E' M] [IsManifold 𝓘(ℝ, E') ∞ M] [T2Space M]
+  [CompactSpace M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I 𝓘(ℝ, E') ∞ G M]
+  [ContMDiffSMul IC 𝓘(ℝ, E') ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x)]
+  [IsContMDiffRiemannianBundle 𝓘(ℝ, E') 1 E' (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x)]
+  {σ : SmoothTwoForm 𝓘(ℝ, E') M} {J : SmoothAlmostComplexStructure 𝓘(ℝ, E') M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **A destabilizing period.** Under the hypotheses of `tendsto_limitPoint`, with `-μ`
+equivariant, `G` connected and without boundary, and `B` a positive definite `Ad`-invariant
+symmetric form on the Lie algebra, if `p` is not semistable then some `λ ∈ nonzeroPeriods I G`
+has `0 < w_μ(p, λ)`. -/
+theorem exists_momentWeight_pos_of_not_isSemistable [BoundarylessManifold I G]
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p : M}
+    (hp : ¬IsSemistable C μ p) :
+    ∃ l ∈ nonzeroPeriods I G, 0 < momentWeight C μ p l := by
+  have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
+  -- The infimum of `‖μ‖²` over the orbit is positive, which gives a unit `ξ` of positive weight.
+  have hm : 0 < ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) :=
+    (le_ciInf fun _ ↦ momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg)).lt_of_ne
+      fun h0 ↦ hp (isSemistable_of_iInf_momentNormSq_smul_eq_zero hBp
+        hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.continuous h0.symm)
+  obtain ⟨ξ, hξ1, hξ⟩ := exists_momentWeight_pos_of_iInf_momentNormSq_pos h hμ hg hBs hBp hBG hm
+  have hξ0 : ξ ≠ 0 := by
+    rintro rfl
+    simp at hξ1
+  -- `𝔞` is the subspace of elements that bracket to zero with everything that brackets to zero
+  -- with `ξ`; its elements pairwise commute, since each brackets to zero with `ξ`.
+  let 𝔞 : Submodule ℝ (GroupLieAlgebra I G) :=
+    { carrier := {l | ∀ ζ : GroupLieAlgebra I G, ⁅ζ, ξ⁆ = 0 → ⁅ζ, l⁆ = 0}
+      add_mem' := fun ha hb ζ hζ ↦ (lie_add ζ _ _).trans (by rw [ha ζ hζ, hb ζ hζ, add_zero])
+      zero_mem' := fun ζ _ ↦ lie_zero ζ
+      smul_mem' := fun c _ ha ζ hζ ↦ (lie_smul c ζ _).trans (by rw [ha ζ hζ, smul_zero]) }
+  have h𝔞 : ∀ η ∈ 𝔞, ∀ ζ ∈ 𝔞, ⁅η, ζ⁆ = 0 := fun η hη ζ hζ ↦
+    hζ η (by rw [← lie_skew, hη ξ (lie_self ξ), neg_zero])
+  have hξ𝔞 : ξ ∈ 𝔞 := fun ζ hζ ↦ hζ
+  -- The weight is positive near `ξ` in `𝔞`, and positive multiples of periods in `𝔞`
+  -- accumulate at `ξ`.
+  have hpos : ∀ᶠ x in 𝓝[(𝔞 : Set (GroupLieAlgebra I G))] ξ, 0 < momentWeight C μ p x :=
+    (continuousOn_momentWeight h hμ.toIsMomentMap hg p h𝔞 ξ hξ𝔞).eventually
+      (lt_mem_nhds hξ)
+  set S := {x | ∃ c : ℝ, 0 < c ∧ ∃ l ∈ nonzeroPeriods I G,
+    (∀ ζ : GroupLieAlgebra I G, ⁅ζ, ξ⁆ = 0 → ⁅ζ, l⁆ = 0) ∧ x = c • l}
+  have hS : S ⊆ 𝔞 := by
+    rintro _ ⟨c, -, l, -, hl, rfl⟩
+    exact 𝔞.smul_mem c hl
+  have := mem_closure_iff_nhdsWithin_neBot.1 (mem_closure_smul_nonzeroPeriods hξ0)
+  obtain ⟨_, hw, c, hc, l, hl, -, rfl⟩ :=
+    ((hpos.filter_mono (nhdsWithin_mono ξ hS)).and (self_mem_nhdsWithin (s := S))).exists
+  rw [momentWeight_smul_of_nonneg h hμ.toIsMomentMap hg p l hc.le] at hw
+  exact ⟨l, hl, pos_of_mul_pos_right hw hc.le⟩
+
+/-- **The semistable Hilbert–Mumford criterion.** Under the hypotheses of `tendsto_limitPoint`,
+with `σ` closed and `G`-invariant, `-μ` equivariant, `G` connected, the model of `G` without
+boundary, and `B` a positive definite `Ad`-invariant symmetric form on the Lie algebra, a point
+`p` is semistable exactly when `w_μ(p, λ) ≤ 0` for every `λ ∈ nonzeroPeriods I G`. -/
+theorem isSemistable_iff_momentWeight_nonpos [I.Boundaryless] (h : IsComplexifiedAction C J)
+    (hσc : σ.IsClosed)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := 𝓘(ℝ, E')) g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) :
+    IsSemistable C μ p ↔ ∀ l ∈ nonzeroPeriods I G, momentWeight C μ p l ≤ 0 := by
+  refine ⟨fun hp l _ ↦ hp.momentWeight_nonpos h hσc
+    (SmoothTwoForm.compatible_of_inner_eq hg).isNondegenerate hσG hμ hg hBs hBp hBG l,
+    fun hw ↦ by_contra fun hp ↦ ?_⟩
+  obtain ⟨l, hl, hpos⟩ := exists_momentWeight_pos_of_not_isSemistable h hμ hg hBs hBp hBG hp
+  exact (hw l hl).not_gt hpos
+
+end SemistableCriterion
 
 end SymplecticGeometry
 
