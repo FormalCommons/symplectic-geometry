@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.Projectivization.Map
+public import TauCeti.Geometry.Manifold.Projectivization.MFDeriv
 public import TauCeti.Geometry.Manifold.Submersion.Split
 public import TauCeti.Geometry.Sphere.LinearIsometry
 public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
@@ -17,12 +18,10 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import TauCeti.Analysis.InnerProductSpace.Radial.Rescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
-import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
-import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
 # The Hopf maps
@@ -34,13 +33,15 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   `TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)` onto `ℙ 𝕜 (Fin (n + 1) → 𝕜)`, for a nontrivially
   normed field `𝕜` that is a finite-dimensional normed `ℝ`-algebra, such as `ℝ` or `ℂ`. It is
   smooth of every order (`contMDiff_mkNonzero`), holomorphic over `𝕜` itself
-  (`contMDiff_mkNonzero_self`), and a submersion (`isSubmersion_mkNonzero`), regular at every
-  point (`isRegularPoint_mkNonzero`): over the affine open of a coordinate `j` with `v j ≠ 0` it
-  has the local section `z ↦ v j • Fin.insertNth j 1 z` in the chart. Its fibre over `[v]` is the
-  punctured line of the nonzero multiples of `v` (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ`
-  and `n = 1` it is the pencil `[z₀ : z₁]` on `ℂ² ∖ 0`. The kernel of its derivative at `v` is the
-  line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`),
-  since `mkNonzero` is constant along that line and the dimensions agree.
+  (`contMDiff_mkNonzero_self`). Its derivative at `v`, over `𝕜` and over `ℝ` alike, is Tau
+  Ceti's derivative `Projectivization.mfderivMk v` of the projection `w ↦ [w]`
+  (`mfderiv_mkNonzero_self_apply`, `mfderiv_mkNonzero_apply`). By Tau Ceti's
+  `Projectivization.surjective_mfderivMk` and `Projectivization.ker_mfderivMk`, `mkNonzero` is
+  regular at every point (`isRegularPoint_mkNonzero`), so a submersion (`isSubmersion_mkNonzero`),
+  and the kernel of its real derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`). Its
+  fibre over `[v]` is the punctured line of the nonzero multiples of `v`
+  (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ` and `n = 1` it is the pencil `[z₀ : z₁]` on
+  `ℂ² ∖ 0`.
 * `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
   the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
   (`mkNonzero_comp_affineLift`). It is holomorphic over `𝕜` (`contMDiff_affineLift_self`), smooth
@@ -132,6 +133,20 @@ theorem contMDiff_mkNonzero_self (r : ℕ∞ω) :
   contMDiffAt_of_eventually_eq_mk (F := Subtype.val) contMDiff_subtypeVal.contMDiffAt
     (Filter.Eventually.of_forall fun w ↦ ⟨TauCeti.mem_puncturedSpace.1 w.property, rfl⟩)
 
+/-- Over `𝕜` itself, the derivative of `mkNonzero` at `v` is Tau Ceti's derivative
+`Projectivization.mfderivMk v` of the projection `w ↦ [w]`. -/
+theorem mfderiv_mkNonzero_self_apply (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜))
+    (w : Fin (n + 1) → 𝕜) :
+    mfderiv 𝓘(𝕜, Fin (n + 1) → 𝕜) 𝓘(𝕜, Fin n → 𝕜) (mkNonzero 𝕜 n) v w =
+      mfderivMk (v : Fin (n + 1) → 𝕜) w := by
+  have h := mfderiv_eq_mfderivMk_comp (f := mkNonzero 𝕜 n) (F := Subtype.val) (x := v)
+    (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero)
+    (Filter.Eventually.of_forall fun w ↦ ⟨_, mkNonzero_apply w⟩)
+  -- `rw [ContinuousLinearMap.comp_apply]` fails here, as the tangent spaces in `h` are not
+  -- syntactically the model spaces; the composite applied to `w` unfolds to the same term.
+  exact (DFunLike.congr_fun h w).trans
+    (congrArg (mfderivMk (v : Fin (n + 1) → 𝕜)) (TauCeti.Manifold.mfderiv_subtype_val_apply v w))
+
 variable [NormedAlgebra ℝ 𝕜]
 
 variable (𝕜 n) in
@@ -153,44 +168,24 @@ theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞
     ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm :=
   (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars' ℝ
 
+/-- For the underlying real manifold structures, the derivative of `mkNonzero` at `v` is still
+Tau Ceti's derivative `Projectivization.mfderivMk v` of the projection `w ↦ [w]`. -/
+theorem mfderiv_mkNonzero_apply (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜))
+    (w : Fin (n + 1) → 𝕜) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v w =
+      mfderivMk (v : Fin (n + 1) → 𝕜) w :=
+  (((contMDiff_mkNonzero_self 1 v).mdifferentiableAt
+    one_ne_zero).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ w).trans
+    (mfderiv_mkNonzero_self_apply v w)
+
 /-- Every nonzero vector `v` is a regular point of the projection `mkNonzero` for the underlying
-real manifold structures: its real derivative at `v` is surjective. Near `v` the projection has
-the local section `y ↦ v j • Fin.insertNth j 1 (affineChart j y)` through `v`, for a coordinate
-`j` with `v j ≠ 0`. -/
+real manifold structures: its real derivative at `v` is surjective. -/
 theorem isRegularPoint_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
     TauCeti.IsRegularPoint 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v := by
   rw [TauCeti.isRegularPoint_iff]
-  have hv := TauCeti.mem_puncturedSpace.1 v.property
-  obtain ⟨j, hj⟩ := Function.ne_iff.1 hv
-  let s : ℙ 𝕜 (Fin (n + 1) → 𝕜) → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) := fun y ↦
-    ⟨(v : Fin (n + 1) → 𝕜) j • Fin.insertNth (α := fun _ ↦ 𝕜) j 1 (affineChart j y),
-      TauCeti.mem_puncturedSpace.2 (smul_ne_zero hj (Fin.insertNth_one_ne_zero j _))⟩
-  have hx : mkNonzero 𝕜 n v ∈ affineOpen j := by simpa using hj
-  have hsx : s (mkNonzero 𝕜 n v) = v := by
-    refine Subtype.ext ?_
-    simp only [s, mkNonzero_apply, affineChart_mk, Fin.insertNth_one_div_eq_inv_smul j _ hj,
-      smul_smul, mul_inv_cancel₀ hj, one_smul]
-  have hs : MDifferentiableAt 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) s (mkNonzero 𝕜 n v) := by
-    have h := (((contDiff_const_smul ((v : Fin (n + 1) → 𝕜) j)).contMDiff).comp_contMDiffOn
-      (contMDiffOn_insertNth_affineChart j 1)).contMDiffAt ((isOpen_affineOpen j).mem_nhds hx)
-    exact ((TauCeti.ContMDiffAt.subtypeVal_comp_iff (n := 1) _ s _).1
-      (h.restrictScalars' ℝ)).mdifferentiableAt
-        one_ne_zero
-  have hid : mkNonzero 𝕜 n ∘ s =ᶠ[𝓝 (mkNonzero 𝕜 n v)] id := by
-    filter_upwards [(isOpen_affineOpen j).mem_nhds hx] with y hy
-    have hy' : y ∈ (affineChart j).source := by rwa [affineChart_source]
-    rw [comp_apply, mkNonzero_apply, id_eq]
-    conv_rhs => rw [← (affineChart j).left_inv hy',
-      affineChart_symm_apply]
-    exact (mk_eq_mk_iff' 𝕜 _ _ _ _).2 ⟨(v : Fin (n + 1) → 𝕜) j, rfl⟩
-  have hsurj : Surjective (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n)
-      (s (mkNonzero 𝕜 n v))) := fun w ↦
-    ⟨mfderiv 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) s (mkNonzero 𝕜 n v) w,
-      (TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp hid
-        ((contMDiff_mkNonzero 𝕜 n 1 _).mdifferentiableAt one_ne_zero) hs w).trans
-        -- `w` is read in the tangent space at `mkNonzero 𝕜 n (s _)`, the same model space.
-        (by rw [mfderiv_id]; rfl)⟩
-  rwa [hsx] at hsurj
+  intro w
+  obtain ⟨u, hu⟩ := surjective_mfderivMk (TauCeti.mem_puncturedSpace.1 v.property) w
+  exact ⟨u, (mfderiv_mkNonzero_apply v u).trans hu⟩
 
 variable (𝕜 n) in
 /-- The projection from the nonzero vectors onto projective space is a smooth submersion of the
@@ -201,58 +196,30 @@ theorem isSubmersion_mkNonzero [FiniteDimensional ℝ 𝕜] :
     (by exact_mod_cast le_top)
     fun v ↦ TauCeti.isRegularPoint_iff.1 (isRegularPoint_mkNonzero v)).isSubmersion
 
+/-- The kernel of the real derivative of `mkNonzero` at `v` is the line `𝕜 ∙ v`, viewed as a real
+subspace. -/
+theorem ker_mfderiv_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
+    LinearMap.ker (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v).toLinearMap =
+      (𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ := by
+  -- The tangent space at `v` is the model space `Fin (n + 1) → 𝕜`, in which the line lives.
+  refine Submodule.ext fun (w : Fin (n + 1) → 𝕜) ↦ ?_
+  have hv := TauCeti.mem_puncturedSpace.1 v.property
+  exact LinearMap.mem_ker.trans <| (Eq.congr_left (mfderiv_mkNonzero_apply v w)).trans <|
+    (LinearMap.mem_ker (f := ((mfderivMk (v : Fin (n + 1) → 𝕜) :
+      (Fin (n + 1) → 𝕜) →ₗ[𝕜] Fin n → 𝕜)))).symm.trans <|
+      (SetLike.ext_iff.1 (ker_mfderivMk hv) w).trans (Submodule.restrictScalars_mem ℝ _ _).symm
+
 /-- The real derivative of `mkNonzero` at `v` vanishes on the line `𝕜 ∙ v`, along which
 `mkNonzero` is constant. -/
 theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) (c : 𝕜) :
     mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v
       (c • (v : Fin (n + 1) → 𝕜)) = 0 := by
-  have hv := TauCeti.mem_puncturedSpace.1 v.property
-  let φ : TauCeti.puncturedSpace 𝕜 → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) := fun a ↦
-    ⟨(a : 𝕜) • (v : Fin (n + 1) → 𝕜),
-      TauCeti.mem_puncturedSpace.2 (smul_ne_zero (TauCeti.mem_puncturedSpace.1 a.property) hv)⟩
-  let one : TauCeti.puncturedSpace 𝕜 := ⟨1, TauCeti.mem_puncturedSpace.2 one_ne_zero⟩
-  have hφ1 : φ one = v := Subtype.ext (one_smul _ _)
-  have hconst : mkNonzero 𝕜 n ∘ φ = fun _ ↦ mkNonzero 𝕜 n v := by
-    funext a
-    exact (mk_eq_mk_iff' 𝕜 _ _ _ _).2 ⟨a, rfl⟩
-  have hderiv : mfderiv 𝓘(ℝ, 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) φ one c = c • (v : Fin (n + 1) → 𝕜) := by
-    -- `φ` is the restriction of `a ↦ a • v` to the punctured spaces.
-    have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, 𝕜))
-      (I' := 𝓘(ℝ, Fin (n + 1) → 𝕜)) (A := fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜))
-      (f := φ) (x := one) rfl c
-    rw [mfderiv_eq_fderiv] at h
-    exact h.trans <| congrArg (fun L ↦ L c)
-      ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
-  rw [← hderiv, ← hφ1]
-  exact TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (.of_eq hconst) c
-
-/-- The kernel of the real derivative of `mkNonzero` at `v` is the line `𝕜 ∙ v`, viewed as a real
-subspace. -/
-theorem ker_mfderiv_mkNonzero [FiniteDimensional ℝ 𝕜]
-    (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
-    LinearMap.ker (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v).toLinearMap =
-      (𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ := by
-  have hv := TauCeti.mem_puncturedSpace.1 v.property
-  let L : (Fin (n + 1) → 𝕜) →ₗ[ℝ] (Fin n → 𝕜) :=
-    (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v).toLinearMap
-  -- The tangent spaces are the model spaces; reading the derivative as a linear map between
-  -- these makes their finite-dimensionality instances available.
-  change LinearMap.ker L = _
-  symm
-  refine Submodule.eq_of_le_of_finrank_eq ?_ ?_
-  · intro w hw
-    obtain ⟨c, rfl⟩ := Submodule.mem_span_singleton.1 hw
-    exact mfderiv_mkNonzero_smul_self v c
-  · have h := LinearMap.finrank_range_add_finrank_ker L
-    rw [show LinearMap.range L = ⊤ from LinearMap.range_eq_top.2
-      ((isSubmersion_mkNonzero 𝕜 n).surjective_mfderiv
-      (by simp) v), finrank_top] at h
-    have h₁ : finrank ℝ ((𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ) = finrank ℝ 𝕜 := by
-      rw [Submodule.finrank_restrictScalars, finrank_span_singleton hv, mul_one]
-    simp only [Module.finrank_pi_fintype, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
-      smul_eq_mul] at h
-    rw [h₁]
-    linarith
+  have h : c • (v : Fin (n + 1) → 𝕜) ∈
+      LinearMap.ker (mfderivMk (v : Fin (n + 1) → 𝕜) : (Fin (n + 1) → 𝕜) →ₗ[𝕜] Fin n → 𝕜) := by
+    rw [ker_mfderivMk (TauCeti.mem_puncturedSpace.1 v.property)]
+    exact Submodule.mem_span_singleton.2 ⟨c, rfl⟩
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at h
+  exact (mfderiv_mkNonzero_apply v _).trans h
 
 end MkNonzero
 

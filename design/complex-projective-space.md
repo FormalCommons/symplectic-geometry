@@ -381,12 +381,13 @@ the real structures of Tau Ceti (`instIsManifoldReal`):
 - `mkNonzero 𝕜 n : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) → ℙ 𝕜 (Fin (n + 1) → 𝕜)`,
   $v\mapsto[v]$, with `mkNonzero_apply` and `surjective_mkNonzero`.
 - `contMDiff_mkNonzero` (every order), `isSubmersion_mkNonzero`
-  (`IsSubmersion 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) ∞`), from the local
-  sections $z\mapsto$ `Fin.insertNth j 1 z` over the affine charts and
-  `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`.
+  (`IsSubmersion 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) ∞`), from
+  `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`: the real
+  derivative at $v$ is Tau Ceti's `Projectivization.mfderivMk v`, which is
+  onto.
 - `ker_mfderiv_mkNonzero`: the kernel at $v$ is the real subspace
-  `(𝕜 ∙ (v : _)).restrictScalars ℝ`, by invariance under scalars and
-  dimension.
+  `(𝕜 ∙ (v : _)).restrictScalars ℝ`, by Tau Ceti's
+  `Projectivization.ker_mfderivMk`.
 - `affineLift 𝕜 j : (Fin n → 𝕜) → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)`,
   $w\mapsto$ `Fin.insertNth j 1 w`, the section of `mkNonzero` over the
   affine chart of `j`, with `coe_affineLift`, `mkNonzero_comp_affineLift`
