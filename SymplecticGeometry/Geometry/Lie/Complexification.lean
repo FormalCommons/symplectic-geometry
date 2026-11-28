@@ -364,7 +364,7 @@ theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
 /-- `expI (s • ξ)` and `expI (t • ξ)` commute. -/
 theorem commute_expI_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     Commute (C.expI (s • ξ)) (C.expI (t • ξ)) := by
-  rw [Commute, SemiconjBy, ← C.expI_add_smul, ← C.expI_add_smul, add_comm]
+  rw [commute_iff_eq, ← C.expI_add_smul, ← C.expI_add_smul, add_comm]
 
 /-- `expI (-ξ) = (expI ξ)⁻¹`. -/
 theorem expI_neg (ξ : GroupLieAlgebra I G) :
