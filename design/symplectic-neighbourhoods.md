@@ -450,7 +450,7 @@ constant rank and the smoothness of `L` are hypotheses of
   `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
   (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
   `ContinuousLinearMap.bilinAdjoint`, whose linear map is that formula
-  (`ContinuousLinearMap.coe_bilinAdjoint`); both are in part 9's
+  (`ContinuousLinearMap.toLinearMap_bilinAdjoint`); both are in part 9's
   `Topology/Algebra/Module/BilinearForm.lean`.
 - `smoothExtendAlong_comp_mfderiv` ($A\circ df_0=df_1$, applied:
   `smoothExtendAlong_apply_mfderiv`),

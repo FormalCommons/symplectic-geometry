@@ -1053,7 +1053,7 @@ theorem norm_oneZeroPart_powerConnection_apply [∀ y, Nonempty (P y)]
   rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x, hJ,
     LinearMap.coe_toContinuousLinearMap] at h
   rw [h, modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
-    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
+    LinearMap.coe_toContinuousLinearMap, Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
     connectionReading_def]
 
 /-! ### The `(1,0)`-part of the connection away from the centre of a chart -/
@@ -1091,7 +1091,7 @@ theorem norm_modelDel_reading_le [∀ y, Nonempty (P y)]
     exact le_max_left _ _
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
   rw [modelDel_def, complexLinearPartContinuousLinearMap_apply_apply,
-    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule,
+    LinearMap.coe_toContinuousLinearMap, Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
     ← connectionReading_def]
   -- For the structure `J_z` of the chart, the complex-linear part is `∂ s` read in the chart.
   have h1 : ‖complexLinearPart (Jz : StdSpace ι →ₗ[ℝ] StdSpace ι)
