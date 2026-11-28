@@ -6,10 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
+public import SymplecticGeometry.Geometry.Symplectic.Liouville.Chart
 public import TauCeti.Geometry.Manifold.Morse.Bott.Chart.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import SymplecticGeometry.Analysis.Normed.Operator.Functional
+import SymplecticGeometry.Geometry.Manifold.Morse.ChartEstimates
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
 import SymplecticGeometry.Geometry.Manifold.Morse.RadialEstimate
 
@@ -32,12 +34,21 @@ In a Morse–Bott chart (in particular a Morse chart, through `TauCeti.MorseChar
 `f̃ + H = f̃'`; it moves the function from `f` to `f'` near `p` while `X` stays gradient-like, as
 in the proof of Proposition 9.23 (a), and of Lemma 12.9, of [CieliebakEliashberg2012].
 
+The same radial estimate gives the hypotheses of the cut-off step for two Liouville fields that
+are gradient-like for `f` near `p`, in Lemma 12.9 of [CieliebakEliashberg2012]: the Hamiltonian
+`H` of their difference, which vanishes at `p`, has `|H (e.symm z)| ≤ A ‖z‖ ‖Df̃ (z)‖` in a
+Morse–Bott chart. This is the case `F = φ.quadratic`, `K = 1` of
+`TauCeti.IsLiouvilleVectorField.exists_abs_comp_symm_le_mul_norm_mul_norm_fderiv`.
+
 ## Main results
 
 * `TauCeti.IsGradientLikeAt.exists_norm_fderiv_sub_comp_symm_le`: the gradient-like inequalities
   for `f̃` and `f̃'` and the bound on `DH`, in any chart of the maximal atlas.
 * `TauCeti.MorseBottChart.exists_abs_sub_comp_symm_le`: in a Morse–Bott chart, the gradient-like
   inequalities and the primitive estimate `|H z| ≤ A ‖z‖ ‖Df̃ (z)‖`.
+* `TauCeti.MorseBottChart.exists_abs_comp_symm_le_mul_norm_mul_norm_fderiv`: in a Morse–Bott
+  chart, for two Liouville fields, the gradient-like inequalities, the Hamiltonian reading of
+  their difference, and the estimate on its Hamiltonian.
 
 ## References
 
@@ -47,7 +58,7 @@ in the proof of Proposition 9.23 (a), and of Lemma 12.9, of [CieliebakEliashberg
 
 public section
 
-open Set Metric Filter
+open Set Metric Filter TopologicalSpace
 open scoped ContDiff Manifold Topology
 open TauCeti.Manifold
 
@@ -163,6 +174,55 @@ theorem exists_abs_sub_comp_symm_le {f f' : M → ℝ} {X : (x : M) → TangentS
   have := φ.norm_le_mul_norm_mul_norm_fderiv_quadratic hH hH0
     (fun w hw ↦ hQ hw ▸ (h w hw).2.2.2.2) hz
   rwa [← hQ hz, Real.norm_eq_abs, Pi.sub_apply] at this
+
+/-- **Two Liouville fields in a Morse–Bott chart.** Let `σ` be a closed nondegenerate two-form on
+`M`, `X` a smooth Liouville field of `σ`, gradient-like for `f` near `p`, and `X'` a smooth
+Liouville field, on an open `U ∋ p`, of the restriction of `σ` to `U`. Let `Y` be a field on `M`
+equal to `X'` on `U` and gradient-like for `f` near `p`, and let `φ` be a Morse–Bott chart (in
+particular a Morse chart, through `TauCeti.MorseChart.toMorseBottChart`) of `f` at `p`, with
+chart `e`. Write `f̃ = f ∘ e.symm`, `X̃ z = de (X (e.symm z))`, `Ỹ z = de (Y (e.symm z))` and
+`J = SmoothTwoForm.inverseFlatInChart σ e`.
+
+Then there are `r₀ > 0`, `c > 0`, `A ≥ 0`, `B` and `H : M → ℝ`, smooth on `U`, with `H p = 0`,
+such that the ball `B(0, r₀)` lies in the chart target, `e.symm` maps it into `U`, and at each
+of its points `z`, with `H̃ = H ∘ e.symm`:
+* `c (‖X̃ z‖² + ‖Df̃_z‖²) ≤ Df̃_z (X̃ z)` and `c (‖Ỹ z‖² + ‖Df̃_z‖²) ≤ Df̃_z (Ỹ z)`;
+* `Ỹ z - X̃ z = J z (DH̃_z)`;
+* `‖J z‖ ≤ B`;
+* `|H̃ z| ≤ A ‖z‖ ‖Df̃_z‖`. -/
+theorem exists_abs_comp_symm_le_mul_norm_mul_norm_fderiv [T2Space M] {f : M → ℝ} {p : M}
+    (φ : MorseBottChart E f p) {σ : SmoothTwoForm 𝓘(ℝ, E) M} (hσ : σ.IsClosed)
+    (hσn : σ.IsNondegenerate) {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
+    (hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent ∞ (T% X))
+    (hXσ : IsLiouvilleVectorField σ.val X) (hXf : IsGradientLikeAt f X p) {U : Opens M}
+    (hp : p ∈ U) {X' : (x : U) → TangentSpace 𝓘(ℝ, E) x}
+    (hX' : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent ∞ (T% X'))
+    (hX'σ : IsLiouvilleVectorField
+      (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ).val X')
+    {Y : (x : M) → TangentSpace 𝓘(ℝ, E) x} (hYX' : ∀ x (hx : x ∈ U), Y x = X' ⟨x, hx⟩)
+    (hYf : IsGradientLikeAt f Y p) :
+    ∃ r₀ > 0, ∃ c > 0, ∃ A ≥ 0, ∃ B : ℝ, ∃ H : M → ℝ, ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) ∞ H U ∧
+      H p = 0 ∧ ball 0 r₀ ⊆ φ.toChart.target ∧ φ.toChart.symm '' ball 0 r₀ ⊆ U ∧
+      ∀ z ∈ ball (0 : E) r₀,
+        c * (‖mvfderiv 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z) (X (φ.toChart.symm z))‖ ^ 2 +
+            ‖fderiv ℝ (f ∘ φ.toChart.symm) z‖ ^ 2) ≤
+          fderiv ℝ (f ∘ φ.toChart.symm) z
+            (mvfderiv 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z) (X (φ.toChart.symm z))) ∧
+        c * (‖mvfderiv 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z) (Y (φ.toChart.symm z))‖ ^ 2 +
+            ‖fderiv ℝ (f ∘ φ.toChart.symm) z‖ ^ 2) ≤
+          fderiv ℝ (f ∘ φ.toChart.symm) z
+            (mvfderiv 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z) (Y (φ.toChart.symm z))) ∧
+        mvfderiv 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z) (Y (φ.toChart.symm z)) -
+            mvfderiv 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z) (X (φ.toChart.symm z)) =
+          σ.inverseFlatInChart φ.toChart z (fderiv ℝ (H ∘ φ.toChart.symm) z) ∧
+        ‖σ.inverseFlatInChart φ.toChart z‖ ≤ B ∧
+        |H (φ.toChart.symm z)| ≤ A * ‖z‖ * ‖fderiv ℝ (f ∘ φ.toChart.symm) z‖ := by
+  set e := φ.toChart
+  refine hXσ.exists_abs_comp_symm_le_mul_norm_mul_norm_fderiv hσ hσn hX hXf hp hX' hX'σ hYX' hYf
+    φ.mem_maximalAtlas φ.mem_source φ.apply_self (F := φ.quadratic) (K := 1) (fun z hz ↦ ?_)
+    fun z s hs ↦ by simpa using φ.norm_fderiv_quadratic_smul_le hs z
+  have := φ.eqOn_quadratic (e.map_target hz)
+  rwa [Function.comp_apply, e.right_inv hz] at this
 
 end MorseBottChart
 
