@@ -3401,12 +3401,13 @@ Differential topology and complex analysis only; it waits for no part of
 
 - **Files:** in `Geometry/Manifold/FiberBundle/Principal/`, beside the
   merged `CircleConnection.lean` and `BasicForm.lean`: `Connection/`
-  (`Basic.lean`, `Existence.lean` and `Curvature.lean`: connection
+  (`Basic.lean` and `Curvature.lean`: connection
   one-forms with values in the model space of `G`, which is
   `GroupLieAlgebra I G`,
   `TauCeti.PrincipalBundle.IsConnectionForm`: $A(p\xi)=\xi$ and
   $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$; their horizontal spaces; existence
-  over a paracompact base and the affine structure over
+  over a paracompact base (Tau Ceti's
+  `TauCeti.PrincipalBundle.exists_isConnectionForm`) and the affine structure over
   $\Omega^1(B,\mathrm{ad}P)$; the curvature $F_A=dA+\tfrac12[A\wedge A]$,
   horizontal and equivariant, with $F_A(X,Y)=-A([X,Y])$ on horizontal
   $X,Y$; and the comparison with `IsCircleConnectionForm` for
