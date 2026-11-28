@@ -401,7 +401,7 @@ For `F` a complete complex inner product space:
   complex-antilinear parts of a weak derivative in $L^2$.
 - `TauCeti.eLpNorm_conjWirtingerDeriv_le_of_norm_le`, and for $W^{1,2}$
   `TauCeti.HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le`: for a
-  measurable $\mu$ with $|\mu|\le m$,
+  coefficient $\mu$ with $|\mu|\le m$,
   $(1-m)\|\bar\partial v\|_{L^2}\le\|\bar\partial v+\mu\,\partial v\|_{L^2}$.
 
 Tau Ceti has no weak Wirtinger derivative $\partial$, so the $W^{1,2}$ forms
