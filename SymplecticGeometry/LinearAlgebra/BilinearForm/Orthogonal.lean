@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 public import Mathlib.LinearAlgebra.Projection
+public import Mathlib.LinearAlgebra.QuadraticForm.Basic
 
 /-!
 # Projections along the orthogonal of a subspace for a bilinear form
@@ -20,7 +21,9 @@ for two forms: forms that agree on `W × M` have the same orthogonal of `W`
 the converse holds when `W` and its orthogonal span `M`
 (`LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`). A surjective linear map that carries one
 form to another maps orthogonals onto orthogonals
-(`LinearMap.BilinForm.map_orthogonal_of_surjective`).
+(`LinearMap.BilinForm.map_orthogonal_of_surjective`). In finite dimension, a reflexive form whose
+quadratic form is anisotropic, such as a positive definite symmetric form, makes every subspace
+complementary to its orthogonal (`LinearMap.BilinForm.isCompl_orthogonal_of_anisotropic`).
 -/
 
 public section
@@ -87,6 +90,22 @@ theorem map_orthogonal_of_surjective {M' : Type*} [AddCommMonoid M'] [Module R M
     exact ⟨v, fun w hw ↦ (h w v).symm.trans (hu _ ⟨w, hw, rfl⟩), rfl⟩
 
 end CommSemiring
+
+section Field
+
+variable {K V : Type*} [Field K] [AddCommGroup V] [Module K V] [FiniteDimensional K V]
+
+/-- In finite dimension, if `B` is reflexive and its quadratic form `x ↦ B x x` is anisotropic,
+then every subspace `W` is complementary to its `B`-orthogonal. This applies to a symmetric form
+whose quadratic form is positive definite, through `QuadraticMap.PosDef.anisotropic`. -/
+theorem isCompl_orthogonal_of_anisotropic {B : LinearMap.BilinForm K V} (hB : B.IsRefl)
+    (hBa : B.toQuadraticMap.Anisotropic) (W : Submodule K V) : IsCompl W (B.orthogonal W) := by
+  refine (isCompl_orthogonal_iff_disjoint hB).2
+    (Submodule.disjoint_def.2 fun v hv hv' ↦ hBa v ?_)
+  rw [LinearMap.BilinMap.toQuadraticMap_apply]
+  exact mem_orthogonal_iff.1 hv' v hv
+
+end Field
 
 end LinearMap.BilinForm
 
