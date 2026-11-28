@@ -93,7 +93,7 @@ applied to a single form, so its sublevel sets `{x | B x x ≤ c}` are compact.
   for invertible `β₁`, the adjoint is the unique map `A` with `β₁ (A u) y = β₀ u (T y)`.
 * `ContinuousLinearMap.isAdjointPair_bilinAdjoint`: for invertible `β₁`, the adjoint and `T`
   are an adjoint pair in the sense of `LinearMap.IsAdjointPair`.
-* `ContinuousLinearMap.coe_bilinAdjoint`: in finite dimensions, its linear map is
+* `ContinuousLinearMap.toLinearMap_bilinAdjoint`: in finite dimensions, its linear map is
   `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 * `ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap`: in finite dimension, the
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
@@ -368,7 +368,7 @@ variable [CompleteSpace 𝕜] [IsTopologicalAddGroup V₁] [ContinuousSMul 𝕜 
 
 /-- In finite dimensions, for nondegenerate `β₁`, the adjoint is the linear map
 `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`. -/
-theorem coe_bilinAdjoint (hβ₁ : β₁.toBilinForm.Nondegenerate) (T : V₁ →L[𝕜] V₀) :
+theorem toLinearMap_bilinAdjoint (hβ₁ : β₁.toBilinForm.Nondegenerate) (T : V₁ →L[𝕜] V₀) :
     (bilinAdjoint β₀ β₁ T : V₀ →ₗ[𝕜] V₁) =
       (β₁.toBilinForm.toDual hβ₁).symm.toLinearMap ∘ₗ (T : V₁ →ₗ[𝕜] V₀).dualMap ∘ₗ
         β₀.toBilinForm := by
