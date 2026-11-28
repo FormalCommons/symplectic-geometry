@@ -38,7 +38,7 @@ one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` is the differential of a smoot
 
 Near a point of the patch, `ψ^* τ` agrees with a two-form `τ'` on all of `EB × F` whose fibre
 components are `σ` and which is vertically closed
-(`TauCeti.MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_extChartAt_symm`).
+(`TauCeti.MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchMap`).
 By `TauCeti.IsEhresmannConnection.curvatureIn_eq_snd_sum_curvature`, the curvature read in `e` is
 the fibre part of a combination, with constant coefficients, of the curvatures of the connection
 of `τ'` on the constant fields `bs i`, `bs j`, and by
@@ -91,16 +91,14 @@ def HasExactMixedCurl (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) : 
   ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
     ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
       mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
-        (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-          ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w
+        (A.patchMap IB b' b₀) τ.val) bs i j (extChartAt IB b₀ b) y w
 
 theorem hasExactMixedCurl_def (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) :
     A.HasExactMixedCurl IB IF τ bs ↔
       ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
           mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
-            (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-              ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w :=
+            (A.patchMap IB b' b₀) τ.val) bs i j (extChartAt IB b₀ b) y w :=
   Iff.rfl
 
 end MapFiber.Atlas
@@ -132,10 +130,9 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
           fun y ↦ (hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b₀ b, y)).2) ↔
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
           mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
-            (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-              ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w := by
+            (A.patchMap IB b' b₀) τ.val) bs i j (extChartAt IB b₀ b) y w := by
   obtain ⟨U, hU, hbU, τ', hfib, hτ'c, hτ'ψ, hτ'τ⟩ :=
-    hA.exists_isVerticallyClosed_eq_mpullback_symm_extChartAt_symm hτ hτσ hb
+    hA.exists_isVerticallyClosed_eq_mpullback_patchMap hτ hτσ hb
   have hnd : SmoothTwoForm.IsVerticallyNondegenerate 𝓘(ℝ, EB) Prod.fst τ' :=
     (SmoothTwoForm.isVerticallyNondegenerate_fst_iff τ').2 fun x ↦ (hfib x).symm ▸ hσ
   have hD' := hnd.isEhresmannConnection Manifold.isSubmersion_fst
@@ -146,8 +143,7 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
   have hmix (k : ι) (y : F) (w : TangentSpace IF y) :
       (fun x' ↦ RoughForm.mixedComponent τ'.val bs k x' y ![w]) =ᶠ[𝓝 (extChartAt IB b₀ b)]
         fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-          (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-            ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs k x' y ![w] :=
+          (A.patchMap IB b' b₀) τ.val) bs k x' y ![w] :=
     Filter.eventually_of_mem (hU.mem_nhds hbU) fun x' hx' ↦ by
       simp only [RoughForm.mixedComponent_apply, hτ'ψ (x', y) ⟨hx', mem_univ y⟩]
   have h := hD'.exists_isHamiltonianVectorField_curvature_iff bs

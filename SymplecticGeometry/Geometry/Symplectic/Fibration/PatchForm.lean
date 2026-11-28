@@ -33,7 +33,7 @@ the first term being extended by zero off `W`.
 
 ## Main results
 
-* `TauCeti.MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_extChartAt_symm`:
+* `TauCeti.MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchMap`:
   the existence of such a `τ'`, together with an open neighbourhood `U` of `x₀` over which it is
   `ψ^* τ`, and such that its pull-back by `p ↦ (φ (proj p), (e p).2)` is `τ` near every point
   of `M` over a point `c` of the patch with `φ c ∈ U`.
@@ -44,11 +44,11 @@ The smoothness of the first term is `TauCeti.isSmoothForm_fun_smul_of_mpullback_
 Vertical closedness is the blending lemma
 `TauCeti.RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul_of_tsupport_subset`, for the
 weight `χ` supported in `W`. Its hypotheses hold: over `W`, `ψ^* τ` is vertically closed by
-`TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_extChartAt_symm`;
+`TauCeti.SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_patchMap`;
 `pr₂^* σ` is closed, since `σ` is closed by
 `TauCeti.SmoothTwoForm.IsVerticallyClosed.isClosed_of_restrictsTo`; and the two agree on
 vertical pairs over `W`, both having fibre components `σ`, by
-`TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm` and
+`TauCeti.MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_patchMap` and
 `TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`.
 
 ## References
@@ -92,7 +92,7 @@ space `EB`, and `τ` a vertically closed two-form on `M` that restricts to `σ` 
 4. for every point `c` of the base set of `e` in the source of the chart at `b₀` with `φ c ∈ U`,
    and every `y : F`, the pull-back of `τ'` by `p ↦ (φ (proj p), (e p).2)` is `τ` near
    `e⁻¹ (c, y)`. -/
-theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_extChartAt_symm
+theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_patchMap
     [FiniteDimensional ℝ EB] [IsManifold IB ∞ B] (hA : A.IsContMDiff ∞ IB IF IM)
     {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
     (hτ : SmoothTwoForm.IsVerticallyClosed IB proj τ) (hτσ : A.RestrictsTo σ τ) {b' b₀ b : B}
@@ -101,9 +101,8 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
       ∃ τ' : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F),
         (∀ x, τ'.smoothFiberComponent x = σ) ∧
         SmoothTwoForm.IsVerticallyClosed 𝓘(ℝ, EB) Prod.fst τ' ∧
-        (∀ z ∈ U ×ˢ (univ : Set F), τ'.val z = mpullback (𝓘(ℝ, EB).prod IF) IM
-          (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-            ((extChartAt IB b₀).symm q.1, q.2)) τ.val z) ∧
+        (∀ z ∈ U ×ˢ (univ : Set F),
+          τ'.val z = mpullback (𝓘(ℝ, EB).prod IF) IM (A.patchMap IB b' b₀) τ.val z) ∧
         ∀ c ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source, extChartAt IB b₀ c ∈ U →
           ∀ y : F, ∀ᶠ p in 𝓝 ((A.trivAt b').toOpenPartialHomeomorph.symm (c, y)),
             mpullback IM (𝓘(ℝ, EB).prod IF)
@@ -111,7 +110,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
   set e := A.trivAt b'
   set φ := extChartAt IB b₀
   set W := φ.target ∩ φ.symm ⁻¹' e.baseSet
-  set ψ : EB × F → M := fun q ↦ e.toOpenPartialHomeomorph.symm (φ.symm q.1, q.2) with hψdef
+  set ψ := A.patchMap IB b' b₀
   set μ := mpullback (𝓘(ℝ, EB).prod IF) IM ψ τ.val
   set νs : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F) :=
     SmoothForm.mpullback Prod.snd contMDiff_snd σ
@@ -134,7 +133,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
     exact (tsupport_comp_subset_preimage χ continuous_fst).trans (preimage_mono hχW)
   -- The facts about the two forms that are blended.
   set WU : TopologicalSpace.Opens (EB × F) := ⟨W ×ˢ univ, hWo.prod isOpen_univ⟩
-  have hμ := hA.contMDiffOn_mpullback_symm_extChartAt_symm b' b₀ τ
+  have hμ := hA.contMDiffOn_mpullback_patchMap b' b₀ τ
   have h₁ := isSmoothForm_fun_smul_of_mpullback_subtypeVal (W := WU) hg hgW
     (isSmoothForm_mpullback_subtypeVal_of_contMDiffOn hμ)
   have h₂ := νs.isSmoothForm.fun_smul ((contMDiff_const (c := (1 : ℝ))).sub hg)
@@ -146,7 +145,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
   have hνc : RoughForm.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst ν univ :=
     SmoothTwoForm.isVerticallyClosedOn_univ_iff.2 (hσc.mpullback _ contMDiff_snd).isVerticallyClosed
   have hfibμ {x : EB} (hx : x ∈ W) : RoughForm.fiberComponent μ x = σ.val :=
-    hτσ.fiberComponent_mpullback_symm_extChartAt_symm hA (by simp) hx
+    hτσ.fiberComponent_mpullback_patchMap hA (by simp) hx
   have hfibν (x : EB) : RoughForm.fiberComponent ν x = σ.val := by
     rw [← SmoothTwoForm.coe_smoothFiberComponent, SmoothTwoForm.smoothFiberComponent_def,
       SmoothForm.mpullback_prodMk_mpullback_snd]
@@ -178,7 +177,7 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
     refine RoughForm.IsVerticallyClosedOn.smul_add_one_sub_smul_of_tsupport_subset (f := χ)
       (proj := Prod.fst) hχW continuous_fst
       (prod_univ (s := W) ▸
-        hτ.isVerticallyClosedOn_mpullback_symm_extChartAt_symm hA (by simp) b' b₀) hνc
+        hτ.isVerticallyClosedOn_mpullback_patchMap hA (by simp) b' b₀) hνc
       (fun _ _ ↦ mdifferentiableAt_fst) (fun _ _ ↦ (hχ _).mdifferentiableAt (by simp))
       (fun q hq ↦ (hμ.contMDiffAt ((hWo.prod isOpen_univ).mem_nhds ⟨hq, mem_univ _⟩)
         ).mdifferentiableAt (by simp))
@@ -207,13 +206,12 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
     filter_upwards [hS.mem_nhds hp₀S, (hΦ hp₀S).continuousAt.preimage_mem_nhds
       (hUo.mem_nhds (by rw [hΦp₀]; exact ⟨hcU, mem_univ _⟩))] with p hp hpU
     -- `ψ ∘ Φ` is the identity near `p`.
-    have hid : ψ ∘ Φ =ᶠ[𝓝 p] id := Filter.eventually_of_mem (hS.mem_nhds hp) fun q hq ↦ by
-      simp only [Function.comp_apply, hψdef, hΦdef, id]
-      rw [φ.left_inv (by rw [extChartAt_source]; exact hq.2), e.symm_apply_mk_proj hq.1]
+    have hid : ψ ∘ Φ =ᶠ[𝓝 p] id := Filter.eventually_of_mem (hS.mem_nhds hp) fun q hq ↦
+      A.patchMap_extChartAt_proj_snd hq.1 hq.2
     have hpW : (Φ p).1 ∈ W :=
       hεW (Metric.ball_subset_ball (by linarith) (show (Φ p).1 ∈ _ from hpU.1))
     have hψ : MDifferentiableAt (𝓘(ℝ, EB).prod IF) IM ψ (Φ p) :=
-      (hA.contMDiffAt_symm_extChartAt_symm (q := Φ p) hpW).mdifferentiableAt (by simp)
+      (hA.contMDiffAt_patchMap (q := Φ p) hpW).mdifferentiableAt (by simp)
     rw [mpullback_apply_congr (hU hpU.1),
       ← mpullback_comp_at ((hΦ hp).mdifferentiableAt (by simp)) hψ, hid.mpullback_apply_eq_self]
 

@@ -46,6 +46,8 @@ which is smooth with onto derivative.
   trivializations over a point of both base sets, as a diffeomorphism of the model fibre.
 * `Bundle.Trivialization.mapFiberDiffeomorph`: the fibre coordinate of a smooth trivialization,
   as a diffeomorphism from a fibre whose inclusion is a smooth embedding onto the model fibre.
+* `TauCeti.MapFiber.Atlas.patchMap`: the patch map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` of a chart `e` of an
+  atlas over a chart `φ` of the base.
 * `TauCeti.ManifoldTotalSpace.mapFiberAtlas`: the atlas of the projection of the charted total
   space of a fibre bundle, made of the bundle's trivializations.
 
@@ -80,10 +82,10 @@ which is smooth with onto derivative.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffAt_extChartAt_proj_prodMk_snd` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd`: a chart of a
   smooth atlas, read through a chart of the base, is smooth with onto derivative.
-* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffOn_symm_extChartAt_symm` and
-  `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffAt_symm_extChartAt_symm`: conversely, the inverse
-  of a chart of a smooth atlas, read through the inverse of a chart of the base, is smooth where
-  it is defined; `Bundle.Trivialization.isOpen_extChartAt_target_inter_symm_preimage_baseSet`
+* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffOn_patchMap` and
+  `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffAt_patchMap`: conversely, the patch map, the
+  inverse of a chart of a smooth atlas read through the inverse of a chart of the base, is smooth
+  where it is defined; `Bundle.Trivialization.isOpen_extChartAt_target_inter_symm_preimage_baseSet`
   says that this domain is open when the base has no boundary.
 * `TauCeti.MapFiber.Atlas.apply_eq_of_mfderiv_eq_zero_of_proj_eq`: over a preconnected model
   fibre, a real function whose derivative vanishes on vertical vectors at every point of a fibre
@@ -608,31 +610,64 @@ theorem IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd [IsManifold IB
   -- The cast between the tangent spaces at equal points is the identity.
   exact fun q ↦ let ⟨p, hp⟩ := hL.comp (he.mfderiv_surjective hxe) q; ⟨p, hp⟩
 
-/-- For a chart `e = A.trivAt b'` of a `C^n` atlas and the extended chart `φ` of `B` at `b₀`, the
-map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` is `C^n` on the product with `F` of the set of the points `x` of the
-target of `φ` with `φ⁻¹ x` in the base set of `e`. -/
-theorem IsContMDiff.contMDiffOn_symm_extChartAt_symm [IsManifold IB n B]
+variable (A IB) in
+/-- The patch map of a chart `e = A.trivAt b'` over the extended chart `φ` of `B` at `b₀`: the map
+`q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` from `EB × F` to `M`, which reads `M` over the patch of the points `x`
+of the target of `φ` with `φ⁻¹ x` in the base set of `e` as the product of that patch with
+`F`. -/
+def patchMap (b' b₀ : B) (q : EB × F) : M :=
+  (A.trivAt b').toOpenPartialHomeomorph.symm ((extChartAt IB b₀).symm q.1, q.2)
+
+theorem patchMap_def (b' b₀ : B) (q : EB × F) :
+    A.patchMap IB b' b₀ q =
+      (A.trivAt b').toOpenPartialHomeomorph.symm ((extChartAt IB b₀).symm q.1, q.2) :=
+  (rfl)
+
+/-- The patch map sends `q` to a point over `φ⁻¹ q.1` when `φ⁻¹ q.1` lies in the base set of the
+chart. -/
+theorem proj_patchMap {b' b₀ : B} {q : EB × F}
+    (hq : (extChartAt IB b₀).symm q.1 ∈ (A.trivAt b').baseSet) :
+    proj (A.patchMap IB b' b₀ q) = (extChartAt IB b₀).symm q.1 := by
+  rw [patchMap_def, (A.trivAt b').proj_symm_apply' hq]
+
+/-- On the fibre `{x} × F` over a point `x` with `φ⁻¹ x` in the base set of the chart `e`, the
+patch map is the fibre inclusion of `e` over `φ⁻¹ x`. -/
+theorem patchMap_comp_prodMk {b' b₀ : B} {x : EB}
+    (hx : (extChartAt IB b₀).symm x ∈ (A.trivAt b').baseSet) :
+    A.patchMap IB b' b₀ ∘ Prod.mk x = (A.trivAt b').fiberInclusionMap hx := by
+  ext y
+  rw [Function.comp_apply, patchMap_def, Bundle.Trivialization.fiberInclusionMap_apply]
+
+/-- The patch map inverts `p ↦ (φ (proj p), (e p).2)` on the points `p` of the source of the
+chart `e` with `proj p` in the source of the chart of `B` at `b₀`. -/
+theorem patchMap_extChartAt_proj_snd {b' b₀ : B} {p : M} (hp : p ∈ (A.trivAt b').source)
+    (hpb : proj p ∈ (chartAt HB b₀).source) :
+    A.patchMap IB b' b₀ (extChartAt IB b₀ (proj p), (A.trivAt b' p).2) = p := by
+  rw [patchMap_def, (extChartAt IB b₀).left_inv (by rwa [extChartAt_source]),
+    (A.trivAt b').symm_apply_mk_proj hp]
+
+/-- The patch map of a chart `e = A.trivAt b'` of a `C^n` atlas over the extended chart `φ` of `B`
+at `b₀` is `C^n` on the product with `F` of the set of the points `x` of the target of `φ` with
+`φ⁻¹ x` in the base set of `e`. -/
+theorem IsContMDiff.contMDiffOn_patchMap [IsManifold IB n B]
     (hA : A.IsContMDiff n IB IF IM) (b' b₀ : B) :
-    ContMDiffOn (𝓘(𝕜, EB).prod IF) IM n
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2))
+    ContMDiffOn (𝓘(𝕜, EB).prod IF) IM n (A.patchMap IB b' b₀)
       (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
         univ) := by
+  rw [show A.patchMap IB b' b₀ = _ from funext (patchMap_def b' b₀)]
   refine (hA.contMDiffOn_trivAt_symm b').comp
     (((contMDiffOn_extChartAt_symm b₀).comp contMDiffOn_fst ?_).prodMk contMDiffOn_snd) ?_
   · exact fun _ hq ↦ hq.1.1
   · exact fun _ hq ↦ (A.trivAt b').mem_target.2 hq.1.2
 
-/-- For a chart `e = A.trivAt b'` of a `C^n` atlas over a boundaryless base and the extended chart
-`φ` of `B` at `b₀`, the map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` is `C^n` at each `q` such that `q.1` lies
-in the target of `φ` and `φ⁻¹ q.1` in the base set of `e`. -/
-theorem IsContMDiff.contMDiffAt_symm_extChartAt_symm [IB.Boundaryless] [IsManifold IB n B]
+/-- The patch map of a chart `e = A.trivAt b'` of a `C^n` atlas over a boundaryless base and the
+extended chart `φ` of `B` at `b₀` is `C^n` at each `q` such that `q.1` lies in the target of `φ`
+and `φ⁻¹ q.1` in the base set of `e`. -/
+theorem IsContMDiff.contMDiffAt_patchMap [IB.Boundaryless] [IsManifold IB n B]
     (hA : A.IsContMDiff n IB IF IM) {b' b₀ : B} {q : EB × F}
     (hq : q.1 ∈ (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) :
-    ContMDiffAt (𝓘(𝕜, EB).prod IF) IM n
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2)) q :=
-  (hA.contMDiffOn_symm_extChartAt_symm b' b₀).contMDiffAt
+    ContMDiffAt (𝓘(𝕜, EB).prod IF) IM n (A.patchMap IB b' b₀) q :=
+  (hA.contMDiffOn_patchMap b' b₀).contMDiffAt
     ((((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet b₀).prod
       isOpen_univ).mem_nhds ⟨hq, mem_univ _⟩)
 
