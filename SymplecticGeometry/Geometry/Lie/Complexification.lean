@@ -17,7 +17,10 @@ public import TauCeti.Geometry.Lie.Functor
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.RepresentationTheory.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
@@ -103,6 +106,9 @@ The complex structure `cplx` is not determined by the other fields.
   polar decomposition. For connected `G` and a symmetric `Ad`-invariant form `B`, the polar radius
   `B η η` of a differentiable curve `a = expI η * toHom u` has derivative
   `2 B (Ad u⁻¹ η) (im (a⁻¹ ȧ))`.
+* `SymplecticGeometry.LieComplexification.sqrt_polar_symm_fst_le_add_mul`: for such a `B` that is
+  also nonnegative, the polar radius `√(B η η)` of a curve whose left-trivialized derivative has
+  imaginary part of `B`-length at most `K` grows at most like `K * t`.
 * `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
   `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
   `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
@@ -625,6 +631,37 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E]
     fun v w ↦ hBs.eq v w).congr_deriv ?_
   rw [zero_apply, zero_apply, zero_add, hkey, ← hd, hη]
   exact congrArg (2 * ·) (LinearMap.toContinuousBilinearMap_apply B η _)
+
+/-- **Linear growth of the polar radius.** For connected `G` and a symmetric, nonnegative,
+`Ad`-invariant form `B` on its Lie algebra, let `a` be a curve in `Gc` with left-trivialized
+derivative `v` at every time, and let `√(B (im (v s)) (im (v s))) ≤ K` for every `s`. Then for
+`t ≥ 0` the polar radius `√(B η η)` of `a t`, where `η` is the first component of
+`C.polar.symm (a t)`, is at most that of `a 0` plus `K * t`. -/
+theorem sqrt_polar_symm_fst_le_add_mul [FiniteDimensional ℝ E]
+    [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} (hBs : B.IsSymm)
+    (hpos : B.IsNonneg) (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {a : ℝ → Gc} {v : ℝ → GroupLieAlgebra IC Gc} (ha : HasLeftTrivializedDerivOn a v Set.univ)
+    {K : ℝ} (hK : ∀ s, √(B (C.im (v s)) (C.im (v s))) ≤ K) {t : ℝ} (ht : 0 ≤ t) :
+    √(B (C.polar.symm (a t)).1 (C.polar.symm (a t)).1) ≤
+      √(B (C.polar.symm (a 0)).1 (C.polar.symm (a 0)).1) + K * t := by
+  set f : ℝ → ℝ := fun s ↦ B (C.polar.symm (a s)).1 (C.polar.symm (a s)).1
+  set b : ℝ → ℝ := fun s ↦
+    B (Lie.tangentAd (I := I) (C.polar.symm (a s)).2⁻¹ (C.polar.symm (a s)).1) (C.im (v s))
+  have hfd (s : ℝ) : HasDerivAt f (2 * b s) s := by
+    have hd := C.hasDerivAt_polar_symm_fst_comp hBs hB (ha.mdifferentiableAt Filter.univ_mem)
+      (Prod.mk.eta ..).symm (t := s)
+    rwa [ha.mfderiv_inv_mul_curveVelocity Filter.univ_mem] at hd
+  -- Cauchy–Schwarz for `B`, with `B (Ad u⁻¹ η) (Ad u⁻¹ η) = B η η`.
+  have hb (s : ℝ) : b s ≤ √(f s) * K := by
+    have hAd (u : G) (x : GroupLieAlgebra I G) :
+        B (Lie.tangentAd (I := I) u x) (Lie.tangentAd (I := I) u x) = B x x := by
+      rw [Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply (𝕜 := ℝ), hB.apply]
+    refine (le_abs_self _).trans <| (B.abs_apply_le_sqrt_mul_sqrt hBs hpos _ _).trans ?_
+    refine (congrArg (fun r ↦ √r * √(B (C.im (v s)) (C.im (v s)))) (hAd _ _)).trans_le ?_
+    exact mul_le_mul_of_nonneg_left (hK s) (Real.sqrt_nonneg _)
+  have hK0 : 0 ≤ K := (Real.sqrt_nonneg _).trans (hK 0)
+  simpa using Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le (fun s _ ↦ hpos.nonneg _)
+    (fun s _ ↦ hfd s) (fun s _ ↦ by linarith [hb s]) hK0 ht
 
 end LieComplexification
 

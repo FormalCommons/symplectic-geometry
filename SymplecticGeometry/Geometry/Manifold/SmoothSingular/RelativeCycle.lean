@@ -90,10 +90,10 @@ theorem range_toSSetObjEquiv_δ_subset_of_eq_smoothSingularSubcomplexMap_app {k 
       (smoothSingularSubcomplexMap (Subtype.val : U → M) contMDiff_subtypeVal).app _ (t i))
     (i : Fin (k + 2)) :
     Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj (TopCat.of M)).δ i σ.val)) ⊆
-      Set.range (TopPair.ofSubset (X := TopCat.of M) (U : Set M)).map := by
-  rw [δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app (ht i)]
-  rintro _ ⟨z, rfl⟩
-  exact ⟨_, rfl⟩
+      Set.range (TopPair.ofSubset (X := TopCat.of M) (U : Set M)).map :=
+  TopPair.range_toSSetObjEquiv_δ_subset_of_eq_toSSet_map_app
+    (TopPair.ofSubset (X := TopCat.of M) (U : Set M)) σ.val (fun j ↦ (t j).val)
+    (fun j ↦ δ_val_eq_toSSet_map_app_of_eq_smoothSingularSubcomplexMap_app (ht j)) i
 
 end Faces
 
