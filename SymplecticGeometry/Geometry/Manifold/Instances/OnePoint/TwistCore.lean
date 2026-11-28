@@ -11,8 +11,10 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CoordRatio
+import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 
 /-!
 # The line bundles `𝒪(k)` on the Riemann sphere as real vector bundles
@@ -32,6 +34,9 @@ degree `k`:
 * `OnePoint.contMDiffAt_div_twistCore`: the same for sections that are `C^n` at a point, by the
   same reading in coordinates, adapted to `C^n` from the differentiability step of Tau Ceti's
   `TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul`;
+* `OnePoint.mvfderiv_div_twistCore_of_eq_zero`: at a zero `x` of the numerator where the
+  denominator is nonzero, the derivative of that quotient is `(t x)⁻¹` times the derivative of
+  the coordinate of the numerator in the trivialization `(twistCore k).localTriv x`;
 * `OnePoint.twistCore_localTriv_symmL_apply`: over the chart at `y`, the real frame of the
   trivialization at `y` is multiplication by a transition function;
 * `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars;
@@ -41,7 +46,10 @@ degree `k`:
 
 `OnePoint.mdifferentiableAt_div_twistCore` follows from the general
 `Bundle.Trivialization.mdifferentiableAt_coordRatio`: near the point, the quotient is the ratio
-of the two sections read in the trivialization `(twistCore k).localTriv x`.
+of the two sections read in the trivialization `(twistCore k).localTriv x`. For
+`OnePoint.mvfderiv_div_twistCore_of_eq_zero`, near `x` the quotient is the coordinate of the
+numerator times the inverse of that of the denominator, a factor continuous at `x`, so Tau Ceti's
+`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply` applies.
 
 Files using the real structure `open scoped VectorBundle.ComplexToReal`.
 -/
@@ -147,6 +155,35 @@ theorem contMDiffAt_div_twistCore (k : ℤ) {n : ℕ∞ω} {s t : OnePoint ℂ �
   refine (hdiv.contMDiffAt.comp x (hcs.prodMk_space hct)).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
   exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
+
+/-- Let `s` and `t` be sections of `𝒪(k)`, read in the trivialization `(twistCore k).localTriv x`,
+such that the coordinate of `s` is real differentiable at `x`, that of `t` is continuous at `x`,
+`s x = 0` and `t x ≠ 0`. Then the derivative at `x` of the quotient `p ↦ s p / t p` is `(t x)⁻¹`
+times the derivative at `x` of the coordinate of `s`. -/
+theorem mvfderiv_div_twistCore_of_eq_zero (k : ℤ) {s t : OnePoint ℂ → ℂ} {x : OnePoint ℂ}
+    (hs : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ)
+      (fun p ↦ ((twistCore (𝕜 := ℂ) k).localTriv x ⟨p, s p⟩).2) x)
+    (ht : ContinuousAt (fun p ↦ ((twistCore (𝕜 := ℂ) k).localTriv x ⟨p, t p⟩).2) x)
+    (hsx : s x = 0) (htx : t x ≠ 0) :
+    mvfderiv 𝓘(ℝ, ℂ) (fun p ↦ s p / t p) x =
+      (t x)⁻¹ • mvfderiv 𝓘(ℝ, ℂ) (fun p ↦ ((twistCore (𝕜 := ℂ) k).localTriv x ⟨p, s p⟩).2) x := by
+  have hTx : ((twistCore (𝕜 := ℂ) k).localTriv x ⟨x, t x⟩).2 ≠ 0 := by
+    rwa [twistCore_localTriv_apply, twistTransition_self, one_mul]
+  have hS0 : ((twistCore (𝕜 := ℂ) k).localTriv x ⟨x, s x⟩).2 = 0 := by
+    rw [twistCore_localTriv_apply, hsx, mul_zero]
+  -- Near `x`, the quotient is the coordinate of `s` times the inverse of that of `t`.
+  rw [TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply (c := fun p ↦
+    (((twistCore (𝕜 := ℂ) k).localTriv x ⟨p, t p⟩).2)⁻¹ • ContinuousLinearMap.id ℝ ℂ) ?_
+    ((ht.inv₀ hTx).smul continuousAt_const) hs hS0]
+  · ext v
+    simp only [twistCore_localTriv_apply, twistTransition_self, one_mul,
+      ContinuousLinearMap.comp_apply, smul_apply,
+      ContinuousLinearMap.id_apply]
+  filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
+  have hg := twistTransition_ne_zero k (mem_chart_source ℂ p) hp
+  rw [smul_apply, ContinuousLinearMap.id_apply, twistCore_localTriv_apply,
+    twistCore_localTriv_apply, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left₀ hg,
+    div_eq_inv_mul]
 
 open scoped TauCeti.ComplexManifold in
 /-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section

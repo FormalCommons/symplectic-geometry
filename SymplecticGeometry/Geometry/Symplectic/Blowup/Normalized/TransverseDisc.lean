@@ -150,8 +150,8 @@ theorem lineDisc_zero (hv : v ≠ 0) :
     hψ.lineDisc v 0 = Blowup.divisorRealEmbedding hN.blowupChart (Projectivization.mk ℂ v hv) := by
   have h0 := zeroSection_mem_openNbhd hψ.width_pos (Projectivization.mk ℂ v hv)
   rw [lineDisc_def, LinearIsometryEquiv.map_zero, curveLift_smul_zero hv,
-    hψ.ballLiftPartialDiffeomorph_apply ⟨_, openNbhd_mono hψ.width_lt_radius.le h0⟩,
-    hψ.ballLift_of_mem_openNbhd _ h0, Blowup.coe_divisorRealEmbedding, Blowup.ofDirection_def]
+    hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd h0, Blowup.coe_divisorRealEmbedding,
+    Blowup.ofDirection_def]
 
 /-- The line disc sends no point other than `0` of the set where it is defined into the
 exceptional divisor. -/
@@ -164,7 +164,7 @@ theorem eq_zero_of_lineDisc_mem_range (hv : v ≠ 0) {w : EuclideanSpace ℝ (Fi
     exceptionalDivisor_subset_openNbhd hψ.width_pos (mem_exceptionalDivisor_iff.2 hy0)
   have hyr : (y : BlowupModel n) ∈ openNbhd n r := openNbhd_mono hψ.width_lt_radius.le hyε
   have hΦy : hψ.ballLiftPartialDiffeomorph y = hψ.lineDisc v w := by
-    rw [← hy, hψ.ballLiftPartialDiffeomorph_apply ⟨y, hyr⟩, hψ.ballLift_of_mem_openNbhd _ hyε]
+    rw [← hy, hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hyε]
   have heq := hψ.ballLiftPartialDiffeomorph.injOn
     (by rwa [ballLiftPartialDiffeomorph_source]) (by rwa [ballLiftPartialDiffeomorph_source])
     ((lineDisc_def ..).symm.trans hΦy.symm)
@@ -205,14 +205,13 @@ theorem divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc (hv : v ≠ 0)
           exact zeroSection_mem_openNbhd hψ.width_pos _)))
     filter_upwards [hε] with t ht
     simp only [Function.comp_apply, g]
-    rw [
-      hψ.ballLiftPartialDiffeomorph_apply ⟨_, openNbhd_mono hψ.width_lt_radius.le ht⟩,
-      hψ.ballLift_of_mem_openNbhd _ ht, Blowup.lift_inr]
+    rw [hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd ht, Blowup.lift_inr]
   have h := congrArg Subtype.val
     (Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
       hN.blowupChart hv hg hg0 hlift (e w))
   rw [show A w = (A.comp (e.symm : ℂ →L[ℝ] EuclideanSpace ℝ (Fin 2))) (e w) by simp]
-  rwa [he, LinearIsometryEquiv.coe_toContinuousLinearEquiv] at h
+  rwa [he, LinearIsometryEquiv.coe_toContinuousLinearEquiv,
+    Projectivization.coe_toTautological_apply] at h
 
 /-- **The line disc is a transverse disc, oriented as the normal bundle.** There is a linear
 isomorphism `m : ℝ² ≃ ν_[v]` onto the normal space of the exceptional divisor at `[v]` that carries

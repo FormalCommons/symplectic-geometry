@@ -15,7 +15,6 @@ import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
-import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.RegularValue.SublevelBoundary
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
@@ -139,8 +138,8 @@ nondegeneracy nor the cobordism is needed. The backward orbit reaches the level 
 band `f ⁻¹' Icc a (f x)` is compact, since `f` is proper, and the reversed field `-X` decreases
 `f` on it, so that `SymplecticGeometry.exists_forall_isMIntegralCurve_apply_lt` applies to the
 reversed orbit. It meets the level at most once by
-`IsMIntegralCurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos` applied to the orbit, with
-`g = f`, since `df(X) > 0` on a regular level. The smoothness is the implicit function theorem
+`TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos` with `g = f`, since `df(X) > 0` on a
+regular level. The smoothness is the implicit function theorem
 at the regular level `a`, in the form of
 `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`
 with `g = f`, and not the continuity of `Flow.levelCrossingTime` on a connecting set.
@@ -274,10 +273,9 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
   -- On the compact band `f ⁻¹' Icc a (f x)`, the reversed field `-X` decreases `f`.
   have hneg : ∀ y, a ≤ f y → f y ≤ f x → mvfderiv 𝓘(ℝ, E) f y ((-X) y) < 0 := by
     intro y hay hyx
-    have hy : y ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
-      eq_empty_iff_forall_notMem.1 hc y ⟨h, hay, hyx.trans_lt hx.2⟩
     rw [Pi.neg_apply, map_neg, neg_lt_zero]
-    exact hW.isGradientLike.mvfderiv_apply_pos (by rwa [mem_criticalPoints] at hy)
+    exact hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_eq_empty hc
+      ⟨hay, hyx.trans_lt hx.2⟩
   obtain ⟨T, hT0, hT⟩ := exists_forall_isMIntegralCurve_apply_lt
     hW.contMDiff_field.neg_section.continuous (hf.of_le (by simp)) hx.1
     (hW.isProperMap.isCompact_preimage isCompact_Icc) hneg
@@ -296,14 +294,13 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
     (hx : f x ∈ Ico a c) {t : ℝ} :
     t = Flow.levelCrossingTime hW.flow f a x ↔ f (hW.flow t x) = a := by
   obtain ⟨s, -, hs⟩ := hW.exists_nonpos_flow_apply_eq hc hx
-  have hf := hW.isGeneralizedMorse.contMDiff
   exact ⟨fun h ↦ h ▸ Flow.apply_flow_levelCrossingTime ⟨s, hs⟩, fun h ↦
     (Flow.levelCrossingTime_eq_of_subsingleton
-      ((hW.isMIntegralCurve_flow x).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
-        (hf.continuous.comp (hW.isMIntegralCurve_flow x).continuous)
-        (fun _ hy ↦ ⟨hf.mdifferentiableAt (by simp),
+      (_root_.TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
+        (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField hW.flowOf_eq_flow
+        (hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp)) (fun _ hy ↦
           hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
-            (hx.1.trans_lt hx.2) hc hy⟩)) h).symm⟩
+            (hx.1.trans_lt hx.2) hc hy) x) h).symm⟩
 
 /-- **The crossing of the lower level is in the past.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a ≤ f x < c`, the orbit of `x` crosses the level `f ⁻¹' {a}` at a time
