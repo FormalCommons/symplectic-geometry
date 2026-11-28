@@ -87,7 +87,10 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.flatDbar_apply_eq_dbarFunction`: the flat `∂̄` is Tau Ceti's `∂̄` on
   functions, `TauCeti.SmoothAlmostComplexStructure.dbarFunction`, for the constant structure
   `J₀.constSmooth`; `SymplecticGeometry.flatDbar_eq_zero_iff`: it vanishes at `z` exactly when
-  `df_z` is complex linear for `J₀`.
+  `df_z` is complex linear for `J₀`. Likewise the flat `∂` is Tau Ceti's `∂` on functions,
+  `TauCeti.SmoothAlmostComplexStructure.delFunction`
+  (`SymplecticGeometry.delFunction_eq_flatDel_comp`,
+  `SymplecticGeometry.flatDel_apply_eq_delFunction`).
 * `SymplecticGeometry.contDiffAt_flatDbar`, `SymplecticGeometry.contDiffAt_modelDbar`: both `∂̄`
   of a `C^(n + 1)` function are `C^n`; `SymplecticGeometry.modelDbar_add`,
   `SymplecticGeometry.modelDbar_smul`: the model `∂̄` is additive and commutes with complex
@@ -103,9 +106,13 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   of the derivatives of the two `∂̄` in a fixed direction
   (`SymplecticGeometry.norm_fderiv_conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`).
 * `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
-  for the model `∂̄`, and its form for a product with a complex coordinate.
+  for the model `∂̄`, and its form for a product with a complex coordinate;
+  `SymplecticGeometry.flatDel_mul`, `SymplecticGeometry.modelDel_mul`: the Leibniz rule for the
+  flat and the model `∂`.
 * `SymplecticGeometry.modelDbar_gaussian`, `SymplecticGeometry.modelDbar_coord_mul_gaussian`: the
-  Gaussian `exp (-‖z‖ ^ 2 / 4)` and `z_j` times it have model `∂̄` zero.
+  Gaussian `exp (-‖z‖ ^ 2 / 4)` and `z_j` times it have model `∂̄` zero;
+  `SymplecticGeometry.modelDel_gaussian`: its model `∂` at `z` is its value times
+  `gaussianConnectionForm z`.
 * `SymplecticGeometry.exists_jetNormAt_modelDbar_peakFunction_le`,
   `SymplecticGeometry.exists_jetNormAt_modelDbar_peakFunction_mul_le`: the **model `∂̄` bounds**,
   `jetNormAt ℝ r (modelDbar (peakFunction k)) z ≤ C * k ^ (-1 / 2) * (1 + ‖z‖) ^ N *
@@ -126,7 +133,9 @@ values are forms on the tangent spaces `TangentSpace 𝓘(ℝ, StdSpace ι) z`, 
 depending on `z`, so that its jets can be taken with `jetNormAt`. The two agree by
 `dbarFunction_eq_flatDbar_comp`, and the additivity, the commutation with scalars, the Leibniz rule
 and the vanishing criterion of the flat `∂̄` are read off from Tau Ceti's `dbarFunction_add`,
-`dbarFunction_const_smul`, `dbarFunction_smul` and `dbarFunction_eq_zero_iff`.
+`dbarFunction_const_smul`, `dbarFunction_smul` and `dbarFunction_eq_zero_iff`. In the same way
+the flat `∂` agrees with Tau Ceti's `delFunction` by `delFunction_eq_flatDel_comp`, and its
+additivity and Leibniz rule come from `delFunction_add` and `delFunction_smul`.
 
 That the Gaussian has model `∂̄` zero rests on the sign convention `ω₀(z, v) = ⟪J₀ z, v⟫`
 (`stdForm_apply_eq_inner`): the derivative `-½ ⟪z, ·⟫ g` of the Gaussian `g`, from Tau Ceti's
@@ -572,9 +581,10 @@ theorem flatDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
 /-- The differential of `f` at `z` is the sum of its flat `∂` and its flat `∂̄`. -/
 theorem flatDel_add_flatDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDel f z + flatDbar f z = fderiv ℝ f z := by
-  ext v
-  rw [add_apply, flatDel_apply, flatDbar_apply, ← smul_add, sub_add_add_cancel, ← two_smul ℝ,
-    smul_smul, inv_mul_cancel₀ two_ne_zero, one_smul]
+  apply ContinuousLinearMap.coe_injective
+  rw [ContinuousLinearMap.toLinearMap_add, coe_flatDel, flatDbar_eq,
+    complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
+    complexLinearPart_add_complexAntilinearPart]
 
 /-- The flat `∂` commutes with complex scalars. -/
 @[simp]
@@ -583,6 +593,45 @@ theorem flatDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
   apply ContinuousLinearMap.coe_injective
   rw [coe_flatDel, ContinuousLinearMap.toLinearMap_smul, coe_flatDel, fderiv_const_smul_field,
     Pi.smul_apply, ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
+/-- The **flat `∂` is Tau Ceti's `∂` on functions**: for the constant smooth almost complex
+structure `J₀` on `StdSpace ι`, `TauCeti.SmoothAlmostComplexStructure.delFunction f z` is the flat
+`∂` of `f` at `z`, read on the tangent space at `z` through `NormedSpace.fromTangentSpace z`. -/
+theorem delFunction_eq_flatDel_comp (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    (stdComplexStructure ι).constSmooth.delFunction f z =
+      flatDel f z ∘L (NormedSpace.fromTangentSpace (𝕜 := ℝ) z : _ →L[ℝ] StdSpace ι) := by
+  ext v
+  simp [SmoothAlmostComplexStructure.delFunction_apply, mvfderiv_eq_fderiv, flatDel_apply]
+
+/-- The flat `∂` of `f` at `z`, applied to `v`, is Tau Ceti's `∂` on functions for the constant
+structure `J₀`, applied to `v` read as a tangent vector at `z`. -/
+theorem flatDel_apply_eq_delFunction (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    flatDel f z v = (stdComplexStructure ι).constSmooth.delFunction f z
+      ((NormedSpace.fromTangentSpace z).symm v) := by
+  rw [delFunction_eq_flatDel_comp, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply]
+
+/-- The flat `∂` is additive on functions differentiable at `z`. -/
+theorem flatDel_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) : flatDel (f + g) z = flatDel f z + flatDel g z := by
+  ext v
+  simp [flatDel_apply_eq_delFunction, SmoothAlmostComplexStructure.delFunction_add _
+    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)]
+
+@[simp]
+theorem flatDel_zero (z : StdSpace ι) : flatDel (0 : StdSpace ι → ℂ) z = 0 := by
+  ext v
+  simp [flatDel_apply_eq_delFunction]
+
+/-- The **Leibniz rule** for the flat `∂`: for `f` and `g` differentiable at `z`, the flat `∂`
+of `f * g` at `z` is `f z` times the flat `∂` of `g` plus `g z` times the flat `∂` of `f`. -/
+theorem flatDel_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) :
+    flatDel (fun y ↦ f y * g y) z = f z • flatDel g z + g z • flatDel f z := by
+  have h := (stdComplexStructure ι).constSmooth.delFunction_smul
+    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)
+  simp only [smul_eq_mul] at h
+  ext v
+  simp [flatDel_apply_eq_delFunction, ← Pi.mul_def, h, mul_comm]
 
 /-! ### The flat operators against the Wirtinger derivatives
 
@@ -782,6 +831,30 @@ theorem modelDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
   rw [coe_modelDel, ContinuousLinearMap.toLinearMap_smul, coe_modelDel, modelConnection_smul,
     ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
 
+/-- The model `∂` is additive on functions differentiable at `z`. -/
+theorem modelDel_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) : modelDel (f + g) z = modelDel f z + modelDel g z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_modelDel, modelConnection_add hf hg, ContinuousLinearMap.toLinearMap_add,
+    complexLinearPart_add, ContinuousLinearMap.toLinearMap_add, coe_modelDel, coe_modelDel]
+
+@[simp]
+theorem modelDel_zero (z : StdSpace ι) : modelDel (0 : StdSpace ι → ℂ) z = 0 := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_modelDel, modelConnection_zero, ContinuousLinearMap.toLinearMap_zero,
+    complexLinearPart_zero]
+
+/-- The **Leibniz rule** for the model `∂`: for `f` and `g` differentiable at `z`, the model
+`∂` of `f * g` at `z` is `f z` times the model `∂` of `g` plus `g z` times the flat `∂` of
+`f`. -/
+theorem modelDel_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) :
+    modelDel (fun y ↦ f y * g y) z = f z • modelDel g z + g z • flatDel f z := by
+  apply ContinuousLinearMap.coe_injective
+  simp only [coe_modelDel, modelConnection_mul hf hg, ContinuousLinearMap.toLinearMap_add,
+    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_add, complexLinearPart_complex_smul,
+    coe_flatDel]
+
 /-- The derivative of the Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function. -/
 private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
     fderiv ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z v =
@@ -884,6 +957,16 @@ theorem modelConnection_gaussian (z : StdSpace ι) :
     gaussianConnectionForm_apply, Complex.real_smul, Complex.real_smul]
   push_cast
   ring
+
+/-- **The model `∂` of the Gaussian**: at `z`, the model `∂` of `G = exp (-‖·‖ ^ 2 / 4)` is
+`G z` times the connection form `gaussianConnectionForm z`, which is complex linear for `J₀`. -/
+theorem modelDel_gaussian (z : StdSpace ι) :
+    modelDel (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z =
+      (Real.exp (-‖z‖ ^ 2 / 4) : ℂ) • gaussianConnectionForm z := by
+  apply ContinuousLinearMap.coe_injective
+  simp only [coe_modelDel, modelConnection_gaussian, ← Complex.coe_smul,
+    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul,
+    complexLinearPart_gaussianConnectionForm]
 
 /-- The model `∂̄` of `z_j` times `f` is `z_j` times the model `∂̄` of `f`. -/
 theorem modelDbar_coord_mul {f : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)

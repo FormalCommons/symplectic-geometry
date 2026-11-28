@@ -125,12 +125,10 @@ theorem modelDel_mul_gaussian {q : StdSpace ι → ℂ} {z : StdSpace ι}
     ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
       ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
       one_ne_zero z
-  apply ContinuousLinearMap.coe_injective
-  simp only [coe_modelDel, modelConnection_mul hq hG, modelConnection_gaussian,
-    ContinuousLinearMap.toLinearMap_add, ContinuousLinearMap.toLinearMap_smul,
-    complexLinearPart_add, complexLinearPart_complex_smul,
-    complexLinearPart_gaussianConnectionForm, coe_flatDel, ← Complex.coe_smul]
-  module
+  rw [modelDel_mul hq hG, modelDel_gaussian]
+  ext v
+  simp only [add_apply, smul_apply, smul_eq_mul, Complex.real_smul]
+  ring
 
 /-- **A lower bound on the model `∂` of a product with the Gaussian.** For `q` differentiable at
 `z` and `G = exp (-‖·‖ ^ 2 / 4)`, the operator norm of the model `∂` of `q * G` at `z` is at
