@@ -13,9 +13,9 @@ import TauCeti.Topology.Algebra.Module.BilinearForm
 
 Let `X` be differentiable at `p` and satisfy the gradient-like inequality near `p` for two
 functions `f` and `g` (in the local form of `TauCeti.isGradientLike_of_forall_exists_nhds`), each
-with a metric and a constant of its own. If `p` is a nondegenerate critical point of `f` and a
-critical point of `g`, with `g` of class `C²` in the chart at `p`, then `p` is a nondegenerate
-critical point of every function `(1 - s) • f + s • g` with `s ∈ [0, 1]`
+with a metric and a constant of its own. If `p` is a nondegenerate critical point of `f` and `g`
+is of class `C²` in the chart at `p`, then `p` is a nondegenerate critical point of every
+function `(1 - s) • f + s • g` with `s ∈ [0, 1]`
 (`TauCeti.IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul`), and so of every function
 equal to one of them near `p`, by Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.congr_of_eventuallyEq`.
@@ -25,8 +25,10 @@ such a segment, used for the homotopies of functions with a fixed Weinstein fiel
 
 ## Implementation notes
 
-Write `A` for the linearization of `X` at `p`, and `B`, `B'` for the second derivatives of `f`,
-`g` in the chart at `p`. By `TauCeti.exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv`,
+At `p` the inequality for `f` forces `X p = 0`, and then the inequality for `g` forces the
+gradient of `g` to vanish at `p`, so `p` is a critical point of `g` too. Write `A` for the
+linearization of `X` at `p`, and `B`, `B'` for the second derivatives of `f`, `g` in the chart
+at `p`. By `TauCeti.exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv`,
 `c * (‖A v‖ ^ 2 + ‖B v‖ ^ 2) ≤ B v (A v)` for some `c > 0`, and the same for `B'`. If `A v = 0`
 the first inequality gives `B v = 0`, so `v = 0` since `B` is invertible: `A` is injective. The
 second derivative `(1 - s) • B + s • B'` of the combination then satisfies
@@ -53,12 +55,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- **Nondegeneracy along a segment of functions.** Let `X` be differentiable at `p` and satisfy
 the gradient-like inequality near `p` for `f` and for `g`, in the local form of
 `TauCeti.isGradientLike_of_forall_exists_nhds`, with a smooth metric and a constant `c > 0` for
-each. Let `p` be a nondegenerate critical point of `f` and a critical point of `g`, with `g` of
-class `C²` in the chart at `p`. Then `p` is a nondegenerate critical point of
-`(1 - s) • f + s • g` for every `s ∈ [0, 1]`. -/
+each. Let `p` be a nondegenerate critical point of `f`, and let `g` be of class `C²` in the chart
+at `p`. Then `p` is a nondegenerate critical point of `(1 - s) • f + s • g` for every
+`s ∈ [0, 1]`. -/
 theorem IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul {p : M}
     (hf : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
-    (hgp : p ∈ criticalPoints 𝓘(ℝ, E) g)
     (hg : ContDiffAt ℝ 2 (g ∘ (extChartAt 𝓘(ℝ, E) p).symm) (extChartAt 𝓘(ℝ, E) p p))
     (hXf : ∃ U ∈ 𝓝 p,
       ∃ G : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
@@ -81,6 +82,24 @@ theorem IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul {p : M}
   set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p
   set B := fderiv ℝ (fderiv ℝ (f ∘ φ.symm)) (φ p)
   set B' := fderiv ℝ (fderiv ℝ (g ∘ φ.symm)) (φ p)
+  -- At the critical point `p` of `f`, the inequality for `f` forces `X p = 0`.
+  have hX₀ : X p = 0 := by
+    obtain ⟨U, hU, G, c, hc, hG⟩ := hXf
+    let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨G.toRiemannianMetric⟩
+    have h := hG p (mem_of_mem_nhds hU)
+    rw [TauCeti.mem_criticalPoints.1 hf.mem_criticalPoints, zero_apply] at h
+    by_contra hne
+    have := G.pos p (X p) hne
+    nlinarith [sq_nonneg ‖mgradient 𝓘(ℝ, E) f p‖]
+  -- Then the inequality for `g` at `p` makes `p` a critical point of `g`.
+  have hgp : p ∈ criticalPoints 𝓘(ℝ, E) g := by
+    obtain ⟨U, hU, G, c, hc, hG⟩ := hXg
+    let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨G.toRiemannianMetric⟩
+    have h := hG p (mem_of_mem_nhds hU)
+    simp only [hX₀, map_zero, zero_add] at h
+    rw [TauCeti.mem_criticalPoints, ← mgradient_eq_zero_iff]
+    exact norm_eq_zero.1 <| pow_eq_zero_iff (n := 2) two_ne_zero |>.1 <|
+      le_antisymm (nonpos_of_mul_nonpos_right h hc) (sq_nonneg _)
   obtain ⟨c, hc, hcB⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hXf
     hf.mem_criticalPoints hf'.contDiffAt hXp (A := A) rfl
   obtain ⟨c', hc', hcB'⟩ := exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv hXg hgp hg hXp
@@ -97,26 +116,22 @@ theorem IsManifoldNondegenerateCriticalPoint.one_sub_smul_add_smul {p : M}
   have hcomp : ((1 - s) • f + s • g) ∘ φ.symm = (1 - s) • (f ∘ φ.symm) + s • (g ∘ φ.symm) := by
     rw [Pi.add_comp, Pi.smul_comp, Pi.smul_comp]
   have hF := hf'.contDiffAt
-  have hev : fderiv ℝ ((1 - s) • (f ∘ φ.symm) + s • (g ∘ φ.symm)) =ᶠ[𝓝 (φ p)]
-      (1 - s) • fderiv ℝ (f ∘ φ.symm) + s • fderiv ℝ (g ∘ φ.symm) := by
-    filter_upwards [hF.eventually (by simp), hg.eventually (by simp)] with u hu hu'
-    have h₁ := hu.differentiableAt (by norm_num)
-    have h₂ := hu'.differentiableAt (by norm_num)
-    rw [fderiv_add (h₁.const_smul _) (h₂.const_smul _), fderiv_const_smul h₁,
-      fderiv_const_smul h₂]
-    simp only [Pi.add_apply, Pi.smul_apply]
-  have hBs : HasFDerivAt (fderiv ℝ ((1 - s) • (f ∘ φ.symm) + s • (g ∘ φ.symm)))
-      ((1 - s) • B + s • B') (φ p) :=
-    (((hF.hasFDerivAt_fderiv le_rfl).const_smul (1 - s)).add
-      ((hg.hasFDerivAt_fderiv le_rfl).const_smul s)).congr_of_eventuallyEq hev
+  have hBs : fderiv ℝ (fderiv ℝ ((1 - s) • (f ∘ φ.symm) + s • (g ∘ φ.symm))) (φ p) =
+      (1 - s) • B + s • B' := by
+    rw [fderiv_fderiv_add (u := (1 - s) • (f ∘ φ.symm)) (w := s • (g ∘ φ.symm))
+      (by exact hF.const_smul (1 - s)) (by exact hg.const_smul s), fderiv_fderiv_const_smul,
+      fderiv_fderiv_const_smul]
+  have h₁ := hF.differentiableAt (by norm_num)
+  have h₂ := hg.differentiableAt (by norm_num)
   rw [isManifoldNondegenerateCriticalPoint_iff, hcomp]
   refine ⟨?_, ?_, ?_⟩
   · rw [Pi.add_def, Pi.smul_def, Pi.smul_def]
     exact (hF.const_smul (1 - s)).add (hg.const_smul s)
-  · rw [hev.eq_of_nhds, Pi.add_apply, Pi.smul_apply, Pi.smul_apply, hf'.fderiv_eq_zero,
+  · rw [fderiv_add (h₁.const_smul _) (h₂.const_smul _), fderiv_const_smul h₁,
+      fderiv_const_smul h₂, hf'.fderiv_eq_zero,
       fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hgp, smul_zero, smul_zero,
       add_zero]
-  rw [hBs.fderiv]
+  rw [hBs]
   refine ContinuousLinearMap.isInvertible_of_injective ((injective_iff_map_eq_zero _).2
     fun v hv ↦ hA v ?_)
   have h := congrArg (· (A v)) hv

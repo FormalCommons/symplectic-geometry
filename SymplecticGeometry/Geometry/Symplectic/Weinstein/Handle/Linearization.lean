@@ -86,10 +86,10 @@ with its value at `p`. For a fixed vector `e` of the chart, the Cauchy–Schwarz
 `(df e) ^ 2 ≤ ‖grad f‖ ^ 2 * g(e, e)`, together with a bound on the differential of the chart for
 the norm of `g` (Mathlib's `eventually_norm_mfderiv_extChartAt_lt`), gives near `p` an inequality
 `κ * (‖X u‖ ^ 2 + (df_u e) ^ 2) ≤ df_u (X u)` in the chart, with `κ > 0` independent of `e` for
-`‖e‖ ≤ 1`. It passes to second order by `HasFDerivAt.mul_norm_sq_le_apply_apply_of_eventually`
-and `HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`, and a choice of `e` at which `B v`
-is close to its norm makes the bound uniform in `v`. Nondegeneracy is not needed for this; at a
-nondegenerate critical point, the invertibility of the Hessian then bounds `‖v‖` by `‖H v‖`.
+`‖e‖ ≤ 1`. It passes to second order by
+`HasFDerivAt.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually`, and a choice of `e` at which
+`B v` is close to its norm makes the bound uniform in `v`. Nondegeneracy is not needed for this; at
+a nondegenerate critical point, the invertibility of the Hessian then bounds `‖v‖` by `‖H v‖`.
 
 The Hessian `H` is then a symmetric bilinear Lyapunov form for `A`, and the dichotomy and the
 index come from `ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply` and
@@ -104,6 +104,8 @@ positive definite there by `ContinuousLinearMap.apply_self_neg_of_mem_stableSubs
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
   Lemma 9.9, for the splitting of the linearization and the sign of the Hessian on its parts;
+  Proposition 9.23 (a), whose proof uses the second-order inequality at a critical point that
+  need not be nondegenerate;
   Proposition 11.9 (a), for the isotropy of the stable subspace, and the dimension bound stated
   after its parts
 -/
@@ -253,24 +255,20 @@ theorem exists_pos_mul_norm_sq_add_norm_sq_le_fderiv_fderiv {p : M}
     fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hp
   have hY : HasFDerivAt Y A (φ p) := hA ▸ hXp.hasFDerivAt_mpullback_extChartAt_symm
   have hY₀ : Y (φ p) = 0 := (VectorField.mpullback_extChartAt_symm_self X p).trans hX₀
-  -- The two halves of the inequality at second order.
-  have hAv (v : E) : κ * ‖A v‖ ^ 2 ≤ B v (A v) :=
-    hB.mul_norm_sq_le_apply_apply_of_eventually hD₀ hY hY₀ ((hev 0 (by simp)).mono
-      fun u hu ↦ by rwa [map_zero, zero_pow two_ne_zero, add_zero] at hu) v
-  have hBe (v e : E) (he : ‖e‖ ≤ 1) : κ * B v e ^ 2 ≤ B v (A v) :=
-    hB.mul_sq_apply_le_apply_apply_of_eventually hD₀ hY hY₀ ((hev e he).mono fun u hu ↦
-      (mul_le_mul_of_nonneg_left (le_add_of_nonneg_left (sq_nonneg _)) hκ.le).trans hu) v
+  -- The inequality at second order, for each `e` with `‖e‖ ≤ 1`.
+  have hBe (v e : E) (he : ‖e‖ ≤ 1) : κ * (‖A v‖ ^ 2 + B v e ^ 2) ≤ B v (A v) :=
+    hB.mul_norm_sq_add_sq_apply_le_apply_apply_of_eventually hD₀ hY hY₀ (hev e he) v
   refine ⟨κ / 8, by positivity, fun v ↦ ?_⟩
   -- The norm of `B v` is attained, up to a factor `2`, at a vector of norm at most `1`.
-  have hBv : κ * (‖B v‖ ^ 2 / 4) ≤ B v (A v) := by
+  have hBv : κ * (‖A v‖ ^ 2 + ‖B v‖ ^ 2 / 4) ≤ B v (A v) := by
     rcases eq_or_ne (B v) 0 with h0 | h0
-    · simp [h0]
+    · simpa [h0] using hBe v 0 (by simp)
     obtain ⟨e, he, hlt⟩ := (B v).exists_lt_apply_of_lt_opNorm (half_lt_self (norm_pos_iff.2 h0))
     rw [Real.norm_eq_abs] at hlt
     refine le_trans ?_ (hBe v e he.le)
     gcongr
     nlinarith [norm_nonneg (B v), abs_nonneg (B v e), sq_abs (B v e)]
-  nlinarith [hAv v, sq_nonneg ‖A v‖]
+  nlinarith [sq_nonneg ‖A v‖, sq_nonneg ‖B v‖]
 
 /-- **The gradient-like inequality at second order.** Let `X` be gradient-like for `f`, let `p` be
 a nondegenerate critical point of `f`, and let `X` be differentiable at `p`. Write `H` for the
