@@ -121,11 +121,7 @@ for it, for `k ≥ k₀`:
   constant that depends only on the order and on a bound for `‖Dτ(w)‖`
   (in the namespace `SymplecticGeometry.RescaledUnitaryCharts`,
   `exists_forall_norm_iteratedFDeriv_chartTransition_le`, from
-  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`). So there is
-  `ρ₁ > 0` such that for each `r` some `C` bounds the derivatives of order `1` to `r` at `0` of
-  the transitions from the chart at `(D.chart k x)⁻¹ z` to the chart at `x`, for all `k ≥ k₀`,
-  `x` and `z` in the ball of radius `ρ₁ * √k` (in the same namespace,
-  `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`);
+  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`);
 * in the other direction, the transition from the chart at `x` to the chart at
   `(D.chart k x)⁻¹ z` sends `z` to `0`, its domain contains `z`, and its derivative at `z` has
   norm at most `√2` on a comparison radius, since `2π k σ(v, J v)` is the square of the norm in
@@ -759,7 +755,7 @@ theorem mfderiv_chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
   -- its tangent spaces, and by `ContinuousLinearMap.comp_apply`.
   exact (DFunLike.congr_fun h v).symm
 
-/-! ### Uniform bounds on the derivatives of the transitions at the centre -/
+/-! ### Uniform bounds on the derivatives of the transitions -/
 
 /-- For `k ≥ k₀`, the derivative of the transition from the chart centred at `y` to the chart
 centred at `x`, at a point of its source, is bijective, since it preserves the symplectic form
@@ -892,26 +888,6 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
     · simpa using hΓ y hwB 0 (Nat.zero_le _)
     · simpa using hΓ x hτB 0 (Nat.zero_le _)
     · exact hB.trans (le_max_right _ _)
-
-/-- **Uniform bounds on the derivatives of the transitions at the centre.** On a boundaryless
-manifold, if `σ` is compatible with `J` and `ρ₀ > 0`, there is a radius `ρ₁` with
-`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for
-all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ₁ * √k` and all `1 ≤ j ≤ r`, the
-`j`-th iterated derivative at `0` of the transition from the chart centred at
-`(D.chart k x)⁻¹ z` to the chart centred at `x` has norm at most `C`.
-
-This is `exists_forall_norm_iteratedFDeriv_chartTransition_le` at `0`, where
-`‖Dτ(0)‖ ≤ √2` (`exists_forall_norm_fderiv_chartTransition_zero_le`). -/
-theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryless]
-    (hJ : σ.Compatible J) (hρ₀ : 0 < ρ₀) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
-      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k), ∀ j, 1 ≤ j → j ≤ r →
-        ‖iteratedFDeriv ℝ j (D.chartTransition k x ((D.chart k x).symm z)) 0‖ ≤ C := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hT⟩ := D.exists_forall_norm_fderiv_chartTransition_zero_le hρ₀
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
-  obtain ⟨C, hC⟩ := D.exists_forall_norm_iteratedFDeriv_chartTransition_le hJ r √2
-  exact ⟨C, fun {k} hk x z hz ↦ hC hk
-    (D.zero_mem_chartTransitionDomain hk x (ball_subset_ball (by gcongr) hz)) (hT hk x z hz)⟩
 
 /-! ### The transitions back to the chart centred at a point of the ball -/
 
