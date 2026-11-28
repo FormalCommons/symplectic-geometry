@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
+public import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Basic
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
 public import TauCeti.Geometry.Symplectic.Finrank
@@ -214,15 +215,13 @@ invertible matrices. -/
 noncomputable instance instMulActionSpecialOrthogonalGroup :
     MulAction (Matrix.specialOrthogonalGroup n ℝ)
       (AlmostComplexStructure (EuclideanSpace ℝ n)) :=
-  MulAction.compHom _ (Unitary.toUnits.comp
-    (Submonoid.inclusion (Matrix.specialUnitaryGroup_le_unitaryGroup (n := n) (α := ℝ))))
+  MulAction.compHom _ (Unitary.toUnits.comp Matrix.specialOrthogonalGroup.toOrthogonalGroup)
 
 /-- A special orthogonal matrix acts as the invertible matrix it is. -/
 @[simp]
 theorem specialOrthogonalGroup_smul_def (g : Matrix.specialOrthogonalGroup n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    g • J = (Unitary.toUnits (Submonoid.inclusion
-      (Matrix.specialUnitaryGroup_le_unitaryGroup (n := n) (α := ℝ)) g) : GL n ℝ) • J :=
+    g • J = (Unitary.toUnits (Matrix.specialOrthogonalGroup.toOrthogonalGroup g) : GL n ℝ) • J :=
   (rfl)
 
 end Matrix
