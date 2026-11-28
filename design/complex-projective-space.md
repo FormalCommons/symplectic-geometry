@@ -439,8 +439,8 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 - `sphereStdForm n : TauCeti.SmoothTwoForm (𝓡 (2 * n + 1)) (sphere (0 :
   StdSpace (Fin (n + 1))) 1)`, the pull-back of
   `(stdForm (Fin (n + 1))).constSmooth` along the inclusion, with
-  `sphereStdForm_apply`, `sphereStdForm_eq_mextDeriv` ($d$ of Tau Ceti's
-  `sphereContactForm`) and `isClosed_sphereStdForm`.
+  `sphereStdForm_apply` and `isClosed_sphereStdForm` (it is $d$ of Tau Ceti's
+  `sphereContactForm`, by `SymplecticForm.mpullback_coe_sphere_constSmooth`).
 - `mpullback_radialProjection_sphereStdForm`:
   `mpullback (radialProjection n) _ (sphereStdForm n) = fubiniStudyLift n`.
 - the rotation `stdRotation ι t : StdSpace ι ≃ₗᵢ[ℝ] StdSpace ι`,
