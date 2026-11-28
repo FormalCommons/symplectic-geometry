@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
@@ -263,18 +264,18 @@ noncomputable def trivializationAtFrameTopology :
   ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
     (fun x : M ↦ trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
       (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x)
-    (fun x ↦ ⟨_, (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
-      (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x).open_baseSet⟩)
-    fun _ ↦ subset_rfl
+    (fun x ↦ (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+      (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x).baseSetOpens)
+    fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset
 
 theorem trivializationAtFrameTopology_def :
     trivializationAtFrameTopology I M =
       ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
         (fun x : M ↦ trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
           (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x)
-        (fun x ↦ ⟨_, (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
-          (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x).open_baseSet⟩)
-        fun _ ↦ subset_rfl :=
+        (fun x ↦ (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x).baseSetOpens)
+        fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset :=
   (rfl)
 
 end TrivializationAt
@@ -445,10 +446,11 @@ theorem continuous_mpullback_val_of_contMDiff {F : Type*} [NormedAddCommGroup F]
         (TauCeti.SmoothForm.mpullback g hg (tangentEquiv p.1)).val p.2 := by
   let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
   let _ := trivializationAtFrameTopology 𝓘(ℝ, F) F
-  have h := (continuous_tangentEquiv_val _ _ (fun _ ↦ subset_rfl)
-    fun x ↦ ⟨x, FiberBundle.mem_baseSet_trivializationAt' x⟩).comp
-    ((continuous_tangentEquiv_symm_mpullback_of_contMDiff e W hW _ _ (fun _ ↦ subset_rfl) hg
-      hcover).prodMap continuous_id)
+  have h := (continuous_tangentEquiv_val _ _
+    (fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset)
+    (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)).comp
+    ((continuous_tangentEquiv_symm_mpullback_of_contMDiff e W hW _ _
+      (fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset) hg hcover).prodMap continuous_id)
   exact h.congr fun p ↦ congrArg (fun ω ↦ (ω : TauCeti.SmoothTwoForm 𝓘(ℝ, F) F).val p.2)
     (LinearEquiv.apply_symm_apply _ _)
 
@@ -524,11 +526,11 @@ theorem continuous_tangentEquiv_symm {τ : N → TauCeti.SmoothTwoForm I M}
   -- two-forms on `N × M` carry the frame topology of the trivializations at their points.
   let eN (q : N × M) := trivializationAt ((EN × EB) [⋀^Fin 2]→L[ℝ] ℝ)
     (fun y : N × M ↦ TangentSpace (J.prod I) y [⋀^Fin 2]→L[ℝ] Trivial (N × M) ℝ y) q
-  let WN (q : N × M) : Opens (N × M) := ⟨_, (eN q).open_baseSet⟩
-  let _ := ContMDiffSection.frameTopology (I := J.prod I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) eN WN
-    fun _ ↦ subset_rfl
-  have h := continuous_tangentEquiv_symm_mpullback_prod eN WN (fun _ ↦ subset_rfl) e' W' hW'
-    ContMDiffMap.id fun q ↦ ⟨q, FiberBundle.mem_baseSet_trivializationAt' q⟩
+  let WN (q : N × M) : Opens (N × M) := (eN q).baseSetOpens
+  have hWN (q : N × M) : (WN q : Set (N × M)) ⊆ (eN q).baseSet := (eN q).coe_baseSetOpens.subset
+  let _ := ContMDiffSection.frameTopology (I := J.prod I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) eN WN hWN
+  have h := continuous_tangentEquiv_symm_mpullback_prod eN WN hWN e' W' hW'
+    ContMDiffMap.id (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)
   refine (h.comp (continuous_const.prodMk continuous_id :
     Continuous fun t : N ↦ (tangentEquiv.symm Ω, t))).congr fun t ↦ ?_
   simp only [Function.comp_apply, LinearEquiv.apply_symm_apply, ← hΩ t]
