@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Distribution.Coordinates
 public import TauCeti.Analysis.Calculus.CoordinateDeriv
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
 import SymplecticGeometry.Analysis.Distribution.EllipticSystem
+import SymplecticGeometry.Analysis.Distribution.Smoothness
 import SymplecticGeometry.Analysis.Distribution.SmulLeft
 import Mathlib.Analysis.InnerProductSpace.Dual
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
