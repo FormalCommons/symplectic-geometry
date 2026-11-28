@@ -367,7 +367,7 @@ theorem normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff 
   -- The differential of `f`, the identity and the normal-space equivalence carry the tangent
   -- sequence of `f` at `z` onto `0 → ker L_z → T_z X → E'_z → 0`.
   have key := Orientation.map_ofExact (f.isImmersion.mfderiv_injective hm z)
-    (f.exact_mfderiv_normalClass z hm) (f.isImmersion.normalClass_surjective z hm)
+    (f.isImmersion.exact_mfderiv_normalClass z hm) (f.isImmersion.normalClass_surjective z hm)
     (LinearMap.ker _).injective_subtype (LinearMap.exact_subtype_ker_map _)
     (hs _ (ofTransverseSection_apply_eq_zero hm hsm hs hE z))
     (tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z) (LinearEquiv.refl ℝ _)
