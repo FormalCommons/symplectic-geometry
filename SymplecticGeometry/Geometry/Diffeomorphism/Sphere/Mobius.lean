@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Moebius
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Analysis.Matrix.Polar.SpecialLinear
 public import TauCeti.Geometry.Diffeomorphism.Topology
+public import TauCeti.Geometry.Manifold.Instances.OnePoint.PSLAction
 public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.Algebra.SMul
 import Mathlib.Analysis.Complex.Polynomial.Basic
@@ -19,8 +20,9 @@ import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.Automorphism
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
+import TauCeti.Geometry.Diffeomorphism.LieGroup
 import TauCeti.Geometry.Manifold.Instances.OnePoint.DistinctTriples
-import TauCeti.Geometry.Manifold.Instances.OnePoint.PSLAction
+import TauCeti.Topology.Homotopy.Homotopic.Rel
 
 /-!
 # The Möbius group as the stabilizer of the complex structure of the sphere
@@ -45,6 +47,8 @@ as a topological group, and deformation retracts it onto the rotations.
 
 ## Main results
 
+* `OnePoint.instContMDiffSMulPSLReal`: the action of `PSL(2, ℂ)` on the sphere is jointly `Cⁿ`
+  over `ℝ`, for every `n`.
 * `SymplecticGeometry.mobiusHom_injective`: distinct elements of `PSL(2, ℂ)` act differently.
 * `SymplecticGeometry.pullback_ofComplexManifold_onePoint_eq_self_iff`: a diffeomorphism `φ` of
   the sphere has `φ^* i = i` exactly when it is `mobiusHom g` for some `g`.
@@ -61,12 +65,13 @@ biholomorphism of the Riemann sphere, and so `x ↦ g • x` for some `g` in `PS
 (`Diffeomorph.exists_coe_eq_psl_smul`, from Tau Ceti's `Diffeomorph.exists_coe_eq_smul`).
 
 The map `mobiusHom` is continuous because the action of `PSL(2, ℂ)` on the sphere is jointly
-analytic (Tau Ceti's `OnePoint.instContMDiffSMulPSL`), hence jointly smooth over `ℝ`, so
-`Diffeomorph.continuous_constSmulHom` applies, which rests on Tau Ceti's
-`ContMDiff.continuous_diffeomorphWeakWhitney`. It is an embedding because evaluation at
-`0`, `1`, `∞` after it is Tau Ceti's homeomorphism `OnePoint.pslHomeomorphDistinctTriples` of
-`PSL(2, ℂ)` onto the triples of distinct points. The homotopy `mobiusPolarHomotopy` is Tau Ceti's
-`Matrix.ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ`, conjugated by `mobiusEquiv`.
+analytic (Tau Ceti's `OnePoint.instContMDiffSMulPSL`), hence jointly smooth over `ℝ`, so it is
+Tau Ceti's continuous homomorphism `Diffeomorph.smulContinuousMonoidHom`. It is an embedding
+because evaluation at `0`, `1`, `∞` after it is Tau Ceti's homeomorphism
+`OnePoint.pslHomeomorphDistinctTriples` of `PSL(2, ℂ)` onto the triples of distinct points.
+The homotopy `mobiusPolarHomotopy` is Tau Ceti's
+`Matrix.ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ`, conjugated by `mobiusEquiv` with
+Tau Ceti's `ContinuousMap.HomotopyRel.precomp`.
 
 ## References
 
@@ -79,6 +84,21 @@ public section
 
 open TauCeti TauCeti.SmoothAlmostComplexStructure Matrix
 open scoped Manifold ContDiff MatrixGroups TauCeti.ComplexManifold TauCeti.DiffeomorphWeakWhitney
+
+namespace OnePoint
+
+/-- The Möbius action of `PSL(2, ℂ)` on the Riemann sphere, both regarded as real manifolds, is
+jointly `Cⁿ` for every `n`, since it is jointly analytic over `ℂ`. -/
+instance instContMDiffSMulPSLReal (n : ℕ∞ω) :
+    ContMDiffSMul 𝓘(ℝ, SpecialLinearGroup.Model (Fin 2) ℂ) 𝓘(ℝ, ℂ) n PSL(2, ℂ) (OnePoint ℂ) where
+  contMDiff_smul := by
+    have h := (contMDiff_smul (I := 𝓘(ℂ, SpecialLinearGroup.Model (Fin 2) ℂ)) (I' := 𝓘(ℂ))
+      (n := ω) (G := PSL(2, ℂ)) (M := OnePoint ℂ)).restrictScalars ℝ
+    rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
+      modelWithCornersSelf_restrictScalars] at h
+    exact h.of_le le_top
+
+end OnePoint
 
 namespace SymplecticGeometry
 
@@ -158,15 +178,10 @@ theorem mobiusSubgroup_le_diffPlus : mobiusSubgroup ≤ diffPlus := fun φ hφ �
 /-- The Möbius homomorphism is continuous from the quotient topology of `PSL(2, ℂ)` to the weak
 Whitney topology. -/
 theorem continuous_mobiusHom : Continuous mobiusHom := by
-  -- The action of `PSL(2, ℂ)` on the sphere is jointly analytic, so jointly smooth over `ℝ`.
-  have h := (contMDiff_smul (I := 𝓘(ℂ, SpecialLinearGroup.Model (Fin 2) ℂ)) (I' := 𝓘(ℂ))
-    (n := ω) (G := PSL(2, ℂ)) (M := OnePoint ℂ)).restrictScalars ℝ
-  rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
-    modelWithCornersSelf_restrictScalars] at h
-  have : ContMDiffSMul 𝓘(ℝ, SpecialLinearGroup.Model (Fin 2) ℂ) 𝓘(ℝ, ℂ) ∞ PSL(2, ℂ)
-      (OnePoint ℂ) := ⟨h.of_le le_top⟩
-  rw [mobiusHom_def]
-  exact Diffeomorph.continuous_constSmulHom (I' := 𝓘(ℝ, SpecialLinearGroup.Model (Fin 2) ℂ))
+  refine (map_continuous <| Diffeomorph.smulContinuousMonoidHom
+    𝓘(ℝ, SpecialLinearGroup.Model (Fin 2) ℂ) 𝓘(ℝ, ℂ) ∞ PSL(2, ℂ) (OnePoint ℂ)).congr fun g ↦ ?_
+  ext x
+  rw [Diffeomorph.smulContinuousMonoidHom_apply_apply, mobiusHom_apply]
 
 /-- The Möbius homomorphism is a topological embedding of `PSL(2, ℂ)` into the diffeomorphisms
 of the sphere with the weak Whitney topology. -/
@@ -185,6 +200,7 @@ theorem isEmbedding_mobiusHom : Topology.IsEmbedding mobiusHom := by
   simp only [Function.comp_apply, mobiusHom_apply, OnePoint.pslHomeomorphDistinctTriples_apply_coe]
 
 /-- Every Möbius transformation lies in `mobiusSubgroup`. -/
+@[simp]
 theorem mobiusHom_mem_mobiusSubgroup (g : PSL(2, ℂ)) : mobiusHom g ∈ mobiusSubgroup :=
   mobiusSubgroup_eq_range ▸ ⟨g, rfl⟩
 
@@ -193,23 +209,28 @@ isomorphic as a topological group to `mobiusSubgroup`, the stabilizer of `i` amo
 diffeomorphisms of the sphere, with the subspace topology of the weak Whitney topology. The
 isomorphism sends `g` to `x ↦ g • x`. -/
 noncomputable def mobiusEquiv : PSL(2, ℂ) ≃ₜ* mobiusSubgroup :=
-  let e : PSL(2, ℂ) ≃* mobiusSubgroup :=
-    MulEquiv.ofBijective (mobiusHom.codRestrict mobiusSubgroup mobiusHom_mem_mobiusSubgroup)
-      ⟨fun _ _ h ↦ mobiusHom_injective (congrArg Subtype.val h), fun φ ↦ by
-        obtain ⟨g, hg⟩ := pullback_ofComplexManifold_onePoint_eq_self_iff.1 φ.property
-        exact ⟨g, Subtype.ext hg.symm⟩⟩
-  { e with
-    continuous_toFun := continuous_mobiusHom.subtype_mk _
-    continuous_invFun :=
-      (isEmbedding_mobiusHom.codRestrict _ mobiusHom_mem_mobiusSubgroup).continuous_iff.2 <|
-        -- `e` is `mobiusHom` with its codomain restricted, by definition.
-        continuous_id.congr fun φ ↦ (e.apply_symm_apply φ).symm }
+  let e : PSL(2, ℂ) ≃* mobiusSubgroup := (MonoidHom.ofInjective mobiusHom_injective).trans
+    (MulEquiv.subgroupCongr mobiusSubgroup_eq_range.symm)
+  .mk' (e.toEquiv.toHomeomorphOfIsInducing
+    (isEmbedding_mobiusHom.codRestrict _ mobiusHom_mem_mobiusSubgroup).isInducing) (map_mul e)
 
 /-- The image of `g` under `mobiusEquiv` is the Möbius transformation `mobiusHom g`. -/
 @[simp]
 theorem coe_mobiusEquiv_apply (g : PSL(2, ℂ)) :
     (mobiusEquiv g : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) = mobiusHom g :=
   (rfl)
+
+/-- The Möbius transformation of the preimage of `φ` under `mobiusEquiv` is `φ`. -/
+@[simp]
+theorem mobiusHom_mobiusEquiv_symm_apply (φ : mobiusSubgroup) :
+    mobiusHom (mobiusEquiv.symm φ) = φ := by
+  rw [← coe_mobiusEquiv_apply, ContinuousMulEquiv.apply_symm_apply]
+
+/-- The preimage under `mobiusEquiv` of the Möbius transformation of `g` is `g`. -/
+@[simp]
+theorem mobiusEquiv_symm_apply_mk (g : PSL(2, ℂ)) (h : mobiusHom g ∈ mobiusSubgroup) :
+    mobiusEquiv.symm ⟨mobiusHom g, h⟩ = g :=
+  mobiusEquiv.symm_apply_eq.2 (Subtype.ext (coe_mobiusEquiv_apply g).symm)
 
 /-! ### The rotations and the polar retraction -/
 
@@ -244,7 +265,7 @@ theorem coe_mem_rotationSubgroup_iff {φ : mobiusSubgroup} :
   refine ⟨?_, fun h ↦ ⟨_, h, ?_⟩⟩
   · rintro ⟨g, hg, hgφ⟩
     rwa [show φ = mobiusEquiv g from Subtype.ext hgφ.symm, ContinuousMulEquiv.symm_apply_apply]
-  · rw [← coe_mobiusEquiv_apply, ContinuousMulEquiv.apply_symm_apply]
+  · exact mobiusHom_mobiusEquiv_symm_apply φ
 
 /-- The polar retraction of the Möbius group onto the rotations: Tau Ceti's polar retraction
 `PSL(2, ℂ) → PSU(2)`, carried to `mobiusSubgroup` by `mobiusEquiv`. -/
@@ -255,6 +276,7 @@ noncomputable def mobiusPolarRetraction : C(mobiusSubgroup, mobiusSubgroup) wher
 
 /-- The polar retraction of `φ` is the Möbius transformation of the polar retraction of the
 preimage of `φ` in `PSL(2, ℂ)`. -/
+@[simp]
 theorem coe_mobiusPolarRetraction_apply (φ : mobiusSubgroup) :
     (mobiusPolarRetraction φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) =
       mobiusHom (ProjectiveSpecialLinearGroup.polarRetraction (Fin 2) ℂ (mobiusEquiv.symm φ)) :=
@@ -272,30 +294,27 @@ theorem coe_mobiusPolarRetraction_mem_rotationSubgroup (φ : mobiusSubgroup) :
 rotations, which fixes every rotation at all times. -/
 noncomputable def mobiusPolarHomotopy :
     (ContinuousMap.id mobiusSubgroup).HomotopyRel mobiusPolarRetraction
-      {φ | (φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) ∈ rotationSubgroup} where
-  toFun p := mobiusEquiv (ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ
-    (p.1, mobiusEquiv.symm p.2))
-  continuous_toFun := by fun_prop
-  map_zero_left φ := by
-    dsimp only
-    rw [ContinuousMap.HomotopyWith.apply_zero, ContinuousMap.id_apply,
-      ContinuousMulEquiv.apply_symm_apply, ContinuousMap.id_apply]
-  map_one_left φ := by
-    dsimp only
-    rw [ContinuousMap.HomotopyWith.apply_one]
-    exact Subtype.ext ((coe_mobiusEquiv_apply _).trans (coe_mobiusPolarRetraction_apply φ).symm)
-  prop' t φ hφ := by
-    have h := (ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ).eq_fst t
-      (coe_mem_rotationSubgroup_iff.1 hφ)
-    rw [ContinuousMap.id_apply] at h
-    exact (congrArg mobiusEquiv h).trans (mobiusEquiv.apply_symm_apply φ)
+      {φ | (φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) ∈ rotationSubgroup} :=
+  -- The two `show`s state the set and the end map as in the type, so that the lemmas about
+  -- `cast` and `mono` rewrite applications of `mobiusPolarHomotopy`.
+  ((((ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ).precomp
+    (mobiusEquiv.symm : C(mobiusSubgroup, PSL(2, ℂ)))).compContinuousMap
+      (mobiusEquiv : C(PSL(2, ℂ), mobiusSubgroup))).mono
+        (show {φ : mobiusSubgroup | (φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) ∈
+          rotationSubgroup} ⊆ _ from fun _ ↦ coe_mem_rotationSubgroup_iff.1)).cast
+    (ContinuousMap.ext fun φ ↦ mobiusEquiv.apply_symm_apply φ)
+    (show _ = mobiusPolarRetraction from rfl)
 
 /-- The polar homotopy of the Möbius group at time `t` sends `φ` to the Möbius transformation of
 the polar homotopy of `PSL(2, ℂ)` at time `t` applied to the preimage of `φ`. -/
+@[simp]
 theorem coe_mobiusPolarHomotopy_apply (t : unitInterval) (φ : mobiusSubgroup) :
     (mobiusPolarHomotopy (t, φ) : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) =
-      mobiusHom (ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ (t, mobiusEquiv.symm φ)) :=
-  (rfl)
+      mobiusHom (ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ (t, mobiusEquiv.symm φ)) := by
+  rw [mobiusPolarHomotopy, ContinuousMap.HomotopyRel.cast_apply,
+    ContinuousMap.HomotopyRel.mono_apply, ContinuousMap.HomotopyRel.compContinuousMap_apply,
+    ContinuousMap.HomotopyRel.precomp_apply, ContinuousMap.coe_ofClass, ContinuousMap.coe_ofClass,
+    coe_mobiusEquiv_apply]
 
 end SymplecticGeometry
 

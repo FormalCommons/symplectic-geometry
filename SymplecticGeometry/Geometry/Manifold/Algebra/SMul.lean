@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Group
-public import TauCeti.Geometry.Diffeomorphism.Topology
 public import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
@@ -17,10 +16,7 @@ Let a group `G` act on a manifold `M` by `Cⁿ` maps (`ContMDiffConstSMul I n G 
 `Diffeomorph.constSmul I n g` is the diffeomorphism `x ↦ g • x`, and `Diffeomorph.constSmul_one`
 and `Diffeomorph.constSmul_mul` say that `g ↦ Diffeomorph.constSmul I n g` respects the group law.
 This file bundles it as a group homomorphism `Diffeomorph.constSmulHom I n` from `G` to the group
-`TauCeti.Diff I M n` of `Cⁿ` self-diffeomorphisms of `M`. When `G` is a manifold acting jointly by
-a `Cⁿ` map `G × M → M` and `M` is compact, this homomorphism is continuous for the weak Whitney
-topology (`Diffeomorph.continuous_constSmulHom`), by Tau Ceti's
-`ContMDiff.continuous_diffeomorphWeakWhitney`.
+`TauCeti.Diff I M n` of `Cⁿ` self-diffeomorphisms of `M`.
 
 It also shows that differentiability of an equivariant map spreads along orbits. Let `G` act on
 manifolds `M` and `M'` by `C¹` maps. If `f : M → M'` commutes with `z ↦ g • z` and is
@@ -39,8 +35,6 @@ and both compositions keep differentiability, by Tau Ceti's
 
 * `Diffeomorph.constSmulHom_injective`: for a faithful action, `Diffeomorph.constSmulHom` is
   injective.
-* `Diffeomorph.continuous_constSmulHom`: for a jointly `Cⁿ` action on a compact manifold,
-  `Diffeomorph.constSmulHom` is continuous.
 * `MDifferentiableAt.at_smul_of_map_smul`: differentiability of a `G`-equivariant map at `y`
   gives it at `g • y`.
 -/
@@ -75,19 +69,6 @@ theorem constSmulHom_injective [FaithfulSMul G M] :
     Function.Injective (constSmulHom I n : G →* TauCeti.Diff I M n) :=
   fun _ _ h ↦ constSmul_injective (I := I) (n := n) (M := M) <| by
     simpa only [constSmulHom_apply] using h
-
-
-open scoped TauCeti.DiffeomorphWeakWhitney in
-/-- For a jointly `Cⁿ` action of a manifold `G` on a compact manifold `M`, the homomorphism
-`g ↦ (x ↦ g • x)` from `G` to the `Cⁿ` diffeomorphisms of `M` is continuous for the weak Whitney
-topology. -/
-theorem continuous_constSmulHom {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
-    {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'} [TopologicalSpace G]
-    [ChartedSpace H' G] [IsManifold I' n G] [CompactSpace M] [IsManifold I n M]
-    [ContMDiffSMul I' I n G M] :
-    Continuous (constSmulHom I n : G →* TauCeti.Diff I M n) :=
-  ContMDiff.continuous_diffeomorphWeakWhitney (I' := I') <| by
-    simpa only [constSmulHom_apply, constSmul_apply] using contMDiff_smul (I := I') (I' := I)
 
 end constSmulHom
 
