@@ -452,14 +452,9 @@ theorem isHamiltonianVectorField_curvatureIn_of_isClosed
   -- The function `τ(v₁♯, v₂♯)` is differentiable at the point, the lifts being so.
   have hg : MDifferentiableAt IM 𝓘(ℝ)
       (fun x ↦ τ.val x ![hD.horizontalLiftField v₁ x, hD.horizontalLiftField v₂ x])
-      ((A.trivAt b').fiberInclusionMap hb y) := by
-    convert SmoothForm.mdifferentiableAt_apply_vectorField τ
-      (V := ![hD.horizontalLiftField v₁, hD.horizontalLiftField v₂]) fun i ↦ by
-        fin_cases i
-        · exact hD.mdifferentiableAt_horizontalLiftField hn hproj₂ hv₁x
-        · exact hD.mdifferentiableAt_horizontalLiftField hn hproj₂ hv₂x using 3 with x
-    ext i
-    fin_cases i <;> rfl
+      ((A.trivAt b').fiberInclusionMap hb y) :=
+    τ.mdifferentiableAt_apply_two (hD.mdifferentiableAt_horizontalLiftField hn hproj₂ hv₁x)
+      (hD.mdifferentiableAt_horizontalLiftField hn hproj₂ hv₂x)
   -- The curvature read in the chart is carried back to the curvature by the fibre inclusion.
   have hΩ : mfderiv IF IM ((A.trivAt b').fiberInclusionMap hb) y
       (hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y) =
