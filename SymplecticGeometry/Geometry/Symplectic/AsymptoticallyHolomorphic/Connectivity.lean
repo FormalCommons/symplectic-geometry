@@ -23,7 +23,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Lin
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHessian
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.MorseBott
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Tube
 import SymplecticGeometry.Topology.Category.TopCat.Pushout
