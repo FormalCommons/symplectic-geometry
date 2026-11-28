@@ -165,7 +165,7 @@ theorem exists_forall_levelCrossingTime_mem_Ioc {a b : ℝ}
     exact ⟨t, ht, hft, Flow.levelCrossingTime_eq_of_subsingleton
       (_root_.TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
         (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField hW.flowOf_eq_flow
-        (hW.isGeneralizedMorse.contMDiff.of_le (by simp))
+        (hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp))
         (fun _ ↦ hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hb) x) hft⟩
   -- `g ⁻¹' {0}` is a closed subset of the compact region `f ⁻¹' Icc a b`.
   have hcompact : IsCompact (g ⁻¹' {0}) :=

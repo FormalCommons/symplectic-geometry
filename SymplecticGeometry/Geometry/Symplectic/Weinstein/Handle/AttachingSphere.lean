@@ -299,7 +299,7 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
     (Flow.levelCrossingTime_eq_of_subsingleton
       (_root_.TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
         (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField hW.flowOf_eq_flow
-        (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) (fun _ hy ↦
+        (hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp)) (fun _ hy ↦
           hW.isGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
             (hx.1.trans_lt hx.2) hc hy) x) h).symm⟩
 
