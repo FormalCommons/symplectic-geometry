@@ -1153,7 +1153,7 @@ containing `ι '' closedBall 0 1`:
       `P t₀ ≤ max (T r) (2 * r + 6 * δ) + δ / 8`, and `T` and
       `2 * r + 6 * δ` are more than `δ / 200 + δ / 8` below `A`, as
       `A - T ≥ 2 * δ` there), and `bridgeLeaf_sqrtAddLeaf_eq_sqrt`: if
-      `S δ + t ≥ 3 * ℓ' + 8 * (3 + L) * δ` with `ℓ' ≥ ℓ`, `A` may be
+      `S δ + t ≥ 3 * ℓ + 8 * (3 + L) * δ` (and `0 < L`, `0 ≤ ℓ`), `A` may be
       replaced by `√(64 * r ^ 2 + ℓ ^ 2)` (`P t` is above both by more
       than `δ / 200` on `Ioc δ ((2 + L) * δ)`, and they agree beyond).
     - `isConvexShapeAt_bridgeLeaf_sqrt` (second stage): for `δ > 0`,

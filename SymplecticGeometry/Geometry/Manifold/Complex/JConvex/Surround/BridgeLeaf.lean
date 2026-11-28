@@ -46,6 +46,14 @@ a shape `G` and `r ↦ struweLineShape δ r + t`; it is `G` or the raised shape 
   `8 r ≤ G r ≤ 2 r + t + δ / 8 + η`, which gives `r < 8 (t - 8 δ)`; the two pieces are
   within `η` only beyond `7 δ / 2`, where their slopes are at most `8` and `2`
   (`SymplecticGeometry.isConvexShapeAt_smoothedMax_of_imp`).
+* `SymplecticGeometry.bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf`: with `G = sqrtAddLeaf L δ (7 δ)`,
+  `η = δ / 200` and `t = 65 δ / 8 - S δ`, the bridge leaf is `struweSwitchLeaf L δ (7 δ)` on
+  `(δ, ∞)`. Up to `7 δ / 2` the raised shape is the Struwe shape of that leaf, since Struwe's
+  shapes over one cylinder differ by constants; beyond, both leaves are `G`, which is at least
+  `8 r - 3 δ` there, while the raised shape is at most `2 r + 14 δ`.
+* `SymplecticGeometry.bridgeLeaf_sqrtAddLeaf_eq_sqrt`: once `3 ℓ + 8 (3 + L) δ ≤ S δ + t`, the
+  cutoff region `r < (2 + L) δ` of `sqrtAddLeaf L δ ℓ` lies under the raised shape, so in the
+  bridge leaf of width `δ / 200` the standard leaf may replace it.
 
 ## References
 
@@ -395,6 +403,59 @@ theorem isConvexShapeAt_bridgeLeaf_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} (hℓ 
         deriv (fun x ↦ struweLineShape δ x + t) r) ≤ η * 10 :=
       mul_le_mul_of_nonneg_left (by linarith) hη₀.le
     linarith
+
+/-- **The first bridge stage starts at the Struwe switch leaf `7 δ`.** For `δ > 0`, with
+`S = struweShape δ 4 0` and `t₀ = 65 δ / 8 - S δ`, the bridge leaf of width `δ / 200` of
+`sqrtAddLeaf L δ (7 δ)` and the Struwe/line shape raised by `t₀` is
+`struweSwitchLeaf L δ (7 δ)` on `(δ, ∞)`. -/
+theorem bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf (L : ℝ) (hδ : 0 < δ) :
+    EqOn (bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ (7 * δ)) (65 * δ / 8 - struweShape δ 4 0 δ))
+      (struweSwitchLeaf L δ (7 * δ)) (Ioi δ) := by
+  intro r hr
+  rw [mem_Ioi] at hr
+  rcases le_or_gt r (7 * δ / 2) with hr₇ | hr₇
+  · -- Up to `7 δ / 2` the raised shape is the Struwe shape of `struweSwitchLeaf L δ (7 δ)`.
+    have hT : struweLineShape δ r + (65 * δ / 8 - struweShape δ 4 0 δ) =
+        struweShape δ 1 (2 * (7 * δ) - 47 * δ / 8) r := by
+      rw [struweLineShape_eq_struweShape hδ ⟨hr.le, hr₇⟩,
+        struweShape_eq_struweShape_apply_mul hδ (by norm_num) le_rfl 0 hr.le, one_mul,
+        add_comm, ← struweShape_add]
+      congr 1
+      ring
+    rw [bridgeLeaf_def, struweSwitchLeaf_of_lt (by linarith), hT]
+    congr 1
+    ring
+  · -- Beyond `7 δ / 2` both leaves are `sqrtAddLeaf L δ (7 δ)`.
+    have hA := eight_mul_sqrt_le_sqrtAddLeaf L hδ.le (by positivity : (0 : ℝ) ≤ 7 * δ) r
+    have hs : r - 3 * δ / 8 ≤ √(r ^ 2 - δ ^ 2) := le_sqrt_of_sq_le (by nlinarith)
+    have hP := struweLineShape_le_two_mul_add hδ hr.le
+    have hSδ := (struweShape_four_zero_self_mem_Icc hδ).1
+    have h30 : √30 ≤ 23 / 4 := by rw [sqrt_le_left (by norm_num)]; norm_num
+    rw [struweSwitchLeaf_of_two_mul_le L hδ ⟨by positivity, le_rfl⟩ (by linarith)]
+    exact bridgeLeaf_eq_left (by positivity) (by nlinarith)
+
+/-- **A high enough raised shape hides the cutoff region of `sqrtAddLeaf`.** Let `L, δ > 0`,
+`ℓ ≥ 0` and `t` with `3 ℓ + 8 (3 + L) δ ≤ S δ + t`, where `S = struweShape δ 4 0`. Then on
+`(δ, ∞)` the bridge leaf of width `δ / 200` of `sqrtAddLeaf L δ ℓ` and the Struwe/line shape
+raised by `t` is the bridge leaf of the standard leaf `r ↦ √(64 r² + ℓ²)`. -/
+theorem bridgeLeaf_sqrtAddLeaf_eq_sqrt {L : ℝ} (hL : 0 < L) (hδ : 0 < δ) {ℓ t : ℝ} (hℓ : 0 ≤ ℓ)
+    (ht : 3 * ℓ + 8 * (3 + L) * δ ≤ struweShape δ 4 0 δ + t) :
+    EqOn (bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ) t)
+      (bridgeLeaf δ (δ / 200) (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) t) (Ioi δ) := by
+  intro r hr
+  rw [mem_Ioi] at hr
+  rcases le_or_gt ((2 + L) * δ) r with hrL | hrL
+  · -- From `(2 + L) δ` on, `sqrtAddLeaf L δ ℓ` is the standard leaf.
+    rw [bridgeLeaf_def, bridgeLeaf_def, sqrtAddLeaf_of_ge hL hδ hrL]
+  · -- Below `(2 + L) δ`, both shapes lie more than `δ / 200` below the raised shape.
+    have hSr := (strictMonoOn_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0).monotoneOn
+      self_mem_Ici (mem_Ici.2 hr.le) hr.le
+    have hP := struweShape_le_struweLineShape hδ r
+    have hA := sqrtAddLeaf_le L hδ.le hℓ (hδ.trans hr).le
+    have hQ : √(64 * r ^ 2 + ℓ ^ 2) ≤ 8 * r + ℓ :=
+      (sqrt_le_left (by nlinarith)).2 (by nlinarith)
+    rw [bridgeLeaf_eq_right (by positivity) (by nlinarith),
+      bridgeLeaf_eq_right (by positivity) (by nlinarith)]
 
 end SymplecticGeometry
 
