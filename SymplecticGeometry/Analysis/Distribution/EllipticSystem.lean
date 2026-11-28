@@ -7,8 +7,6 @@ module
 
 public import TauCeti.Analysis.Pseudodifferential.DistributionalRegularity
 import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.LineDeriv
-import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
-import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Smoothness
 
 /-!
 # Interior regularity of elliptic systems with a scalar principal part
@@ -27,7 +25,9 @@ whose principal part is `P` times the identity:
 `F a` is `H^s` near `x`, then every `T a` is `H^(s + M)` near `x`.
 
 That every `T a` is smooth on `Ω` when `P` is elliptic on `Ω` and every `F a` is smooth there
-is not stated here: it follows from Tau Ceti's microlocal regularity for square systems,
+is not stated here. It follows from `Distribution.IsLocallySobolevAt.of_ellipticSystem` by
+`Distribution.singularSupport_eq_empty_of_forall_isLocallySobolevAt`, and also from Tau Ceti's
+microlocal regularity for square systems, in the namespace `Distribution`,
 `waveFrontSet_subset_iUnion_waveFrontSet_sum_sum_smul_smulLeftCLM_iteratedLineDerivOp_union`,
 since the principal symbol matrix of the system is the principal symbol of `P` times the identity.
 
@@ -43,8 +43,6 @@ terms are `H^(r + 1 - M)` near `x`
 
 ## Main results
 
-* `Distribution.singularSupport_eq_empty_of_forall_isLocallySobolevAt`: a distribution that is,
-  near every point, `M` orders more regular than a family of smooth distributions is smooth.
 * `Distribution.IsLocallySobolevAt.of_ellipticSystem`.
 
 ## References
@@ -60,29 +58,6 @@ open TopologicalSpace TauCeti
 open scoped ContDiff Distributions LineDeriv
 
 namespace Distribution
-
-section Sum
-
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
-  [MeasurableSpace E] [BorelSpace E] {Ω : Opens E}
-
-/-- Let `T` and the `S b` be distributions on `Ω`, with every `S b` smooth on `Ω`. If, at every
-`x ∈ Ω` and for every `s`, `T` is `H^(s + M)` near `x` whenever every `S b` is `H^s` near `x`,
-then `T` is smooth on `Ω`. -/
-theorem singularSupport_eq_empty_of_forall_isLocallySobolevAt {κ : Type*} {S : κ → 𝓓'(Ω, ℂ)}
-    {T : 𝓓'(Ω, ℂ)} {M : ℝ} (hS : ∀ b, (S b).singularSupport = ∅)
-    (h : ∀ x ∈ Ω, ∀ s, (∀ b, (S b).IsLocallySobolevAt s x) → T.IsLocallySobolevAt (s + M) x) :
-    T.singularSupport = ∅ := by
-  refine singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.2 fun s ↦
-    Set.eq_empty_of_forall_notMem fun x hx ↦ ?_
-  have hxΩ := (mem_sobolevSingularSupport_iff.1 hx).1
-  refine (notMem_sobolevSingularSupport_iff hxΩ).2 ?_ hx
-  have h := h x hxΩ (s - M) fun b ↦ (notMem_sobolevSingularSupport_iff hxΩ).1 <| by
-    rw [singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.1 (hS b)]
-    exact Set.notMem_empty x
-  rwa [sub_add_cancel] at h
-
-end Sum
 
 variable {n : ℕ} {Ω : Opens (CoordinateSpace n)} {ι α β : Type*} [Fintype ι]
   {t : Finset α} {c : α → ℂ} {g : α → CoordinateSpace n → ℝ} {k : α → ℕ}

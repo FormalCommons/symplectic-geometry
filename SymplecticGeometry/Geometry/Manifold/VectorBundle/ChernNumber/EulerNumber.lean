@@ -15,6 +15,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ComplexStructure
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # The first Chern number as a count of zeros
@@ -194,7 +195,7 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
     (hD : (o.orientationAt z).map (Fin 2) D.toLinearEquiv =
       (trivializationAt ℂ J.Fiber z).mapOrientation (Fin 2)
         (mem_baseSet_trivializationAt ℂ J.Fiber z)
-        (VectorBundleOrientation.reindex (finCongr (by simp))
+        (VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
           (VectorBundleOrientation.complex ℂ J.Fiber) z))
     {A : ℂ →L[ℝ] ℂ}
     (hA : ∀ v : TangentSpace 𝓘(ℝ, EM) z, A (D v) =
@@ -206,11 +207,11 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
             ((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
               (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z) ∧
           (o.orientationAt z).map (Fin 2) e.toLinearEquiv =
-            VectorBundleOrientation.reindex (finCongr (by simp))
+            VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
               (VectorBundleOrientation.complex ℂ J.Fiber) z
       then 1 else -1 := by
   set oE : VectorBundleOrientation ℂ J.Fiber (Fin 2) :=
-    VectorBundleOrientation.reindex (finCongr (by simp))
+    VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
       (VectorBundleOrientation.complex ℂ J.Fiber)
   set e := trivializationAt ℂ J.Fiber z
   have hze : z ∈ e.baseSet := mem_baseSet_trivializationAt ℂ J.Fiber z
@@ -221,7 +222,8 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
     exact hn
   -- The linearization, as a linear equivalence `Leq` onto the fibre of `J.Fiber`, and `A` as the
   -- linear equivalence `Aeq = e ∘ Leq ∘ D⁻¹`.
-  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans (by simp)
+  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans
+    Complex.two_mul_finrank_self
   obtain ⟨L, hL⟩ :=
     exists_continuousLinearEquiv_eq_sectionLinearization_of_surjective (hn.trans hF.symm) hsurj
   set Leq : TangentSpace 𝓘(ℝ, EM) z ≃ₗ[ℝ] J.Fiber z :=
@@ -282,7 +284,7 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
     (hs' : Continuous fun x ↦ TotalSpace.mk' ℂ x ((J.fiberEquiv x).symm (s x))) {z : M}
     (hz : s z = 0)
     (hsurj : Function.Surjective (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z)) :
-    (VectorBundleOrientation.reindex (finCongr (by simp))
+    (VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
         (VectorBundleOrientation.complex ℂ J.Fiber)).sectionIndex (n := 1)
         Complex.finrank_real_complex (o.toHomologicalOrientation hn) hs' z =
       if ∃ e : TangentSpace 𝓘(ℝ, EM) z ≃L[ℝ] J.Fiber z,
@@ -290,11 +292,11 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
             ((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
               (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z) ∧
           (o.orientationAt z).map (Fin 2) e.toLinearEquiv =
-            VectorBundleOrientation.reindex (finCongr (by simp))
+            VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
               (VectorBundleOrientation.complex ℂ J.Fiber) z
       then 1 else -1 := by
   set oE : VectorBundleOrientation ℂ J.Fiber (Fin (1 + 1)) :=
-    VectorBundleOrientation.reindex (finCongr (by simp))
+    VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
       (VectorBundleOrientation.complex ℂ J.Fiber)
   set e := trivializationAt ℂ J.Fiber z
   have hze : z ∈ e.baseSet := mem_baseSet_trivializationAt ℂ J.Fiber z
@@ -351,10 +353,11 @@ theorem chernNumber_eq_sum_sign_of_transverse {s : ∀ x, V x}
                 ((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
                   (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z) ∧
               (o.orientationAt z).map (Fin 2) e.toLinearEquiv =
-                VectorBundleOrientation.reindex (finCongr (by simp))
+                VectorBundleOrientation.reindex (finCongr Complex.two_mul_finrank_self)
                   (VectorBundleOrientation.complex ℂ J.Fiber) z
           then 1 else -1 := by
-  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans (by simp)
+  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans
+    Complex.two_mul_finrank_self
   have : ∀ x, T2Space (V x) := FiberBundle.t2Space F V
   have : ∀ x, FiniteDimensional ℝ (V x) := fun x ↦ VectorBundle.finiteDimensional ℝ F V x
   have hZ : {z | s z = 0}.Finite :=

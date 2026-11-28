@@ -134,8 +134,8 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
   have hanti (y : M) : Antitone fun t ↦ g (Φ t y) :=
     antitone_comp_globalFlow hX hXc (hg.mdifferentiable (by simp)) hgX y
   have huniq (y : M) : {t | g (Φ t y) = a}.Subsingleton :=
-    (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOfPred_apply_eq (fun _ ↦ hgd _) (hanti y)
-      fun _ ht ↦ (hneg _ ht.ge (ht.le.trans hab)).ne
+    (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOfPred_apply_eq (hanti y)
+      fun _ ht ↦ ⟨hgd _, (hneg _ ht.ge (ht.le.trans hab)).ne⟩
   -- Each flow line from the sphere reaches the level `a`.
   obtain ⟨T, hT0, hT⟩ :=
     exists_forall_globalFlow_lt hX hXc (hg.of_le (by simp)) hab hcompact hneg
