@@ -76,8 +76,10 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` with `C`, `N` and
   `c > 0` independent of `k` and `z`, and the same for `peakFunction_mul k j`, uniformly in `j`.
 * `SymplecticGeometry.contDiffAt_modelDbar`: the model `∂̄` of a `C^(n + 1)` function is `C^n`;
-  `SymplecticGeometry.modelDbar_add`, `SymplecticGeometry.modelDbar_smul`: it is additive and
-  commutes with complex scalars.
+  `SymplecticGeometry.modelDbar_add`, `SymplecticGeometry.modelDbar_neg`,
+  `SymplecticGeometry.modelDbar_smul`: it is additive and commutes with negation and complex
+  scalars; `SymplecticGeometry.modelDbar_congr_of_eventuallyEq`: its value at `z` depends only on
+  the germ of `f` at `z`.
 * `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
   for the model `∂̄`, and its form for a product with a complex coordinate;
   `SymplecticGeometry.modelDel_mul`: the Leibniz rule for the model `∂`.
@@ -445,6 +447,11 @@ theorem modelDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differ
     (hg : DifferentiableAt ℝ g z) : modelDbar (f + g) z = modelDbar f z + modelDbar g z := by
   simp only [modelDbar_def, modelDbarWith_add hf hg]
 
+@[simp]
+theorem modelDbar_neg (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDbar (-f) z = -modelDbar f z := by
+  simp only [modelDbar_def, modelDbarWith_neg]
+
 /-- The model `∂̄` commutes with complex scalars. -/
 @[simp]
 theorem modelDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
@@ -454,6 +461,11 @@ theorem modelDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 @[simp]
 theorem modelDbar_zero (z : StdSpace ι) : modelDbar (0 : StdSpace ι → ℂ) z = 0 := by
   simp only [modelDbar_def, modelDbarWith_zero]
+
+/-- The model `∂̄` at `z` depends only on the germ of `f` at `z`. -/
+theorem modelDbar_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[nhds z] g) : modelDbar f z = modelDbar g z := by
+  simp only [modelDbar_def, modelDbarWith_congr_of_eventuallyEq h]
 
 /-- Near `z`, the model `∂̄` of `f` depends only on the germ of `f` at `z`. -/
 theorem modelDbar_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
@@ -735,8 +747,7 @@ private theorem jetNormAt_cutoffDbar_eq_zero (r : ℕ) {s : ℝ} (hs : 0 < s) {z
           fun _ ↦ (c : ℂ) := by
         filter_upwards [hU.mem_nhds hy] with w hw
         rw [hc w hw]
-      rw [cutoffDbar, flatDbar_congr_of_eventuallyEq hconst, flatDbar_eq, fderiv_const_apply,
-        map_zero]
+      rw [cutoffDbar, flatDbar_congr_of_eventuallyEq hconst, flatDbar_const]
     rw [jetNormAt_congr_of_eventuallyEq r h, jetNormAt_const, norm_zero]
   rcases hz with hz | hz
   · refine key {y | ‖y‖ < s} (isOpen_lt continuous_norm continuous_const) hz ⟨1, fun y hy ↦ ?_⟩
