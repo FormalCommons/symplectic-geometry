@@ -403,7 +403,7 @@ private theorem IsVerticallyClosed.mpullback_parallelTransportIn_of_mapsTo_baseS
         HasDerivAt (F := EF [⋀^Fin 2]→L[ℝ] ℝ) (fun r ↦ mpullback IF IM (φ r ∘ ι) τ.val v) 0 u := by
       have hproj (y : F) : proj (φ u (ι y)) = γ u := by
         rw [htr u hu ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y)]
-        exact hD.parallelTransport_mem_preimage le_top hf hfp hγ'
+        exact hD.apply_parallelTransport le_top hf hfp hγ'
           ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y) u
       exact h.hasDerivAt_mpullback_comp_zero hA hc (hX.of_le (by simp)) (hXh u) (hι v)
         fun y ↦ by rw [hproj, hproj]

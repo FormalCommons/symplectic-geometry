@@ -58,7 +58,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.IsGradientLike`: the predicate, with `TauCeti.isGradientLike_def`.
 * `TauCeti.IsGradientLike.mvfderiv_apply_pos`: `df(X) > 0` off the critical points of `f`.
 * `TauCeti.IsGradientLike.mvfderiv_apply_pos_of_isRegularValue`: `df(X) > 0` on the level
-  `f⁻¹(c)` of a regular value `c`.
+  `f⁻¹(c)` of a regular value `c`;
+  `TauCeti.IsGradientLike.mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty`: the
+  same on the level `f⁻¹(a)` when `f` has no critical point in a band `f⁻¹([a, c))` with `a < c`.
 * `TauCeti.IsGradientLike.eq_zero_iff`: `X x = 0` exactly when `x` is a critical point of `f`.
 * `TauCeti.IsGradientLike.strictMonoOn_comp`, `TauCeti.IsGradientLike.strictMono_comp`: `f`
   increases strictly along an integral curve of `X`, on a convex set of times or on all of `ℝ`,
@@ -208,6 +210,15 @@ theorem mvfderiv_apply_pos_of_isRegularValue (hX : IsGradientLike f X) {c : ℝ}
     (hc : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f c) {x : M} (hx : f x = c) :
     0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
   hX.mvfderiv_apply_pos (isRegularPoint_iff_mvfderiv_ne_zero.1 (hc.isRegularPoint hx))
+
+/-- A gradient-like field increases `f` strictly at every point of the level `f⁻¹(a)`, if `a < c`
+and `f` has no critical point in the band `f⁻¹([a, c))`. -/
+theorem mvfderiv_apply_pos_of_criticalPoints_inter_preimage_Ico_eq_empty
+    (hX : IsGradientLike f X) {a c : ℝ} (hac : a < c)
+    (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅) {x : M} (hx : f x = a) :
+    0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
+  hX.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc x
+    ⟨mem_criticalPoints.2 h, hx.ge, hx.trans_lt hac⟩
 
 /-- The zeros of a gradient-like field are exactly the critical points of the function. -/
 theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :

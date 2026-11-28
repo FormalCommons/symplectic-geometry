@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Orientation.Basic
+public import TauCeti.Geometry.Manifold.Orientation.Preserving
 
 /-!
 # Reindexing manifold orientations
@@ -16,7 +17,10 @@ equivalences is reindexing along each in turn (`TauCeti.Manifold.Orientation.rei
 Tau Ceti's `TauCeti.VectorBundleOrientation.reindex_trans` does for orientations of vector
 bundles, and that reindexing along two casts `Fin m ≃ Fin n ≃ Fin k` is reindexing along their
 composite cast (`TauCeti.Manifold.Orientation.reindex_finCongr_reindex_finCongr`), as Tau Ceti's
-`Orientation.reindex_finCongr_reindex_finCongr` does for orientations of a module.
+`Orientation.reindex_finCongr_reindex_finCongr` does for orientations of a module. It also shows
+that reindexing both orientations along the same equivalence does not change whether a map
+preserves them (`TauCeti.Manifold.Orientation.isOrientationPreservingAt_reindex_iff`), the
+converse of Tau Ceti's `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`.
 -/
 
 public section
@@ -34,6 +38,19 @@ theorem reindex_trans (e : ι ≃ ι') (e' : ι' ≃ ι'') (o : Orientation I M 
     rw [reindex_mk, reindex_mk, reindex_mk]
     congr 1
     ext α x <;> simp [_root_.Orientation.reindex_trans]
+
+/-- Reindexing both orientations along the same equivalence of index types does not change
+whether a map preserves them at a point. -/
+@[simp]
+theorem isOrientationPreservingAt_reindex_iff {E' H' M' : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I 1 M]
+    [IsManifold I' 1 M'] {o : Orientation I M ι} {o' : Orientation I' M' ι} {f : M → M'} {x : M}
+    (σ : ι ≃ ι') :
+    IsOrientationPreservingAt (o.reindex σ) (o'.reindex σ) f x ↔
+      IsOrientationPreservingAt o o' f x := by
+  refine ⟨fun h ↦ ?_, fun h ↦ h.reindex σ⟩
+  simpa only [← reindex_trans, Equiv.self_trans_symm, reindex_refl] using h.reindex σ.symm
 
 /-- Reindexing along two casts `Fin m ≃ Fin n ≃ Fin k` is reindexing along their composite
 cast. -/
