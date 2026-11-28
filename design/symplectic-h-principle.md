@@ -1940,7 +1940,7 @@ The parametric relative theorem, from the stages, in two forms:
   parameter manifold is needed). The family `α` of each use is given under
   *The family `α` of Decision 4 is an input* above. A corollary for a
   family over `unitInterval` does that extension and restricts `H` from
-  `ℝ × unitInterval` back by `isSmoothFamily_iff_contMDiff`, so that
+  `ℝ × unitInterval` back by `IsSmoothFamily.comp`, so that
   `OpenManifold.lean` does not extend by hand.
 
 Proof. `SymplecticGeometry.exists_isMorse_bandCore_seq` gives `g`, `d`,
