@@ -244,9 +244,24 @@ theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
     exact isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
       (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k s i
   -- The chart data of `Φ_J ∇s` are the readings of the section `x ↦ Φ_J x (∇s x)`.
-  have hΦ := SobolevSection.chartValueL_bundleMapL_ae_coord_self
-    (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
-    hcov i
+  -- The atlas `(twistCoreAtlas 1).tangentHom.ofBaseSet _` of the image is the atlas itself by the
+  -- eta rule for structures, so Tau Ceti's lemma has this type.
+  have hΦ : (twistCoreAtlas 1).tangentHom.sectionChartData.chartValueL volume 2 k i
+        (SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
+          (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
+          (J.contMDiff_zeroOnePartL le_rfl) volume 2 k
+          (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
+            (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k
+              (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)) :
+          ((twistCoreAtlas 1).tangentHom.ofBaseSet
+            (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet).sectionChartData.SobolevData
+            volume 2 k)
+      =ᵐ[volume.restrict ((twistCoreAtlas 1).tangentHom.image i)]
+        (twistCoreAtlas 1).tangentHom.coord i fun x ↦
+          J.zeroOnePartL x (twistOneConnection s x) :=
+    SobolevSection.chartValueL_bundleMapL_ae_coord (A := (twistCoreAtlas 1).tangentHom)
+      (h := (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet)
+      (hΦ := J.contMDiff_zeroOnePartL le_rfl) hcov i
   simp only [FiniteBundleAtlas.image_tangentHom, SmoothAlmostComplexStructure.zeroOnePartL_apply]
     at hΦ
   rw [twistOneDelBarSobolev_apply]
