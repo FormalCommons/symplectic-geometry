@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -62,6 +63,9 @@ itself it is integrable.
   diffeomorphism into a normed space other than the model, and
   `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` any map into such a space that is a local
   diffeomorphism at the point.
+* `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.exists_partialDiffeomorph_mfderiv_apply_eq`:
+  an integrable structure has, at each point `x`, a chart sending `x` to `0` with derivative the
+  identity at `x`, in which it is constant, equal to `J x`.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
 * `TauCeti.isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas`: every chart of the
@@ -277,6 +281,52 @@ theorem isIntegrable_restrictOpen_source {G : Type*} [NormedAddCommGroup G] [Nor
       ContinuousLinearEquiv.coe_coe]
   refine ⟨ψ, J₀, by simp [ψ], fun y _ v ↦ ?_⟩
   rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]
+
+/-- **A normalized chart in which an integrable structure is constant.** If `J` is integrable,
+then every point `x` of `M` lies in the source of a smooth chart `ψ : M → E` with `ψ x = 0`,
+whose derivative at `x` is the identity of `E` (tangent spaces of `M` being copies of the model),
+and whose derivative carries `J` to its value `J x` at `x`, at every point of its source. -/
+theorem IsIntegrable.exists_partialDiffeomorph_mfderiv_apply_eq
+    {J : SmoothAlmostComplexStructure I M} (hJ : J.IsIntegrable) (x : M) :
+    ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, x ∈ ψ.source ∧ ψ x = 0 ∧
+      HasMFDerivAt I 𝓘(ℝ, E) ψ x (ContinuousLinearMap.id ℝ E) ∧
+      ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+        mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J x (mfderiv I 𝓘(ℝ, E) ψ y v) := by
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  obtain ⟨ψ₀, J₀, hx, hψ₀⟩ := J.isIntegrable_iff_mfderiv.1 hJ x
+  -- The translation `z ↦ z - ψ₀ x` does not change the derivative, so `J₀` stays.
+  have h₁ : ∀ y ∈ (ψ₀.transSubRight (ψ₀ x)).source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, E) (ψ₀.transSubRight (ψ₀ x)) y (J y v) =
+        J₀ (mfderiv I 𝓘(ℝ, E) (ψ₀.transSubRight (ψ₀ x)) y v) := by
+    intro y hy v
+    simp only [← mvfderiv_apply_eq_mfderiv_apply, PartialDiffeomorph.mvfderiv_transSubRight]
+    simp only [mvfderiv_apply_eq_mfderiv_apply]
+    exact hψ₀ y (by simpa using hy) v
+  -- Then follow the inverse `L` of the derivative of `ψ₀` at `x`.
+  obtain ⟨e, he⟩ := ψ₀.isInvertible_mfderiv hn hx
+  let L : E ≃L[ℝ] E := e.symm
+  set ψ := ψ₀.transAffine (ψ₀ x) L
+  have hx' : x ∈ ψ.source := by simpa [ψ] using hx
+  have hd : mfderiv I 𝓘(ℝ, E) ψ x = ContinuousLinearMap.id ℝ E := by
+    ext v
+    have h := congrArg (· v) (ψ₀.mvfderiv_transAffine (ψ₀ x) L x)
+    simp only [mvfderiv_apply_eq_mfderiv_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearEquiv.coe_coe, ← he] at h
+    exact h.trans (e.symm_apply_apply v)
+  -- `ψ` is `ψ₀.transSubRight (ψ₀ x)` followed by `L`, by definition of `transAffine`.
+  have h₂ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J₀.transport L.toLinearEquiv (mfderiv I 𝓘(ℝ, E) ψ y v) := by
+    rw [show ψ = (ψ₀.transSubRight (ψ₀ x)).trans L.toDiffeomorph.toPartialDiffeomorph from
+      ψ₀.transAffine_def (ψ₀ x) L]
+    exact J.mfderiv_trans_toDiffeomorph_apply_eq_transport h₁ L
+  have hJx (w : E) : J₀.transport L.toLinearEquiv w = J x w := by
+    have h := h₂ x hx' w
+    rw [hd] at h
+    -- `h` applies `ContinuousLinearMap.id` to vectors of `T_x M`, a type synonym of `E` that
+    -- `rw [ContinuousLinearMap.id_apply]` does not match, so `id` is reduced by `exact`.
+    exact h.symm
+  refine ⟨ψ, hx', by simp [ψ], hd ▸ (ψ.mdifferentiableAt hn hx').hasMFDerivAt,
+    fun y hy v ↦ (h₂ y hy v).trans (hJx _)⟩
 
 /-- **Integrability is invariant under pullback along local diffeomorphisms.** The pullback of an
 integrable almost complex structure along a smooth local diffeomorphism is integrable. -/

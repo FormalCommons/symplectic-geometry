@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
@@ -80,6 +81,8 @@ and the moment weights.
   discrete is stable.
 * `SymplecticGeometry.mgradient_moment_apply`: if `-μ` is a moment map for `σ` and the metric is
   `g(u, w) = σ(u, J w)`, the gradient of `x ↦ μ x ξ` is `-J X_ξ`.
+* `SymplecticGeometry.hasDerivAt_moment_apply_expI`: for a complexified action,
+  `s ↦ μ (C.expI (s • η) • p) ξ` has derivative `-⟪X_ξ, X_η⟫` at the moving point.
 * `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
   complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
   point, so it is antitone.
@@ -397,6 +400,24 @@ theorem mgradient_moment_apply
   rw [InfinitesimalAction.fundamental_apply] at h
   rw [show (fun y ↦ μ y ξ) = -fun y ↦ (-μ y) ξ by ext; simp, Manifold.mgradient_neg, ← h]
 
+/-- **The derivative of `⟨μ, ξ⟩` along `exp(itη)`.** For a complexified action, with `-μ` a
+moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, the function
+`s ↦ μ (C.expI (s • η) • p) ξ` has derivative `-⟪X_ξ, X_η⟫` at time `t`, both fundamental
+vector fields taken at the point `C.expI (t • η) • p`. -/
+theorem hasDerivAt_moment_apply_expI [ContMDiffSMul IC I' ∞ Gc M]
+    {C : LieComplexification I G IC Gc} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ξ η : GroupLieAlgebra I G) (p : M) (t : ℝ) :
+    HasDerivAt (fun s : ℝ ↦ μ (C.expI (s • η) • p) ξ)
+      (-⟪fundamentalVectorField I' ξ (C.expI (t • η) • p),
+        fundamentalVectorField I' η (C.expI (t • η) • p)⟫) t := by
+  have hd : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) (C.expI (t • η) • p) :=
+    (hμ.contMDiff_of_neg ξ).mdifferentiableAt (by simp)
+  have hD := Manifold.hasDerivAt_comp_curve hd (h.isMIntegralCurve_expI_smul η p t)
+  rwa [← Manifold.inner_mgradient, mgradient_moment_apply hμ hg, inner_neg_left,
+    SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg] at hD
+
 /-- **The derivative of `⟨μ, ξ⟩` along `exp(itξ)`.** For a complexified action, with `-μ` a
 moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, the function
 `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the point `C.expI (t • ξ) • p`. -/
@@ -407,14 +428,7 @@ theorem hasDerivAt_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexifi
     (ξ : GroupLieAlgebra I G) (p : M) (t : ℝ) :
     HasDerivAt (fun s : ℝ ↦ μ (C.expI (s • ξ) • p) ξ)
       (-‖fundamentalVectorField I' ξ (C.expI (t • ξ) • p)‖ ^ 2) t := by
-  have hd : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) (C.expI (t • ξ) • p) := by
-    convert (hμ.mdifferentiableAt ξ (C.expI (t • ξ) • p)).neg using 1
-    funext y
-    simp
-  have hD := Manifold.hasDerivAt_comp_curve hd (h.isMIntegralCurve_expI_smul ξ p t)
-  rwa [← Manifold.inner_mgradient, mgradient_moment_apply hμ hg, inner_neg_left,
-    SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg,
-    real_inner_self_eq_norm_sq] at hD
+  simpa only [real_inner_self_eq_norm_sq] using hasDerivAt_moment_apply_expI h hμ hg ξ ξ p t
 
 /-- **`⟨μ, ξ⟩` decreases along `exp(itξ)`.** For a complexified action, with `-μ` a moment map
 for `σ` and the metric `g(u, w) = σ(u, J w)`, the function `t ↦ μ (C.expI (t • ξ) • p) ξ` is
