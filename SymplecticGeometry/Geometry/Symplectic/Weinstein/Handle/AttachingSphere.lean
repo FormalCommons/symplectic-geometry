@@ -287,10 +287,10 @@ theorem subsingleton_setOfPred_flow_apply_eq (ha : IsRegularValue 𝓘(ℝ, E) �
     {t | f (hW.flow t x) = a}.Subsingleton := by
   -- Run the orbit backwards, so that `f` decreases along it.
   have h := (hW.isMIntegralCurve_flow x).comp_neg.subsingleton_setOfPred_apply_eq (f := f) (c := a)
-    (fun _ ↦ hW.isGeneralizedMorse.contMDiff.mdifferentiableAt (by simp))
-    (fun s t hst ↦ hW.monotone_comp_flow x (neg_le_neg hst)) fun t ht ↦ by
-      rw [Pi.neg_apply, map_neg, neg_ne_zero]
-      exact (hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha ht).ne'
+    (fun s t hst ↦ hW.monotone_comp_flow x (neg_le_neg hst)) fun t ht ↦
+      ⟨hW.isGeneralizedMorse.contMDiff.mdifferentiableAt (by simp), by
+        rw [Pi.neg_apply, map_neg, neg_ne_zero]
+        exact (hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue ha ht).ne'⟩
   intro s hs t ht
   exact neg_inj.1 (h (show -s ∈ _ by simpa using hs) (show -t ∈ _ by simpa using ht))
 

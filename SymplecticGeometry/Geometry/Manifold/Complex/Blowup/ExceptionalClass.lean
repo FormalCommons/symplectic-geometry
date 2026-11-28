@@ -151,8 +151,8 @@ def divisorNormalOrientation :
     VectorBundle.restrictScalars ℝ ℂ ℂ _
   ((VectorBundleOrientation.complex ℂ
       (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))).reindex
-      (finCongr (by simp) : Fin (2 * finrank ℂ ℂ) ≃ Fin 2)).comap (g := ContinuousMap.id _)
-    (by simp) (continuous_divisorNormalEquiv c)
+      (finCongr Complex.two_mul_finrank_self : Fin (2 * finrank ℂ ℂ) ≃ Fin 2)).comap
+    (g := ContinuousMap.id _) (by simp) (continuous_divisorNormalEquiv c)
 
 /-- `divisorNormalOrientation c`, unfolded. -/
 theorem divisorNormalOrientation_def :
@@ -165,8 +165,8 @@ theorem divisorNormalOrientation_def :
     divisorNormalOrientation c =
       ((VectorBundleOrientation.complex ℂ
           (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))).reindex
-        (finCongr (by simp) : Fin (2 * finrank ℂ ℂ) ≃ Fin 2)).comap (g := ContinuousMap.id _)
-        (by simp) (continuous_divisorNormalEquiv c) :=
+        (finCongr Complex.two_mul_finrank_self : Fin (2 * finrank ℂ ℂ) ≃ Fin 2)).comap
+        (g := ContinuousMap.id _) (by simp) (continuous_divisorNormalEquiv c) :=
   (rfl)
 
 variable [T2Space M] [SecondCountableTopology M]

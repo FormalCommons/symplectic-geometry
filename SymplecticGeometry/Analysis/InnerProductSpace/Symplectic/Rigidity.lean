@@ -340,8 +340,8 @@ theorem forall_linearSymplecticWidth_image_eq_iff (Ψ : StdSpace ι →ₗ[ℝ] 
       (A := Ψ '' closedBall 0 1) (by simp [h1, h2, Real.pi_pos])
     refine LinearMap.range_eq_top.1 (Submodule.eq_top_of_nonempty_interior' _ ⟨z, ?_⟩)
     exact interior_mono (Set.image_subset_range _ _) hz
-  set e := LinearEquiv.ofBijective Ψ ⟨LinearMap.injective_iff_surjective.2 hsurj, hsurj⟩
-  have he : ⇑e = ⇑Ψ := funext fun _ ↦ LinearEquiv.ofBijective_apply _ _
+  set e := LinearEquiv.ofInjectiveEndo Ψ (LinearMap.injective_iff_surjective.2 hsurj)
+  have he : ⇑e = ⇑Ψ := LinearEquiv.coe_ofInjectiveEndo _ _
   have h₁ : HasLinearNonsqueezing (e : StdSpace ι →ₗ[ℝ] StdSpace ι) :=
     hasLinearNonsqueezing_of_forall_linearSymplecticWidth_le fun φ _ r hr ↦ by
       rw [LinearEquiv.coe_coe, he, hball φ r hr]

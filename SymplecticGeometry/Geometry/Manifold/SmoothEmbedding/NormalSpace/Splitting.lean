@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
+import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 import SymplecticGeometry.Algebra.Exact.Basic
 import TauCeti.Topology.VectorBundle.Splitting
 import TauCeti.Topology.FiberBundle.Prod
@@ -103,7 +103,7 @@ def tangentNormalEquiv (x : M) :
       ((f : M → N) *ᵖ (TangentSpace J)) x :=
   haveI : T2Space ((TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :=
     inferInstanceAs (T2Space (E × f.isImmersion.NormalSpace x hn))
-  ((exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv
+  ((f.isImmersion.exact_mfderiv_normalClass x hn).splitSurjectiveEquiv
       (f.isImmersion.mfderiv_injective hn x) ⟨(r x).toLinearMap, LinearMap.ext (hr x)⟩).val
     |>.toContinuousLinearEquiv.symm
 
@@ -112,7 +112,7 @@ def tangentNormalEquiv (x : M) :
 theorem tangentNormalEquiv_apply (x : M) (p :
     (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :
     f.tangentNormalEquiv hn r hr x p = mfderiv I J f x p.1 + r x p.2 :=
-  (exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv_symm_apply
+  (f.isImmersion.exact_mfderiv_normalClass x hn).splitSurjectiveEquiv_symm_apply
     (f.isImmersion.mfderiv_injective hn x) ⟨(r x).toLinearMap, LinearMap.ext (hr x)⟩ p
 
 /-- The normal component of the inverse of the isomorphism is the normal class. -/
