@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Submersion
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import TauCeti.Algebra.AddCircle
 import TauCeti.Geometry.Manifold.Immersion.Differential
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Lagrangian submanifolds of `ℂPⁿ`
@@ -79,9 +80,8 @@ theorem isIsotropicMap_mkNonzero_comp_iff {G : N → puncturedSpace (Fin (n + 1)
         (mfderiv J 𝓘(ℝ, Fin (n + 1) → ℂ) G x v) (mfderiv J 𝓘(ℝ, Fin (n + 1) → ℂ) G x w) = 0 := by
   rw [SmoothTwoForm.IsNondegenerate.isIsotropicMap_iff]
   refine forall_congr' fun x ↦ forall_congr' fun v ↦ forall_congr' fun w ↦ ?_
-  rw [mfderiv_comp x ((contMDiff_mkNonzero ℂ n 1 _).mdifferentiableAt one_ne_zero) (hG x),
-    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, comp_apply,
-    eval₂_fubiniStudyForm_mfderiv_mkNonzero]
+  rw [← SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq (contMDiff_mkNonzero ℂ n ∞) _
+    (hG x) .rfl, mpullback_mkNonzero_fubiniStudyForm]
 
 end Isotropic
 

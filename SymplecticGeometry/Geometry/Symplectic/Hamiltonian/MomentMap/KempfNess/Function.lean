@@ -85,6 +85,8 @@ the polystable `Gc`-orbits.
   `t ↦ g * C.expI (t • ξ)`, the first derivative of `Φ_p` is `μ (C.expI (-(t • ξ)) • g⁻¹ • p) ξ`
   and the second is the squared norm of the fundamental vector field of `ξ` at
   `C.expI (-(t • ξ)) • g⁻¹ • p`.
+* `SymplecticGeometry.hasDerivAt_kempfNessFunction_expI_neg_smul`: the case `g = 1`, direction
+  `-ξ`: along `t ↦ C.expI (-(t • ξ))` the derivative of `Φ_p` is `-μ (C.expI (t • ξ) • p) ξ`.
 * `SymplecticGeometry.convexOn_kempfNessFunction_geodesic`: `Φ_p` is convex along these curves.
 * `SymplecticGeometry.kempfNessFunction_add_moment_le`,
   `SymplecticGeometry.kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le`: the tangent line at
@@ -482,6 +484,17 @@ theorem hasDerivAt_kempfNessFunction_geodesic (h : IsComplexifiedAction C J)
   rw [mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul, C.im_cplx_lieMap, mul_inv_rev,
     mul_smul, ← hexp, ← C.expI_neg] at hD
   simpa only [Function.comp_def, hexp] using hD
+
+/-- The derivative of `t ↦ Φ_p (C.expI (-(t • ξ)))` at `t` is `-μ (C.expI (t • ξ) • p) ξ`, for a
+complexified action, with `-μ` an equivariant moment map for `σ` and the metric
+`g(u, w) = σ(u, J w)`. -/
+theorem hasDerivAt_kempfNessFunction_expI_neg_smul (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ξ : GroupLieAlgebra I G) (t : ℝ) :
+    HasDerivAt (fun s : ℝ ↦ kempfNessFunction C μ p (C.expI (-(s • ξ))))
+      (-μ (C.expI (t • ξ) • p) ξ) t := by
+  simpa [smul_neg] using hasDerivAt_kempfNessFunction_geodesic C μ p h hμ hg 1 (-ξ) t
 
 /-- **The second derivative of the Kempf–Ness function along a geodesic.** Let the action of
 `Gc` be a complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric

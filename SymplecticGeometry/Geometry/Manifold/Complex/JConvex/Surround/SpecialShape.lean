@@ -15,11 +15,11 @@ import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import SymplecticGeometry.Analysis.Polynomial.RealCubic
 import SymplecticGeometry.Analysis.SpecialFunctions.Log.Bounds
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.Order.Piecewise
+import TauCeti.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Analysis.Calculus.Deriv.Second
 import TauCeti.Analysis.Real.Sqrt
 
@@ -37,9 +37,10 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `1 / √(log K)` at `K δ` (`SymplecticGeometry.deriv_struweShape_mul`). It is
   smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
   (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
-  `SymplecticGeometry.strictMonoOn_struweShape`). For `δ ≠ 0` it is the shape of width `1`
-  rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`). The shape of width
-  `1` rises by at most `√2 * √(r ^ 2 - 1)` from `1` to `r ≥ 1`
+  `SymplecticGeometry.strictMonoOn_struweShape`), and smooth jointly in its value at `K δ` and
+  in `r` (`SymplecticGeometry.contDiffOn_uncurry_struweShape`). For `δ ≠ 0` it is the shape of
+  width `1` rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`). The shape
+  of width `1` rises by at most `√2 * √(r ^ 2 - 1)` from `1` to `r ≥ 1`
   (`SymplecticGeometry.struweShape_sub_struweShape_one_mem_Icc`).
 * `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
   `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
@@ -92,7 +93,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `StrictConcaveOn.secant_strict_mono` it crosses the line only at `K δ`
   (`SymplecticGeometry.linear_lt_struweShape`, `SymplecticGeometry.struweShape_lt_linear`);
   there the two are joined by `SymplecticGeometry.exists_isConvexShapeAt_eqOn_Iic_Ici`, applied
-  to a smooth extension of Struwe's shape (`ContDiffOn.exists_contDiff_eqOn_Ici`).
+  to a smooth function on `ℝ` that is Struwe's shape near `[K δ / 4, 2 K δ]` (Tau Ceti's
+  `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact`).
 * `SymplecticGeometry.exists_convexShape_surround`: for `1 < a` and `0 < γ`, some `δ ∈ (0, γ)` and
   an `i`-convex shape on `(δ, ∞)`, smooth there and continuous on `[δ, ∞)`, that is `√(1 + a r²)`
   on `[γ, ∞)`, has infinite slope at `δ` and a value in `(1, 1 + γ)` at `δ`: the previous shape
@@ -262,6 +264,17 @@ theorem contDiffOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
       (div_pos (hδ.trans hu) hδ).ne').sqrt fun u hu ↦ (hL u hu).ne')
       fun u hu ↦ (sqrt_pos.2 (hL u hu)).ne'
   exact hf.congr fun r hr ↦ deriv_struweShape hδ hK c hr
+
+/-- Struwe's shape is smooth jointly in its value `c` at `K δ` and in `r`, on `ℝ × (δ, ∞)`:
+it is `c` plus the shape with value `0` at `K δ`. -/
+theorem contDiffOn_uncurry_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) :
+    ContDiffOn ℝ ∞ (Function.uncurry (struweShape δ K)) (univ ×ˢ Ioi δ) := by
+  have e : Function.uncurry (struweShape δ K) = fun p ↦ p.1 + struweShape δ K 0 p.2 := by
+    ext p
+    rw [Function.uncurry_apply_pair, ← struweShape_add, add_zero]
+  rw [e]
+  exact contDiffOn_fst.add ((contDiffOn_struweShape hδ hK 0).comp contDiffOn_snd
+    fun p hp ↦ hp.2)
 
 /-- Struwe's shape is continuous on `[δ, ∞)`: its integrand is integrable near `δ`. -/
 theorem continuousOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
@@ -1003,34 +1016,36 @@ theorem exists_isConvexShapeAt_eq_struweShape_eq_linear {δ K d ℓ : ℝ} (hd :
     have e : 2 * K * δ / δ = 2 * K := mul_div_cancel_right₀ _ hδ.ne'
     exact fun r hr ↦ isConvexShapeAt_struweShape_of_le_of_mem_Ioc hδ hK₁.le
       (by nlinarith [mul_pos hd hδ] : ℓ ≤ S δ) (by rw [e]; linarith) (by rw [e]; linarith) hr
-  -- Extend `S` from `[K δ / 4, ∞)` to a smooth function on `ℝ`, and join it to the line on
-  -- `[K δ / 2, 2 K δ]`, where the two cross only at `K δ`.
-  obtain ⟨S', hS's, hS'S⟩ :=
-    (contDiffOn_struweShape hδ hK₁.le (ℓ + d * K * δ)).exists_contDiff_eqOn_Ici
-      (show δ < K * δ / 4 by linarith)
-  have hS' : ∀ r, K * δ / 2 ≤ r → S' r = S r := fun r hr ↦ hS'S (by linarith : K * δ / 4 ≤ r)
+  -- Extend `S` from near `[K δ / 4, 2 K δ]` to a smooth function on `ℝ`, and join it to the line
+  -- on `[K δ / 2, 2 K δ]`, where the two cross only at `K δ`.
+  obtain ⟨S', hS's, -, -, -, hS'e⟩ :=
+    (contDiffOn_struweShape hδ hK₁.le (ℓ + d * K * δ)).exists_contDiff_eventuallyEq_on_isCompact
+      isCompact_Icc isOpen_Ioi fun r (hr : r ∈ Icc (K * δ / 4) (2 * K * δ)) ↦
+        (show δ < r by linarith [hr.1])
+  have hS'S : ∀ r ∈ Icc (K * δ / 4) (2 * K * δ), S' r = S r := fun r hr ↦ (hS'e r hr).eq_of_nhds
+  have hS' : ∀ r ∈ Icc (K * δ / 2) (2 * K * δ), S' r = S r := fun r hr ↦
+    hS'S r ⟨by linarith [hr.1], hr.2⟩
   obtain ⟨J, hJs, hJc, hJ₁, hJ₂, -⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (n := ⊤)
     (χ₂ := fun r ↦ ℓ + d * r) (r₁ := K * δ / 2) (u := 3 * K * δ / 4) (v := 3 * K * δ / 2)
     (r₂ := 2 * K * δ) le_top hS's (by fun_prop) (by linarith) (by linarith) (by linarith)
-    (fun r hr ↦ (hSc r ⟨by linarith [hr.1], hr.2⟩).congr_of_eventuallyEq <| by
-      filter_upwards [Ioi_mem_nhds (show K * δ / 4 < r by linarith [hr.1])] with y hy
-      exact hS'S (mem_Ioi.1 hy).le)
+    (fun r hr ↦ (hSc r ⟨by linarith [hr.1], hr.2⟩).congr_of_eventuallyEq
+      (hS'e r ⟨by linarith [hr.1], hr.2⟩))
     (fun r hr ↦ isConvexShapeAt_linear hℓ hd ⟨by linarith [hr.1], by linarith [hr.2]⟩)
     (fun r hr ↦ by
-      rw [hS' r hr.1]
+      rw [hS' r ⟨hr.1, by linarith [hr.2]⟩]
       exact (linear_lt_struweShape hδ hK₁ hlow ⟨by linarith [hr.1], by linarith [hr.2]⟩).le)
     (fun r hr ↦ by
-      rw [hS' r (by linarith [hr.1])]
+      rw [hS' r ⟨by linarith [hr.1], hr.2⟩]
       exact (struweShape_lt_linear hδ hK₁ hlow (by linarith [hr.1])).le)
     (fun r hr hr' ↦ by
-      rw [hS' r hr.1] at hr'
+      rw [hS' r hr] at hr'
       rcases lt_trichotomy r (K * δ) with h | rfl | h
       · exact absurd hr' (linear_lt_struweShape hδ hK₁ hlow ⟨by linarith [hr.1], h⟩).ne'
       · exact ⟨by linarith, by linarith⟩
       · exact absurd hr' (struweShape_lt_linear hδ hK₁ hlow h).ne)
   -- `G` is `S` up to `3 K δ / 4` and `J` from `K δ / 2` on.
   have hSJ : EqOn S J (Icc (K * δ / 4) (3 * K * δ / 4)) := fun r hr ↦ by
-    rw [hJ₁ hr.2, hS'S hr.1]
+    rw [hJ₁ hr.2, hS'S r ⟨hr.1, by linarith [hr.2]⟩]
   set G : ℝ → ℝ := fun r ↦ if r ≤ K * δ / 2 then S r else J r
   have hGS : ∀ r ≤ 3 * K * δ / 4, G r = S r := fun r hr ↦
     EqOn.eqOn_ite_le_left (s := Iic (3 * K * δ / 4))
