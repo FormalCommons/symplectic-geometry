@@ -116,14 +116,23 @@ for it, for `k ≥ k₀`:
   compatible with `J`, the Koszul formula writes its second derivative through its first and the
   Christoffel symbols of the forms read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.fderiv_fderiv_chartTransition`); then `(τ, Dτ)`
-  solves a first-order system, and the uniform bounds above on the Christoffel symbols and on
-  `Dτ(0)` bound every derivative of the transition at `0`: there is `ρ₁ > 0` such that for each
-  `r` some `C` bounds the derivatives of order `1` to `r` at `0` of the transitions from the
-  chart at `(D.chart k x)⁻¹ z` to the chart at `x`, for all `k ≥ k₀`, `x` and `z` in the ball of
-  radius `ρ₁ * √k`
+  solves a first-order system, and the uniform bounds above on the Christoffel symbols bound
+  every derivative of the transition at each point `w` of `D.chartTransitionDomain k x y` by a
+  constant that depends only on the order and on a bound for `‖Dτ(w)‖`
   (in the namespace `SymplecticGeometry.RescaledUnitaryCharts`,
-  `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`, from
-  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`).
+  `exists_forall_norm_iteratedFDeriv_chartTransition_le`, from
+  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`). So there is
+  `ρ₁ > 0` such that for each `r` some `C` bounds the derivatives of order `1` to `r` at `0` of
+  the transitions from the chart at `(D.chart k x)⁻¹ z` to the chart at `x`, for all `k ≥ k₀`,
+  `x` and `z` in the ball of radius `ρ₁ * √k` (in the same namespace,
+  `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`);
+* in the other direction, the transition from the chart at `x` to the chart at
+  `(D.chart k x)⁻¹ z` sends `z` to `0`, its domain contains `z`, its derivative at `z` has norm
+  at most `√2` on a comparison radius, since `2π k σ(v, J v)` is the square of the norm in the
+  chart at the centre (in the same namespace, `chartTransition_chart_symm_apply_self`,
+  `mem_chartTransitionDomain_chart_symm` and `norm_fderiv_chartTransition_chart_symm_le`), and
+  so its derivatives at `z` are bounded in the same way
+  (`exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le`).
 
 ## References
 

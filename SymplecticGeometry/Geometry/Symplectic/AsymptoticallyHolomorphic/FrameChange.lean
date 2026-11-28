@@ -49,11 +49,13 @@ differentiable at `τ w`,
 chain rules give the derivative of `e · (f_x ∘ τ)` at `w`, and the logarithmic derivative of `e`
 turns the model term of the chart at `y` into that of the chart at `x`.
 
-The logarithmic derivative is bilinear in the transition and its derivative, whose jets at `0`
-are bounded in `ChartTransition.lean` apart from the value `τ 0 = z`. So the equation
-`de = i θ e` is a first-order system whose jet at `(0, e 0)` grows at most linearly in `‖z‖`, and
-`SymplecticGeometry.jetNormAt_le_of_eventually_fderiv_eq` bounds the jets of `e` at `0` by a
-polynomial in `‖z‖`.
+The logarithmic derivative is bilinear in the transition and its derivative. Where the
+derivatives of the transition at a point `w` of its domain are bounded, the equation
+`de = i θ e` is a first-order system whose jet at `(w, e w)` grows at most linearly in
+`‖w‖ + ‖τ w‖`, and `SymplecticGeometry.jetNormAt_le_of_eventually_fderiv_eq` bounds the jets of
+`e` at `w` by a polynomial in `‖w‖ + ‖τ w‖`. The bounds of `ChartTransition.lean` on the
+derivatives of the transitions at `0`, with `τ 0 = z`, and on those of the transitions back
+at `z`, with `τ z = 0`, make this a polynomial in `‖z‖` in both directions.
 
 ## Main definitions
 
@@ -78,9 +80,16 @@ polynomial in `‖z‖`.
   the `∂̄` readings, since the derivative of the transition intertwines `J` read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.isComplexLinear_fderiv_chartTransition` and
   `TauCeti.IsComplexLinear.complexAntilinearPart_comp_right`).
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_le`: the `r`-jet
+  norm of the change of frame at a point `w` of the domain of the transition `τ` is at most
+  `K * (1 + ‖w‖ + ‖τ w‖) ^ r`, for `K` that depends only on `r` and on a bound for the
+  derivatives of `τ` at `w`.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: on a
   ball of radius `ρ₁ * √k`, the `r`-jet norm at `0` of the change of frame between the chart
   centred at `(D.chart k x)⁻¹ z` and the chart centred at `x` is at most `C * (1 + ‖z‖) ^ r`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_chart_symm_le`:
+  the same at `z` for the change of frame between the chart centred at `x` and the chart centred
+  at `(D.chart k x)⁻¹ z`.
 
 ## References
 
@@ -101,67 +110,74 @@ section ModelEquation
 
 variable {ι : Type*} [Fintype ι]
 
-/-- A step of `RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: given `r` and
-a bound `Cτ`, there is a constant `c₁ ≥ 0` such that for every map `τ` smooth at `0` whose
-derivatives at `0` of orders `1` to `r + 1` have norm at most `Cτ`, the map
-`w ↦ ω₀(w, ·) - ω₀(τ w, Dτ_w ·)` is `C^r` at `0`, with `r`-jet norm at `0` at most
-`c₁ * (1 + ‖τ 0‖)`. -/
+/-- A step of `RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_le`: given `r` and a bound
+`Cτ`, there is a constant `c₁ ≥ 0` such that for every point `w₀` and every map `τ` smooth at
+`w₀` whose derivatives at `w₀` of orders `1` to `r + 1` have norm at most `Cτ`, the map
+`w ↦ ω₀(w, ·) - ω₀(τ w, Dτ_w ·)` is `C^r` at `w₀`, with `r`-jet norm at `w₀` at most
+`c₁ * (1 + ‖w₀‖ + ‖τ w₀‖)`. -/
 private theorem exists_jetNormAt_stdForm_sub_le (r : ℕ) (Cτ : ℝ) :
-    ∃ c₁ : ℝ, 0 ≤ c₁ ∧ ∀ {τ : StdSpace ι → StdSpace ι}, ContDiffAt ℝ ∞ τ 0 →
-      (∀ j, 1 ≤ j → j ≤ r + 1 → ‖iteratedFDeriv ℝ j τ 0‖ ≤ Cτ) →
+    ∃ c₁ : ℝ, 0 ≤ c₁ ∧ ∀ {τ : StdSpace ι → StdSpace ι} {w₀ : StdSpace ι}, ContDiffAt ℝ ∞ τ w₀ →
+      (∀ j, 1 ≤ j → j ≤ r + 1 → ‖iteratedFDeriv ℝ j τ w₀‖ ≤ Cτ) →
       ContDiffAt ℝ r (⇑(stdFormCompRightL ι 1) +
-        -fun w ↦ stdFormCompRightL ι (fderiv ℝ τ w) (τ w)) 0 ∧
+        -fun w ↦ stdFormCompRightL ι (fderiv ℝ τ w) (τ w)) w₀ ∧
       jetNormAt ℝ r (⇑(stdFormCompRightL ι 1) +
-        -fun w ↦ stdFormCompRightL ι (fderiv ℝ τ w) (τ w)) 0 ≤ c₁ * (1 + ‖τ 0‖) := by
+        -fun w ↦ stdFormCompRightL ι (fderiv ℝ τ w) (τ w)) w₀ ≤
+        c₁ * (1 + ‖w₀‖ + ‖τ w₀‖) := by
   -- Instance search does not find the norm on the space of `stdFormCompRightL ι` by itself.
   let _ : NormedAddCommGroup (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ) := inferInstance
   let _ : NormedSpace ℝ (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ) := inferInstance
   -- The bilinear map `(A, u) ↦ ω₀(u, A ·)`.
   set B := stdFormCompRightL ι
   set c₁ : ℝ := ‖B 1‖ + 2 ^ r * ‖B‖ * ((r + 1) * |Cτ|) * (1 + r * |Cτ|)
-  refine ⟨c₁, by positivity, fun {τ} hτ hCτ ↦ ?_⟩
-  set z := τ 0
+  refine ⟨c₁, by positivity, fun {τ w₀} hτ hCτ ↦ ?_⟩
+  set z := τ w₀
   have hz : 0 ≤ ‖z‖ := norm_nonneg z
-  have hDτ : ContDiffAt ℝ r (fderiv ℝ τ) 0 := hτ.fderiv_right (by simp)
-  have hτr : ContDiffAt ℝ r τ 0 := hτ.of_le (by simp)
+  have hw₀ : 0 ≤ ‖w₀‖ := norm_nonneg w₀
+  have hDτ : ContDiffAt ℝ r (fderiv ℝ τ) w₀ := hτ.fderiv_right (by simp)
+  have hτr : ContDiffAt ℝ r τ w₀ := hτ.of_le (by simp)
   set g : StdSpace ι → StdSpace ι →L[ℝ] ℝ := fun w ↦ B (fderiv ℝ τ w) (τ w)
-  have hg : ContDiffAt ℝ r g 0 :=
-    (B.contDiff.contDiffAt.comp (0 : StdSpace ι) hDτ).clm_apply hτr
-  have hB1 : ContDiffAt ℝ r (⇑(B 1)) 0 := (B 1).contDiff.contDiffAt
+  have hg : ContDiffAt ℝ r g w₀ :=
+    (B.contDiff.contDiffAt.comp w₀ hDτ).clm_apply hτr
+  have hB1 : ContDiffAt ℝ r (⇑(B 1)) w₀ := (B 1).contDiff.contDiffAt
   refine ⟨hB1.add hg.neg, ?_⟩
-  have hjτ : jetNormAt ℝ r τ 0 ≤ (1 + r * |Cτ|) * (1 + ‖z‖) :=
+  have hjτ : jetNormAt ℝ r τ w₀ ≤ (1 + r * |Cτ|) * (1 + ‖z‖) :=
     jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
       hCτ (j + 1) (by omega) (by omega)
-  have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) 0 ≤ (r + 1) * |Cτ| :=
+  have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) w₀ ≤ (r + 1) * |Cτ| :=
     jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
       hCτ (j + 1) (by omega) (by omega)
   refine (jetNormAt_add_le (g := -g) hB1 hg.neg).trans ?_
   rw [jetNormAt_neg]
-  have h1 : jetNormAt ℝ r (⇑(B 1)) 0 ≤ ‖B 1‖ := by
-    simpa using jetNormAt_continuousLinearMap_le (B 1) r 0
-  have h3 : jetNormAt ℝ r g 0 ≤
+  have h1 : jetNormAt ℝ r (⇑(B 1)) w₀ ≤ ‖B 1‖ * (1 + ‖w₀‖) := by
+    have := jetNormAt_continuousLinearMap_le (B 1) r w₀
+    have := (B 1).le_opNorm w₀
+    nlinarith
+  have h3 : jetNormAt ℝ r g w₀ ≤
       2 ^ r * ‖B‖ * ((r + 1) * |Cτ|) * ((1 + r * |Cτ|) * (1 + ‖z‖)) :=
     (jetNormAt_bilinear_le B hDτ hτr).trans (mul_le_mul
       (mul_le_mul_of_nonneg_left hjDτ (by positivity)) hjτ (jetNormAt_nonneg _ _ _)
       (by positivity))
   have : 0 ≤ 2 ^ r * ‖B‖ * ((r + 1) * |Cτ|) * (1 + r * |Cτ|) := by positivity
-  calc _ ≤ ‖B 1‖ + 2 ^ r * ‖B‖ * ((r + 1) * |Cτ|) * ((1 + r * |Cτ|) * (1 + ‖z‖)) :=
+  calc _ ≤ ‖B 1‖ * (1 + ‖w₀‖) +
+        2 ^ r * ‖B‖ * ((r + 1) * |Cτ|) * ((1 + r * |Cτ|) * (1 + ‖z‖)) :=
         add_le_add h1 h3
-    _ ≤ _ := by simp only [c₁]; nlinarith [mul_nonneg (norm_nonneg (B 1)) hz]
+    _ ≤ _ := by
+        simp only [c₁]
+        nlinarith [mul_nonneg (norm_nonneg (B 1)) hz, mul_nonneg (norm_nonneg (B 1)) hw₀]
 
-/-- A step of `RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: given `r` and
-a bound `Cτ`, there is a constant `K` such that every `e : StdSpace ι → ℂ` with `‖e 0‖ = 1` that
-is `C^r` at `0` and solves `de_w(v) = i θ_w(v) e(w)` near `0`, where
-`θ_w(v) = (ω₀(w, v) - ω₀(τ w, Dτ_w v)) / 2` for a map `τ` smooth at `0` whose derivatives at `0`
-of orders `1` to `r + 1` have norm at most `Cτ`, has `r`-jet norm at `0` at most
-`K * (1 + ‖τ 0‖) ^ r`. -/
+/-- A step of `RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_le`: given `r` and a bound
+`Cτ`, there is a constant `K` such that for every point `w₀`, every `e : StdSpace ι → ℂ` with
+`‖e w₀‖ = 1` that is `C^r` at `w₀` and solves `de_w(v) = i θ_w(v) e(w)` near `w₀`, where
+`θ_w(v) = (ω₀(w, v) - ω₀(τ w, Dτ_w v)) / 2` for a map `τ` smooth at `w₀` whose derivatives at
+`w₀` of orders `1` to `r + 1` have norm at most `Cτ`, has `r`-jet norm at `w₀` at most
+`K * (1 + ‖w₀‖ + ‖τ w₀‖) ^ r`. -/
 private theorem exists_jetNormAt_le_of_fderiv_eq_stdForm (r : ℕ) (Cτ : ℝ) :
-    ∃ K : ℝ, ∀ {τ : StdSpace ι → StdSpace ι} {e : StdSpace ι → ℂ},
-      ContDiffAt ℝ ∞ τ 0 → ContDiffAt ℝ r e 0 → ‖e 0‖ = 1 →
-      (∀ᶠ w in 𝓝 0, ∀ v, fderiv ℝ e w v = Complex.I *
+    ∃ K : ℝ, ∀ {τ : StdSpace ι → StdSpace ι} {e : StdSpace ι → ℂ} {w₀ : StdSpace ι},
+      ContDiffAt ℝ ∞ τ w₀ → ContDiffAt ℝ r e w₀ → ‖e w₀‖ = 1 →
+      (∀ᶠ w in 𝓝 w₀, ∀ v, fderiv ℝ e w v = Complex.I *
         ((2⁻¹ * (stdForm ι w v - stdForm ι (τ w) (fderiv ℝ τ w v)) : ℝ) : ℂ) * e w) →
-      (∀ j, 1 ≤ j → j ≤ r + 1 → ‖iteratedFDeriv ℝ j τ 0‖ ≤ Cτ) →
-      jetNormAt ℝ r e 0 ≤ K * (1 + ‖τ 0‖) ^ r := by
+      (∀ j, 1 ≤ j → j ≤ r + 1 → ‖iteratedFDeriv ℝ j τ w₀‖ ≤ Cτ) →
+      jetNormAt ℝ r e w₀ ≤ K * (1 + ‖w₀‖ + ‖τ w₀‖) ^ r := by
   obtain ⟨c₁, hc₁, hθ₁⟩ := exists_jetNormAt_stdForm_sub_le (ι := ι) r Cτ
   -- The bilinear map `(A, u) ↦ ω₀(u, A ·)`, and the map reading real forms in `ℂ`.
   set B := stdFormCompRightL ι
@@ -169,48 +185,52 @@ private theorem exists_jetNormAt_le_of_fderiv_eq_stdForm (r : ℕ) (Cτ : ℝ) :
   set c : ℂ := Complex.I * 2⁻¹
   set a : ℝ := 2 ^ r * (‖c‖ * (‖L‖ * c₁)) * 2
   have : 0 ≤ a := by positivity
-  refine ⟨1 + r * firstOrderSystemConst r * (1 + a) ^ r, fun {τ e} hτ he he0 heq hCτ ↦ ?_⟩
-  set z := τ 0
+  refine ⟨1 + r * firstOrderSystemConst r * (1 + a) ^ r, fun {τ e w₀} hτ he he0 heq hCτ ↦ ?_⟩
+  set m := ‖w₀‖ + ‖τ w₀‖
+  have hm : 0 ≤ m := by positivity
   set θ : StdSpace ι → StdSpace ι →L[ℝ] ℝ :=
     ⇑(B 1) + -fun w ↦ B (fderiv ℝ τ w) (τ w)
-  obtain ⟨hθ, hjθ⟩ : ContDiffAt ℝ r θ 0 ∧ jetNormAt ℝ r θ 0 ≤ c₁ * (1 + ‖z‖) := hθ₁ hτ hCτ
+  obtain ⟨hθ, hjθ⟩ : ContDiffAt ℝ r θ w₀ ∧ jetNormAt ℝ r θ w₀ ≤ c₁ * (1 + ‖w₀‖ + ‖τ w₀‖) :=
+    hθ₁ hτ hCτ
+  rw [add_assoc] at hjθ
   -- The first-order system `de_w = Φ (w, e w)` solved by `e`, with `Φ (w, u) = u • G w`.
   set G : StdSpace ι → StdSpace ι →L[ℝ] ℂ := c • (⇑L ∘ θ)
-  have hG : ContDiffAt ℝ r G 0 := (L.contDiff.contDiffAt.comp _ hθ).const_smul c
-  have hjG : jetNormAt ℝ r G 0 ≤ ‖c‖ * (‖L‖ * (c₁ * (1 + ‖z‖))) := by
+  have hG : ContDiffAt ℝ r G w₀ := (L.contDiff.contDiffAt.comp _ hθ).const_smul c
+  have hjG : jetNormAt ℝ r G w₀ ≤ ‖c‖ * (‖L‖ * (c₁ * (1 + m))) := by
     rw [jetNormAt_smul]
     gcongr
     exact (jetNormAt_comp_left_le L hθ).trans (by gcongr)
   set Φ : StdSpace ι × ℂ → StdSpace ι →L[ℝ] ℂ := fun p ↦ Prod.snd p • (G ∘ Prod.fst) p
-  have hfst : ContDiffAt ℝ r (G ∘ Prod.fst) ((0 : StdSpace ι), e 0) :=
-    hG.comp ((0 : StdSpace ι), e 0) contDiffAt_fst
-  have hΦ : ContDiffAt ℝ r Φ (0, e 0) := contDiffAt_snd.smul hfst
-  have heqΦ : ∀ᶠ w in 𝓝 0, fderiv ℝ e w = Φ (w, e w) := by
+  have hfst : ContDiffAt ℝ r (G ∘ Prod.fst) (w₀, e w₀) :=
+    hG.comp (w₀, e w₀) contDiffAt_fst
+  have hΦ : ContDiffAt ℝ r Φ (w₀, e w₀) := contDiffAt_snd.smul hfst
+  have heqΦ : ∀ᶠ w in 𝓝 w₀, fderiv ℝ e w = Φ (w, e w) := by
     filter_upwards [heq] with w hw
     ext v
     rw [hw v]
     simp [Φ, G, θ, L, B, c]
     ring
-  have hjΦ : jetNormAt ℝ r Φ (0, e 0) ≤ a * (1 + ‖z‖) := by
-    have h3 : jetNormAt ℝ r (Prod.snd : StdSpace ι × ℂ → ℂ) (0, e 0) ≤ 2 := by
-      have := jetNormAt_continuousLinearMap_le (ContinuousLinearMap.snd ℝ (StdSpace ι) ℂ) r (0, e 0)
+  have hjΦ : jetNormAt ℝ r Φ (w₀, e w₀) ≤ a * (1 + m) := by
+    have h3 : jetNormAt ℝ r (Prod.snd : StdSpace ι × ℂ → ℂ) (w₀, e w₀) ≤ 2 := by
+      have := jetNormAt_continuousLinearMap_le (ContinuousLinearMap.snd ℝ (StdSpace ι) ℂ) r
+        (w₀, e w₀)
       simp only [ContinuousLinearMap.coe_snd', he0] at this
       linarith [ContinuousLinearMap.norm_snd_le ℝ (StdSpace ι) ℂ]
     refine (jetNormAt_fun_smul_le contDiffAt_snd hfst).trans ?_
     rw [jetNormAt_comp_fst]
-    calc _ ≤ 2 ^ r * 2 * (‖c‖ * (‖L‖ * (c₁ * (1 + ‖z‖)))) :=
+    calc _ ≤ 2 ^ r * 2 * (‖c‖ * (‖L‖ * (c₁ * (1 + m)))) :=
           mul_le_mul (mul_le_mul_of_nonneg_left h3 (by positivity)) hjG (jetNormAt_nonneg _ _ _)
             (by positivity)
-      _ = a * (1 + ‖z‖) := by ring
+      _ = a * (1 + m) := by ring
   -- The bound of `jetNormAt_le_of_eventually_fderiv_eq`.
   refine (jetNormAt_le_of_eventually_fderiv_eq he hΦ heqΦ).trans ?_
-  rw [he0]
-  have h1z : 1 ≤ 1 + ‖z‖ := by simp
-  have hA : 1 + jetNormAt ℝ r Φ (0, e 0) ≤ (1 + a) * (1 + ‖z‖) := by nlinarith
-  calc 1 + r * firstOrderSystemConst r * (1 + jetNormAt ℝ r Φ (0, e 0)) ^ r
-      ≤ (1 + ‖z‖) ^ r + r * firstOrderSystemConst r * ((1 + a) * (1 + ‖z‖)) ^ r := by
+  rw [he0, add_assoc]
+  have h1m : 1 ≤ 1 + m := by simp [hm]
+  have hA : 1 + jetNormAt ℝ r Φ (w₀, e w₀) ≤ (1 + a) * (1 + m) := by nlinarith
+  calc 1 + r * firstOrderSystemConst r * (1 + jetNormAt ℝ r Φ (w₀, e w₀)) ^ r
+      ≤ (1 + m) ^ r + r * firstOrderSystemConst r * ((1 + a) * (1 + m)) ^ r := by
         gcongr
-        · exact one_le_pow₀ h1z
+        · exact one_le_pow₀ h1m
         · exact add_nonneg zero_le_one (jetNormAt_nonneg _ _ _)
     _ = _ := by rw [mul_pow]; ring
 
@@ -437,6 +457,26 @@ theorem dbarReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm α) {
 
 /-! ### Jet norms of the change of frame -/
 
+/-- **Jet norms of the change of frame.** Let `α` be a connection form. For every order `r` and
+every bound `Cτ` there is a constant `K` with the following property: for all `k ≥ k₀`, all points
+`x` and `y` and every `w` in `D.chartTransitionDomain k x y` at which the derivatives of orders
+`1` to `r + 1` of the transition `τ` from the chart centred at `y` to the chart centred at `x`
+have norm at most `Cτ`, the `r`-jet norm at `w` of the change of frame between the two charts is
+at most `K * (1 + ‖w‖ + ‖τ w‖) ^ r`. -/
+theorem exists_forall_jetNormAt_frameChange_le (hα : IsCircleConnectionForm α) (r : ℕ)
+    (Cτ : ℝ) :
+    ∃ K : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
+      w ∈ D.chartTransitionDomain k x y →
+      (∀ j, 1 ≤ j → j ≤ r + 1 → ‖iteratedFDeriv ℝ j (D.chartTransition k x y) w‖ ≤ Cτ) →
+      jetNormAt ℝ r (D.frameChange k x y) w ≤
+        K * (1 + ‖w‖ + ‖D.chartTransition k x y w‖) ^ r := by
+  obtain ⟨K, hK⟩ := exists_jetNormAt_le_of_fderiv_eq_stdForm (ι := ι) r Cτ
+  refine ⟨K, fun {k} hk x y w hw hCτ ↦ ?_⟩
+  have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds hw
+  exact hK (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y hw))
+    (D.contDiffAt_frameChange hk hw) (D.norm_frameChange k x y w)
+    (Filter.eventually_of_mem hW fun w hw v ↦ D.fderiv_frameChange_apply hα hk hw v) hCτ
+
 /-- **Jet norms of the change of frame at the centre.** On a boundaryless manifold, let `σ` be
 compatible with `J`, let `α` be a connection form and let `ρ₀ > 0`. There is a radius `ρ₁` with
 `0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for all
@@ -452,17 +492,33 @@ theorem exists_forall_jetNormAt_frameChange_zero_le [I.Boundaryless] (hJ : σ.Co
     D.exists_forall_norm_iteratedFDeriv_chartTransition_zero_le hJ hρ₀
   refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
   obtain ⟨Cτ, hCτ⟩ := hT (r + 1)
-  obtain ⟨K, hK⟩ := exists_jetNormAt_le_of_fderiv_eq_stdForm (ι := ι) r Cτ
+  obtain ⟨K, hK⟩ := D.exists_forall_jetNormAt_frameChange_le hα r Cτ
   refine ⟨K, fun {k} hk x z hz ↦ ?_⟩
   have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
-  have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
-  have hW := (D.isOpen_chartTransitionDomain k x _).mem_nhds h0W
-  have h := hK (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x _ h0W))
-    (D.contDiffAt_frameChange hk h0W)
-    (D.norm_frameChange k x _ 0)
-    (Filter.eventually_of_mem hW fun w hw v ↦ D.fderiv_frameChange_apply hα hk hw v)
-    (hCτ hk x z hz)
-  rwa [D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀)] at h
+  have h := hK hk (D.zero_mem_chartTransitionDomain hk x hz₀) (hCτ hk x z hz)
+  rwa [D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀), norm_zero,
+    add_zero] at h
+
+/-- **Jet norms of the change of frame back to the centre.** On a boundaryless manifold, let `σ`
+be compatible with `J`, let `α` be a connection form and let `ρ₀ > 0`. There is a radius `ρ₁` with
+`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for all
+`k ≥ k₀`, all points `x` and all `z` in the ball of radius `ρ₁ * √k`, the `r`-jet norm at `z` of
+the change of frame between the chart centred at `x` and the chart centred at
+`(D.chart k x)⁻¹ z` is at most `C * (1 + ‖z‖) ^ r`. -/
+theorem exists_forall_jetNormAt_frameChange_chart_symm_le [I.Boundaryless] (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
+      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
+        jetNormAt ℝ r (D.frameChange k ((D.chart k x).symm z) x) z ≤ C * (1 + ‖z‖) ^ r := by
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hT⟩ :=
+    D.exists_forall_norm_iteratedFDeriv_chartTransition_chart_symm_le hJ hρ₀
+  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
+  obtain ⟨Cτ, hCτ⟩ := hT (r + 1)
+  obtain ⟨K, hK⟩ := D.exists_forall_jetNormAt_frameChange_le hα r Cτ
+  refine ⟨K, fun {k} hk x z hz ↦ ?_⟩
+  have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
+  have h := hK hk (D.mem_chartTransitionDomain_chart_symm hk x hz₀) (hCτ hk x z hz)
+  rwa [D.chartTransition_chart_symm_apply_self hk, norm_zero, add_zero] at h
 
 end RescaledUnitaryCharts
 
