@@ -253,10 +253,11 @@ theorem mextDeriv_fiberComponent_apply [IsManifold IF 2 F] {x : EB} {y : F}
       mextDeriv τ (x, y) ![((0 : EB), w₁), ((0 : EB), w₂), ((0 : EB), u)] := by
   rw [fiberComponent_def,
     ← mpullback_mextDeriv_at (f := Prod.mk x) (contMDiffAt_const.prodMk contMDiffAt_id) hτ,
-    mpullback_apply]
-  congr 1
-  funext i
-  fin_cases i <;> exact mfderiv_prodMk_right_apply _
+    mpullback_apply_triple, mfderiv_prodMk_right_apply, mfderiv_prodMk_right_apply,
+    mfderiv_prodMk_right_apply]
+  -- The two vector literals differ only in their element type: the tangent space at `(x, y)` on
+  -- the left, `EB × EF` on the right.
+  rfl
 
 /-- The **mixed component** `αᵢ(x)` of a two-form `τ` on `EB × F`, for the basis `bs` of `EB`:
 the one-form on `F` that is minus the slice over `x` of the contraction of `τ` with the constant
