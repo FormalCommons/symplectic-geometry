@@ -164,14 +164,14 @@ theorem MapFiber.Atlas.IsContMDiff.exists_isVerticallyClosed_eq_mpullback_symm_e
   refine ⟨Metric.ball (φ b) (ε / 4), Metric.isOpen_ball, Metric.mem_ball_self (by positivity),
     τ', fun x ↦ ?_, ?_, fun z hz ↦ hU hz.1, fun c hc hcU y ↦ ?_⟩
   · -- The fibre components.
-    refine SmoothBundleForm.ext fun y w ↦ ?_
-    have hw : w = ![w 0, w 1] := (FinVec.etaExpand_eq w).symm
-    rw [SmoothTwoForm.coe_smoothFiberComponent, hw, RoughForm.fiberComponent_apply, hτ',
-      ContinuousAlternatingMap.add_apply,
-      ContinuousAlternatingMap.smul_apply, ContinuousAlternatingMap.smul_apply,
-      (hvert (x := x) (w 0) (w 1)).1]
+    have hval : τ'.val = (fun z ↦ χ z.1 • μ z) + fun z ↦ (1 - χ z.1) • ν z :=
+      funext fun z ↦ by rw [Pi.add_apply, hτ']
+    refine Subtype.ext ?_
+    rw [SmoothTwoForm.coe_smoothFiberComponent, hval, RoughForm.fiberComponent_add,
+      RoughForm.fiberComponent_fun_smul, RoughForm.fiberComponent_fun_smul (f := fun x ↦ 1 - χ x),
+      hfibν]
     by_cases hx : x ∈ W
-    · rw [(hvert (w 0) (w 1)).2 hx, ← add_smul, add_sub_cancel, one_smul]
+    · rw [hfibμ hx, ← add_smul, add_sub_cancel, one_smul]
     · rw [hχ0 hx, zero_smul, zero_add, sub_zero, one_smul]
   · -- Vertical closedness.
     rw [← SmoothTwoForm.isVerticallyClosedOn_univ_iff, show τ'.val = _ from funext hτ']
