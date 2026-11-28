@@ -949,7 +949,7 @@ proof that needs it as a `Submodule` builds it there.
   product of `X_ξ` and `X_η` at the moving point, from
   `mgradient_moment_apply` and `isMIntegralCurve_expI_smul`, as in
   `hasDerivAt_moment_expI`, its case `η = ξ`.
-- `momentWeight_smul` (`HilbertMumford.lean`): for `0 < c`,
+- `momentWeight_smul_of_nonneg` (`HilbertMumford.lean`): for `0 ≤ c`,
   `momentWeight C μ p (c • ξ) = c * momentWeight C μ p ξ`, by
   `expI_smul` and the change of time `t ↦ c * t` in `tendsto_momentWeight`.
 - `momentWeight_expI_smul_of_lie_eq_zero`: if `⁅η, ξ⁆ = 0` then
@@ -1054,7 +1054,7 @@ proof that needs it as a `Submodule` builds it there.
   (`continuousOn_momentWeight`), so it is positive on a neighbourhood of
   `ξ` in `𝔞 ξ`, which contains some `c • λ` with `c > 0` and
   `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ` (`mem_closure_smul_nonzeroPeriods`).
-  Then `momentWeight_smul` gives `0 < momentWeight C μ p λ`.
+  Then `momentWeight_smul_of_nonneg` gives `0 < momentWeight C μ p λ`.
 - `isSemistable_iff_momentWeight_nonpos` is this together with
   `IsSemistable.momentWeight_nonpos`, which the slope identity gives.
 
@@ -1150,7 +1150,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
     The destabilizing direction is these issues, in this order:
     1. `sqrt_polar_symm_fst_le_add_mul`, unless the moment-weight
        inequality has proved it. No blockers.
-    2. `hasDerivAt_moment_apply_expI`, `momentWeight_smul`,
+    2. `hasDerivAt_moment_apply_expI`, `momentWeight_smul_of_nonneg`,
        `momentWeight_expI_smul_of_lie_eq_zero` and
        `continuousOn_momentWeight`. No blockers.
     3. `exists_pow_mem_of_mem_nhds_one` and

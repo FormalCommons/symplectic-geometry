@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
+import SymplecticGeometry.Geometry.Lie.Exponential.Commute
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
@@ -48,6 +49,8 @@ a curve. It ends with the example `Circle` in `ℂˣ`.
 ## Main results
 
 * `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
+* `SymplecticGeometry.LieComplexification.commute_expI_of_lie_eq_zero`: `expI η` and `expI ξ`
+  commute when `⁅η, ξ⁆ = 0`.
 * `SymplecticGeometry.LieComplexification.isClosedEmbedding_toHom`: `toHom` is a closed
   embedding.
 * `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
@@ -155,6 +158,14 @@ theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
 theorem commute_expI_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     Commute (C.expI (s • ξ)) (C.expI (t • ξ)) := by
   rw [commute_iff_eq, ← C.expI_add_smul, ← C.expI_add_smul, add_comm]
+
+/-- If `⁅η, ξ⁆ = 0`, then `expI η` and `expI ξ` commute. -/
+theorem commute_expI_of_lie_eq_zero [FiniteDimensional ℝ E] {η ξ : GroupLieAlgebra I G}
+    (h : ⁅η, ξ⁆ = 0) : Commute (C.expI η) (C.expI ξ) := by
+  have := C.finiteDimensional
+  rw [expI_def, expI_def]
+  refine commute_mulInvariantExp_of_lie_eq_zero ?_
+  rw [C.cplx_lie_cplx, ← LieHom.map_lie, h, map_zero, neg_zero]
 
 /-- `expI (-ξ) = (expI ξ)⁻¹`. -/
 theorem expI_neg (ξ : GroupLieAlgebra I G) :
