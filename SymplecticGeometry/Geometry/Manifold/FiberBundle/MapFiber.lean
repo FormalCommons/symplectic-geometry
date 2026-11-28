@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -372,19 +373,10 @@ theorem mfderiv_fiberInclusionMap_mfderiv_snd_apply
     (hu : mfderiv IM IB proj (e.fiberInclusionMap hb v) u = 0) :
     mfderiv IF IM (e.fiberInclusionMap hb) v
       (mfderiv IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) u) = u := by
-  have hu' : u ∈ (mfderiv IF IM (e.fiberInclusionMap hb) v).range := by
-    rw [range_mfderiv_fiberInclusionMap he hb v]
-    exact hu
-  obtain ⟨w, rfl⟩ := hu'
-  have hsnd : MDifferentiableAt IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) :=
-    mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v))
-  have h := mfderiv_comp_apply v hsnd (mdifferentiable_fiberInclusionMap he hb v) w
-  rw [(e.leftInverse_snd_fiberInclusionMap hb).comp_eq_id, mfderiv_id,
-    ContinuousLinearMap.id_apply] at h
-  rw [ContinuousLinearMap.coe_coe]
-  -- `h` identifies `w` with its image under the two derivatives; the tangent spaces of `F` at
-  -- `v` and at `(e (e.fiberInclusionMap hb v)).2` agree only by definition.
-  exact congrArg _ h.symm
+  have h := (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v)).mfderiv_snd_apply u
+  -- The tangent spaces of `F` at `v` and at `(e (e.fiberInclusionMap hb v)).2` agree only by
+  -- definition, so `h` cannot be rewritten in the goal.
+  exact (congrArg _ h).trans (mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v hu)
 
 /-! ### Coordinate changes -/
 

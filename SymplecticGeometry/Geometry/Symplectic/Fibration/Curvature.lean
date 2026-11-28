@@ -58,7 +58,7 @@ field is a Hamiltonian vector field of a smooth function on `F`, in Tau Ceti's s
 suffices, since a diffeomorphism that preserves `σ` carries Hamiltonian vector fields to
 Hamiltonian vector fields (Tau Ceti's `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback`).
 When `τ` is closed and restricts to `σ` on the fibres of a smooth atlas, its connection has
-Hamiltonian curvature: by the identity above, the curvature read in a chart is the Hamiltonian
+Hamiltonian curvature: by the identity above, the curvature read in a chart is a Hamiltonian
 vector field of the function `τ(v₁♯, v₂♯)` read on the fibre through the chart
 ([GuilleminLermanSternberg1996], equation (1.12)).
 This is the curvature condition of McDuff–Salamon [McDuffSalamon2017], Exercise 6.4.9, and of
@@ -84,6 +84,9 @@ This is the curvature condition of McDuff–Salamon [McDuffSalamon2017], Exercis
   coordinate changes preserve `σ`, Hamiltonian curvature can be checked in one chart per point.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_of_curvature_eq_zero`: a connection with
   vanishing curvature has Hamiltonian curvature.
+* `TauCeti.IsEhresmannConnection.isHamiltonianVectorField_curvatureIn_of_isClosed`: for a closed
+  two-form that restricts to `σ` on the fibres, the curvature read in a chart is a Hamiltonian
+  vector field of `τ(v₁♯, v₂♯)` read on the fibre.
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_of_isClosed`: the connection of a closed
   two-form that restricts to `σ` on the fibres has Hamiltonian curvature.
 
@@ -378,12 +381,68 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpac
 
 attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
 
+/-- **The Hamiltonian of the curvature of a closed form.** Let `A` be a smooth atlas of `proj`
+with fibre `F`, `τ` a closed two-form on `M` that restricts to `σ` on the fibres of `A`, and `hD`
+the connection of `τ`, a `C^n` Ehresmann connection with `1 ≤ n`. For a chart `e` of `A`, a point
+`b` of its base set and fields `v₁ v₂` on `B` that are `C^1` at `b`, the curvature on the fibre
+over `b` read in `e` is a Hamiltonian vector field, in Tau Ceti's sign (`ι_X σ = df`), of the
+function `y ↦ τ(v₁♯, v₂♯)` at `e⁻¹ (b, y)` ([GuilleminLermanSternberg1996], equation (1.12)). -/
+theorem isHamiltonianVectorField_curvatureIn_of_isClosed
+    (hD : IsEhresmannConnection IM IB n proj (SmoothTwoForm.horizontalDistribution IB proj τ))
+    (hn : 1 ≤ n) {A : MapFiber.Atlas F proj} (hA : A.IsContMDiff ∞ IB IF IM)
+    {σ : SmoothTwoForm IF F} (hτ : τ.IsClosed) (hτσ : A.RestrictsTo σ τ) {b' b : B}
+    (hb : b ∈ (A.trivAt b').baseSet) {v₁ v₂ : Π b : B, TangentSpace IB b}
+    (hv₁ : ContMDiffAt IB IB.tangent 1 (T% v₁) b) (hv₂ : ContMDiffAt IB IB.tangent 1 (T% v₂) b) :
+    σ.IsHamiltonianVectorField
+      (fun y ↦ τ.val ((A.trivAt b').fiberInclusionMap hb y)
+        ![hD.horizontalLiftField v₁ ((A.trivAt b').fiberInclusionMap hb y),
+          hD.horizontalLiftField v₂ ((A.trivAt b').fiberInclusionMap hb y)])
+      (hD.curvatureIn IF (A.trivAt b') b v₁ v₂) := by
+  have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
+  have he := hA.mdifferentiable_trivAt (by simp) b'
+  have hi : ContMDiff IF IM ∞ ((A.trivAt b').fiberInclusionMap hb) :=
+    (A.trivAt b').contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b') hb
+  refine SmoothTwoForm.isHamiltonianVectorField_iff.2 fun y w ↦ ?_
+  have hpy : proj ((A.trivAt b').fiberInclusionMap hb y) = b :=
+    (A.trivAt b').proj_fiberInclusionMap hb y
+  have hv₁x : ContMDiffAt IB IB.tangent 1 (T% v₁) (proj ((A.trivAt b').fiberInclusionMap hb y)) :=
+    by rwa [hpy]
+  have hv₂x : ContMDiffAt IB IB.tangent 1 (T% v₂) (proj ((A.trivAt b').fiberInclusionMap hb y)) :=
+    by rwa [hpy]
+  have hproj₂ : ContMDiffAt IM IB 2 proj ((A.trivAt b').fiberInclusionMap hb y) :=
+    (hproj _).of_le (by simp)
+  -- The function `τ(v₁♯, v₂♯)` is differentiable at the point, the lifts being so.
+  have hg : MDifferentiableAt IM 𝓘(ℝ)
+      (fun x ↦ τ.val x ![hD.horizontalLiftField v₁ x, hD.horizontalLiftField v₂ x])
+      ((A.trivAt b').fiberInclusionMap hb y) := by
+    convert SmoothForm.mdifferentiableAt_apply_vectorField τ
+      (V := ![hD.horizontalLiftField v₁, hD.horizontalLiftField v₂]) fun i ↦ by
+        fin_cases i
+        · exact hD.mdifferentiableAt_horizontalLiftField hn hproj₂ hv₁x
+        · exact hD.mdifferentiableAt_horizontalLiftField hn hproj₂ hv₂x using 3 with x
+    ext i
+    fin_cases i <;> rfl
+  -- The curvature read in the chart is carried back to the curvature by the fibre inclusion.
+  have hΩ : mfderiv IF IM ((A.trivAt b').fiberInclusionMap hb) y
+      (hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y) =
+        hD.curvature v₁ v₂ ((A.trivAt b').fiberInclusionMap hb y) := by
+    rw [curvatureIn_def, ← (A.trivAt b').fiberInclusionMap_apply hb]
+    exact (A.trivAt b').mfderiv_fiberInclusionMap_mfderiv_snd_apply he hb y
+      (hD.curvature_mem_ker hn hproj₂ hv₁x hv₂x)
+  have hid := apply_curvature_eq_mvfderiv_sub_mextDeriv hD hn (hproj.of_le (by simp)) hv₁x hv₂x
+    ((A.trivAt b').mfderiv_proj_mfderiv_fiberInclusionMap_apply (IM := IM) (IB := IB) hb y w)
+  rw [(SmoothForm.isClosed_def τ).1 hτ] at hid
+  simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero, sub_zero] at hid
+  have hc := mvfderiv_comp_apply y hg ((hi y).mdifferentiableAt (by simp)) w
+  rw [Function.comp_def] at hc
+  rw [SmoothBundleForm.eval₂_apply, ← MapFiber.Atlas.restrictsTo_iff.1 hτσ b' b hb,
+    TauCeti.mpullback_apply_pair (I := IF) (I' := IM), hΩ, hid, hc]
+
 /-- **Closed forms have Hamiltonian curvature.** Let `A` be a smooth atlas of `proj` with fibre
 `F`, `τ` a closed two-form on `M` that restricts to `σ` on the fibres of `A`, and `hD` the
 connection of `τ`, a `C^n` Ehresmann connection with `∞ ≤ n`. Then `hD` has Hamiltonian curvature
-for `A` and `σ`: for a chart `e` of `A`, a point `b` of its base set and smooth fields `v₁ v₂`
-on `B`, the curvature on the fibre over `b` read in `e` is the Hamiltonian vector field of the
-function `y ↦ τ(v₁♯, v₂♯)` at `e⁻¹ (b, y)` ([GuilleminLermanSternberg1996], equation (1.12)). -/
+for `A` and `σ`; the Hamiltonians are those of
+`TauCeti.IsEhresmannConnection.isHamiltonianVectorField_curvatureIn_of_isClosed`. -/
 theorem hasHamiltonianCurvature_of_isClosed
     (hD : IsEhresmannConnection IM IB n proj (SmoothTwoForm.horizontalDistribution IB proj τ))
     (hn : ∞ ≤ n) {A : MapFiber.Atlas F proj} (hA : A.IsContMDiff ∞ IB IF IM)
@@ -391,10 +450,6 @@ theorem hasHamiltonianCurvature_of_isClosed
     hD.HasHamiltonianCurvature A σ := by
   intro b' b hb v₁ v₂ hv₁ hv₂
   have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
-  have hn₁ : 1 ≤ n := le_trans (by simp) hn
-  have he := hA.mdifferentiable_trivAt (by simp) b'
-  have hi : ContMDiff IF IM ∞ ((A.trivAt b').fiberInclusionMap hb) :=
-    (A.trivAt b').contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b') hb
   -- The lifts of smooth fields are smooth, the connection being smooth.
   have hL {v : Π b : B, TangentSpace IB b} (hv : ContMDiff IB IB.tangent ∞ (T% v)) :
       ContMDiff IM IM.tangent ∞ (T% (hD.horizontalLiftField v)) := by
@@ -403,26 +458,9 @@ theorem hasHamiltonianCurvature_of_isClosed
   have hg : ContMDiff IM 𝓘(ℝ) ∞
       (fun x ↦ τ.val x ![hD.horizontalLiftField v₁ x, hD.horizontalLiftField v₂ x]) := by
     simpa using τ.contMDiff_apply (b := id) (hL hv₁) (hL hv₂)
-  refine ⟨_, hg.comp hi, SmoothTwoForm.isHamiltonianVectorField_iff.2 fun y w ↦ ?_⟩
-  have hv₁x : ContMDiffAt IB IB.tangent 1 (T% v₁) (proj ((A.trivAt b').fiberInclusionMap hb y)) :=
-    (hv₁ _).of_le (by simp)
-  have hv₂x : ContMDiffAt IB IB.tangent 1 (T% v₂) (proj ((A.trivAt b').fiberInclusionMap hb y)) :=
-    (hv₂ _).of_le (by simp)
-  -- The curvature read in the chart is carried back to the curvature by the fibre inclusion.
-  have hΩ : mfderiv IF IM ((A.trivAt b').fiberInclusionMap hb) y
-      (hD.curvatureIn IF (A.trivAt b') b v₁ v₂ y) =
-        hD.curvature v₁ v₂ ((A.trivAt b').fiberInclusionMap hb y) := by
-    rw [curvatureIn_def, ← (A.trivAt b').fiberInclusionMap_apply hb]
-    exact (A.trivAt b').mfderiv_fiberInclusionMap_mfderiv_snd_apply he hb y
-      (hD.curvature_mem_ker hn₁ ((hproj _).of_le (by simp)) hv₁x hv₂x)
-  have hid := apply_curvature_eq_mvfderiv_sub_mextDeriv hD hn₁ (hproj.of_le (by simp)) hv₁x hv₂x
-    ((A.trivAt b').mfderiv_proj_mfderiv_fiberInclusionMap_apply (IM := IM) (IB := IB) hb y w)
-  rw [(SmoothForm.isClosed_def τ).1 hτ] at hid
-  simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero, sub_zero] at hid
-  rw [SmoothBundleForm.eval₂_apply, ← MapFiber.Atlas.restrictsTo_iff.1 hτσ b' b hb,
-    TauCeti.mpullback_apply_pair (I := IF) (I' := IM), hΩ,
-    hid, mvfderiv_comp_apply y ((hg _).mdifferentiableAt (by simp))
-      ((hi y).mdifferentiableAt (by simp))]
+  exact ⟨_, hg.comp ((A.trivAt b').contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b') hb),
+    hD.isHamiltonianVectorField_curvatureIn_of_isClosed (le_trans (by simp) hn) hA hτ hτσ hb
+      ((hv₁ b).of_le (by simp)) ((hv₂ b).of_le (by simp))⟩
 
 end Closed
 
