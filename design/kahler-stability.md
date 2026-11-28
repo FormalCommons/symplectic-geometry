@@ -842,9 +842,11 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   projection, which identifies it with the generator of Tau Ceti's
   `TauCeti.ComplexProjectiveSpace.unitaryAction` at `dρ ξ`, an
   identification Tau Ceti leaves open.
-- `projectivizationMoment ρ : ℙ ℂ V → Module.Dual ℝ 𝔤`, a constant multiple
+- `projectivizationMoment I φ : ℙ ℂ V → Module.Dual ℝ 𝔤`, for any
+  `φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ)` (here `ρ ∘ C.toHom` with
+  values in the unitary group), a constant multiple
   of Tau Ceti's `TauCeti.ComplexProjectiveSpace.unitaryMomentMap` composed
-  with `dρ` and `diffeomorphProjectivization`, and
+  with `dφ` and `diffeomorphProjectivization`, and
   `isEquivariantMomentMap_neg_projectivizationMoment` for the *Sign*
   convention. It is transported from `isMomentMap_unitaryMomentMap` and
   `unitaryMomentMap_smul`, not derived again; the constant comes from
@@ -858,7 +860,7 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   `{ρ g v | g}`, `[v]` is not semistable
   (`isSemistable_iff_bddBelow_kempfNessFunction`) (Theorem 8.5 there).
 - `tendsto_smul_zero_of_momentWeight_pos`: if
-  `momentWeight C (projectivizationMoment ρ) [v] λ > 0`, then `v` lies in
+  `momentWeight C (projectivizationMoment I φ) [v] λ > 0`, then `v` lies in
   the sum of the eigenspaces of one sign of the Hermitian matrix
   `-Complex.I • dρ λ`, so `ρ (C.expI (t • λ')) v → 0` with antitone norm,
   for `λ'` equal to `λ` or `-λ` as the sign decides (Lemma 8.4 there).

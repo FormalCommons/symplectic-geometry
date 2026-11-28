@@ -8,7 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ComplexProjectiveSpace
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Pseudoholomorphic
+import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 
 /-!
 # Complexified linear actions on complex projective space
@@ -39,6 +41,19 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   that differential carries multiplication by `i` to `J`
   (`Projectivization.mfderiv_mkNonzero_I_smul`), as in the proof of
   `SymplecticGeometry.isComplexifiedAction_circle`.
+* `SymplecticGeometry.projectivizationMoment I φ`: for `G` acting on `ℂⁿ⁺¹` through a
+  homomorphism `φ` into the matrix unitary Lie group `unitarySubgroup (GL (Fin (n + 1)) ℂ)`, the
+  map `x ↦ μ x ∘ dφ`, where `μ = SymplecticGeometry.unitaryProjectivizationMoment n` is half of
+  Tau Ceti's `TauCeti.ComplexProjectiveSpace.unitaryMomentMap` read on `ℙ ℂ (Fin (n + 1) → ℂ)`,
+  and `dφ` is the differential of `φ` at the identity. For a representation
+  `ρ : Gc →* GL(n + 1, ℂ)` that is unitary on `G`, `φ` is `ρ ∘ C.toHom` with its values
+  restricted to the unitary group.
+* `SymplecticGeometry.isEquivariantMomentMap_neg_projectivizationMoment`: if `φ` is
+  differentiable at the identity, `x ↦ -projectivizationMoment I φ x` is a coadjoint-equivariant
+  moment map for `fubiniStudyForm n`, so `projectivizationMoment I φ` is a moment map with the
+  sign convention of the stability theory. It is not derived again: it is the restriction of
+  `SymplecticGeometry.isEquivariantMomentMap_neg_unitaryProjectivizationMoment` along `φ`, by
+  Tau Ceti's `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.comp_monoidHom`.
 
 ## References
 
@@ -46,6 +61,8 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   §5.7.
 * [V. Georgoulas, J. W. Robbin, D. A. Salamon, *The moment-weight inequality and the
   Hilbert–Mumford criterion*][GeorgoulasRobbinSalamon2021], Theorem 12.4.
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures], Section 27.1
+  (the unitary action on complex projective space and its moment map).
 -/
 
 public section
@@ -72,6 +89,70 @@ theorem mpullback_smul_fubiniStudyForm {K : Type*} [Group K]
     | h v hv => simp [smul_mk, map_mk, UnitaryGroup.toLinearEquiv, hU]
   simp only [h]
   exact mpullback_unitary_fubiniStudyForm U
+
+section Moment
+
+open TauCeti.Lie
+open scoped Matrix.Norms.Operator
+
+-- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
+attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
+attribute [local instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+
+/-- The model vector space of the matrix unitary Lie group `unitarySubgroup (GL (Fin (n + 1)) ℂ)`:
+its Lie algebra inside the Lie algebra of `GL (Fin (n + 1)) ℂ`. -/
+local notation "𝔨[" n "]" => LieSubalgebra.toSubmodule
+  (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))
+    (unitarySubgroup (GL (Fin (n + 1)) ℂ)))
+
+/-- **The moment map of a unitary representation on `ℂPⁿ`.** For a homomorphism
+`φ : G →* U(n + 1)` into the matrix unitary Lie group, the line `x` goes to the moment
+`SymplecticGeometry.unitaryProjectivizationMoment n x` of the unitary group, read on the Lie
+algebra of `G` through the differential `dφ` of `φ` at the identity. Its negative is a group-level
+moment map for `fubiniStudyForm n` when `G` acts on `ℂⁿ⁺¹` through `φ`
+(`SymplecticGeometry.isEquivariantMomentMap_neg_projectivizationMoment`). -/
+noncomputable def projectivizationMoment (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (x : ℙ ℂ (Fin (n + 1) → ℂ)) : Module.Dual ℝ (GroupLieAlgebra I G) :=
+  (unitaryProjectivizationMoment n x).comp (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n])).toLinearMap
+
+theorem projectivizationMoment_def (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    projectivizationMoment I φ x =
+      (unitaryProjectivizationMoment n x).comp (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n])).toLinearMap :=
+  (rfl)
+
+/-- The component of `projectivizationMoment I φ x` along `ξ` is that of the moment of the unitary
+group along `dφ ξ`. -/
+theorem projectivizationMoment_apply (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (x : ℙ ℂ (Fin (n + 1) → ℂ)) (ξ : GroupLieAlgebra I G) :
+    projectivizationMoment I φ x ξ =
+      unitaryProjectivizationMoment n x (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[n]) ξ) :=
+  (rfl)
+
+variable {I} [CompleteSpace E] [LieGroup I ∞ G]
+  [DistribMulAction G (Fin (n + 1) → ℂ)] [SMulCommClass G ℂ (Fin (n + 1) → ℂ)]
+  [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ G (Fin (n + 1) → ℂ)]
+
+/-- **The moment map of a unitary representation on `ℂPⁿ`.** Let `G` act on `ℂⁿ⁺¹` smoothly
+through a homomorphism `φ : G →* U(n + 1)` that is differentiable at the identity. Then
+`x ↦ -projectivizationMoment I φ x` is a coadjoint-equivariant moment map for the induced action on
+`ℂPⁿ` and the Fubini–Study form `fubiniStudyForm n`. -/
+theorem isEquivariantMomentMap_neg_projectivizationMoment
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ)) (hφ : MDifferentiableAt I 𝓘(ℝ, 𝔨[n]) (⇑φ) 1)
+    (hsmul : ∀ (g : G) (v : Fin (n + 1) → ℂ), g • v = φ g • v) :
+    (fubiniStudyForm n).IsEquivariantMomentMap fun x ↦ -projectivizationMoment I φ x := by
+  have h := (isEquivariantMomentMap_neg_unitaryProjectivizationMoment n).comp_monoidHom φ hφ
+    fun g x ↦ by
+      induction x using ind with
+      | h v hv => simp only [Subgroup.smul_def, smul_mk, hsmul]
+  simpa only [projectivizationMoment_def, LinearMap.neg_comp] using h
+
+end Moment
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
