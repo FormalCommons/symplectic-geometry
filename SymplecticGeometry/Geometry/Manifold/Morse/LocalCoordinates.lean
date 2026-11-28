@@ -9,11 +9,11 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.Riemannian.NormedSpace
 import TauCeti.Topology.VectorBundle.Riemannian.Comparison
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PullbackPartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # The gradient-like inequality in local coordinates
@@ -144,10 +144,7 @@ theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
   set Ψ := e.toPartialDiffeomorph he
   have hΨs : Ψ.source = e.source :=
     congrArg PartialEquiv.source (e.toPartialDiffeomorph_toPartialEquiv he)
-  have hΨt : Ψ.target = e.target :=
-    congrArg PartialEquiv.target (e.toPartialDiffeomorph_toPartialEquiv he)
   have hΨ : (Ψ : M → E) = e := e.coe_toPartialDiffeomorph he
-  have hΨ' : (Ψ.symm : E → M) = e.symm := e.coe_toPartialDiffeomorph_symm he
   have hφ := Ψ.contMDiffOn_pullback g₀ (by simp)
   obtain ⟨a, ha, hlow⟩ := hKc.exists_pos_forall_mul_norm_sq_le_bundle (b := id)
     (hφ.continuousOn.mono fun y hy ↦ hΨs ▸ (hKU hy).2)
@@ -163,17 +160,17 @@ theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
     fun z hz ↦ (hball hz).2, fun z hz ↦ ?_⟩
   obtain ⟨hzK, hzt⟩ := hball hz
   set y := e.symm z
-  obtain ⟨hyU, hys⟩ := hKU (show y ∈ K from hzK)
+  have hyU := (hKU (show y ∈ K from hzK)).1
   set A := mvfderiv 𝓘(ℝ, E) e y
   set B := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm z
+  have he₁ : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 1 M :=
+    IsManifold.maximalAtlas_subset_of_le (by simp) he
   have hAB (u : E) : A (B u) = u := by
     rw [mvfderiv_apply_eq_mfderiv_apply]
-    have := Ψ.mfderiv_apply_mfderiv_symm_apply (by simp) (hΨt ▸ hzt) u
-    rwa [hΨ, hΨ'] at this
+    exact e.mfderiv_apply_mfderiv_symm_apply_of_mem_maximalAtlas he₁ hzt u
   have hBA (v : TangentSpace 𝓘(ℝ, E) y) : B (A v) = v := by
     rw [mvfderiv_apply_eq_mfderiv_apply]
-    have := Ψ.mfderiv_symm_apply_mfderiv_apply (by simp) (hΨs ▸ hys) v
-    rwa [hΨ, hΨ', e.right_inv hzt] at this
+    exact e.mfderiv_symm_apply_mfderiv_apply_of_mem_maximalAtlas he₁ hzt v
   -- The pulled-back form at `y` is `v ↦ ‖T (A v)‖ ^ 2`.
   have hφy (v : TangentSpace 𝓘(ℝ, E) y) :
       (ContinuousLinearMap.precomp ℝ (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Ψ y)).comp

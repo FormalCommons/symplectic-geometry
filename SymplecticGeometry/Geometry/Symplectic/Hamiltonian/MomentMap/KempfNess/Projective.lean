@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ComplexProjectiveSpace
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import SymplecticGeometry.Geometry.Manifold.GroupAction.LogNorm
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Pseudoholomorphic
 import TauCeti.Analysis.Matrix.EuclideanLin

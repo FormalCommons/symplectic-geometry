@@ -108,6 +108,8 @@ and their curvature is `-curvature`.
   is flat exactly when its horizontal distribution is involutive.
 * `TauCeti.IsEhresmannConnection.curvature_congr`: the curvature at `x` of smooth fields depends
   only on their values at `f x`.
+* `TauCeti.IsEhresmannConnection.curvatureTensor_def`: the curvature tensor on two vectors is
+  the curvature of their smooth extensions.
 * `TauCeti.IsEhresmannConnection.curvatureTensor_apply` and `eq_curvatureTensor_iff`: the
   curvature tensor computes the curvature of smooth fields, and is characterized by this;
   `curvature_contMDiffExtend`: it is the curvature of the smooth extensions of its arguments;
@@ -591,6 +593,15 @@ def curvatureTensor (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) :
       exact hD.curvature_smul_right hn hf mdifferentiableAt_const _
         (FiberBundle.contMDiff_contMDiffExtend J F v _))
 
+/-- The curvature tensor at `x` on `u v : TangentSpace J (f x)` is the curvature at `x` of the
+smooth extensions `FiberBundle.contMDiffExtend J F u` and `FiberBundle.contMDiffExtend J F v` of
+`u` and `v` to vector fields on the base. -/
+theorem curvatureTensor_def (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    (u v : TangentSpace J (f x)) :
+    hD.curvatureTensor hn hf u v = hD.curvature (FiberBundle.contMDiffExtend J F u)
+      (FiberBundle.contMDiffExtend J F v) x :=
+  (rfl)
+
 /-- The curvature tensor at `x` computes the curvature at `x` of smooth vector fields on the
 base, from their values at `f x`. -/
 theorem curvatureTensor_apply (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
@@ -608,7 +619,7 @@ theorem curvature_contMDiffExtend (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2
     hD.curvature (FiberBundle.contMDiffExtend J F u₁) (FiberBundle.contMDiffExtend J F u₂) x =
       hD.curvatureTensor hn hf u₁ u₂ := by
   subst hx
-  rfl
+  exact (hD.curvatureTensor_def hn hf u₁ u₂).symm
 
 /-- The curvature tensor is the only bilinear map on `TangentSpace J (f x)` that computes the
 curvature at `x` of smooth vector fields on the base from their values at `f x`. -/
