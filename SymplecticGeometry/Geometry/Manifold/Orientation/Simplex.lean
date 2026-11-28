@@ -182,10 +182,6 @@ theorem exists_smoothSimplex_complex_closedBall_subset_image {a b : ℝ} (hb : 0
   obtain ⟨g, hgs, hge, hgo, hga, hgb⟩ :=
     exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex_ball (p := 2) hb hab
   set L := Complex.orthonormalBasisOneI.repr.symm
-  have hO : (complexManifoldOrientation ℂ ℂ).reindex (finCongr Complex.two_mul_finrank_self) =
-      complex :=
-    (SymplecticGeometry.complexCurveOrientation_def _).symm.trans
-      SymplecticGeometry.complexCurveOrientation_complex
   have hs : ContDiff ℝ ∞ (L ∘ g) := L.contDiff.comp hgs
   have he : IsOpenEmbedding (L ∘ g) := L.toHomeomorph.isOpenEmbedding.comp hge
   have hdisc : closedBall 0 a ⊆ (L ∘ g) '' interior (fullSimplex 2) := by
@@ -194,7 +190,7 @@ theorem exists_smoothSimplex_complex_closedBall_subset_image {a b : ℝ} (hb : 0
     exact ⟨y, hy, by simp [hyw]⟩
   refine ⟨L ∘ g, SmoothSimplex.ofContMDiff hs.contMDiff, fun x ↦ by simp, hs, he, fun y ↦ ?_,
     hdisc, fun i x hx ↦ ?_, ?_⟩
-  · rw [hO]
+  · rw [TauCeti.reindex_complexManifoldOrientation_complex _]
     exact (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_symm (g y)).comp (hgo y)
   · -- A face point of `Δ²` is not in its interior, and `L ∘ g` is injective.
     rw [SmoothSimplex.toContinuousMap_ofContMDiff_apply] at hx
