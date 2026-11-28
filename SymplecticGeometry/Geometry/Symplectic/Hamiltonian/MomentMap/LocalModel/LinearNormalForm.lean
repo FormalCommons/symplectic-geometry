@@ -239,7 +239,9 @@ theorem forall_eval₂_form_one_zero_eq_zero_iff
   refine and_congr_right' (and_congr_right' ⟨?_, fun h ↦ ?_⟩)
   · rintro ⟨rfl, rfl⟩
     exact zero_mem _
-  · exact Prod.mk_eq_zero.1 h
+  · -- `⊥` is a submodule of the tangent space, not syntactically of `A × V`, so
+    -- `Submodule.mem_bot` does not rewrite `h`; membership in `⊥` is `(a, b) = 0` by definition.
+    exact Prod.mk_eq_zero.1 h
 
 /-! ### The action of `K` -/
 
