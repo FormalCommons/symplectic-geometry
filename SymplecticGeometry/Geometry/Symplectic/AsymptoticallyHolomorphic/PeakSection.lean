@@ -12,8 +12,8 @@ import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 # Peak sections
 
 Let `D` be rescaled unitary charts for `J` and a connection on the powers `PowerBundle P k` of a
-line bundle, so that `D.chart k x` is a Darboux chart centred at `x` for `k` times the
-symplectic form, with derivative at the centre complex linear, rescaled by `√k`, and `D.frame k x`
+line bundle, so that `D.chart k x` is a Darboux chart centred at `x` for `2π k σ`, with
+derivative at the centre complex linear, rescaled by `√(2π k)`, and `D.frame k x`
 a frame in which the connection is the model one. The **peak section**
 `D.peakSection k x` is the section of `PowerBundle P k` extended by zero
 (`SymplecticGeometry.RescaledUnitaryCharts.sectionOfReading`) from the cut-off Gaussian
@@ -249,47 +249,6 @@ theorem isAsymptoticallyHolomorphic_peakSection_mul [T2Space M] [I.Boundaryless]
     (fun r ↦ let ⟨A, N, c, hc, h⟩ := exists_jetNormAt_modelDbar_peakFunction_mul_le (ι := ι) r
       ⟨A, N, c, hc, Filter.eventually_ge_atTop 1 |>.mono fun k hk ↦ h k hk j⟩) x
 
-/-- Two Gaussian bounds in `d ≥ 0`, the second with a factor `w k ≥ 0`, hold with the same
-constants: the larger factor, the sum of the powers and the smaller exponent. -/
-private theorem exists_and_le_of_le {X : Type*} {F G d : ℕ → X → X → ℝ} {w : ℕ → ℝ}
-    (hd : ∀ k x y, 0 ≤ d k x y) (hw : ∀ k, 0 ≤ w k)
-    (h₁ : ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : X,
-      F k x y ≤ C * (1 + d k x y) ^ N * Real.exp (-c * d k x y ^ 2))
-    (h₂ : ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : X,
-      G k x y ≤ C * w k * (1 + d k x y) ^ N * Real.exp (-c * d k x y ^ 2)) :
-    ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : X,
-      F k x y ≤ C * (1 + d k x y) ^ N * Real.exp (-c * d k x y ^ 2) ∧
-        G k x y ≤ C * w k * (1 + d k x y) ^ N * Real.exp (-c * d k x y ^ 2) := by
-  obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := h₁
-  obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := h₂
-  refine ⟨max (max C₁ 0) (max C₂ 0), N₁ + N₂, min c₁ c₂, lt_min hc₁ hc₂, ?_⟩
-  filter_upwards [h₁, h₂] with k h₁ h₂ x y
-  set t := d k x y
-  have ht : 0 ≤ t := hd k x y
-  set W := (1 + t) ^ (N₁ + N₂) * Real.exp (-min c₁ c₂ * t ^ 2)
-  have e₁ : (1 + t) ^ N₁ * Real.exp (-c₁ * t ^ 2) ≤ W :=
-    Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le ht (by omega) (min_le_left _ _)
-  have e₂ : (1 + t) ^ N₂ * Real.exp (-c₂ * t ^ 2) ≤ W :=
-    Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le ht (by omega) (min_le_right _ _)
-  have hC₁ : C₁ ≤ max (max C₁ 0) (max C₂ 0) := (le_max_left _ _).trans (le_max_left _ _)
-  have hC₂ : C₂ ≤ max (max C₁ 0) (max C₂ 0) := (le_max_left _ _).trans (le_max_right _ _)
-  have hC : 0 ≤ max (max C₁ 0) (max C₂ 0) := (le_max_right _ _).trans (le_max_left _ _)
-  constructor
-  · calc F k x y ≤ C₁ * ((1 + t) ^ N₁ * Real.exp (-c₁ * t ^ 2)) := (h₁ x y).trans_eq (by ring)
-      _ ≤ max (max C₁ 0) (max C₂ 0) * ((1 + t) ^ N₁ * Real.exp (-c₁ * t ^ 2)) :=
-          mul_le_mul_of_nonneg_right hC₁ (mul_nonneg (pow_nonneg (by linarith) _)
-            (Real.exp_pos _).le)
-      _ ≤ max (max C₁ 0) (max C₂ 0) * W := mul_le_mul_of_nonneg_left e₁ hC
-      _ = _ := by ring
-  · calc G k x y ≤ C₂ * w k * ((1 + t) ^ N₂ * Real.exp (-c₂ * t ^ 2)) :=
-          (h₂ x y).trans_eq (by ring)
-      _ ≤ max (max C₁ 0) (max C₂ 0) * w k * ((1 + t) ^ N₂ * Real.exp (-c₂ * t ^ 2)) :=
-          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right hC₂ (hw k))
-            (mul_nonneg (pow_nonneg (by linarith) _) (Real.exp_pos _).le)
-      _ ≤ max (max C₁ 0) (max C₂ 0) * w k * W :=
-          mul_le_mul_of_nonneg_left e₂ (mul_nonneg hC (hw k))
-      _ = _ := by ring
-
 /-- **Asymptotically holomorphic peak sections.** Let `M` be a Hausdorff boundaryless manifold,
 let `σ` be compatible with `J`, let `M` carry the Riemannian metric `⟪u, w⟫ = σ(u, J w)`, let
 `α` be a connection form, and let `D` be rescaled unitary charts of radius `ρ₀ > 0` (on a compact
@@ -339,12 +298,30 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
   refine ⟨D.exists_le_norm_peakSection hg hρ₀, fun r ↦ ?_, fun r j ↦ ?_, fun x ↦
     ⟨D.isAsymptoticallyHolomorphic_peakSection hg hJ hα hρ₀ x,
       D.isAsymptoticallyHolomorphic_peakSection_mul hg hJ hα hρ₀ x⟩⟩
-  · exact exists_and_le_of_le (fun _ _ _ ↦ ENNReal.toReal_nonneg) (fun _ ↦ by positivity)
-      (D.exists_jetNorm_peakSection_le hg hJ hα hρ₀ r)
-      (D.exists_dbarJetNorm_peakSection_le hg hJ hα hρ₀ r)
-  · exact exists_and_le_of_le (fun _ _ _ ↦ ENNReal.toReal_nonneg) (fun _ ↦ by positivity)
-      (D.exists_jetNorm_peakSection_mul_le hg hJ hα hρ₀ r j)
-      (D.exists_dbarJetNorm_peakSection_mul_le hg hJ hα hρ₀ r j)
+  · obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := D.exists_jetNorm_peakSection_le hg hJ hα hρ₀ r
+    obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_peakSection_le hg hJ hα hρ₀ r
+    obtain ⟨C, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+      (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
+      (F := fun k (p : M × M) ↦ D.jetNorm k r (D.peakSection k p.1) p.2)
+      (G := fun k p ↦ D.dbarJetNorm k r (D.peakSection k p.1) p.2)
+      (d := fun k p ↦
+        (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I p.1 p.2).toReal)
+      (fun _ _ ↦ ENNReal.toReal_nonneg) (fun _ ↦ by positivity)
+      ⟨C₁, N₁, c₁, hc₁, h₁.mono fun _ h p ↦ h p.1 p.2⟩
+      ⟨C₂, N₂, c₂, hc₂, h₂.mono fun _ h p ↦ h p.1 p.2⟩
+    exact ⟨C, N, c, hc, h.mono fun _ h x y ↦ h (x, y)⟩
+  · obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := D.exists_jetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
+    obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
+    obtain ⟨C, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+      (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
+      (F := fun k (p : M × M) ↦ D.jetNorm k r (D.peakSection_mul k p.1 j) p.2)
+      (G := fun k p ↦ D.dbarJetNorm k r (D.peakSection_mul k p.1 j) p.2)
+      (d := fun k p ↦
+        (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I p.1 p.2).toReal)
+      (fun _ _ ↦ ENNReal.toReal_nonneg) (fun _ ↦ by positivity)
+      ⟨C₁, N₁, c₁, hc₁, h₁.mono fun _ h p ↦ h p.1 p.2⟩
+      ⟨C₂, N₂, c₂, hc₂, h₂.mono fun _ h p ↦ h p.1 p.2⟩
+    exact ⟨C, N, c, hc, h.mono fun _ h x y ↦ h (x, y)⟩
 
 end RiemannianEDist
 

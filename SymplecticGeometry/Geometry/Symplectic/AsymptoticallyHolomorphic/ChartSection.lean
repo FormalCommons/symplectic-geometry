@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.F
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
+import TauCeti.Analysis.SpecialFunctions.Gaussian.Basic
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
 
 /-!
@@ -111,7 +112,7 @@ whose model `∂̄` has Gaussian bounds with that factor.
 
 public section
 
-open scoped Manifold ContDiff Topology
+open scoped Manifold ContDiff Topology Nat
 open TauCeti Metric Bundle
 
 namespace SymplecticGeometry
@@ -665,21 +666,20 @@ theorem isAsymptoticallyHolomorphic_sectionOfReading [T2Space M] [I.Boundaryless
     (hfs' r) hfb (hfg r)
   obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_sectionOfReading_le hg hJ hα hρ₀ r
     (by exact_mod_cast hfs' (r + 1)) hfb (hfg (r + 1)) (hdg r)
-  set B₁ := max C₁ 0 * Real.exp (N₁ ^ 2 / (4 * c₁))
-  set B₂ := max C₂ 0 * Real.exp (N₂ ^ 2 / (4 * c₂))
+  set B₁ := max C₁ 0 * (N₁ ! / (c₁ / 2) ^ N₁ * Real.exp c₁)
+  set B₂ := max C₂ 0 * (N₂ ! / (c₂ / 2) ^ N₂ * Real.exp c₂)
   refine ⟨max B₁ B₂, ?_⟩
   filter_upwards [h₁, h₂] with k h₁ h₂ y
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I (x k) y).toReal
-  have hd : -1 ≤ d := by linarith [ENNReal.toReal_nonneg (a := ENNReal.ofReal √(2 * Real.pi * k) *
-    Manifold.riemannianEDist I (x k) y)]
+  have hd : 0 ≤ d := ENNReal.toReal_nonneg
   have hk : 0 ≤ (k : ℝ) ^ (-1 / 2 : ℝ) := by positivity
   have hW (N : ℕ) (c : ℝ) : 0 ≤ (1 + d) ^ N * Real.exp (-c * d ^ 2) :=
     mul_nonneg (pow_nonneg (by linarith) _) (Real.exp_pos _).le
   have hB₁ : max C₁ 0 * ((1 + d) ^ N₁ * Real.exp (-c₁ * d ^ 2)) ≤ B₁ :=
-    mul_le_mul_of_nonneg_left (Real.one_add_pow_mul_exp_neg_mul_sq_le_exp N₁ hd hc₁)
+    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc₁ N₁)
       (le_max_right _ _)
   have hB₂ : max C₂ 0 * ((1 + d) ^ N₂ * Real.exp (-c₂ * d ^ 2)) ≤ B₂ :=
-    mul_le_mul_of_nonneg_left (Real.one_add_pow_mul_exp_neg_mul_sq_le_exp N₂ hd hc₂)
+    mul_le_mul_of_nonneg_left (TauCeti.one_add_pow_mul_exp_neg_mul_sq_le hc₂ N₂)
       (le_max_right _ _)
   constructor
   · calc D.jetNorm k r (D.sectionOfReading k (x k) (f k)) y
