@@ -8,8 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Model
 public import TauCeti.Analysis.ODE.Linear
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.ODE.Linear
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
+import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
 import SymplecticGeometry.Geometry.Symplectic.Complex.ImInner
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Analysis.InnerProductSpace.Adjoint
@@ -25,8 +27,8 @@ symplectic form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`, a vector field `Y
 where the transpose is the adjoint for the Euclidean inner product of `ℝᵏ`. The core
 `range (modelDisc k m)` is the copy `{(x, 0)}` of `ℝᵏ`, and the lift extends `Y` from the core to
 a Liouville field of the model. This file proves the first properties of the lift, its zeros near
-the core, its derivative on the core, and the kernel and stable subspace of that derivative; the
-gradient-like property comes later.
+the core, its derivative on the core, the kernel and stable subspace of that derivative, and that
+it is gradient-like near the core for a function extending a given one.
 
 ## Main results
 
@@ -77,6 +79,31 @@ gradient-like property comes later.
   Lyapunov form of `I - DY(x)ᵀ`, so that operator has no nonzero stable vector
   (`ContinuousLinearMap.stableSubspace_eq_bot_of_apply_pos`); the kernel needs only the positivity
   of `P(y, y - DY(x)ᵀ y)`.
+* `SymplecticGeometry.isotropicLiftFunction`: the function
+  `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2` for a function `ψ` and a bilinear form `P` on
+  `ℝᵏ`. It equals `ψ` on the core (`SymplecticGeometry.isotropicLiftFunction_modelDisc`), and for
+  `ψ = -‖x‖ ^ 2` and the inner product it is `modelHandle k m 1 1`
+  (`SymplecticGeometry.isotropicLiftFunction_neg_sq_norm_innerSL`), so that with
+  `SymplecticGeometry.isotropicLiftField_neg_id_eq_modelHandleField` the standard handle is a case
+  of the results below.
+* `SymplecticGeometry.isGradientLikeAt_isotropicLiftField_modelDisc` and
+  `SymplecticGeometry.exists_nhds_isGradientLike_isotropicLiftField`: for `Y` and `ψ` of class
+  `C¹`, `Y` gradient-like for `ψ` near `x₀` (resp. near every point of a set `K`), and `P`
+  symmetric with `P(y, y - DY(x₀)ᵀ y) > 0` for `y ≠ 0` whenever `Y x₀ = 0`, the lift is
+  gradient-like for `ψ̂` near `ι₀ x₀` (resp. on an open neighbourhood of `ι₀ '' K`). Neither the
+  positivity of `P` nor the compactness of `K` is needed. Where `Y x₀ ≠ 0`, `dψ̂ (Ŷ) = dψ (Y) > 0`
+  at `ι₀ x₀`, and `TauCeti.isGradientLikeAt_of_mvfderiv_apply_pos` applies. At a zero `x₀`, the
+  condition is read with the norms of the model spaces
+  (`TauCeti.IsGradientLikeAt.exists_pos_eventually_mul_le` and
+  `TauCeti.isGradientLikeAt_of_eventually_mul_le`): near `ι₀ x₀`,
+  `dψ̂ (Ŷ) = dψ (Y) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`
+  (`SymplecticGeometry.fderiv_isotropicLiftFunction_isotropicLiftField`), the middle term is at
+  least a multiple of `‖y‖ ^ 2`, since `P` stays a uniform Lyapunov form of `I - DY(x)ᵀ` for `x`
+  near `x₀` (Tau Ceti's `IsCompact.eventually_forall_mul_norm_sq_le`), while `‖Ŷ‖` and `‖dψ̂‖`
+  are bounded by multiples of `‖Y x‖ + ‖y‖ + ‖w‖` and `‖dψ_x‖ + ‖y‖ + ‖w‖`
+  (`SymplecticGeometry.norm_isotropicLiftField_le` and
+  `SymplecticGeometry.norm_fderiv_isotropicLiftFunction_le`). Without the hypothesis on `P` the
+  conclusion fails, as the entry of `design/stein-weinstein.md` for this file shows.
 
 In the book the lift is `p ∂_p + z ∂_z / 2 + X_H` on `T^*ℝᵏ × ℂᵐ`, with `H = ⟨p, Y(q)⟩`. Tau
 Ceti's `TauCeti.cotangentLiouvilleField` and Hamiltonian fields live on cotangent models whose
@@ -95,7 +122,7 @@ cost more than the direct computation above, which needs only the derivative of 
 public section
 
 open Complex Module Set
-open scoped Manifold ContDiff InnerProductSpace
+open scoped Manifold ContDiff InnerProductSpace Topology
 
 namespace SymplecticGeometry
 
@@ -448,6 +475,326 @@ theorem finrank_stableSubspace_fderiv_isotropicLiftField_modelDisc
   rw [stableSubspace_fderiv_isotropicLiftField_modelDisc hY
     (ContinuousLinearMap.stableSubspace_eq_bot_of_apply_pos hPsymm hPpos (by simpa using hP))]
   exact (Submodule.equivMapOfInjective _ modelDisc_injective _).finrank_eq.symm
+
+/-! ### The gradient-like property -/
+
+variable (m) in
+/-- The function `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2` on the model `ℂᵏ × ℂᵐ`, for a
+function `ψ` and a bilinear form `P` on `ℝᵏ`, with `x` and `y` the real and imaginary parts
+`TauCeti.complexEuclideanEquivRealProd` of the first factor. -/
+noncomputable def isotropicLiftFunction (ψ : EuclideanSpace ℝ (Fin k) → ℝ)
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) : ℝ :=
+  ψ (complexEuclideanEquivRealProd (Fin k) p.1).1 +
+    P (complexEuclideanEquivRealProd (Fin k) p.1).2 (complexEuclideanEquivRealProd (Fin k) p.1).2 +
+    ‖p.2‖ ^ 2
+
+/-- The function `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2`. -/
+theorem isotropicLiftFunction_apply (ψ : EuclideanSpace ℝ (Fin k) → ℝ)
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    isotropicLiftFunction m ψ P p =
+      ψ (complexEuclideanEquivRealProd (Fin k) p.1).1 +
+        P (complexEuclideanEquivRealProd (Fin k) p.1).2
+          (complexEuclideanEquivRealProd (Fin k) p.1).2 +
+        ‖p.2‖ ^ 2 :=
+  (rfl)
+
+/-- On the core, `ψ̂ (ι₀ x) = ψ x`. -/
+@[simp]
+theorem isotropicLiftFunction_modelDisc (ψ : EuclideanSpace ℝ (Fin k) → ℝ)
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ)
+    (x : EuclideanSpace ℝ (Fin k)) :
+    isotropicLiftFunction m ψ P (modelDisc k m x) = ψ x := by
+  simp [isotropicLiftFunction_apply, complexEuclideanEquivRealProd_modelDisc_fst]
+
+/-- **The model handle function is a lifted function**: for `ψ x = -‖x‖ ^ 2` and `P` the inner
+product, `ψ̂ (x + i y, w) = -‖x‖ ^ 2 + ‖y‖ ^ 2 + ‖w‖ ^ 2` is `modelHandle k m 1 1`. -/
+theorem isotropicLiftFunction_neg_sq_norm_innerSL :
+    isotropicLiftFunction m (fun x : EuclideanSpace ℝ (Fin k) ↦ -‖x‖ ^ 2) (innerSL ℝ) =
+      modelHandle k m 1 1 := by
+  funext p
+  rw [isotropicLiftFunction_apply, modelHandle_def, shape_fst, shape_snd, innerSL_apply_apply,
+    real_inner_self_eq_norm_sq, EuclideanSpace.norm_sq_eq, EuclideanSpace.norm_sq_eq]
+  simp [complexEuclideanEquivRealProd_apply_fst, complexEuclideanEquivRealProd_apply_snd]
+  ring
+
+/-- The derivative of `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2` at `(x + i y, w)` sends
+`(ξ + i η, ζ)` to `dψ_x ξ + P (η, y) + P (y, η) + 2 ⟪w, ζ⟫`, when `ψ` is differentiable at `x`. -/
+theorem fderiv_isotropicLiftFunction_apply {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hψ : DifferentiableAt ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1)
+    (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (isotropicLiftFunction m ψ P) p u =
+      fderiv ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1
+          (complexEuclideanEquivRealProd (Fin k) u.1).1 +
+        P (complexEuclideanEquivRealProd (Fin k) u.1).2
+          (complexEuclideanEquivRealProd (Fin k) p.1).2 +
+        P (complexEuclideanEquivRealProd (Fin k) p.1).2
+          (complexEuclideanEquivRealProd (Fin k) u.1).2 +
+        2 * ⟪p.2, u.2⟫_ℝ := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  have he := e.hasFDerivAt.comp p (hasFDerivAt_fst (p := p))
+  have hx := he.fst
+  have hy := he.snd
+  have h := ((hψ.hasFDerivAt.comp p hx).add (P.hasFDerivAt_of_bilinear hy hy)).add
+    (hasFDerivAt_snd (p := p)).norm_sq
+  rw [(h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦
+    isotropicLiftFunction_apply ψ P q)).fderiv]
+  simp [e]
+  ring
+
+
+/-- The function `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2` is as smooth as `ψ`. -/
+theorem contDiff_isotropicLiftFunction {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ) {n : WithTop ℕ∞}
+    (hψ : ContDiff ℝ n ψ) : ContDiff ℝ n (isotropicLiftFunction m ψ P) := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  have he : ContDiff ℝ n fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦ e q.1 :=
+    e.contDiff.comp contDiff_fst
+  have hy := he.snd
+  rw [show isotropicLiftFunction m ψ P = _ from funext (isotropicLiftFunction_apply ψ P)]
+  exact ((hψ.comp he.fst).add ((P.contDiff.comp hy).clm_apply hy)).add (contDiff_snd.norm_sq ℝ)
+
+/-- **The derivative of the lifted function along the lift**: at `(x + i y, w)`,
+`dψ̂ (Ŷ) = dψ_x (Y x) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`, when `P` is symmetric and `ψ` is
+differentiable at `x`. -/
+theorem fderiv_isotropicLiftFunction_isotropicLiftField {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hPsymm : ∀ u v, P u v = P v u) (Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k))
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hψ : DifferentiableAt ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1) :
+    fderiv ℝ (isotropicLiftFunction m ψ P) p (isotropicLiftField m Y p) =
+      fderiv ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1
+          (Y (complexEuclideanEquivRealProd (Fin k) p.1).1) +
+        2 * P (complexEuclideanEquivRealProd (Fin k) p.1).2
+          ((complexEuclideanEquivRealProd (Fin k) p.1).2 -
+            (fderiv ℝ Y (complexEuclideanEquivRealProd (Fin k) p.1).1).adjoint
+              (complexEuclideanEquivRealProd (Fin k) p.1).2) +
+        ‖p.2‖ ^ 2 := by
+  rw [fderiv_isotropicLiftFunction_apply P hψ,
+    complexEuclideanEquivRealProd_isotropicLiftField_fst, isotropicLiftField_apply_snd,
+    real_inner_smul_right, real_inner_self_eq_norm_sq,
+    hPsymm _ (complexEuclideanEquivRealProd (Fin k) p.1).2]
+  ring
+
+/-- The lift at `(x + i y, w)` has norm at most `‖Y x‖ + (1 + ‖DY(x)‖) ‖y‖ + ‖w‖`. -/
+theorem norm_isotropicLiftField_le (Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k))
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    ‖isotropicLiftField m Y p‖ ≤ ‖Y (complexEuclideanEquivRealProd (Fin k) p.1).1‖ +
+      (1 + ‖fderiv ℝ Y (complexEuclideanEquivRealProd (Fin k) p.1).1‖) *
+        ‖(complexEuclideanEquivRealProd (Fin k) p.1).2‖ + ‖p.2‖ := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  set A := fderiv ℝ Y (e p.1).1
+  set y := (e p.1).2
+  have hz : ‖y - A.adjoint y‖ ≤ (1 + ‖A‖) * ‖y‖ := by
+    have := A.adjoint.le_opNorm y
+    rw [LinearIsometryEquiv.norm_map] at this
+    linarith [norm_sub_le y (A.adjoint y)]
+  have h₁ : ‖(isotropicLiftField m Y p).1‖ ≤ ‖Y (e p.1).1‖ + (1 + ‖A‖) * ‖y‖ := by
+    have h := norm_complexEuclideanEquivRealProd_symm_sq (e (isotropicLiftField m Y p).1)
+    rw [ContinuousLinearEquiv.symm_apply_apply,
+      complexEuclideanEquivRealProd_isotropicLiftField_fst] at h
+    refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
+    rw [h]
+    nlinarith [norm_nonneg (Y (e p.1).1), norm_nonneg (y - A.adjoint y)]
+  have h₂ : ‖(isotropicLiftField m Y p).2‖ ≤ ‖p.2‖ := by
+    rw [isotropicLiftField_apply_snd, norm_smul]
+    norm_num
+    linarith [norm_nonneg p.2]
+  have := norm_nonneg (Y (e p.1).1)
+  have : 0 ≤ (1 + ‖A‖) * ‖y‖ := by positivity
+  exact norm_prod_le_iff.2 ⟨h₁.trans (by linarith [norm_nonneg p.2]), h₂.trans (by linarith)⟩
+
+/-- The derivative of `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2` at `(x + i y, w)` has norm at
+most `‖dψ_x‖ + 2 ‖P‖ ‖y‖ + 2 ‖w‖`, when `ψ` is differentiable at `x`. -/
+theorem norm_fderiv_isotropicLiftFunction_le {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hψ : DifferentiableAt ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1) :
+    ‖fderiv ℝ (isotropicLiftFunction m ψ P) p‖ ≤
+      ‖fderiv ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1‖ +
+        2 * ‖P‖ * ‖(complexEuclideanEquivRealProd (Fin k) p.1).2‖ + 2 * ‖p.2‖ := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  set y := (e p.1).2
+  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
+  rw [fderiv_isotropicLiftFunction_apply P hψ]
+  have hx : ‖(e u.1).1‖ ≤ ‖u‖ :=
+    (norm_complexEuclideanEquivRealProd_fst_le u.1).trans (norm_fst_le u)
+  have hy : ‖(e u.1).2‖ ≤ ‖u‖ :=
+    (norm_complexEuclideanEquivRealProd_snd_le u.1).trans (norm_fst_le u)
+  have h₁ : ‖fderiv ℝ ψ (e p.1).1 (e u.1).1‖ ≤ ‖fderiv ℝ ψ (e p.1).1‖ * ‖u‖ :=
+    ((fderiv ℝ ψ (e p.1).1).le_opNorm _).trans (by gcongr)
+  have h₂ : ‖P (e u.1).2 y‖ ≤ ‖P‖ * ‖y‖ * ‖u‖ :=
+    (P.le_opNorm₂ _ _).trans (by rw [mul_right_comm]; gcongr)
+  have h₃ : ‖P y (e u.1).2‖ ≤ ‖P‖ * ‖y‖ * ‖u‖ := (P.le_opNorm₂ _ _).trans (by gcongr)
+  have h₄ : ‖2 * ⟪p.2, u.2⟫_ℝ‖ ≤ 2 * ‖p.2‖ * ‖u‖ := by
+    rw [norm_mul, Real.norm_two, Real.norm_eq_abs, mul_assoc]
+    gcongr
+    exact (abs_real_inner_le_norm _ _).trans (by gcongr; exact norm_snd_le u)
+  linarith [norm_add₄_le (a := fderiv ℝ ψ (e p.1).1 (e u.1).1) (b := P (e u.1).2 y)
+    (c := P y (e u.1).2) (d := 2 * ⟪p.2, u.2⟫_ℝ)]
+
+/-- The final estimate of `isGradientLikeAt_isotropicLiftField_modelDisc_of_eq_zero`: if
+`A ≤ M (a + r + s)`, `B ≤ M (b + r + s)` and `κ (a² + b² + r² + s²) ≤ L`, then
+`κ / (6 M²) (A² + B²) ≤ L`. -/
+private theorem div_mul_sq_add_sq_le {a b r s A B M κ L : ℝ} (hA₀ : 0 ≤ A) (hB₀ : 0 ≤ B)
+    (hM : 0 < M) (hκ : 0 ≤ κ)
+    (hA : A ≤ M * (a + r + s)) (hB : B ≤ M * (b + r + s))
+    (hL : κ * (a ^ 2 + b ^ 2 + r ^ 2 + s ^ 2) ≤ L) :
+    κ / (6 * M ^ 2) * (A ^ 2 + B ^ 2) ≤ L := by
+  have hA2 : A ^ 2 ≤ 3 * M ^ 2 * (a ^ 2 + r ^ 2 + s ^ 2) := by
+    have := pow_le_pow_left₀ hA₀ hA 2
+    nlinarith [sq_nonneg (a - r), sq_nonneg (a - s), sq_nonneg (r - s), sq_nonneg M]
+  have hB2 : B ^ 2 ≤ 3 * M ^ 2 * (b ^ 2 + r ^ 2 + s ^ 2) := by
+    have := pow_le_pow_left₀ hB₀ hB 2
+    nlinarith [sq_nonneg (b - r), sq_nonneg (b - s), sq_nonneg (r - s), sq_nonneg M]
+  calc κ / (6 * M ^ 2) * (A ^ 2 + B ^ 2)
+      ≤ κ / (6 * M ^ 2) * (6 * M ^ 2 * (a ^ 2 + b ^ 2 + r ^ 2 + s ^ 2)) := by
+        gcongr
+        nlinarith [sq_nonneg r, sq_nonneg s, sq_nonneg M]
+    _ = κ * (a ^ 2 + b ^ 2 + r ^ 2 + s ^ 2) := by field_simp
+    _ ≤ L := hL
+
+/-- The case of a zero `x₀` of `Y` in `isGradientLikeAt_isotropicLiftField_modelDisc`. -/
+private theorem isGradientLikeAt_isotropicLiftField_modelDisc_of_eq_zero
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} (hY : ContDiff ℝ 1 Y)
+    {ψ : EuclideanSpace ℝ (Fin k) → ℝ} (hψ : ContDiff ℝ 1 ψ)
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hPsymm : ∀ u v, P u v = P v u) {x₀ : EuclideanSpace ℝ (Fin k)}
+    (hP : ∀ y, y ≠ 0 → 0 < P y (y - (fderiv ℝ Y x₀).adjoint y))
+    (hYψ : IsGradientLikeAt ψ
+      (fun x ↦ Y x : (x : EuclideanSpace ℝ (Fin k)) → TangentSpace 𝓘(ℝ, _) x) x₀) :
+    IsGradientLikeAt (isotropicLiftFunction m ψ P)
+      (fun p ↦ isotropicLiftField m Y p :
+        (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →
+          TangentSpace 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) p)
+      (modelDisc k m x₀) := by
+  set e := complexEuclideanEquivRealProd (Fin k) with he
+  set A₀ := fderiv ℝ Y x₀
+  obtain ⟨c₀, hc₀, hev⟩ := hYψ.exists_pos_eventually_mul_le
+  -- `P` is a uniform Lyapunov form of `I - A₀ᵀ`, and of `I - DY(x)ᵀ` for `x` near `x₀`.
+  obtain ⟨c₁, hc₁, hc₁P⟩ := isCompact_singleton.exists_pos_forall_mul_norm_sq_le_compRight P
+    (T := {ContinuousLinearMap.id ℝ _ - A₀.adjoint}) (by simpa using hP)
+  have hDY := hY.continuous_fderiv one_ne_zero
+  have hPx : ∀ᶠ x in 𝓝 x₀, ∀ y, c₁ / 2 * ‖y‖ ^ 2 ≤ P y (y - (fderiv ℝ Y x).adjoint y) := by
+    set T := fun B : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) ↦
+      ((ContinuousLinearMap.compL ℝ (EuclideanSpace ℝ (Fin k)) (EuclideanSpace ℝ (Fin k))
+        ℝ).flip B).comp P
+    have hT (B : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k)) (u v) :
+        T B u v = P u (B v) := by simp [T]
+    have hTc : Continuous T :=
+      (ContinuousLinearMap.compL ℝ (EuclideanSpace ℝ (Fin k)) (EuclideanSpace ℝ (Fin k))
+        ℝ).flip.continuous.clm_comp continuous_const
+    have h := (isCompact_singleton (x := ())).eventually_forall_mul_norm_sq_le
+      (b := fun q ↦ T q.2) (hTc.comp continuous_snd).continuousOn
+      (mem_univ (ContinuousLinearMap.id ℝ _ - A₀.adjoint)) (half_lt_self hc₁)
+      (fun _ _ v ↦ by simpa [hT] using hc₁P _ rfl v)
+    rw [nhdsWithin_univ] at h
+    have hB : Continuous fun x ↦
+        ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin k)) - (fderiv ℝ Y x).adjoint :=
+      continuous_const.sub (ContinuousLinearMap.adjoint.continuous.comp hDY)
+    filter_upwards [hB.continuousAt.eventually h] with x hx y
+    simpa [hT] using hx () rfl y
+  have hA : ∀ᶠ x in 𝓝 x₀, ‖fderiv ℝ Y x‖ ≤ ‖A₀‖ + 1 :=
+    (hDY.norm.continuousAt.eventually_lt continuousAt_const (lt_add_one ‖A₀‖)).mono
+      fun _ h ↦ h.le
+  -- Everything is pulled back along `p ↦ x`, which sends `ι₀ x₀` to `x₀`.
+  have hx : Filter.Tendsto (fun p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (e p.1).1) (𝓝 (modelDisc k m x₀)) (𝓝 x₀) := by
+    have := ((e.continuous.comp continuous_fst).fst).tendsto (modelDisc k m x₀)
+    rwa [Function.comp_apply, complexEuclideanEquivRealProd_modelDisc_fst] at this
+  set M := 2 + ‖A₀‖ + 2 * ‖P‖
+  have hM : 0 < M := by positivity
+  have hκ : 0 ≤ min c₀ (min c₁ 1) := le_min hc₀.le (le_min hc₁.le zero_le_one)
+  refine isGradientLikeAt_of_eventually_mul_le (c := min c₀ (min c₁ 1) / (6 * M ^ 2))
+    (by positivity) ?_
+  filter_upwards [hx.eventually hev, hx.eventually hPx, hx.eventually hA] with p hpψ hpP hpA
+  have hdψ : DifferentiableAt ℝ ψ (e p.1).1 := hψ.differentiable one_ne_zero _
+  -- The lower bound, from `dψ̂ (Ŷ) = dψ (Y) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`.
+  have hlow : min c₀ (min c₁ 1) *
+      (‖Y (e p.1).1‖ ^ 2 + ‖fderiv ℝ ψ (e p.1).1‖ ^ 2 + ‖(e p.1).2‖ ^ 2 + ‖p.2‖ ^ 2) ≤
+      fderiv ℝ (isotropicLiftFunction m ψ P) p (isotropicLiftField m Y p) := by
+    rw [fderiv_isotropicLiftFunction_isotropicLiftField hPsymm Y hdψ]
+    have h₁ := min_le_left c₀ (min c₁ 1)
+    have h₂ := (min_le_right c₀ (min c₁ 1)).trans (min_le_left c₁ 1)
+    have h₃ := (min_le_right c₀ (min c₁ 1)).trans (min_le_right c₁ 1)
+    nlinarith [sq_nonneg ‖Y (e p.1).1‖, sq_nonneg ‖fderiv ℝ ψ (e p.1).1‖,
+      sq_nonneg ‖(e p.1).2‖, sq_nonneg ‖p.2‖, hpP (e p.1).2]
+  -- The upper bounds on `‖Ŷ‖` and `‖dψ̂‖`.
+  have ha := norm_nonneg (Y (e p.1).1)
+  have hb := norm_nonneg (fderiv ℝ ψ (e p.1).1)
+  have hr := norm_nonneg (e p.1).2
+  have hs := norm_nonneg p.2
+  have hP0 := norm_nonneg P
+  refine div_mul_sq_add_sq_le (norm_nonneg _) (norm_nonneg _) hM hκ
+    ((norm_isotropicLiftField_le Y p).trans ?_)
+    ((norm_fderiv_isotropicLiftFunction_le P hdψ).trans ?_) hlow
+  · rw [← he]
+    nlinarith [mul_le_mul_of_nonneg_right hpA hr, mul_nonneg (norm_nonneg A₀) ha,
+      mul_nonneg hP0 ha, mul_nonneg hP0 hr, mul_nonneg (norm_nonneg A₀) hs, mul_nonneg hP0 hs]
+  · rw [← he]
+    nlinarith [mul_nonneg (norm_nonneg A₀) hb, mul_nonneg hP0 hb, mul_nonneg (norm_nonneg A₀) hr,
+      mul_nonneg (norm_nonneg A₀) hs]
+
+/-- **The Liouville lift is gradient-like near a point of the core.** Let `Y` be a `C¹` field on
+`ℝᵏ`, gradient-like for a `C¹` function `ψ` near `x₀`, and let `P` be a symmetric bilinear form on
+`ℝᵏ` such that, if `Y x₀ = 0`, then `P (y, y - DY(x₀)ᵀ y) > 0` for every `y ≠ 0`. Then the lift
+`isotropicLiftField m Y` is gradient-like near `ι₀ x₀` for
+`ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2`. -/
+theorem isGradientLikeAt_isotropicLiftField_modelDisc
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} (hY : ContDiff ℝ 1 Y)
+    {ψ : EuclideanSpace ℝ (Fin k) → ℝ} (hψ : ContDiff ℝ 1 ψ)
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hPsymm : ∀ u v, P u v = P v u) {x₀ : EuclideanSpace ℝ (Fin k)}
+    (hP : Y x₀ = 0 → ∀ y, y ≠ 0 → 0 < P y (y - (fderiv ℝ Y x₀).adjoint y))
+    (hYψ : IsGradientLikeAt ψ
+      (fun x ↦ Y x : (x : EuclideanSpace ℝ (Fin k)) → TangentSpace 𝓘(ℝ, _) x) x₀) :
+    IsGradientLikeAt (isotropicLiftFunction m ψ P)
+      (fun p ↦ isotropicLiftField m Y p :
+        (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →
+          TangentSpace 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) p)
+      (modelDisc k m x₀) := by
+  by_cases h0 : Y x₀ = 0
+  · exact isGradientLikeAt_isotropicLiftField_modelDisc_of_eq_zero hY hψ hPsymm (hP h0) hYψ
+  -- Off the zeros of `Y`, `dψ̂ (Ŷ) = dψ (Y) > 0` at `ι₀ x₀`.
+  obtain ⟨c, hc, hev⟩ := hYψ.exists_pos_eventually_mul_le
+  have hpos : 0 < fderiv ℝ ψ x₀ (Y x₀) := by
+    have := norm_pos_iff.2 h0
+    exact lt_of_lt_of_le (by positivity) hev.self_of_nhds
+  refine isGradientLikeAt_of_mvfderiv_apply_pos
+    ((contDiff_isotropicLiftFunction P hψ).contMDiff.contMDiffAt)
+    ((contMDiff_isotropicLiftField (n := 0) (by simpa using hY)).contMDiffAt) ?_
+  refine lt_of_lt_of_eq ?_ (mvfderiv_eq_fderiv_apply _ _ _).symm
+  rw [fderiv_isotropicLiftFunction_apply P
+    (by rw [complexEuclideanEquivRealProd_modelDisc_fst]; exact hψ.differentiable one_ne_zero _),
+    isotropicLiftField_modelDisc]
+  simpa [complexEuclideanEquivRealProd_modelDisc_fst] using hpos
+
+/-- **The Liouville lift is gradient-like near a set of the core.** Let `Y` be a `C¹` field on
+`ℝᵏ`, gradient-like for a `C¹` function `ψ` near every point of a set `K`, and let `P` be a
+symmetric bilinear form on `ℝᵏ` such that `P (y, y - DY(x₀)ᵀ y) > 0` for every zero `x₀` of `Y`
+in `K` and every `y ≠ 0`. Then on an open neighbourhood of `ι₀ '' K` in the model, the lift
+`isotropicLiftField m Y` is gradient-like, near each of its points, for
+`ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2`, which equals `ψ` on the core
+(`SymplecticGeometry.isotropicLiftFunction_modelDisc`). -/
+theorem exists_nhds_isGradientLike_isotropicLiftField
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} (hY : ContDiff ℝ 1 Y)
+    {ψ : EuclideanSpace ℝ (Fin k) → ℝ} (hψ : ContDiff ℝ 1 ψ)
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hPsymm : ∀ u v, P u v = P v u) {K : Set (EuclideanSpace ℝ (Fin k))}
+    (hP : ∀ x ∈ K, Y x = 0 → ∀ y, y ≠ 0 → 0 < P y (y - (fderiv ℝ Y x).adjoint y))
+    (hYψ : ∀ x ∈ K, IsGradientLikeAt ψ
+      (fun x ↦ Y x : (x : EuclideanSpace ℝ (Fin k)) → TangentSpace 𝓘(ℝ, _) x) x) :
+    ∃ U, IsOpen U ∧ modelDisc k m '' K ⊆ U ∧ ∀ p ∈ U,
+      IsGradientLikeAt (isotropicLiftFunction m ψ P)
+        (fun p ↦ isotropicLiftField m Y p :
+          (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →
+            TangentSpace 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) p) p := by
+  refine ⟨_, isOpen_setOf_isGradientLikeAt, ?_, fun p hp ↦ hp⟩
+  rintro _ ⟨x, hx, rfl⟩
+  exact isGradientLikeAt_isotropicLiftField_modelDisc hY hψ hPsymm (hP x hx) (hYψ x hx)
 
 end SymplecticGeometry
 
