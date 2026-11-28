@@ -80,9 +80,10 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   `f` are rest points of the flow.
 * `SymplecticGeometry.IsWeinsteinStructure.mem_stableSet_self`: a critical point of `f` lies in
   its own stable set.
-* `SymplecticGeometry.IsWeinsteinStructure.hasDerivAt_comp_flow` and
-  `SymplecticGeometry.IsWeinsteinStructure.monotone_comp_flow`: along an orbit, `f` has
-  derivative `df(X)`, which is nonnegative, so it is monotone.
+* `SymplecticGeometry.IsWeinsteinStructure.hasDerivAt_comp_flow`: along an orbit, a function `g`
+  has derivative `dg(X)` wherever it is differentiable.
+* `SymplecticGeometry.IsWeinsteinStructure.monotone_comp_flow`: `f` is monotone along each orbit,
+  since `df(X)` is nonnegative.
 * `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
   `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`:
   for a smooth `g` with `dg(X) > 0` on the level `g ⁻¹' {c}`, the time at which orbits cross that
@@ -288,11 +289,12 @@ theorem mem_stableSet_self {p : M} (hp : p ∈ criticalPoints 𝓘(ℝ, E) f) :
     p ∈ hW.flow.stableSet p :=
   Flow.self_mem_stableSet_iff.2 (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp))
 
-/-- The derivative of `f` along an orbit of the flow is `df(X)`. -/
-theorem hasDerivAt_comp_flow (y : M) (t : ℝ) :
-    HasDerivAt (fun s ↦ f (hW.flow s y)) (mvfderiv 𝓘(ℝ, E) f (hW.flow t y) (X (hW.flow t y))) t :=
-  Manifold.hasDerivAt_comp_curve (γ := fun s ↦ hW.flow s y)
-    (hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp) _) (hW.isMIntegralCurve_flow y t)
+/-- The derivative along an orbit of the flow of a function `g`, differentiable at the point
+`hW.flow t y` of the orbit, is `dg(X)` at that point. -/
+theorem hasDerivAt_comp_flow {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {g : M → F}
+    {y : M} {t : ℝ} (hg : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, F) g (hW.flow t y)) :
+    HasDerivAt (fun s ↦ g (hW.flow s y)) (mvfderiv 𝓘(ℝ, E) g (hW.flow t y) (X (hW.flow t y))) t :=
+  Manifold.hasDerivAt_comp_curve (γ := fun s ↦ hW.flow s y) hg (hW.isMIntegralCurve_flow y t)
 
 /-- The function of a Weinstein structure is monotone along every orbit of its flow. -/
 theorem monotone_comp_flow (y : M) : Monotone fun t ↦ f (hW.flow t y) :=
