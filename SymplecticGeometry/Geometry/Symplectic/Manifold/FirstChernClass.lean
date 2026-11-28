@@ -39,7 +39,8 @@ not matter, and that the class does not change along a family of nondegenerate f
   `σ_t = ι_t^* σ` are nondegenerate for `t ∈ [0, 1]`, `c₁(σ₀) = c₁(σ₁)`;
 * `SymplecticGeometry.IsSmoothFamily.firstChernClass_eq`: the same for a smooth family of
   nondegenerate two-forms over `[0, 1]`, which `IsSmoothFamily.exists_extend` reads over `ℝ`;
-* `firstChernClass_wellDefined`: the first three statements together.
+* `firstChernClass_wellDefined`: the statements for compatible and tamed structures and
+  `firstChernClass_mpullback_prodMk_eq` together.
 
 The family statement is proved over `ℝ × M`: the slices form a nondegenerate two-form on the
 pull-back of `TM` along the projection `ℝ × M → M`, which is compatible with some complex
