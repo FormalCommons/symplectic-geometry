@@ -300,14 +300,14 @@ theorem relDualClass_ofTransverseSection {r : ℕ} (o' : VectorBundleOrientation
     (normalOrientationOfSection hm hsm hs hE hι o') rfl
     (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE)
     (map_normalOrientationOfSection_apply hm hsm hs hE hι o')
-  -- `relDualClassOf_ofTransverseSection` is stated for the `ℤ`-linear structure
-  -- `ModuleCat.instLinear`; read the class for that structure.
-  rw [relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf, ← h,
+  -- The relative dual class is its own pull-back along the identity.
+  refine ((ConcreteCategory.congr_hom (TopPair.singularCohomologyMap_id _ _) _).symm.trans
+    (singularCohomologyMap_relDualClass_eq_of_relDualClassOf _ hm _ _
+      (normalOrientationOfSection hm hsm hs hE hι o') rfl (𝟙 _) _ _ ?_)).symm
+  let : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear
+  rw [TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply, ← h,
     TopPair.singularCohomologyLinearCongr_naturality,
-    ← relDualClassOf_ofTransverseSection hm hsm hs hE,
-    TopPair.singularCohomologyLinearCongr_naturality,
-    TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
-    LinearEquiv.refl_apply]
+    ← relDualClassOf_ofTransverseSection hm hsm hs hE]
 
 
 /-- **The dual class of the zero set of a transverse section is the Euler class.** Let `s` be a
