@@ -141,8 +141,7 @@ theorem tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto (hcover : ∀ x, ∃ 
   -- The frame of the bundle chart `A.triv i` over its whole base set.
   let U' : Opens M := (A.triv i).baseSetOpens
   have hU' : (U' : Set M) ⊆ (A.triv i).baseSet := (A.triv i).coe_baseSetOpens.subset
-  let x : U' := ⟨A.center i,
-    Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F V (A.center i))⟩
+  let x : U' := ⟨A.center i, FiberBundle.mem_baseSetOpens_trivializationAt F V (A.center i)⟩
   let φ := extChartAt 𝓘(𝕜, E) x
   have hT := ((ContMDiffSection.continuous_frameCoordinates_of_cover e U hU hcover (A.triv i) U'
     hU').tendsto s₀).comp hs
@@ -193,7 +192,7 @@ theorem tendsto_frameTopology_of_tendstoLocallyUniformlyOn (A : FiniteBundleAtla
   let U' : T → Opens M := fun y ↦ (e' y).baseSetOpens
   have hU' (y : T) : (U' y : Set M) ⊆ (e' y).baseSet := (e' y).coe_baseSetOpens.subset
   let c : ∀ y, U' y := fun y ↦
-    ⟨A.center (σ y), Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F V _)⟩
+    ⟨A.center (σ y), FiberBundle.mem_baseSetOpens_trivializationAt F V _⟩
   have hbt (y : T) : b y ⊆ (extChartAt 𝓘(𝕜, E) (c y)).target := by
     rw [Opens.extChartAt_target_eq]
     simpa [c, U', e'] using (hbσ y).trans (A.image_subset_target_inter_preimage_baseSet _)
