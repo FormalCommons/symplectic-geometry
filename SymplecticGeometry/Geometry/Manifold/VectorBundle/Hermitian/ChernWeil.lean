@@ -58,13 +58,13 @@ whose forward map is smooth: pull `V` back to the surface, give the pull-back a 
 `ℂP¹`, modelled on `Fin 1 → ℂ`, is such a manifold, through the analytic diffeomorphism
 `SymplecticGeometry.sphereToProjectiveLine` from the unit sphere of `ℝ³`.
 
-Over `ℂPᴺ = ℙ ℂ (Fin (N + 1) → ℂ)` with `N ≥ 1`, the map induced by a linear embedding
-`ℂ² → ℂᴺ⁺¹` is injective on `H²(-; ℝ)`
+Over `ℂPᴺ = ℙ ℂ (Fin (N + 1) → ℂ)` with `N ≥ 1`, the map induced by the coordinate inclusion
+`ℂ² → ℂᴺ⁺¹` (`Function.ExtendByZero.linearMap` of `Fin.castLE`) is injective on `H²(-; ℝ)`
 (`Projectivization.injective_singularCohomologyMap_map_real`), so the identity for every smooth
 complex line bundle over `ℂPᴺ` descends from the projective line; for `N = 0` the base is a point
-and both sides vanish. Applied to `𝒪(1) = Projectivization.twistCore 1` and pulled back along a
-smooth map `f : B' → ℂPᴺ`, it gives the identity for `f^* 𝒪(1)`, with any smooth Hermitian
-metric.
+and both sides vanish (`Projectivization.isZero_singularCohomology_of_finrank_eq_one`). Applied
+to `𝒪(1) = Projectivization.twistCore 1` and pulled back along a smooth map `f : B' → ℂPᴺ`,
+it gives the identity for `f^* 𝒪(1)`, with any smooth Hermitian metric.
 
 ## Main results
 
