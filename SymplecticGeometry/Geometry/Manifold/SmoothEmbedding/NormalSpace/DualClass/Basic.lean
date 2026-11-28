@@ -76,6 +76,8 @@ property for every normalized tube.
   bundle carried to the manifold by a tubular neighbourhood).
 * [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §3.2 (Thom classes and Euler classes
   over the integers).
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017] (the
+  geometric sign convention for the Poincaré dual, which `dualClass` is compared with).
 -/
 
 public section
@@ -424,10 +426,11 @@ variable [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology 
 `relDualClassOf f hn hdim hf u ∈ Hʳ(X, X ∖ f(Z); ℤ)` of the canonical Thom class
 `u = o.canonicalThomClass hr`, with coefficients `ULift ℤ`.
 
-In rank two this is minus the Poincaré dual in McDuff–Salamon's convention: its real image
-`realRelDualClass` (`realRelDualClass_eq_singularCohomologyRealImage`) pairs to `-1` with a disc
-that meets `f(Z)` once, transversally at `f x`, and whose orientation, read in the normal space,
-is `o x` (`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`). -/
+Its sign against McDuff–Salamon's Poincaré dual is explained at `dualClass`: in rank two its
+real image `realRelDualClass` (`realRelDualClass_eq_singularCohomologyRealImage`) pairs to `-1`
+with a disc that meets `f(Z)` once, transversally at a point `f x`, and whose orientation, read in
+the normal space, is `o x`
+(`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`). -/
 def relDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
@@ -565,10 +568,19 @@ with closed range and an orientation `o` of its normal bundle, of rank `r`, the 
 with coefficients `ULift ℤ`: the image of `relDualClass f hn hdim hf o hr` in absolute
 cohomology.
 
-In rank two this is minus the Poincaré dual in McDuff–Salamon's convention, as `relDualClass`
-is: with real coefficients the relative class pairs to `-1` with a disc that meets `f(Z)` once,
-transversally at `f x`, and whose orientation, read in the normal space, is `o x`
-(`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`). -/
+When `X` is compact and `o` is the normal orientation induced by orientations of `X` and `Z`,
+it is the Poincaré dual of `f_* [Z]` for the fundamental classes of Tau Ceti's homological
+orientations (`bijective_thomMap_and_dualClass_cap_fundamentalClass`). The sign against
+McDuff–Salamon concerns only their geometric normalization of the Poincaré dual, by its pairing
+with a transverse disc: in rank two, in that normalization, this class is minus the Poincaré dual.
+The real relative dual class `realRelDualClass`, the real image of
+`relDualClass f hn hdim hf o hr` (`realRelDualClass_eq_singularCohomologyRealImage`), pairs to
+`-1` with a disc that meets `f(Z)` once, transversally at a point `f x`, and whose orientation,
+read in the normal space, is `o x`
+(`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`). Both hold because
+the class of a positively oriented simplex is the fundamental class of the homological
+orientation of the opposite orientation
+(`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`). -/
 def dualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
