@@ -605,31 +605,30 @@ theorem exists_forall_jetNormAt_le_jetNorm_of_mem_ball [T2Space M] [I.Boundaryle
           C * D.dbarJetNorm k r s ((D.chart k x).symm z)) := by
   obtain ⟨ρ₁, hρ₁, -, hJ₁⟩ := D.jetNormAt_reading_le_of_chart_change hg hJ hα hρ₀
   obtain ⟨ρ₂, hρ₂, -, hJ₂⟩ := D.jetNormAt_dbarReading_le_of_chart_change hg hJ hα hρ₀
-  obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   obtain ⟨C₁, hC₁0, hC₁⟩ := hJ₁ r
   obtain ⟨C₂, hC₂0, hC₂⟩ := hJ₂ r
-  set ρ := min ρ₁ (min ρ₂ ρ₃)
-  have hρ : 0 < ρ := lt_min hρ₁ (lt_min hρ₂ hρ₃)
+  set ρ := min ρ₁ (min ρ₂ ρ₀)
+  have hρ : 0 < ρ := lt_min hρ₁ (lt_min hρ₂ hρ₀)
   -- On the ball of radius `R`, `d_k(x, y) ≤ √(3/2) * |R|`.
   set Q : ℝ := (1 + √(3 / 2) * |R|) ^ r
   refine ⟨(C₁ + C₂) * Q, by have := add_nonneg hC₁0 hC₂0; positivity, ?_⟩
   have hρk : ∀ᶠ k : ℕ in Filter.atTop, |R| < ρ * √k :=
     ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ).eventually_gt_atTop |R|
-  filter_upwards [hρk, Filter.eventually_ge_atTop k₀] with k hρk hk x z hz s
+  filter_upwards [hρk, Filter.eventually_ge_atTop k₀,
+    D.eventually_forall_rescaledDist_symm_le hg hρ₀ R] with k hρk hk hdist x z hz s
   have hzR : ‖z‖ ≤ |R| := (mem_ball_zero_iff.1 hz).le.trans (le_abs_self R)
   have hball {ρ' : ℝ} (h : ρ ≤ ρ') : z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
     mem_ball_zero_iff.2 (hzR.trans_lt (hρk.trans_le
       (mul_le_mul_of_nonneg_right h (Real.sqrt_nonneg _))))
   have hz₁ := hball (min_le_left _ _)
   have hz₂ := hball ((min_le_right _ _).trans (min_le_left _ _))
-  have hz₃ := hball ((min_le_right _ _).trans (min_le_right _ _))
-  have hz₀ := hball ((min_le_right _ _).trans ((min_le_right _ _).trans hρ₃₀))
+  have hz₀ := hball ((min_le_right _ _).trans (min_le_right _ _))
   set y := (D.chart k x).symm z
   set d := rescaledDist I k x y
   have hd0 : 0 ≤ d := rescaledDist_nonneg I k x y
   have hdQ : (1 + d) ^ r ≤ Q := by
-    have h := D.rescaledDist_symm_le hg hρ₃₀ hk x (hcmp hk x) hz₃
+    have h := hdist x z hz
     refine pow_le_pow_left₀ (by positivity) ?_ r
     have : √(3 / 2) * ‖z‖ ≤ √(3 / 2) * |R| := by gcongr
     linarith

@@ -11,9 +11,8 @@ public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Topology.Algebra.Support
 import Mathlib.Analysis.Calculus.FDeriv.Add
 import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Convex.Mul
-import Mathlib.Analysis.Normed.Module.Convex
 import Mathlib.Tactic.Module
+import SymplecticGeometry.Analysis.Normed.Operator.Functional
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Surface.LogCutoff.Ball
 
 /-!
@@ -31,7 +30,8 @@ The cut-off `β` is the one of
 `SymplecticGeometry.exists_contDiff_tsupport_subset_ball_norm_mul_norm_fderiv_le`, built from
 Tau Ceti's logarithmic profile, with `‖z‖ ‖Dβ(z)‖` small. The differential of `f + t β H` is
 `(1 - tβ) Df + tβ D(f + H) + t H Dβ`. The first two terms satisfy the gradient-like inequality
-with the constant `c`, by convexity (`SymplecticGeometry.mul_le_one_sub_smul_add_smul_add_apply`).
+with the constant `c`, by convexity
+(`ContinuousLinearMap.mul_le_one_sub_smul_add_smul_add_apply`).
 The last term has norm at most `A ‖z‖ ‖Dβ(z)‖ ‖Df(z)‖`; since `c ‖Df‖ ≤ ‖X‖`, it costs only half
 of the constant once `‖z‖ ‖Dβ(z)‖` is small enough. A cut-off with `‖Dβ‖` of order `1 / r` would
 not do, since `A` need not be small: this is why the cut-off is logarithmic.
@@ -45,31 +45,24 @@ both satisfy the gradient-like inequality for `f` on `B`, with `X' - X = J(DH)` 
 family `J` of linear maps from covectors to vectors (in the application, `J(DG)` is the
 Hamiltonian field of `G`). Then the same logarithmic cut-off `β` makes every field
 `X + t J(D(β H))` with `t ∈ [0, 1]` gradient-like for `f` on `B`, with constant `c / 2`. Here
-`X + t J(D(β H)) = (1 - tβ) X + tβ X' + t H J(Dβ)`, and the pointwise estimate is
-`SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add`, in which vectors and covectors have
-exchanged roles. This is the field version of the cut-off in Lemma 12.9 of
-[CieliebakEliashberg2012].
+`X + t J(D(β H)) = (1 - tβ) X + tβ X' + t H J(Dβ)`, and the pointwise estimate,
+with the roles of vectors and covectors exchanged, is
+`ContinuousLinearMap.mul_le_apply_one_sub_smul_add_smul_add`. This is the field version
+of the cut-off in Lemma 12.9 of [CieliebakEliashberg2012].
 
-Both pointwise estimates are cases of one statement about a linear functional `φ` on a normed
-space, `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`, taking `φ` to be
-evaluation at `v` in the first and the covector `a` in the second; each then only bounds its own
-error term. Both cut-offs, with the constant `m` that bounds their error, come from
+Both pointwise estimates are cases of one statement about a linear functional `φ` on a
+seminormed space, `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`, taking
+`φ` to be evaluation at `v` in the first and the covector `a` in the second; each then only
+bounds its own error term. Both cut-offs, with the constant `m` that bounds their error, come from
 `SymplecticGeometry.exists_contDiff_tsupport_subset_ball_mul_norm_mul_norm_fderiv_le`.
 
 ## Main results
 
-* `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add_of_le`: the common pointwise
-  estimate, for a functional `φ` and a perturbed convex combination of two vectors.
-* `SymplecticGeometry.mul_le_one_sub_smul_add_smul_add_apply`: at one point, a convex
-  combination of two differentials satisfying the gradient-like inequality, perturbed by a small
-  error, satisfies it with half the constant.
 * `SymplecticGeometry.exists_contDiff_tsupport_subset_ball_mul_norm_mul_norm_fderiv_le`: the
   logarithmic cut-off together with a constant `m` with `2 (m + m²) ≤ c²` and
   `K ‖z‖ ‖Dβ(z)‖ ≤ m`.
 * `SymplecticGeometry.exists_contDiff_tsupport_subset_ball_mul_le_fderiv_add_smul_mul_apply`:
   the cut-off `β` above.
-* `SymplecticGeometry.mul_le_apply_one_sub_smul_add_smul_add`: the pointwise estimate for a
-  perturbed convex combination of two gradient-like vectors.
 * `SymplecticGeometry.exists_contDiff_tsupport_subset_ball_mul_le_fderiv_apply_add_smul`: the
   cut-off of a Hamiltonian correction of the field.
 
@@ -85,102 +78,7 @@ open scoped ContDiff
 
 namespace SymplecticGeometry
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-
-/-- **The gradient-like inequality for a perturbed convex combination, abstractly.** Let
-`φ : E →L[ℝ] ℝ`, `c ≥ 0` and `Z : ℝ`, and let `x y : E` satisfy `c (‖x‖² + Z²) ≤ φ x` and
-`c (‖y‖² + Z²) ≤ φ y`. Let `s ∈ [0, 1]`, and let `e : E` be an error with `-(‖e‖ Z) ≤ φ e` and
-`c ‖e‖² + ‖e‖ Z ≤ c / 2 * Z²`. Then `u = (1 - s) • x + s • y + e` satisfies
-`c / 2 * (‖u‖² + Z²) ≤ φ u`. -/
-theorem mul_le_apply_one_sub_smul_add_smul_add_of_le {φ : E →L[ℝ] ℝ} {x y e : E} {c s Z : ℝ}
-    (hc : 0 ≤ c) (hs : s ∈ Icc (0 : ℝ) 1) (hx : c * (‖x‖ ^ 2 + Z ^ 2) ≤ φ x)
-    (hy : c * (‖y‖ ^ 2 + Z ^ 2) ≤ φ y) (he : -(‖e‖ * Z) ≤ φ e)
-    (he' : c * ‖e‖ ^ 2 + ‖e‖ * Z ≤ c / 2 * Z ^ 2) :
-    c / 2 * (‖(1 - s) • x + s • y + e‖ ^ 2 + Z ^ 2) ≤ φ ((1 - s) • x + s • y + e) := by
-  obtain ⟨hs0, hs1⟩ := hs
-  set u := (1 - s) • x + s • y
-  -- The convex combination satisfies the inequality with the constant `c`.
-  have hu : c * (‖u‖ ^ 2 + Z ^ 2) ≤ φ u := by
-    have hφu : φ u = (1 - s) * φ x + s * φ y := by simp [u]
-    have hsq : ‖u‖ ^ 2 ≤ (1 - s) * ‖x‖ ^ 2 + s * ‖y‖ ^ 2 := by
-      have hconv : ConvexOn ℝ univ fun x : E ↦ ‖x‖ ^ 2 :=
-        (convexOn_norm convex_univ).pow (fun _ _ ↦ norm_nonneg _) 2
-      simpa using hconv.2 (mem_univ x) (mem_univ y) (sub_nonneg.2 hs1) hs0 (by ring)
-    rw [hφu]
-    nlinarith [mul_le_mul_of_nonneg_left hx (sub_nonneg.2 hs1), mul_le_mul_of_nonneg_left hy hs0]
-  -- The error costs at most half of the constant.
-  have hn : ‖u + e‖ ^ 2 ≤ 2 * (‖u‖ ^ 2 + ‖e‖ ^ 2) :=
-    (pow_le_pow_left₀ (norm_nonneg _) (norm_add_le u e) 2).trans (add_sq_le ..)
-  rw [map_add]
-  nlinarith [mul_le_mul_of_nonneg_left hn hc]
-
-/-- **The gradient-like inequality for a perturbed convex combination.** Let `a b : E →L[ℝ] ℝ`
-satisfy `c (‖v‖² + ‖a‖²) ≤ a v` and `c (‖v‖² + ‖b‖²) ≤ b v` with `c > 0`, let `s ∈ [0, 1]`,
-and let `e` be an error with `‖e‖ ≤ η ‖a‖`, where `2 (η + η²) ≤ c²`. Then
-`ℓ = (1 - s) • a + s • b + e` satisfies `c / 2 * (‖v‖² + ‖ℓ‖²) ≤ ℓ v`. -/
-theorem mul_le_one_sub_smul_add_smul_add_apply {a b e : E →L[ℝ] ℝ} {v : E} {c s η : ℝ}
-    (hc : 0 < c) (hs : s ∈ Icc (0 : ℝ) 1) (ha : c * (‖v‖ ^ 2 + ‖a‖ ^ 2) ≤ a v)
-    (hb : c * (‖v‖ ^ 2 + ‖b‖ ^ 2) ≤ b v) (hη : 2 * (η + η ^ 2) ≤ c ^ 2)
-    (he : ‖e‖ ≤ η * ‖a‖) :
-    c / 2 * (‖v‖ ^ 2 + ‖(1 - s) • a + s • b + e‖ ^ 2) ≤ ((1 - s) • a + s • b + e) v := by
-  -- Only `max η 0` matters: for `η < 0` the hypothesis `he` forces `a = 0` and `e = 0`.
-  obtain ⟨η, hη0, hη, he⟩ : ∃ η' : ℝ, 0 ≤ η' ∧ 2 * (η' + η' ^ 2) ≤ c ^ 2 ∧ ‖e‖ ≤ η' * ‖a‖ :=
-    ⟨max η 0, le_max_right _ _, by
-      rcases le_total η 0 with h | h
-      · rw [max_eq_right h]; nlinarith [sq_nonneg c]
-      · rwa [max_eq_left h],
-      he.trans (by gcongr; exact le_max_left _ _)⟩
-  -- `c ‖a‖ ≤ ‖v‖`, from the inequality for `a` and `a v ≤ ‖a‖ ‖v‖`.
-  have hav : c * ‖a‖ ≤ ‖v‖ := by
-    have h1 : a v ≤ ‖a‖ * ‖v‖ := (abs_le.1 (a.le_opNorm v)).2
-    rcases (norm_nonneg a).eq_or_lt with h0 | h0
-    · rw [← h0, mul_zero]; exact norm_nonneg v
-    · refine le_of_mul_le_mul_right ?_ h0
-      nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖a‖]
-  -- The error estimate.
-  have hce : c * ‖e‖ ≤ η * ‖v‖ := by
-    calc c * ‖e‖ ≤ c * (η * ‖a‖) := by gcongr
-      _ = η * (c * ‖a‖) := by ring
-      _ ≤ η * ‖v‖ := by gcongr
-  have hkey : c * (c * ‖e‖ ^ 2 + ‖e‖ * ‖v‖) ≤ c * (c / 2 * ‖v‖ ^ 2) := by
-    nlinarith [mul_le_mul_of_nonneg_right hce (norm_nonneg v), sq_nonneg ‖v‖,
-      pow_le_pow_left₀ (by positivity) hce 2]
-  have h := mul_le_apply_one_sub_smul_add_smul_add_of_le (φ := ContinuousLinearMap.apply ℝ ℝ v)
-    hc.le hs (by simpa [add_comm] using ha) (by simpa [add_comm] using hb)
-    (abs_le.1 (e.le_opNorm v)).1 (le_of_mul_le_mul_left hkey hc)
-  simpa [add_comm] using h
-
-/-- **The gradient-like inequality for a perturbed convex combination of fields.** Let `a` be a
-covector and `v w : E` vectors with `c (‖v‖² + ‖a‖²) ≤ a v` and `c (‖w‖² + ‖a‖²) ≤ a w`, where
-`c > 0`; let `s ∈ [0, 1]`, and let `e` be an error with `‖e‖ ≤ η ‖a‖`, where
-`2 (η + η²) ≤ c²`. Then `u = (1 - s) • v + s • w + e` satisfies
-`c / 2 * (‖u‖² + ‖a‖²) ≤ a u`. This is `mul_le_one_sub_smul_add_smul_add_apply` with the roles
-of vectors and covectors exchanged. -/
-theorem mul_le_apply_one_sub_smul_add_smul_add {a : E →L[ℝ] ℝ} {v w e : E} {c s η : ℝ}
-    (hc : 0 < c) (hs : s ∈ Icc (0 : ℝ) 1) (hv : c * (‖v‖ ^ 2 + ‖a‖ ^ 2) ≤ a v)
-    (hw : c * (‖w‖ ^ 2 + ‖a‖ ^ 2) ≤ a w) (hη : 2 * (η + η ^ 2) ≤ c ^ 2)
-    (he : ‖e‖ ≤ η * ‖a‖) :
-    c / 2 * (‖(1 - s) • v + s • w + e‖ ^ 2 + ‖a‖ ^ 2) ≤ a ((1 - s) • v + s • w + e) := by
-  refine mul_le_apply_one_sub_smul_add_smul_add_of_le hc.le hs hv hw
-    (by simpa [mul_comm] using (abs_le.1 (a.le_opNorm e)).1) ?_
-  -- The error estimate: trivial if `a = 0`; otherwise `c ≤ 1 / 2`, so `‖e‖ ≤ c / 4 * ‖a‖`.
-  rcases (norm_nonneg a).eq_or_lt with h0 | h0
-  · have he0 : ‖e‖ = 0 := le_antisymm (by simpa [← h0] using he) (norm_nonneg e)
-    rw [he0]; nlinarith [sq_nonneg ‖a‖]
-  have hc2 : c ≤ 1 / 2 := by
-    have : c * (‖v‖ ^ 2 + ‖a‖ ^ 2) ≤ 1 / 2 * (‖v‖ ^ 2 + ‖a‖ ^ 2) := by
-      nlinarith [sq_nonneg (‖v‖ - ‖a‖), (abs_le.1 (a.le_opNorm v)).2]
-    exact le_of_mul_le_mul_right this (by positivity)
-  have hηc : η ≤ c / 4 := by nlinarith [sq_nonneg η]
-  have hec : ‖e‖ ≤ c / 4 * ‖a‖ := he.trans (by gcongr)
-  have h1 : c * ‖e‖ ^ 2 ≤ c / 4 * ‖a‖ ^ 2 := by
-    calc c * ‖e‖ ^ 2 ≤ c * (c / 4 * ‖a‖) ^ 2 := by gcongr
-      _ = c * (c ^ 2 / 4) * ‖a‖ ^ 2 / 4 := by ring
-      _ ≤ c * 1 * ‖a‖ ^ 2 / 4 := by gcongr; nlinarith
-      _ = c / 4 * ‖a‖ ^ 2 := by ring
-  nlinarith [mul_le_mul_of_nonneg_right hec (norm_nonneg a)]
-
-variable [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
 
 /-- **A logarithmic cut-off with a margin for the gradient-like inequality.** Let `E` be a
 finite-dimensional real normed space, `c > 0`, `K : ℝ` and `r > 0`. There are a smooth
@@ -246,8 +144,8 @@ theorem exists_contDiff_tsupport_subset_ball_mul_le_fderiv_add_smul_mul_apply {f
       fderiv_mul hβz hHz, fderiv_add hfz hHz]
     module
   rw [hDF]
-  refine mul_le_one_sub_smul_add_smul_add_apply hc (unitInterval.mul_mem ht (hβI z))
-    (h₁ z hz₀) (h₂ z hz₀) hm ?_
+  refine ContinuousLinearMap.mul_le_one_sub_smul_add_smul_add_apply hc
+    (unitInterval.mul_mem ht (hβI z)) (h₁ z hz₀) (h₂ z hz₀) hm ?_
   -- The error term `t H Dβ`.
   rw [norm_smul, Real.norm_eq_abs, abs_mul, abs_of_nonneg ht.1]
   calc t * |H z| * ‖fderiv ℝ β z‖ ≤ 1 * (A * ‖z‖ * ‖fderiv ℝ f z‖) * ‖fderiv ℝ β z‖ := by
@@ -293,8 +191,8 @@ theorem exists_contDiff_tsupport_subset_ball_mul_le_fderiv_apply_add_smul {f H :
     rw [fderiv_mul hβz hHz, map_add, map_smul, map_smul, ← h₃ z hz₀]
     module
   rw [hY]
-  refine mul_le_apply_one_sub_smul_add_smul_add hc (unitInterval.mul_mem ht (hβI z))
-    (h₁ z hz₀) (h₂ z hz₀) hm ?_
+  refine ContinuousLinearMap.mul_le_apply_one_sub_smul_add_smul_add hc
+    (unitInterval.mul_mem ht (hβI z)) (h₁ z hz₀) (h₂ z hz₀) hm ?_
   -- The error term `t H J(Dβ)`.
   have hA : 0 ≤ A * ‖z‖ * ‖fderiv ℝ f z‖ := (abs_nonneg _).trans (h₅ z hz₀)
   rw [norm_smul, Real.norm_eq_abs, abs_mul, abs_of_nonneg ht.1]

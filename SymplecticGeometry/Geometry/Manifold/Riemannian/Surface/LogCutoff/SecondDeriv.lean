@@ -46,6 +46,10 @@ of order `1 / log (δ / ε)`.
 
 * `TauCeti.deriv_logCutoffProfile_of_pos`: the formula `Λ r ψ'(r) = N(log r)` for `r > 0`.
 * `TauCeti.exists_abs_iteratedDeriv_two_logCutoffProfile_le`: the bound above.
+* `TauCeti.mul_deriv_logCutoffProfile_le` and
+  `TauCeti.exists_abs_sq_mul_deriv_deriv_logCutoffProfile_le`: the bounds on `r ψ'(r)` and
+  `r ^ 2 ψ''(r)` by multiples of `1 / log (δ / ε)`, with the powers of `r` cleared, so that they
+  hold for every real `r`.
 
 ## References
 
@@ -178,6 +182,45 @@ theorem exists_abs_iteratedDeriv_two_logCutoffProfile_le :
   gcongr
   calc |N' (log u) - N (log u)| ≤ |N' (log u)| + |N (log u)| := abs_sub _ _
     _ ≤ _ := by linarith
+
+/-- For `0 < 4ε ≤ δ` and every `r`, the logarithmic cutoff profile `ψ = logCutoffProfile ε δ`
+satisfies `r ψ'(r) ≤ c₀ / log (δ / ε)`, where `c₀ = logCutoffConst`: the bound
+`TauCeti.deriv_logCutoffProfile_le` with `r` cleared from the denominator. -/
+theorem mul_deriv_logCutoffProfile_le (hε : 0 < ε) (h4 : 4 * ε ≤ δ) (r : ℝ) :
+    r * deriv (logCutoffProfile ε δ) r ≤ logCutoffConst / Real.log (δ / ε) := by
+  have hΛ : 0 < log (δ / ε) := Real.log_pos ((one_lt_div hε).2 (by linarith))
+  rcases le_or_gt r 0 with hr | hr0
+  · rw [deriv_logCutoffProfile_eq_zero_of_le (by linarith) (hr.trans hε.le), mul_zero]
+    exact div_nonneg (zero_le_one.trans one_le_logCutoffConst) hΛ.le
+  have h := deriv_logCutoffProfile_le hε h4 hr0.le
+  rw [le_div_iff₀ (mul_pos hr0 hΛ)] at h
+  rw [le_div_iff₀ hΛ]
+  linarith
+
+/-- There is an absolute constant `c₁` such that, for `0 < 4ε ≤ δ` and every `r`, the
+logarithmic cutoff profile `ψ = logCutoffProfile ε δ` satisfies
+`|r ^ 2 ψ''(r)| ≤ c₁ / log (δ / ε)`: the bound
+`TauCeti.exists_abs_iteratedDeriv_two_logCutoffProfile_le` with `r ^ 2` cleared from the
+denominator. -/
+theorem exists_abs_sq_mul_deriv_deriv_logCutoffProfile_le :
+    ∃ c₁ : ℝ, ∀ {ε δ : ℝ}, 0 < ε → 4 * ε ≤ δ → ∀ r : ℝ,
+      |r ^ 2 * deriv (deriv (logCutoffProfile ε δ)) r| ≤ c₁ / Real.log (δ / ε) := by
+  obtain ⟨c₁, hc₁⟩ := exists_abs_iteratedDeriv_two_logCutoffProfile_le
+  -- `c₁ ≥ 0`, from the bound at `ε = r = 1` and `δ = 4`.
+  have hc₁0 : 0 ≤ c₁ := by
+    have h := (abs_nonneg _).trans (hc₁ one_pos (by norm_num : 4 * (1 : ℝ) ≤ 4) 1)
+    rw [one_pow, one_mul, div_one] at h
+    exact ((div_nonneg_iff.1 h).resolve_right fun h' ↦
+      (Real.log_pos (by norm_num : (1 : ℝ) < 4)).not_ge h'.2).1
+  refine ⟨c₁, fun {ε δ} hε h4 r ↦ ?_⟩
+  have hΛ : 0 < log (δ / ε) := Real.log_pos ((one_lt_div hε).2 (by linarith))
+  rcases eq_or_ne r 0 with rfl | hr0
+  · simpa using div_nonneg hc₁0 hΛ.le
+  have h := hc₁ hε h4 r
+  have hr2 : 0 < r ^ 2 := by positivity
+  rw [iteratedDeriv_succ, iteratedDeriv_one, le_div_iff₀ (mul_pos hr2 hΛ)] at h
+  rw [le_div_iff₀ hΛ, abs_mul, abs_of_pos hr2]
+  linarith
 
 end TauCeti
 

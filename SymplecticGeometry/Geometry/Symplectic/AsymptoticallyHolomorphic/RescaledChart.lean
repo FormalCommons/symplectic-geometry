@@ -187,6 +187,9 @@ from `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`). So every `y`
   image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`; its two halves as real inequalities,
   `RescaledUnitaryCharts.norm_le_sqrt_two_mul_rescaledDist_symm` and
   `RescaledUnitaryCharts.rescaledDist_symm_le`.
+* `SymplecticGeometry.RescaledUnitaryCharts.eventually_forall_rescaledDist_symm_le`: for every
+  radius `R` and all large `k`, `d_k` from any `x` to the point with image `z` is at most
+  `√(3 / 2) * ‖z‖` for every `z` in the ball of radius `R`.
 * `SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_rescaledEDist_of_notMem` and
   `SymplecticGeometry.RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_rescaledEDist_lt`:
   the points outside the image of the ball of radius `ρ₁ * √k` are at rescaled distance at least
@@ -1209,6 +1212,21 @@ theorem rescaledDist_symm_le
   rw [rescaledDist_def]
   exact ENNReal.toReal_le_of_le_ofReal (by positivity)
     (D.rescaledEDist_symm_le hg hρ₁₀ hk x hcmp hz)
+
+/-- **Distances from the centre on a ball of fixed radius.** Let `M` carry a Riemannian metric
+whose inner product is `g_J(u, w) = σ(u, J w)`, and let `ρ₀ > 0`. For every radius `R`, for all
+large `k`, every point `x` and every `z` in the ball of radius `R`, the rescaled distance
+`d_k = √(2π k) · d_{g_J}` from `x` to `(D.chart k x).symm z` is at most `√(3 / 2) * ‖z‖`. -/
+theorem eventually_forall_rescaledDist_symm_le
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hρ₀ : 0 < ρ₀) (R : ℝ) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
+      rescaledDist I k x ((D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖ := by
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
+  filter_upwards [((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
+      hρ₁).eventually_gt_atTop R, Filter.eventually_ge_atTop k₀] with k hkR hk x z hz
+  exact D.rescaledDist_symm_le hg hρ₁₀ hk x (hcmp hk x)
+    (mem_ball_zero_iff.2 ((mem_ball_zero_iff.1 hz).trans hkR))
 
 /-- **Points far from the centre in the chart are far for `d_k`.** Let `M` be Hausdorff, with a
 Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `x` be a point,
