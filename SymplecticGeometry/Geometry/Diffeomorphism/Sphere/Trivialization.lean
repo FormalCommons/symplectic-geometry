@@ -17,10 +17,11 @@ Let `S²` be the Riemann sphere `OnePoint ℂ`, seen as a real surface, `i` its 
 `𝒥` the smooth almost complex structures tamed by the Fubini–Study form (a local notation), and
 `p : Diff⁺(S²) → 𝒥`, `φ ↦ φ^* i`, the map `SymplecticGeometry.complexStructureMap`. The
 uniformizing diffeomorphism `σ(J) = SymplecticGeometry.uniformizingDiffeomorph J` is a
-continuous section of `p` (`SymplecticGeometry.continuous_uniformizingDiffeomorph`). The Möbius
-group `SymplecticGeometry.mobiusSubgroup`, the stabilizer of `i`, acts on `Diff⁺(S²)` by left
-multiplication, and this action preserves the fibres of `p`. With `σ` this makes `p` a trivial
-principal bundle.
+continuous section of `p` (`SymplecticGeometry.continuous_uniformizingDiffeomorph`).
+Multiplying on the left by an element of the Möbius group `SymplecticGeometry.mobiusSubgroup`,
+the stabilizer of `i`, does not change `p`
+(`SymplecticGeometry.complexStructureMap_inclusion_mul`). Together with `σ`, this identifies
+`Diff⁺(S²)` with the product `𝒥 × mobiusSubgroup`, so `p` is a trivial principal bundle.
 
 ## Main definitions and results
 
@@ -28,13 +29,18 @@ principal bundle.
   Möbius transformation, since it pulls `i` back to `(σ(φ^* i)⁻¹)^* (φ^* i) = i`.
 * `SymplecticGeometry.diffPlusTrivialization`: for every covering frame system giving `𝒥` its
   `C^∞` topology, the homeomorphism `Diff⁺(S²) ≃ₜ 𝒥 × mobiusSubgroup`,
-  `φ ↦ (φ^* i, φ σ(φ^* i)⁻¹)`, with inverse `(J, g) ↦ g σ(J)`. Both maps are continuous because
-  `p` and `σ` are, and `Diff⁺(S²)` is a topological group for the weak Whitney topology. Its
-  lemmas `SymplecticGeometry.diffPlusTrivialization_apply_fst`,
+  `φ ↦ (φ^* i, φ σ(φ^* i)⁻¹)`, with inverse `(J, g) ↦ g σ(J)`. Continuity of the two maps
+  comes from `SymplecticGeometry.continuous_complexStructureMap`,
+  `SymplecticGeometry.continuous_uniformizingDiffeomorph` and Tau Ceti's
+  `Diffeomorph.isTopologicalGroup`. Its lemmas
+  `SymplecticGeometry.diffPlusTrivialization_apply_fst`,
   `SymplecticGeometry.coe_diffPlusTrivialization_apply_snd` and
   `SymplecticGeometry.coe_diffPlusTrivialization_symm_apply` give the two maps, and
   `SymplecticGeometry.diffPlusTrivialization_mul` says that left multiplication by a Möbius
   transformation becomes left multiplication on the second factor.
+  `SymplecticGeometry.diffPlusTrivialization_inclusion` and
+  `SymplecticGeometry.diffPlusTrivialization_uniformizingDiffeomorph` give its values
+  `Φ g = (i, g)` on the Möbius group and `Φ σ(J) = (J, 1)` on the section.
 * `SymplecticGeometry.exists_continuous_section_homeomorph_prod_mobiusSubgroup`: the milestone,
   which collects these facts with the uniqueness of `σ(J)`
   (`SymplecticGeometry.eq_uniformizingDiffeomorph_iff`) and the invariance of the fibres of `p`
@@ -125,6 +131,7 @@ theorem coe_diffPlusTrivialization_symm_apply (J : 𝒥) (g : mobiusSubgroup) :
 
 /-- `diffPlusTrivialization` is equivariant: it turns left multiplication by a Möbius
 transformation `g` on `Diff⁺(S²)` into left multiplication by `g` on the second factor. -/
+@[simp]
 theorem diffPlusTrivialization_mul (g : mobiusSubgroup) (φ : diffPlus) :
     letI := SmoothAlmostComplexStructure.frameTopology e U hU
     diffPlusTrivialization e U hU hcover (Subgroup.inclusion mobiusSubgroup_le_diffPlus g * φ) =
@@ -133,6 +140,23 @@ theorem diffPlusTrivialization_mul (g : mobiusSubgroup) (φ : diffPlus) :
   refine Prod.ext (by simp) (Subtype.ext ?_)
   rw [coe_diffPlusTrivialization_apply_snd, complexStructureMap_inclusion_mul, Subgroup.coe_mul,
     Subgroup.coe_mul, Subgroup.coe_inclusion, coe_diffPlusTrivialization_apply_snd, mul_assoc]
+
+/-- `diffPlusTrivialization` sends a Möbius transformation `g` to `(i, g)`. -/
+@[simp]
+theorem diffPlusTrivialization_inclusion (g : mobiusSubgroup) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    diffPlusTrivialization e U hU hcover (Subgroup.inclusion mobiusSubgroup_le_diffPlus g) =
+      (tameOfComplexManifold, g) := by
+  refine Prod.ext (by simp) (Subtype.ext ?_)
+  simp
+
+/-- `diffPlusTrivialization` sends the uniformizing diffeomorphism `σ(J)` to `(J, 1)`. -/
+@[simp]
+theorem diffPlusTrivialization_uniformizingDiffeomorph (J : 𝒥) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    diffPlusTrivialization e U hU hcover (uniformizingDiffeomorph J) = (J, 1) := by
+  refine Prod.ext (by simp) (Subtype.ext ?_)
+  simp
 
 include hcover in
 /-- **`Diff⁺(S²)` is a trivial principal bundle over the tame complex structures.** Give the

@@ -55,7 +55,9 @@ as a topological group, and deformation retracts it onto the rotations.
 * `SymplecticGeometry.mobiusSubgroup_eq_range`: so `mobiusSubgroup` is the range of `mobiusHom`.
 * `SymplecticGeometry.mobiusSubgroup_le_diffPlus`: Möbius transformations preserve the
   orientation, and `SymplecticGeometry.complexStructureMap_inclusion_mul`: left multiplication by
-  one does not change the pull-back `φ^* i` of an element `φ` of `diffPlus`.
+  a Möbius transformation does not change the pull-back `φ^* i` of an element `φ` of `diffPlus`.
+  In particular a Möbius transformation pulls `i` back to `i`
+  (`SymplecticGeometry.complexStructureMap_inclusion`).
 * `SymplecticGeometry.continuous_mobiusHom` and `SymplecticGeometry.isEmbedding_mobiusHom`:
   `mobiusHom` is a topological embedding.
 * `SymplecticGeometry.rotationSubgroup_le_mobiusSubgroup`: rotations are Möbius transformations.
@@ -183,6 +185,13 @@ theorem complexStructureMap_inclusion_mul (g : mobiusSubgroup) (φ : diffPlus) :
   refine Subtype.ext ?_
   rw [complexStructureMap_mul, coe_complexStructureMap, coe_complexStructureMap,
     Subgroup.coe_inclusion, mem_mobiusSubgroup_iff.1 g.property]
+
+/-- A Möbius transformation, seen in `diffPlus`, pulls `i` back to `i`. -/
+@[simp]
+theorem complexStructureMap_inclusion (g : mobiusSubgroup) :
+    complexStructureMap (Subgroup.inclusion mobiusSubgroup_le_diffPlus g) =
+      tameOfComplexManifold := by
+  simpa using complexStructureMap_inclusion_mul g 1
 
 /-! ### The topology of the Möbius group -/
 
