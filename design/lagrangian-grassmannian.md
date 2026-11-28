@@ -1063,14 +1063,14 @@ The manifold structure and the milestone.
   `Matrix.isHermitian_iff_isSymm`, `LinearEquiv.finrank_eq`,
   `Module.finrank_fintype_fun_eq_card`, `Homeomorph.Quotient.congrRight`,
   `MulAction.compHom`, `MulAction.exists_smul_eq`, `MulAction.stabilizer`,
-  `unitarySubgroupUnitsEquiv`, `IsQuotientMap.continuous_iff`,
+  `IsQuotientMap.continuous_iff`,
   `IsOpenQuotientMap.prodMap`, `Topology.IsInducing.of_comp`,
   `LinearIsometryEquiv.piLpCongrLeft`,
   `PiLp.continuousLinearEquiv`, `contDiffAt_ringInverse`.
 
 Nothing here redefines a Mathlib or Tau Ceti notion. The new definitions are
 `LagrangianGrassmannian` with its topology, `realSubgroup` (Tau Ceti's
-$\mathrm{O}(n)\subset\mathrm{U}(n)$ carried from `GL ι ℂ` to
+`(GLOrthogonal ι ℂ).unitaryPart`, the copy of $\mathrm{O}(n)$ in
 `unitaryGroup ι ℂ`), `StdSpace.graph`, `StdSpace.graphY`, the unitary action, and
 the maps `ofFrame`, `unitaryFrame`, `graphY`, `graph`, `graphYChart`,
 `graphChart`, `sum`, `reindex`, `reindexHomeomorph` and

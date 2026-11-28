@@ -11,6 +11,7 @@ public import TauCeti.Algebra.Star.Unitary
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Orthogonal.Basic
 public import TauCeti.LinearAlgebra.Matrix.OfReal
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Orthogonal.Unitary
+import TauCeti.Topology.Algebra.Star.Unitary
 
 /-!
 # The real points of the unitary group
@@ -109,12 +110,8 @@ theorem map_ofReal_mem_realSubgroup {O : Matrix ι ι ℝ} (hO : O ∈ orthogona
 variable (ι) in
 /-- The real points of the unitary group form a closed subset. -/
 theorem isClosed_realSubgroup : IsClosed (realSubgroup ι : Set (unitaryGroup ι ℂ)) := by
-  have : (realSubgroup ι : Set (unitaryGroup ι ℂ)) =
-      {U : unitaryGroup ι ℂ | (U : Matrix ι ι ℂ).map Complex.im = 0} := by
-    ext U
-    exact mem_realSubgroup_iff
-  rw [this]
-  exact isClosed_eq (continuous_subtypeVal.matrix_map Complex.continuous_im) continuous_const
+  rw [realSubgroup_def]
+  exact Subgroup.isClosed_unitaryPart TauCeti.GLOrthogonal.isClosed
 
 /-- The real part `Re (Uᴴ U)` of the Gram matrix of a unitary matrix is the identity. -/
 theorem map_re_conjTranspose_mul_self (U : unitaryGroup ι ℂ) :
