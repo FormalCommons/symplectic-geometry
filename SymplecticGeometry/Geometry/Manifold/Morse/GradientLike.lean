@@ -467,20 +467,6 @@ theorem exists_contMDiffRiemannianMetric_inner_add_le_mul :
   rw [hGG]
   nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖D‖, sq_nonneg L, sq_nonneg K]
 
-/-- **A global criterion on a normed space.** On a finite-dimensional real normed space `E`, a
-field `X` is gradient-like for `f` if `c * (‖X x‖ ^ 2 + ‖df_x‖ ^ 2) ≤ df_x (X x)` for a constant
-`c > 0` and every `x`, the norms being those of `E` and the operator norm. -/
-theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0 < c)
-    (h : ∀ x, c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) ≤ fderiv ℝ f x (X x)) :
-    IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
-  obtain ⟨g, C, hC, hg⟩ := exists_contMDiffRiemannianMetric_inner_add_le_mul (E := E)
-  refine ⟨g, fun _ ↦ c / C, continuous_const, fun _ ↦ by positivity, fun x ↦ ?_⟩
-  let : RiemannianBundle (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-  refine le_trans ?_ ((h x).trans_eq (mvfderiv_eq_fderiv_apply f x (X x)).symm)
-  calc c / C * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)
-      ≤ c / C * (C * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2)) := by gcongr; exact hg f x (X x)
-    _ = c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) := by field_simp
-
 section Local
 
 /-- A vector field `X` is **gradient-like for `f` near `x`** when `x` has a neighbourhood `U`, with
@@ -642,6 +628,15 @@ theorem isGradientLike_of_forall_isGradientLikeAt [T2Space M] [SigmaCompactSpace
           (hδ y).1.le ((hδ y).2 x hy) (hg x y (interior_subset (hVU x hy)))⟩⟩
   exact ⟨G, δ, δ.continuous, fun y ↦ (hδ y).1,
     fun y ↦ (inner_mem_gradientLikeCondition_iff G (hδ y).1.le y).1 (hG y)⟩
+
+/-- **A global criterion on a normed space.** On a finite-dimensional real normed space `E`, a
+field `X` is gradient-like for `f` if `c * (‖X x‖ ^ 2 + ‖df_x‖ ^ 2) ≤ df_x (X x)` for a constant
+`c > 0` and every `x`, the norms being those of `E` and the operator norm. -/
+theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0 < c)
+    (h : ∀ x, c * (‖X x‖ ^ 2 + ‖fderiv ℝ f x‖ ^ 2) ≤ fderiv ℝ f x (X x)) :
+    IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) :=
+  isGradientLike_of_forall_isGradientLikeAt fun _ ↦
+    isGradientLikeAt_of_eventually_mul_le hc (.of_forall h)
 
 omit [FiniteDimensional ℝ E] [IsManifold 𝓘(ℝ, E) ∞ M] in
 /-- The condition `gradientLikeCondition` is carried back along a linear map `L : T_x M → T_y M'`

@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Model
 public import TauCeti.Analysis.ODE.Linear
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
+import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.ODE.Linear
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalCoordinates
@@ -95,9 +96,13 @@ it is gradient-like near the core for a function extending a given one.
   condition is read with the norms of the model spaces
   (`TauCeti.IsGradientLikeAt.exists_pos_eventually_mul_le` and
   `TauCeti.isGradientLikeAt_of_eventually_mul_le`): near `ι₀ x₀`,
-  `dψ̂ (Ŷ) = dψ (Y) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`, the middle term is at least a multiple of
-  `‖y‖ ^ 2` since `DY(x)` stays close to `DY(x₀)`, while `‖Ŷ‖` and `‖dψ̂‖` are bounded by
-  multiples of `‖Y x‖ + ‖y‖ + ‖w‖` and `‖dψ_x‖ + ‖y‖ + ‖w‖`. Without the hypothesis on `P` the
+  `dψ̂ (Ŷ) = dψ (Y) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`
+  (`SymplecticGeometry.fderiv_isotropicLiftFunction_isotropicLiftField`), the middle term is at
+  least a multiple of `‖y‖ ^ 2`, since `P` stays a uniform Lyapunov form of `I - DY(x)ᵀ` for `x`
+  near `x₀` (Tau Ceti's `IsCompact.eventually_forall_mul_norm_sq_le`), while `‖Ŷ‖` and `‖dψ̂‖`
+  are bounded by multiples of `‖Y x‖ + ‖y‖ + ‖w‖` and `‖dψ_x‖ + ‖y‖ + ‖w‖`
+  (`SymplecticGeometry.norm_isotropicLiftField_le` and
+  `SymplecticGeometry.norm_fderiv_isotropicLiftFunction_le`). Without the hypothesis on `P` the
   conclusion fails, as the entry of `design/stein-weinstein.md` for this file shows.
 
 In the book the lift is `p ∂_p + z ∂_z / 2 + X_H` on `T^*ℝᵏ × ℂᵐ`, with `H = ⟨p, Y(q)⟩`. Tau
@@ -558,6 +563,85 @@ theorem contDiff_isotropicLiftFunction {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
   rw [show isotropicLiftFunction m ψ P = _ from funext (isotropicLiftFunction_apply ψ P)]
   exact ((hψ.comp he.fst).add ((P.contDiff.comp hy).clm_apply hy)).add (contDiff_snd.norm_sq ℝ)
 
+/-- **The derivative of the lifted function along the lift**: at `(x + i y, w)`,
+`dψ̂ (Ŷ) = dψ_x (Y x) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`, when `P` is symmetric and `ψ` is
+differentiable at `x`. -/
+theorem fderiv_isotropicLiftFunction_isotropicLiftField {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
+    {P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ}
+    (hPsymm : ∀ u v, P u v = P v u) (Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k))
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hψ : DifferentiableAt ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1) :
+    fderiv ℝ (isotropicLiftFunction m ψ P) p (isotropicLiftField m Y p) =
+      fderiv ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1
+          (Y (complexEuclideanEquivRealProd (Fin k) p.1).1) +
+        2 * P (complexEuclideanEquivRealProd (Fin k) p.1).2
+          ((complexEuclideanEquivRealProd (Fin k) p.1).2 -
+            (fderiv ℝ Y (complexEuclideanEquivRealProd (Fin k) p.1).1).adjoint
+              (complexEuclideanEquivRealProd (Fin k) p.1).2) +
+        ‖p.2‖ ^ 2 := by
+  rw [fderiv_isotropicLiftFunction_apply P hψ,
+    complexEuclideanEquivRealProd_isotropicLiftField_fst, isotropicLiftField_apply_snd,
+    real_inner_smul_right, real_inner_self_eq_norm_sq,
+    hPsymm _ (complexEuclideanEquivRealProd (Fin k) p.1).2]
+  ring
+
+/-- The lift at `(x + i y, w)` has norm at most `‖Y x‖ + (1 + ‖DY(x)‖) ‖y‖ + ‖w‖`. -/
+theorem norm_isotropicLiftField_le (Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k))
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    ‖isotropicLiftField m Y p‖ ≤ ‖Y (complexEuclideanEquivRealProd (Fin k) p.1).1‖ +
+      (1 + ‖fderiv ℝ Y (complexEuclideanEquivRealProd (Fin k) p.1).1‖) *
+        ‖(complexEuclideanEquivRealProd (Fin k) p.1).2‖ + ‖p.2‖ := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  set A := fderiv ℝ Y (e p.1).1
+  set y := (e p.1).2
+  have hz : ‖y - A.adjoint y‖ ≤ (1 + ‖A‖) * ‖y‖ := by
+    have := A.adjoint.le_opNorm y
+    rw [LinearIsometryEquiv.norm_map] at this
+    linarith [norm_sub_le y (A.adjoint y)]
+  have h₁ : ‖(isotropicLiftField m Y p).1‖ ≤ ‖Y (e p.1).1‖ + (1 + ‖A‖) * ‖y‖ := by
+    have h := norm_complexEuclideanEquivRealProd_symm_sq (e (isotropicLiftField m Y p).1)
+    rw [ContinuousLinearEquiv.symm_apply_apply,
+      complexEuclideanEquivRealProd_isotropicLiftField_fst] at h
+    refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
+    rw [h]
+    nlinarith [norm_nonneg (Y (e p.1).1), norm_nonneg (y - A.adjoint y)]
+  have h₂ : ‖(isotropicLiftField m Y p).2‖ ≤ ‖p.2‖ := by
+    rw [isotropicLiftField_apply_snd, norm_smul]
+    norm_num
+    linarith [norm_nonneg p.2]
+  have := norm_nonneg (Y (e p.1).1)
+  have : 0 ≤ (1 + ‖A‖) * ‖y‖ := by positivity
+  exact norm_prod_le_iff.2 ⟨h₁.trans (by linarith [norm_nonneg p.2]), h₂.trans (by linarith)⟩
+
+/-- The derivative of `ψ̂ (x + i y, w) = ψ x + P (y, y) + ‖w‖ ^ 2` at `(x + i y, w)` has norm at
+most `‖dψ_x‖ + 2 ‖P‖ ‖y‖ + 2 ‖w‖`, when `ψ` is differentiable at `x`. -/
+theorem norm_fderiv_isotropicLiftFunction_le {ψ : EuclideanSpace ℝ (Fin k) → ℝ}
+    (P : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) →L[ℝ] ℝ)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hψ : DifferentiableAt ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1) :
+    ‖fderiv ℝ (isotropicLiftFunction m ψ P) p‖ ≤
+      ‖fderiv ℝ ψ (complexEuclideanEquivRealProd (Fin k) p.1).1‖ +
+        2 * ‖P‖ * ‖(complexEuclideanEquivRealProd (Fin k) p.1).2‖ + 2 * ‖p.2‖ := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  set y := (e p.1).2
+  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
+  rw [fderiv_isotropicLiftFunction_apply P hψ]
+  have hx : ‖(e u.1).1‖ ≤ ‖u‖ :=
+    (norm_complexEuclideanEquivRealProd_fst_le u.1).trans (norm_fst_le u)
+  have hy : ‖(e u.1).2‖ ≤ ‖u‖ :=
+    (norm_complexEuclideanEquivRealProd_snd_le u.1).trans (norm_fst_le u)
+  have h₁ : ‖fderiv ℝ ψ (e p.1).1 (e u.1).1‖ ≤ ‖fderiv ℝ ψ (e p.1).1‖ * ‖u‖ :=
+    ((fderiv ℝ ψ (e p.1).1).le_opNorm _).trans (by gcongr)
+  have h₂ : ‖P (e u.1).2 y‖ ≤ ‖P‖ * ‖y‖ * ‖u‖ :=
+    (P.le_opNorm₂ _ _).trans (by rw [mul_right_comm]; gcongr)
+  have h₃ : ‖P y (e u.1).2‖ ≤ ‖P‖ * ‖y‖ * ‖u‖ := (P.le_opNorm₂ _ _).trans (by gcongr)
+  have h₄ : ‖2 * ⟪p.2, u.2⟫_ℝ‖ ≤ 2 * ‖p.2‖ * ‖u‖ := by
+    rw [norm_mul, Real.norm_two, Real.norm_eq_abs, mul_assoc]
+    gcongr
+    exact (abs_real_inner_le_norm _ _).trans (by gcongr; exact norm_snd_le u)
+  linarith [norm_add₄_le (a := fderiv ℝ ψ (e p.1).1 (e u.1).1) (b := P (e u.1).2 y)
+    (c := P y (e u.1).2) (d := 2 * ⟪p.2, u.2⟫_ℝ)]
+
 /-- The final estimate of `isGradientLikeAt_isotropicLiftField_modelDisc_of_eq_zero`: if
 `A ≤ M (a + r + s)`, `B ≤ M (b + r + s)` and `κ (a² + b² + r² + s²) ≤ L`, then
 `κ / (6 M²) (A² + B²) ≤ L`. -/
@@ -593,155 +677,72 @@ private theorem isGradientLikeAt_isotropicLiftField_modelDisc_of_eq_zero
         (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →
           TangentSpace 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) p)
       (modelDisc k m x₀) := by
-  set e := complexEuclideanEquivRealProd (Fin k)
+  set e := complexEuclideanEquivRealProd (Fin k) with he
   set A₀ := fderiv ℝ Y x₀
   obtain ⟨c₀, hc₀, hev⟩ := hYψ.exists_pos_eventually_mul_le
-  -- `P` is a uniform Lyapunov form of `I - A₀ᵀ`, and stays one for `I - DY(x)ᵀ`, `x` near `x₀`.
+  -- `P` is a uniform Lyapunov form of `I - A₀ᵀ`, and of `I - DY(x)ᵀ` for `x` near `x₀`.
   obtain ⟨c₁, hc₁, hc₁P⟩ := isCompact_singleton.exists_pos_forall_mul_norm_sq_le_compRight P
     (T := {ContinuousLinearMap.id ℝ _ - A₀.adjoint}) (by simpa using hP)
-  have hP₁ (y : EuclideanSpace ℝ (Fin k)) : c₁ * ‖y‖ ^ 2 ≤ P y (y - A₀.adjoint y) := by
-    simpa using hc₁P _ rfl y
-  set δ := min (c₁ / (2 * (‖P‖ + 1))) 1
-  have hδ : 0 < δ := lt_min (by positivity) one_pos
-  have hA : ∀ᶠ x in 𝓝 x₀, ‖fderiv ℝ Y x - A₀‖ < δ :=
-    (hY.continuous_fderiv one_ne_zero).continuousAt.eventually
-      (Metric.ball_mem_nhds A₀ hδ) |>.mono fun x hx ↦ by rwa [dist_eq_norm] at hx
+  have hDY := hY.continuous_fderiv one_ne_zero
+  have hPx : ∀ᶠ x in 𝓝 x₀, ∀ y, c₁ / 2 * ‖y‖ ^ 2 ≤ P y (y - (fderiv ℝ Y x).adjoint y) := by
+    set T := fun B : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k) ↦
+      ((ContinuousLinearMap.compL ℝ (EuclideanSpace ℝ (Fin k)) (EuclideanSpace ℝ (Fin k))
+        ℝ).flip B).comp P
+    have hT (B : EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℝ (Fin k)) (u v) :
+        T B u v = P u (B v) := by simp [T]
+    have hTc : Continuous T :=
+      (ContinuousLinearMap.compL ℝ (EuclideanSpace ℝ (Fin k)) (EuclideanSpace ℝ (Fin k))
+        ℝ).flip.continuous.clm_comp continuous_const
+    have h := (isCompact_singleton (x := ())).eventually_forall_mul_norm_sq_le
+      (b := fun q ↦ T q.2) (hTc.comp continuous_snd).continuousOn
+      (mem_univ (ContinuousLinearMap.id ℝ _ - A₀.adjoint)) (half_lt_self hc₁)
+      (fun _ _ v ↦ by simpa [hT] using hc₁P _ rfl v)
+    rw [nhdsWithin_univ] at h
+    have hB : Continuous fun x ↦
+        ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin k)) - (fderiv ℝ Y x).adjoint :=
+      continuous_const.sub (ContinuousLinearMap.adjoint.continuous.comp hDY)
+    filter_upwards [hB.continuousAt.eventually h] with x hx y
+    simpa [hT] using hx () rfl y
+  have hA : ∀ᶠ x in 𝓝 x₀, ‖fderiv ℝ Y x‖ ≤ ‖A₀‖ + 1 :=
+    (hDY.norm.continuousAt.eventually_lt continuousAt_const (lt_add_one ‖A₀‖)).mono
+      fun _ h ↦ h.le
   -- Everything is pulled back along `p ↦ x`, which sends `ι₀ x₀` to `x₀`.
   have hx : Filter.Tendsto (fun p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
       (e p.1).1) (𝓝 (modelDisc k m x₀)) (𝓝 x₀) := by
     have := ((e.continuous.comp continuous_fst).fst).tendsto (modelDisc k m x₀)
     rwa [Function.comp_apply, complexEuclideanEquivRealProd_modelDisc_fst] at this
-  set Ce := ‖e.toContinuousLinearMap‖
-  set Cs := ‖e.symm.toContinuousLinearMap‖
-  set D := ‖A₀‖ + 1
-  set M := Cs * (1 + D) + Ce * (1 + 2 * ‖P‖) + 2
+  set M := 2 + ‖A₀‖ + 2 * ‖P‖
   have hM : 0 < M := by positivity
+  have hκ : 0 ≤ min c₀ (min c₁ 1) := le_min hc₀.le (le_min hc₁.le zero_le_one)
   refine isGradientLikeAt_of_eventually_mul_le (c := min c₀ (min c₁ 1) / (6 * M ^ 2))
     (by positivity) ?_
-  filter_upwards [hx.eventually hev, hx.eventually hA] with p hpψ hpA
-  set x := (e p.1).1
-  set y := (e p.1).2
-  set w := p.2
-  set A := fderiv ℝ Y x
-  have hAA : ‖A.adjoint - A₀.adjoint‖ < δ := by
-    rwa [← map_sub, LinearIsometryEquiv.norm_map]
-  have hAD : ‖A.adjoint‖ ≤ D := by
-    rw [LinearIsometryEquiv.norm_map]
-    have := norm_sub_norm_le A A₀
-    linarith [min_le_right (c₁ / (2 * (‖P‖ + 1))) 1]
-  -- The lower bound: `dψ̂ (Ŷ) = dψ (Y) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`.
-  have hPy : c₁ / 2 * ‖y‖ ^ 2 ≤ P y (y - A.adjoint y) := by
-    have h₁ : y - A.adjoint y = (y - A₀.adjoint y) - (A.adjoint - A₀.adjoint) y := by
-      simp only [sub_apply]; abel
-    have h₂ : |P y ((A.adjoint - A₀.adjoint) y)| ≤ ‖P‖ * δ * ‖y‖ ^ 2 := by
-      calc |P y ((A.adjoint - A₀.adjoint) y)| ≤ ‖P‖ * ‖y‖ * ‖(A.adjoint - A₀.adjoint) y‖ :=
-            P.le_opNorm₂ _ _
-        _ ≤ ‖P‖ * ‖y‖ * (δ * ‖y‖) := by
-            gcongr
-            exact ((A.adjoint - A₀.adjoint).le_opNorm y).trans (by gcongr)
-        _ = _ := by ring
-    have h₃ : ‖P‖ * δ ≤ c₁ / 2 := by
-      calc ‖P‖ * δ ≤ ‖P‖ * (c₁ / (2 * (‖P‖ + 1))) := by gcongr; exact min_le_left _ _
-        _ ≤ (‖P‖ + 1) * (c₁ / (2 * (‖P‖ + 1))) := by gcongr; linarith
-        _ = c₁ / 2 := by field_simp
-    rw [h₁, map_sub]
-    have := abs_le.1 h₂
-    nlinarith [hP₁ y, sq_nonneg ‖y‖]
-  have hdψ : DifferentiableAt ℝ ψ x := hψ.differentiable one_ne_zero x
-  have hval : fderiv ℝ (isotropicLiftFunction m ψ P) p (isotropicLiftField m Y p) =
-      fderiv ℝ ψ x (Y x) + 2 * P y (y - A.adjoint y) + ‖w‖ ^ 2 := by
-    rw [fderiv_isotropicLiftFunction_apply P hdψ,
-      complexEuclideanEquivRealProd_isotropicLiftField_fst,
-      isotropicLiftField_apply_snd, real_inner_smul_right, real_inner_self_eq_norm_sq, hPsymm _ y]
-    ring
-  set a := ‖Y x‖
-  set b := ‖fderiv ℝ ψ x‖
-  set r := ‖y‖
-  set s := ‖w‖
-  have hlow : min c₀ (min c₁ 1) * (a ^ 2 + b ^ 2 + r ^ 2 + s ^ 2) ≤
+  filter_upwards [hx.eventually hev, hx.eventually hPx, hx.eventually hA] with p hpψ hpP hpA
+  have hdψ : DifferentiableAt ℝ ψ (e p.1).1 := hψ.differentiable one_ne_zero _
+  -- The lower bound, from `dψ̂ (Ŷ) = dψ (Y) + 2 P (y, y - DY(x)ᵀ y) + ‖w‖ ^ 2`.
+  have hlow : min c₀ (min c₁ 1) *
+      (‖Y (e p.1).1‖ ^ 2 + ‖fderiv ℝ ψ (e p.1).1‖ ^ 2 + ‖(e p.1).2‖ ^ 2 + ‖p.2‖ ^ 2) ≤
       fderiv ℝ (isotropicLiftFunction m ψ P) p (isotropicLiftField m Y p) := by
-    rw [hval]
+    rw [fderiv_isotropicLiftFunction_isotropicLiftField hPsymm Y hdψ]
     have h₁ := min_le_left c₀ (min c₁ 1)
     have h₂ := (min_le_right c₀ (min c₁ 1)).trans (min_le_left c₁ 1)
     have h₃ := (min_le_right c₀ (min c₁ 1)).trans (min_le_right c₁ 1)
-    nlinarith [sq_nonneg a, sq_nonneg b, sq_nonneg r, sq_nonneg s, hpψ, hPy]
-  -- The upper bounds: `‖Ŷ p‖ ≤ M (a + r + s)` and `‖dψ̂_p‖ ≤ M (b + r + s)`.
-  have hz : ‖y - A.adjoint y‖ ≤ (1 + D) * r :=
-    (norm_sub_le _ _).trans (by
-      have := (A.adjoint.le_opNorm y).trans (mul_le_mul_of_nonneg_right hAD (norm_nonneg y))
-      linarith)
-  have hYp : ‖isotropicLiftField m Y p‖ ≤ M * (a + r + s) := by
-    have h₁ : ‖(isotropicLiftField m Y p).1‖ ≤ Cs * (a + (1 + D) * r) := by
-      have h := e.symm.toContinuousLinearMap.le_opNorm (Y x, y - A.adjoint y)
-      rw [isotropicLiftField_apply]
-      refine h.trans (mul_le_mul_of_nonneg_left ((norm_prod_le_iff.2 ⟨?_, ?_⟩)) (norm_nonneg _))
-      · have : 0 ≤ (1 + D) * r := by positivity
-        linarith
-      · have := norm_nonneg (Y x)
-        linarith
-    have h₂ : ‖(isotropicLiftField m Y p).2‖ ≤ s := by
-      rw [isotropicLiftField_apply_snd, norm_smul]
-      have := norm_nonneg w
-      norm_num
-      linarith
-    have hCD : Cs * (1 + D) ≤ M := by
-      have : 0 ≤ Ce * (1 + 2 * ‖P‖) := by positivity
-      linarith
-    have hD0 : 0 ≤ D := add_nonneg (norm_nonneg _) zero_le_one
-    have hCs : Cs ≤ M :=
-      le_trans (le_mul_of_one_le_right (norm_nonneg _) (by linarith)) hCD
-    have h1M : 1 ≤ M := by
-      have : 0 ≤ Cs * (1 + D) + Ce * (1 + 2 * ‖P‖) := by positivity
-      linarith
-    have ha := mul_le_mul_of_nonneg_right hCs (norm_nonneg (Y x))
-    have hr := mul_le_mul_of_nonneg_right hCD (norm_nonneg y)
-    have hs := mul_le_mul_of_nonneg_right h1M (norm_nonneg w)
-    have : 0 ≤ M * a := by positivity
-    have : 0 ≤ M * r := by positivity
-    have : 0 ≤ M * s := by positivity
-    refine norm_prod_le_iff.2 ⟨h₁.trans ?_, h₂.trans ?_⟩
-    · linear_combination ha + hr + this
-    · linarith
-  have hdp : ‖fderiv ℝ (isotropicLiftFunction m ψ P) p‖ ≤ M * (b + r + s) := by
-    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-    rw [fderiv_isotropicLiftFunction_apply P hdψ, hPsymm (e u.1).2 y]
-    have hu₁ : ‖e u.1‖ ≤ Ce * ‖u‖ :=
-      (e.toContinuousLinearMap.le_opNorm u.1).trans (by gcongr; exact norm_fst_le u)
-    have hx₁ : ‖(e u.1).1‖ ≤ Ce * ‖u‖ := (norm_fst_le _).trans hu₁
-    have hy₁ : ‖(e u.1).2‖ ≤ Ce * ‖u‖ := (norm_snd_le _).trans hu₁
-    have h₁ : |fderiv ℝ ψ x (e u.1).1| ≤ b * (Ce * ‖u‖) :=
-      ((fderiv ℝ ψ x).le_opNorm _).trans (by gcongr)
-    have h₂ : |P y (e u.1).2| ≤ ‖P‖ * r * (Ce * ‖u‖) :=
-      (P.le_opNorm₂ _ _).trans (by gcongr)
-    have h₃ : |⟪w, u.2⟫_ℝ| ≤ s * ‖u‖ :=
-      (abs_real_inner_le_norm _ _).trans (by gcongr; exact norm_snd_le u)
-    have habs (a b c d : ℝ) : |a + b + c + d| ≤ |a| + |b| + |c| + |d| := by
-      have := abs_add_le (a + b + c) d
-      have := abs_add_le (a + b) c
-      have := abs_add_le a b
-      linarith
-    have hCe : 0 ≤ Ce := norm_nonneg _
-    have m₁ : Ce ≤ M := by
-      have : 0 ≤ Cs * (1 + D) := by positivity
-      nlinarith [norm_nonneg P]
-    have m₂ : 2 * ‖P‖ * Ce ≤ M := by
-      have : 0 ≤ Cs * (1 + D) := by positivity
-      nlinarith [norm_nonneg P]
-    have m₃ : (2 : ℝ) ≤ M := by
-      have : 0 ≤ Cs * (1 + D) + Ce * (1 + 2 * ‖P‖) := by positivity
-      linarith
-    rw [Real.norm_eq_abs]
-    calc _ ≤ b * (Ce * ‖u‖) + ‖P‖ * r * (Ce * ‖u‖) + ‖P‖ * r * (Ce * ‖u‖) + 2 * (s * ‖u‖) := by
-          refine (habs _ _ _ _).trans (add_le_add (add_le_add (add_le_add h₁ h₂) h₂) ?_)
-          rw [abs_mul, abs_two]
-          gcongr
-      _ = Ce * (b * ‖u‖) + 2 * ‖P‖ * Ce * (r * ‖u‖) + 2 * (s * ‖u‖) := by ring
-      _ ≤ M * (b * ‖u‖) + M * (r * ‖u‖) + M * (s * ‖u‖) := by
-          gcongr
-      _ = M * (b + r + s) * ‖u‖ := by ring
-  exact div_mul_sq_add_sq_le (norm_nonneg _) (norm_nonneg _) hM
-    (le_min hc₀.le (le_min hc₁.le zero_le_one)) hYp hdp hlow
-
+    nlinarith [sq_nonneg ‖Y (e p.1).1‖, sq_nonneg ‖fderiv ℝ ψ (e p.1).1‖,
+      sq_nonneg ‖(e p.1).2‖, sq_nonneg ‖p.2‖, hpP (e p.1).2]
+  -- The upper bounds on `‖Ŷ‖` and `‖dψ̂‖`.
+  have ha := norm_nonneg (Y (e p.1).1)
+  have hb := norm_nonneg (fderiv ℝ ψ (e p.1).1)
+  have hr := norm_nonneg (e p.1).2
+  have hs := norm_nonneg p.2
+  have hP0 := norm_nonneg P
+  refine div_mul_sq_add_sq_le (norm_nonneg _) (norm_nonneg _) hM hκ
+    ((norm_isotropicLiftField_le Y p).trans ?_)
+    ((norm_fderiv_isotropicLiftFunction_le P hdψ).trans ?_) hlow
+  · rw [← he]
+    nlinarith [mul_le_mul_of_nonneg_right hpA hr, mul_nonneg (norm_nonneg A₀) ha,
+      mul_nonneg hP0 ha, mul_nonneg hP0 hr, mul_nonneg (norm_nonneg A₀) hs, mul_nonneg hP0 hs]
+  · rw [← he]
+    nlinarith [mul_nonneg (norm_nonneg A₀) hb, mul_nonneg hP0 hb, mul_nonneg (norm_nonneg A₀) hr,
+      mul_nonneg (norm_nonneg A₀) hs]
 
 /-- **The Liouville lift is gradient-like near a point of the core.** Let `Y` be a `C¹` field on
 `ℝᵏ`, gradient-like for a `C¹` function `ψ` near `x₀`, and let `P` be a symmetric bilinear form on
