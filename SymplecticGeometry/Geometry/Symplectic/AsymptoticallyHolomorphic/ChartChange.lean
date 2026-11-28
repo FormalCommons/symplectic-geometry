@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.FrameChange
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # Jet norms under a change of rescaled unitary chart
@@ -621,8 +622,7 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Bo
     linarith
   obtain ⟨hry, hdry⟩ := hsk y
   have hdiff : ∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k y (s k)) w :=
-    ((hry.of_le (by simp : ((1 : ℕ∞) : WithTop ℕ∞) ≤ ∞)).eventually (by simp)).mono
-      fun w hw ↦ hw.differentiableAt (by simp)
+    hry.eventually_differentiableAt (by exact_mod_cast le_top)
   obtain ⟨hJy, hDJy⟩ := hCsk y
   have hJ0 := D.jetNorm_nonneg k r (s k) y
   have hDJ0 := D.dbarJetNorm_nonneg k r (s k) y

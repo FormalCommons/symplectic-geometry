@@ -215,7 +215,6 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
       (VectorBundleOrientation.complex ℂ J.Fiber)
   set e := trivializationAt ℂ J.Fiber z
   have hze : z ∈ e.baseSet := mem_baseSet_trivializationAt ℂ J.Fiber z
-  have : FiniteDimensional ℝ (TangentSpace 𝓘(ℝ, EM) z) := inferInstanceAs (FiniteDimensional ℝ EM)
   have : FiniteDimensional ℝ (J.Fiber z) := VectorBundle.finiteDimensional ℝ ℂ J.Fiber z
   have hrank : finrank ℝ (TangentSpace 𝓘(ℝ, EM) z) = finrank ℝ (J.Fiber z) := by
     rw [VectorBundle.finrank_eq ℝ ℂ J.Fiber z, Complex.finrank_real_complex]

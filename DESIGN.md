@@ -3487,9 +3487,10 @@ Differential topology and complex analysis only; it waits for no part of
   computed from $d\tau$),
   `Curvature.lean` (the curvature identity
   $\iota(\Omega_\Gamma(v_1,v_2))\tau=d(\tau(v_1^\sharp,v_2^\sharp))-\iota(v_2^\sharp)\iota(v_1^\sharp)d\tau$
-  on fibres; the local formula for $\Omega_\Gamma(\partial_i,\partial_j)$;
-  and the equivalence of Hamiltonian holonomy around contractible loops,
-  Hamiltonian curvature and exactness of $\partial_i\alpha_j-\partial_j\alpha_i$),
+  on fibres; the local formula for $\Omega_\Gamma(\partial_i,\partial_j)$),
+  `HamiltonianHolonomy.lean` (the equivalence of Hamiltonian holonomy
+  around contractible loops, Hamiltonian curvature and exactness of
+  $\partial_i\alpha_j-\partial_j\alpha_i$),
   `Coupling.lean` (the coupling form: existence of a closed connection
   two-form exactly under Hamiltonian holonomy around contractible loops,
   the normalization $\int_F\tau_\Gamma^{k+1}=0$, its equivalence with
@@ -4072,7 +4073,7 @@ behind.
 | 2 | *Stein and Weinstein structures* | *Asymptotically holomorphic sections* (only for `Complement/`); the other files can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
-| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
+| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence, in `HamiltonianHolonomy.lean`, also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
 | 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum/Basic.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
@@ -4280,7 +4281,7 @@ existing inputs.
 | *Dehn twist along a framed Lagrangian sphere* | *Dehn twists*, on the merged Lagrangian neighbourhood theorem `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`. |
 | *Coupling form of a symplectic connection* | *Coupling forms* (`Coupling.lean`), with *Flux homomorphism* for McDuff–Salamon, Proposition 10.2.12. |
 | *Compatible symplectic forms for fibrations with simply connected fibre* | *Coupling forms* (`SimplyConnected.lean`), with Thurston's theorem of *Compatible symplectic forms*. |
-| *Curvature identity for symplectic connections* | *Coupling forms* (`Curvature.lean`), with the countability of the flux group from *Flux homomorphism*. |
+| *Curvature identity for symplectic connections* | *Coupling forms* (`Curvature.lean` and `HamiltonianHolonomy.lean`), with the countability of the flux group from *Flux homomorphism*. |
 | *Characterization of Hamiltonian fibrations* | *Hamiltonian fibrations*. |
 
 ### `auxiliary/diffeomorphisms-of-the-2-sphere.md`
