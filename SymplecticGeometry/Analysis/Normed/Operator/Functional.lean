@@ -20,15 +20,18 @@ Let `ℓ` be a continuous real linear functional on a seminormed space and `v` a
 are what a gradient-like vector field `v` for a function with differential `ℓ` satisfies, as in the
 proof of Proposition 9.23 of [CieliebakEliashberg2012].
 
+The file also shows that the inequality survives, with half the constant, when one passes to a
+convex combination of two functionals or of two vectors that satisfy it and adds a small error.
+
 ## Main results
 
 * `ContinuousLinearMap.mul_norm_le_opNorm_of_mul_le_apply`: `c ‖v‖ ≤ ‖ℓ‖`.
 * `ContinuousLinearMap.mul_opNorm_le_norm_of_mul_le_apply`: `c ‖ℓ‖ ≤ ‖v‖`.
 * `ContinuousLinearMap.norm_sub_le_of_mul_le_apply`: if `ℓ` and `ℓ'` both satisfy the inequality
   for the same `v` and `c > 0`, then `‖ℓ' - ℓ‖ ≤ (1 + 1 / c²) ‖ℓ‖`.
-* `ContinuousLinearMap.mul_le_apply_one_sub_smul_add_smul_add_of_le`: for a functional `φ`, a
-  perturbed convex combination of two vectors that satisfy an inequality of this shape satisfies
-  it with the constant `c / 2`, if the error is small.
+* `mul_le_apply_one_sub_smul_add_smul_add_of_le`: for a real linear functional `φ`, not
+  necessarily continuous, a perturbed convex combination of two vectors that satisfy an
+  inequality of this shape satisfies it with the constant `c / 2`, if the error is small.
 * `ContinuousLinearMap.mul_le_one_sub_smul_add_smul_add_apply`: a convex combination of two
   functionals that satisfy the inequality for the same `v`, plus an error small relative to the
   first, satisfies it with the constant `c / 2`.
@@ -42,6 +45,40 @@ proof of Proposition 9.23 of [CieliebakEliashberg2012].
 -/
 
 public section
+
+section LinearMapClass
+
+variable {E : Type*} [SeminormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- **The gradient-like inequality for a perturbed convex combination, abstractly.** Let `φ` be
+a real linear functional on `E`, not necessarily continuous, let `c ≥ 0` and `Z : ℝ`, and let
+`x y : E` satisfy `c (‖x‖² + Z²) ≤ φ x` and `c (‖y‖² + Z²) ≤ φ y`. Let `s ∈ [0, 1]`, and let
+`e : E` be an error with `-(‖e‖ Z) ≤ φ e` and `c ‖e‖² + ‖e‖ Z ≤ c / 2 * Z²`. Then
+`u = (1 - s) • x + s • y + e` satisfies `c / 2 * (‖u‖² + Z²) ≤ φ u`. -/
+theorem mul_le_apply_one_sub_smul_add_smul_add_of_le {F : Type*} [FunLike F E ℝ]
+    [LinearMapClass F ℝ E ℝ] {φ : F} {x y e : E} {c s Z : ℝ}
+    (hc : 0 ≤ c) (hs : s ∈ Set.Icc (0 : ℝ) 1) (hx : c * (‖x‖ ^ 2 + Z ^ 2) ≤ φ x)
+    (hy : c * (‖y‖ ^ 2 + Z ^ 2) ≤ φ y) (he : -(‖e‖ * Z) ≤ φ e)
+    (he' : c * ‖e‖ ^ 2 + ‖e‖ * Z ≤ c / 2 * Z ^ 2) :
+    c / 2 * (‖(1 - s) • x + s • y + e‖ ^ 2 + Z ^ 2) ≤ φ ((1 - s) • x + s • y + e) := by
+  obtain ⟨hs0, hs1⟩ := hs
+  set u := (1 - s) • x + s • y
+  -- The convex combination satisfies the inequality with the constant `c`.
+  have hu : c * (‖u‖ ^ 2 + Z ^ 2) ≤ φ u := by
+    have hφu : φ u = (1 - s) * φ x + s * φ y := by simp [u]
+    have hsq : ‖u‖ ^ 2 ≤ (1 - s) * ‖x‖ ^ 2 + s * ‖y‖ ^ 2 := by
+      have hconv : ConvexOn ℝ Set.univ fun x : E ↦ ‖x‖ ^ 2 :=
+        (convexOn_norm convex_univ).pow (fun _ _ ↦ norm_nonneg _) 2
+      simpa using hconv.2 (Set.mem_univ x) (Set.mem_univ y) (sub_nonneg.2 hs1) hs0 (by ring)
+    rw [hφu]
+    nlinarith [mul_le_mul_of_nonneg_left hx (sub_nonneg.2 hs1), mul_le_mul_of_nonneg_left hy hs0]
+  -- The error costs at most half of the constant.
+  have hn : ‖u + e‖ ^ 2 ≤ 2 * (‖u‖ ^ 2 + ‖e‖ ^ 2) :=
+    (pow_le_pow_left₀ (norm_nonneg _) (norm_add_le u e) 2).trans (add_sq_le ..)
+  rw [map_add]
+  nlinarith [mul_le_mul_of_nonneg_left hn hc]
+
+end LinearMapClass
 
 namespace ContinuousLinearMap
 
@@ -81,33 +118,6 @@ theorem norm_sub_le_of_mul_le_apply (hc : 0 < c) (h : c * (‖v‖ ^ 2 + ‖ℓ�
     nlinarith
   calc ‖ℓ' - ℓ‖ ≤ ‖ℓ'‖ + ‖ℓ‖ := norm_sub_le _ _
     _ ≤ _ := by linarith
-
-/-- **The gradient-like inequality for a perturbed convex combination, abstractly.** Let
-`φ : E →L[ℝ] ℝ`, `c ≥ 0` and `Z : ℝ`, and let `x y : E` satisfy `c (‖x‖² + Z²) ≤ φ x` and
-`c (‖y‖² + Z²) ≤ φ y`. Let `s ∈ [0, 1]`, and let `e : E` be an error with `-(‖e‖ Z) ≤ φ e` and
-`c ‖e‖² + ‖e‖ Z ≤ c / 2 * Z²`. Then `u = (1 - s) • x + s • y + e` satisfies
-`c / 2 * (‖u‖² + Z²) ≤ φ u`. -/
-theorem mul_le_apply_one_sub_smul_add_smul_add_of_le {φ : E →L[ℝ] ℝ} {x y e : E} {s Z : ℝ}
-    (hc : 0 ≤ c) (hs : s ∈ Set.Icc (0 : ℝ) 1) (hx : c * (‖x‖ ^ 2 + Z ^ 2) ≤ φ x)
-    (hy : c * (‖y‖ ^ 2 + Z ^ 2) ≤ φ y) (he : -(‖e‖ * Z) ≤ φ e)
-    (he' : c * ‖e‖ ^ 2 + ‖e‖ * Z ≤ c / 2 * Z ^ 2) :
-    c / 2 * (‖(1 - s) • x + s • y + e‖ ^ 2 + Z ^ 2) ≤ φ ((1 - s) • x + s • y + e) := by
-  obtain ⟨hs0, hs1⟩ := hs
-  set u := (1 - s) • x + s • y
-  -- The convex combination satisfies the inequality with the constant `c`.
-  have hu : c * (‖u‖ ^ 2 + Z ^ 2) ≤ φ u := by
-    have hφu : φ u = (1 - s) * φ x + s * φ y := by simp [u]
-    have hsq : ‖u‖ ^ 2 ≤ (1 - s) * ‖x‖ ^ 2 + s * ‖y‖ ^ 2 := by
-      have hconv : ConvexOn ℝ Set.univ fun x : E ↦ ‖x‖ ^ 2 :=
-        (convexOn_norm convex_univ).pow (fun _ _ ↦ norm_nonneg _) 2
-      simpa using hconv.2 (Set.mem_univ x) (Set.mem_univ y) (sub_nonneg.2 hs1) hs0 (by ring)
-    rw [hφu]
-    nlinarith [mul_le_mul_of_nonneg_left hx (sub_nonneg.2 hs1), mul_le_mul_of_nonneg_left hy hs0]
-  -- The error costs at most half of the constant.
-  have hn : ‖u + e‖ ^ 2 ≤ 2 * (‖u‖ ^ 2 + ‖e‖ ^ 2) :=
-    (pow_le_pow_left₀ (norm_nonneg _) (norm_add_le u e) 2).trans (add_sq_le ..)
-  rw [map_add]
-  nlinarith [mul_le_mul_of_nonneg_left hn hc]
 
 /-- **The gradient-like inequality for a perturbed convex combination.** Let `a b : E →L[ℝ] ℝ`
 satisfy `c (‖v‖² + ‖a‖²) ≤ a v` and `c (‖v‖² + ‖b‖²) ≤ b v` with `c > 0`, let `s ∈ [0, 1]`,
