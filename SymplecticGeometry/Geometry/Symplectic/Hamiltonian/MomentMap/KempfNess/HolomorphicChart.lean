@@ -213,10 +213,10 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   have hAx : HasMFDerivAt I' 𝓘(ℝ, E') A x (ContinuousLinearMap.id ℝ E') :=
     hψs.hasMFDerivAt_integral_apply_inv_smul_of_smul_eq (IG := IK) (μ := μ) hσ ψ.open_source
       le_top hfix hxψ (fun k ↦ (hσk k).symm) hψd.mfderiv
-  -- The inverse function theorem makes `A` a chart `e₀` near `x`.
+  -- The inverse function theorem makes `A` a chart `Φ` near `x`.
   have hA : ContMDiffOn I' 𝓘(ℝ, E') ∞ A S :=
     hψs.integral_apply_inv_smul (IG := IK) (μ := μ) hσ ψ.open_source
-  obtain ⟨Φ, hxe₀, he₀S, hAΦ⟩ := (isLocalDiffeomorphAt_of_mfderiv_eq hA hS hxS
+  obtain ⟨Φ, hxΦ, hΦS, hAΦ⟩ := (isLocalDiffeomorphAt_of_mfderiv_eq hA hS hxS
     BoundarylessManifold.isInteriorPoint (by exact_mod_cast le_top)
     (e := ContinuousLinearEquiv.refl ℝ E') hAx.mfderiv.symm).exists_partialDiffeomorph_eqOn hS hxS
   have hΦA : EqOn Φ A Φ.source := fun y hy ↦ (hAΦ hy).symm
@@ -229,7 +229,7 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
   have hesource {y : M} : y ∈ e.source ↔ y ∈ S' := by
     simp only [e, PartialDiffeomorph.restrOpen_source, mem_inter_iff]
     exact ⟨And.right, fun h ↦ ⟨hS'source h, h⟩⟩
-  have hxS' : x ∈ S' := fun k ↦ by rw [hfix k]; exact hxe₀
+  have hxS' : x ∈ S' := fun k ↦ by rw [hfix k]; exact hxΦ
   have hS'smul {g : G} (hg : g ∈ stabilizer G x) {z : M} (hz : z ∈ S') : g • z ∈ S' := by
     intro k
     have h := hz (k * ⟨g, hg⟩)
@@ -252,7 +252,7 @@ theorem exists_equivariant_holomorphic_chart {J : SmoothAlmostComplexStructure I
     rw [← LinearizingChart.toPartialDiffeomorph_source] at hz
     rw [← LinearizingChart.coe_toPartialDiffeomorph, (heA hz).mfderiv_eq]
     exact hψs.mfderiv_integral_apply_inv_smul_apply_eq (IK := IK) hσ ψ.open_source le_top hψJ
-      hσJ (fun k v ↦ hJG k z v) (he₀S (hS'source (hesource.1 hz))) v
+      hσJ (fun k v ↦ hJG k z v) (hΦS (hS'source (hesource.1 hz))) v
 
 /-! ### Fundamental vector fields in the chart -/
 

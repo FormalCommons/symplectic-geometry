@@ -185,46 +185,73 @@ theorem toPartialDiffeomorph_source : e.toPartialDiffeomorph.source = e.chart.so
 theorem toPartialDiffeomorph_target : e.toPartialDiffeomorph.target = e.chart.target :=
   (rfl)
 
+/-- The base point lies in the source of a linearizing chart at it. -/
+@[simp]
+theorem mem_chart_source : x ∈ e.chart.source :=
+  e.mem_source
+
+/-- A linearizing chart at `x` sends `x` to `0`. -/
+@[simp]
+theorem chart_apply_self : e.chart x = 0 :=
+  e.apply_self
+
+/-- The source of a linearizing chart at `x` is invariant under the stabilizer of `x`. -/
+theorem smul_mem_chart_source {g : G} (hg : g ∈ stabilizer G x) {z : M}
+    (hz : z ∈ e.chart.source) : g • z ∈ e.chart.source :=
+  e.smul_mem_source g hg z hz
+
+/-- In a linearizing chart at `x`, an element `g` of the stabilizer of `x` acts by its
+differential at `x`. -/
+theorem chart_apply_smul {g : G} (hg : g ∈ stabilizer G x) {z : M} (hz : z ∈ e.chart.source) :
+    e.chart (g • z) = mfderiv I' I' (fun y : M ↦ g • y) x (e.chart z) :=
+  e.apply_smul g hg z hz
+
+/-- A linearizing chart is smooth on its source. -/
+theorem contMDiffOn_chart : ContMDiffOn I' 𝓘(ℝ, E') ∞ e.chart e.chart.source :=
+  e.toPartialDiffeomorph.contMDiffOn
+
+/-- The inverse of a linearizing chart is smooth on its target. -/
+theorem contMDiffOn_chart_symm : ContMDiffOn 𝓘(ℝ, E') I' ∞ e.chart.symm e.chart.target :=
+  e.toPartialDiffeomorph.symm.contMDiffOn
+
+/-- The inverse of a linearizing chart is differentiable at each point of its target. -/
+theorem mdifferentiableAt_chart_symm {v : E'} (hv : v ∈ e.chart.target) :
+    MDifferentiableAt 𝓘(ℝ, E') I' e.chart.symm v :=
+  e.toPartialDiffeomorph.symm.mdifferentiableAt (by simp) hv
+
 /-- The origin lies in the target of a linearizing chart. -/
-theorem zero_mem_target : (0 : E') ∈ e.chart.target := by
-  have h := e.apply_self
-  rw [coe_toPartialDiffeomorph] at h
-  exact h ▸ e.chart.map_source e.mem_source
+theorem zero_mem_target : (0 : E') ∈ e.chart.target :=
+  e.chart_apply_self ▸ e.chart.map_source e.mem_chart_source
 
 /-- The inverse of a linearizing chart at `x` sends `0` to `x`. -/
 @[simp]
 theorem symm_zero : e.chart.symm 0 = x := by
-  have h := e.apply_self
-  rw [coe_toPartialDiffeomorph] at h
-  rw [← h, e.chart.left_inv e.mem_source]
+  rw [← e.chart_apply_self, e.chart.left_inv e.mem_chart_source]
 
 /-- In a linearizing chart, the differential of `g` at `x` is `v ↦ e (g • e.symm v)` on the
 target. -/
 theorem mfderiv_smul_eq {g : G} (hg : g ∈ stabilizer G x) {v : E'} (hv : v ∈ e.chart.target) :
     mfderiv I' I' (fun y : M ↦ g • y) x v = e.chart (g • e.chart.symm v) := by
-  have h := e.apply_smul g hg _ (e.chart.map_target hv)
-  rw [coe_toPartialDiffeomorph] at h
-  rw [h, e.chart.right_inv hv]
+  rw [e.chart_apply_smul hg (e.chart.map_target hv), e.chart.right_inv hv]
 
 /-- The target of a linearizing chart is invariant under the differentials of the stabilizer. -/
 theorem mfderiv_smul_mem_target {g : G} (hg : g ∈ stabilizer G x) {v : E'}
     (hv : v ∈ e.chart.target) : mfderiv I' I' (fun y : M ↦ g • y) x v ∈ e.chart.target := by
   rw [e.mfderiv_smul_eq hg hv]
-  exact e.chart.map_source (e.smul_mem_source g hg _ (e.chart.map_target hv))
+  exact e.chart.map_source (e.smul_mem_chart_source hg (e.chart.map_target hv))
 
 /-- The inverse of a linearizing chart intertwines `dg_x` with `g`. -/
 theorem symm_mfderiv_smul {g : G} (hg : g ∈ stabilizer G x) {v : E'}
     (hv : v ∈ e.chart.target) :
     e.chart.symm (mfderiv I' I' (fun y : M ↦ g • y) x v) = g • e.chart.symm v := by
   rw [e.mfderiv_smul_eq hg hv,
-    e.chart.left_inv (e.smul_mem_source g hg _ (e.chart.map_target hv))]
+    e.chart.left_inv (e.smul_mem_chart_source hg (e.chart.map_target hv))]
 
 /-- The inverse of a linearizing chart at `x` has derivative the identity at `0`. -/
 theorem hasMFDerivAt_symm :
     HasMFDerivAt 𝓘(ℝ, E') I' e.chart.symm 0 (ContinuousLinearMap.id ℝ E') := by
-  have hsd := e.toPartialDiffeomorph.symm.mdifferentiableAt (by simp) e.zero_mem_target
-  rw [coe_toPartialDiffeomorph_symm] at hsd
-  refine hsd.hasMFDerivAt.congr_mfderiv (ContinuousLinearMap.ext fun w ↦ ?_)
+  refine (e.mdifferentiableAt_chart_symm e.zero_mem_target).hasMFDerivAt.congr_mfderiv
+    (ContinuousLinearMap.ext fun w ↦ ?_)
   -- `de_x` is the identity, and it undoes the derivative of `e.symm` at `0`.
   have h := e.toPartialDiffeomorph.mfderiv_apply_mfderiv_symm_apply (by simp) e.zero_mem_target w
   rwa [coe_toPartialDiffeomorph_symm, e.symm_zero, e.hasMFDerivAt.mfderiv] at h
@@ -268,8 +295,8 @@ theorem fundamentalVectorField_symm
   have hsd : MDifferentiableAt 𝓘(ℝ, E') I' e.chart.symm ((mfderiv I' I'
       (fun y : M ↦ mulInvariantExp ((0 : ℝ) • (ξ : GroupLieAlgebra I G)) • y) x : E' →L[ℝ] E')
         v) := by
-    rw [h0, ← coe_toPartialDiffeomorph_symm]
-    exact e.toPartialDiffeomorph.symm.mdifferentiableAt (by simp) hv
+    rw [h0]
+    exact e.mdifferentiableAt_chart_symm hv
   have h₁ := Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt
     (isMIntegralCurve_mulInvariantExp_smul_smul (I' := I') (ξ : GroupLieAlgebra I G)
       (e.chart.symm v) 0).hasMFDerivWithinAt uniqueDiffWithinAt_univ
@@ -383,7 +410,8 @@ instance instMulAction : MulAction (stabilizer G x) U where
   mul_smul g h z := by
     refine Subtype.ext (Subtype.ext ?_)
     rw [coe_smul_eq_chart, coe_smul_eq_chart, coe_smul_eq_chart, Subgroup.coe_mul, mul_smul,
-      e.chart.left_inv (e.smul_mem_source h h.property _ (e.chart.map_target (U.coe_mem_target z)))]
+      e.chart.left_inv
+        (e.smul_mem_chart_source h.property (e.chart.map_target (U.coe_mem_target z)))]
 
 /-- The **slice map** `v ↦ e.symm v` of a slice domain, an equivariant map for the inclusion
 of the stabilizer into `G`. -/
@@ -402,7 +430,7 @@ theorem contMDiff_coe : ContMDiff 𝓘(ℝ, V) 𝓘(ℝ, E') ∞ fun z : U ↦ (
 
 /-- The slice map is smooth. -/
 theorem contMDiff_sliceMap : ContMDiff 𝓘(ℝ, V) I' ∞ U.sliceMap :=
-  e.toPartialDiffeomorph.symm.contMDiffOn.comp_contMDiff U.contMDiff_coe U.coe_mem_target
+  e.contMDiffOn_chart_symm.comp_contMDiff U.contMDiff_coe U.coe_mem_target
 
 /-- At a point `z` of a slice domain of `V` with `z = 0` in `V`, the slice map has derivative the
 inclusion of `V`. -/
@@ -428,9 +456,9 @@ instance instContMDiffSMul [TopologicalSpace G] [FiniteDimensional ℝ V] {F : T
       (Submodule.ClosedComplemented.of_finiteDimensional V).contMDiff_iff_subtypeL_comp]
     -- In the chart the action is `(g, z) ↦ e (g • e.symm z)`.
     simp only [comp_apply, Submodule.subtypeL_apply, coe_smul_eq_chart]
-    refine e.toPartialDiffeomorph.contMDiffOn.comp_contMDiff
+    refine e.contMDiffOn_chart.comp_contMDiff
       (contMDiff_fst.smul (U.contMDiff_sliceMap.comp contMDiff_snd)) fun q ↦ ?_
-    exact e.smul_mem_source _ q.1.property _ (e.chart.map_target (U.coe_mem_target q.2))
+    exact e.smul_mem_chart_source q.1.property (e.chart.map_target (U.coe_mem_target q.2))
 
 /-! ### The tube map -/
 
