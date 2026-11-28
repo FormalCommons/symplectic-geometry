@@ -102,7 +102,9 @@ These are the first steps of the Morse theory of `log |s_k|²` away from the zer
 The two bounds of the first step, read at a zero `x` of `s k` and for `η > 0`, give
 transversality: there the first term of the maximum vanishes, so the rescaled `(1,0)`-part is at
 least `η`, while the rescaled `(0,1)`-part is `O(k ^ (-1/2))`. For `k` large the `(0,1)`-part
-has the smaller operator norm, and `ContinuousLinearMap.surjective_add_of_norm_lt` makes their sum
+has the smaller operator norm
+(`SymplecticGeometry.IsUniformlyTransverse.eventually_norm_zeroOnePart_lt_norm_oneZeroPart`), and
+`ContinuousLinearMap.surjective_add_of_norm_lt` makes their sum
 `powerConnection α k (s k) x` surjective. At a zero this is the linearization of `s k`
 (`CovariantDerivative.apply_eq_sectionLinearization`), so the linearization is surjective
 (`SymplecticGeometry.IsUniformlyTransverse.eventually_surjective_sectionLinearization`), which is
@@ -192,6 +194,31 @@ theorem IsUniformlyTransverse.le_norm_of_mem_criticalPoints
   · exact h
   · exact absurd h hlt.not_ge
 
+/-- **The `(0,1)`-part is smaller than the `(1,0)`-part at the zeros of uniformly transverse
+sequences.** Let `M` be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α`
+a connection form, and `D` rescaled unitary charts of radius `ρ₀ > 0`. If `s` is asymptotically
+holomorphic for `D` and uniformly transverse with constant `η > 0`, then for `k` large, at every
+zero `x` of `s k`, the `(0,1)`-part of `powerConnection α k (s k) x` for `J` has smaller operator
+norm than its `(1,0)`-part. -/
+theorem IsUniformlyTransverse.eventually_norm_zeroOnePart_lt_norm_oneZeroPart
+    (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M, s k x = 0 →
+      ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
+        ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
+  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
+  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
+  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hx
+  have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
+      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
+    rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
+    · rw [hx, norm_zero] at h
+      exact absurd h hη.not_ge
+    · exact h
+  exact lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
+
 /-- **Uniformly transverse sequences are transverse to the zero section for `k` large.** Let `M`
 be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α` a connection form,
 and `D` rescaled unitary charts of radius `ρ₀ > 0`. If `s` is asymptotically holomorphic for `D`
@@ -206,24 +233,14 @@ theorem IsUniformlyTransverse.eventually_surjective_sectionLinearization
       MDifferentiableAt I (I.prod 𝓘(ℝ, PowerModel k))
         (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y)) x → s k x = 0 →
       Function.Surjective (sectionLinearization (F := PowerModel k) I id (s k) x) := by
-  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
-  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
-  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hdiff hx
-  have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
-      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
-    rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
-    · rw [hx, norm_zero] at h
-      exact absurd h hη.not_ge
-    · exact h
-  have hlt : ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
-      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ :=
-    lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
+  filter_upwards [ht.eventually_norm_zeroOnePart_lt_norm_oneZeroPart D hJ hα hρ₀ hη hs]
+    with k hk x hdiff hx
   rw [← (powerConnection α k).apply_eq_sectionLinearization hdiff hx,
     ← J.oneZeroPart_add_zeroOnePart (powerConnection α k (s k) x)]
   exact ContinuousLinearMap.surjective_add_of_norm_lt (PowerBundle.finrank_eq_one P k x)
     (J.oneZeroPart_apply_almostComplexStructure _)
     (SmoothAlmostComplexStructure.isZeroOneForm_iff.1
-      (SmoothAlmostComplexStructure.isZeroOneForm_zeroOnePart _)) hlt
+      (SmoothAlmostComplexStructure.isZeroOneForm_zeroOnePart _)) (hk x hx)
 
 /-- **Uniformly transverse sequences have dominant complex-linear derivative at their zeros.**
 Let `M` be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α` a connection
@@ -244,18 +261,9 @@ theorem IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt_norm_comp
         ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (PowerBundle P k x) : PowerBundle P k x →L[ℝ] PowerBundle P k x)
           (powerConnection α k (s k) x)‖ := by
-  obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
-  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
-  filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hx
-  have hle : η ≤ (2 * Real.pi * k) ^ (-1 / 2 : ℝ) *
-      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ := by
-    rcases (le_transversalityQuantity_iff k (s k) x).1 (hk x) with h | h
-    · rw [hx, norm_zero] at h
-      exact absurd h hη.not_ge
-    · exact h
-  have hlt : ‖J.zeroOnePart (powerConnection α k (s k) x)‖ <
-      ‖J.oneZeroPart (powerConnection α k (s k) x)‖ :=
-    lt_of_mul_lt_mul_left (((hCk x).trans_lt hsk).trans_le hle) (by positivity)
+  filter_upwards [ht.eventually_norm_zeroOnePart_lt_norm_oneZeroPart D hJ hα hρ₀ hη hs]
+    with k hk x hx
+  have hlt := hk x hx
   rwa [J.zeroOnePart_eq_complexAntilinearPartContinuousLinearMap,
     J.oneZeroPart_eq_complexLinearPartContinuousLinearMap] at hlt
 
