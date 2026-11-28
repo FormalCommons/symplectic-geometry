@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The blowup form and the blowup of weight `l`
@@ -670,7 +671,7 @@ private theorem mpullback_inr_weightBlowupDiffeomorph :
     hψ.ballLiftPartialDiffeomorph.mdifferentiableAt (by simp)
       (by rw [ballLiftPartialDiffeomorph_source]; exact hyr)
   rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback_subtype_val_apply, hfun,
-    mpullback_comp_at ((contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)) hΦ,
+    mpullback_comp_at mdifferentiableAt_subtypeVal hΦ,
     mpullback_subtype_val_apply, hψ.normalizedBlowupForm_eq_on_ballLift hh _ hyr]
   exact profileForm_eq_blowupForm_on n _
     (openNbhd_subset_closedNbhd ε (openNbhd_mono hε'ε (mem_openNbhdOpens_iff.1 y.property)))
@@ -794,10 +795,6 @@ private theorem mpullback_outerMap_apply_of_mem
   set B := blowdownPuncturedDiffeomorph n
   have hxt : (x : M) ∈ Ψ.target := by
     rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx
-  have hval {X : Type} [TopologicalSpace X] [ChartedSpace (Fin (n + 1) → ℂ) X]
-      {V : TopologicalSpace.Opens X} (v : V) :
-      MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Subtype.val v :=
-    (contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)
   -- The local lift `g₀` of `ψ⁻¹` into the shell, carried to `L` and read on the outer piece.
   let G' := fun x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) ↦
     B.symm (R.symm (g₀ x'))
@@ -819,14 +816,14 @@ private theorem mpullback_outerMap_apply_of_mem
   have hprof := congrArg Subtype.val (mpullback_radialMap_profileForm n hh)
   simp only [SmoothForm.coe_mpullback] at hprof
   rw [(hψ.outerMap_eventuallyEq_ballLift hh hε' hε'ε x hx hg₀Ψ hc).mpullback_eq,
-    mpullback_comp_at ((hval _).comp x hG') hΦ,
+    mpullback_comp_at (mdifferentiableAt_subtypeVal.comp x hG') hΦ,
     mpullback_apply_congr (f := Subtype.val ∘ G')
       (hψ.normalizedBlowupForm_eq_on_ballLift hh _ hGr),
-    mpullback_comp_at hG' (hval _), ← hprof,
+    mpullback_comp_at hG' mdifferentiableAt_subtypeVal, ← hprof,
     ← mpullback_comp_at hG' (hFB.mdifferentiableAt (by simp)),
-    ← mpullback_comp_at hFBG (hval _),
+    ← mpullback_comp_at hFBG mdifferentiableAt_subtypeVal,
     (hψ.radialMap_blowdown_eventuallyEq hh hε' hε'ε x hg₀Ψ).mpullback_eq,
-    mpullback_comp_at (hval _) (Ψ.symm.mdifferentiableAt (by simp) hxt),
+    mpullback_comp_at mdifferentiableAt_subtypeVal (Ψ.symm.mdifferentiableAt (by simp) hxt),
     mpullback_subtype_val_apply,
     ω₀E_def,
     (hψ.isSymplecticBallEmbedding.isSymplecticMapOn_complexPartialDiffeomorph_symm).mpullback_apply
