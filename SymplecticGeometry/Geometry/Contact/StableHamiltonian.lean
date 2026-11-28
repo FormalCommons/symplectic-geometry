@@ -27,7 +27,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Translate
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
+import TauCeti.Analysis.Calculus.Deriv.BoundedReparametrization
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
@@ -106,7 +106,8 @@ symplectization form of linear algebra, which gives
 `TauCeti.SmoothForm.isNondegenerate_mextDerivₗ_symplectization_iff`, with the factor `r` in place
 of `eᵗ`. The kernel condition on the zero slice differentiates the slices with Tau Ceti's
 `TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`, after pulling `σ` back to `ℝ × M`
-along `(r, x) ↦ ((2 ε / π) arctan r, x)`.
+along `(r, x) ↦ (c r, x)`, where `c` is a smooth map of `ℝ` into `[-ε / 2, ε / 2]` with
+`c 0 = 0` and `c' 0 = 1` (Tau Ceti's `TauCeti.exists_contDiff_hasDerivAt_abs_le`).
 
 ## Main results
 
@@ -612,80 +613,64 @@ open SymplecticGeometry
 variable {ε : ℝ}
 
 /-
-The proof of the kernel condition reads the strip through the smooth map
-`(r, x) ↦ (c r, x)` from `ℝ × M` onto it, with `c r = (2 ε / π) arctan r`, so that Tau Ceti's
+The proof of the kernel condition reads the strip through the smooth map `(r, x) ↦ (c r, x)`
+from `ℝ × M` onto it, where `c : ℝ → ℝ` is smooth with values in `[-ε / 2, ε / 2]`, `c 0 = 0` and
+`c' 0 = 1` (Tau Ceti's `TauCeti.exists_contDiff_hasDerivAt_abs_le`), so that Tau Ceti's
 `TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`, which differentiates the slices of a
-form on `ℝ × M`, applies to the pullback `β` of `σ`. Since `c'(0) ≠ 0`, the slice at `0` of
-`ι_{∂_t} β` is a nonzero multiple of `λ₀`.
+form on `ℝ × M`, applies to the pullback `β` of `σ`. Since `c' 0 = 1`, the slice at `0` of
+`ι_{∂_t} β` is `-λ₀`.
 -/
 
-/-- The reparametrization `c r = (2 ε / π) arctan r` of `(-ε, ε)` by `ℝ`. -/
-private def stripReparam (ε r : ℝ) : ℝ := 2 * ε / Real.pi * Real.arctan r
+/-- A smooth map `c` of `ℝ` into `[-ε / 2, ε / 2]` with `c 0 = 0` and `c' 0 = 1`, chosen by
+`TauCeti.exists_contDiff_hasDerivAt_abs_le`. -/
+private noncomputable def stripReparam (hε : 0 < ε) : ℝ → ℝ :=
+  (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose
 
-private theorem abs_stripReparam_lt (hε : 0 < ε) (r : ℝ) : |stripReparam ε r| < ε := by
-  have h1 := Real.neg_pi_div_two_lt_arctan r
-  have h2 := Real.arctan_lt_pi_div_two r
-  have hπ := Real.pi_pos
-  rw [stripReparam, abs_lt]
-  constructor
-  · have : 2 * ε / Real.pi * (-(Real.pi / 2)) < 2 * ε / Real.pi * Real.arctan r :=
-      mul_lt_mul_of_pos_left h1 (by positivity)
-    field_simp at this ⊢
-    linarith
-  · have : 2 * ε / Real.pi * Real.arctan r < 2 * ε / Real.pi * (Real.pi / 2) :=
-      mul_lt_mul_of_pos_left h2 (by positivity)
-    field_simp at this ⊢
-    linarith
+private theorem stripReparam_spec (hε : 0 < ε) :
+    ContDiff ℝ ⊤ (stripReparam hε) ∧ stripReparam hε 0 = 0 ∧
+      HasDerivAt (stripReparam hε) 1 0 ∧ ∀ t, |stripReparam hε t| ≤ ε / 2 :=
+  (TauCeti.exists_contDiff_hasDerivAt_abs_le (half_pos hε)).choose_spec
 
-private theorem contDiff_stripReparam : ContDiff ℝ ∞ (stripReparam ε) :=
-  contDiff_const.mul Real.contDiff_arctan
+private theorem abs_stripReparam_lt (hε : 0 < ε) (r : ℝ) : |stripReparam hε r| < ε :=
+  ((stripReparam_spec hε).2.2.2 r).trans_lt (half_lt_self hε)
 
-private theorem hasDerivAt_stripReparam : HasDerivAt (stripReparam ε) (2 * ε / Real.pi) 0 := by
-  have h := (Real.hasDerivAt_arctan (0 : ℝ)).const_mul (2 * ε / Real.pi)
-  unfold stripReparam
-  simpa using h
-
-private theorem stripReparam_zero : stripReparam ε 0 = 0 := by simp [stripReparam]
-
-/-- The map `(r, x) ↦ (c r, x)` from `ℝ × M` to the strip. -/
-private def stripChart (hε : 0 < ε) (p : ℝ × M) : symmStrip M ε :=
+/-- The map `(r, x) ↦ (c r, x)` from `ℝ × M` to the strip, for the map `c = stripReparam hε`. -/
+private noncomputable def stripChart (hε : 0 < ε) (p : ℝ × M) : symmStrip M ε :=
   symmStripMk (abs_stripReparam_lt hε p.1) p.2
 
 private theorem val_comp_stripChart (hε : 0 < ε) :
-    Subtype.val ∘ stripChart (M := M) hε = Prod.map (stripReparam ε) id := by
+    Subtype.val ∘ stripChart (M := M) hε = Prod.map (stripReparam hε) id := by
   funext p
   simp [stripChart, Prod.map]
 
 private theorem contMDiff_stripChart (hε : 0 < ε) :
     ContMDiff (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ (stripChart (M := M) hε) := by
   rw [← TauCeti.ContMDiff.subtypeVal_comp_iff, val_comp_stripChart]
-  exact contDiff_stripReparam.contMDiff.prodMap contMDiff_id
+  exact ((stripReparam_spec hε).1.of_le le_top).contMDiff.prodMap contMDiff_id
 
 private theorem stripChart_comp_prodMk (hε : 0 < ε) (r : ℝ) :
     stripChart (M := M) hε ∘ Prod.mk r = symmStripMk (abs_stripReparam_lt hε r) := rfl
 
 private theorem stripChart_zero (hε : 0 < ε) (y : M) :
     stripChart hε ((0 : ℝ), y) = symmStripMk (abs_zero.trans_lt hε) y :=
-  Subtype.ext (by simp [stripChart, stripReparam_zero])
+  Subtype.ext (by simp [stripChart, (stripReparam_spec hε).2.1])
 
 private theorem mfderiv_stripChart_apply (hε : 0 < ε) (y : M) (s : ℝ) (w : TangentSpace I y) :
     mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
-      ((s, w) : TangentSpace (𝓘(ℝ).prod I) ((0 : ℝ), y)) =
-      (2 * ε / Real.pi * s, w) := by
+      ((s, w) : TangentSpace (𝓘(ℝ).prod I) ((0 : ℝ), y)) = (s, w) := by
+  obtain ⟨hc, -, hc', -⟩ := stripReparam_spec hε
   refine (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (U := symmStrip M ε)
     (f := stripChart hε) (I := 𝓘(ℝ).prod I) (J := 𝓘(ℝ).prod I) _).symm.trans ?_
   rw [val_comp_stripChart]
   have h := TauCeti.Manifold.mfderiv_prodMap_apply (I := 𝓘(ℝ)) (J := I) (I' := 𝓘(ℝ)) (J' := I)
-    (p := ((0 : ℝ), y))
-    (contDiff_stripReparam.contMDiff.mdifferentiableAt (by simp) : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ)
-      (stripReparam ε) 0) mdifferentiableAt_id (s, w)
+    (p := ((0 : ℝ), y)) (hc.contMDiff.mdifferentiableAt (by simp)) mdifferentiableAt_id (s, w)
   rw [Manifold.tangentSpaceProdEquiv_symm_apply, Manifold.tangentSpaceProdEquiv_symm_apply] at h
   refine h.trans ?_
-  rw [mfderiv_id, mfderiv_eq_fderiv, hasDerivAt_stripReparam.hasFDerivAt.fderiv]
+  rw [mfderiv_id, mfderiv_eq_fderiv, hc'.hasFDerivAt.fderiv]
   refine Prod.ext ?_ rfl
   -- The tangent spaces of `ℝ` are `ℝ`, and the casts between them are the identity.
-  change s • (2 * ε / Real.pi) = _
-  rw [smul_eq_mul, mul_comm]
+  change s • (1 : ℝ) = _
+  rw [smul_eq_mul, mul_one]
 
 variable [IsManifold I ∞ M]
 
@@ -693,46 +678,37 @@ private theorem mpullback_prodMk_zero_timeInterior_apply (hε : 0 < ε)
     (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) (y : M) (w : TangentSpace I y) :
     (mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id)
       (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).timeInterior).val y ![w] =
-      2 * ε / Real.pi * σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) y)
-        ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
+      σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) y) ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
   rw [mpullback_apply_one, coe_timeInterior]
   refine (RoughForm.interior_apply _ _ _ _).trans ?_
   have h₁ : mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
-      ((1 : ℝ), (0 : E)) = (2 * ε / Real.pi) • ((1 : ℝ), (0 : E)) := by
-    rw [Prod.smul_mk, smul_eq_mul, smul_zero]
-    -- The closing `rfl` identifies a tangent vector of the strip with an element of `ℝ × E`.
-    exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
+      ((1 : ℝ), (0 : E)) = ((1 : ℝ), (0 : E)) :=
+    mfderiv_stripChart_apply hε y 1 0
   have h₂ : mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
       (mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w) = ((0 : ℝ), w) := by
     rw [mfderiv_prodMk_right_apply]
-    exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero])
+    exact mfderiv_stripChart_apply hε y 0 w
   -- `(1, 0)` is a vector of `ℝ × E` rather than of a tangent space, so the evaluation lemma is
   -- applied by unification rather than by `rw`.
   rw [coe_mpullback]
   refine (TauCeti.mpullback_apply_pair _ _ _ ((1 : ℝ), (0 : E)) _).trans ?_
   rw [h₁, h₂, stripChart_zero]
-  have h := (σ.bilinFormAt_apply (symmStripMk (abs_zero.trans_lt hε) y)
-    ((2 * ε / Real.pi) • ((1 : ℝ), (0 : E))) ((0 : ℝ), w)).trans
-    (SmoothBundleForm.eval₂_apply _ _ _ _)
-  refine h.symm.trans ?_
-  exact LinearMap.map_smul₂ _ _ _ _
+  exact ((σ.bilinFormAt_apply _ _ _).trans (SmoothBundleForm.eval₂_apply _ _ _ _)).symm
 
 /-- For a two-form `σ` on the strip `(-ε, ε) × M`, the one-form `λ₀ = -ι₀^*(ι_{∂_r} σ)` on `M`:
 minus the slice at `0` of the contraction of `σ` with `∂_r = (1, 0)`, where `ι₀ : x ↦ (0, x)`. -/
 def zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
     SmoothForm I M ℝ 1 :=
-  (-(2 * ε / Real.pi)⁻¹) •
-    mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id)
-      (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).timeInterior
+  -mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id)
+    (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).timeInterior
 
 /-- The value of `λ₀` at `x` on `w` is `-σ_(0, x)(∂_r, (0, w))`. -/
 theorem zeroSliceOneForm_apply (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε))
     (x : M) (w : TangentSpace I x) :
     (zeroSliceOneForm hε σ).val x ![w] =
       -σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) x) ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
-  rw [zeroSliceOneForm, SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
-    mpullback_prodMk_zero_timeInterior_apply, smul_eq_mul, ← mul_assoc, neg_mul,
-    inv_mul_cancel₀ (by positivity), neg_one_mul]
+  rw [zeroSliceOneForm, SmoothBundleForm.neg_apply, ContinuousAlternatingMap.neg_apply,
+    mpullback_prodMk_zero_timeInterior_apply]
 
 /-- `λ₀` is `-ι₀^*(ι_{∂_r} σ)`, with `ι₀ : x ↦ (0, x)` and `∂_r = (1, 0)`. -/
 theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
@@ -845,9 +821,9 @@ theorem isStableHamiltonian_zeroSliceOneForm (hε : 0 < ε)
       rw [hfun] at h
       exact ContinuousAlternatingMap.apply_apply.symm.trans (h.unique (hasDerivAt_const _ _))
     refine LinearMap.mem_ker.2 (LinearMap.ext fun w ↦ ?_)
-    rw [zeroSliceOneForm, map_smul, mextDerivₗ_mpullback,
-      mextDerivₗ_timeInterior (hσ.isClosed.mpullback _ _), bilinFormAt_smul, LinearMap.smul_apply,
-      LinearMap.smul_apply, bilinFormAt_apply, SmoothBundleForm.eval₂_apply, hdt, smul_zero,
+    rw [zeroSliceOneForm, map_neg, mextDerivₗ_mpullback,
+      mextDerivₗ_timeInterior (hσ.isClosed.mpullback _ _), bilinFormAt_neg, LinearMap.neg_apply,
+      LinearMap.neg_apply, bilinFormAt_apply, SmoothBundleForm.eval₂_apply, hdt, neg_zero,
       LinearMap.zero_apply]
 
 /-- **The converse of the stable Hamiltonian model.** Let `M` be a compact boundaryless Hausdorff
