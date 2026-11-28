@@ -21,6 +21,7 @@ import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Topology.VectorBundle.ZeroSet
+import TauCeti.Topology.FiberBundle.Prod
 import TauCeti.Topology.FiberBundle.Trivialization
 
 /-!
@@ -607,9 +608,9 @@ variable (G₂ E₂) in
   continuous_toFun := by
     rw [continuous_iff]
     refine (continuous_mk (g := fun v ↦ TotalSpace.mk' (G₁ × G₂) (E := E₁ ×ᵇ E₂) v.val.proj
-      (v.val.snd, 0)) ((FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
-      (continuous_subtypeVal.prodMk ((Trivialization.continuous_zeroSection 𝕜).comp
-        ((FiberBundle.continuous_proj G₁ E₁).comp continuous_subtypeVal)))) fun v ↦ ?_).congr
+      (v.val.snd, 0)) (Bundle.Prod.continuous_totalSpace_prod_iff.2
+      ⟨continuous_subtypeVal, (Trivialization.continuous_zeroSection 𝕜).comp
+        ((FiberBundle.continuous_proj G₁ E₁).comp continuous_subtypeVal)⟩) fun v ↦ ?_).congr
           fun v ↦ ?_
     · simpa using mem_zeroSectionCompl.1 v.property
     · rw [Function.comp_apply, mk'_eq_mk, mk_def, mk_def]
@@ -624,10 +625,10 @@ variable (G₁ E₁) in
   continuous_toFun := by
     rw [continuous_iff]
     refine (continuous_mk (g := fun v ↦ TotalSpace.mk' (G₁ × G₂) (E := E₁ ×ᵇ E₂) v.val.proj
-      (0, v.val.snd)) ((FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
-      (((Trivialization.continuous_zeroSection 𝕜).comp
-        ((FiberBundle.continuous_proj G₂ E₂).comp continuous_subtypeVal)).prodMk
-          continuous_subtypeVal)) fun v ↦ ?_).congr fun v ↦ ?_
+      (0, v.val.snd)) (Bundle.Prod.continuous_totalSpace_prod_iff.2
+      ⟨(Trivialization.continuous_zeroSection 𝕜).comp
+        ((FiberBundle.continuous_proj G₂ E₂).comp continuous_subtypeVal), continuous_subtypeVal⟩)
+        fun v ↦ ?_).congr fun v ↦ ?_
     · simpa using mem_zeroSectionCompl.1 v.property
     · rw [Function.comp_apply, mk'_eq_mk, mk_def, mk_def]
       simp [Projectivization.map_mk]
@@ -715,7 +716,7 @@ def inlRetraction :
       (range (inr G₁ E₁))ᶜ
     rw [hq.isQuotientMap.continuous_iff]
     refine (continuous_mk (g := fun v ↦ TotalSpace.mk' G₁ v.val.val.proj v.val.val.snd.1)
-      ((continuous_fst.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
+      (FiberBundle.Prod.continuous_totalSpaceFst.comp
         (continuous_subtypeVal.comp continuous_subtypeVal))
       fun v ↦ (mk_mem_range_inr_iff _ (mem_zeroSectionCompl.1 v.val.property)).not.1
         v.property).congr fun v ↦ ?_
@@ -785,8 +786,7 @@ theorem isOpen_compl_range_inl :
   rw [← isOpenQuotientMap_mk'.isQuotientMap.isOpen_preimage]
   have hs : Continuous fun v : zeroSectionCompl (G₁ × G₂) (E₁ ×ᵇ E₂) ↦
       TotalSpace.mk' G₂ v.val.proj v.val.snd.2 :=
-    (continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
-      continuous_subtypeVal
+    FiberBundle.Prod.continuous_totalSpaceSnd.comp continuous_subtypeVal
   convert (VectorBundle.isClosed_setOfPred_eq_zero 𝕜 hs).isOpen_compl using 1
   ext v
   simp only [mem_preimage, mem_compl_iff, mem_ofPred_eq, mk'_eq_mk, mk_mem_range_inl_iff]
@@ -874,12 +874,13 @@ theorem homotopic_inlCompl_comp_inlRetraction :
     have hg : Continuous fun x : unitInterval × (mk' 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) ⁻¹'
         (range (inr G₁ E₁))ᶜ) ↦ TotalSpace.mk' (G₁ × G₂) (E := E₁ ×ᵇ E₂) x.2.val.val.proj
           (x.2.val.val.snd.1, algebraMap ℝ 𝕜 x.1 • x.2.val.val.snd.2) :=
-      (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
-      (((continuous_fst.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
-        hv).prodMk (Continuous.smul_totalSpace ((continuous_algebraMap ℝ 𝕜).comp
-          (continuous_subtypeVal.comp continuous_fst))
-          ((continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
-            hv)))
+      -- Without the ascription, `Continuous.comp` would unify against the expected type and read
+      -- the whole of `hg`'s map as its inner function.
+      Bundle.Prod.continuous_totalSpace_prod_iff.2
+        ⟨(FiberBundle.Prod.continuous_totalSpaceFst.comp hv :),
+          Continuous.smul_totalSpace ((continuous_algebraMap ℝ 𝕜).comp
+            (continuous_subtypeVal.comp continuous_fst))
+            (FiberBundle.Prod.continuous_totalSpaceSnd.comp hv)⟩
     refine ((continuous_mk hg fun x h ↦
       (mk_mem_range_inr_iff _ (mem_zeroSectionCompl.1 x.2.val.property)).not.1 x.2.property
         (congrArg Prod.fst h)).subtype_mk

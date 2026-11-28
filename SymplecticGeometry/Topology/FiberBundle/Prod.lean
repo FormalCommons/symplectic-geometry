@@ -17,19 +17,25 @@ The total space of the fibrewise product `E₁ ×ᵇ E₂` of two bundles over t
 the topology induced by its diagonal map to `TotalSpace F₁ E₁ × TotalSpace F₂ E₂`
 (`FiberBundle.Prod.isInducing_diag`), and each of its two components is continuous (Tau Ceti's
 `FiberBundle.Prod.continuous_totalSpaceFst` and `FiberBundle.Prod.continuous_totalSpaceSnd`).
-So two families of fibrewise maps that are continuous on total spaces give a fibrewise product
-that is continuous on total spaces, and the fibrewise swap `E₁ ×ᵇ E₂ → E₂ ×ᵇ E₁` is continuous
-on total spaces. Neither statement needs a bundle structure
-or any algebraic structure on the fibres, only topologies on the total spaces. For bundles of
-modules, the same holds for the isomorphisms `x ↦ (Φ₁ x).prodCongr (Φ₂ x)` and
+A map into the total space of `E₁ ×ᵇ E₂` is therefore continuous exactly when its two
+components are. So two families of fibrewise maps that are continuous on total spaces give a
+fibrewise product that is continuous on total spaces, and the fibrewise swap
+`E₁ ×ᵇ E₂ → E₂ ×ᵇ E₁` is continuous on total spaces. None of these statements needs a bundle
+structure or any algebraic structure on the fibres, only topologies on the total spaces. For
+bundles of modules, the same holds for the isomorphisms `x ↦ (Φ₁ x).prodCongr (Φ₂ x)` and
 `x ↦ ContinuousLinearEquiv.prodComm R (E₁ x) (E₂ x)`.
 
-These are the continuous counterparts of `Bundle.Prod.contMDiff_prodMap`,
+The statements about these maps are the continuous counterparts of `Bundle.Prod.contMDiff_prodMap`,
 `Bundle.Prod.contMDiff_swap`, `Bundle.Prod.contMDiff_prodCongr` and
 `Bundle.Prod.contMDiff_prodComm` in `SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod`.
 
 ## Main results
 
+* `Bundle.Prod.continuous_totalSpace_prod_iff`: a map into the total space of `E₁ ×ᵇ E₂` is
+  continuous if and only if its two components into the total spaces of `E₁` and `E₂` are. It is
+  the continuous counterpart of Tau Ceti's `Bundle.contMDiffAt_totalSpace_prod_iff`, and its
+  proof is that of Tau Ceti's `TauCeti.PrincipalBundle.FiberProd.continuous_iff`, stated there
+  for the fibre product of principal bundles.
 * `Bundle.Prod.continuous_prodMap`: the fibrewise product `Prod.map (f₁ x) (f₂ x)` of two maps
   that are continuous on total spaces is continuous on total spaces.
 * `Bundle.Prod.continuous_swap`: the swap `E₁ ×ᵇ E₂ → E₂ ×ᵇ E₁` is continuous on total spaces.
@@ -52,6 +58,14 @@ variable {B : Type*} {F₁ F₂ F₃ F₄ : Type*} {E₁ E₂ E₃ E₄ : B → 
 
 namespace Bundle.Prod
 
+/-- A map into the total space of the fibrewise product `E₁ ×ᵇ E₂` is continuous if and only if
+its two components, as maps into the total spaces of `E₁` and `E₂`, are continuous. -/
+theorem continuous_totalSpace_prod_iff {X : Type*} [TopologicalSpace X]
+    {f : X → TotalSpace (F₁ × F₂) (E₁ ×ᵇ E₂)} :
+    Continuous f ↔ Continuous (fun y ↦ (⟨(f y).proj, (f y).snd.1⟩ : TotalSpace F₁ E₁)) ∧
+      Continuous (fun y ↦ (⟨(f y).proj, (f y).snd.2⟩ : TotalSpace F₂ E₂)) :=
+  (FiberBundle.Prod.isInducing_diag F₁ E₁ F₂ E₂).continuous_iff.trans continuous_prodMk
+
 /-- If the fibrewise maps `f₁ : E₁ → E₃` and `f₂ : E₂ → E₄` are continuous on total spaces, so
 is their fibrewise product `Prod.map (f₁ x) (f₂ x) : E₁ ×ᵇ E₂ → E₃ ×ᵇ E₄`. -/
 theorem continuous_prodMap {f₁ : ∀ x, E₁ x → E₃ x} {f₂ : ∀ x, E₂ x → E₄ x}
@@ -59,16 +73,16 @@ theorem continuous_prodMap {f₁ : ∀ x, E₁ x → E₃ x} {f₂ : ∀ x, E₂
     (h₂ : Continuous fun p : TotalSpace F₂ E₂ ↦ TotalSpace.mk' F₄ p.proj (f₂ p.proj p.snd)) :
     Continuous fun p : TotalSpace (F₁ × F₂) (E₁ ×ᵇ E₂) ↦
       TotalSpace.mk' (F₃ × F₄) (E := E₃ ×ᵇ E₄) p.proj (Prod.map (f₁ p.proj) (f₂ p.proj) p.snd) :=
-  (FiberBundle.Prod.isInducing_diag F₃ E₃ F₄ E₄).continuous_iff.2 <|
-    (h₁.comp FiberBundle.Prod.continuous_totalSpaceFst).prodMk
-      (h₂.comp FiberBundle.Prod.continuous_totalSpaceSnd)
+  continuous_totalSpace_prod_iff.2
+    ⟨h₁.comp FiberBundle.Prod.continuous_totalSpaceFst,
+      h₂.comp FiberBundle.Prod.continuous_totalSpaceSnd⟩
 
 /-- The fibrewise swap `E₁ ×ᵇ E₂ → E₂ ×ᵇ E₁` is continuous on total spaces. -/
 theorem continuous_swap :
     Continuous fun p : TotalSpace (F₁ × F₂) (E₁ ×ᵇ E₂) ↦
       TotalSpace.mk' (F₂ × F₁) (E := E₂ ×ᵇ E₁) p.proj p.snd.swap :=
-  (FiberBundle.Prod.isInducing_diag F₂ E₂ F₁ E₁).continuous_iff.2 <|
-    FiberBundle.Prod.continuous_totalSpaceSnd.prodMk FiberBundle.Prod.continuous_totalSpaceFst
+  continuous_totalSpace_prod_iff.2
+    ⟨FiberBundle.Prod.continuous_totalSpaceSnd, FiberBundle.Prod.continuous_totalSpaceFst⟩
 
 section Module
 
