@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
+public import SymplecticGeometry.Geometry.Manifold.Morse.Linearization
 import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
