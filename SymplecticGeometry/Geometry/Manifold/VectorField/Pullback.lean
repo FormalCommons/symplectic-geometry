@@ -40,6 +40,8 @@ pullback is the restriction of a vector field to `U`.
   `VectorField.contMDiff_mpullback_subtypeVal`: for an open subset `U`, the restriction of `V`
   to `U` is related to `V` by the inclusion, and is a `C^m` vector field on `U` when `V` is
   `C^m` on `U`.
+* `VectorField.mpullback_subtypeVal_apply`: at a point of `U`, the restriction of `V` takes the
+  value of `V`.
 * `VectorField.isMIntegralCurveOn_mpullback_subtypeVal_iff`: a curve in `U` is an integral curve
   of the restriction of `V` exactly when, read in `M`, it is an integral curve of `V`.
 
@@ -129,6 +131,15 @@ theorem mfderiv_subtypeVal_mpullback_subtypeVal {U : Opens M} (V : Π x : M, Tan
     (x : U) :
     mfderiv I I (Subtype.val : U → M) x (VectorField.mpullback I I Subtype.val V x) = V x :=
   (TauCeti.isLocalDiffeomorph_subtype_val (n := 1) x).mfderiv_apply_mpullback one_ne_zero V
+
+/-- At a point `x` of an open set `U`, the restriction `VectorField.mpullback I I Subtype.val V`
+of a vector field `V` to `U` takes the value `V x`, the tangent spaces of `U` and of `M` at `x`
+being the same model space. -/
+theorem mpullback_subtypeVal_apply {U : Opens M} (V : Π x : M, TangentSpace I x) (x : U) :
+    VectorField.mpullback I I (Subtype.val : U → M) V x = V x := by
+  have h := mfderiv_subtypeVal_mpullback_subtypeVal V x
+  rwa [TauCeti.Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
+    TauCeti.Manifold.tangentSpaceOpenEquiv_apply] at h
 
 /-- On an open set `U`, the restriction `VectorField.mpullback I I Subtype.val V` of a vector field
 `V` that is `C^m` on `U` is a `C^m` vector field on `U`. -/
