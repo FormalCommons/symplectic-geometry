@@ -15,8 +15,8 @@ On a complex module with a compatible real structure, Tau Ceti gives multiplicat
 forms: as a continuous real-linear equivalence, `Complex.smulIEquiv X`, and as the endomorphism of
 the almost complex structure `TauCeti.AlmostComplexStructure.ofComplexModule X`. This file shows
 that the two have the same underlying real-linear map
-(`Complex.coe_smulIEquiv_eq_ofComplexModule`), so that results stated for one apply to the other,
-and that `Complex.smulIEquiv X` squares to `-1` (`Complex.smulIEquiv_comp_smulIEquiv`).
+(`Complex.toLinearMap_smulIEquiv_eq_ofComplexModule`), so that results stated for one apply to the
+other, and that `Complex.smulIEquiv X` squares to `-1` (`Complex.smulIEquiv_comp_smulIEquiv`).
 -/
 
 public section
@@ -24,7 +24,7 @@ public section
 /-- As a real-linear map, multiplication by `i` as a continuous real-linear equivalence,
 `Complex.smulIEquiv X`, is the endomorphism of Tau Ceti's almost complex structure
 `TauCeti.AlmostComplexStructure.ofComplexModule X`. -/
-theorem Complex.coe_smulIEquiv_eq_ofComplexModule (X : Type*) [AddCommGroup X]
+theorem Complex.toLinearMap_smulIEquiv_eq_ofComplexModule (X : Type*) [AddCommGroup X]
     [TopologicalSpace X] [Module ℝ X] [Module ℂ X] [IsScalarTower ℝ ℂ X] [ContinuousConstSMul ℂ X] :
     ((Complex.smulIEquiv X : X →L[ℝ] X) : X →ₗ[ℝ] X) =
       (TauCeti.AlmostComplexStructure.ofComplexModule X).toLinearMap := by

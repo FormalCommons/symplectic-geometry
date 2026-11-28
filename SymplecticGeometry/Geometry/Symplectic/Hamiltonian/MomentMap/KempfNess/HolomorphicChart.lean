@@ -8,8 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
+import SymplecticGeometry.Geometry.Manifold.Flow.Linear
 import SymplecticGeometry.Geometry.Manifold.GroupAction.EquivariantAverage
 import TauCeti.Geometry.Lie.Subgroup.Embedded
+import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
@@ -36,7 +38,10 @@ a complexification `Gc` of `G`, `X_{iη} = J X_η`, and `J` is `J x` in the char
 fundamental vector field of `C.lieMap ξ + C.cplx (C.lieMap η)` at `e.symm v` is
 `d(e.symm)_v (A_ξ v) + d(e.symm)_v (J x (A_η v))`
 (`SymplecticGeometry.fundamentalVectorField_chart_symm`), as in the proof of Theorem 12.5 of
-[GeorgoulasRobbinSalamon2021].
+[GeorgoulasRobbinSalamon2021]. Taking `ξ = 0`, the curve `s ↦ e.symm (exp (s • J x ∘ A_η) v)`
+is an integral curve of `X_{iη}`, as is `s ↦ C.expI (s • η) • e.symm v`; by uniqueness of
+integral curves (Tau Ceti's `IsMIntegralCurveOn.eqOn_of_isPreconnected`) the two agree as long
+as the first stays in the chart (`SymplecticGeometry.expI_smul_chart_symm`).
 
 The proof averages a chart in which `J` is constant over `H`. Integrability gives a chart `ψ`
 with `ψ x = 0`, derivative the identity at `x` and `dψ ∘ J = J x ∘ dψ` on its source
@@ -64,6 +69,9 @@ chart of the atlas, and the derivative of the average is computed at every point
 * `SymplecticGeometry.fundamentalVectorField_chart_symm`: in a linearizing chart in which `J` is
   constant, the fundamental vector field of `C.lieMap ξ + C.cplx (C.lieMap η)`, for `ξ, η` in the
   isotropy algebra, is `v ↦ A_ξ v + J x (A_η v)`.
+* `SymplecticGeometry.expI_smul_chart_symm`: in such a chart, `C.expI (t • η)` acts on
+  `e.symm v` as the linear flow `exp (t • J x ∘ A_η)` acts on `v`, while that flow stays in the
+  chart.
 * `ContMDiffOn.mfderiv_integral_apply_inv_smul_apply_eq`: the equivariant average of a map whose
   derivatives carry an almost complex structure `J` to a fixed linear map `J₀`, commuting with
   the representation, has the same property at each point where the action preserves `J`.
@@ -298,6 +306,54 @@ theorem fundamentalVectorField_chart_symm {C : LieComplexification I G IC Gc}
   rw [fundamentalVectorField_add, Pi.add_apply, hC.fundamentalVectorField_cplx_lieMap,
     congrFun (hC.fundamentalVectorField_lieMap _) _, e.fundamentalVectorField_symm ξ hv,
     e.fundamentalVectorField_symm η hv, hJs]
+
+/-- **The imaginary one-parameter subgroups in a holomorphic linearizing chart.** Let the action
+of the complexification `Gc` on `M` be a complexified action of that of `G` for `C` and `J`, and
+let `e` be a linearizing chart at `x` in which `J` is constant, equal to `J x` (as given by
+`SymplecticGeometry.exists_equivariant_holomorphic_chart`). Let `ξ` be in the isotropy algebra of
+`x`, `A_ξ` its linearized isotropy action (`TauCeti.isotropyLinearization`), and `T = J x ∘ A_ξ`.
+If `exp (s • T) v` lies in the target of `e` for every `s` between `0` and `t`, then
+`C.expI (t • ξ) • e.symm v = e.symm (exp (t • T) v)`. -/
+theorem expI_smul_chart_symm {C : LieComplexification I G IC Gc}
+    {J : SmoothAlmostComplexStructure I' M} (hC : IsComplexifiedAction C J) {x : M}
+    (e : LinearizingChart G I' x)
+    (hJ : ∀ z ∈ e.chart.source, ∀ v : TangentSpace I' z,
+      mfderiv I' 𝓘(ℝ, E') e.chart z (J z v) = J x (mfderiv I' 𝓘(ℝ, E') e.chart z v))
+    (ξ : (InfinitesimalAction.fundamental I G I' M).isotropy x) {v : E'} {t : ℝ}
+    (hv : ∀ s ∈ uIcc 0 t, NormedSpace.exp
+      (s • (J.toEndomorphism x ∘L isotropyLinearization I' x ξ : E' →L[ℝ] E')) v ∈
+        e.chart.target) :
+    C.expI (t • (ξ : GroupLieAlgebra I G)) • e.chart.symm v = e.chart.symm
+      (NormedSpace.exp
+        (t • (J.toEndomorphism x ∘L isotropyLinearization I' x ξ : E' →L[ℝ] E')) v) := by
+  set T : E' →L[ℝ] E' := J.toEndomorphism x ∘L isotropyLinearization I' x ξ
+  -- Both curves are integral curves of `X_{iξ} = J X_ξ`.
+  have h₁ : IsMIntegralCurveOn
+      (fun s : ℝ ↦ C.expI (s • (ξ : GroupLieAlgebra I G)) • e.chart.symm v)
+      (fundamentalVectorField I' (C.cplx (C.lieMap ξ))) (uIcc 0 t) := by
+    rw [funext fun y ↦ hC.fundamentalVectorField_cplx_lieMap (ξ : GroupLieAlgebra I G) y]
+    exact (hC.isMIntegralCurve_expI_smul _ _).isMIntegralCurveOn _
+  -- `e.symm` maps the linear curve `s ↦ exp (s • T) v` to one, as long as it stays in the chart.
+  have h₂ : IsMIntegralCurveOn (fun s : ℝ ↦ e.chart.symm (NormedSpace.exp (s • T) v))
+      (fundamentalVectorField I' (C.cplx (C.lieMap ξ))) (uIcc 0 t) := by
+    have hlin : IsMIntegralCurveOn (I := 𝓘(ℝ, E')) (fun s ↦ NormedSpace.exp (s • T) v)
+        (fun y ↦ T y) (uIcc 0 t) := by
+      simpa only [ContinuousLinearMap.flow_apply] using
+        (T.isMIntegralCurve_flow v).isMIntegralCurveOn _
+    refine hlin.map_of_mfderiv_eq (f := e.chart.symm) (fun s hs ↦ ?_) (fun s hs ↦ ?_)
+    · exact ((e.contMDiffOn_symm _ (hv s hs)).contMDiffAt
+        (e.chart.open_target.mem_nhds (hv s hs))).mdifferentiableAt (by simp)
+    · have h := fundamentalVectorField_chart_symm hC e hJ 0 ξ (hv s hs)
+      -- `simp` does not see `0 : E'` as the zero of the tangent space, so `map_zero` is applied
+      -- at the model space.
+      have h0 : mfderiv 𝓘(ℝ, E') I' e.chart.symm (NormedSpace.exp (s • T) v) (0 : E') = 0 :=
+        map_zero _
+      simp only [ZeroMemClass.coe_zero, map_zero, zero_apply, h0, zero_add] at h
+      -- `T w` is `J x (A_ξ w)` by the definition of `T` as a composition.
+      exact h.symm
+  exact h₁.eqOn_of_isPreconnected h₂ isPreconnected_uIcc left_mem_uIcc
+    (fun _ _ ↦ contMDiff_fundamentalVectorField (I := IC) (n := ∞) (by norm_cast) _ _) (by simp)
+    right_mem_uIcc
 
 end FundamentalVectorField
 

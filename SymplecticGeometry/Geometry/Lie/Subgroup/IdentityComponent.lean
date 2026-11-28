@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Lie.Subgroup.Torus
+public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 
 /-!
@@ -54,6 +55,8 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_stabilizer` and
   `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_stabilizer_subtype`: for the
   identity component of `G_x`, and for `G_x` itself, that range is `𝔤_x`.
+* `TauCeti.Lie.EmbeddedLieSubgroupData.ambientConnectedComponentOfOneStabilizer`: the Lie group
+  structure of the identity component of `G_x` as a closed subgroup, for a smooth action.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`: that differential, as a
   linear equivalence from the tangent space at `1` of the identity component of `G_x` onto `𝔤_x`.
 
@@ -223,6 +226,34 @@ theorem coe_mulInvariantExp (d : EmbeddedLieSubgroupData I K F) :
   dsimp only
   intro ζ
   rw [← d.subtypeVal_apply, d.subtypeVal.map_mulInvariantExp, d.groupLieAlgebraLieHom_subtypeVal]
+
+section AmbientConnectedComponentOfOneStabilizer
+
+variable [IsTopologicalGroup G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [T1Space M] [MulAction G M]
+  [ContMDiffSMul I I' ∞ G M]
+
+variable (I G I') in
+/-- **The Lie group structure of the identity component of a stabilizer.** For a smooth action of
+`G` on a manifold `M` whose points are closed, the identity component of the stabilizer `G_x` of
+`x : M` is a closed subgroup of `G`, and this is the embedded Lie subgroup structure that
+`TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` selects on it, modelled on its Lie algebra. -/
+def ambientConnectedComponentOfOneStabilizer (x : M) :
+    EmbeddedLieSubgroupData I (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+      (lieSubalgebraOfSubgroup (I := I)
+        (MulAction.stabilizer G x).ambientConnectedComponentOfOne).toSubmodule :=
+  ofIsClosed (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+    (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
+
+theorem ambientConnectedComponentOfOneStabilizer_def (x : M) :
+    ambientConnectedComponentOfOneStabilizer I G I' x =
+      ofIsClosed (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous) :=
+  (rfl)
+
+end AmbientConnectedComponentOfOneStabilizer
 
 variable [IsTopologicalGroup G]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
