@@ -107,7 +107,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
-open scoped Manifold ContDiff Topology GroupLieAlgebra
+open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
 
@@ -157,34 +157,47 @@ variable {α}
 
 /-! ### As Lie-algebra-valued connection forms -/
 
+/-- The map `r ↦ r ξ₀` from `ℝ` to the model space `𝓡 1` of `Circle`, with
+`ξ₀ = circleLieGenerator`, sends `r` to the multiple `r • ξ₀` in the Lie algebra of `Circle`. -/
+theorem toSpanSingleton_circleLieGenerator_apply (r : ℝ) :
+    ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator r =
+      r • circleLieGenerator :=
+  ContinuousLinearMap.toSpanSingleton_apply _ _ _
+
 /-- **Circle connection forms are connection forms.** For a real one-form `α` on the total space
 of a principal `Circle`-bundle, the `𝔤`-valued form `α ξ₀`, with `ξ₀ = circleLieGenerator`, is a
 connection form exactly when `α` is a circle connection form. -/
 theorem isConnectionForm_mapCoeff_iff :
-    IsConnectionForm
-        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) ↔
+    IsConnectionForm (SmoothForm.mapCoeff
+        (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator)
+        α) ↔
       IsCircleConnectionForm α := by
   have hinj := SmoothForm.mapCoeff_injective (I := IB.prod (𝓡 1))
     (M := ManifoldTotalSpace Circle P) (k := 1)
-    (L := ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) fun a b h ↦
-      smul_left_injective ℝ circleLieGenerator_ne_zero <| by
-        simpa only [ContinuousLinearMap.toSpanSingleton_apply] using h
+    (L := ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
+      circleLieGenerator) fun a b h ↦
+      smul_left_injective ℝ circleLieGenerator_ne_zero
+        ((toSpanSingleton_circleLieGenerator_apply a).symm.trans
+          (h.trans (toSpanSingleton_circleLieGenerator_apply b)))
   have hpull (z : Circle) :
       (SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
-        (contMDiff_const_smul (op z))
-        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) =
-        SmoothForm.mapCoeff (adjointContinuousLinearMap z⁻¹)
-          (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α)) ↔
+        (contMDiff_const_smul (op z)) (SmoothForm.mapCoeff
+          (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
+            circleLieGenerator) α) =
+        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL (𝓡 1) z⁻¹) (SmoothForm.mapCoeff
+          (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1))
+            circleLieGenerator) α)) ↔
       SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
         (contMDiff_const_smul (op z)) α = α := by
-    rw [SmoothForm.mpullback_mapCoeff, adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id,
+    rw [SmoothForm.mpullback_mapCoeff, GroupLieAlgebra.adjointL_eq_id, SmoothForm.mapCoeff_id,
       LinearMap.id_apply, hinj.eq_iff]
   have hval (x : ManifoldTotalSpace Circle P) (ξ : GroupLieAlgebra (𝓡 1) Circle) :
-      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α).val x
+      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ
+          (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator) α).val x
         ![rightFundamentalVectorField (IB.prod (𝓡 1)) ξ x] =
         α.val x ![rightFundamentalVectorField (IB.prod (𝓡 1)) ξ x] • circleLieGenerator := by
-    rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-      ContinuousLinearMap.toSpanSingleton_apply]
+    rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
+    exact toSpanSingleton_circleLieGenerator_apply _
   refine ⟨fun hA ↦ ⟨fun z ↦ (hpull z).mp (hA.mpullback_op_smul z), fun x ↦ ?_⟩,
     fun hα ↦ ⟨fun g ↦ (hpull g).mpr (hα.mpullback_op_smul g), fun x ξ ↦ ?_⟩⟩
   · refine smul_left_injective ℝ circleLieGenerator_ne_zero ?_
@@ -211,10 +224,12 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
     (SmoothForm.isSemibasic_iff.mpr fun x v j hv ↦ by
       have h := SmoothForm.isSemibasic_iff.mp
         (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_gaugeCurvature x v j hv
-      rw [gaugeCurvature_mapCoeff_toSpanSingleton _ ((lieL_apply _ _).trans (lie_self _)),
-        SmoothForm.coe_mapCoeff,
-        RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
-      exact h.resolve_right circleLieGenerator_ne_zero)
+      rw [gaugeCurvature_mapCoeff_toSpanSingleton (GroupLieAlgebra.bracketL (𝓡 1) Circle)
+          (ξ := circleLieGenerator) (GroupLieAlgebra.bracketL_self _), SmoothForm.coe_mapCoeff,
+        RoughForm.mapCoeff_apply] at h
+      -- `h` reads `α ξ₀` in the model space; turn it into `c • ξ₀` in the Lie algebra.
+      exact (smul_eq_zero.mp ((toSpanSingleton_circleLieGenerator_apply _).symm.trans h))
+        |>.resolve_right circleLieGenerator_ne_zero)
 
 /-- The **curvature** of a connection form `α` on a principal `Circle`-bundle over `B`: the unique
 smooth `2`-form on `B` whose pull-back along the projection is `d α`

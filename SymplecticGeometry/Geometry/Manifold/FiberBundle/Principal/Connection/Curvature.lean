@@ -6,11 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
-public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-public import TauCeti.Topology.Algebra.Lie.Bracket
 public import TauCeti.Geometry.Manifold.DifferentialForm.Gauge.Curvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
@@ -22,8 +20,9 @@ import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 For a Lie group `G`, write `𝔤 = GroupLieAlgebra IG G`. The **curvature** of a smooth
 `𝔤`-valued one-form `A` on a manifold `M` is the `𝔤`-valued two-form
 `F_A = d A + ½ [A ∧ A]`, where `[A ∧ A]` is the wedge of `A` with itself paired by the bracket
-of `𝔤` (`TauCeti.lieL`). This is Tau Ceti's `TauCeti.gaugeCurvature` for the bracket
-`lieL ℝ 𝔤 𝔤`, and on a pair of tangent vectors it is `F_A(v, w) = d A(v, w) + [A v, A w]`
+of `𝔤` (`GroupLieAlgebra.bracketL`). This is Tau Ceti's `TauCeti.gaugeCurvature` for the bracket
+`GroupLieAlgebra.bracketL IG G`, and on a pair of tangent vectors it is
+`F_A(v, w) = d A(v, w) + [A v, A w]`
 (`TauCeti.gaugeCurvature_val`). The definition needs no principal bundle, and its naturality
 and the structure equation hold for any bracket
 (`SymplecticGeometry/Geometry/Manifold/DifferentialForm/GaugeCurvature.lean`). This file proves
@@ -43,9 +42,9 @@ the properties of the curvature of a connection form on the total space of a pri
 
 ## Implementation notes
 
-The norm on `𝔤` is the scoped one of `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`,
-and the bracket of `𝔤` needs the local instance `LieGroup.minSmoothness_of_isRCLikeNormedField`;
-statements of this file need `open scoped GroupLieAlgebra` and that instance.
+The forms take their values in the model space `EG`, which is `𝔤` by definition, and the
+bracket is read on `EG` as `GroupLieAlgebra.bracketL IG G`; it needs the local instance
+`LieGroup.minSmoothness_of_isRCLikeNormedField`.
 
 ## References
 
@@ -60,7 +59,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField
-open scoped Manifold ContDiff GroupLieAlgebra
+open scoped Manifold ContDiff
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
@@ -79,16 +78,15 @@ theorem IsConnectionForm.mpullback_op_smul_gaugeCurvature {EB HB B : Type*}
     {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
     [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
     [ContMDiffFiberBundle ∞ G P IB IG]
-    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
     (hA : IsConnectionForm A) (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
         (contMDiff_const_smul (op g))
-        (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) =
-      SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
-        (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) := by
+        (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) =
+      SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹)
+        (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) := by
   rw [mpullback_gaugeCurvature, hA.mpullback_op_smul,
-    gaugeCurvature_mapCoeff _ _ _ fun a b ↦ by
-      rw [lieL_apply, lieL_apply, adjointContinuousLinearMap_lie]]
+    gaugeCurvature_mapCoeff _ _ _ fun a b ↦ GroupLieAlgebra.adjointL_bracketL g⁻¹ a b]
 
 section Tensorial
 
@@ -98,7 +96,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
   [ContMDiffFiberBundle ∞ G P IB IG]
-  {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+  {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1}
 
 /-- The curvature of a connection form vanishes when its first argument is the value of a
 fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket
@@ -106,23 +104,24 @@ fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, whi
 theorem IsConnectionForm.gaugeCurvature_apply_rightFundamentalVectorField
     (hA : IsConnectionForm A) (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
     (w : TangentSpace (IB.prod IG) x) :
-    (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val x
+    (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val x
       ![rightFundamentalVectorField (IB.prod IG) ξ x, w] = 0 := by
   have hV := (PrincipalBundle.contMDiff_rightFundamentalVectorField (P := P) (IB := IB)
     (m := 1) (n := ∞) (by simp) ξ x).mdifferentiableAt one_ne_zero
-  have h := mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ ξ)
+  -- The constant function `ξ`, read with values in the model space `EG`.
+  have h := mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ @id EG ξ)
     (fun y ↦ hA.apply_rightFundamentalVectorField y ξ) (A.mdifferentiable x) hV w
   rw [PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
     hA.mpullback_op_smul, mvfderiv_const, zero_apply, add_zero] at h
-  rw [gaugeCurvature_val _ (fun a b ↦ by rw [lieL_apply, lieL_apply, lie_skew]), lieL_apply,
+  rw [gaugeCurvature_val _ (fun a b ↦ GroupLieAlgebra.bracketL_swap b a),
     hA.apply_rightFundamentalVectorField, ← h, neg_add_cancel]
 
 /-- **The curvature of a connection form is horizontal**: it is semibasic for the projection,
 that is, it vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω} (hA : IsConnectionForm A) :
-    RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
+    RoughForm.IsSemibasic (F := EG) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG)
-      (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val := by
+      (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A).val := by
   refine RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr ?_
   rw [Submodule.mem_conormalForms_fin_two_iff_le_ker, ManifoldTotalSpace.coe_projContMDiffMap,
     ← PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
@@ -134,7 +133,7 @@ theorem IsConnectionForm.isSemibasic_gaugeCurvature {n : ℕ∞ω} (hA : IsConne
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isTensorialForm_gaugeCurvature (hA : IsConnectionForm A) :
-    IsTensorialForm (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) where
+    IsTensorialForm (gaugeCurvature (GroupLieAlgebra.bracketL IG G) A) where
   mpullback_op_smul := hA.mpullback_op_smul_gaugeCurvature
   isSemibasic := hA.isSemibasic_gaugeCurvature
 

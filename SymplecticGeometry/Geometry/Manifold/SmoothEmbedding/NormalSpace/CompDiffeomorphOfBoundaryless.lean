@@ -58,8 +58,6 @@ Euler classes is Tau Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_
   `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff`: the
   identifications and their inverses are `C^r` on total spaces, when `f` and `e` are `C^n` with
   `r + 1 ≤ n`.
-* `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff`: `g` has
-  symplectic tangent images for a nondegenerate two-form exactly when `f` has.
 * `TauCeti.SmoothEmbedding.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless`:
   the identifications preserve the normal symplectic forms.
 * `TauCeti.SmoothEmbedding.complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless`:
@@ -339,16 +337,6 @@ section Symplectic
 variable {n : ℕ∞ω} [IsManifold I ∞ X] [IsManifold I n X] [IsManifold I'' n M']
   {σ : SmoothTwoForm I X} {hσ : σ.IsNondegenerate}
 
-/-- The reparametrised embedding `f.compDiffeomorphOfBoundaryless e h1` has symplectic tangent
-images for a nondegenerate two-form `σ` on `X` exactly when `f` has. -/
-theorem hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff
-    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) :
-    hσ.HasSymplecticTangentImages I'' (f.compDiffeomorphOfBoundaryless e h1) ↔
-      hσ.HasSymplecticTangentImages I' f := by
-  have hn : n ≠ 0 := ENat.one_le_iff_ne_zero_withTop.1 h1
-  rw [coe_compDiffeomorphOfBoundaryless]
-  exact hσ.hasSymplecticTangentImages_comp_diffeomorph_iff e hn
-
 /-- The identification of the normal spaces of `f.compDiffeomorphOfBoundaryless e h1` with those
 of `f` carries the normal symplectic form of the first, for a nondegenerate two-form `σ` on `X`,
 to that of the second. -/
@@ -388,13 +376,13 @@ variable {E : Type u} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensio
 /-- **The Euler class of the complex normal bundle of a reparametrised embedding.** Let `J` be a
 smooth almost complex structure on `X` that preserves the tangent planes of a smooth embedding
 `f : M → X`, and `e : M' ≃ M` a diffeomorphism. Then the Euler class of the normal bundle of
-`f.compDiffeomorphOfBoundaryless e h1`, with the complex structure that `J` induces on it, is the
+`f.compDiffeomorphOfBoundaryless e _`, with the complex structure that `J` induces on it, is the
 pull-back along `e` of the Euler class of the normal bundle of `f` with its induced complex
 structure. The normal bundles have the model fibre `P` and the complex model `G`, of complex
 dimension `r + 1`; `hν` and `hν'` are the dimension hypotheses of the two normal bundles, of
 which the second follows from the first when `M'` is nonempty. -/
 theorem complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless
-    (f : SmoothEmbedding I' I ∞ M X) (e : M' ≃ₘ^∞⟮I'', I'⟯ M) (h1 : 1 ≤ (∞ : ℕ∞ω))
+    (f : SmoothEmbedding I' I ∞ M X) (e : M' ≃ₘ^∞⟮I'', I'⟯ M)
     (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ y, MapsTo (J (f y)) (f.isImmersion.tangentRange y hn)
       (f.isImmersion.tangentRange y hn))
@@ -402,12 +390,15 @@ theorem complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless
     (hν' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') (hG : finrank ℂ G = r + 1) :
     letI := f.normalSpaceFiberBundle hn hν
     letI := f.normalSpaceVectorBundle hn hν
-    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hν'
-    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceVectorBundle hn hν'
-    complexEulerClass G ((f.compDiffeomorphOfBoundaryless e h1).normalComplexStructure hn J hν'
-        (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 (A := (J ·)) hJ)).Fiber hG =
+    letI := (f.compDiffeomorphOfBoundaryless e (by simp)).normalSpaceFiberBundle hn hν'
+    letI := (f.compDiffeomorphOfBoundaryless e (by simp)).normalSpaceVectorBundle hn hν'
+    complexEulerClass G
+        ((f.compDiffeomorphOfBoundaryless e (by simp)).normalComplexStructure hn J hν'
+          (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e (by simp) (A := (J ·)) hJ)).Fiber
+          hG =
       TopCat.singularCohomologyMap (TopCat.ofHom (e.toHomeomorph : C(M', M))) (2 * r + 2)
         (complexEulerClass G (f.normalComplexStructure hn J hν hJ).Fiber hG) := by
+  have h1 : 1 ≤ (∞ : ℕ∞ω) := by simp
   let := f.normalSpaceFiberBundle hn hν
   let := f.normalSpaceVectorBundle hn hν
   let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hν'
