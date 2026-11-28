@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Class
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.FirstChernClass
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChernClass
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Homogeneity
 
@@ -36,19 +35,18 @@ The proof follows McDuff–Salamon, Corollary 7.1.24:
 For the first Chern class, which the book states as (7.1.31) without proof, Theorem 7.1.21 (vi)
 (`IsNormalizedBallEmbedding.exists_path_compatible`) joins `ω̃_{ψ,l,ε}` to a form compatible with
 the almost complex blowup `J̃` by a smooth family of symplectic forms. Along it the first Chern
-class does not change (`IsSmoothFamily.firstChernClass_eq`, which reads the family over `ℝ`
-through `IsSmoothFamily.exists_extend` and applies
-`TauCeti.SmoothTwoForm.firstChernClass_mpullback_prodMk_eq`), so it is `c₁(J̃)`, which
+class does not change (`IsSmoothFamily.firstChernClass_eq`), so it is `c₁(J̃)`, which
 `Blowup.firstChernClass_tangent` computes.
 
-The sign of `π l² e` is that of the library's exceptional class; with McDuff–Salamon's Poincaré
-dual the class reads `π^*[σ] - π l² e` (see `ERRATA.md` and
+The Chern class formula is (7.1.31) as the book states it, with `e` and `c₁` both taken in
+Tau Ceti's integral convention, in which `e` restricts on the exceptional divisor `Z` to the
+first Chern class of its normal bundle. Only the de Rham class changes sign: there the real image
+of `e` is minus McDuff–Salamon's Poincaré dual of `Z`, so their `π^*[σ] - π l² PD(Z)` reads
+`π^*[σ] + π l² e` (see `ERRATA.md` and
 `IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm`).
 
 ## Main results
 
-* `SymplecticGeometry.IsSmoothFamily.firstChernClass_eq`: the two ends of a smooth family over
-  `[0, 1]` of nondegenerate two-forms have the same first Chern class.
 * `SymplecticGeometry.exists_symplectic_class_firstChernClass`: a symplectic ball of radius `l`
   gives a symplectic form on the blowup in the class `π^*[σ] + π l² e`, with first Chern class
   `π^* c₁(σ) - n e`.
@@ -67,36 +65,6 @@ open scoped ContDiff Manifold
 namespace SymplecticGeometry
 
 open TauCeti
-
-section Family
-
-variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M]
-  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
-  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
-  [Fact (finrank ℝ E = 2 * finrank ℂ G)]
-
-/-- **The first Chern class is constant along a smooth family of nondegenerate forms.** For a
-smooth family `τ` over `[0, 1]` of two-forms that are all nondegenerate, `τ 0` and `τ 1` have the
-same first Chern class. -/
-theorem IsSmoothFamily.firstChernClass_eq {τ : unitInterval → SmoothTwoForm I M}
-    (hτ : IsSmoothFamily (𝓡∂ 1) τ) (h : ∀ t, (τ t).IsNondegenerate) :
-    (h 0).firstChernClass G = (h 1).firstChernClass G := by
-  obtain ⟨β, hβ, hβτ⟩ := hτ.exists_extend
-  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 hβ
-  have hs (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
-      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω = τ ⟨t, ht⟩ :=
-    (hΩ t).trans (hβτ ⟨t, ht⟩)
-  have h' (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) := (hs t ht).symm ▸ h ⟨t, ht⟩
-  have key := SmoothTwoForm.firstChernClass_mpullback_prodMk_eq G Ω h'
-  -- The two ends of `key` are the classes of `τ 0` and `τ 1`, for other proofs of
-  -- nondegeneracy; `congr 1` reduces this to the equality of the forms.
-  calc (h 0).firstChernClass G = (h' 0 (left_mem_Icc.2 zero_le_one)).firstChernClass G := by
-        congr 1; exact (hs 0 _).symm
-    _ = (h' 1 (right_mem_Icc.2 zero_le_one)).firstChernClass G := key
-    _ = (h 1).firstChernClass G := by congr 1; exact hs 1 _
-
-end Family
 
 variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] [T2Space M]
@@ -141,8 +109,11 @@ and let `ψ` be a symplectic embedding of the closed ball `B(l)`, `0 < l`. Then 
   `π l²` times the real image of the exceptional class `e = Blowup.exceptionalClass`;
 * its first Chern class is `π^* c₁(σ) - n • e`, both computed with the complex model `G`.
 
-The sign of `π l² e` is that of the library's `e`; with McDuff–Salamon's Poincaré dual of the
-divisor the class is `π^*[σ] - π l² e` (see `ERRATA.md`).
+The Chern class part is the book's formula as stated, with `e` and `c₁` in Tau Ceti's integral
+convention, where `e` restricts on the exceptional divisor to the first Chern class of its normal
+bundle. Only the de Rham class changes sign: by integration the real image of `e` is minus the
+book's Poincaré dual of the divisor, so the book's `- π l²` term reads `+ π l² e` (see
+`ERRATA.md`).
 
 Milestone: *Ball embeddings give symplectic forms on the blowup*. -/
 theorem exists_symplectic_class_firstChernClass [SecondCountableTopology M] [SigmaCompactSpace M]

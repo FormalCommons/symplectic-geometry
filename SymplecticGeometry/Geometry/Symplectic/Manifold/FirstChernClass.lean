@@ -13,10 +13,12 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Family
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 
 /-!
 # The first Chern class of a nondegenerate two-form
@@ -35,7 +37,9 @@ not matter, and that the class does not change along a family of nondegenerate f
   `G` of the tangent spaces;
 * `firstChernClass_mpullback_prodMk_eq`: for a smooth two-form on `ℝ × M` whose slices
   `σ_t = ι_t^* σ` are nondegenerate for `t ∈ [0, 1]`, `c₁(σ₀) = c₁(σ₁)`;
-* `firstChernClass_wellDefined`: these statements together.
+* `SymplecticGeometry.IsSmoothFamily.firstChernClass_eq`: the same for a smooth family of
+  nondegenerate two-forms over `[0, 1]`, which `IsSmoothFamily.exists_extend` reads over `ℝ`;
+* `firstChernClass_wellDefined`: the first three statements together.
 
 The family statement is proved over `ℝ × M`: the slices form a nondegenerate two-form on the
 pull-back of `TM` along the projection `ℝ × M → M`, which is compatible with some complex
@@ -231,3 +235,35 @@ theorem firstChernClass_wellDefined :
     fun σ h ↦ firstChernClass_mpullback_prodMk_eq G σ h⟩
 
 end TauCeti.SmoothTwoForm
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [Fact (finrank ℝ E = 2 * finrank ℂ G)]
+
+/-- **The first Chern class is constant along a smooth family of nondegenerate forms.** For a
+smooth family `τ` over `[0, 1]` of two-forms that are all nondegenerate, `τ 0` and `τ 1` have the
+same first Chern class. -/
+theorem IsSmoothFamily.firstChernClass_eq {τ : unitInterval → SmoothTwoForm I M}
+    (hτ : IsSmoothFamily (𝓡∂ 1) τ) (h : ∀ t, (τ t).IsNondegenerate) :
+    (h 0).firstChernClass G = (h 1).firstChernClass G := by
+  obtain ⟨β, hβ, hβτ⟩ := hτ.exists_extend
+  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 hβ
+  have hs (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
+      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω = τ ⟨t, ht⟩ :=
+    (hΩ t).trans (hβτ ⟨t, ht⟩)
+  have h' (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) := (hs t ht).symm ▸ h ⟨t, ht⟩
+  have key := SmoothTwoForm.firstChernClass_mpullback_prodMk_eq G Ω h'
+  -- The two ends of `key` are the classes of `τ 0` and `τ 1`, for other proofs of
+  -- nondegeneracy; `congr 1` reduces this to the equality of the forms.
+  calc (h 0).firstChernClass G = (h' 0 (left_mem_Icc.2 zero_le_one)).firstChernClass G := by
+        congr 1; exact (hs 0 _).symm
+    _ = (h' 1 (right_mem_Icc.2 zero_le_one)).firstChernClass G := key
+    _ = (h 1).firstChernClass G := by congr 1; exact hs 1 _
+
+end SymplecticGeometry
