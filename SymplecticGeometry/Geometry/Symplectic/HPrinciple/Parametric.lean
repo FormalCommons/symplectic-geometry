@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormSpaces
-public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Components
+public import TauCeti.Topology.ConnectedComponents
 public import TauCeti.Topology.Homotopy.HomotopyGroup.WeakHomotopyEquivalence
 public import Mathlib.Topology.Homotopy.Equiv
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Components
 import TauCeti.AlgebraicTopology.Homotopy.Whitehead
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
@@ -30,8 +31,8 @@ two-form `α`, the inclusion of the symplectic forms in the class of `α` into t
 two-forms is then a weak homotopy equivalence
 (`isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`).
 
-When moreover `M` is locally connected and each of its connected components compresses into a
-compact set by a smooth isotopy starting at the identity, the inclusion is a homotopy equivalence
+When moreover each connected component of `M` compresses into a compact set by a smooth
+isotopy starting at the identity, the inclusion is a homotopy equivalence
 (`exists_homotopyEquiv_symplecticFormsInClass`).
 
 ## Proof
@@ -60,8 +61,9 @@ For the homotopy equivalence, work on each component `c.opens` with the frame to
 `Bundle.ContMDiffTwoForm.trivializationAtFrameTopology`. The component is again a manifold as
 above: it is σ-compact as a closed subset of `M` (a local instance inside the proof, from
 `IsClosed.sigmaCompactSpace`), and its connected components are not compact, since the component
-in `c.opens` of a point contains the component of that point in `M`. There both spaces have CW
-type (`cwType_nondegenerateForms`, `cwType_symplecticFormsInClass`), so Whitehead's theorem,
+in `c.opens` of a point equals the component of that point in `M`, `c.opens` being clopen.
+There both spaces have CW type (`cwType_nondegenerateForms`, `cwType_symplecticFormsInClass`),
+so Whitehead's theorem,
 Tau Ceti's `ContinuousMap.IsWeakHomotopyEquivalence.homotopyEquiv`, turns the weak equivalence
 into a homotopy equivalence. The product of these over the components
 (`ContinuousMap.HomotopyEquiv.piCongrRight`) is carried to `M` by the homeomorphisms
@@ -224,9 +226,9 @@ private theorem exists_homotopyEquiv_symplecticFormsInClass_of_smoothIsotopy
     ext σ
     simp⟩
 
-/-- **The homotopy equivalence of the spaces of forms.** Let `M` be a Hausdorff, σ-compact,
-locally connected manifold without boundary, modelled on a finite-dimensional space, none of
-whose connected components is compact, and give the smooth two-forms on its tangent bundle the
+/-- **The homotopy equivalence of the spaces of forms.** Let `M` be a Hausdorff, σ-compact
+manifold without boundary, modelled on a finite-dimensional space, none of whose connected
+components is compact, and give the smooth two-forms on its tangent bundle the
 frame topology of a covering frame system. Suppose that each connected component `c` of `M`
 compresses into a compact set: some smooth isotopy of `c.opens` starts at the identity and ends
 at a map `j` whose image has compact closure. Then, for a closed two-form `α` on `M`, the
@@ -237,14 +239,19 @@ The hypothesis holds when `M` itself compresses into a compact set, since each s
 isotopy maps every component into itself; it also holds for a manifold of finite type, the
 interior of a compact manifold with boundary, by compression along a collar of the boundary.
 Without a hypothesis of this kind the two spaces need not have CW type. -/
-theorem exists_homotopyEquiv_symplecticFormsInClass [LocallyConnectedSpace M]
+theorem exists_homotopyEquiv_symplecticFormsInClass
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) (hcover : ∀ x, ∃ i, x ∈ U i)
-    {α : SmoothTwoForm I M} (hα : α ∈ closedForms I M 2)
-    (hj : ∀ c : ConnectedComponents M, ∃ j : C^∞⟮I, c.opens; I, c.opens⟯,
-      Nonempty (SmoothIsotopy (ContMDiffMap.id) j) ∧ IsCompact (closure (Set.range j))) :
+    {α : SmoothTwoForm I M} (hα : α ∈ closedForms I M 2) :
+    letI := I.toHomeomorph.locallyConnectedSpace
+    letI := ChartedSpace.locallyConnectedSpace H M
+    (∀ c : ConnectedComponents M, ∃ j : C^∞⟮I, c.opens; I, c.opens⟯,
+      Nonempty (SmoothIsotopy (ContMDiffMap.id) j) ∧ IsCompact (closure (Set.range j))) →
     letI := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
     ∃ φ : symplecticFormsInClass α ≃ₕ nondegenerateForms I M,
       ⇑φ.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms α) := by
+  have := I.toHomeomorph.locallyConnectedSpace
+  have := ChartedSpace.locallyConnectedSpace H M
+  intro hj
   let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
   let _ (c : ConnectedComponents M) := ContMDiffTwoForm.trivializationAtFrameTopology I c.opens
   -- On each component, Whitehead's theorem gives a homotopy equivalence.
@@ -254,12 +261,10 @@ theorem exists_homotopyEquiv_symplecticFormsInClass [LocallyConnectedSpace M]
       ⇑φ.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms _) := by
     have : SigmaCompactSpace c.opens := c.isClopen_opens.isClosed.sigmaCompactSpace
     obtain ⟨j, ⟨h⟩, hj⟩ := hj c
-    -- The connected component of a point `x` of `c.opens` contains that of `x` in `M`.
+    -- The connected component of a point `x` of `c.opens` is that of `x` in `M`.
     have hc (x : c.opens) : ¬ IsCompact (connectedComponent x) := fun hx ↦
-      hM x ((hx.image continuous_subtypeVal).of_isClosed_subset isClosed_connectedComponent
-        ((isPreconnected_connectedComponent.subset_connectedComponentIn mem_connectedComponent
-          (c.isClopen_opens.connectedComponent_subset x.property)).trans
-            (connectedComponentIn_eq_image x.property).subset))
+      hM x <| c.isClopen_opens.connectedComponentIn_eq x.property ▸
+        connectedComponentIn_eq_image x.property ▸ hx.image continuous_subtypeVal
     have := exists_homotopyEquiv_symplecticFormsInClass_of_smoothIsotopy _ _
       (fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset) hc
       (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)
