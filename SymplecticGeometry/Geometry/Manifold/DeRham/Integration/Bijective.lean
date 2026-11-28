@@ -22,7 +22,9 @@ compactly supported, so this follows from Tau Ceti's top-degree Poincaré lemma
 In the same setting, integration `TauCeti.deRhamCohomology.integral o` on top-degree de Rham
 cohomology is injective (`TauCeti.deRhamCohomology.injective_integral`): on a compact manifold
 de Rham cohomology is compactly supported de Rham cohomology, where Tau Ceti's
-`TauCeti.compactlySupportedDeRhamCohomology.injective_integral` applies.
+`TauCeti.compactlySupportedDeRhamCohomology.injective_integral` applies. Hence a top-degree class
+with nonzero integral spans the top de Rham cohomology
+(`TauCeti.deRhamCohomology.span_singleton_eq_top_of_integral_ne_zero`).
 
 ## References
 
@@ -64,6 +66,16 @@ theorem deRhamCohomology.injective_integral (o : Manifold.Orientation I M (Fin k
   rw [deRhamCohomology.integral_toDeRhamCohomology,
     deRhamCohomology.integral_toDeRhamCohomology] at hab
   rw [compactlySupportedDeRhamCohomology.injective_integral o hab]
+
+/-- On a compact, preconnected, boundaryless, Hausdorff manifold of dimension `k` with an
+orientation `o`, a top-degree de Rham class with nonzero integral spans `H^k_dR(M)`. -/
+theorem deRhamCohomology.span_singleton_eq_top_of_integral_ne_zero
+    (o : Manifold.Orientation I M (Fin k)) {c : deRhamCohomology I M k}
+    (hc : deRhamCohomology.integral o c ≠ 0) : Submodule.span ℝ {c} = ⊤ := by
+  refine eq_top_iff.mpr fun d _ ↦ Submodule.mem_span_singleton.mpr
+    ⟨deRhamCohomology.integral o d / deRhamCohomology.integral o c,
+      deRhamCohomology.injective_integral o ?_⟩
+  rw [map_smul, smul_eq_mul, div_mul_cancel₀ _ hc]
 
 end TauCeti
 
