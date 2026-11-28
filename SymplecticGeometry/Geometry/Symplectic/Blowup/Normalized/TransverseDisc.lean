@@ -28,7 +28,7 @@ These are the hypotheses that
 disc, besides the choice of a simplex. Near `0` the lift is the inclusion of
 the model piece, so the facts on the normal classes and on the orientation come from
 `Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul` and
-`Blowup.orientation_map_eq_divisorNormalOrientation`.
+`Blowup.orientation_map_eq_divisorNormalOrientation_mk`.
 
 ## Main definitions
 
@@ -38,8 +38,8 @@ the model piece, so the facts on the normal classes and on the orientation come 
 ## Main results
 
 * `BlowupModel.isOpen_setOf_curveLift_smul_mem_openNbhd` and
-  `IsNormalizedBallEmbedding.zero_mem_setOf_lineDisc_mem`: the open set where the disc is defined
-  contains `0`.
+  `BlowupModel.zero_mem_setOf_curveLift_smul_mem_openNbhd`: the set where the disc is defined is
+  open and contains `0`.
 * `IsNormalizedBallEmbedding.contMDiffOn_lineDisc`: the disc is smooth there, and
   `IsNormalizedBallEmbedding.mdifferentiableAt_lineDisc`: differentiable at `0`.
 * `IsNormalizedBallEmbedding.lineDisc_zero`: it sends `0` to the point `ℓ` of the divisor, and
@@ -94,6 +94,15 @@ theorem isOpen_setOf_curveLift_smul_mem_openNbhd (hv : v ≠ 0) (r : ℝ) :
   (isOpen_openNbhd r).preimage
     (contMDiff_curveLift_smul_orthonormalBasisOneI_repr_symm hv (k := 0)).continuous
 
+/-- For `v ≠ 0` and `0 < r`, the set of `w ∈ ℝ²` whose point on the lift of the line
+`t ↦ t • v`, with `w` read in `ℂ` through `Complex.orthonormalBasisOneI.repr.symm`, lies in
+`openNbhd n r` contains `0`. -/
+theorem zero_mem_setOf_curveLift_smul_mem_openNbhd (hv : v ≠ 0) {r : ℝ} (hr : 0 < r) :
+    (0 : EuclideanSpace ℝ (Fin 2)) ∈
+      {w | curveLift (· • v) (Complex.orthonormalBasisOneI.repr.symm w) ∈ openNbhd n r} := by
+  rw [mem_ofPred_eq, LinearIsometryEquiv.map_zero, curveLift_smul_zero hv]
+  exact zeroSection_mem_openNbhd hr _
+
 end BlowupModel
 
 namespace IsNormalizedBallEmbedding
@@ -120,16 +129,6 @@ theorem lineDisc_def (v : Fin (n + 1) → ℂ) (w : EuclideanSpace ℝ (Fin 2)) 
 
 variable {v : Fin (n + 1) → ℂ}
 
-include hψ in
-/-- The set where the line disc is defined, of the `w` whose model point lies in `openNbhd n r`,
-contains `0`. -/
-theorem zero_mem_setOf_lineDisc_mem (hv : v ≠ 0) :
-    (0 : EuclideanSpace ℝ (Fin 2)) ∈
-      {w | curveLift (· • v) (Complex.orthonormalBasisOneI.repr.symm w) ∈ openNbhd n r} := by
-  rw [mem_ofPred_eq, LinearIsometryEquiv.map_zero, curveLift_smul_zero hv]
-  exact openNbhd_mono hψ.width_lt_radius.le (exceptionalDivisor_subset_openNbhd hψ.width_pos
-    (mem_exceptionalDivisor_iff.2 (blowdown_zeroSection _)))
-
 /-- The line disc is smooth where it is defined. -/
 theorem contMDiffOn_lineDisc (hv : v ≠ 0) :
     ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (hψ.lineDisc v)
@@ -143,14 +142,13 @@ theorem mdifferentiableAt_lineDisc (hv : v ≠ 0) :
     MDifferentiableAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, Fin (n + 1) → ℂ) (hψ.lineDisc v) 0 :=
   ((hψ.contMDiffOn_lineDisc hv).contMDiffAt
     ((isOpen_setOf_curveLift_smul_mem_openNbhd hv r).mem_nhds
-    (hψ.zero_mem_setOf_lineDisc_mem hv))).mdifferentiableAt (by simp)
+    (zero_mem_setOf_curveLift_smul_mem_openNbhd hv
+      (hψ.width_pos.trans hψ.width_lt_radius)))).mdifferentiableAt (by simp)
 
 /-- The line disc through `v` sends `0` to the point `[v]` of the exceptional divisor. -/
 theorem lineDisc_zero (hv : v ≠ 0) :
     hψ.lineDisc v 0 = Blowup.divisorRealEmbedding hN.blowupChart (Projectivization.mk ℂ v hv) := by
-  have h0 : zeroSection (Projectivization.mk ℂ v hv) ∈ openNbhd n ε :=
-    exceptionalDivisor_subset_openNbhd hψ.width_pos
-      (mem_exceptionalDivisor_iff.2 (blowdown_zeroSection _))
+  have h0 := zeroSection_mem_openNbhd hψ.width_pos (Projectivization.mk ℂ v hv)
   rw [lineDisc_def, LinearIsometryEquiv.map_zero, curveLift_smul_zero hv,
     hψ.ballLiftPartialDiffeomorph_apply ⟨_, openNbhd_mono hψ.width_lt_radius.le h0⟩,
     hψ.ballLift_of_mem_openNbhd _ h0, Blowup.coe_divisorRealEmbedding, Blowup.ofDirection_def]
@@ -204,8 +202,7 @@ theorem divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc (hv : v ≠ 0)
       ((contMDiff_curveLift_smul_real hv (r := ∞)).continuous.continuousAt.preimage_mem_nhds
         ((isOpen_openNbhd ε).mem_nhds (by
           rw [curveLift_smul_zero hv]
-          exact exceptionalDivisor_subset_openNbhd hψ.width_pos
-            (mem_exceptionalDivisor_iff.2 (blowdown_zeroSection _)))))
+          exact zeroSection_mem_openNbhd hψ.width_pos _)))
     filter_upwards [hε] with t ht
     simp only [Function.comp_apply, g]
     rw [
@@ -241,16 +238,15 @@ theorem exists_orientation_map_eq_divisorNormalOrientation_lineDisc (hv : v ≠ 
     (Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv.trans
       (L.restrictScalars ℝ).toContinuousLinearEquiv).trans
       (Blowup.divisorNormalEquiv hN.blowupChart (Projectivization.mk ℂ v hv)).symm
-  have hm : ∀ w, Blowup.divisorNormalEquiv hN.blowupChart _ (m w) =
-      L (Complex.orthonormalBasisOneI.repr.symm w) := fun w ↦ by
-    simp only [m, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply,
+  have hm : ∀ w, (Blowup.divisorNormalEquiv hN.blowupChart _ (m w) : Fin (n + 1) → ℂ) =
+      Complex.orthonormalBasisOneI.repr.symm w • v := fun w ↦ by
+    simp only [m, L, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply,
       LinearEquiv.coe_toContinuousLinearEquiv', LinearEquiv.restrictScalars_apply,
-      LinearIsometryEquiv.coe_toContinuousLinearEquiv]
-  refine ⟨m, Blowup.orientation_map_eq_divisorNormalOrientation _ L m hm, fun A hA w ↦ ?_⟩
+      LinearIsometryEquiv.coe_toContinuousLinearEquiv, LinearEquiv.trans_apply,
+      LinearEquiv.coe_ofEq_apply, LinearEquiv.toSpanNonzeroSingleton_apply]
+  refine ⟨m, Blowup.orientation_map_eq_divisorNormalOrientation_mk _ hv m hm, fun A hA w ↦ ?_⟩
   refine (Blowup.divisorNormalEquiv hN.blowupChart _).injective (Subtype.ext ?_)
   rw [hψ.divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc hv hA, hm]
-  simp only [L, LinearEquiv.trans_apply, LinearEquiv.coe_ofEq_apply,
-    LinearEquiv.toSpanNonzeroSingleton_apply]
 
 end IsNormalizedBallEmbedding
 
