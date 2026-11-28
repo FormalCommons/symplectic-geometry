@@ -56,12 +56,12 @@ On `ℂP¹`, for the complex orientation `o`, the integral `∫_o φ = 1` is the
 fundamental class of `o` (`Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass`),
 so the surface comparison
 `TauCeti.Manifold.Orientation.deRhamHom_mk_eq_neg_realImage_of_integralTopForm_eq` gives
-`deRhamHom [φ] = -h`. Over `ℂPⁿ` with `n ≥ 1`, restriction along the line
-`Projectivization.lineEmbedding` is injective on `H²(-; ℝ)`
+`deRhamHom [φ] = -h`. Over `ℂPⁿ` with `n ≥ 1`, restriction along the coordinate line, the
+inclusion `Function.ExtendByZero.linearMap` of `Fin.castLE`, is injective on `H²(-; ℝ)`
 (`Projectivization.injective_singularCohomologyMap_map_real`); both sides restrict to the classes
 on `ℂP¹`, since a line has area `π` (`integralTopForm_mpullback_map_fubiniStudyForm`) and `h`
 restricts to `h` (`Projectivization.hyperplaneClass_map`). For `n = 0` the space is a point
-(`Projectivization.subsingleton_singularCohomology_real_of_finrank_eq_one`). This reduction is
+(`Projectivization.isZero_singularCohomology_of_finrank_eq_one`). This reduction is
 that of `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveSpace`, for a
 fixed closed form instead of a curvature form. The corollary for the first Chern class uses
 `Projectivization.firstChernClass_tangentSpace`, `c₁(Tℂℙⁿ) = (n + 1) h`.
@@ -120,12 +120,13 @@ theorem deRhamHom_fubiniStudyForm_eq_neg_hyperplaneClass (n : ℕ) :
           (hyperplaneClass (Fin (n + 1) → ℂ))) := by
   rcases n with _ | m
   · -- `ℙ ℂ (Fin 1 → ℂ)` is a point, so its second cohomology vanishes.
-    have := subsingleton_singularCohomology_real_of_finrank_eq_one (V := Fin (0 + 1) → ℂ)
-      (by simp) two_ne_zero
-    exact Subsingleton.elim _ _
+    exact (ModuleCat.subsingleton_of_isZero (isZero_singularCohomology_of_finrank_eq_one
+      (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) (K := ℂ) (E := Fin (0 + 1) → ℂ) (by simp)
+      two_ne_zero)).elim _ _
   · -- Restrict to a projective line, on which `H²(-; ℝ)` injects.
-    let ι := lineEmbedding ℂ m
-    have hι : Function.Injective ι := injective_lineEmbedding ℂ m
+    let ι := Function.ExtendByZero.linearMap ℂ ℂ
+      (Fin.castLE (by omega) : Fin 2 → Fin (m + 1 + 1))
+    have hι : Function.Injective ι := Function.extend_injective (Fin.castLE_injective _) 0
     have hf := contMDiff_map_restrictScalars ι hι ∞
     refine injective_singularCohomologyMap_map_real ι hι (n := 1) (by simp) one_ne_zero ?_
     have h := deRhamHom_map hf 2 (deRhamCohomology.mk _ 2 ⟨(Real.pi)⁻¹ • fubiniStudyForm (m + 1),
