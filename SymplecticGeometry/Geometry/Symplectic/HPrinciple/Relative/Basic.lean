@@ -315,7 +315,7 @@ a manifold without boundary none of whose connected components is compact, and
 * `H (t, 1)` is closed and `H (t, 1) - α₀` is exact for every `t`.
 
 This is `SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval` for
-`P₀ = {0, 1}`, with the segment `s ↦ (1 - s) • τ 0 + s • τ 1` as the family `α`. -/
+`P₀ = {0, 1}`, with the segment `s ↦ τ 0 + s • (τ 1 - τ 0)` as the family `α`. -/
 theorem exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) {τ : unitInterval → SmoothTwoForm I M}
     (hτ : IsSmoothFamily (𝓡∂ 1) τ) (hnd : ∀ t, (τ t).IsNondegenerate)
@@ -328,10 +328,13 @@ theorem exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends
         mextDerivₗ I 2 (H (t, u)) = 0 ∧ H (t, u) - α₀ ∈ exactForms I M 2) ∧
       ∀ t, mextDerivₗ I 2 (H (t, 1)) = 0 ∧ H (t, 1) - α₀ ∈ exactForms I M 2 := by
   refine exists_isSmoothFamily_homotopy_closed_unitInterval hM (Set.toFinite _).isClosed hτ hnd
-    (isSmoothFamily_one_sub_smul_add_smul (τ 0) (τ 1)) (fun s ↦ ?_) (fun s ↦ ?_) ?_
-  · rw [map_add, map_smul, map_smul, h₀, h₁, smul_zero, smul_zero, add_zero]
-  · convert add_mem (Submodule.smul_mem _ (1 - s) h₀α) (Submodule.smul_mem _ s h₁α) using 1
-    module
+    (isSmoothFamily_def.2 ⟨SmoothForm.lineMapFamily (τ 0) (τ 1) contDiff_id,
+      SmoothForm.mpullback_prodMk_lineMapFamily (τ 0) (τ 1) contDiff_id⟩)
+    (fun s ↦ ?_) (fun s ↦ ?_) ?_
+  · simp [h₀, h₁]
+  · convert add_mem h₀α (Submodule.smul_mem _ s (sub_mem h₁α h₀α)) using 1
+    simp only [id]
+    abel
   · rintro t (rfl | rfl) <;> simp
 
 end SymplecticGeometry
