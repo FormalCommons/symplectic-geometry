@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.MixedPartial
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
@@ -80,6 +81,8 @@ since it inverts the flat maps of the smooth family `σ`.
 * `TauCeti.SmoothTwoForm.smoothFiberComponent τ x`: the slice of a smooth `τ`, as a smooth form.
 * `TauCeti.SmoothTwoForm.mixedVectorField τ bs i x`: the vector field `Xᵢ(x)` on `F`, the inverse
   of the flat map of `σ(x)` applied to `αᵢ(x)`.
+* `SymplecticGeometry.baseField bs i`: the constant field `(∂ᵢ, 0)` on `EB × F`, as a smooth
+  section.
 
 ## Main results
 
@@ -110,6 +113,11 @@ since it inverts the flat maps of the smooth family `σ`.
   nondegenerate, `Xᵢ(x)` is a smooth vector field on `F`.
 * `TauCeti.SmoothTwoForm.contMDiff_eval₂_mixedVectorField`: where `σ(x)` is nondegenerate, the
   function `σ(x)(Xᵢ(x), Xⱼ(x))` on `F` is smooth.
+* `TauCeti.SmoothTwoForm.contMDiff_baseComponent`: the base components `f_{ij}` of a smooth `τ`
+  are smooth jointly in `x` and the point of `F`.
+* `TauCeti.SmoothTwoForm.mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv`: the mixed curl
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)`, on a vector `w` tangent to `F`, is
+  `d_F f_{ij}(x)(w) - dτ((∂ᵢ, 0), (∂ⱼ, 0), (0, w))`.
 
 ## Implementation notes
 
@@ -137,6 +145,10 @@ which also applies the inverse of a flat map to a covector. The statement of
 The exterior derivative of a slice is read off `dτ` by Tau Ceti's
 `TauCeti.mpullback_mextDeriv_at`, since the slice is the pull-back along `ι_x`, whose
 derivative sends `w` to `(0, w)`.
+
+The curl of the mixed components is Tau Ceti's
+`TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv` rewritten in terms of the
+components.
 
 The formula for `dτ` follows the proof of Tau Ceti's
 `TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv`, which evaluates `dτ` on
@@ -876,5 +888,59 @@ theorem contMDiff_eval₂_mixedVectorField [FiniteDimensional ℝ EF] {x : EB}
     (τ.contMDiff_mixedVectorField_of_isNondegenerate bs hσ j)) y
   rw [Bundle.contMDiffAt_totalSpace_iff] at h
   simpa [Bundle.Trivial.fiberBundle_trivializationAt'] using h.2
+
+/-- The constant vector field `(bs k, 0)` on `EB × F`, as a smooth section of the tangent
+bundle. -/
+def _root_.SymplecticGeometry.baseField (k : ι) :
+    Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
+  ⟨Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) 0,
+    Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
+      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
+
+@[simp]
+theorem _root_.SymplecticGeometry.baseField_apply (k : ι) (p : EB × F) :
+    SymplecticGeometry.baseField (IF := IF) bs k p = ((bs k, 0) : EB × EF) :=
+  Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
+
+open SymplecticGeometry in
+/-- The base components `f_{ij}(x)(y) = τ((bs i, 0), (bs j, 0))` of a smooth two-form `τ` on
+`EB × F` are smooth jointly in `x` and `y`. -/
+theorem contMDiff_baseComponent (i j : ι) :
+    ContMDiff (𝓘(ℝ, EB).prod IF) 𝓘(ℝ) ∞
+      fun p : EB × F ↦ RoughForm.baseComponent τ.val bs i j p.1 p.2 := by
+  refine (SmoothForm.interiorProduct (baseField bs j)
+    (SmoothForm.interiorProduct (baseField bs i) τ)).contMDiff_apply_zero.congr fun p ↦ ?_
+  rw [RoughForm.baseComponent_def, SmoothForm.coe_interiorProduct, RoughForm.interior_apply,
+    SmoothForm.coe_interiorProduct, RoughForm.interior_apply, baseField_apply, baseField_apply]
+  congr 1
+  ext k
+  fin_cases k <;> rfl
+
+section Curl
+
+variable [CompleteSpace EB] [CompleteSpace EF]
+
+/-- **The curl of the mixed components.** For a smooth two-form `τ` on `EB × F`, with mixed
+components `αₖ` and base components `f_{ij}` for the basis `bs`, and a vector `w` tangent to `F`
+at `y`, `∂ᵢαⱼ(x)(w) - ∂ⱼαᵢ(x)(w) = d_F f_{ij}(x)(w) - dτ((bs i, 0), (bs j, 0), (0, w))`, where
+`∂ₖ` differentiates in `x` along `bs k`. -/
+theorem mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv (i j : ι) (x : EB) (y : F)
+    (w : TangentSpace IF y) :
+    RoughForm.mixedCurl τ.val bs i j x y w =
+      mvfderiv IF (RoughForm.baseComponent τ.val bs i j x) y w -
+        mextDeriv τ.val (x, y) ![(bs i, 0), (bs j, 0), ((0 : EB), w)] := by
+  have hα (k : ι) : (fun x' ↦ RoughForm.mixedComponent τ.val bs k x' y ![w]) =
+      fun x' ↦ -τ.val (x', y) ![(bs k, 0), ((0 : EB), w)] := by
+    funext x'
+    rw [RoughForm.mixedComponent_apply]
+    exact (τ.val (x', y)).apply_vecCons_swap _ _
+  have hf : RoughForm.baseComponent τ.val bs i j x =
+      fun y' ↦ τ.val (x, y') ![(bs i, 0), (bs j, 0)] :=
+    funext fun _ ↦ RoughForm.baseComponent_def ..
+  rw [RoughForm.mixedCurl_def, hα, hα, fderiv_fun_neg, fderiv_fun_neg, neg_apply, neg_apply, hf,
+    SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv]
+  abel
+
+end Curl
 
 end TauCeti.SmoothTwoForm

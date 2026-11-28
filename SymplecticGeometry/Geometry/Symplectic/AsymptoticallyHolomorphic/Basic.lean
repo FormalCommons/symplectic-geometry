@@ -801,6 +801,23 @@ theorem dbarFun_const (k : ℕ) (x : M) (c : ℂ) (z : StdSpace ι) :
     D.dbarFun k x (fun _ ↦ c) z = 0 :=
   flatDbarWith_const c z
 
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- The **Leibniz rule for `∂̄` on the chart**: for `f` and `g` differentiable at `z`, the `∂̄` of
+`f * g` at `z` is `f z • ∂̄ g (z) + g z • ∂̄ f (z)`. -/
+theorem dbarFun_mul {k : ℕ} {x : M} {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (hf : DifferentiableAt ℝ f z) (hg : DifferentiableAt ℝ g z) :
+    D.dbarFun k x (fun y ↦ f y * g y) z = f z • D.dbarFun k x g z + g z • D.dbarFun k x f z :=
+  flatDbarWith_mul hf hg
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- On a boundaryless manifold, the `∂̄` on the chart of `f` is `C^n` at a point `z` of the target
+of the chart where `f` is `C^(n + 1)`. -/
+theorem contDiffAt_dbarFun [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M} {f : StdSpace ι → ℂ}
+    {z : StdSpace ι} (hz : z ∈ (D.chart k x).target) (hf : ContDiffAt ℝ (n + 1) f z) :
+    ContDiffAt ℝ n (D.dbarFun k x f) z :=
+  contDiffAt_flatDbarWith
+    ((J.contDiffAt_chartPushforward (D.chart k x) hz).of_le (by exact_mod_cast le_top)) hf
+
 /-- The reading of the product of a section `s` with a function `g : M → ℂ` is the product of
 the reading of `s` with `g` read in the chart. -/
 @[simp]

@@ -7,17 +7,20 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakSection
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.LocalTransversality
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakQuotient
+import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-!
-# Global uniform transversality: the local correction
+# Global uniform transversality: the local correction and one colour
 
 Let `D` be rescaled unitary charts of radius `ρ₀ > 0` for `(σ, J)` and a connection form `α`, and
 let `M` carry the metric `σ(·, J ·)`. This file corrects a section `s` of `PowerBundle P k` on
 one ball, of radius one in the chart centred at `x`, so that it becomes transverse there in the
-quantitative sense of `SymplecticGeometry.IsUniformlyTransverse`.
+quantitative sense of `SymplecticGeometry.IsUniformlyTransverse`, and then corrects a section at
+all centres of one colour of a separated set at once.
 
 The correction is an affine combination of peak sections,
 `D.affinePeakSection k x w = w₀ • peakSection k x + Σ_j w_j • peakSection_mul k x j` for
@@ -34,13 +37,32 @@ Gaussian (`RescaledUnitaryCharts.reading_affinePeakSection`).
   `ε / 4 ≤ transversalityQuantity J α k t y` at every point `y` of the image of the closed unit
   ball. The constants are chosen in the order that the iteration over colours needs: `δ` first,
   then `k`, uniformly in `x` and `s`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_correction_of_separated`: one step of the
+  iteration over colours. All centres of a finite set `T` of polynomial counting whose distinct
+  points are at rescaled distance at least `R` are corrected at once, with coefficients of norm at
+  most `δ`. Near each centre of `T` the corrected section has transversality quantity at least
+  `ε / 4 - C₂ * δ * exp (-c₂ * R ^ 2)`, and at every point the quantity drops by at most `C₁ * δ`.
+  Its hypotheses are global bounds on the `2`-jet of `s` and the `1`-jet of `∂̄ s`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_sum_erase_affinePeakSection_le`: near
+  a centre `x` of such a set `T`, the peak sections at the other centres of `T` have jet norm
+  `O(δ * exp (-c * R ^ 2))`.
 
-The proof divides the reading of `s` by the cut-off Gaussian, which meets the hypotheses of the
-local transversality estimate (`exists_forall_norm_reading_div_peakFunction_le`); the estimate
+The proof of the local correction divides the reading of `s` by the cut-off Gaussian, which meets
+the hypotheses of the local transversality estimate
+(`exists_forall_norm_reading_div_peakFunction_le`); the estimate
 `SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le` gives `w`; the reading of the corrected
 section is then the corrected quotient times the Gaussian near the closed unit ball, and
 `eventually_div_four_le_transversalityQuantity_of_mul_gaussian` carries the lower bound back to
 the section.
+
+For one colour, the changes of chart of `ChartChange.lean` turn the global bounds on `s` into the
+hypotheses of the local correction at each centre. Near a centre `x ∈ T`, the corrections at the
+other centres are at rescaled distance at least `R - 2` and form a Gaussian tail
+(`exists_jetNorm_sum_affinePeakSection_le`, then `Real.exp_neg_mul_max_sub_sq_le`, in
+`exists_jetNorm_sum_erase_affinePeakSection_le`), and at every point the whole sum has `1`-jet norm
+`O(δ)`.
+Both effects on the transversality quantity are bounded by
+`abs_transversalityQuantity_add_sub_le_jetNorm`.
 
 ## References
 
@@ -183,6 +205,173 @@ theorem exists_local_correction [I.Boundaryless] [RiemannianBundle (fun x : M �
   exact hDk x _ _ z hz1
     (D.reading_sub_affinePeakSection_eventuallyEq hk x s w (hz1.trans_lt hkρ) (hz1.trans_lt hk6))
     hqwd hB (hwz z hz)
+
+/-- **Peak sections at the other centres of a separated set.** Let `M` be preconnected, Hausdorff
+and boundaryless, with the metric `σ(·, J ·)`. For every counting constant `C₀`, exponent `m`,
+order `r` and radius `a` there are `C` and `c > 0` such that for all large `k`: let `T` be a finite
+set of centres with at most `C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from any
+point, for every `ρ ≥ 0`, whose distinct points are at rescaled distance at least `R ≥ 0`. Then
+for `x ∈ T`, every point `y` at rescaled distance at most `a` from `x` and coefficients `w` of
+norm at most `δ ≥ 0` on `T`, the `r`-jet norm at `y` of the sum of
+`D.affinePeakSection k x' (w x')` over `x' ∈ T.erase x` is at most `C * δ * exp (-c * R ^ 2)`. -/
+theorem exists_jetNorm_sum_erase_affinePeakSection_le [T2Space M] [I.Boundaryless]
+    [PreconnectedSpace M] [DecidableEq M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (C₀ : ℝ) (m r : ℕ)
+    (a : ℝ) :
+    ∃ C c : ℝ, 0 < c ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (T : Finset M) (R : ℝ), 0 ≤ R →
+      (∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+        ((T.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m) →
+      (∀ x ∈ T, ∀ x' ∈ T, x ≠ x' → R ≤ rescaledDist I k x x') →
+      ∀ x ∈ T, ∀ y : M, rescaledDist I k x y ≤ a →
+      ∀ (δ : ℝ) (w : M → EuclideanSpace ℂ (Option ι)), 0 ≤ δ → (∀ x ∈ T, ‖w x‖ ≤ δ) →
+        D.jetNorm k r (∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x')) y ≤
+          C * δ * Real.exp (-c * R ^ 2) := by
+  obtain ⟨C, c, hc, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m r
+  refine ⟨max C 0 * Real.exp (c * a ^ 2), c / 2, half_pos hc, ?_⟩
+  filter_upwards [Hsum] with k hsum T R hR hT hsep x hx y hy δ w hδ hw
+  -- The other centres of `T` lie at rescaled distance at least `R - a` from `y`.
+  set R' := max (R - a) 0
+  have hfar : (T.erase x).filter (fun x' ↦ R' ≤ rescaledDist I k x' y) = T.erase x := by
+    refine Finset.filter_true_of_mem fun x' hx' ↦ max_le ?_ (rescaledDist_nonneg I k x' y)
+    obtain ⟨hne, hx'T⟩ := Finset.mem_erase.1 hx'
+    have h1 := hsep x hx x' hx'T (Ne.symm hne)
+    have h2 := rescaledDist_triangle (I := I) k x y x'
+    rw [rescaledDist_comm (I := I) k y x'] at h2
+    linarith
+  have hcount (ρ : ℝ) (hρ : 0 ≤ ρ) :
+      (((T.erase x).filter fun x' ↦ rescaledDist I k x' y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m :=
+    le_trans (by exact_mod_cast Finset.card_le_card (Finset.filter_subset_filter _
+      (Finset.erase_subset x T))) (hT y ρ hρ)
+  have htail := (hsum y (T.erase x) hcount δ w hδ fun x' hx' ↦
+    hw x' (Finset.mem_of_mem_erase hx')).2.2 R' (le_max_right _ _)
+  rw [hfar] at htail
+  refine htail.trans ?_
+  calc C * δ * Real.exp (-c * R' ^ 2) ≤ max C 0 * δ * Real.exp (-c * R' ^ 2) := by
+        gcongr; exact le_max_left _ _
+    _ ≤ max C 0 * δ * (Real.exp (c * a ^ 2) * Real.exp (-(c / 2) * R ^ 2)) := by
+        gcongr; exact Real.exp_neg_mul_max_sub_sq_le hc.le hR
+    _ = _ := by ring
+
+/-- **Correcting one colour of a separated set of centres.** Let `M` be preconnected, Hausdorff and
+boundaryless, with the metric `σ(·, J ·)`, let `α` be a connection form and `ρ₀ > 0`. For every
+bound `B`, counting constant `C₀` and exponent `m` there are an exponent `p > 0`, `δ₀ > 0` and
+constants `C₁`, `C₂` and `c₂ > 0` such that, for `0 < δ < δ₀` and `ε = δ / log (1 / δ) ^ p`, the
+following holds for all large `k`. Let `T` be a finite set of centres with at most
+`C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from any point, for every `ρ ≥ 0`, whose
+distinct points are at rescaled distance at least `R ≥ 0`. Let `s` be a section of
+`PowerBundle P k` whose readings are `C²` and whose `∂̄` readings are `C¹` at the centre of every
+chart, with `D.jetNorm k 2 s ≤ B` and `D.dbarJetNorm k 1 s ≤ B * k ^ (-1 / 2)` everywhere. Then
+there are coefficients `w x` of norm at most `δ` on `T` such that
+`transversalityQuantity J α k t y`, for `t = s - Σ_{x ∈ T} D.affinePeakSection k x (w x)`, is
+* at least `ε / 4 - C₂ * δ * exp (-c₂ * R ^ 2)` at `y = (D.chart k x).symm z`, for `x ∈ T` and
+  `‖z‖ ≤ 1`;
+* at least the same quantity for `s` minus `C₁ * δ`, at every point `y`. -/
+theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [PreconnectedSpace M]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] [∀ y, Nonempty (P y)]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (B C₀ : ℝ) (m : ℕ) :
+    ∃ p : ℕ, 0 < p ∧ ∃ δ₀ > 0, ∃ C₁ C₂ c₂ : ℝ, 0 < c₂ ∧ ∀ δ, 0 < δ → δ < δ₀ →
+      ∀ᶠ k : ℕ in Filter.atTop, ∀ (T : Finset M) (R : ℝ), 0 ≤ R →
+        (∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+          ((T.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m) →
+        (∀ x ∈ T, ∀ x' ∈ T, x ≠ x' → R ≤ rescaledDist I k x x') →
+        ∀ s : Π y, PowerBundle P k y,
+        (∀ y, ContDiffAt ℝ 2 (D.reading k y s) 0 ∧ ContDiffAt ℝ 1 (D.dbarReading k y s) 0) →
+        (∀ y, D.jetNorm k 2 s y ≤ B ∧ D.dbarJetNorm k 1 s y ≤ B * (k : ℝ) ^ (-1 / 2 : ℝ)) →
+        ∃ w : M → EuclideanSpace ℂ (Option ι), (∀ x ∈ T, ‖w x‖ ≤ δ) ∧
+          (∀ x ∈ T, ∀ z ∈ closedBall (0 : StdSpace ι) 1,
+            δ / Real.log (1 / δ) ^ p / 4 - C₂ * δ * Real.exp (-c₂ * R ^ 2) ≤
+              transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x'))
+                ((D.chart k x).symm z)) ∧
+          ∀ y : M, transversalityQuantity J α k s y - C₁ * δ ≤
+            transversalityQuantity J α k (s - ∑ x' ∈ T, D.affinePeakSection k x' (w x')) y := by
+  classical
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, h₁⟩ := D.jetNormAt_reading_le_of_chart_change hg hJ hα hρ₀
+  obtain ⟨C₃, hC₃, h₃⟩ := h₁ 2
+  obtain ⟨ρ₂, hρ₂, -, h₂⟩ := D.jetNormAt_dbarReading_le_of_chart_change hg hJ hα hρ₀
+  obtain ⟨C₄, hC₄, h₄⟩ := h₂ 1
+  obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
+  set B' := max (C₃ * 3 ^ 2 * B) (C₄ * 3 * B)
+  obtain ⟨p, hp, δ₀, hδ₀, H⟩ := D.exists_local_correction hg hα hρ₀ B'
+  obtain ⟨C, c, -, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1
+  obtain ⟨C₂, c₂, hc₂, Htail⟩ :=
+    D.exists_jetNorm_sum_erase_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1 2
+  refine ⟨p, hp, δ₀, hδ₀, max C 0, C₂, c₂, hc₂, fun δ hδ hδδ₀ ↦ ?_⟩
+  set ρ := min (min ρ₁ ρ₂) ρ₃
+  have hρ : 0 < ρ := lt_min (lt_min hρ₁ hρ₂) hρ₃
+  have hkρ : ∀ᶠ k : ℕ in Filter.atTop, (11 / 10 : ℝ) < ρ * √k :=
+    ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
+      hρ).eventually_gt_atTop _
+  filter_upwards [H δ hδ hδδ₀, Hsum, Htail, Filter.eventually_ge_atTop k₀,
+    Filter.eventually_ne_atTop 0,
+    hkρ, D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀,
+    D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀]
+    with k hloc hsum htail hk hk0 hkρ hsm₁ hsm T R hR hT hsep s hs hsB
+  -- Points of the ball of radius `11 / 10` lie in the balls where the chart changes apply, and
+  -- at rescaled distance at most `2` from the centre.
+  have hball {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) {ρ' : ℝ} (hρ' : ρ ≤ ρ') :
+      z ∈ ball (0 : StdSpace ι) (ρ' * √k) :=
+    mem_ball_zero_iff.2 (hz.trans (hkρ.trans_le (by gcongr)))
+  have hdist (x : M) {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) :
+      rescaledDist I k x ((D.chart k x).symm z) ≤ 2 := by
+    refine (D.rescaledDist_symm_le hg hρ₃₀ hk x (hcmp hk x) (hball hz (min_le_right _ _))).trans ?_
+    have h32 : √(3 / 2 : ℝ) ≤ 5 / 4 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
+    nlinarith [norm_nonneg z]
+  have hdiff (y : M) : ∀ᶠ v in 𝓝 0, DifferentiableAt ℝ (D.reading k y s) v :=
+    ((hs y).1.eventually (by simp)).mono fun _ hv ↦ hv.differentiableAt (by simp)
+  -- The hypotheses of the local correction hold at every centre.
+  have hhyp (x : M) : ∀ z ∈ ball (0 : StdSpace ι) (11 / 10), ContDiffAt ℝ 2 (D.reading k x s) z ∧
+      jetNormAt ℝ 2 (D.reading k x s) z ≤ B' ∧
+      jetNormAt ℝ 1 (D.dbarReading k x s) z ≤ B' * (k : ℝ) ^ (-1 / 2 : ℝ) := by
+    intro z hz
+    rw [mem_ball_zero_iff] at hz
+    set y := (D.chart k x).symm z
+    have hd := hdist x hz
+    have hd0 := rescaledDist_nonneg I k x y
+    refine ⟨D.contDiffAt_reading_of_chart_change (n := 2) hk x
+      (hball hz ((min_le_left _ _).trans ((min_le_left _ _).trans hρ₁₀))) (hs y).1, ?_, ?_⟩
+    · refine (h₃ hk x z (hball hz ((min_le_left _ _).trans (min_le_left _ _))) (hs y).1).trans ?_
+      have hJ0 := D.jetNorm_nonneg k 2 s y
+      calc _ ≤ C₃ * 3 ^ 2 * D.jetNorm k 2 s y := by gcongr; linarith
+        _ ≤ C₃ * 3 ^ 2 * B := by gcongr; exact (hsB y).1
+        _ ≤ B' := le_max_left _ _
+    · refine (h₄ hk x z (hball hz ((min_le_left _ _).trans (min_le_right _ _))) (hdiff y)
+        (hs y).2).trans ?_
+      have hJ0 := D.dbarJetNorm_nonneg k 1 s y
+      calc _ ≤ C₄ * 3 * D.dbarJetNorm k 1 s y := by gcongr; linarith
+        _ ≤ C₄ * 3 * (B * (k : ℝ) ^ (-1 / 2 : ℝ)) := by gcongr; exact (hsB y).2
+        _ = C₄ * 3 * B * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
+        _ ≤ B' * (k : ℝ) ^ (-1 / 2 : ℝ) := by gcongr; exact le_max_right _ _
+  choose w hw hwQ using fun x ↦ hloc x s (hhyp x)
+  refine ⟨w, fun x _ ↦ hw x, fun x hx z hz ↦ ?_, fun y ↦ ?_⟩
+  · have hz1 : ‖z‖ < 11 / 10 := (mem_closedBall_zero_iff.1 hz).trans_lt (by norm_num)
+    set y := (D.chart k x).symm z
+    have heq : s - ∑ x' ∈ T, D.affinePeakSection k x' (w x') =
+        (s - D.affinePeakSection k x (w x)) +
+          -∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x') := by
+      rw [← Finset.add_sum_erase T _ hx]
+      abel
+    have hstab := D.abs_transversalityQuantity_add_sub_le_jetNorm hg hα hρ₀ hk hk0
+      (s := s - D.affinePeakSection k x (w x))
+      (t := -∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x')) (y := y)
+      (by rw [reading_sub]; exact (hdiff y).self_of_nhds.sub
+            ((hsm₁ x y (w x)).1.differentiableAt (by simp)))
+      (by rw [reading_neg]; exact ((hsm _ w y).1.differentiableAt (by simp)).neg)
+    rw [jetNorm_neg, ← heq] at hstab
+    have htail' := htail T R hR hT hsep x hx y (hdist x hz1) δ w hδ.le fun x' _ ↦ hw x'
+    have := hwQ x z hz
+    linarith [(abs_le.1 hstab).1]
+  · have hstab := D.abs_transversalityQuantity_add_sub_le_jetNorm hg hα hρ₀ hk hk0
+      (s := s) (t := -∑ x' ∈ T, D.affinePeakSection k x' (w x')) (y := y)
+      (hdiff y).self_of_nhds
+      (by rw [reading_neg]; exact ((hsm _ w y).1.differentiableAt (by simp)).neg)
+    rw [jetNorm_neg, ← sub_eq_add_neg] at hstab
+    have h1 := (hsum y T (hT y) δ w hδ.le fun x _ ↦ hw x).1
+    have h2 : C * δ ≤ max C 0 * δ := by gcongr; exact le_max_left _ _
+    linarith [(abs_le.1 hstab).1]
 
 end RescaledUnitaryCharts
 

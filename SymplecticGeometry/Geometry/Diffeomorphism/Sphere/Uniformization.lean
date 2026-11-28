@@ -92,17 +92,28 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
   `T_J a` and `T_J b` do not both vanish at `p`. This holds at `J₀`, since `a` and `b` are
   not proportional (`SymplecticGeometry.exists_smul_eq_of_mem_twistOneKernel`), and so near
   `J₀`, since evaluation at `p` is continuous on smooth sections.
+* `SymplecticGeometry.continuous_uniformizingDiffeomorph`: `J ↦ σ(J)` is continuous from the
+  `C^∞` topology of a covering frame system to the weak Whitney topology on `diffPlus`. Near a
+  structure `J₀`, take the families `s` and `t` of the previous item for `p = 0` and `p = ∞`.
+  By `SymplecticGeometry.uniformizingMap_eq`, `σ(J)` is then the map `[t 1 · s : s 1 · t]` of
+  the pair of sections `(t 1 • s, s 1 • t)`, which is continuous at `J₀` since evaluation at `1`
+  is continuous. The map from such pairs to smooth maps of the sphere is continuous
+  (`OnePoint.continuous_ratioMap`), and the weak Whitney topology on diffeomorphisms is induced
+  from that on maps (`Diffeomorph.continuous_weakWhitney_iff`).
 
 ## References
 
 * [D. McDuff, D. Salamon, *J-holomorphic curves and symplectic topology*, 2nd
   ed.][McDuffSalamon2012] (Riemann–Roch for real Cauchy–Riemann operators on line bundles over
   the sphere).
+* [M. W. Hirsch, *Differential Topology*][Hirsch1976], Chapter 2, §1 (the weak topology on
+  spaces of maps).
 -/
 
 public section
 
 open scoped OnePoint SymplecticGeometry Manifold ContDiff Topology TauCeti.ComplexManifold
+  TauCeti.DiffeomorphWeakWhitney TauCeti.ManifoldWeakWhitney
 open TauCeti
 
 namespace SymplecticGeometry
@@ -563,6 +574,78 @@ theorem exists_continuousAt_mem_twistOneKernel_eq_zero (hcover : ∀ x, ∃ i, x
         Cₛ^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ :=
       @IsTopologicalAddGroup.to_continuousSub _ _ _ hg
     exact ((hev (v 1)).smul (hSac e' U' hU')).sub ((hev (v 0)).smul (hSbc e' U' hU'))
+
+
+/-! ### Continuity of `σ` -/
+
+/-- **`σ` is continuous.** Give the structures tamed by the Fubini–Study form the subspace
+topology of `SmoothAlmostComplexStructure.frameTopology e U hU`, for frames whose domains cover
+the sphere, and `diffPlus` the weak Whitney topology. Then `J ↦ σ(J)` is continuous. -/
+theorem continuous_uniformizingDiffeomorph (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    Continuous uniformizingDiffeomorph := by
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  -- The frame system of `𝒪(1)` given by the trivializations at all points.
+  let e' (x : OnePoint ℂ) := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber x
+  let U' (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e' x).open_baseSet⟩
+  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun _ ↦ subset_rfl
+  have hcover' : ∀ x, ∃ y, x ∈ U' y := fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩
+  let _ := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+    e' U' hU'
+  have := ContMDiffSection.continuousSMul_frameTopology_ofNormedAlgebra (𝕜' := ℂ)
+    (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' U' hU'
+  have hev := ContMDiffSection.continuous_eval_const (I := 𝓘(ℝ, ℂ))
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' U' hU' hcover' (1 : ℂ)
+  refine continuous_induced_rng.2 (Diffeomorph.continuous_weakWhitney_iff.2 ?_)
+  refine continuous_iff_continuousAt.2 fun J₀ ↦ ?_
+  have hi := OnePoint.compatible_fubiniStudyForm.tames
+  obtain ⟨s, hs, hsc⟩ :=
+    exists_continuousAt_mem_twistOneKernel_eq_zero.{0, _} e U hU hcover J₀.property hi (0 : ℂ)
+  obtain ⟨t, ht, htc⟩ :=
+    exists_continuousAt_mem_twistOneKernel_eq_zero.{0, _} e U hU hcover J₀.property hi ∞
+  -- The pair `(t 1 • s, s 1 • t)` of sections, continuous at `J₀`.
+  classical
+  let a (J : 𝒥) : ℂ := s J (1 : ℂ)
+  let b (J : 𝒥) : ℂ := t J (1 : ℂ)
+  let P (J : 𝒥) := (b J • s J, a J • t J)
+  -- The sections `s J` and `t J` as functions to `ℂ`, which each fibre of `𝒪(1)` is.
+  let s' (J : 𝒥) : OnePoint ℂ → ℂ := s J
+  let t' (J : 𝒥) : OnePoint ℂ → ℂ := t J
+  have ha : ContinuousAt a J₀ := hev.continuousAt.comp (hsc e' U' hU')
+  have hb : ContinuousAt b J₀ := hev.continuousAt.comp (htc e' U' hU')
+  have hP : ContinuousAt P J₀ :=
+    (hb.smul (hsc e' U' hU')).prodMk (ha.smul (htc e' U' hU'))
+  -- On each fibre `ℂ` of `𝒪(1)`, the scalar action of `ℂ` is multiplication.
+  have hPx (J : 𝒥) (x : OnePoint ℂ) : (![(P J).1 x, (P J).2 x] : Fin 2 → ℂ) =
+      ![s' J x * b J, t' J x * a J] := by
+    ext i
+    fin_cases i
+    · exact mul_comm (b J) (s J x)
+    · exact mul_comm (a J) (t J x)
+  have hgood : ∀ᶠ J in 𝓝 J₀, ∀ x, (![(P J).1 x, (P J).2 x] : Fin 2 → ℂ) ≠ 0 := by
+    filter_upwards [hs, ht] with J hsJ htJ x
+    rw [hPx]
+    exact vec_ne_zero_of_mem_twistOneKernel J.property hi hsJ.1 htJ.1 hsJ.2.1 htJ.2.1
+      hsJ.2.2 htJ.2.2 x
+  -- The pair as a point of the domain of `OnePoint.ratioMap`, which it is near `J₀`.
+  let Q (J : 𝒥) : {p : Cₛ^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ ×
+      Cₛ^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ //
+        ∀ x, (![p.1 x, p.2 x] : Fin 2 → ℂ) ≠ 0} :=
+    if h : ∀ x, (![(P J).1 x, (P J).2 x] : Fin 2 → ℂ) ≠ 0 then ⟨P J, h⟩
+    else ⟨P J₀, hgood.self_of_nhds⟩
+  have hQ : ContinuousAt Q J₀ := by
+    refine tendsto_subtype_rng.2 (hP.congr ?_)
+    filter_upwards [hgood] with J hJ
+    simp [Q, hJ]
+  -- Near `J₀`, `σ(J)` is the map `[t 1 · s : s 1 · t]` of the pair, by `uniformizingMap_eq`.
+  refine ((OnePoint.continuous_ratioMap e' U' hU' hcover').continuousAt.comp hQ).congr ?_
+  filter_upwards [hs, ht, hgood] with J hsJ htJ hJ
+  ext x
+  rw [Function.comp_apply, Function.comp_apply, Diffeomorph.coe_toContMDiffMap,
+    coe_uniformizingDiffeomorph, uniformizingMap_eq J hsJ.1 htJ.1 hsJ.2.1 htJ.2.1 hsJ.2.2 htJ.2.2,
+    show Q J = ⟨P J, hJ⟩ by simp [Q, hJ], OnePoint.ratioMap_apply]
+  congr 2
+  exact hPx J x
 
 end Family
 

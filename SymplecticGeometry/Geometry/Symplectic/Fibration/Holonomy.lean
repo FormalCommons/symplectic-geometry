@@ -130,6 +130,10 @@ variation of holonomy, `TauCeti.IsEhresmannConnection.period_interior_velocity_h
   `TauCeti.IsEhresmannConnection.val_mfderiv_transportedCylinder_slice_eq_zero`: hence a two-form
   whose horizontal spaces are `D` vanishes on these two derivatives, and the integrand of the
   area of each slice `(t, θ) ↦ C (s, t, θ)` for that form is zero.
+* `TauCeti.IsEhresmannConnection.mfderiv_proj_transportedCylinder`,
+  `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_eq_horizontalLiftField`: the
+  derivatives of the cylinder project to those of `Δ`, so its derivative in `t` is the horizontal
+  lift of any field whose value at `Δ (s, t)` is `∂ₜΔ (s, t)`.
 * `TauCeti.IsEhresmannConnection.transportedCylinder_one_of_isSmoothDisc`,
   `TauCeti.IsEhresmannConnection.apply_transportedCylinder_one`: for `s ∈ [0, 1]`, the cylinder
   ends at the point with coordinates `(x, Φ (s, c θ))` in `e`, where `Φ` is the holonomy
@@ -590,18 +594,16 @@ theorem contMDiffOn_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ pr
   exact (hT.comp hg fun p hp ↦ e.proj_symm_apply' hp).congr fun p _ ↦ transportedCylinder_def p
 
 omit [IsManifold IF ∞ F] in
-/-- For a smooth disc `Δ` with centre `x` and a trivialization `e` whose base set contains `x`,
-the transported cylinder is smooth at every `(s, t, θ)` with `s ∈ [0, 1]`. -/
+/-- In the setting of `contMDiffOn_transportedCylinder`, the transported cylinder is smooth at
+every `p` with `Δ (p.1, 0)` in the base set of `e`. -/
 theorem contMDiffAt_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ proj D)
     (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
     (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
-    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c)
-    {p : ℝ × ℝ × ℝ} (hp : p.1 ∈ Icc 0 1) :
-    ContMDiffAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ (hD.transportedCylinder e Δ c) p := by
-  refine (hD.contMDiffOn_transportedCylinder hf hfp he_symm hΔ.contMDiff hc).contMDiffAt
-    (IsOpen.mem_nhds (e.open_baseSet.preimage ?_) ?_)
-  · exact hΔ.contMDiff.continuous.comp (by fun_prop)
-  · exact (congrArg (· ∈ e.baseSet) (hΔ.apply_seam ⟨p.1, hp⟩)).mpr hx
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c)
+    {p : ℝ × ℝ × ℝ} (hp : Δ (p.1, 0) ∈ e.baseSet) :
+    ContMDiffAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ (hD.transportedCylinder e Δ c) p :=
+  (hD.contMDiffOn_transportedCylinder hf hfp he_symm hΔ hc).contMDiffAt
+    ((e.open_baseSet.preimage (hΔ.continuous.comp (by fun_prop))).mem_nhds hp)
 
 /-! ### Horizontal and vertical derivatives -/
 
@@ -707,6 +709,65 @@ theorem val_mfderiv_transportedCylinder_slice_eq_zero {τ : SmoothTwoForm IM M}
     rw [hr, hD.proj_transportedCylinder hn hf hfp hΔ hs,
       hD.proj_transportedCylinder hn hf hfp hΔ hs]
 
+omit [IsManifold IF ∞ F] in
+/-- **The projection of the derivatives of the transported cylinder.** For a smooth connection on
+a proper smooth map, a smooth family `Δ`, a trivialization `e` with a smooth inverse and a smooth
+`c`, at a point `(s, t, θ)` with `Δ (s, 0)` in the base set of `e`, the derivative of `proj`
+sends the derivative of the transported cylinder along `w` to the derivative of `Δ` at `(s, t)`
+along `(w.1, w.2.1)`. -/
+theorem mfderiv_proj_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ proj D)
+    (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) {s t θ : ℝ}
+    (hs : Δ (s, 0) ∈ e.baseSet) (w : ℝ × ℝ × ℝ) :
+    mfderiv IM IB proj (hD.transportedCylinder e Δ c (s, t, θ))
+        (mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ) w) =
+      mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t) (w.1, w.2.1) := by
+  set C := hD.transportedCylinder e Δ c
+  have hU : IsOpen {p : ℝ × ℝ × ℝ | Δ (p.1, 0) ∈ e.baseSet} :=
+    e.open_baseSet.preimage (hΔ.continuous.comp (by fun_prop))
+  have hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) :=
+    (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hc hs).mdifferentiableAt (by simp)
+  -- Near `(s, t, θ)`, `proj ∘ C` is `Δ` composed with the linear projection `L`.
+  have heq : proj ∘ C =ᶠ[𝓝 (s, t, θ)] fun p ↦ Δ (p.1, p.2.1) :=
+    Filter.eventually_of_mem (hU.mem_nhds hs) fun p hp ↦
+      hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp (hΔ.of_le (by simp)) hp _ _
+  let L : ℝ × ℝ × ℝ →L[ℝ] ℝ × ℝ :=
+    (ContinuousLinearMap.fst ℝ ℝ (ℝ × ℝ)).prod
+      ((ContinuousLinearMap.fst ℝ ℝ ℝ).comp (ContinuousLinearMap.snd ℝ ℝ (ℝ × ℝ)))
+  have hL : HasMFDerivAt 𝓘(ℝ, ℝ × ℝ × ℝ) IB (fun p ↦ Δ (p.1, p.2.1)) (s, t, θ)
+      ((mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t)).comp L) :=
+    (hΔ.mdifferentiableAt (by simp) (x := (s, t))).hasMFDerivAt.comp (s, t, θ)
+      (L.hasMFDerivAt (x := (s, t, θ)))
+  refine (mfderiv_comp_apply (s, t, θ) (hf.mdifferentiableAt (by simp)) hC w).symm.trans ?_
+  rw [(hL.congr_of_eventuallyEq_abuse heq).mfderiv]
+  -- The vector `w` is typed as a tangent vector of `ℝ × ℝ × ℝ`, so `comp_apply` does not
+  -- rewrite; `L` sends `w` to `(w.1, w.2.1)` by definition.
+  rfl
+
+omit [IsManifold IF ∞ F] in
+/-- **The derivative of the transported cylinder in `t` is a horizontal lift.** In the setting of
+`mfderiv_proj_transportedCylinder`, for a field `v` on `B` whose value at `Δ (s, t)` is the
+derivative of `Δ` in `t`, the derivative of the transported cylinder at `(s, t, θ)` in `t` is the
+horizontal lift of `v` there. -/
+theorem mfderiv_transportedCylinder_eq_horizontalLiftField
+    (hD : IsEhresmannConnection IM IB ∞ proj D) (hf : ContMDiff IM IB ∞ proj)
+    (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) {s t θ : ℝ}
+    (hs : Δ (s, 0) ∈ e.baseSet) {v : Π b : B, TangentSpace IB b}
+    (hv : v (Δ (s, t)) = mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t) (0, 1)) :
+    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ) (0, 1, 0) =
+      hD.horizontalLiftField v (hD.transportedCylinder e Δ c (s, t, θ)) := by
+  have hmem := hD.mfderiv_transportedCylinder_apply_mem (by simp) (hf.of_le (by simp)) hfp
+    (hΔ.of_le (by simp)) (c := c) (p := (s, t, θ)) hs
+  have hx : proj (hD.transportedCylinder e Δ c (s, t, θ)) = Δ (s, t) :=
+    hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp (hΔ.of_le (by simp)) hs _ _
+  rw [horizontalLiftField_apply]
+  refine congrArg Subtype.val ((hD.eq_horizontalLift_iff (w := ⟨_, hmem⟩)).2 ?_)
+  refine (hD.mfderiv_proj_transportedCylinder hf hfp he_symm hΔ hc hs (0, 1, 0)).trans ?_
+  exact hv.symm.trans (congrArg (fun b ↦ (v b : EB)) hx).symm
+
 end TransportedCylinder
 
 section HolonomyCylinder
@@ -768,8 +829,8 @@ theorem mfderiv_transportedCylinder_one_apply (hf : ContMDiff IM IB ∞ proj)
   rw [← hC]
   rw [← hC] at hC1
   have hCd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) :=
-    hC ▸ (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc s.property).mdifferentiableAt
-      (by simp)
+    hC ▸ (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ.contMDiff hc
+      ((congrArg (· ∈ e.baseSet) (hΔ.apply_seam s)).mpr hx)).mdifferentiableAt (by simp)
   have hmem : C ((s : ℝ), 1, θ) ∈ e.source := by
     rw [hC1]
     exact e.toOpenPartialHomeomorph.map_target (e.mem_target.2 hx)
@@ -841,7 +902,8 @@ theorem apply_mfderiv_transportedCylinder_one_of_restrictsTo {A : MapFiber.Atlas
   have hιd : MDifferentiableAt IF IM ι (φ θ) :=
     ((A.trivAt b).contMDiff_fiberInclusionMap he_symm hx).mdifferentiableAt (by simp)
   have hCd : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) :=
-    (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hx hc s.property).mdifferentiableAt
+    (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ.contMDiff hc
+      ((congrArg (· ∈ (A.trivAt b).baseSet) (hΔ.apply_seam s)).mpr hx)).mdifferentiableAt
       (by simp)
   -- The derivative in `θ`.
   have hdθ : mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C ((s : ℝ), 1, θ) (0, 0, 1) =
