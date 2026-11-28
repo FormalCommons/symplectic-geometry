@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartSection
 import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # Peak sections
@@ -462,8 +463,8 @@ theorem exists_dbarJetNorm_affinePeakSection_le [T2Space M] [I.Boundaryless]
   rw [affinePeakSection_eq_sum]
   refine (D.dbarJetNorm_sum_le (fun j _ ↦ ?_) (fun j _ ↦ ?_)).trans ?_
   · rw [reading_smul]
-    exact (((hs j).1.of_le (by exact_mod_cast le_top : ((1 : ℕ∞) : WithTop ℕ∞) ≤ ∞)).eventually
-      (by simp)).mono fun z hz ↦ (hz.differentiableAt (by simp)).const_smul _
+    exact ((hs j).1.eventually_differentiableAt (by exact_mod_cast le_top)).mono
+      fun z hz ↦ hz.const_smul _
   · rw [funext (D.dbarReading_smul k y (w j) _)]
     exact ((hs j).2.of_le (m := r) (by simp)).const_smul (w j)
   · calc ∑ j : Option ι, D.dbarJetNorm k r
@@ -525,8 +526,7 @@ theorem exists_dbarJetNorm_sum_affinePeakSection_le_mul_sum [T2Space M] [I.Bound
     with k h hs y S δ w hw
   have hdiff : ∀ x ∈ S, ∀ᶠ z in 𝓝 0,
       DifferentiableAt ℝ (D.reading k y (D.affinePeakSection k x (w x))) z := fun x _ ↦
-    (((hs x y (w x)).1.of_le (m := 1) (by exact_mod_cast le_top)).eventually (by simp)).mono
-      fun _ hz ↦ hz.differentiableAt (by simp)
+    (hs x y (w x)).1.eventually_differentiableAt (by exact_mod_cast le_top)
   refine (D.dbarJetNorm_sum_le hdiff fun x _ ↦
     (hs x y (w x)).2.of_le (by exact_mod_cast le_top)).trans ?_
   rw [Finset.mul_sum]
