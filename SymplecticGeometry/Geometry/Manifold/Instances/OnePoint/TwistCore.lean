@@ -118,9 +118,7 @@ theorem mdifferentiableAt_div_twistCore (k : ℤ) {s t : OnePoint ℂ → ℂ} {
     hx).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
   have hb : p ∈ e.baseSet := by simpa [e] using hp
-  rw [Trivialization.coordRatio_def, e.continuousLinearMapAt_apply_of_mem (R := ℂ) hb,
-    e.continuousLinearMapAt_apply_of_mem (R := ℂ) hb, twistCore_localTriv_apply,
-    twistCore_localTriv_apply]
+  rw [e.coordRatio_eq_div_of_mem hb, twistCore_localTriv_apply, twistCore_localTriv_apply]
   exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
 
 open scoped TauCeti.ComplexManifold in

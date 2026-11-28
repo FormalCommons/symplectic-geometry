@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.LocalFrame
 import Mathlib.Geometry.Manifold.VectorBundle.MDifferentiable
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # Differentiability of the ratio of two sections of a line bundle
@@ -16,7 +17,8 @@ Let `L` be a bundle with model fibre a field `𝕜'`, smooth over a smaller fiel
 complex line bundle seen as a real vector bundle), and let `e` be a trivialization of `L` in its
 atlas that is linear over `𝕜'`. For two sections `σ` and `τ` of `L`, Tau Ceti's
 `Bundle.Trivialization.coordRatio` gives at each point `p` the scalar `e.coordRatio (σ p) (τ p)`,
-the quotient of the coordinates of `τ p` and `σ p` in `e`. This file shows that this function is
+over `e.baseSet` the quotient of the coordinates of `τ p` and `σ p` in `e`, as
+`Bundle.Trivialization.coordRatio_eq_div_of_mem` states. This file shows that this function is
 differentiable over `𝕜` at every point of `e.baseSet` at which `σ` and `τ` are differentiable and
 `σ` does not vanish: near such a point it is the quotient of the coordinate functions of `τ` and
 `σ`, which are differentiable.
@@ -26,6 +28,8 @@ The proof follows the differentiability step of Tau Ceti's
 
 ## Main results
 
+* `Bundle.Trivialization.coordRatio_eq_div_of_mem`: over the base set of `e`, the ratio is the
+  quotient of the coordinates of the two vectors in `e`.
 * `Bundle.Trivialization.mdifferentiableAt_coordRatio`: the ratio of two differentiable sections,
   read in a trivialization, is differentiable where the denominator does not vanish.
 -/
@@ -36,6 +40,24 @@ open Bundle Filter Set
 open scoped Manifold Topology
 
 namespace Bundle.Trivialization
+
+section Div
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
+  {L : B → Type*} [TopologicalSpace (TotalSpace 𝕜 L)] [∀ x, TopologicalSpace (L x)]
+  [∀ x, AddCommMonoid (L x)] [∀ x, Module 𝕜 (L x)] [FiberBundle 𝕜 L]
+  (e : Trivialization 𝕜 (π 𝕜 L)) [e.IsLinear 𝕜]
+
+/-- Over the base set of a trivialization `e` of a bundle with model fibre `𝕜`, the ratio of
+`w` to `v` read in `e` is the quotient of the coordinates of `w` and `v` in `e`. -/
+theorem coordRatio_eq_div_of_mem {x : B} (hx : x ∈ e.baseSet) (v w : L x) :
+    e.coordRatio v w = (e ⟨x, w⟩).2 / (e ⟨x, v⟩).2 := by
+  rw [coordRatio_def, e.continuousLinearMapAt_apply_of_mem (R := 𝕜) hx,
+    e.continuousLinearMapAt_apply_of_mem (R := 𝕜) hx]
+
+end Div
+
+section Differentiable
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {𝕜' : Type*} [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜 𝕜']
@@ -58,14 +80,12 @@ theorem mdifferentiableAt_coordRatio {σ τ : Π x, L x} {x : B} (hx : x ∈ e.b
     MDifferentiableAt IB 𝓘(𝕜, 𝕜') (fun p ↦ e.coordRatio (σ p) (τ p)) x := by
   have hnum := (e.mdifferentiableAt_section_iff IB τ hx).1 hτ
   have hden := (e.mdifferentiableAt_section_iff IB σ hx).1 hσ
-  -- The coordinate of `σ x` does not vanish, since `e` is injective on the fibre at `x`.
-  have hden0 : (e ⟨x, σ x⟩).2 ≠ 0 := by
-    have h := (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜' x hx).injective).2 hσx
-    rwa [continuousLinearEquivAt_apply] at h
+  have hden0 : (e ⟨x, σ x⟩).2 ≠ 0 := (e.snd_apply_ne_zero_iff 𝕜' hx).2 hσx
   refine (hnum.div hden hden0).congr_of_eventuallyEq ?_
   filter_upwards [e.open_baseSet.mem_nhds hx] with p hp
-  rw [coordRatio_def, e.continuousLinearMapAt_apply_of_mem (R := 𝕜') hp,
-    e.continuousLinearMapAt_apply_of_mem (R := 𝕜') hp, Pi.div_apply]
+  rw [e.coordRatio_eq_div_of_mem hp, Pi.div_apply]
+
+end Differentiable
 
 end Bundle.Trivialization
 
