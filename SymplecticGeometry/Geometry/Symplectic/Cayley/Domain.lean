@@ -30,7 +30,8 @@ finite-dimensional normed space, such as a fibre of a vector bundle.
 
 * `SymplecticGeometry.cayleyDomain R`: the triples where both denominators are units.
 * `SymplecticGeometry.map_mem_cayleyDomain_iff`: algebra isomorphisms preserve the domain.
-* `TauCeti.cayleyPathFormula_zero`, `TauCeti.cayleyPathFormula_one`: the two ends of the path.
+* `TauCeti.cayleyPathFormula_zero`, `TauCeti.cayleyPathFormula_one`: the two ends of the path, and
+  `TauCeti.cayleyPathFormula_self`: the path from a square root of `-1` to itself is constant.
 * `TauCeti.contDiffAt_cayleyFormula`: the Cayley coordinate is smooth, jointly in both
   arguments, wherever `1 - A B` is a unit.
 * `SymplecticGeometry.isOpen_cayleyDomain`, `SymplecticGeometry.contDiffOn_cayleyPathFormula`.
@@ -93,6 +94,12 @@ theorem cayleyPathFormula_one {A B : R} (hA : A * A = -1) (h : IsUnit (1 - A * B
     _ = B := by
         rw [Ring.inverse_mul_cancel D h, hA]
         norm_num
+
+/-- The Cayley path from a square root `A` of `-1` to itself is constant at `A`. -/
+@[simp]
+theorem cayleyPathFormula_self {A : R} (hA : A * A = -1) (b : ℝ) :
+    cayleyPathFormula b A A = A := by
+  simp [cayleyPathFormula_def, cayleyFormula_def, hA]
 
 end Ring
 
