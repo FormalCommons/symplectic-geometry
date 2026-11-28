@@ -347,7 +347,7 @@ theorem kempfNessFunction_expI_neg_smul_le (h : IsComplexifiedAction C J)
 
 /-- If the moment weight `w_μ(p, ξ)` is positive, then the Kempf–Ness function `Φ_p` is not
 bounded below, under the hypotheses of `tendsto_deriv_kempfNessFunction`: along
-`t ↦ C.expI (-(t • ξ))` it stays below `-(w_μ(p, ξ) * t)`. -/
+`t ↦ C.expI (-(t • ξ))` it is at most `-(w_μ(p, ξ) * t)` for `t ≥ 0`. -/
 theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
