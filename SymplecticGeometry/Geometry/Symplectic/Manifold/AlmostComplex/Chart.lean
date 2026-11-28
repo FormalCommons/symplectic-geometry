@@ -48,9 +48,8 @@ it.
   `PartialDiffeomorph.pushforwardAt` in the operator norm.
 * `TauCeti.SmoothTwoForm.Compatible.compatible_pushforwardAt`: a chart that pulls a symplectic
   form `σ₀` back to a form compatible with `J` makes `σ₀` compatible with the pushforward of `J`
-  at every point of its target. Its proof follows that of Tau Ceti's
-  `PartialDiffeomorph.compatible_pushforwardAt`, for a constant form on `G` given through the
-  pullback identity on the source of the chart.
+  at every point of its target. It is a corollary of Tau Ceti's
+  `PartialDiffeomorph.compatible_pushforwardAt`, applied to the constant form `σ₀.constSmooth`.
 
 ## References
 
@@ -157,11 +156,12 @@ namespace SmoothTwoForm.Compatible
 
 variable {E H M G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [NormedAddCommGroup G] [NormedSpace ℝ G]
+  [NormedAddCommGroup G] [NormedSpace ℝ G] [FiniteDimensional ℝ G]
 
-/-- Let `ψ` be a smooth chart into a normed space `G` that pulls a symplectic form `σ₀` on `G`
-back to the two-form `σ` on its source. If `σ` is compatible with `J`, then at every point `p` of
-the target of `ψ`, `σ₀` is compatible with the pushforward of `J` along `ψ` at `p`. -/
+/-- Let `ψ` be a smooth chart into a finite-dimensional normed space `G` that pulls a symplectic
+form `σ₀` on `G` back to the two-form `σ` on its source. If `σ` is compatible with `J`, then at
+every point `p` of the target of `ψ`, `σ₀` is compatible with the pushforward of `J` along `ψ` at
+`p`. -/
 theorem compatible_pushforwardAt {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
     (hσ : σ.Compatible J) {σ₀ : SymplecticForm G} (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞)
     (hψ : ∀ x ∈ ψ.source, ∀ v w : TangentSpace I x,
@@ -170,33 +170,11 @@ theorem compatible_pushforwardAt {σ : SmoothTwoForm I M} {J : SmoothAlmostCompl
     σ₀.Compatible (ψ.pushforwardAt J hp) := by
   obtain ⟨x, hx, rfl⟩ : ∃ x ∈ ψ.source, ψ x = p :=
     ⟨ψ.symm p, ψ.map_target hp, ψ.right_inv hp⟩
-  have hsurj := (ψ.isInvertible_mfderiv (by simp) hx).surjective
-  have hψ' (v w : TangentSpace I x) :
-      σ₀ (mfderiv I 𝓘(ℝ, G) ψ x v) (mfderiv I 𝓘(ℝ, G) ψ x w) = σ.eval₂ x v w := by
-    rw [hψ x hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
-  -- `ψ.pushforwardAt J hp` acts on `TangentSpace 𝓘(ℝ, G) (ψ x)`, which `rw` does not match with
-  -- `G`; the steps below are terms, checked up to that identification.
-  have hP (v : TangentSpace I x) :
-      ψ.pushforwardAt J hp (mfderiv I 𝓘(ℝ, G) ψ x v) = mfderiv I 𝓘(ℝ, G) ψ x (J x v) :=
-    (ψ.pushforwardAt_apply J hp _).trans (ψ.pushforwardEndomorphism_mfderiv_apply J hx v)
-  have hJ := hσ.compatibleAt x
-  refine SymplecticForm.Compatible.of_tames ((SymplecticForm.invariant_iff _ _).2 fun a b ↦ ?_)
-    fun a ha ↦ ?_
-  · obtain ⟨a, rfl⟩ := hsurj a
-    obtain ⟨b, rfl⟩ := hsurj b
-    refine (congrArg₂ (fun u w : G ↦ σ₀ u w) (hP a) (hP b)).trans ?_
-    refine ((hψ' _ _).trans ?_).trans (hψ' a b).symm
-    simpa only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply,
-      SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
-      (SymplecticForm.invariant_iff _ _).1 hJ.invariant a b
-  · obtain ⟨a, rfl⟩ := hsurj a
-    have ha' : a ≠ 0 := by
-      rintro rfl
-      exact ha (map_zero _)
-    refine lt_of_lt_of_eq ?_ ((congrArg (fun u : G ↦ σ₀ (mfderiv I 𝓘(ℝ, G) ψ x a) u)
-      (hP a)).trans (hψ' _ _)).symm
-    simpa only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply,
-      SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using hJ.tames a ha'
+  have h := ψ.compatible_pushforwardAt J (SymplecticForm.isNondegenerate_constSmooth σ₀) hx
+    (hσ.compatibleAt x) fun v w ↦ by
+      rw [SymplecticForm.eval₂_constSmooth_mfderiv_eq,
+        SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply, hψ x hx]
+  rwa [SymplecticForm.isNondegenerate_constSmooth_symplecticFormAt] at h
 
 end SmoothTwoForm.Compatible
 
