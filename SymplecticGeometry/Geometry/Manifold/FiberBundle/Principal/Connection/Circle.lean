@@ -69,20 +69,20 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
       1} (hA : IsConnectionForm A) :
     ∃! α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1,
       IsCircleConnectionForm α ∧
-        A = SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α := by
+        A = SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator) α := by
   obtain ⟨f, hf⟩ := SeparatingDual.exists_eq_one (R := ℝ) circleLieGenerator_ne_zero
-  have hLf : (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator).comp f =
+  have hLf : (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator).comp f =
       ContinuousLinearMap.id ℝ (GroupLieAlgebra (𝓡 1) Circle) := by
     refine ContinuousLinearMap.coe_injective <|
       LinearMap.ext_of_finrank_eq_one finrank_groupLieAlgebra_circle
         circleLieGenerator_ne_zero ?_
     simp [hf]
-  have hfL : f.comp (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) =
+  have hfL : f.comp (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator) =
       ContinuousLinearMap.id ℝ ℝ := by
     ext
     rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.toSpanSingleton_apply, map_smul, hf,
       smul_eq_mul, mul_one, ContinuousLinearMap.id_apply]
-  have hA' : A = SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
+  have hA' : A = SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator)
       (SmoothForm.mapCoeff f A) := by
     rw [← LinearMap.comp_apply, ← SmoothForm.mapCoeff_comp, hLf, SmoothForm.mapCoeff_id,
       LinearMap.id_apply]
@@ -99,8 +99,8 @@ theorem IsCircleConnectionForm.gaugeCurvature_mapCoeff [IB.Boundaryless]
     {α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
     (hα : IsCircleConnectionForm α) :
     gaugeCurvature (lieL ℝ (GroupLieAlgebra (𝓡 1) Circle) (GroupLieAlgebra (𝓡 1) Circle))
-        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) =
-      SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
+        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator) α) =
+      SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ (M₁ := EuclideanSpace ℝ (Fin 1)) circleLieGenerator)
         (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff hα.curvature) := by
   rw [gaugeCurvature_mapCoeff_toSpanSingleton _ ((lieL_apply _ _).trans (lie_self _)),
