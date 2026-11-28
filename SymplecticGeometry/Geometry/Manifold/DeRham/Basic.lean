@@ -46,7 +46,22 @@ namespace TauCeti
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I 2 M]
+
+section Cast
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [IsManifold I 1 M]
+
+/-- A closed smooth form stays closed when it is read in an equal degree through
+`LinearEquiv.cast`. -/
+theorem SmoothForm.IsClosed.cast {k l : ℕ} (hkl : k = l) {φ : SmoothForm I M F k}
+    (h : φ.IsClosed) :
+    (LinearEquiv.cast (R := ℝ) (M := fun q ↦ SmoothForm I M F q) hkl φ).IsClosed := by
+  subst hkl
+  simpa using h
+
+end Cast
+
+variable [IsManifold I 2 M]
 
 namespace SmoothForm
 
@@ -64,13 +79,6 @@ theorem IsClosed.mem_closedForms {k : ℕ} {φ : SmoothForm I M ℝ k} (h : φ.I
 theorem IsClosed.wedgePow {k : ℕ} {φ : SmoothForm I M ℝ k} (h : φ.IsClosed) (m : ℕ) :
     (φ.wedgePow m).IsClosed :=
   (isClosed_iff_mem_closedForms _).2 (wedgePow_mem_closedForms h.mem_closedForms m)
-
-/-- A closed smooth real form stays closed when it is read in an equal degree through
-`LinearEquiv.cast`. -/
-theorem IsClosed.cast {k l : ℕ} (hkl : k = l) {φ : SmoothForm I M ℝ k} (h : φ.IsClosed) :
-    (LinearEquiv.cast (R := ℝ) (M := fun q ↦ SmoothForm I M ℝ q) hkl φ).IsClosed := by
-  subst hkl
-  simpa using h
 
 end SmoothForm
 

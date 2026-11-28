@@ -62,7 +62,11 @@ Pulling a smooth form of positive degree back along a constant map gives the zer
 (`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
 `TauCeti.mpullback_const`). So the slice
 `x ↦ (x, p)` of the pullback of such a form along the projection `M × M' → M'` is zero
-(`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`).
+(`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`). In the same way the slice
+`y ↦ (b, y)` of the pullback of such a form along the projection `M × M' → M` is zero
+(`TauCeti.SmoothForm.mpullback_prodMk_mpullback_fst`), so adding such a pullback to a form on
+`M × M'` leaves its slice `y ↦ (b, y)` unchanged
+(`TauCeti.SmoothForm.mpullback_prodMk_add_mpullback_fst`).
 
 For a map `f : M × M₂ → M'`, the slice `z ↦ f (s, z)` is `f` composed with the inclusion
 `z ↦ (s, z)`, whose differential is `w ↦ (0, w)`
@@ -112,6 +116,11 @@ under translation by `c`, so is the pullback along `u` of every form
   map is `0`.
 * `TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`: the slice `x ↦ (x, p)` of the
   pullback of a smooth `(k + 1)`-form along `Prod.snd` is `0`.
+* `TauCeti.SmoothForm.mpullback_prodMk_mpullback_fst`: the slice `y ↦ (b, y)` of the pullback
+  of a smooth `(k + 1)`-form along `Prod.fst` is `0`.
+* `TauCeti.SmoothForm.mpullback_prodMk_add_mpullback_fst`: adding the pullback of a smooth
+  `(k + 1)`-form along `Prod.fst` to a smooth form on `M × M'` does not change its slice
+  `y ↦ (b, y)`.
 * `TauCeti.mpullback_comp_prodMk_apply`: the pullback along a slice `z ↦ f (s, z)` of a map on a
   product, as the pullback along `f` on the vectors `(0, m i)`.
 * `TauCeti.mpullback_comp_prodMk_apply_modelSpace`: the same, for a map on a product of normed
