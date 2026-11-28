@@ -62,6 +62,9 @@ itself it is integrable.
   diffeomorphism into a normed space other than the model, and
   `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` any map into such a space that is a local
   diffeomorphism at the point.
+* `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.exists_partialDiffeomorph_mfderiv_apply_eq`:
+  an integrable structure has, at each point `x`, a chart sending `x` to `0` with derivative the
+  identity at `x`, in which it is constant, equal to `J x`.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
 * `TauCeti.isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas`: every chart of the
@@ -277,6 +280,55 @@ theorem isIntegrable_restrictOpen_source {G : Type*} [NormedAddCommGroup G] [Nor
       ContinuousLinearEquiv.coe_coe]
   refine ⟨ψ, J₀, by simp [ψ], fun y _ v ↦ ?_⟩
   rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]
+
+/-- **A normalized chart in which an integrable structure is constant.** If `J` is integrable,
+then every point `x` of `M` lies in the source of a smooth chart `ψ : M → E` with `ψ x = 0`,
+whose derivative at `x` is the identity of `E` (tangent spaces of `M` being copies of the model),
+and whose derivative carries `J` to its value `J x` at `x`, at every point of its source. -/
+theorem IsIntegrable.exists_partialDiffeomorph_mfderiv_apply_eq
+    {J : SmoothAlmostComplexStructure I M} (hJ : J.IsIntegrable) (x : M) :
+    ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, x ∈ ψ.source ∧ ψ x = 0 ∧
+      HasMFDerivAt I 𝓘(ℝ, E) ψ x (ContinuousLinearMap.id ℝ E) ∧
+      ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+        mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J x (mfderiv I 𝓘(ℝ, E) ψ y v) := by
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  obtain ⟨ψ₀, J₀, hx, hψ₀⟩ := J.isIntegrable_iff_mfderiv.1 hJ x
+  -- First translate, so that `x` goes to `0`; the translation does not change `J₀`.
+  let τ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E ∞ :=
+    PartialDiffeomorph.ofOpenPartialHomeomorph
+      (Homeomorph.addRight (-ψ₀ x)).toOpenPartialHomeomorph
+      (by simpa using (contDiff_id.add contDiff_const :
+        ContDiff ℝ ∞ fun v : E ↦ v + -ψ₀ x).contDiffOn)
+      (by simpa [Homeomorph.addRight_symm] using (contDiff_id.add contDiff_const :
+        ContDiff ℝ ∞ fun v : E ↦ v + ψ₀ x).contDiffOn)
+  have hτ (z : E) : fderiv ℝ τ z = ContinuousLinearMap.id ℝ E := by
+    have hτ_eq : (τ : E → E) = fun v ↦ v + -ψ₀ x := by ext v; simp [τ]
+    rw [hτ_eq, fderiv_add_const, fderiv_fun_id]
+  set ψ₁ := ψ₀.trans τ
+  have h₁ := J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hψ₀ (Θ := τ) (J₁ := J₀)
+    fun z _ w ↦ by simp [hτ]
+  have hx₁ : x ∈ ψ₁.source := by simp [ψ₁, τ, hx]
+  have hψ₁x : ψ₁ x = 0 := by simp [ψ₁, τ]
+  -- Then follow the inverse of the derivative at `x`, so that it becomes the identity.
+  obtain ⟨e, he⟩ := ψ₁.isInvertible_mfderiv hn hx₁
+  let L : E ≃L[ℝ] E := e.symm
+  set ψ := ψ₁.trans L.toDiffeomorph.toPartialDiffeomorph
+  have hx' : x ∈ ψ.source := by simpa [ψ] using hx₁
+  have hd : mfderiv I 𝓘(ℝ, E) ψ x = ContinuousLinearMap.id ℝ E := by
+    have hL : (L.toDiffeomorph.toPartialDiffeomorph : E → E) = L := by ext; simp
+    rw [ψ₁.mfderiv_trans _ hn hx', ← he]
+    ext v
+    rw [ContinuousLinearMap.comp_apply, mfderiv_eq_fderiv, hL, L.fderiv]
+    exact (e.symm_apply_apply v).trans (ContinuousLinearMap.id_apply (R₁ := ℝ) v).symm
+  have h₂ := J.mfderiv_trans_toDiffeomorph_apply_eq_transport h₁ L
+  have hJx (w : E) : J₀.transport L.toLinearEquiv w = J x w := by
+    have h := h₂ x hx' w
+    rw [hd] at h
+    -- `h` applies `ContinuousLinearMap.id` to vectors of `T_x M`, a type synonym of `E` that
+    -- `rw [ContinuousLinearMap.id_apply]` does not match, so `id` is reduced by `exact`.
+    exact h.symm
+  refine ⟨ψ, hx', by simp [ψ, hψ₁x], hd ▸ (ψ.mdifferentiableAt hn hx').hasMFDerivAt,
+    fun y hy v ↦ (h₂ y hy v).trans (hJx _)⟩
 
 /-- **Integrability is invariant under pullback along local diffeomorphisms.** The pullback of an
 integrable almost complex structure along a smooth local diffeomorphism is integrable. -/
