@@ -104,22 +104,18 @@ theorem nonempty_birthDeathChart_of_ker_eq_span_singleton
   let A : (ℝ × EuclideanSpace ℝ (Fin m)) ≃L[ℝ] E := G.toContinuousLinearEquiv.trans K.symm
   have hKA (p : ℝ × EuclideanSpace ℝ (Fin m)) : K (A p) = G p := by simp [A]
   -- The chart of `E` at `u`, and the chart of `M` at `x`.
-  set Θ := Φ.transHomeomorph A.toHomeomorph with hΘ
-  have hΘs : ∀ z ∈ Θ.source, ContDiffAt ℝ ∞ Θ z := fun z hz ↦
-    (A.contDiff.comp_contDiffOn hΦ).contDiffAt (Φ.open_source.mem_nhds hz)
-  have hΘsymm : ∀ z ∈ Θ.target, ContDiffAt ℝ ∞ Θ.symm z := fun z hz ↦ by
-    have hz' : A.symm z ∈ Φ.target := by simpa [hΘ] using hz
-    simpa [hΘ, comp_def] using
-      (hΦsymm.contDiffAt (Φ.open_target.mem_nhds hz')).comp z A.symm.contDiff.contDiffAt
+  obtain ⟨Θ, hΘ, hΘsrc, hΘmem⟩ := exists_trans_mem_maximalAtlas_of_contDiffOn
+    (IsManifold.chart_mem_maximalAtlas x) (ContinuousLinearEquiv.refl ℝ E) Φ hΦ hΦsymm A 0
+  simp only [sub_zero, ContinuousLinearEquiv.refl_symm, ContinuousLinearEquiv.coe_refl',
+    id_eq] at hΘ hΘsrc
   have hext : ∀ y, extChartAt 𝓘(ℝ, E) x y = c y := fun y ↦ by simp [hc']
   have hleft : ∀ y ∈ c.source, F (c y) = f y := fun y hy ↦ by
-    have hy' : y ∈ (extChartAt 𝓘(ℝ, E) x).source := by simpa [hc'] using hy
-    simp only [hFdef, comp_apply, ← hext, (extChartAt 𝓘(ℝ, E) x).left_inv hy']
+    simpa [hFdef] using (eqOn_comp_chartAt_symm x hy).symm
   have hxc : x ∈ c.source := mem_chart_source E x
   have hcu : c x = u := (hext x).symm
   have hFu : F u = f x := by rw [← hcu]; exact hleft x hxc
   set ψ := c.trans Θ
-  have hx : x ∈ ψ.source := ⟨hxc, by simpa [hΘ, hcu] using huΦ⟩
+  have hx : x ∈ ψ.source := ⟨hxc, by simpa [hΘsrc, hcu] using huΦ⟩
   have hψx : ψ x = 0 := by simp [ψ, hΘ, hcu, hΦu]
   have hcoord (y : M) : K (ψ y) = G (Φ (c y)) := by simp [ψ, hΘ, hKA]
   -- The cubic coordinate, the weights, and the normal form.
@@ -136,8 +132,7 @@ theorem nonempty_birthDeathChart_of_ker_eq_span_singleton
     quadraticPart := fun y ↦ f y - birthDeathPotential 0 (K (ψ y) i₀)
     toMorseBottChart := {
       toChart := ψ
-      mem_maximalAtlas := trans_mem_maximalAtlas_of_contDiffAt
-        (IsManifold.chart_mem_maximalAtlas x) hΘs hΘsymm
+      mem_maximalAtlas := hΘmem
       mem_source := hx
       apply_self := hψx
       coord := K.toLinearEquiv
@@ -150,7 +145,7 @@ theorem nonempty_birthDeathChart_of_ker_eq_span_singleton
       eq_quadratic := fun y hy ↦ by
         simp only [ContinuousLinearEquiv.coe_toLinearEquiv, hψx, map_zero, Pi.zero_apply,
           birthDeathPotential_apply, hcoord, hi₀, hsum]
-        rw [← hleft y hy.1, hFΦ _ (by simpa [hΘ] using hy.2), hFu]
+        rw [← hleft y hy.1, hFΦ _ (by simpa [hΘsrc] using hy.2), hFu]
         ring }
     cubicIndex := i₀
     weight_cubicIndex := by simp [w, i₀]
