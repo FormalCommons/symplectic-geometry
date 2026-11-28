@@ -239,26 +239,6 @@ theorem fiberMean_add_mpullback [CompactSpace F] [IsManifold IB ∞ B]
   funext y
   rw [hβ, Pi.smul_apply]
 
-omit [FiniteDimensional ℝ EF] [IsManifold IF ∞ F] [IsManifold IB 1 B] in
-/-- **A horizontal lift is `τ`-orthogonal to the fibre.** If `D` is the horizontal distribution of
-`τ`, then `τ` vanishes on the horizontal lift of `w` at `e⁻¹ (b, y)` paired with every image of
-the derivative of the fibre inclusion `y ↦ e⁻¹ (b, y)`. -/
-private theorem apply_horizontalLift_mfderiv_eq_zero {τ : SmoothTwoForm IM M}
-    (hτD : SmoothTwoForm.horizontalDistribution IB proj τ = D) (e : Trivialization F proj)
-    {b : B} (hb : b ∈ e.baseSet) (w : TangentSpace IB b) (y : F) (v : TangentSpace IF y) :
-    τ.val (e.toOpenPartialHomeomorph.symm (b, y))
-      ![(hD.horizontalLift _ w).val,
-        mfderiv IF IM (fun y ↦ e.toOpenPartialHomeomorph.symm (b, y)) y v] = 0 := by
-  subst hτD
-  have hη := e.mfderiv_proj_mfderiv_fiberInclusionMap_apply (IM := IM) (IB := IB) hb y v
-  rw [Trivialization.coe_fiberInclusionMap] at hη
-  have hh := (hD.horizontalLift (e.toOpenPartialHomeomorph.symm (b, y)) w).property
-  rw [SmoothTwoForm.mem_horizontalDistribution_iff] at hh
-  have := hh _ hη
-  rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply] at this
-  rw [ContinuousAlternatingMap.apply_vecCons_swap, neg_eq_zero]
-  exact this
-
 variable [IsManifold IB ∞ B] [FiniteDimensional ℝ EB] [BoundarylessManifold IB B] [CompactSpace F]
   [T2Space F]
 
@@ -290,20 +270,25 @@ theorem fiberIntegral_wedgePow_apply {A : MapFiber.Atlas F proj} (hA : A.IsContM
   have hσk : (σ.val y).wedgePow k v = (τ.val x).wedgePow k (fun i ↦ dι (v i)) := by
     rw [← MapFiber.Atlas.restrictsTo_iff.1 hτ b b hb, ← TauCeti.mpullback_wedgePow_apply,
       TauCeti.mpullback_apply, SmoothForm.wedgePow_apply, Trivialization.coe_fiberInclusionMap]
+  -- The horizontal lift of `w₁` pairs to zero with every vector tangent to the fibre.
+  have hlift (j : Fin (2 * k)) : τ.val x ![(hD.horizontalLift x w₁).val, dι (v j)] = 0 := by
+    have hη := (A.trivAt b).mfderiv_proj_mfderiv_fiberInclusionMap_apply (IM := IM) (IB := IB)
+      hb y (v j)
+    rw [Trivialization.coe_fiberInclusionMap] at hη
+    subst hτD
+    exact SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
+      (hD.horizontalLift _ w₁).property hη
   rw [ContinuousAlternatingMap.compContinuousLinearMap_apply,
     ContinuousAlternatingMap.appendLeft_apply, SmoothForm.cast_apply, SmoothForm.wedgePow_apply,
-    ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero _
-      (fun j ↦ apply_horizontalLift_mfderiv_eq_zero hD hτD _ hb w₁ y (v j))]
+    ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero _ hlift]
   have hu : (fun i ↦ (hD.horizontalLift x (![w₁, w₂] i)).val) =
       ![(hD.horizontalLift x w₁).val, (hD.horizontalLift x w₂).val] := by
     ext i
     fin_cases i <;> simp
-  rw [Function.comp_def, ← hσk, hu, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
-    ContinuousAlternatingMap.smul_apply, SmoothTwoForm.volumeForm_apply,
-    ContinuousAlternatingMap.smul_apply, smul_eq_mul, smul_eq_mul, smul_eq_mul]
-  have : (k.factorial : ℝ) ≠ 0 := by positivity
-  field_simp
-  exact mul_comm _ _
+  rw [Function.comp_def, ← hσk, hu, ← SmoothForm.wedgePow_apply,
+    SmoothTwoForm.wedgePow_eq_factorial_smul_volumeForm]
+  simp only [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, Submodule.coe_smul, smul_eq_mul]
+  ring
 
 omit [IsManifold IB 1 B] in
 /-- **The normalization in terms of `fiberMean`.** Under the hypotheses of
@@ -324,10 +309,8 @@ theorem fiberIntegral_wedgePow_eq_zero_iff {A : MapFiber.Atlas F proj}
   · have hb := hD.fiberIntegral_wedgePow_apply hA hσ hk ho hτ hτD b w₁ w₂
     rw [h] at hb
     exact (mul_eq_zero.1 hb.symm).resolve_left hc
-  · have hv : v = ![v 0, v 1] := by
-      ext i
-      fin_cases i <;> simp
-    rw [hv, hD.fiberIntegral_wedgePow_apply hA hσ hk ho hτ hτD, h, mul_zero,
+  · rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm,
+      hD.fiberIntegral_wedgePow_apply hA hσ hk ho hτ hτD, h, mul_zero,
       SmoothBundleForm.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 end TauCeti.IsEhresmannConnection
