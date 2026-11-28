@@ -604,7 +604,7 @@ and `hψ₂`.
 
 ### `Blowup/BallEmbedding.lean`
 
-For `M` compact and connected, `hN`, `0 < λ` and
+For `M` connected, second countable and σ-compact, `hN`, `0 < λ` and
 `IsSymplecticBallEmbedding ω λ ψ`.
 
 - **Milestone** `exists_symplectic_class_firstChernClass`: there is a

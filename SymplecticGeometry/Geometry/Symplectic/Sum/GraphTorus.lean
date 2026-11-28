@@ -272,7 +272,7 @@ theorem symplecticNormalForm_graphTorus_horizontal {σ : SmoothTwoForm I M}
       σ.eval₂ (h (x i)) v w := by
   set f := graphTorus hh
   set Ω := σ.prod (torusSymplecticForm p)
-  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  have hn : (∞ : ℕ∞ω) ≠ 0 := ENat.coe_top_ne_zero
   set d := mfderiv (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
     (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) f x
   let a := (f.tangentPairing Ω x).comp d
