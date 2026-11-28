@@ -99,6 +99,8 @@ since it inverts the flat maps of the smooth family `σ`.
 * `TauCeti.SmoothTwoForm.horizontalLift_local`: the horizontal lift of `∂ᵢ` is `(∂ᵢ, Xᵢ)`.
 * `TauCeti.SmoothTwoForm.contMDiff_mixedVectorField`: `Xᵢ` is smooth jointly in `x` and the
   point of `F`.
+* `TauCeti.SmoothTwoForm.contMDiff_mixedVectorField_of_isNondegenerate`: where `σ(x)` is
+  nondegenerate, `Xᵢ(x)` is a smooth vector field on `F`.
 * `TauCeti.SmoothTwoForm.contMDiff_eval₂_mixedVectorField`: where `σ(x)` is nondegenerate, the
   function `σ(x)(Xᵢ(x), Xⱼ(x))` on `F` is smooth.
 
@@ -115,9 +117,10 @@ the inverse of `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` of `σ(x)` 
 `x` of the smooth one-form `-ι(∂ᵢ, 0) τ`
 (`TauCeti.SmoothTwoForm.mixedVectorField_eq_interiorEquiv_symm`), and Tau Ceti's
 `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk` shows that such fields are
-smooth in the parameter. On a single fibre over `x` with `σ(x)` nondegenerate, `Xᵢ(x)` is
-thereby a smooth vector field, so `σ(x)(Xᵢ(x), Xⱼ(x))`, the contraction of `αᵢ(x)` with
-`Xⱼ(x)`, is a smooth function.
+smooth in the parameter. The smooth one-form is given by
+`TauCeti.SmoothTwoForm.exists_mpullback_prodMk_eq_mixedComponent`. On a single fibre over `x`
+with `σ(x)` nondegenerate, `Xᵢ(x)` is thereby a smooth vector field, and Tau Ceti's
+`TauCeti.SmoothBundleForm.contMDiff_eval₂` makes `σ(x)(Xᵢ(x), Xⱼ(x))` a smooth function.
 
 The definition of `Xᵢ(x)` follows Tau Ceti's `TauCeti.SmoothTwoForm.hamiltonianVectorField`,
 which also applies the inverse of a flat map to a covector. The statement of
@@ -749,8 +752,8 @@ theorem isVerticallyNondegenerate_fst_iff :
     exact this
 
 /-- The mixed components `αᵢ(x)` are, for all `x` at once, the slices of one smooth one-form on
-`EB × F`: minus the contraction of `τ` with the constant field `(bs i, 0)`. -/
-private theorem exists_mpullback_prodMk_eq_mixedComponent (i : ι) :
+`EB × F`, namely minus the contraction of `τ` with the constant field `(bs i, 0)`. -/
+theorem exists_mpullback_prodMk_eq_mixedComponent (i : ι) :
     ∃ α : SmoothForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 1, ∀ x : EB,
       (SmoothForm.mpullback (Prod.mk x) (contMDiff_const.prodMk contMDiff_id) α).val =
         RoughForm.mixedComponent τ.val bs i x := by
@@ -776,21 +779,26 @@ theorem contMDiff_mixedVectorField [FiniteDimensional ℝ EF]
   exact congrArg (Bundle.TotalSpace.mk p.2)
     (τ.mixedVectorField_eq_interiorEquiv_symm bs (hσ p.1) i (hα p.1) p.2)
 
+/-- **The vector field `Xᵢ(x)` is smooth.** Where the fibre component `σ(x)` is nondegenerate,
+the vector field `Xᵢ(x)` on `F` with `ι(Xᵢ(x)) σ(x) = αᵢ(x)` is smooth. -/
+theorem contMDiff_mixedVectorField_of_isNondegenerate [FiniteDimensional ℝ EF] {x : EB}
+    (hσ : (τ.smoothFiberComponent x).IsNondegenerate) (i : ι) :
+    ContMDiff IF IF.tangent ∞
+      (fun y : F ↦ (⟨y, τ.mixedVectorField bs i x y⟩ : TangentBundle IF F)) := by
+  obtain ⟨α, hα⟩ := τ.exists_mpullback_prodMk_eq_mixedComponent bs i
+  exact (hσ.interiorEquiv.symm _).contMDiff.congr fun y ↦
+    congrArg (Bundle.TotalSpace.mk y) (τ.mixedVectorField_eq_interiorEquiv_symm bs hσ i (hα x) y)
+
 /-- Where the fibre component `σ(x)` is nondegenerate, the function `y ↦ σ(x)(Xᵢ(x), Xⱼ(x))` on
 `F` is smooth. -/
 theorem contMDiff_eval₂_mixedVectorField [FiniteDimensional ℝ EF] {x : EB}
     (hσ : (τ.smoothFiberComponent x).IsNondegenerate) (i j : ι) :
     ContMDiff IF 𝓘(ℝ) ∞ (fun y ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y
-      (τ.mixedVectorField bs i x y) (τ.mixedVectorField bs j x y)) := by
-  obtain ⟨αᵢ, hαᵢ⟩ := τ.exists_mpullback_prodMk_eq_mixedComponent bs i
-  obtain ⟨αⱼ, hαⱼ⟩ := τ.exists_mpullback_prodMk_eq_mixedComponent bs j
-  -- `Xⱼ(x)` as a smooth vector field on `F`, and `σ(x)(Xᵢ(x), Xⱼ(x))` as `αᵢ(x)(Xⱼ(x))`.
-  set Y := hσ.interiorEquiv.symm
-    (SmoothForm.mpullback (Prod.mk x) (contMDiff_const.prodMk contMDiff_id) αⱼ)
-  refine (SmoothForm.contMDiff_apply_zero (SmoothForm.interiorProduct Y
-    (SmoothForm.mpullback (Prod.mk x) (contMDiff_const.prodMk contMDiff_id) αᵢ))).congr
-    fun y ↦ ?_
-  rw [SmoothForm.interiorProduct_apply_degree_one, τ.eval₂_mixedVectorField bs hσ i, ← hαᵢ x,
-    τ.mixedVectorField_eq_interiorEquiv_symm bs hσ j (hαⱼ x)]
+      (τ.mixedVectorField bs i x y) (τ.mixedVectorField bs j x y)) := fun y ↦ by
+  have h := ((τ.smoothFiberComponent x).contMDiff_eval₂ (b := id)
+    (τ.contMDiff_mixedVectorField_of_isNondegenerate bs hσ i)
+    (τ.contMDiff_mixedVectorField_of_isNondegenerate bs hσ j)) y
+  rw [Bundle.contMDiffAt_totalSpace_iff] at h
+  simpa [Bundle.Trivial.fiberBundle_trivializationAt'] using h.2
 
 end TauCeti.SmoothTwoForm
