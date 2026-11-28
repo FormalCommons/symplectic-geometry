@@ -97,7 +97,7 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   used as the representation; the completion of a Liouville domain is shown
   to be one of the latter (`isLiouvilleCompletion_completion`).
 - **The Liouville collar at a boundary.** Tau Ceti's flows
-  (`TauCeti.flowOf`) and collars (`Liouville/Collar.lean`) need a
+  (`TauCeti.flowOf`) and collars (`Liouville/Collar/Basic.lean`) need a
   boundaryless model, and its smooth collars come without an existence
   theorem. The part therefore proves a collar theorem driven by the given
   field: for a smooth field `Y` pointing outward along a compact boundary,
