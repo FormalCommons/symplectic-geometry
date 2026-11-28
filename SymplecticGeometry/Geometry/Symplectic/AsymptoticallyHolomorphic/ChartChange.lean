@@ -591,7 +591,7 @@ theorem exists_forall_jetNormAt_le_jetNorm_of_mem_ball [T2Space M] [I.Boundaryle
     (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
     (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (R : ℝ) (r : ℕ) :
     ∃ C : ℝ, 0 ≤ C ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) R,
-      ∀ {s : Π y, PowerBundle P k y},
+      ∀ (s : Π y, PowerBundle P k y),
       (∀ {n : ℕ∞}, ContDiffAt ℝ n (D.reading k ((D.chart k x).symm z) s) 0 →
         ContDiffAt ℝ n (D.reading k x s) z) ∧
       (∀ {n : ℕ∞}, (∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k ((D.chart k x).symm z) s) w) →
@@ -675,7 +675,7 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le [T2Space M] [I.Bo
   have hdiff : ∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k y (s k)) w :=
     hry.eventually_differentiableAt (by exact_mod_cast le_top)
   obtain ⟨hJy, hDJy⟩ := hCsk y
-  obtain ⟨hc, hdc, hb, hdb⟩ := hCk x z hz (s := s k)
+  obtain ⟨hc, hdc, hb, hdb⟩ := hCk x z hz (s k)
   refine ⟨hc hry, hdc hdiff hdry, ?_, ?_⟩
   · calc jetNormAt ℝ r (D.reading k x (s k)) z ≤ C * D.jetNorm k r (s k) y :=
           hb (hry.of_le (by exact_mod_cast le_top))

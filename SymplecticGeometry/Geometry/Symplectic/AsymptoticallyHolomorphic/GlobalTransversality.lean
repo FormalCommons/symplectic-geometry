@@ -323,8 +323,8 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
       jetNormAt ℝ 1 (D.dbarReading k x s) z ≤ B' * (k : ℝ) ^ (-1 / 2 : ℝ) := by
     intro z hz
     set y := (D.chart k x).symm z
-    obtain ⟨hc, -, hb, -⟩ := h₃ x z hz (s := s)
-    obtain ⟨-, -, -, hdb⟩ := h₄ x z hz (s := s)
+    obtain ⟨hc, -, hb, -⟩ := h₃ x z hz s
+    obtain ⟨-, -, -, hdb⟩ := h₄ x z hz s
     refine ⟨hc (hs y).1, ?_, ?_⟩
     · calc _ ≤ C₃ * D.jetNorm k 2 s y := hb (hs y).1
         _ ≤ C₃ * B := by gcongr; exact (hsB y).1
