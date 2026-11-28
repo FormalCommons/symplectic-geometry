@@ -26,8 +26,11 @@ divisor (`BlowupModel.exists_mextDeriv_eq_mpullback_subtypeVal_profileForm_sub`)
 the model's divisor into `Z`, so off `Z` it restricts to a partial diffeomorphism from the
 complement of the model's divisor; the primitive of the blowup is the push-forward of that of the
 model along it, extended by zero. The two pieces agree since the model's primitive vanishes off
-`L(l + ε)`. This is the first step of the proof of McDuff–Salamon, Theorem 7.1.21 (v): the
-difference class then lifts to the cohomology of the blowup relative to the complement of `Z`.
+`L(l + ε)`. The argument is that of `exists_mextDeriv_eq_normalizedBlowupForm_sub`, for two
+profiles, carried out on the complement of the divisor.
+
+This is the first step of the proof of McDuff–Salamon, Theorem 7.1.21 (v): by it, the difference
+class lifts to the cohomology of the blowup relative to the complement of `Z`.
 
 ## Main results
 
@@ -68,9 +71,10 @@ include hψ
 
 attribute [local instance high] IsManifold.instOfNatWithTopENat_1
 
-/-- A partial diffeomorphism `Ψ` from the complement of the model's divisor to that of the
-blowup's divisor that lies over the lift `ψ̃` pulls the restriction of `ω̃_{ψ,l,ε} - π^* σ` back to
-that of `ω̃_{l,ε} - π^* ω₀`, at each point of its source in `openNbhd n r`. -/
+/-- Let `Ψ` be a partial diffeomorphism from the complement of the model's divisor to that of the
+blowup's divisor that agrees with the lift `ψ̃` on its source. At each point of its source in
+`openNbhd n r`, `Ψ` pulls the restriction of `ω̃_{ψ,l,ε} - π^* σ` back to that of
+`ω̃_{l,ε} - π^* ω₀`. -/
 private theorem mpullback_normalizedBlowupForm_sub_of_coe_apply {h : ℝ → ℝ}
     (hh : IsBlowupProfile l ε h)
     (Ψ : PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (offDivisorOpens n)
