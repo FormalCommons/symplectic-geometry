@@ -856,6 +856,15 @@ theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × Euclidean
     modelHandle k m a b p = b * (shape p).2 - a * (shape p).1 :=
   (rfl)
 
+/-- For `k = 0` the model handle function is `p ↦ b ‖p‖²`, for every `a`: the coordinate
+`s = |x|²` vanishes on `ℂ⁰ × ℂᵐ`. -/
+@[simp]
+theorem modelHandle_zero_apply (a b : ℝ)
+    (p : EuclideanSpace ℂ (Fin 0) × EuclideanSpace ℂ (Fin m)) :
+    modelHandle 0 m a b p = b * ‖p‖ ^ 2 := by
+  have h : p.1 = 0 := Subsingleton.elim _ _
+  simp [modelHandle_def, Prod.norm_def, h]
+
 /-- The model handle function is smooth. -/
 @[fun_prop]
 theorem contDiff_modelHandle {n : WithTop ℕ∞} (a b : ℝ) :

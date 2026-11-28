@@ -65,7 +65,8 @@ and the triple is a Weinstein structure.
 * `SymplecticGeometry.isWeinsteinStructure_modelHandle_zero`: for `k = 0` and `0 < b` the triple
   is a Weinstein structure. It is checked condition by condition: the Liouville, completeness and
   gradient-like results above, the Morse property `SymplecticGeometry.isMorse_modelHandle`, and
-  properness and boundedness below of `b ‖p‖²` (`SymplecticGeometry.modelHandle_zero_apply`).
+  properness and boundedness below of `b ‖p‖²`, the form the function takes for `k = 0`
+  (`SymplecticGeometry.modelHandle_zero_apply`, from `JConvex/Surround/Shape.lean`).
 
 ## References
 
@@ -303,14 +304,6 @@ theorem isGradientLike_modelHandle_modelHandleField {a b : ℝ} (ha : 0 < a) (hb
     _ ≤ _ := hκ
 
 /-! ### Index zero -/
-
-/-- For `k = 0` the model handle function is `p ↦ b ‖p‖²`, for every `a`: the coordinate
-`s = |x|²` vanishes on `ℂ⁰ × ℂᵐ`. -/
-theorem modelHandle_zero_apply (a b : ℝ)
-    (p : EuclideanSpace ℂ (Fin 0) × EuclideanSpace ℂ (Fin m)) :
-    modelHandle 0 m a b p = b * ‖p‖ ^ 2 := by
-  have h : p.1 = 0 := Subsingleton.elim _ _
-  simp [modelHandle_def, Prod.norm_def, h]
 
 /-- **The standard handle of index zero is a Weinstein structure.** On `ℂ⁰ × ℂᵐ`, for `0 < b` and
 every `a`, the constant form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`, the handle field `p ↦ p / 2` and the
