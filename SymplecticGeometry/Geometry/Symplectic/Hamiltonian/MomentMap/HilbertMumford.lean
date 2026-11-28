@@ -460,8 +460,8 @@ theorem exists_eventually_abs_kempfNessFunction_le
   obtain ⟨g, hg⟩ := innerProducts_nonempty (GroupLieAlgebra I G)
   obtain ⟨hgs, hgp⟩ := mem_innerProducts.1 hg
   let B := g.toBilinForm
-  have hBp : B.toQuadraticMap.PosDef := hgp
-  have hBs : B.IsSymm := ⟨hgs⟩
+  have hBp : B.toQuadraticMap.PosDef := fun v hv ↦ by simpa [B] using hgp v hv
+  have hBs : B.IsSymm := ContinuousLinearMap.isSymm_toBilinForm_iff.2 hgs
   have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
   -- A bound `L` for `√(‖μ‖²)` on `M`, so `|Φ_p (k s)|` is at most `L` times the polar radius.
   obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
