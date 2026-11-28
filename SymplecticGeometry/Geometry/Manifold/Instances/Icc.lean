@@ -43,7 +43,7 @@ agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
 
 A map `Φ : M × [x, y] → F` into a normed space that is affine in time on the slice through `p`,
 `Φ (p, s) = a + s • v`, has derivative at `(p, t)` sending the unit time vector `(0, 1)` to `v`,
-ends of the interval included (`mfderiv_apply_zero_one_of_eq_add_smul`).
+ends of the interval included (`mfderiv_apply_zero_one_of_eq_add_smul_Icc`).
 
 Between two points `s` and `t` of `[x, y]`, the derivative of Mathlib's convex combination
 `Set.Icc.convexComb s t`, from the unit interval, sends the unit vector to `t - s` times the
@@ -120,13 +120,13 @@ theorem mfderiv_prodMap_id_subtypeVal_Icc (z : M × Icc x y) (w : TangentSpace I
 
 end ProdMapManifold
 
-namespace SymplecticGeometry
-
 section Cylinder
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
   [IsManifold J 1 P]
+
+namespace TauCeti.Manifold
 
 /-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P` is smooth, up to both ends. -/
 theorem contMDiff_prodVectorField_one_zero :
@@ -137,13 +137,17 @@ theorem contMDiff_prodVectorField_one_zero :
     TauCeti.contMDiff_one_tangentSpace_Icc
     (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))
 
+end TauCeti.Manifold
+
+namespace SymplecticGeometry
+
 /-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P`, as a smooth section of the
 tangent bundle. -/
 noncomputable def unitIntervalTimeField :
     Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
       TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯ :=
   ⟨TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
-    (0 : Π y : P, TangentSpace J y), contMDiff_prodVectorField_one_zero⟩
+    (0 : Π y : P, TangentSpace J y), TauCeti.Manifold.contMDiff_prodVectorField_one_zero⟩
 
 /-- The unit time field of the cylinder is the product field of `1` on `[0, 1]` and `0` on
 `P`. -/
@@ -189,9 +193,9 @@ theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
   -- The two sides differ only in the types `TangentSpace` and its model space for the zeros.
   rfl
 
-end Cylinder
-
 end SymplecticGeometry
+
+end Cylinder
 
 /-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
 at `t`. If the derivative at `t` of `Subtype.val ∘ f : M → ℝ` sends `v` to `r`, then the
@@ -209,7 +213,7 @@ theorem mfderiv_apply_eq_smul_one_Icc {E H M : Type*} [NormedAddCommGroup E] [No
 time along the slice through `p`: `Φ (p, s) = a + s • v` for every `s`. Then the derivative of
 `Φ` at `(p, t)` sends the unit time vector `(0, 1)` to `v`. This holds at the ends of the interval
 too, where the derivative is one-sided. -/
-theorem mfderiv_apply_zero_one_of_eq_add_smul {E H M F : Type*} [NormedAddCommGroup E]
+theorem mfderiv_apply_zero_one_of_eq_add_smul_Icc {E H M F : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
     [ChartedSpace H M] [NormedAddCommGroup F] [NormedSpace ℝ F] {Φ : M × Icc x y → F} {p : M}
     {t : Icc x y} (hΦ : MDifferentiableAt (I.prod (𝓡∂ 1)) 𝓘(ℝ, F) Φ (p, t)) {a v : F}
