@@ -284,7 +284,7 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
       D.isAsymptoticallyHolomorphic_peakSection_mul hg hJ hα hρ₀ x⟩⟩
   · obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := D.exists_jetNorm_peakSection_le hg hJ hα hρ₀ r
     obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_peakSection_le hg hJ hα hρ₀ r
-    obtain ⟨C, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+    obtain ⟨C, -, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
       (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
       (F := fun k (p : M × M) ↦ D.jetNorm k r (D.peakSection k p.1) p.2)
       (G := fun k p ↦ D.dbarJetNorm k r (D.peakSection k p.1) p.2)
@@ -295,7 +295,7 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
     exact ⟨C, N, c, hc, h.mono fun _ h x y ↦ h (x, y)⟩
   · obtain ⟨C₁, N₁, c₁, hc₁, h₁⟩ := D.exists_jetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
     obtain ⟨C₂, N₂, c₂, hc₂, h₂⟩ := D.exists_dbarJetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
-    obtain ⟨C, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
+    obtain ⟨C, -, N, c, hc, h⟩ := Real.exists_le_one_add_pow_mul_exp_neg_mul_sq_and_le
       (l := Filter.atTop) (w := fun k : ℕ ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
       (F := fun k (p : M × M) ↦ D.jetNorm k r (D.peakSection_mul k p.1 j) p.2)
       (G := fun k p ↦ D.dbarJetNorm k r (D.peakSection_mul k p.1 j) p.2)
