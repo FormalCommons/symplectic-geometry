@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.Complex.Orientation
-public import TauCeti.Geometry.Manifold.DeRham.Map
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Smale
+import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
+import TauCeti.Geometry.Manifold.DeRham.Map
 import TauCeti.Geometry.Manifold.DeRham.Sphere
 
 /-!
@@ -20,22 +22,32 @@ equivalences on de Rham cohomology (`TauCeti.deRhamCohomology.equivOfDiffeomorph
 computation of the de Rham cohomology of spheres (`TauCeti.rank_deRhamCohomology_sphere`) gives
 that of `OnePoint ℂ`: a line in degrees `0` and `2`, and zero in every other degree.
 
-That a class of nonzero integral spans the top degree holds on every compact connected oriented
-manifold (`TauCeti.deRhamCohomology.span_singleton_eq_top_of_integral_ne_zero`); it applies to
-`OnePoint ℂ` with the orientation `TauCeti.complexManifoldOrientation`.
+In degrees `0` and `1`, general results of Tau Ceti apply directly: `OnePoint ℂ` is connected
+(Mathlib's instance), so `TauCeti.finrank_deRhamCohomology_zero` gives `H⁰`, and it is simply
+connected (`TauCeti.simplyConnectedSpace_onePoint_complex`), so
+`TauCeti.subsingleton_deRhamCohomology_one_of_simplyConnectedSpace` gives `H¹ = 0`.
+
+In degree `2`, orient `OnePoint ℂ` by its complex structure
+(`SymplecticGeometry.complexCurveOrientation`, which is Tau Ceti's
+`TauCeti.complexManifoldOrientation` indexed by `Fin 2`). Then a class, or the class of a closed
+`2`-form, whose integral is nonzero spans `H²`. This is the case `M = OnePoint ℂ` of
+`TauCeti.deRhamCohomology.span_singleton_eq_top_of_integral_ne_zero`, which holds on every
+compact, preconnected, boundaryless, Hausdorff oriented manifold.
 
 ## Main results
 
 * `TauCeti.rank_deRhamCohomology_onePoint`: `H^k(OnePoint ℂ)` has rank one for `k = 0` and
   `k = 2`, and rank zero otherwise.
-* `TauCeti.finrank_deRhamCohomology_onePoint_zero`,
-  `TauCeti.subsingleton_deRhamCohomology_onePoint_one`,
-  `TauCeti.finrank_deRhamCohomology_onePoint_two`: the cases `k = 0, 1, 2`.
+* `TauCeti.finrank_deRhamCohomology_onePoint_two`: `H²(OnePoint ℂ)` is a line.
+* `TauCeti.span_singleton_eq_top_of_integral_ne_zero_onePoint`,
+  `TauCeti.span_singleton_mk_eq_top_of_integralTopForm_ne_zero_onePoint`: a class, or the class
+  of a closed `2`-form, with nonzero integral spans `H²(OnePoint ℂ)`.
 
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer GTM 218 (2013),
   Theorem 17.21 (the de Rham cohomology of spheres).
+* [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §5.
 -/
 
 public section
@@ -55,20 +67,28 @@ theorem rank_deRhamCohomology_onePoint (k : ℕ) :
   rw [← (deRhamCohomology.equivOfDiffeomorph SymplecticGeometry.roundSphereDiffeomorph k).rank_eq]
   exact rank_deRhamCohomology_sphere two_pos k
 
-/-- `H⁰(OnePoint ℂ)` is one-dimensional. -/
-theorem finrank_deRhamCohomology_onePoint_zero :
-    finrank ℝ (deRhamCohomology 𝓘(ℝ, ℂ) (OnePoint ℂ) 0) = 1 :=
-  finrank_eq_of_rank_eq <| by simp [rank_deRhamCohomology_onePoint]
-
-/-- `H¹(OnePoint ℂ)` vanishes. -/
-theorem subsingleton_deRhamCohomology_onePoint_one :
-    Subsingleton (deRhamCohomology 𝓘(ℝ, ℂ) (OnePoint ℂ) 1) :=
-  rank_zero_iff (R := ℝ) |>.mp <| (rank_deRhamCohomology_onePoint 1).trans (by simp)
-
 /-- `H²(OnePoint ℂ)` is one-dimensional. -/
 theorem finrank_deRhamCohomology_onePoint_two :
     finrank ℝ (deRhamCohomology 𝓘(ℝ, ℂ) (OnePoint ℂ) 2) = 1 :=
   finrank_eq_of_rank_eq <| by simp [rank_deRhamCohomology_onePoint]
+
+/-- On the Riemann sphere `OnePoint ℂ`, oriented by its complex structure, a degree-`2` de Rham
+class with nonzero integral spans `H²(OnePoint ℂ)`. -/
+theorem span_singleton_eq_top_of_integral_ne_zero_onePoint
+    {c : deRhamCohomology 𝓘(ℝ, ℂ) (OnePoint ℂ) 2}
+    (hc : deRhamCohomology.integral (SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ))
+      c ≠ 0) :
+    Submodule.span ℝ {c} = ⊤ :=
+  deRhamCohomology.span_singleton_eq_top_of_integral_ne_zero _ hc
+
+/-- On the Riemann sphere `OnePoint ℂ`, oriented by its complex structure, the class of a closed
+`2`-form with nonzero integral spans `H²(OnePoint ℂ)`. -/
+theorem span_singleton_mk_eq_top_of_integralTopForm_ne_zero_onePoint
+    (φ : closedForms 𝓘(ℝ, ℂ) (OnePoint ℂ) 2)
+    (hφ : integralTopForm (SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ))
+      φ.val.val ≠ 0) :
+    Submodule.span ℝ {deRhamCohomology.mk 𝓘(ℝ, ℂ) 2 φ} = ⊤ :=
+  span_singleton_eq_top_of_integral_ne_zero_onePoint <| by rwa [deRhamCohomology.integral_mk]
 
 end TauCeti
 
