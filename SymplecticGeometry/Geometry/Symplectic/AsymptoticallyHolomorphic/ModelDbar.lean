@@ -383,12 +383,12 @@ theorem contDiffAt_modelDbarWith {n : ℕ∞} {f : StdSpace ι → ℂ} {z : Std
   hJ.complexAntilinearPartContinuousLinearMap _ (contDiffAt_modelConnection hf)
 
 /-- **Jets of a change of structure in the model `∂̄`.** For every order `r` there is a constant
-`C` such that, for all fields `J` and `J'` of real-linear endomorphisms of `StdSpace ι`, every `f`
-and every point `z` where `f` is `C^(r + 1)` and `J` and `J'` are `C^r`, the `r`-jet norm at `z` of
-the difference of the model `∂̄` of `f` for `J` and for `J'` is at most `C * (1 + ‖z‖)` times the
-`r`-jet norm of `J - J'` and the `(r + 1)`-jet norm of `f`. -/
+`C ≥ 0` such that, for all fields `J` and `J'` of real-linear endomorphisms of `StdSpace ι`, every
+`f` and every point `z` where `f` is `C^(r + 1)` and `J` and `J'` are `C^r`, the `r`-jet norm at
+`z` of the difference of the model `∂̄` of `f` for `J` and for `J'` is at most `C * (1 + ‖z‖)`
+times the `r`-jet norm of `J - J'` and the `(r + 1)`-jet norm of `f`. -/
 theorem exists_jetNormAt_modelDbarWith_sub_le (r : ℕ) :
-    ∃ C : ℝ, ∀ (J J' : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (J J' : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι) (f : StdSpace ι → ℂ)
       {z : StdSpace ι}, ContDiffAt ℝ (r + 1 : ℕ) f z → ContDiffAt ℝ r J z → ContDiffAt ℝ r J' z →
       jetNormAt ℝ r (fun w ↦ modelDbarWith J f w - modelDbarWith J' f w) z ≤
         C * (1 + ‖z‖) * jetNormAt ℝ r (fun w ↦ J w - J' w) z * jetNormAt ℝ (r + 1) f z := by
@@ -400,7 +400,7 @@ theorem exists_jetNormAt_modelDbarWith_sub_le (r : ℕ) :
     ContinuousLinearMap.toNormedSpace
   set B := compL ℝ (StdSpace ι) (StdSpace ι) ℂ
   obtain ⟨A, hA⟩ := exists_jetNormAt_modelConnection_le (ι := ι) r
-  refine ⟨2 ^ r * ‖B‖ * ‖c‖ * A, fun J J' f z hf hJ hJ' ↦ ?_⟩
+  refine ⟨2 ^ r * ‖B‖ * ‖c‖ * max A 0, by positivity, fun J J' f z hf hJ hJ' ↦ ?_⟩
   -- The difference is bilinear in `c • L` and `J - J'`, for `L` the model connection of `f`.
   have heq : (fun w ↦ modelDbarWith J f w - modelDbarWith J' f w) =
       fun w ↦ B ((c • modelConnection f) w) (J w - J' w) := by
@@ -414,12 +414,13 @@ theorem exists_jetNormAt_modelDbarWith_sub_le (r : ℕ) :
   refine hT.trans ?_
   have : 0 ≤ ‖B‖ := opNorm_nonneg B
   have : 0 ≤ jetNormAt ℝ r (fun w ↦ J w - J' w) z := jetNormAt_nonneg _ _ _
+  have : 0 ≤ jetNormAt ℝ (r + 1) f z := jetNormAt_nonneg _ _ _
   calc 2 ^ r * ‖B‖ * (‖c‖ * jetNormAt ℝ r (modelConnection f) z) *
         jetNormAt ℝ r (fun w ↦ J w - J' w) z
-      ≤ 2 ^ r * ‖B‖ * (‖c‖ * (A * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z)) *
+      ≤ 2 ^ r * ‖B‖ * (‖c‖ * (max A 0 * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z)) *
           jetNormAt ℝ r (fun w ↦ J w - J' w) z := by
         gcongr
-        exact hA f hf
+        exact (hA f hf).trans (by gcongr; exact le_max_left A 0)
     _ = _ := by ring
 
 end SymplecticGeometry

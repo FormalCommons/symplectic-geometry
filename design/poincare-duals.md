@@ -363,7 +363,9 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   restrictions, `TauCeti.singularCohomology_thomPair_ext`. (A class of another degree
   is not determined by its fibre restrictions.)
 - `singularCohomologyMap_slice_eq_of_hasFDerivAt`: the local-degree lemma
-  of *Decisions*.
+  of *Decisions*, for a map on any space `Q` whose derivative at `0`,
+  followed by the quotient onto the normal space, is a linear isomorphism
+  `m : Q ≃ ν_x`; the slice is read through `m`.
 - `relDualClassOf_eq_of_isNormalizedTube`: every normalized tube defines
   the same class (independence of the tube).
 - `dualClass_transDiffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
