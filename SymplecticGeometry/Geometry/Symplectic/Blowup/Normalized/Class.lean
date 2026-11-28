@@ -41,8 +41,9 @@ relative cocycle `(ω̃_{ψ,l,ε} - π^* σ, β)` with `β` vanishing off the im
 relative de Rham class pairs with the relative class of `S` to `-π l²`: by
 `TauCeti.singularKronecker_relativeDeRhamHom_mk_relClass` the pairing is `∫_S (ω̃ - π^* σ)` minus
 the integral of `β` over the faces of `S`; the latter vanishes, as `ψ̃` is injective on
-`openNbhd n r`, and the former is the model integral, since `ψ̃` pulls `ω̃_{ψ,l,ε} - π^* σ` back
-to `ω̃_{l,ε} - π^* ω₀` on `openNbhd n r`
+`openNbhd n r`, and the former is the model integral, by the local naturality of integration
+(`TauCeti.SmoothSimplex.integral_eq_integral_mpullback_of_eq_comp`) and since `ψ̃` pulls
+`ω̃_{ψ,l,ε} - π^* σ` back to `ω̃_{l,ε} - π^* ω₀` on `openNbhd n r`
 (`IsNormalizedBallEmbedding.mpullback_ballLiftPartialDiffeomorph_normalizedBlowupForm_sub`).
 
 ## Main results
@@ -255,39 +256,20 @@ theorem singularKronecker_relativeDeRhamHom_mk_relClass_curveLift_smul
       have hK : closedNbhd n (l + ε) ⊆ openNbhd n r :=
         closedNbhd_subset_openNbhd hψ.weight_add_width_lt
       exact hface i x (Φ.injOn (hsrc (hK hz)) (hsrc (hτr _)) hzx ▸ hz)
-  have hL := contMDiff_curveLift_smul_real (r := ∞) hv
-  set g' : EuclideanSpace ℝ (Fin 2) → BlowupModel n := curveLift (· • v) ∘ τ.extension
-  have hg'S : ∀ x : fullSimplex 2, (Φ ∘ g') x = S.toContinuousMap x := fun x ↦ by
-    simp [g', hS]
-  have hg'M : ∀ x : fullSimplex 2, g' x = SmoothSimplex.toContinuousMap
-      ((smoothSingularSubcomplexMap (curveLift (· • v)) hL).app (op ⦋2⦌) τ) x := fun x ↦ by
-    rw [SmoothSimplex.toContinuousMap_smoothSingularSubcomplexMap_app]
-    simp [g']
   -- The integral over `S` is that of the model form over the image of `τ` in the fibre.
   have hσ : S.integral y.val.1.val = -(Real.pi * l ^ 2) := by
-    rw [← integral_curveLift_smul_profileForm_sub hh hv τ hU hgτ hg ho hD,
-      S.integral_eq_setIntegral_mpullbackWithin _ hg'S,
-      SmoothSimplex.integral_eq_setIntegral_mpullbackWithin _ _ hg'M]
-    refine MeasureTheory.setIntegral_congr_fun (isClosed_fullSimplex 2).measurableSet
-      fun x hx ↦ ?_
-    have hx' : g' x ∈ openNbhd n r := by
-      simpa only [g', Function.comp_apply, τ.extension_coe ⟨x, hx⟩] using hτr ⟨x, hx⟩
-    have hd : MDifferentiableWithinAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, Fin (n + 1) → ℂ) g'
-        (fullSimplex 2) x :=
-      (((hL.contMDiffOn (s := univ)).comp τ.contMDiffOn_extension fun _ _ ↦ mem_univ _) x
-        hx).mdifferentiableWithinAt (by simp)
-    rw [mpullbackWithin_comp_at hd
-      ((Φ.mdifferentiableAt (by simp) (hsrc hx')).mdifferentiableWithinAt) (mapsTo_univ _ _)
-      (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2 (uniqueDiffOn_fullSimplex 2 x hx)),
-      mpullbackWithin_univ]
-    -- Both pull-backs along `g'` see only the values of the forms at `g' x`, which agree.
-    have key : mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Φ y.val.1.val (g' x) =
-        (profileForm n l ε h - SmoothForm.mpullback blowdown
-          ((contMDiff_blowdown ∞).restrictScalars' ℝ) (ω₀E n)).val (g' x) := by
-      rw [hy, hψ.mpullback_ballLiftPartialDiffeomorph_normalizedBlowupForm_sub hh hx']
-    congr 1
-    ext w
-    rw [mpullbackWithin_apply, mpullbackWithin_apply, key]
+    set τL : SmoothSimplex 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) 2 :=
+      (smoothSingularSubcomplexMap (curveLift (· • v))
+        (contMDiff_curveLift_smul_real hv)).app (op ⦋2⦌) τ
+    have hτL : ∀ x, τL.toContinuousMap x = curveLift (· • v) (τ.toContinuousMap x) := fun x ↦ by
+      rw [SmoothSimplex.toContinuousMap_smoothSingularSubcomplexMap_app]
+      simp
+    have hτLr : ∀ x, τL.toContinuousMap x ∈ openNbhd n r := fun x ↦ hτL x ▸ hτr x
+    rw [τL.integral_eq_integral_mpullback_of_eq_comp S (fun x ↦ by rw [hS, hτL])
+        (fun x ↦ Φ.mdifferentiableAt (by simp) (hsrc (hτLr x))),
+      ← integral_curveLift_smul_profileForm_sub hh hv τ hU hgτ hg ho hD]
+    refine τL.integral_congr fun x ↦ ?_
+    rw [hy, hψ.mpullback_ballLiftPartialDiffeomorph_normalizedBlowupForm_sub hh (hτLr x)]
   simp only [hσ, ModuleCat.hom_sum, ModuleCat.hom_zsmul, LinearMap.sum_apply,
     LinearMap.smul_apply, map_sum, map_zsmul]
   rw [sub_eq_self]
