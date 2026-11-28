@@ -9,11 +9,13 @@ public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Dynamics.Flow.Stable
+public import TauCeti.Dynamics.Flow.LevelCrossing
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Analysis.ODE.Linear
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 import TauCeti.Dynamics.Flow.Lyapunov
 import SymplecticGeometry.Dynamics.Flow.Stable
+import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
@@ -81,6 +83,10 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
 * `SymplecticGeometry.IsWeinsteinStructure.hasDerivAt_comp_flow` and
   `SymplecticGeometry.IsWeinsteinStructure.monotone_comp_flow`: along an orbit, `f` has
   derivative `df(X)`, which is nonnegative, so it is monotone.
+* `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
+  `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`:
+  for a smooth `g` with `dg(X) > 0` on the level `g ⁻¹' {c}`, the time at which orbits cross that
+  level, and the crossing point, are smooth on the open set of points whose orbits meet it.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_le_of_mem_stableSet`: `f x ≤ f p` for every `x`
   in the stable set of `p`.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
@@ -287,6 +293,31 @@ theorem hasDerivAt_comp_flow (y : M) (t : ℝ) :
 theorem monotone_comp_flow (y : M) : Monotone fun t ↦ f (hW.flow t y) :=
   hW.isGradientLike.monotone_comp (hW.isMIntegralCurve_flow y)
     fun _ ↦ hW.isGeneralizedMorse.contMDiff.mdifferentiable (by simp) _
+
+/-- **The crossing time of an upward level is smooth.** Let `g` be smooth with `dg(X) > 0` at
+each point of the level `g ⁻¹' {c}`. Then the time `Flow.levelCrossingTime φ g c` at which orbits
+of the flow `φ` of a Weinstein structure cross that level is smooth on the set of points whose
+orbits meet it, which is open by `TauCeti.isOpen_setOf_exists_flow_apply_eq`. -/
+theorem contMDiffOn_levelCrossingTime_of_mvfderiv_pos {g : M → ℝ} {c : ℝ}
+    (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
+    (hgX : ∀ x, g x = c → 0 < mvfderiv 𝓘(ℝ, E) g x (X x)) :
+    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) (Flow.levelCrossingTime hW.flow g c)
+      {x | ∃ t, g (hW.flow t x) = c} :=
+  _root_.TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos le_top hW.contMDiff_field
+    hW.isCompleteVectorField hW.flowOf_eq_flow hg hgX
+
+/-- **The crossing point of an upward level is smooth.** Let `g` be smooth with `dg(X) > 0` at
+each point of the level `g ⁻¹' {c}`. Then the map `y ↦ φ (Flow.levelCrossingTime φ g c y) y`, for
+`φ` the flow of a Weinstein structure, which follows each orbit to the level, is smooth on the
+set of points whose orbits meet it. -/
+theorem contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos {g : M → ℝ} {c : ℝ}
+    (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
+    (hgX : ∀ x, g x = c → 0 < mvfderiv 𝓘(ℝ, E) g x (X x)) :
+    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞)
+      (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow g c y) y)
+      {x | ∃ t, g (hW.flow t x) = c} :=
+  _root_.TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos le_top hW.contMDiff_field
+    hW.isCompleteVectorField hW.flowOf_eq_flow hg hgX
 
 /-- **The function is bounded on a stable set by its value at the limit.** If the orbit of `x`
 under the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f x ≤ f p`. -/
