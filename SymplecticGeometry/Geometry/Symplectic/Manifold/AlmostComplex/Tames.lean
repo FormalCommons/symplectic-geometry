@@ -85,7 +85,6 @@ theorem injOn_zeroOnePart_of_tames [FiniteDimensional ℝ E] (hJ : σ.Tames J) (
     (x : M) :
     Set.InjOn (K.zeroOnePart (V := V) (x := x)) {η | J.IsZeroOneForm η} := by
   intro η hη η' hη' h
-  have : FiniteDimensional ℝ (TangentSpace I x) := inferInstanceAs (FiniteDimensional ℝ E)
   have hK₀ : K.zeroOnePart (η - η') = 0 := by
     have h' := K.zeroOnePart_add (η - η') η'
     rw [sub_add_cancel, h] at h'

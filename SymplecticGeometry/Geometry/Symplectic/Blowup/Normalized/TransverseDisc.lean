@@ -111,9 +111,6 @@ open BlowupModel
 
 variable (hψ : IsNormalizedBallEmbedding hN ψ r l ε)
 
-/-- The order `∞` of smoothness is not zero, as Tau Ceti's normal spaces ask. -/
-local notation "hn" => (Iff.mpr WithTop.coe_ne_zero ENat.top_ne_zero : (∞ : ℕ∞ω) ≠ 0)
-
 /-- **The line disc through `v`.** The lift `ψ̃` of the lift `BlowupModel.curveLift (· • v)` of
 the line `t ↦ t • v` of the model, with `w ∈ ℝ²` read in `ℂ` through
 `Complex.orthonormalBasisOneI.repr.symm`. It is the lift `ballLift` where the model point lies in
@@ -181,7 +178,7 @@ theorem divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc (hv : v ≠ 0)
     (w : EuclideanSpace ℝ (Fin 2)) :
     (Blowup.divisorNormalEquiv hN.blowupChart (Projectivization.mk ℂ v hv)
         ((Blowup.divisorRealEmbedding hN.blowupChart).isImmersion.normalClassL
-          (Projectivization.mk ℂ v hv) hn (A w)) : Fin (n + 1) → ℂ) =
+          (Projectivization.mk ℂ v hv) ENat.coe_top_ne_zero (A w)) : Fin (n + 1) → ℂ) =
       Complex.orthonormalBasisOneI.repr.symm w • v := by
   set e := Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv with he
   -- The disc read on `ℂ`.
@@ -220,18 +217,18 @@ class of `A w` is `m w` for every derivative `A` at `0` of the line disc through
 theorem exists_orientation_map_eq_divisorNormalOrientation_lineDisc (hv : v ≠ 0) :
     ∃ m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ]
         (Blowup.divisorRealEmbedding hN.blowupChart).isImmersion.NormalSpace
-          (Projectivization.mk ℂ v hv) hn,
+          (Projectivization.mk ℂ v hv) ENat.coe_top_ne_zero,
       (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
         Blowup.divisorNormalOrientation hN.blowupChart (Projectivization.mk ℂ v hv) ∧
       ∀ A : EuclideanSpace ℝ (Fin 2) →L[ℝ] Fin (n + 1) → ℂ,
         HasMFDerivAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, Fin (n + 1) → ℂ) (hψ.lineDisc v) 0 A →
         ∀ w, (Blowup.divisorRealEmbedding hN.blowupChart).isImmersion.normalClassL
-          (Projectivization.mk ℂ v hv) hn (A w) = m w := by
+          (Projectivization.mk ℂ v hv) ENat.coe_top_ne_zero (A w) = m w := by
   -- The line `ℓ = [v]` as the image of `z ↦ z • v`.
   let L := Projectivization.toTautological (𝕜 := ℂ) hv (Projectivization.submodule_mk v hv)
   let m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ]
       (Blowup.divisorRealEmbedding hN.blowupChart).isImmersion.NormalSpace
-        (Projectivization.mk ℂ v hv) hn :=
+        (Projectivization.mk ℂ v hv) ENat.coe_top_ne_zero :=
     (Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv.trans
       (L.restrictScalars ℝ).toContinuousLinearEquiv).trans
       (Blowup.divisorNormalEquiv hN.blowupChart (Projectivization.mk ℂ v hv)).symm

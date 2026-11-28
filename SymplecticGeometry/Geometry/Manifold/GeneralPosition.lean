@@ -79,9 +79,6 @@ theorem range_mfderiv_sup_ne_top_of_finrank_lt {EZ : Type*} [NormedAddCommGroup 
         (mfderiv IZ IP g z)).range ≠ ⊤ := by
   have : FiniteDimensional ℝ EP := Module.finite_of_finrank_pos (by omega)
   intro h
-  -- The tangent spaces are the model spaces by definition.
-  have : FiniteDimensional ℝ (TangentSpace IZ z) := inferInstanceAs (FiniteDimensional ℝ EZ)
-  have : FiniteDimensional ℝ (TangentSpace IP (γ x)) := inferInstanceAs (FiniteDimensional ℝ EP)
   have h1 := LinearMap.finrank_range_le (mfderiv J IP γ x).toLinearMap
   have h2 := LinearMap.finrank_range_le
     (((tangentSpaceCast IP (g z) (γ x)).toContinuousLinearMap).comp (mfderiv IZ IP g z)).toLinearMap

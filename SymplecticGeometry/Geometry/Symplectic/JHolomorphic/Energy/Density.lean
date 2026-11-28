@@ -85,7 +85,6 @@ and `j_c`. On a frame `(e, j e)` it is `½ (form (L e, J (L e)) + form (L (j e),
 involve an area form on `C`. -/
 def energyDensity (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) :
     TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ :=
-  haveI : FiniteDimensional ℝ (TangentSpace I' c) := inferInstanceAs (FiniteDimensional ℝ E')
   AlternatingMap.toContinuousAlternatingMap <| AlternatingMap.energyDensity
     (form.val x).toAlternatingMap
     (J.almostComplexStructureAt x) (j.almostComplexStructureAt c) L
@@ -96,7 +95,6 @@ theorem toAlternatingMap_energyDensity (L : TangentSpace I' c →ₗ[ℝ] Tangen
     (form.energyDensity J j L).toAlternatingMap = AlternatingMap.energyDensity
       (form.val x).toAlternatingMap
       (J.almostComplexStructureAt x) (j.almostComplexStructureAt c) L := by
-  have : FiniteDimensional ℝ (TangentSpace I' c) := inferInstanceAs (FiniteDimensional ℝ E')
   ext v
   rw [ContinuousAlternatingMap.coe_toAlternatingMap, energyDensity,
     AlternatingMap.coe_toContinuousAlternatingMap]
