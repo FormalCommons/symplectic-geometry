@@ -18,7 +18,8 @@ section vanishes is closed in `M`. In a local trivialization the section becomes
 model fibre, continuous where the section is, and it vanishes exactly where that map does.
 
 The argument adapts the closedness step in the proof of Tau Ceti's
-`TauCeti.finite_sectionZero_of_contMDiff`.
+`TauCeti.finite_sectionZero_of_contMDiff`, and the reading in a trivialization of Tau Ceti's
+`TauCeti.isOpen_zeroSectionCompl` (stated there over `ℝ`).
 
 ## Main results
 
