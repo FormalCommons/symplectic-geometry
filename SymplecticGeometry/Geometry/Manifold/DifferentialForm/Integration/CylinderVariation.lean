@@ -72,8 +72,7 @@ theorem rectangleIntegral_prodMk_eq_integral (φ : RoughForm I M F 2) {u : ℝ �
   rw [rectangleIntegral_def]
   refine intervalIntegral.integral_congr fun t _ ↦ intervalIntegral.integral_congr fun θ _ ↦ ?_
   refine (mpullback_comp_prodMk_apply_modelSpace (hu _) φ _).trans
-    (congrArg (mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u φ (s, t, θ)) (funext fun i ↦ ?_))
-  fin_cases i <;> rfl
+    (congrArg (mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u φ (s, t, θ)) (FinVec.etaExpand_eq _).symm)
 
 variable [IsManifold I 2 M]
 
