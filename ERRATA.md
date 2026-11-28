@@ -139,8 +139,10 @@ Each entry has this form:
 ### Sign of the exceptional class in the class of the blowup form
 
 - **Where:** `atlas/constructing-symplectic-manifolds.md`, *Symplectic
-  structure on the almost complex blowup*, the item on the cohomology class;
-  McDuff–Salamon, Theorem 7.1.21 (v).
+  structure on the almost complex blowup*, the item on the cohomology class,
+  and *Ball embeddings give symplectic forms on the blowup*, whose class
+  formula has the same convention; McDuff–Salamon, Theorem 7.1.21 (v) and
+  Corollary 7.1.24.
 - **Error:** not a mathematical error but a sign convention. The page and
   the book give the class of $\tilde\omega_{\psi,\lambda,\varepsilon}$ as
   $\pi_M^*[\omega]-\pi\lambda^2 e$, where $e$ is Poincaré dual to $Z$ and so

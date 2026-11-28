@@ -76,8 +76,9 @@ image under `TauCeti.deRhamHom` of the class of `ω̃_{ψ,l,ε}` is the pull-bac
 image of the relative class is the de Rham image of `ω̃_{ψ,l,ε} - π^* σ`
 (`TauCeti.singularCohomologyπ_relativeDeRhamHom`), and that of the dual class is the real image of
 `e` (`TauCeti.SmoothEmbedding.singularCohomologyπ_realRelDualClass`). McDuff–Salamon write the
-class as `π^*[σ] - π l² e`; the sign differs because the library's `e`, like `D`, pairs to `-1`
-with a positively oriented disc normal to `Z` (see `ERRATA.md`).
+class as `π^*[σ] - π l² e`. The sign differs because the relative version of the library's `e`,
+the real relative dual class `D`, pairs to `-1` with a positively oriented disc normal to `Z`,
+while the book's Poincaré dual pairs to `+1` with it (see `ERRATA.md`).
 
 Last, `normalizedBlowupForm_spec` collects the defining properties of `ω̃_{ψ,l,ε}` and the items
 (i)–(vii) of McDuff–Salamon, Theorem 7.1.21, proved in `Normalized/Basic.lean`,
@@ -562,10 +563,12 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SigmaCompactSpace M] {h :
 the blowdown `π` of the image of the class of `σ`, plus `π l²` times the real image of the
 exceptional class `e = Blowup.exceptionalClass`.
 
-The sign is that of the library's `e`, which pairs to `-1` with a positively oriented disc that
-meets the exceptional divisor once, transversally (`relativeDeRhamHom_mk_eq_smul_realRelDualClass`).
-McDuff–Salamon's Poincaré dual of the divisor pairs to `+1` with it, and with it the class is
-`π^*[σ] - π l² e`. -/
+The sign comes from the library's convention for `e`: its relative version, the real relative
+dual class of the divisor, pairs to `-1` with a positively oriented disc that meets the divisor
+once, transversally
+(`TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`).
+McDuff–Salamon's Poincaré dual of the divisor pairs to `+1` with such a disc, and with it the
+class is `π^*[σ] - π l² e`. -/
 theorem deRhamHom_normalizedBlowupForm [SecondCountableTopology M] [SigmaCompactSpace M]
     {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h) (hσ : σ.IsSymplectic) :
     deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
