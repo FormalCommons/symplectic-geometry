@@ -61,6 +61,9 @@ and `TangentBundle.mem_chart_source_iff`.
 * `TangentBundle.extChartAt_target`, `tangentMap_extChartAt_symm_mem_extChartAt_source_iff`: the
   target of a tangent-bundle chart is the product of the base chart target with the fibre, and
   the tangent map of `f` meets the source of a tangent-bundle chart where `f` meets the base one.
+* `MDifferentiableAt.isInvertible_fderivWithin_extChartAt_iff`: on a boundaryless source, the
+  derivative of a map read in any pair of extended charts is invertible at a point exactly when
+  its manifold derivative is invertible there.
 
 ## References
 
@@ -197,5 +200,43 @@ theorem tangentMap_extChartAt_symm_mem_extChartAt_source_iff (f : M → M')
     Prod.map_fst]
 
 end TangentMap
+
+section InvertibleDerivative
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
+  [I.Boundaryless] [IsManifold I 1 M] [IsManifold I' 1 M']
+
+/-- On a boundaryless source, the derivative of `g` read in the extended charts at `x` and at `y`
+is invertible at a point `z` of the source chart target whose image lies in the target chart,
+exactly when the manifold derivative of `g` is invertible at the point of `M` that `z`
+represents. The charts need not be centred at that point or at its image. -/
+theorem MDifferentiableAt.isInvertible_fderivWithin_extChartAt_iff {g : M → M'} {x : M} {y : M'}
+    {z : E} (hg : MDifferentiableAt I I' g ((extChartAt I x).symm z))
+    (hz : z ∈ (extChartAt I x).target)
+    (hgz : g ((extChartAt I x).symm z) ∈ (extChartAt I' y).source) :
+    (fderivWithin 𝕜 (extChartAt I' y ∘ g ∘ (extChartAt I x).symm) (extChartAt I x).target
+        z).IsInvertible ↔
+      (mfderiv I I' g ((extChartAt I x).symm z)).IsInvertible := by
+  obtain ⟨a, ha⟩ := isInvertible_mfderiv_extChartAt (I := I') hgz
+  obtain ⟨b, hb⟩ := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) (M := M) hz
+  have hsymm : MDifferentiableAt 𝓘(𝕜, E) I (extChartAt I x).symm z :=
+    mdifferentiableAt_of_isInvertible_mfderiv ⟨b, hb⟩
+  have hy : MDifferentiableAt I' 𝓘(𝕜, E') (extChartAt I' y) ((g ∘ (extChartAt I x).symm) z) :=
+    mdifferentiableAt_extChartAt (by rwa [← extChartAt_source (I := I')])
+  -- Between normed spaces, `mfderiv` is `fderiv` up to the identifications of tangent spaces.
+  have hfd :
+      (mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E') (extChartAt I' y ∘ g ∘ (extChartAt I x).symm) z).IsInvertible ↔
+        (fderiv 𝕜 (extChartAt I' y ∘ g ∘ (extChartAt I x).symm) z).IsInvertible := by
+    rw [mfderiv_eq_fderiv, ContinuousLinearMap.isInvertible_equiv_comp,
+      ContinuousLinearMap.isInvertible_comp_equiv]
+  rw [fderivWithin_of_isOpen (isOpen_extChartAt_target x) hz, ← hfd,
+    mfderiv_comp z hy (hg.comp z hsymm), mfderiv_comp z hg hsymm]
+  simp only [Function.comp_apply] at ha ⊢
+  rw [← ha, ← hb, ContinuousLinearMap.isInvertible_equiv_comp,
+    ContinuousLinearMap.isInvertible_comp_equiv]
+
+end InvertibleDerivative
 
 end
