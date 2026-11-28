@@ -9,14 +9,13 @@ public import Mathlib.Analysis.Complex.OperatorNorm
 public import Mathlib.Analysis.InnerProductSpace.Dual
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
-public import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.Plane
 public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
-public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
+public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.AlmostComplex
 import SymplecticGeometry.Geometry.Symplectic.Orientation
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Normed.Module.FiniteDimension
@@ -32,15 +31,14 @@ real-linear forms, `A` complex linear and `B` complex antilinear for `J` and mul
 orientation of the kernel induced by the symplectic orientation of `V` and the complex orientation
 of `ℂ`, kernel first, is the symplectic orientation of the kernel. That `F` is surjective, which
 needs neither `ω` nor an inner product, is proved in
-`SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic`.
+`SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic`, and restated for almost
+complex structures in `SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.AlmostComplex`.
 
 This is the linear algebra behind the transversality and the orientation of the zero set of a
 section whose antiholomorphic derivative is dominated by its holomorphic derivative.
 
 ## Main results
 
-* `TauCeti.AlmostComplexStructure.norm_le_of_re_apply_eq_inner`: a real-linear form whose real
-  and imaginary parts are `⟪a, ·⟫` and `⟪J a, ·⟫` has norm at most `‖a‖`.
 * `TauCeti.SymplecticForm.exists_apply_eq_of_norm_lt`: there are vectors `x`, `y` with
   `ω x y > 0` and `F v = ω x v + i ω y v`.
 * `TauCeti.SymplecticForm.ker_eq_orthogonal_span_pair`: the kernel of such a form is the
@@ -69,8 +67,8 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
 
 The kernel and orientation results are proved directly rather than by deforming `A + t B`: the
 Riesz vectors `a`, `b` of the real parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`,
-with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and `‖b‖ ≤ ‖B‖`, `‖A‖ ≤ ‖a‖` (the latter from Tau Ceti's
-`TauCeti.AlmostComplexStructure.inner_sq_add_inner_sq_le`). The kernel is then the symplectic
+with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and `‖b‖ ≤ ‖B‖`, `‖A‖ ≤ ‖a‖` (the latter by
+`TauCeti.AlmostComplexStructure.norm_le_of_re_apply_eq_inner`). The kernel is then the symplectic
 complement of the plane spanned by `x` and `y`, on which `F` is orientation preserving.
 
 For a map to a complex line `W`, Tau Ceti's
@@ -221,18 +219,6 @@ section NormLt
 
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
   {ω : SymplecticForm V} {J : AlmostComplexStructure V} {A B : V →L[ℝ] ℂ}
-
-/-- A real-linear form `A : V → ℂ` whose real and imaginary parts are `⟪a, ·⟫` and `⟪J a, ·⟫`,
-for an orthogonal almost complex structure `J`, has norm at most `‖a‖`. -/
-theorem AlmostComplexStructure.norm_le_of_re_apply_eq_inner
-    (hJ : ∀ v w, ⟪J v, J w⟫_ℝ = ⟪v, w⟫_ℝ) {a : V}
-    (ha : ∀ v, (A v).re = ⟪a, v⟫_ℝ) (him : ∀ v, (A v).im = ⟪J a, v⟫_ℝ) : ‖A‖ ≤ ‖a‖ := by
-  refine A.opNorm_le_bound (norm_nonneg _) fun v ↦ ?_
-  have h := inner_sq_add_inner_sq_le hJ v a
-  refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
-  rw [Complex.sq_norm, Complex.normSq_apply, ha, him, real_inner_comm v a, real_inner_comm v (J a),
-    mul_pow, ← sq, ← sq]
-  linarith
 
 namespace SymplecticForm
 
