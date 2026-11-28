@@ -11,7 +11,6 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
-import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # A two-form on `EB × F` that reads a two-form on `M` near a point of a patch
