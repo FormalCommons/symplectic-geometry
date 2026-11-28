@@ -186,15 +186,18 @@ Holonomy around loops that bound discs. About 450 lines.
   `hasHamiltonianDiscHolonomy_iff_forall_exists`: for a symplectic atlas
   one chart per loop suffices, by `parallelTransportIn_coordChange` and Tau
   Ceti's `TauCeti.SmoothForm.mul_mul_inv_mem_hamiltonianGroup`.
-- `TauCeti.IsEhresmannConnection.holonomyDiffeotopy hD e D`, for `π` proper,
-  a smooth disc `D` with centre `x` and a chart `e` of `A` at `x`: the
+- `TauCeti.IsEhresmannConnection.holonomyDiffeotopy hD hf hfp he he_symm hΔ hx`,
+  for `π` smooth and proper, a smooth disc `Δ` with centre `x` and a smooth
+  trivialization `e` with `x ∈ e.baseSet`: the
   diffeotopy `TauCeti.Diffeotopy IF ∞ F` whose slice at `s` is
-  `hD.parallelTransportIn e e (fun t ↦ D (s, t)) 0 1`. It starts at the
-  identity since $D(0,\cdot)$ is constant (`parallelTransport_const`), and is
-  jointly smooth by `exists_contMDiff_parallelTransport_param`. API:
+  `hD.parallelTransportIn e e (fun t ↦ Δ (s, t)) 0 1`. It starts at the
+  identity since $\Delta(0,\cdot)$ is constant (`parallelTransport_const`), and is
+  jointly smooth by `contMDiffOn_parallelTransport_param`. API:
   `holonomyDiffeotopy_apply`, `final_holonomyDiffeotopy` (the holonomy of
-  `γ`), `timeSlice_holonomyDiffeotopy`, and, for a symplectic connection,
-  `holonomyDiffeotopy_mem_isotopyStabilizer` (every slice preserves `σ`).
+  the boundary loop `t ↦ Δ (1, t)`), `timeSlice_holonomyDiffeotopy`, and,
+  for a symplectic connection and `e = A.trivAt b`,
+  `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`
+  (every slice preserves `σ`).
 - `period_interior_velocity_holonomyDiffeotopy` (the variation of holonomy):
   let `τ` be vertically closed and vertically nondegenerate, restrict to
   `σ`, and define the connection. Let `c : ℝ → F` be a smooth loop of

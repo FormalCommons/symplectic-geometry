@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Extension
 
 /-!
@@ -66,10 +67,8 @@ theorem exists_localDiffeomorph_extend {u : F → M} {ι : F →L[ℝ] V} (hι :
   have hφ : IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ (u 0) :=
     isLocalDiffeomorphAt_extChartAt (mem_extChartAt_source (u 0)) hint
   have hD : Injective D := by
-    have hmd : MDifferentiableAt 𝓘(ℝ, F) I u 0 := hu.self_of_nhds.mdifferentiableAt (by simp)
-    have hc : Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (φ ∘ u) 0) := by
-      rw [mfderiv_comp (I' := I) 0 (hφ.mdifferentiableAt (by simp)) hmd]
-      exact (hφ.isInvertible_mfderiv (by simp)).injective.comp hinj
+    have hc : Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (φ ∘ u) 0) :=
+      TauCeti.injective_mfderiv_comp (J := I) (hφ.isInvertible_mfderiv (by simp)).injective hinj
     rwa [mfderiv_eq_fderiv, ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp,
       ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.coe_coe, EquivLike.comp_injective,
       EquivLike.injective_comp] at hc

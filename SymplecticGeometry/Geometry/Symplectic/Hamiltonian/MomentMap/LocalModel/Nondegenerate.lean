@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.LinearNormalForm
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import TauCeti.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 
 /-!
@@ -33,7 +33,7 @@ section `{[g, 0] | g ∈ G}`.
   (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`). Since `[g, 0] = g • [1, 0]`, it is
   nondegenerate along the zero section.
 * The set where `ω` is nondegenerate is open
-  (`TauCeti.SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt`) and `G`-invariant, and `ω`
+  (`TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`) and `G`-invariant, and `ω`
   restricts to a symplectic form on it
   (`TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtypeVal`).
 
@@ -187,7 +187,7 @@ theorem exists_opens_isSymplectic_mpullback_descendedForm :
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
   -- `U` is the set of points at which the descended form is nondegenerate.
-  exact ⟨⟨_, SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt
+  exact ⟨⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt
       (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
         D.mpullback_smul_mpullback_snd_constSmooth
         D.isMomentMap_mpullback_snd_constSmooth)⟩,

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Parametric
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Polar
@@ -112,9 +113,7 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
   have hθ0 (t : unitInterval) : θ (t, 0) = 0 := by simp [θ, hκ0]
   have hdθ (t : unitInterval) : fderiv ℝ (fun z ↦ θ (t, z)) 0 =
       (fderiv ℝ (fun z ↦ κ (t, z)) 0).comp (Uinv t) := by
-    have h := (U t).symm.toContinuousLinearEquiv.comp_right_fderiv (f := fun z ↦ κ (t, z))
-      (x := 0)
-    simpa [θ, Uinv, comp_def] using h
+    simpa [θ, Uinv, comp_def] using (U t).symm.comp_right_fderiv (f := fun z ↦ κ (t, z)) (x := 0)
   -- The rescaled two-parameter family `G`.
   obtain ⟨ρ, hρ, G, ⟨W, hWo, hρW, hGW⟩, hGfam, hG0, hG1, hGz, hGid⟩ :=
     hθ.exists_rescaling_family hδ2 hθ0 hQ (fun t s ↦ hQs t s) (fun t ↦ hQ1 t)

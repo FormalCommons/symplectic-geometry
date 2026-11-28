@@ -302,11 +302,11 @@ Issue 1:
   with `coe_complexStructureMap`, `complexStructureMap_mul`
   ($(\phi\psi)^*i=\psi^*(\phi^*i)$, from `pullback_trans`) and
   `continuous_complexStructureMap` for every covering frame system
-  (Decision 3). The continuity reads the frame coefficients of
-  $\phi^*i$ through the chart derivatives of $\phi$ and of $\phi^{-1}$,
-  using `continuous_manifoldWeakWhitney_iff_compact_chartIteratedFDeriv`
-  (`Geometry/Manifold/ContMDiffMap/Chart/Topology.lean`) and the continuity
-  of inversion.
+  (Decision 3). The continuity writes the action of $\phi^*i$ on the
+  tangent bundle as $T\phi^{-1}\circ i\circ T\phi$
+  (`SmoothAlmostComplexStructure.tangentBundleMap_pullback`), and uses the
+  continuity of `ContMDiffMap.tangentMap`, of inversion and of composition,
+  through `SmoothAlmostComplexStructure.continuous_pullback`.
 
 About 350 lines.
 

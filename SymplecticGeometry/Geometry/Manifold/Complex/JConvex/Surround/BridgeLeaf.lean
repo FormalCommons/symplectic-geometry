@@ -1,0 +1,262 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.CutoffLeaf
+
+import Mathlib.Analysis.Complex.ExponentialBounds
+import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
+
+/-!
+# The raised Struwe/line shape of the bridge leaves
+
+The bridge leaves of Cieliebak and Eliashberg's family of §4.6 lie between the Struwe switch leaf
+`7 δ` (`SymplecticGeometry.struweSwitchLeaf`) and the leaves of
+`SymplecticGeometry.exists_convexShapeFamily_struweShape`. They are built under one fixed shape,
+raised by a constant `t`: `SymplecticGeometry.struweLineShape δ`, the smoothed maximum of width
+`δ / 4` of Struwe's shape `S = struweShape δ 4 0`, with value `0` at `4 δ`, and the line
+`2 r - 8 δ`, which meet at `4 δ`.
+
+* `S δ ∈ [-√30 δ, 0]` (`SymplecticGeometry.struweShape_four_zero_self_mem_Icc`), from the bound
+  `struweShape_sub_struweShape_one_mem_Icc` on the rise of Struwe's shape near the cylinder.
+* `S - (2 r - 8 δ) ≥ δ / 4` on `[δ, 7 δ / 2]`, since that difference is concave and at least
+  `δ / 4` at both ends, and `2 r - 8 δ - S ≥ δ / 4` from `9 δ / 2` on, since the slope of `S` is
+  at most `3 / 2` from `4 δ` on. So the shape is `S` on `[δ, 7 δ / 2]`
+  (`SymplecticGeometry.struweLineShape_eq_struweShape`) and the line from `9 δ / 2` on
+  (`SymplecticGeometry.struweLineShape_eq_linear`).
+* `SymplecticGeometry.isConvexShapeAt_struweLineShape_add`: the raised shape
+  `r ↦ struweLineShape δ r + t` is an `i`-convex shape at `r > δ` once it exceeds the two
+  quantities of `isConvexShapeAt_struweShape_of_lt` by `2 δ` where `r ≤ 9 δ / 2`, and
+  `r < 8 (t - 8 δ)` where `r ≥ 7 δ / 2`. On `[7 δ / 2, 9 δ / 2]` both pieces are `i`-convex
+  shapes and `isConvexShapeAt_smoothedMax` applies; elsewhere the shape is one of the pieces
+  near `r`.
+
+## References
+
+* [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
+  §4.6, Proposition 4.27.
+-/
+
+public section
+
+noncomputable section
+
+namespace SymplecticGeometry
+
+open Real Set Filter Topology
+open scoped ContDiff
+
+variable {δ : ℝ}
+
+/-! ### Bounds on Struwe's shape based at `4 δ` -/
+
+/-- For `δ > 0` and `r ≥ 7 δ / 2`, `2 / 3 ≤ √(log (r / δ))`. -/
+private theorem two_div_three_le_sqrt_log (hδ : 0 < δ) {r : ℝ} (hr : 7 * δ / 2 ≤ r) :
+    2 / 3 ≤ √(log (r / δ)) := by
+  refine le_sqrt_of_sq_le ?_
+  have h2 : (2 : ℝ) ≤ r / δ := (le_div_iff₀ hδ).2 (by linarith)
+  have := log_le_log two_pos h2
+  linarith [log_two_gt_d9]
+
+/-- For `δ > 0`, Struwe's shape with value `0` at `4 δ` takes at `δ` a value in `[-√30 δ, 0]`: it
+rises by at most `√2 √(4² - 1) δ = √30 δ` from `δ` to `4 δ`. -/
+theorem struweShape_four_zero_self_mem_Icc (hδ : 0 < δ) :
+    struweShape δ 4 0 δ ∈ Icc (-(√30 * δ)) 0 := by
+  have e := congrFun (struweShape_eq_mul_struweShape_one hδ.ne' 4 0) δ
+  rw [zero_div, div_self hδ.ne'] at e
+  have h := struweShape_sub_struweShape_one_mem_Icc (by norm_num : (1 : ℝ) ≤ 4) 0
+    (by norm_num : (1 : ℝ) ≤ 4)
+  have h4 : struweShape 1 4 0 4 = 0 := by simpa using struweShape_apply_mul 1 4 0
+  rw [h4, ← sqrt_mul zero_le_two] at h
+  norm_num at h
+  rw [e]
+  constructor <;> nlinarith [h.1, h.2]
+
+/-- For `δ > 0`, Struwe's shape with value `0` at `4 δ` is at least `-3 δ / 4` at `7 δ / 2`. -/
+private theorem neg_le_struweShape_four_zero (hδ : 0 < δ) :
+    -(3 * δ / 4) ≤ struweShape δ 4 0 (7 * δ / 2) := by
+  have h := struweShape_sub_struweShape_le hδ (by norm_num : (1 : ℝ) ≤ 4) 0
+    (by linarith : δ < 7 * δ / 2) (by linarith : 7 * δ / 2 ≤ 4 * δ)
+  rw [struweShape_apply_mul] at h
+  have hs := two_div_three_le_sqrt_log hδ (le_refl (7 * δ / 2))
+  have : (4 * δ - 7 * δ / 2) / √(log (7 * δ / 2 / δ)) ≤ (4 * δ - 7 * δ / 2) / (2 / 3) :=
+    div_le_div_of_nonneg_left (by linarith) (by norm_num) hs
+  linarith
+
+/-- For `δ > 0` and `r ≥ 4 δ`, Struwe's shape with value `0` at `4 δ` is at most
+`3 / 2 (r - 4 δ)`. -/
+private theorem struweShape_four_zero_le (hδ : 0 < δ) {r : ℝ} (hr : 4 * δ ≤ r) :
+    struweShape δ 4 0 r ≤ 3 / 2 * (r - 4 * δ) := by
+  have h := struweShape_sub_struweShape_le hδ (by norm_num : (1 : ℝ) ≤ 4) 0
+    (by linarith : δ < 4 * δ) hr
+  rw [struweShape_apply_mul, sub_zero] at h
+  have hs := two_div_three_le_sqrt_log hδ (by linarith : 7 * δ / 2 ≤ 4 * δ)
+  have : (r - 4 * δ) / √(log (4 * δ / δ)) ≤ (r - 4 * δ) / (2 / 3) :=
+    div_le_div_of_nonneg_left (by linarith) (by norm_num) hs
+  linarith
+
+/-- For `δ > 0` and `r ≥ 7 δ / 2`, the slope of Struwe's shape based at `4 δ` is at most
+`3 / 2`. -/
+private theorem deriv_struweShape_four_zero_le (hδ : 0 < δ) {r : ℝ} (hr : 7 * δ / 2 ≤ r) :
+    deriv (struweShape δ 4 0) r ≤ 3 / 2 := by
+  rw [deriv_struweShape hδ (by norm_num) 0 (by linarith)]
+  have hs := two_div_three_le_sqrt_log hδ hr
+  calc 1 / √(log (r / δ)) ≤ 1 / (2 / 3) := one_div_le_one_div_of_le (by norm_num) hs
+    _ = 3 / 2 := by norm_num
+
+/-- For `δ > 0`, Struwe's shape based at `4 δ` exceeds the line `2 r - 8 δ` by at least `δ / 4`
+on `[δ, 7 δ / 2]`: the difference is concave, and at least `δ / 4` at both ends. -/
+private theorem linear_add_le_struweShape (hδ : 0 < δ) {r : ℝ} (hr : r ∈ Icc δ (7 * δ / 2)) :
+    2 * r - 8 * δ + δ / 4 ≤ struweShape δ 4 0 r := by
+  have hc : ConcaveOn ℝ (Ici δ) (fun x ↦ struweShape δ 4 0 x - (2 * x - 8 * δ)) :=
+    (strictConcaveOn_struweShape hδ (by norm_num) 0).concaveOn.sub
+      (convexOn_id (convex_Ici δ) |>.smul (by norm_num : (0 : ℝ) ≤ 2) |>.sub
+        (concaveOn_const _ (convex_Ici δ)))
+  have h := hc.ge_on_segment (x := δ) (y := 7 * δ / 2) self_mem_Ici
+    (mem_Ici.2 (by linarith)) (by rw [segment_eq_Icc (by linarith)]; exact hr)
+  have h₁ := (struweShape_four_zero_self_mem_Icc hδ).1
+  have h₂ := neg_le_struweShape_four_zero hδ
+  have h30 : √30 ≤ 23 / 4 := by rw [sqrt_le_left (by norm_num)]; norm_num
+  have hm : δ / 4 ≤ min (struweShape δ 4 0 δ - (2 * δ - 8 * δ))
+      (struweShape δ 4 0 (7 * δ / 2) - (2 * (7 * δ / 2) - 8 * δ)) :=
+    le_min (by nlinarith) (by linarith)
+  linarith
+
+/-- For `δ > 0`, the line `2 r - 8 δ` exceeds Struwe's shape based at `4 δ` by at least `δ / 4`
+from `9 δ / 2` on. -/
+private theorem struweShape_add_le_linear (hδ : 0 < δ) {r : ℝ} (hr : 9 * δ / 2 ≤ r) :
+    struweShape δ 4 0 r + δ / 4 ≤ 2 * r - 8 * δ := by
+  linarith [struweShape_four_zero_le hδ (by linarith : 4 * δ ≤ r)]
+
+/-- For `δ > 0` and `r ≥ 7 δ / 2`, the line `2 r - 8 δ` exceeds Struwe's shape based at `4 δ`
+by at most `7 δ / 4` up to `9 δ / 2`. -/
+private theorem linear_le_struweShape_add (hδ : 0 < δ) {r : ℝ}
+    (hr : r ∈ Icc (7 * δ / 2) (9 * δ / 2)) :
+    2 * r - 8 * δ ≤ struweShape δ 4 0 r + 7 * δ / 4 := by
+  have hm := (strictMonoOn_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0).monotoneOn
+    (mem_Ici.2 (by linarith : δ ≤ 7 * δ / 2)) (mem_Ici.2 (by linarith [hr.1])) hr.1
+  linarith [neg_le_struweShape_four_zero hδ, hr.2]
+
+/-! ### The raised Struwe/line shape -/
+
+/-- **The Struwe/line shape** over the cylinder of radius `δ`: the smoothed maximum, of width
+`δ / 4`, of Struwe's shape with value `0` at `4 δ` and the line `2 r - 8 δ`. For `δ > 0` it is
+Struwe's shape on `[δ, 7 δ / 2]` and the line from `9 δ / 2` on. -/
+def struweLineShape (δ r : ℝ) : ℝ :=
+  smoothedMax (δ / 4) (struweShape δ 4 0 r) (2 * r - 8 * δ)
+
+theorem struweLineShape_def (δ r : ℝ) :
+    struweLineShape δ r = smoothedMax (δ / 4) (struweShape δ 4 0 r) (2 * r - 8 * δ) :=
+  (rfl)
+
+/-- For `δ > 0`, the Struwe/line shape is Struwe's shape with value `0` at `4 δ` on
+`[δ, 7 δ / 2]`. -/
+theorem struweLineShape_eq_struweShape (hδ : 0 < δ) {r : ℝ} (hr : r ∈ Icc δ (7 * δ / 2)) :
+    struweLineShape δ r = struweShape δ 4 0 r := by
+  rw [struweLineShape_def]
+  exact smoothedMax_eq_left (by positivity) (linear_add_le_struweShape hδ hr)
+
+/-- For `δ > 0`, the Struwe/line shape is the line `2 r - 8 δ` from `9 δ / 2` on. -/
+theorem struweLineShape_eq_linear (hδ : 0 < δ) {r : ℝ} (hr : 9 * δ / 2 ≤ r) :
+    struweLineShape δ r = 2 * r - 8 * δ := by
+  rw [struweLineShape_def]
+  exact smoothedMax_eq_right (by positivity) (struweShape_add_le_linear hδ hr)
+
+/-- For `δ > 0`, the Struwe/line shape is smooth on `(δ, ∞)`. -/
+theorem contDiffOn_struweLineShape (hδ : 0 < δ) :
+    ContDiffOn ℝ ∞ (struweLineShape δ) (Ioi δ) := by
+  have h : ContDiffOn ℝ ∞ (fun r ↦ (struweShape δ 4 0 r, 2 * r - 8 * δ)) (Ioi δ) :=
+    (contDiffOn_struweShape hδ (by norm_num) 0).prodMk (by fun_prop)
+  exact (contDiff_smoothedMax (δ / 4)).comp_contDiffOn h
+
+/-- For `δ > 0`, the Struwe/line shape lies above Struwe's shape with value `0` at `4 δ`. -/
+theorem struweShape_le_struweLineShape (hδ : 0 < δ) (r : ℝ) :
+    struweShape δ 4 0 r ≤ struweLineShape δ r := by
+  rw [struweLineShape_def]
+  exact (le_max_left _ _).trans (max_le_smoothedMax (by positivity) _ _)
+
+/-- For `δ > 0`, the Struwe/line shape exceeds the larger of its two pieces by at most `δ / 8`. -/
+theorem struweLineShape_le (hδ : 0 < δ) (r : ℝ) :
+    struweLineShape δ r ≤ max (struweShape δ 4 0 r) (2 * r - 8 * δ) + δ / 8 := by
+  rw [struweLineShape_def]
+  linarith [smoothedMax_le_max_add (by positivity : 0 < δ / 4) (struweShape δ 4 0 r)
+    (2 * r - 8 * δ)]
+
+/-- For `δ > 0`, the slope of the Struwe/line shape is at most `2` from `7 δ / 2` on. -/
+theorem deriv_struweLineShape_le (hδ : 0 < δ) {r : ℝ} (hr : 7 * δ / 2 ≤ r) :
+    deriv (struweLineShape δ) r ≤ 2 := by
+  have hS : DifferentiableAt ℝ (struweShape δ 4 0) r :=
+    (hasDerivAt_struweShape hδ (by norm_num) 0 (by linarith)).differentiableAt
+  have hl : HasDerivAt (fun x ↦ 2 * x - 8 * δ) 2 r := by
+    simpa using ((hasDerivAt_id r).const_mul 2).sub_const (8 * δ)
+  have h := deriv_smoothedMax_le_max (δ := δ / 4) hS hl.differentiableAt
+  rw [hl.deriv] at h
+  rw [show struweLineShape δ = _ from funext (struweLineShape_def δ)]
+  refine h.trans (max_le ?_ le_rfl)
+  linarith [deriv_struweShape_four_zero_le hδ hr]
+
+/-- **The raised Struwe/line shape is an `i`-convex shape.** Let `δ > 0`, `r > δ` and `t` be such
+that, with `L = log (r / δ)`, `struweLineShape δ r + t` exceeds `r √L + 2 δ` and
+`2 r √L³ + 2 δ` if `r ≤ 9 δ / 2`, and `r < 8 (t - 8 δ)` if `7 δ / 2 ≤ r`. Then
+`r ↦ struweLineShape δ r + t` is an `i`-convex shape at `r`. -/
+theorem isConvexShapeAt_struweLineShape_add (hδ : 0 < δ) {t r : ℝ} (hr : δ < r)
+    (h₁ : r ≤ 9 * δ / 2 → r * √(log (r / δ)) + 2 * δ < struweLineShape δ r + t)
+    (h₂ : r ≤ 9 * δ / 2 → 2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t)
+    (h₃ : 7 * δ / 2 ≤ r → r < 8 * (t - 8 * δ)) :
+    IsConvexShapeAt (fun r ↦ struweLineShape δ r + t) r := by
+  have hr₀ : 0 < r := hδ.trans hr
+  have hT : ∀ x, struweShape δ 4 0 x + t = struweShape δ 4 t x := fun x ↦ by
+    rw [← add_zero t, struweShape_add, add_comm, add_zero]
+  have hl : ∀ x, 2 * x - 8 * δ + t = t - 8 * δ + 2 * x := fun x ↦ by ring
+  -- Struwe's shape raised by `t` is an `i`-convex shape at `r ≤ 9 δ / 2`, with `2 δ` to spare
+  -- when `struweLineShape δ r` is within `2 δ` of it.
+  have hTc : r ≤ 9 * δ / 2 → struweLineShape δ r < struweShape δ 4 0 r + 2 * δ →
+      IsConvexShapeAt (struweShape δ 4 t) r := fun hr₉ hle ↦
+    isConvexShapeAt_struweShape_of_lt hδ (by norm_num) hr (by linarith [hT r, h₁ hr₉])
+      (by linarith [hT r, h₂ hr₉])
+  -- The raised line is an `i`-convex shape at `r ≥ 7 δ / 2`.
+  have hLc : 7 * δ / 2 ≤ r → IsConvexShapeAt (fun x ↦ t - 8 * δ + 2 * x) r := fun hr₇ ↦ by
+    have h := h₃ hr₇
+    exact isConvexShapeAt_linear (by linarith) two_pos ⟨hr₀, by linarith⟩
+  rcases lt_or_ge r (7 * δ / 2) with hr₇ | hr₇
+  · -- Near `r < 7 δ / 2` the shape is Struwe's.
+    have hS := struweLineShape_eq_struweShape hδ ⟨hr.le, hr₇.le⟩
+    refine (hTc (by linarith) (by linarith)).congr_of_eventuallyEq ?_
+    filter_upwards [Ioo_mem_nhds hr hr₇] with x hx
+    rw [struweLineShape_eq_struweShape hδ ⟨hx.1.le, hx.2.le⟩, hT]
+  rcases lt_or_ge (9 * δ / 2) r with hr₉ | hr₉
+  · -- Near `r > 9 δ / 2` the shape is the line.
+    refine (hLc hr₇).congr_of_eventuallyEq ?_
+    filter_upwards [Ioi_mem_nhds hr₉] with x hx
+    rw [struweLineShape_eq_linear hδ (le_of_lt hx), hl]
+  -- On `[7 δ / 2, 9 δ / 2]`, the smoothed maximum of two `i`-convex shapes.
+  have e : (fun x ↦ struweLineShape δ x + t) =
+      fun x ↦ smoothedMax (δ / 4) (struweShape δ 4 t x) (t - 8 * δ + 2 * x) := by
+    ext x
+    rw [struweLineShape_def, ← smoothedMax_add_add_right, hT, hl]
+  have hle : struweLineShape δ r < struweShape δ 4 0 r + 2 * δ := by
+    have h := struweLineShape_le hδ r
+    have h' := linear_le_struweShape_add hδ ⟨hr₇, hr₉⟩
+    have : max (struweShape δ 4 0 r) (2 * r - 8 * δ) ≤ struweShape δ 4 0 r + 7 * δ / 4 :=
+      max_le (by linarith) h'
+    linarith
+  have hd : deriv (struweShape δ 4 t) r ≤ 3 / 2 := by
+    rw [← funext hT]
+    rw [deriv_add_const]
+    exact deriv_struweShape_four_zero_le hδ hr₇
+  have hdl : deriv (fun x ↦ t - 8 * δ + 2 * x) r = 2 := by
+    simp
+  rw [e]
+  refine isConvexShapeAt_smoothedMax
+    (((contDiffOn_struweShape hδ (by norm_num) t).contDiffAt (Ioi_mem_nhds hr)).of_le
+      (by simp))
+    (by fun_prop) (by positivity) (hTc hr₉ hle) (hLc hr₇) ?_
+  rw [hdl]
+  nlinarith
+
+end SymplecticGeometry
+
+end
