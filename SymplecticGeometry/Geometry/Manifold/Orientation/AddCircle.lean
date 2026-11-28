@@ -37,7 +37,8 @@ neither.
 The identification `z ↦ (re z, im z)` of `ℂ` with `ℝ²` carries `Complex.orientation` to the
 standard orientation of `ℝ²` (`Complex.orientation_map_orthonormalBasisOneI_repr`), so, as a map
 of manifolds, it preserves orientation at every point
-(`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`).
+(`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`), and so does its inverse
+(`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_symm`).
 
 `AddCircle.orientationAt_orientation_prod_real` adapts the proof of Tau Ceti's
 `AddCircle.orientationAt_orientation_prod_orientation`, in
@@ -57,6 +58,7 @@ of manifolds, it preserves orientation at every point
   orientation at negative radii.
 * `Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`: the identification
   `z ↦ (re z, im z)` of `ℂ` with `ℝ²` preserves orientation.
+* `Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_symm`: so does its inverse.
 
 ## References
 
@@ -196,3 +198,21 @@ theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr (z : ℂ) :
     (Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.mfderiv_eq (x := z)).symm).2 ?_
   rw [orientationAt_complex, orientationAt_euclideanSpace]
   exact Complex.orientation_map_orthonormalBasisOneI_repr
+
+/-- The inverse identification `(x, y) ↦ x + y i` of `ℝ²` with `ℂ`
+(`Complex.orthonormalBasisOneI.repr.symm`)
+preserves orientation at every point, from the standard orientation of `ℝ²` to the standard
+orientation of `ℂ`. -/
+theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_symm
+    (z : EuclideanSpace ℝ (Fin 2)) :
+    IsOrientationPreservingAt
+      (Manifold.Orientation.euclideanSpace 2)
+      Manifold.Orientation.complex Complex.orthonormalBasisOneI.repr.symm z := by
+  refine (isOrientationPreservingAt_iff_of_coe_eq _ _ _ z
+    Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv
+    (Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv.mfderiv_eq (x := z)).symm).2 ?_
+  rw [orientationAt_complex, orientationAt_euclideanSpace,
+    ← Complex.orientation_map_orthonormalBasisOneI_repr]
+  -- The derivative is the inverse of `repr`, and `Orientation.map` of an inverse is the inverse
+  -- of `Orientation.map` (`Orientation.map_symm`).
+  exact (Orientation.map (Fin 2) Complex.orthonormalBasisOneI.repr.toLinearEquiv).symm_apply_apply _

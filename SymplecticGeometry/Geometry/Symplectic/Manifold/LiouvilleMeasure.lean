@@ -31,7 +31,10 @@ compactly supported function `f`:
 
 (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_smul_volumeForm`). It is the case of the
 symplectic volume form of `TauCeti.integralTopForm_smul_eq_integral_measure`, and holds in every
-dimension, including dimension `0`.
+dimension, including dimension `0`. With `f = 1` and Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, it shows that the
+symplectic volume of a nonempty compact manifold is positive
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`).
 
 It also computes Liouville integrals in symplectic coordinates. A partial diffeomorphism
 `Φ : N → M` that pulls `σ` back to a two-form `τ` on its source carries the Liouville measure of
@@ -214,6 +217,30 @@ theorem IsSymplecticMapOn.integral_liouvilleMeasure {F : Type*} [NormedAddCommGr
   simp only [domRestrict_apply]
 
 end PartialDiffeomorph
+
+section Volume
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] {n : ℕ} {σ : SmoothTwoForm I M}
+
+/-- **The symplectic volume is positive.** On a nonempty compact manifold modelled on a space of
+dimension `2 * n`, the integral of the volume form `σⁿ / n!` of a fiberwise nondegenerate
+two-form `σ` against its symplectic orientation is positive. This includes `n = 0`, where the
+manifold is a nonempty finite set of points. -/
+theorem IsNondegenerate.integralTopForm_volumeForm_pos [CompactSpace M] [Nonempty M]
+    (h : σ.IsNondegenerate) (hn : finrank ℝ E = 2 * n) :
+    0 < integralTopForm (h.volumeOrientation hn) (σ.volumeForm n).val := by
+  borelize M
+  have : Fact (finrank ℝ E = 2 * n) := ⟨hn⟩
+  have := h.isOpenPosMeasure_liouvilleMeasure (n := n)
+  have h1 := h.integralTopForm_smul_volumeForm (n := n) (f := fun _ ↦ (1 : ℝ)) continuous_const
+    (HasCompactSupport.of_compactSpace _)
+  simp only [one_smul] at h1
+  rw [h1, integral_const, smul_eq_mul, mul_one]
+  exact ENNReal.toReal_pos (isOpen_univ.measure_pos _ Set.univ_nonempty).ne' (measure_ne_top _ _)
+
+end Volume
 
 end SmoothTwoForm
 

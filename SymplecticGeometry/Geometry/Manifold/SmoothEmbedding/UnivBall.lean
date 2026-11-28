@@ -38,7 +38,10 @@ For a chart `φ` of a manifold modelled on `E` whose target contains `ball c r`,
 rest of the proof of Tau Ceti's `TauCeti.exists_isOpenEmbedding_isLocalDiffeomorph`, for any chart
 of the maximal atlas instead of `chartAt`. At `0`, the map `univBall c ρ` has derivative
 `ρ • id`, so for `0 < ρ` it preserves every orientation of `E` there
-(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`).
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`), and so at every point, since it is
+a local diffeomorphism of the connected space `E`
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`, through
+`IsLocalDiffeomorph.isOrientationPreservingAt_iff`).
 
 ## Main results
 
@@ -49,6 +52,8 @@ of the maximal atlas instead of `chartAt`. At `0`, the map `univBall c ρ` has d
   `univBall c r` is a coordinate ball.
 * `OpenPartialHomeomorph.isOrientationPreservingAt_univBall`: `univBall c ρ` preserves
   orientations at `0`.
+* `OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`: `univBall c ρ` preserves
+  orientations at every point.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
   `ball c ρ`, precomposed with `univBall c ρ`, is a smooth embedding of `E`.
 -/
@@ -117,6 +122,14 @@ theorem isOrientationPreservingAt_univBall [FiniteDimensional ℝ E] {ι : Type*
   refine Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos o ?_
   rw [(hasFDerivAt_univBall hρ c 0).fderiv]
   simpa using pow_pos hρ (Module.finrank ℝ E)
+
+/-- For `0 < ρ`, Mathlib's map `univBall c ρ` of a finite-dimensional `E` onto the ball
+`ball c ρ` preserves every orientation of `E` at every point `x`. -/
+theorem isOrientationPreservingAt_univBall_of_pos [FiniteDimensional ℝ E] {ι : Type*}
+    [Fintype ι] (hρ : 0 < ρ) (o : Manifold.Orientation 𝓘(ℝ, E) E ι) (x : E) :
+    o.IsOrientationPreservingAt o (univBall c ρ) x :=
+  ((isLocalDiffeomorph_univBall le_rfl).isOrientationPreservingAt_iff (by simp) o o 0 x).1
+    (isOrientationPreservingAt_univBall hρ o)
 
 end OpenPartialHomeomorph
 
