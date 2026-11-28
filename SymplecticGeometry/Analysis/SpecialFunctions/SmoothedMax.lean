@@ -81,7 +81,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   smoothed maximum.
 * `SymplecticGeometry.smoothedMaxChain δ A`: the chain whose first member is `A 0` and whose
   `(i + 1)`-th member is the smoothed maximum of the `i`-th one and `A (i + 1)`. Its members are
-  as smooth as the `A j` (`contDiff_smoothedMaxChain`), increase along the chain
+  as smooth as the `A j`, globally or at a point (`contDiff_smoothedMaxChain`,
+  `contDiffAt_smoothedMaxChain`), increase along the chain
   (`monotone_smoothedMaxChain`), lie above the `A j` they are built from
   (`le_smoothedMaxChain_of_le`) and at most `i δ / 2` above one of them
   (`exists_smoothedMaxChain_le_add`), keep the bounds of the slopes of the `A j`
@@ -587,11 +588,11 @@ theorem deriv_smoothedMax_pos_right {f g : ℝ → ℝ} {f' g' x : ℝ} (hδ : 0
   have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
   exact add_pos_of_nonneg_of_pos (mul_nonneg hw.1 hf') (mul_pos (by linarith) hg')
 
-/-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
-`s = smoothedSign δ (f x - g x)`, it is
+/-- The second derivative at `x` of the smoothed maximum of two functions `f` and `g` that are
+`C²` at `x`: with `s = smoothedSign δ (f x - g x)`, it is
 `(f'' + g'' + s (f'' - g'') + (smoothedAbs δ)'' (f x - g x) (f' - g')²) / 2`. -/
-theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f) (hg : ContDiff ℝ 2 g)
-    (x : ℝ) :
+theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : ContDiffAt ℝ 2 f x)
+    (hg : ContDiffAt ℝ 2 g x) :
     iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x =
       (iteratedDeriv 2 f x + iteratedDeriv 2 g x +
         smoothedSign δ (f x - g x) * (iteratedDeriv 2 f x - iteratedDeriv 2 g x) +
@@ -601,20 +602,18 @@ theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f
     funext y
     simp only [smoothedMax_def, Function.comp_apply, Pi.sub_apply]
   have hh := (contDiff_smoothedAbs (n := 2) δ).contDiffAt (x := (f - g) x)
-  have hfg := (hf.sub hg).contDiffAt (x := x)
-  have hf₂ := hf.contDiffAt (x := x)
-  have hg₂ := hg.contDiffAt (x := x)
-  rw [h, iteratedDeriv_div_const, iteratedDeriv_fun_add (hf₂.add hg₂) ((hh.comp x hfg)),
-    iteratedDeriv_fun_add hf₂ hg₂, iteratedDeriv_comp_two hh hfg, iteratedDeriv_sub hf₂ hg₂,
-    deriv_smoothedAbs, deriv_sub (hf.differentiable two_ne_zero x)
-      (hg.differentiable two_ne_zero x)]
+  have hfg := hf.sub hg
+  rw [h, iteratedDeriv_div_const, iteratedDeriv_fun_add (hf.add hg) (hh.comp x hfg),
+    iteratedDeriv_fun_add hf hg, iteratedDeriv_comp_two hh hfg, iteratedDeriv_sub hf hg,
+    deriv_smoothedAbs, deriv_sub (hf.differentiableAt two_ne_zero)
+      (hg.differentiableAt two_ne_zero)]
   simp only [Pi.sub_apply]
   ring
 
-/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two `C²` functions `f`
-and `g` is at least the smaller of those of `f` and `g`. -/
-theorem min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ}
-    (hf : ContDiff ℝ 2 f) (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) (x : ℝ) :
+/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two functions `f` and
+`g` that are `C²` at `x` is at least the smaller of those of `f` and `g`. -/
+theorem min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} {x : ℝ}
+    (hf : ContDiffAt ℝ 2 f x) (hg : ContDiffAt ℝ 2 g x) (hδ : 0 ≤ δ) :
     min (iteratedDeriv 2 f x) (iteratedDeriv 2 g x) ≤
       iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x := by
   rw [iteratedDeriv_two_smoothedMax hf hg]
@@ -627,13 +626,13 @@ theorem min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax {f g : ℝ → �
     (sq_nonneg (deriv f x - deriv g x))
   linarith
 
-/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two `C²` functions `f`
-and `g` is nonnegative if those of `f` and `g` are. -/
-theorem iteratedDeriv_two_smoothedMax_nonneg {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f)
-    (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) {x : ℝ} (hf₂ : 0 ≤ iteratedDeriv 2 f x)
+/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two functions `f` and
+`g` that are `C²` at `x` is nonnegative if those of `f` and `g` are. -/
+theorem iteratedDeriv_two_smoothedMax_nonneg {f g : ℝ → ℝ} {x : ℝ} (hf : ContDiffAt ℝ 2 f x)
+    (hg : ContDiffAt ℝ 2 g x) (hδ : 0 ≤ δ) (hf₂ : 0 ≤ iteratedDeriv 2 f x)
     (hg₂ : 0 ≤ iteratedDeriv 2 g x) :
     0 ≤ iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x :=
-  (le_min hf₂ hg₂).trans (min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax hf hg hδ x)
+  (le_min hf₂ hg₂).trans (min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax hf hg hδ)
 
 /-- For `δ ≠ 0`, `smoothedMax δ` is `smoothedMax 1` rescaled by `δ`. -/
 theorem smoothedMax_eq_mul_smoothedMax_one (hδ : δ ≠ 0) (a b : ℝ) :
@@ -719,12 +718,12 @@ theorem abs_deriv_smoothedMax_sub_le {f g : ℝ → ℝ} {x : ℝ} (hf : Differe
   simpa [Real.dist_eq] using (convexOn_univ_dist φ).le_on_segment' (Set.mem_univ _)
     (Set.mem_univ _) hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
 
-/-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g` is as close to
-any `φ` as the farther of their second derivatives, up to `C (f' - g')² / (2 δ)` where
-`C / δ` bounds the curvature of `smoothedAbs δ` at `f x - g x`
+/-- The second derivative at `x` of the smoothed maximum of two functions `f` and `g` that are
+`C²` at `x` is as close to any `φ` as the farther of their second derivatives, up to
+`C (f' - g')² / (2 δ)` where `C / δ` bounds the curvature of `smoothedAbs δ` at `f x - g x`
 (`exists_forall_iteratedDeriv_two_smoothedAbs_le` gives such a `C` for all `δ > 0`). -/
-theorem abs_iteratedDeriv_two_smoothedMax_sub_le {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f)
-    (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) {C x : ℝ}
+theorem abs_iteratedDeriv_two_smoothedMax_sub_le {f g : ℝ → ℝ} {C x : ℝ}
+    (hf : ContDiffAt ℝ 2 f x) (hg : ContDiffAt ℝ 2 g x) (hδ : 0 ≤ δ)
     (hC : iteratedDeriv 2 (smoothedAbs δ) (f x - g x) ≤ C / δ) (φ : ℝ) :
     |iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x - φ| ≤
       max |iteratedDeriv 2 f x - φ| |iteratedDeriv 2 g x - φ| +
@@ -785,15 +784,22 @@ theorem smoothedMaxChain_succ_apply (δ : ℝ) (A : ℕ → ℝ → ℝ) (i : �
     smoothedMaxChain δ A (i + 1) r = smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r) :=
   (rfl)
 
-/-- A member of the chain of smoothed maxima is as smooth as the functions it is built from. -/
-theorem contDiff_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiff ℝ n (A j)) :
-    ContDiff ℝ n (smoothedMaxChain δ A i) := by
+/-- A member of the chain of smoothed maxima is `Cⁿ` at `r` if the functions it is built from
+are. -/
+theorem contDiffAt_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiffAt ℝ n (A j) r) :
+    ContDiffAt ℝ n (smoothedMaxChain δ A i) r := by
   induction i with
   | zero => rw [smoothedMaxChain_zero]; exact hA 0 le_rfl
   | succ i ih =>
     rw [smoothedMaxChain_succ]
-    exact (contDiff_smoothedMax δ).comp
+    exact (contDiff_smoothedMax δ).contDiffAt.comp r
       ((ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).prodMk (hA (i + 1) le_rfl))
+
+/-- A member of the chain of smoothed maxima is as smooth as the functions it is built from. -/
+theorem contDiff_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiff ℝ n (A j)) :
+    ContDiff ℝ n (smoothedMaxChain δ A i) :=
+  contDiff_iff_contDiffAt.2 fun _ ↦
+    contDiffAt_smoothedMaxChain δ fun j hj ↦ (hA j hj).contDiffAt
 
 /-- A member of the chain of smoothed maxima is differentiable at `r` if the functions it is
 built from are. -/
