@@ -108,14 +108,13 @@ variable {E E' H H' M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Fin
   {n : ℕ∞ω} [IsManifold I n M] [IsManifold J n N]
 
 /-- **Orientation preservation is open in the diffeomorphism and the point.** If a `C^n`
-diffeomorphism `f` of a compact manifold, `n ≠ 0`, preserves the orientations `o` and `o'` at
+diffeomorphism `f` from a compact manifold, `n ≠ 0`, preserves the orientations `o` and `o'` at
 `x`, then every diffeomorphism near `f` in the weak Whitney topology preserves them at every
 point near `x`. -/
 theorem eventually_isOrientationPreservingAt (hn : n ≠ 0) {o : Orientation I M ι}
     {o' : Orientation J N ι} {f : M ≃ₘ^n⟮I, J⟯ N} {x : M}
     (h : IsOrientationPreservingAt o o' f x) :
     ∀ᶠ p : (M ≃ₘ^n⟮I, J⟯ N) × M in 𝓝 (f, x), IsOrientationPreservingAt o o' p.1 p.2 := by
-  classical
   have hn1 : 1 ≤ n := ENat.one_le_iff_ne_zero_withTop.mpr hn
   set y := f x
   set e := trivializationAt E (TangentSpace I) x
