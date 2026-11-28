@@ -44,13 +44,9 @@ matrices followed by the continuous linear map `A ↦ A *ᵥ y`, whose different
 public section
 
 open Manifold
-open scoped ContDiff Manifold Matrix Matrix.Norms.Operator
+open scoped ContDiff Manifold Matrix Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
 
 namespace TauCeti.Lie
-
--- The topology and normed ring on matrices for which Tau Ceti builds `matrixUnitaryLieGroup`.
-attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
-attribute [local instance] Matrix.linftyOpTopologicalSpace Matrix.linftyOpContinuousStar
 
 variable {n 𝕜 : Type*} [Fintype n] [DecidableEq n] [RCLike 𝕜]
 
@@ -83,8 +79,7 @@ instance instContMDiffSMulUnitarySubgroup :
 algebra of `unitarySubgroup (GL n ℂ)` takes at `y` the value `X *ᵥ y`, where `X` is the
 skew-Hermitian matrix `matrixUnitaryLieAlgebraEquiv ξ`. -/
 theorem fundamentalVectorField_unitarySubgroup
-    (ξ : GroupLieAlgebra 𝓘(ℝ, (lieSubalgebraOfSubgroup (I := 𝓘(ℝ, Matrix n n ℂ))
-      (unitarySubgroup (GL n ℂ))).toSubmodule) (unitarySubgroup (GL n ℂ))) (y : n → ℂ) :
+    (ξ : GroupLieAlgebra 𝓘(ℝ, 𝔨[n]) (unitarySubgroup (GL n ℂ))) (y : n → ℂ) :
     fundamentalVectorField 𝓘(ℝ, n → ℂ) ξ y =
       (matrixUnitaryLieAlgebraEquiv ξ : Matrix n n ℂ) *ᵥ y := by
   -- The orbit map of `y` is the inclusion into the matrices followed by `A ↦ A *ᵥ y`.
