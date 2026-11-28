@@ -14,6 +14,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
+import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Symplectic.Flux.Family
 import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
@@ -56,6 +57,14 @@ with a plus sign: the minus sign of the curvature term cancels that of
 in `θ` because `C` is smooth near each `(s, t, θ)` with `Δ (s, 0)` in the base set of `e`
 (Tau Ceti's `TauCeti.SmoothForm.contDiffOn_mpullback`).
 
+When `D` has Hamiltonian curvature for an atlas `A` on whose fibres `τ` restricts to `σ`, the
+inner integral vanishes. Fix `s, t`, a chart `e'` of `A` at `Δ (s, t)` and a Hamiltonian `f` of
+the curvature read in `e'`. Since `∂_θC` is vertical,
+`TauCeti.IsEhresmannConnection.apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField` turns
+`τ(Ω, ∂_θC)` into the `θ`-derivative of `f ((e' (C (s, t, θ))).2)`, a `1`-periodic function, whose
+derivative integrates to zero over a period (`Function.Periodic.intervalIntegral_deriv_eq_zero`).
+No relation between `τ` and `D` is needed for this step.
+
 This is the computation behind the equivalence of Hamiltonian holonomy around discs and
 Hamiltonian curvature for symplectic connections of McDuff–Salamon [McDuffSalamon2017],
 Lemma 6.4.8 and Exercise 6.4.9 (see also [McDuffSalamon2019Errata]), and of
@@ -79,6 +88,8 @@ curvature of [McDuffSalamon2017] is its negative.
   `TauCeti.IsEhresmannConnection`:
   the variation of holonomy through the curvature, the period of `ι(X_s)σ` along `c` as the
   integral of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` over `[0, 1]²`.
+* `TauCeti.IsEhresmannConnection.integral_val_curvatureTensor_transportedCylinder_eq_zero`: for
+  Hamiltonian curvature, the integral over `θ ∈ [0, 1]` of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` is zero.
 * `TauCeti.IsEhresmannConnection.curvatureTensor_mfderiv_chartDisc`: on the derivatives of the
   small disc `SymplecticGeometry.chartDisc` through a point of a chart, the curvature tensor is
   `2π r² φ(s) φ'(s) (1 - cos (2πt))` times its value on the images of the two vectors spanning
@@ -178,6 +189,29 @@ theorem mextDeriv_mfderiv_transportedCylinder_eq {τ : SmoothTwoForm IM M}
     add_zero, show T = _ from
       hD.mfderiv_transportedCylinder_eq_horizontalLiftField hf hfp he_symm hΔ hc hs h₂]
 
+/-- **Derivatives along the loops of the transported cylinder.** In the setting of
+`mfderiv_proj_transportedCylinder`, let `Δ (s, 0)` be in the base set of `e` and `Φ : M → ℝ` be
+differentiable at `C (s, t, θ)`, for the transported cylinder `C`. Then the derivative of
+`θ' ↦ Φ (C (s, t, θ'))` at `θ` is the derivative of `Φ` along `∂_θC (s, t, θ)`. -/
+theorem deriv_comp_transportedCylinder (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) {s t θ : ℝ}
+    (hs : Δ (s, 0) ∈ e.baseSet) {Φ : M → ℝ}
+    (hΦ : MDifferentiableAt IM 𝓘(ℝ) Φ (hD.transportedCylinder e Δ c (s, t, θ))) :
+    deriv (fun θ' ↦ Φ (hD.transportedCylinder e Δ c (s, t, θ'))) θ =
+      mvfderiv IM Φ (hD.transportedCylinder e Δ c (s, t, θ))
+        (mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ) (0, 0, 1)) := by
+  set C := hD.transportedCylinder e Δ c
+  have hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) :=
+    (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hc hs).mdifferentiableAt (by simp)
+  have hℓ : HasDerivAt (fun θ' : ℝ ↦ (s, t, θ')) ((0, 0, 1) : ℝ × ℝ × ℝ) θ :=
+    (hasDerivAt_const θ s).prodMk ((hasDerivAt_const θ t).prodMk (hasDerivAt_id θ))
+  -- The velocity of the loop `θ' ↦ C (s, t, θ')` at `θ` is `∂_θC (s, t, θ)`.
+  have hv := Manifold.hasMFDerivAt_curveVelocity (I := IM)
+    (hC.comp θ hℓ.differentiableAt.mdifferentiableAt)
+  rw [hC.curveVelocity_comp_mfderiv hℓ] at hv
+  exact (Manifold.hasDerivAt_comp_curve hΦ hv).deriv
+
 /-- **The integrand of the variation of holonomy, through the curvature.** Let `D` be the
 connection of a vertically closed two-form `τ` on a proper smooth map `proj`, `Δ` a smooth
 family of curves, `e` a trivialization with a smooth inverse, `c` smooth, and `C` the
@@ -210,8 +244,6 @@ theorem mpullback_mextDeriv_transportedCylinder_eq_deriv_sub {τ : SmoothTwoForm
     hs h₁ h₂ (θ := θ)
   subst hτD
   set C := hD.transportedCylinder e Δ c
-  have hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) :=
-    (hD.contMDiffAt_transportedCylinder hf hfp he_symm hΔ hc hs).mdifferentiableAt (by simp)
   have hx : proj (C (s, t, θ)) = Δ (s, t) :=
     hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp (hΔ.of_le (by simp)) hs _ _
   rw [← hx] at hv₁ hv₂
@@ -232,24 +264,8 @@ theorem mpullback_mextDeriv_transportedCylinder_eq_deriv_sub {τ : SmoothTwoForm
           mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 0, 1)] :=
     mpullback_apply_triple _ _ _ _ _ _
   -- The derivative of `τ(v₁♯, v₂♯)` along `∂_θC` is its derivative in `θ` along the cylinder.
-  have hℓ : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun θ' : ℝ ↦ (s, t, θ')) θ
-      ((1 : ℝ →L[ℝ] ℝ).smulRight ((0, 0, 1) : ℝ × ℝ × ℝ)) :=
-    hasMFDerivAt_iff_hasFDerivAt.2 (HasDerivAt.prodMk (hasDerivAt_const θ s)
-      ((hasDerivAt_const θ t).prodMk (hasDerivAt_id θ))).hasFDerivAt
-  have hCℓ := hC.hasMFDerivAt.comp θ hℓ
-  have hderiv : deriv (fun θ' ↦ τ.val (C (s, t, θ'))
-      ![hD.horizontalLiftField v₁ (C (s, t, θ')), hD.horizontalLiftField v₂ (C (s, t, θ'))]) θ =
-        mfderiv IM 𝓘(ℝ)
-          (fun y ↦ τ.val y ![hD.horizontalLiftField v₁ y, hD.horizontalLiftField v₂ y])
-          (C (s, t, θ)) (mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 0, 1)) := by
-    rw [← fderiv_apply_one_eq_deriv]
-    refine (fderiv_comp_apply_eq_mfderiv (f := C ∘ fun θ' : ℝ ↦ (s, t, θ')) hg
-      hCℓ.mdifferentiableAt 1).trans (congrArg _ ?_)
-    rw [hCℓ.mfderiv]
-    -- The vectors are typed as tangent vectors of `ℝ × ℝ × ℝ`, so `smulRight_apply` does not
-    -- rewrite; the value of `smulRight 1 v` at `1` is `1 • v` by definition.
-    exact congrArg (mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ)) (one_smul ℝ ((0, 0, 1) : ℝ × ℝ × ℝ))
-  rw [hpb, hsplit, hderiv, ← mvfderiv_apply_eq_mfderiv_apply]
+  have hderiv := hD.deriv_comp_transportedCylinder hf hfp he_symm hΔ hc hs hg
+  rw [hpb, hsplit, hderiv]
   linear_combination hid
 
 /-- **The function `τ(v₁♯, v₂♯)` along the transported cylinder is smooth.** For a smooth
@@ -307,24 +323,16 @@ theorem integral_mpullback_mextDeriv_transportedCylinder_eq_neg {τ : SmoothTwoF
     ![hD.horizontalLiftField v₁ (C (s, t, θ)), hD.horizontalLiftField v₂ (C (s, t, θ))]
   have hg : ContDiff ℝ ∞ g :=
     contDiff_val_horizontalLiftField_transportedCylinder τ hf hfp he_symm hΔ hc hv₁ hv₂ hs
-  -- The curvature of these fields at `C (s, t, θ)` is the curvature tensor on `∂ₛΔ`, `∂ₜΔ`.
-  have hcurv (θ : ℝ) : hD.curvature v₁ v₂ (C (s, t, θ)) =
-      hD.curvatureTensor (by simp) ((hf _).of_le (by simp)) u₁ u₂ := by
-    have hp : proj (C (s, t, θ)) = Δ (s, t) :=
-      hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp (hΔ.of_le (by simp)) hs _ _
-    have e₁ : (v₁ (proj (C (s, t, θ))) : EB) = u₁ :=
-      (congrArg (fun b ↦ (v₁ b : EB)) hp).trans (FiberBundle.contMDiffExtend_apply_self IB EB u₁)
-    have e₂ : (v₂ (proj (C (s, t, θ))) : EB) = u₂ :=
-      (congrArg (fun b ↦ (v₂ b : EB)) hp).trans (FiberBundle.contMDiffExtend_apply_self IB EB u₂)
-    rw [← hD.curvatureTensor_apply (by simp) ((hf _).of_le (by simp)) hv₁ hv₂]
-    exact congrArg₂ (fun a b ↦ hD.curvatureTensor (by simp) ((hf _).of_le (by simp)) a b) e₁ e₂
   -- The pointwise identity, with the curvature tensor.
   have hpt (θ : ℝ) : τ.val (C (s, t, θ))
       ![hD.curvatureTensor (by simp) ((hf _).of_le (by simp)) u₁ u₂,
         mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 0, 1)] =
       deriv g θ - mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (mextDeriv τ.val) (s, t, θ)
         ![(1, 0, 0), (0, 1, 0), (0, 0, 1)] := by
-    rw [← hcurv θ, mpullback_mextDeriv_transportedCylinder_eq_deriv_sub (hD := hD) hτD hτ hf hfp
+    rw [← hD.curvature_contMDiffExtend (by simp) ((hf _).of_le (by simp))
+        (hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp (hΔ.of_le (by simp)) hs
+          t θ) u₁ u₂,
+      mpullback_mextDeriv_transportedCylinder_eq_deriv_sub (hD := hD) hτD hτ hf hfp
       he_symm hΔ hc hs ((hv₁ _).of_le (by simp)) ((hv₂ _).of_le (by simp))
       (FiberBundle.contMDiffExtend_apply_self IB EB u₁)
       (FiberBundle.contMDiffExtend_apply_self IB EB u₂)]
@@ -343,13 +351,13 @@ theorem integral_mpullback_mextDeriv_transportedCylinder_eq_neg {τ : SmoothTwoF
       ![(1, 0, 0), (0, 1, 0), (0, 0, 1)]).continuous.comp_continuousOn
       hd.continuousOn).comp_continuous hl fun _ ↦ hs).intervalIntegrable _ _
   -- The derivative of the `1`-periodic function `g` integrates to zero over a period.
+  have hgp : Periodic g 1 := fun θ ↦
+    congrArg (fun y ↦ τ.val y ![hD.horizontalLiftField v₁ y, hD.horizontalLiftField v₂ y])
+      (hD.transportedCylinder_add_one hcp s t θ)
   have hderiv : ∫ θ in 0..1, deriv g θ = 0 := by
-    rw [intervalIntegral.integral_deriv_eq_sub (fun θ _ ↦ hg.differentiable (by simp) θ)
-      ((hg.continuous_deriv (by simp)).intervalIntegrable _ _), sub_eq_zero]
-    have h1 : C (s, t, 1) = C (s, t, 0) := by
-      simpa using hD.transportedCylinder_add_one (e := e) (Δ := Δ) hcp s t 0
-    exact congrArg (fun y ↦ τ.val y ![hD.horizontalLiftField v₁ y, hD.horizontalLiftField v₂ y])
-      h1
+    simpa using hgp.intervalIntegral_deriv_eq_zero (a := 0)
+      (fun θ _ ↦ hg.differentiable (by simp) θ)
+      ((hg.continuous_deriv (by simp)).intervalIntegrable _ _)
   rw [intervalIntegral.integral_congr fun θ _ ↦ hpt θ,
     intervalIntegral.integral_sub ((hg.continuous_deriv (by simp)).intervalIntegrable _ _) hint,
     hderiv, zero_sub, neg_neg]
@@ -408,6 +416,75 @@ theorem period_interior_velocity_holonomyDiffeotopy_eq_integral_curvatureTensor
   rw [integral_mpullback_mextDeriv_transportedCylinder_eq_neg hτD hτv hA.contMDiff_proj hfp
     (hA.contMDiffOn_trivAt_symm b) hΔ.contMDiff hc hcp
     ((congrArg (· ∈ (A.trivAt b).baseSet) (hΔ.apply_seam s)).mpr hx), neg_neg]
+
+omit [FiniteDimensional ℝ EF] [IF.Boundaryless] [T2Space F] in
+/-- **Hamiltonian curvature kills the curvature term.** Let `τ` restrict to `σ` on the fibres
+of a smooth atlas `A` of a proper map `proj`, and let the smooth connection `D` have
+Hamiltonian curvature for `A` and `σ`. Let `Δ` be a smooth family of curves, `e` a
+trivialization with a smooth inverse, `c` a smooth `1`-periodic loop in `F` and `C` the
+transported cylinder. If `Δ (s, 0)` is in the base set of `e`, the integral over
+`θ ∈ [0, 1]` of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` at `(s, t, θ)` vanishes, with `Ω` the curvature tensor
+of `D` at `C (s, t, θ)`: in a chart `e'` at `Δ (s, t)`, the integrand is the derivative in `θ`
+of `f ((e' (C (s, t, θ))).2)`, for a Hamiltonian `f` of the curvature read in `e'`. No relation
+between `τ` and `D` is needed. -/
+theorem integral_val_curvatureTensor_transportedCylinder_eq_zero {σ : SmoothTwoForm IF F}
+    {τ : SmoothTwoForm IM M} (hτ : A.RestrictsTo σ τ) (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : hD.HasHamiltonianCurvature A σ) (hfp : IsProperMap proj) {e : Trivialization F proj}
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) (hcp : Periodic c 1)
+    {s t : ℝ} (hs : Δ (s, 0) ∈ e.baseSet) :
+    ∫ θ in 0..1, τ.val (hD.transportedCylinder e Δ c (s, t, θ))
+        ![hD.curvatureTensor (by simp) ((hA.contMDiff_proj _).of_le (by simp))
+            (mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t) (1, 0)) (mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t) (0, 1)),
+          mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, t, θ) (0, 0, 1)] =
+      0 := by
+  have hf : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
+  set C := hD.transportedCylinder e Δ c
+  set u₁ := mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t) (1, 0)
+  set u₂ := mfderiv 𝓘(ℝ, ℝ × ℝ) IB Δ (s, t) (0, 1)
+  -- Smooth fields on `B` through `∂ₛΔ` and `∂ₜΔ`, and a Hamiltonian of their curvature read in
+  -- the chart `e'` at `Δ (s, t)`.
+  set v₁ := FiberBundle.contMDiffExtend IB EB u₁
+  set v₂ := FiberBundle.contMDiffExtend IB EB u₂
+  have hv₁ : CMDiff ∞ (T% v₁) := FiberBundle.contMDiff_contMDiffExtend IB EB u₁
+  have hv₂ : CMDiff ∞ (T% v₂) := FiberBundle.contMDiff_contMDiffExtend IB EB u₂
+  set e' := A.trivAt (Δ (s, t))
+  have hy : Δ (s, t) ∈ e'.baseSet := A.mem_baseSet_trivAt _
+  obtain ⟨f, hfs, hX⟩ := (hD.hasHamiltonianCurvature_def A σ).1 hH _ _ hy v₁ v₂ hv₁ hv₂
+  have hp (θ : ℝ) : proj (C (s, t, θ)) = Δ (s, t) :=
+    hD.proj_transportedCylinder (by simp) (hf.of_le (by simp)) hfp (hΔ.of_le (by simp)) hs _ _
+  have hsrc (θ : ℝ) : C (s, t, θ) ∈ e'.source := e'.mem_source.2 ((hp θ).symm ▸ hy)
+  -- The function `f` read along the loops of the cylinder through the fibre coordinate of `e'`.
+  have hΦ : ContMDiffOn IM 𝓘(ℝ) ∞ (fun y ↦ f (e' y).2) e'.source :=
+    hfs.comp_contMDiffOn (hA.contMDiffOn_snd_trivAt _)
+  have hℓ : ContMDiff 𝓘(ℝ) IM ∞ fun θ ↦ C (s, t, θ) :=
+    (hD.contMDiffOn_transportedCylinder hf hfp he_symm hΔ hc).comp_contMDiff
+      (by fun_prop : ContDiff ℝ ∞ fun θ : ℝ ↦ (s, t, θ)).contMDiff fun _ ↦ hs
+  have hg : ContDiff ℝ ∞ fun θ ↦ f (e' (C (s, t, θ))).2 :=
+    contMDiff_iff_contDiff.1 (hΦ.comp_contMDiff hℓ hsrc)
+  -- The integrand is the derivative in `θ` of `f ((e' (C (s, t, θ))).2)`.
+  have hpt (θ : ℝ) : τ.val (C (s, t, θ))
+      ![hD.curvatureTensor (by simp) ((hf _).of_le (by simp)) u₁ u₂,
+        mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM C (s, t, θ) (0, 0, 1)] =
+      deriv (fun θ' ↦ f (e' (C (s, t, θ'))).2) θ := by
+    have hsnd : MDifferentiableAt IM IF (fun y ↦ (e' y).2) (C (s, t, θ)) :=
+      ((hA.contMDiffOn_snd_trivAt _).contMDiffAt
+        (e'.open_source.mem_nhds (hsrc θ))).mdifferentiableAt (by simp)
+    have hfd : MDifferentiableAt IM 𝓘(ℝ) (fun y ↦ f (e' y).2) (C (s, t, θ)) :=
+      ((hfs _).mdifferentiableAt (by simp)).comp _ hsnd
+    rw [← hD.curvature_contMDiffExtend (by simp) ((hf _).of_le (by simp)) (hp θ) u₁ u₂,
+      hD.apply_curvature_eq_mvfderiv_of_isHamiltonianVectorField (by simp) hA hτ hy
+        ((hv₁ _).of_le (by simp)) ((hv₂ _).of_le (by simp)) hX (hp θ)
+        (hD.mfderiv_transportedCylinder_apply_mem_ker (by simp) (hf.of_le (by simp)) hfp
+          (hΔ.of_le (by simp)) hs),
+      hD.deriv_comp_transportedCylinder hf hfp he_symm hΔ hc hs hfd]
+    exact (mvfderiv_comp_apply _ ((hfs _).mdifferentiableAt (by simp)) hsnd _).symm
+  have hgp : Periodic (fun θ ↦ f (e' (C (s, t, θ))).2) 1 := fun θ ↦ by
+    simp only [C, hD.transportedCylinder_add_one hcp]
+  rw [intervalIntegral.integral_congr fun θ _ ↦ hpt θ]
+  simpa using hgp.intervalIntegral_deriv_eq_zero (a := 0)
+    (fun θ _ ↦ hg.differentiable (by simp) θ)
+    ((hg.continuous_deriv (by simp)).intervalIntegrable _ _)
 
 /-- **Hamiltonian disc holonomy makes the holonomy diffeotopy Hamiltonian.** Let `D` be a smooth
 Ehresmann connection on a proper map with a smooth atlas `A` and a compact model fibre `F`, whose
