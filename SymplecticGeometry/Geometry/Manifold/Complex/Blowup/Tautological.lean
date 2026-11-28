@@ -334,8 +334,6 @@ private theorem one_le_finrank_range_mfderiv_blowdown (ℓ : ℙ ℂ (Fin (n + 1
     1 ≤ Module.finrank ℂ (LinearMap.range
       (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
         (zeroSection ℓ)).toLinearMap) := by
-  have : Module.Finite ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
-    inferInstanceAs (Module.Finite ℂ (Fin (n + 1) → ℂ))
   obtain ⟨v, hv⟩ := exists_mfderiv_blowdown_zeroSection_eq ℓ (ℓ.submodule_eq ▸
     Submodule.mem_span_singleton_self ℓ.rep)
   exact Module.finrank_pos_iff_exists_ne_zero.2
