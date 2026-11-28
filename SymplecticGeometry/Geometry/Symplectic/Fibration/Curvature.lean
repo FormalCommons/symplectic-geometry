@@ -866,8 +866,7 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
       ∀ w : TangentSpace IF y,
         SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y
             (hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)).2 w =
-          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) -
+          RoughForm.mixedCurl τ.val bs i j x y w -
             mvfderiv IF (fun y' ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y'
               (τ.mixedVectorField bs i x y') (τ.mixedVectorField bs j x y')) y w := by
   have hc (k : ι) : ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent 1
@@ -921,6 +920,7 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
       (v := (((0 : EB), w) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y))) rfl]
     exact (congrArg (fun φ ↦ mvfderiv IF φ y w)
       (funext fun y' ↦ (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
+  rw [RoughForm.mixedCurl_def]
   linear_combination -hlhs + hid - hdτ - hfAB - ha j (bs i) + ha i (bs j) + hS
 
 /-- **Hamiltonian curvature in a product chart.** In the setting of `curvatureIn_local`, suppose
@@ -933,9 +933,7 @@ theorem exists_isHamiltonianVectorField_curvature_iff (hn : 1 ≤ n)
     (∃ f : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ f ∧ (τ.smoothFiberComponent x).IsHamiltonianVectorField f
         fun y ↦ (hD.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (x, y)).2) ↔
       ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-        mvfderiv IF g y w =
-          fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs j x' y ![w]) x (bs i) -
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent τ.val bs i x' y ![w]) x (bs j) := by
+        mvfderiv IF g y w = RoughForm.mixedCurl τ.val bs i j x y w := by
   set S : F → ℝ := fun y ↦ SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y
     (τ.mixedVectorField bs i x y) (τ.mixedVectorField bs j x y)
   have hS : ContMDiff IF 𝓘(ℝ) ∞ S := τ.contMDiff_eval₂_mixedVectorField bs hσ i j

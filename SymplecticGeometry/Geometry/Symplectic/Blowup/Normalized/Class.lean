@@ -320,9 +320,6 @@ theorem singularKronecker_relativeDeRhamHom_mk_relClass_curveLift_smul
   refine Finset.sum_eq_zero fun i _ ↦ ?_
   rw [integrationCochain_ιChainComplex, one_smul, hβ0, smul_zero]
 
-/-- The order `∞` of smoothness is not zero, as Tau Ceti's normal spaces ask. -/
-local notation "hn" => (Iff.mpr WithTop.coe_ne_zero ENat.top_ne_zero : (∞ : ℕ∞ω) ≠ 0)
-
 open CategoryTheory Opposite Simplicial in
 /-- A smooth `2`-simplex `S` of the blowup through the exceptional divisor `Z`, with faces in its
 complement `W`, on which both classes can be evaluated: every relative cocycle
@@ -360,7 +357,7 @@ private theorem exists_smoothSimplex_singularKronecker_relClass [SigmaCompactSpa
               Set (TopCat.of (Blowup hN.blowupChart)))).map,
         (TopPair.ofSubset ((range (Blowup.divisorRealEmbedding hN.blowupChart))ᶜ :
             Set (TopCat.of (Blowup hN.blowupChart)))).singularKronecker ℝ 2
-          ((Blowup.divisorRealEmbedding hN.blowupChart).realRelDualClass hn
+          ((Blowup.divisorRealEmbedding hN.blowupChart).realRelDualClass ENat.coe_top_ne_zero
             (Complex.finrank_real_eq_finrank_pi_succ_sub n)
             (Blowup.isClosed_range_divisorRealEmbedding _)
             (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex)
@@ -444,13 +441,10 @@ private theorem exists_smoothSimplex_singularKronecker_relClass [SigmaCompactSpa
     · rw [SmoothSimplex.toContinuousMap_ofContMDiff_apply, Function.comp_apply, lineDisc_def,
         Function.comp_apply, LinearIsometryEquiv.symm_apply_apply, hgτ]
   · -- The dual class, on the line disc, which is transverse to the divisor.
-    have hO : (complexManifoldOrientation ℂ ℂ).reindex (finCongr Complex.two_mul_finrank_self) =
-        Manifold.Orientation.complex :=
-      (complexCurveOrientation_def _).symm.trans complexCurveOrientation_complex
     obtain ⟨μ, hμ, hAμ⟩ := hψ.exists_orientation_map_eq_divisorNormalOrientation_lineDisc hv
     have hA := (hψ.mdifferentiableAt_lineDisc hv).hasMFDerivAt
     exact (Blowup.divisorRealEmbedding hN.blowupChart
-      ).singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp hn
+      ).singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp ENat.coe_top_ne_zero
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
       (Blowup.isClosed_range_divisorRealEmbedding _)
       (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex
@@ -461,7 +455,7 @@ private theorem exists_smoothSimplex_singularKronecker_relClass [SigmaCompactSpa
       (fun w hw hZ ↦ hψ.eq_zero_of_lineDisc_mem_range hv hw hZ) hA (hAμ _ hA) σ₀
       (U := ⊤) (subset_univ _) (fun x ↦ (hσ₀ x).symm) hφ
       (fun x _ ↦ (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr (g x)).comp
-        (hO ▸ hgo x)) h0 (fun x ↦ hσ₀ x ▸ hRgB x) S.val hs
+        (reindex_complexManifoldOrientation_complex _ ▸ hgo x)) h0 (fun x ↦ hσ₀ x ▸ hRgB x) S.val hs
 
 open CategoryTheory in
 /-- **The relative class of `ω̃_{ψ,l,ε} - π^* σ` is `π l²` times the dual class of the divisor.**
@@ -497,7 +491,7 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SigmaCompactSpace M] {h :
           (B' := (range (Blowup.divisorRealEmbedding hN.blowupChart))ᶜ)
           fun _ hx ↦
             Blowup.coe_offDivisorOpens_eq_compl_range_divisorRealEmbedding hN.blowupChart ▸ hx) 2
-        ((Blowup.divisorRealEmbedding hN.blowupChart).realRelDualClass hn
+        ((Blowup.divisorRealEmbedding hN.blowupChart).realRelDualClass ENat.coe_top_ne_zero
           (Complex.finrank_real_eq_finrank_pi_succ_sub n)
           (Blowup.isClosed_range_divisorRealEmbedding _)
           (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex) := by
@@ -519,10 +513,10 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SigmaCompactSpace M] {h :
   -- The class is a multiple of the dual class, since the divisor is connected.
   set b := relativeDeRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup.offDivisorOpens hN.blowupChart) 2
     (relativeDeRhamCohomology.mk _ _ 1 y) with hbdef
-  set D := f.realRelDualClass hn (Complex.finrank_real_eq_finrank_pi_succ_sub n)
+  set D := f.realRelDualClass ENat.coe_top_ne_zero (Complex.finrank_real_eq_finrank_pi_succ_sub n)
     (Blowup.isClosed_range_divisorRealEmbedding _) (Blowup.divisorNormalOrientation hN.blowupChart)
     Complex.finrank_real_complex
-  obtain ⟨m, hm⟩ := f.exists_eq_smul_realRelDualClass hn
+  obtain ⟨m, hm⟩ := f.exists_eq_smul_realRelDualClass ENat.coe_top_ne_zero
     (Complex.finrank_real_eq_finrank_pi_succ_sub n)
     (Blowup.isClosed_range_divisorRealEmbedding _)
     (Blowup.divisorNormalOrientation hN.blowupChart) Complex.finrank_real_complex
