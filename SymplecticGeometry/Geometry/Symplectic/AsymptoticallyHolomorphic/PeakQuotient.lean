@@ -458,9 +458,7 @@ theorem eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian
   have hk0 : 0 < √(k : ℝ) := hC.trans_lt (by linarith)
   have hzb : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := mem_ball_zero_iff.2 (hz.trans_lt hkρ)
   have hGd : DifferentiableAt ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z :=
-    ((Complex.ofRealCLM.contDiff.comp contDiff_gaussian :
-      ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ))).differentiable
-      one_ne_zero z
+    (contDiff_ofReal_gaussian (n := 1)).differentiable one_ne_zero z
   have hs : DifferentiableAt ℝ (D.reading k x s) z := (hq.mul hGd).congr_of_eventuallyEq hfeq
   set G := Real.exp (-‖z‖ ^ 2 / 4)
   set a := ‖q z‖
