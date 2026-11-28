@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffe
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CubeCoordinates
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Topology.Algebra.Support
 
@@ -381,18 +382,11 @@ theorem exists_isOpen_nondegenerate_of_cubes (c : BandCore I g a₀ a b) {Λ S :
       rw [mextDerivₗ_apply, mextDerivₗ_apply]
       exact mextDeriv_congr_of_eventuallyEq
         (Filter.eventually_of_mem (hN₁.mem_nhds hy) fun x hx ↦ hB'N₁ _ x hx)
-    have hval : (τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)).val y = (τ l).val y := by
-      have h := hτN l y (hN₁N hy)
-      simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply,
-        SmoothBundleForm.smul_apply] at h ⊢
-      rw [hd, ← h, sub_self, smul_zero, add_zero]
-    have hbil : (τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)).bilinFormAt y =
-        (τ l).bilinFormAt y := by
-      refine LinearMap.ext₂ fun v w ↦ ?_
-      rw [SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
-        SmoothBundleForm.eval₂_apply, hval]
-    rw [hbil]
-    exact (hnd l hl).nondegenerate_bilinFormAt y
+    refine SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq ?_
+      ((hnd l hl).nondegenerate_bilinFormAt y) r
+    have h := hτN l y (hN₁N hy)
+    simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply] at h ⊢
+    rw [hd, ← h, sub_self]
   · obtain ⟨i, ⟨l, z⟩, ⟨hV', -, hz⟩, he⟩ := mem_iUnion.1 hp
     simp only [Prod.map_apply, id_eq, Prod.mk.injEq] at he
     obtain ⟨rfl, rfl⟩ := he
@@ -416,11 +410,9 @@ theorem exists_isOpen_nondegenerate_of_cubes (c : BandCore I g a₀ a b) {Λ S :
         rw [Pi.add_apply, ← hB' i (s l) w hw]
         exact (add_sub_cancel _ _).symm
     have hdiff : DifferentiableAt ℝ (ρ B (s l)) z := by
-      have h := ((c.contDiff_mpullback_chart i (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) (B (s l)))).comp
-        ((contDiff_const (c := (0 : ℝ))).prodMk contDiff_id)).differentiable (by simp) z
-      simp only [id, SmoothForm.coe_mpullback] at h
-      -- `h` is the same statement, with the instances of the model space of the chart.
-      exact h
+      have h := SmoothForm.differentiableAt_mpullback_symm (B (s l)) (c.chartPartialDiffeomorph i)
+        (y := z) (by simp)
+      rwa [chartPartialDiffeomorph_symm_apply] at h
     have hdiffc : DifferentiableAt ℝ (fun w ↦ corr i (s l, w)) z :=
       ((hcorr i).comp (contDiff_const.prodMk contDiff_id)).differentiable (by simp) z
     have hform : τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l) =
@@ -444,10 +436,8 @@ theorem exists_isOpen_nondegenerate_of_cubes (c : BandCore I g a₀ a b) {Λ S :
     have hbil (φ : SmoothForm I M ℝ 2) :
         (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff φ).bilinFormAt z =
           MultilinearMap.toBilinMap (θ φ).toMultilinearMap :=
-      LinearMap.ext₂ fun v w ↦ by
-        rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, SmoothForm.coe_mpullback]
-        -- `θ φ` is the reading at `z`, an alternating map on the model space of the chart.
-        exact (MultilinearMap.toBilinMap_apply _ v w).symm
+      -- `rfl` unfolds the local abbreviation `θ`.
+      by rw [SmoothForm.bilinFormAt_def, SmoothForm.coe_mpullback]; rfl
     refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
       ((c.isLocalDiffeomorph_chart i z).isInvertible_mfderiv (by simp))
       (η := SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff _)
