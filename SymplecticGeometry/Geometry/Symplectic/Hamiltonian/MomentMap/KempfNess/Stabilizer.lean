@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
+public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Topology.Connected.Basic
 
@@ -50,8 +51,10 @@ fixes `x`, so does `expI (-η)`, and `moment_expI_neg_smul_apply_pos` rules out 
 fundamental vector field of `η` at `x`. Conversely `expI η` fixes the zeros of the fundamental
 vector field of `η` (`IsComplexifiedAction.expI_smul_smul_eq_self_iff`).
 
-The restriction is smooth in both directions because its composites with the inclusions of the
-closed subgroups are (`TauCeti.Lie.EmbeddedLieSubgroupData.isSmoothEmbedding_subtypeVal`,
+The restriction to the identity components, as a polar decomposition of `Gc₀`, follows
+[GeorgoulasRobbinSalamon2021], proof of Theorem 12.5, Step 1 (arXiv v2). It is smooth in both
+directions because its composites with the inclusions of the closed subgroups are
+(`TauCeti.Lie.EmbeddedLieSubgroupData.isSmoothEmbedding_subtypeVal`,
 `Manifold.IsSmoothEmbedding.contMDiff_iff_comp`). The first coordinate is read in the Lie algebra
 of `G` through the differential at `1` of the inclusion `H₀ → G`, whose range is the isotropy
 algebra (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`); a linear left
@@ -60,7 +63,8 @@ inverse of that differential makes the inverse map smooth in it.
 ## References
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemma 2.3.
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemma 2.3, and the proof of
+  Theorem 12.5, Step 1 (arXiv v2).
 -/
 
 public section
@@ -120,6 +124,7 @@ theorem IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero [T2Space M]
     rw [C.expI_neg, inv_smul_eq_iff.2 hfix.symm, hx, LinearMap.zero_apply] at hpos
     exact lt_irrefl 0 hpos
   · simpa [hu] using h.expI_smul_smul_eq_self_iff.2 hX 1
+
 /-- **The polar decomposition of the stabilizer of a zero of the moment map.** In the setting of
 `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, `C.polar` maps the product of the
 isotropy algebra `𝔤_x` and the stabilizer `G_x` onto the stabilizer `Gc_x`. -/
@@ -193,14 +198,20 @@ noncomputable def IsComplexifiedAction.stabilizerPolar (h : IsComplexifiedAction
     let E₀ := (lieSubalgebraOfSubgroup (I := I) H₀).toSubmodule
     let EC₀ := (lieSubalgebraOfSubgroup (I := IC) Gc₀).toSubmodule
     let _ := (EmbeddedLieSubgroupData.ofIsClosed (I := I)
-      (isClosed_ambientConnectedComponentOfOne_stabilizer I I' (G := G) x)).chartedSpace
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G)
+          x).continuous)).chartedSpace
     let _ := (EmbeddedLieSubgroupData.ofIsClosed (I := IC)
-      (isClosed_ambientConnectedComponentOfOne_stabilizer IC I' (G := Gc) x)).chartedSpace
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc)
+          x).continuous)).chartedSpace
     (E₀ × H₀) ≃ₘ⟮𝓘(ℝ, E₀).prod 𝓘(ℝ, E₀), 𝓘(ℝ, EC₀)⟯ Gc₀ :=
   let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
-    (isClosed_ambientConnectedComponentOfOne_stabilizer I I' (G := G) x)
+    (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+      (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G) x).continuous)
   let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
-    (isClosed_ambientConnectedComponentOfOne_stabilizer IC I' (G := Gc) x)
+    (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+      (ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') (n := ∞) (G := Gc) x).continuous)
   let _ := dH.chartedSpace
   let _ := dK.chartedSpace
   haveI := dH.lieGroup
@@ -256,7 +267,9 @@ theorem IsComplexifiedAction.coe_stabilizerPolar_apply (h : IsComplexifiedAction
     let H₀ := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
     let E₀ := (lieSubalgebraOfSubgroup (I := I) H₀).toSubmodule
     let _ := (EmbeddedLieSubgroupData.ofIsClosed (I := I)
-      (isClosed_ambientConnectedComponentOfOne_stabilizer I I' (G := G) x)).chartedSpace
+      (MulAction.isClosed_ambientConnectedComponentOfOne_stabilizer
+        (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) (G := G)
+          x).continuous)).chartedSpace
     ∀ (ξ : E₀) (u : H₀), (h.stabilizerPolar hμ hg hx (ξ, u) : Gc) =
       C.expI (H₀.subtype.groupLieAlgebraMap 𝓘(ℝ, E₀) I ξ) * C.toHom u := by
   intro H₀ E₀ _ ξ u

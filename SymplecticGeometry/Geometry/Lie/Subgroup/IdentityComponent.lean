@@ -8,7 +8,6 @@ module
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Lie.Subgroup.Torus
-import TauCeti.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 
 /-!
@@ -45,8 +44,6 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
   commutative subgroup is a torus.
 * `TauCeti.Lie.lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne_stabilizer`: `Lie(G_x⁰)` is
   the isotropy algebra.
-* `TauCeti.Lie.isClosed_ambientConnectedComponentOfOne_stabilizer`: for a smooth action on a `T₁`
-  manifold, `G_x⁰` is closed, so that it is a Lie group as a closed subgroup.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.injective_groupLieAlgebraMap_subtype` and
   `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype`: the differential of the
   inclusion of an embedded Lie subgroup is injective, with range its Lie algebra.
@@ -148,26 +145,6 @@ theorem lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne_stabilizer
     lieSubalgebraOfSubgroup_stabilizer (I' := I') h₁ x]
 
 end Stabilizer
-
-section IsClosed
-
-variable [IsTopologicalGroup G]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  {H' : Type*} [TopologicalSpace H'] (I' : ModelWithCorners ℝ E' H')
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [MulAction G M] [T1Space M]
-  [ContMDiffSMul I I' ∞ G M]
-
-omit [FiniteDimensional ℝ E] [LieGroup I ∞ G] [T2Space G] in
-variable (I) in
-include I I' in
-/-- For a smooth action on a `T₁` manifold, the identity component of the stabilizer `G_x` of a
-point is closed in `G`. -/
-theorem isClosed_ambientConnectedComponentOfOne_stabilizer (x : M) :
-    IsClosed ((MulAction.stabilizer G x).ambientConnectedComponentOfOne : Set G) :=
-  Subgroup.isClosed_ambientConnectedComponentOfOne <| isClosed_stabilizer
-    (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
-
-end IsClosed
 
 namespace EmbeddedLieSubgroupData
 
