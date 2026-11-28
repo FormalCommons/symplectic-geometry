@@ -8,6 +8,7 @@ module
 public import Mathlib.AlgebraicTopology.SimplicialSet.Homology.Relative
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RelativeClass
+import SymplecticGeometry.Algebra.Homology.Additive
 import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Basic
 public import TauCeti.Algebra.Homology.HomologicalComplex.Basic
 
@@ -152,6 +153,7 @@ theorem restrictScalarsHomologyMap_def (P : SSetPair.{u}) (n : ℕ) :
           (P.chainComplex N) :=
   (rfl)
 
+open HomologicalComplex in
 /-- The change of coefficients on relative homology sends the class of a relative cycle `z` to
 the restriction of the class of the relative cycle obtained by changing the coefficients of `z`. -/
 @[reassoc]
@@ -160,8 +162,8 @@ theorem homologyπ_restrictScalarsHomologyMap (P : SSetPair.{u}) (n : ℕ) :
       HomologicalComplex.cyclesMap (restrictScalarsChainMap f g P) n ≫
         (((P.chainComplex N).sc n).mapCyclesIso (ModuleCat.restrictScalars f)).hom ≫
           (ModuleCat.restrictScalars f).map ((P.chainComplex N).homologyπ n) := by
-  rw [restrictScalarsHomologyMap_def, HomologicalComplex.homologyπ_naturality_assoc,
-    Functor.homologyπ_comp_mapHomologicalComplexCompHomologyFunctorIso_hom_app]
+  rw [restrictScalarsHomologyMap_def,
+    homologyπ_comp_homologyMap_comp_mapHomologicalComplexCompHomologyFunctorIso_hom_app]
 
 /-- The change of coefficients on relative homology sends the relative class of an
 `(n + 1)`-simplex `s` whose faces lie in the subcomplex, with coefficients in `M`, to the relative
@@ -177,8 +179,9 @@ theorem relClass_restrictScalarsHomologyMap {P : SSetPair.{u}} {n : ℕ} (s : P.
   congr 1
   -- Both sides are maps into the restricted cycles, which `F.map iCycles` detects.
   rw [← cancel_mono ((ModuleCat.restrictScalars f).map ((P.chainComplex N).iCycles (n + 1))),
-    Category.assoc, Category.assoc, Functor.mapCyclesIso_hom_comp_map_iCycles,
-    HomologicalComplex.cyclesMap_i, HomologicalComplex.liftCycles_i_assoc, Category.assoc,
+    Category.assoc, Category.assoc,
+    HomologicalComplex.cyclesMap_comp_mapCyclesIso_hom_comp_map_iCycles,
+    HomologicalComplex.liftCycles_i_assoc, Category.assoc,
     chainComplexπ_f_restrictScalarsChainMap_f, SSet.ιChainComplex_restrictScalarsChainMap_f_assoc,
     Category.assoc g, ← Functor.map_comp, ← Functor.map_comp, HomologicalComplex.liftCycles_i]
 

@@ -9,7 +9,7 @@ public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRingsExact
 public import Mathlib.Algebra.Homology.ShortComplex.ExactFunctor
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Pairing
-import TauCeti.Algebra.Homology.HomologicalComplex.Basic
+import SymplecticGeometry.Algebra.Homology.Additive
 
 /-!
 # Change of coefficients on simplicial chains along restriction of scalars
@@ -138,8 +138,8 @@ theorem restrictScalarsCyclesMap_iCycles (X : SSet.{u}) (n : ℕ) :
     restrictScalarsCyclesMap f g X n ≫
         (ModuleCat.restrictScalars f).map ((X.chainComplex N).iCycles n) =
       (X.chainComplex M).iCycles n ≫ (restrictScalarsChainMap f g X).f n := by
-  rw [restrictScalarsCyclesMap_def, Category.assoc, Functor.mapCyclesIso_hom_comp_map_iCycles,
-    HomologicalComplex.cyclesMap_i]
+  rw [restrictScalarsCyclesMap_def, Category.assoc,
+    HomologicalComplex.cyclesMap_comp_mapCyclesIso_hom_comp_map_iCycles]
 
 section Iso
 

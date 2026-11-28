@@ -360,8 +360,8 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom (p : ℕ)
             (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
               ((P.singularChainComplex (ModuleCat.of k k)).iCycles p ≫ φ) ≫
                 (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
-    rw [Functor.map_comp_assoc, Functor.mapCyclesIso_hom_comp_map_iCycles_assoc,
-      HomologicalComplex.cyclesMap_i_assoc]
+    rw [Functor.map_comp_assoc,
+      HomologicalComplex.cyclesMap_comp_mapCyclesIso_hom_comp_map_iCycles_assoc]
   exact key _
 
 /-! ### Pairings with the class of a singular simplex -/
