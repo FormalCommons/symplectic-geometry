@@ -14,16 +14,28 @@
 # line `user = "<access key>:<secret>"` of a curl config, so that it is in no
 # argument list.
 #
-# The bucket is asked only about the archives that KNOWN does not name: a
-# mappings file is uploaded after its archives, and nothing in the bucket is
-# deleted, so the archives it names are there. Without KNOWN the bucket is
-# asked about every archive, some 1,500 requests, and several such uploads
-# at once were more than Hetzner answers: it sent 503, curl tried again, and
-# uploads stood for 20 minutes on runners that builds were waiting for. If
-# the bucket should ever lose an archive that KNOWN names, a commit's
-# mappings name an archive that is not there, and a build compiles that
-# module. If objects are ever made to expire, this must be thought through
-# again.
+# An archive that the mappings name is in one of three states. KNOWN names
+# it: then it is in the bucket, since a mappings file is uploaded after its
+# archives and nothing in the bucket is deleted. Or it is staged: then it is
+# sent, and the bucket refuses it if it has it (see below). Or neither: then
+# the bucket is asked, and must have it.
+#
+# So the bucket is not asked about an archive that can be sent. It was,
+# until a run handed over the Tau Ceti modules of a move for the first time:
+# 5,829 archives, about each of which the script first asked and which it
+# would then have sent, and it had not finished asking when its ten minutes
+# on a runner were over. (From a machine nearer the bucket the whole upload
+# took three minutes.) Without KNOWN, every staged archive is sent, bodies
+# and all, though the bucket has most; that is rare, and several uploads
+# that each asked about 1,500 archives at once were more than Hetzner
+# answers: it sent 503, curl tried again, and uploads stood for 20 minutes
+# on runners that builds were waiting for. If the bucket should ever lose
+# an archive that KNOWN names, a commit's mappings name an archive that is
+# not there, and a build compiles that module. If objects are ever made to
+# expire, this must be thought through again.
+#
+# The script says how long each part took, so that a slow upload shows
+# where its time went.
 #
 # DIR comes from a build, which ran the code of a pull request, so nothing in
 # it is trusted and nothing from it is run:
@@ -34,10 +46,10 @@
 #   meets one that it must refuse.
 # - The mappings must be lines of the form that Lake writes, and every
 #   archive that they name must be in DIR or already in the bucket.
-# - Nothing in the bucket is replaced. An archive that the bucket has is not
-#   sent, and every upload carries `If-None-Match: *`, which makes the bucket
-#   refuse it (412) if the name is taken, also when two uploads race. A
-#   commit's mappings that are there already stay as they are.
+# - Nothing in the bucket is replaced. Every upload carries
+#   `If-None-Match: *`, which makes the bucket refuse it (412) if the name
+#   is taken, also when two uploads race. A commit's mappings that are there
+#   already stay as they are.
 # - The mappings go last, so that a commit's mappings never name an archive
 #   that is not there.
 #
@@ -88,8 +100,17 @@ if [ -n "$known" ] && [ -f "$known" ]; then
   jq -r -s 'if (.[0] | type == "string") and all(.[1:][]; type == "array" and length == 2 and (.[1] | type == "string" and test("^[0-9a-f]{16}\\.ltar$")))
     then .[1:][] | .[1] | sub("\\.ltar$"; "") else empty end' "$known" 2>/dev/null | sort -u > "$work/known" || : > "$work/known"
 fi
-comm -23 "$work/named" "$work/known" > "$work/ask"
-# Which of the others the bucket has: requests without a key.
+echo "checked ${#files[@]} staged archives and the mappings after ${SECONDS}s"
+# What KNOWN does not name: the staged ones are sent, and the bucket is
+# asked about the others, without a key.
+if [ ${#files[@]} -gt 0 ]; then
+  printf '%s\n' "${files[@]##*/}" | sed 's/\.ltar$//' | sort -u > "$work/staged"
+else
+  : > "$work/staged"
+fi
+comm -23 "$work/named" "$work/known" > "$work/rest"
+comm -12 "$work/rest" "$work/staged" > "$work/send"
+comm -23 "$work/rest" "$work/staged" > "$work/ask"
 while read -r hash; do
   printf 'url = "%s/%s.art"\noutput = "/dev/null"\n' "$artifacts" "$hash"
 done < "$work/ask" > "$work/head.cfg"
@@ -98,20 +119,16 @@ if [ -s "$work/head.cfg" ]; then
     -w '%{http_code} %{url_effective}\n' -K "$work/head.cfg" > "$work/head.out" || fail "could not ask the bucket which archives it has"
 fi
 : >> "$work/head.out"
-have=0 send=0
-: > "$work/put.cfg"
 while read -r code url; do
   hash=${url##*/}; hash=${hash%.art}
   case $code in
-    200) have=$((have + 1)) ;;
-    404)
-      [ -f "$dir/$hash.ltar" ] || fail "the mappings name the archive $hash, which is neither staged nor in the bucket"
-      send=$((send + 1))
-      printf 'upload-file = "%s"\nurl = "%s"\noutput = "/dev/null"\n' "$dir/$hash.ltar" "$url" >> "$work/put.cfg" ;;
+    200) ;;
+    404) fail "the mappings name the archive $hash, which is neither staged nor in the bucket" ;;
     *) fail "the bucket answered $code for an archive" ;;
   esac
 done < "$work/head.out"
-echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(comm -12 "$work/named" "$work/known" | wc -l), asked about: $(wc -l < "$work/ask"), of which there: $have, to upload: $send"
+send=$(wc -l < "$work/send")
+echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(comm -12 "$work/named" "$work/known" | wc -l), asked about and there: $(wc -l < "$work/ask"), to send: $send (after ${SECONDS}s)"
 
 # Hetzner answers 503 to many uploads at once; curl tries those again, and a
 # broken connection too. An answer such as 403 or 412 is no error to curl
@@ -124,15 +141,29 @@ echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(com
 # not reach the bucket costs a later build some compiling, and an upload
 # that hangs costs a runner that a build is waiting for. Two of the first
 # uploads hung for the job's whole 20 minutes.
-if [ "$send" -gt 0 ]; then
-  { printf '%s\n' "$key"; cat "$work/put.cfg"; } |
+#
+# The archives go a thousand at a time, and the script says so after each
+# thousand.
+: > "$work/put.out"
+split -l 1000 -d -a 4 "$work/send" "$work/send."
+sent=0
+for part in "$work"/send.[0-9]*; do
+  [ -s "$part" ] || continue
+  { printf '%s\n' "$key"
+    while read -r hash; do
+      printf 'upload-file = "%s"\nurl = "%s/%s.art"\noutput = "/dev/null"\n' "$dir/$hash.ltar" "$artifacts" "$hash"
+    done < "$part"; } |
     curl -q -sS -Z --parallel-max 16 --retry 4 --retry-all-errors --retry-max-time 90 --max-time 120 -w '%{http_code}\n' \
       --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.artifact' \
-      -H 'If-None-Match: *' -K - > "$work/put.out" || fail "could not upload the archives"
+      -H 'If-None-Match: *' -K - >> "$work/put.out" || fail "could not upload the archives"
   if grep -qvE '^(200|412)$' "$work/put.out"; then
     fail "the bucket answered $(grep -vE '^(200|412)$' "$work/put.out" | sort | uniq -c | tr '\n' ' ') to uploads of archives"
   fi
-fi
+  sent=$((sent + $(wc -l < "$part")))
+  echo "sent $sent of $send archives after ${SECONDS}s"
+done
+[ "$send" -eq 0 ] ||
+  echo "of the $send archives sent, the bucket took $(grep -c '^200$' "$work/put.out") and had $(grep -c '^412$' "$work/put.out") already"
 code=$(printf '%s\n' "$key" |
   curl -q -sS --retry 4 --retry-all-errors --retry-max-time 60 --max-time 60 -o /dev/null -w '%{http_code}' \
     --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.outputs+json-lines' \
