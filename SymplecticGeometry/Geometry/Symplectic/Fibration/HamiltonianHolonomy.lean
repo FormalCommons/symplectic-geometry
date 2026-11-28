@@ -13,6 +13,9 @@ import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Symplectic.Flux.Family
+import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 
 /-!
 # Hamiltonian holonomy and Hamiltonian curvature
@@ -75,6 +78,11 @@ curvature of [McDuffSalamon2017] is its negative.
   `TauCeti.IsEhresmannConnection`:
   the variation of holonomy through the curvature, the period of `ι(X_s)σ` along `c` as the
   integral of `τ(Ω(∂ₛΔ, ∂ₜΔ), ∂_θC)` over `[0, 1]²`.
+* `HasHamiltonianDiscHolonomy.isHamiltonian_holonomyDiffeotopy`, in the namespace
+  `TauCeti.IsEhresmannConnection`: when the holonomy around discs is Hamiltonian for a closed `σ`
+  on a compact fibre, the holonomy diffeotopy is Hamiltonian, since each of its slices is the
+  holonomy of a loop that bounds a disc; so each `ι(X_s)σ` is exact and its periods vanish
+  (`HasHamiltonianDiscHolonomy.pathIntegral_interiorₗ_velocity_holonomyDiffeotopy_eq_zero`).
 
 ## References
 
@@ -393,6 +401,40 @@ theorem period_interior_velocity_holonomyDiffeotopy_eq_integral_curvatureTensor
   rw [integral_mpullback_mextDeriv_transportedCylinder_eq_neg hτD hτv hA.contMDiff_proj hfp
     (hA.contMDiffOn_trivAt_symm b) hΔ.contMDiff hc hcp
     ((congrArg (· ∈ (A.trivAt b).baseSet) (hΔ.apply_seam s)).mpr hx), neg_neg]
+
+/-- **Hamiltonian disc holonomy makes the holonomy diffeotopy Hamiltonian.** Let `D` be a smooth
+Ehresmann connection on a proper map with a smooth atlas `A` and a compact model fibre `F`, whose
+holonomy around discs is Hamiltonian for a closed two-form `σ` on `F`. Then the holonomy
+diffeotopy of a smooth disc `Δ` with centre `x` in the base set of a chart `A.trivAt b`, read in
+that chart, is a Hamiltonian diffeotopy of `σ`. -/
+theorem HasHamiltonianDiscHolonomy.isHamiltonian_holonomyDiffeotopy [CompactSpace F]
+    {σ : SmoothTwoForm IF F} (hH : hD.HasHamiltonianDiscHolonomy A σ) (hσ : σ.IsClosed)
+    (hfp : IsProperMap proj) (hA : A.IsContMDiff ∞ IB IF IM) (hΔ : IsSmoothDisc IB γ Δ)
+    (hx : x ∈ (A.trivAt b).baseSet) :
+    (hD.holonomyDiffeotopy hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b)
+      (hA.contMDiffOn_trivAt_symm b) hΔ hx).IsHamiltonian σ := by
+  refine Diffeotopy.isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup
+    (σ := ⟨σ, hσ.mem_closedForms⟩) fun s ↦ ?_
+  -- Each slice is the holonomy of the loop `t ↦ Δ (s, t)`, which bounds a smooth disc.
+  rw [timeSlice_holonomyDiffeotopy]
+  exact (hasHamiltonianDiscHolonomy_iff hfp hA).1 hH _
+    (SymplecticGeometry.BoundsSmoothDisc.of_isSmoothDisc_slice hΔ s) b
+    ((hΔ.apply_seam s).symm ▸ hx)
+
+/-- **Hamiltonian disc holonomy kills the periods of the holonomy velocity.** In the setting of
+`HasHamiltonianDiscHolonomy.isHamiltonian_holonomyDiffeotopy`, for every time `s` and every `C¹`
+curve `c` in `F` with `c 0 = c 1`, the line integral from `0` to `1` along `c` of the contraction
+`ι_{X_s} σ` of `σ` with the velocity `X_s` of the holonomy diffeotopy vanishes. -/
+theorem HasHamiltonianDiscHolonomy.pathIntegral_interiorₗ_velocity_holonomyDiffeotopy_eq_zero
+    [CompactSpace F] {σ : SmoothTwoForm IF F} (hH : hD.HasHamiltonianDiscHolonomy A σ)
+    (hσ : σ.IsClosed) (hfp : IsProperMap proj) (hA : A.IsContMDiff ∞ IB IF IM)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ (A.trivAt b).baseSet) (s : unitInterval)
+    (hc : ContMDiff 𝓘(ℝ, ℝ) IF 1 c) (hc₀₁ : c 0 = c 1) :
+    pathIntegral (σ.interiorₗ ((hD.holonomyDiffeotopy hA.contMDiff_proj hfp
+        (hA.contMDiffOn_trivAt b) (hA.contMDiffOn_trivAt_symm b) hΔ hx).smoothVelocity s)).val
+        c 0 1 = 0 :=
+  (hH.isHamiltonian_holonomyDiffeotopy hσ hfp hA hΔ hx).pathIntegral_interiorₗ_velocity_eq_zero s
+    hc hc₀₁
 
 end IsEhresmannConnection
 

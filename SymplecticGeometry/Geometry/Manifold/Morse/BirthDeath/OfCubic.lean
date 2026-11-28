@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath.Basic
 import SymplecticGeometry.Analysis.Calculus.Morse.BirthDeathNormalForm
+import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath.Derivatives
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 
 /-!
@@ -17,13 +18,18 @@ the preferred chart at `x` as `F = f ∘ (extChartAt 𝓘(ℝ, E) x).symm` near
 `u = extChartAt 𝓘(ℝ, E) x x`. If `u` is a critical point of `F`, the kernel of the Hessian of `F`
 at `u` is a line `ℝ ∙ e`, and the third derivative `D³F(u)(e, e, e)` is nonzero, then `x` is the
 centre of a birth–death chart of `f`
-(`TauCeti.nonempty_birthDeathChart_of_ker_eq_span_singleton`).
+(`TauCeti.nonempty_birthDeathChart_of_ker_eq_span_singleton`). With the converse,
+`TauCeti.BirthDeathChart.exists_ker_fderiv_fderiv_eq_span_singleton`, these three conditions
+characterize the centres of birth–death charts (`TauCeti.nonempty_birthDeathChart_iff`).
 
 ## Main results
 
 * `TauCeti.nonempty_birthDeathChart_of_ker_eq_span_singleton`: a critical point whose Hessian
   has a one-dimensional kernel along which the cubic term does not vanish has a birth–death
   chart.
+* `TauCeti.nonempty_birthDeathChart_iff`: `f` has a birth–death chart at `x` if and only if `u`
+  is a critical point of `F`, the Hessian of `F` at `u` has a line `ℝ ∙ e` as kernel, and
+  `D³F(u)(e, e, e) ≠ 0`.
 
 ## Implementation notes
 
@@ -155,5 +161,21 @@ theorem nonempty_birthDeathChart_of_ker_eq_span_singleton
       | zero => exact absurd (by simp [i₀, ← h]) hi
       | succ j => rw [Fin.cons_succ]; rcases hσ j with h | h <;> simp [h]
     eq_add := fun y ↦ by simp }⟩
+
+/-- **Birth–death charts are recognized by the first three derivatives.** Let `f` be smooth near
+`x`, on a manifold modelled on a finite-dimensional real normed space `E`, and read it in the
+preferred chart at `x` as `F = f ∘ (extChartAt 𝓘(ℝ, E) x).symm` near
+`u = extChartAt 𝓘(ℝ, E) x x`. Then `f` has a birth–death chart at `x` if and only if `u` is a
+critical point of `F` and the kernel of the Hessian `D²F(u)` is the line spanned by a nonzero
+vector `e` with `D³F(u)(e, e, e) ≠ 0`. -/
+theorem nonempty_birthDeathChart_iff (hf : ∀ᶠ y in 𝓝 x, ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) ∞ f y) :
+    Nonempty (BirthDeathChart E f x) ↔ ∃ e : E, e ≠ 0 ∧
+      fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) x).symm) (extChartAt 𝓘(ℝ, E) x x) = 0 ∧
+      (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) x).symm)) (extChartAt 𝓘(ℝ, E) x x)).ker =
+        ℝ ∙ e ∧
+      fderiv ℝ (fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) x).symm)))
+        (extChartAt 𝓘(ℝ, E) x x) e e e ≠ 0 :=
+  ⟨fun ⟨φ⟩ ↦ φ.exists_ker_fderiv_fderiv_eq_span_singleton,
+    fun ⟨_, _, hc, hker, h3⟩ ↦ nonempty_birthDeathChart_of_ker_eq_span_singleton hf hc hker h3⟩
 
 end TauCeti
