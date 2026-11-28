@@ -246,8 +246,9 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
 
 - `TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint`: for
   pairwise disjoint open `V i ⊆ B`, the map over `⋃ i, V i` is bijective if
-  it is over each `V i`, by `TauCeti.isLimitFanSingularCohomology` and its
-  relative form, and the compatibility of the restriction maps with the
+  it is over each `V i`, by `TauCeti.isLimitFanSingularCohomologyOpens` and
+  `TauCeti.TopPair.isLimitFanSingularCohomologyOfIsColimit`, and the
+  compatibility of the restriction maps with the
   product decompositions;
 - `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`:
   the same for the vanishing of the relative homology of the pair over

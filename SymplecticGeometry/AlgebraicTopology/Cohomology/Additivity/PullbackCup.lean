@@ -8,7 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Cup.Pullback
 public import TauCeti.AlgebraicTopology.Singular.Additivity
-import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.Opens
+import TauCeti.AlgebraicTopology.Cohomology.Additivity.Basic
 import SymplecticGeometry.Topology.Homeomorph.Sigma
 
 /-!
@@ -26,7 +26,7 @@ Milnor and Stasheff.
 The union `⋃ i, V i` is the disjoint union of the `V i`, and the pair over it is the disjoint union
 of the pairs over the `V i`, since their preimages are again disjoint and open
 (`Set.isHomeomorph_sigma_inclusion`, `TopCat.isColimitCofanPreimagePairIUnion`). Singular
-cohomology carries these disjoint unions to products (`TauCeti.isLimitFanSingularCohomologyIUnion`
+cohomology carries these disjoint unions to products (`TauCeti.isLimitFanSingularCohomologyOpens`
 and Tau Ceti's `TauCeti.TopPair.isLimitFanSingularCohomologyOfIsColimit`), and the map over the
 union is compatible with the restrictions to the `V i` (`TopCat.pullbackCupRestrict_naturality`).
 So it is the product of the maps over the `V i`, which are isomorphisms. Tau Ceti's
@@ -55,7 +55,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory Limits Set Function
+open CategoryTheory Limits Set Function TopologicalSpace
 
 universe w
 
@@ -64,23 +64,23 @@ namespace TopCat
 variable {K : Type w} [CommRing K] {X Y : TopCat.{w}} (π : X ⟶ Y) (Z : Set X)
   (M : ModuleCat.{w} K)
 
-/-- For a map `π : X ⟶ Y` and `Z ⊆ X`, the pair `(π⁻¹ W, π⁻¹ W ∩ Z)` over the union `W` of
-pairwise disjoint open sets `V i` of `Y` is the coproduct in `TopPair` of the pairs
+/-- For a map `π : X ⟶ Y` and `Z ⊆ X`, the pair `(π⁻¹ W, π⁻¹ W ∩ Z)` over a set `W` that is the
+union of pairwise disjoint open sets `V i` of `Y` is the coproduct in `TopPair` of the pairs
 `(π⁻¹ (V i), π⁻¹ (V i) ∩ Z)`, with the inclusions as the cofan legs. -/
 def isColimitCofanPreimagePairIUnion {ι : Type w} {V : ι → Set Y} (hV : ∀ i, IsOpen (V i))
-    (hd : Pairwise (Disjoint on V)) :
+    (hd : Pairwise (Disjoint on V)) {W : Set Y} (hVW : ∀ i, V i ⊆ W) (hW : W ⊆ ⋃ i, V i) :
     IsColimit (Cofan.mk (TopPair.ofInclusion
-        (inter_subset_left : π ⁻¹' (⋃ i, V i) ∩ Z ⊆ π ⁻¹' (⋃ i, V i)))
+        (inter_subset_left : π ⁻¹' W ∩ Z ⊆ π ⁻¹' W))
       fun i ↦ TopPair.ofInclusionMap (inter_subset_left : π ⁻¹' V i ∩ Z ⊆ π ⁻¹' V i)
-        inter_subset_left (ContinuousMap.inclusion (preimage_mono (subset_iUnion V i)))
-        fun _ hx ↦ ⟨mem_iUnion_of_mem i hx.1, hx.2⟩) := by
+        inter_subset_left (ContinuousMap.inclusion (preimage_mono (hVW i)))
+        fun _ hx ↦ ⟨hVW i hx.1, hx.2⟩) := by
   refine TopPair.isColimitCofanOfIsHomeomorph _ ?_ fun y ↦ ?_
   · refine (congrArg IsHomeomorph (funext fun x : Σ i, ↥(π ⁻¹' V i) ↦
       TopPair.ofInclusionMap_fst_apply _ _ x.2)).mpr ?_
     exact isHomeomorph_sigma_inclusion (fun i ↦ (hV i).preimage π.hom.continuous)
-      (fun _ _ hij ↦ (hd hij).preimage π) (fun i ↦ preimage_mono (subset_iUnion V i))
-      (preimage_iUnion (f := π)).subset
-  · obtain ⟨i, hi⟩ := mem_iUnion.1 y.property.1
+      (fun _ _ hij ↦ (hd hij).preimage π) (fun i ↦ preimage_mono (hVW i))
+      ((preimage_mono hW).trans (preimage_iUnion (f := π)).subset)
+  · obtain ⟨i, hi⟩ := mem_iUnion.1 (hW y.property.1)
     exact ⟨i, ⟨y.val, hi, y.property.2⟩, TopPair.ofInclusionMap_fst_apply _ _ _⟩
 
 /-- **Vanishing of relative homology over disjoint open sets.** For a map `π : X ⟶ Y`, `Z ⊆ X`
@@ -99,7 +99,8 @@ theorem isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint {C : Type
   exact (TopPair.isColimitCofanSingularHomologyOfIsColimit C R n
     (isColimitCofanPreimagePairIUnion π Z (V := ((↑) : range V → Set Y))
       (fun s ↦ by obtain ⟨_, i, rfl⟩ := s; exact hV i)
-      ((pairwise_subtype_iff_pairwise_set _ _).2 hd.range_pairwise))).isZero_pt
+      ((pairwise_subtype_iff_pairwise_set _ _).2 hd.range_pairwise)
+      (subset_iUnion _) subset_rfl)).isZero_pt
     (Functor.isZero _ fun ⟨⟨_, i, rfl⟩⟩ ↦ hn i)
 
 /-- The main result below, for an index type in the universe of the spaces. -/
@@ -108,28 +109,33 @@ private theorem bijective_pullbackCupRestrict_iUnion_aux {ι : Type w} {V : ι �
     (u : (TopPair.ofSubset Z).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) n)
     (hu : ∀ i, Bijective (pullbackCupRestrict π Z M (V i) n p m h u)) :
     Bijective (pullbackCupRestrict π Z M (⋃ i, V i) n p m h u) := by
+  -- Tau Ceti's additivity is stated for a family of opens; their supremum is `⋃ i, V i`.
+  let s : ι → Opens Y := fun i ↦ ⟨V i, hV i⟩
+  have hs : ((⨆ i, s i : Opens Y) : Set Y) = ⋃ i, V i := Opens.coe_iSup s
+  rw [← hs]
   -- Both sides are products over `ι`, and the maps over the `V i` form an isomorphism of the
   -- diagrams.
-  have hA := TauCeti.isLimitFanSingularCohomologyIUnion (ModuleCat.{w} K) (ModuleCat.of K K) K M
-    hV hd p
+  have hA := TauCeti.isLimitFanSingularCohomologyOpens (ModuleCat.{w} K) (ModuleCat.of K K) K M s
+    (fun _ _ hij ↦ Opens.coe_disjoint.1 (hd hij)) p
   have hB := TauCeti.TopPair.isLimitFanSingularCohomologyOfIsColimit (ModuleCat.{w} K)
-    (ModuleCat.of K K) K M (isColimitCofanPreimagePairIUnion π Z hV hd) m
-  let α : Discrete.functor (fun i ↦ (of (V i)).singularCohomology (ModuleCat.of K K) K M p) ≅
+    (ModuleCat.of K K) K M
+    (isColimitCofanPreimagePairIUnion π Z hV hd (fun i ↦ le_iSup s i) hs.subset) m
+  let α : Discrete.functor (fun i ↦ (of (s i)).singularCohomology (ModuleCat.of K K) K M p) ≅
       Discrete.functor fun i ↦ (TopPair.ofInclusion (inter_subset_left :
         π ⁻¹' V i ∩ Z ⊆ π ⁻¹' V i)).singularCohomology (ModuleCat.of K K) K M m :=
     Discrete.natIso fun i ↦ (LinearEquiv.ofBijective _ (hu i.as)).toModuleIso
   have hA' := (IsLimit.postcomposeHomEquiv α _).symm hA
   -- The map over the union is the comparison of the two limits, by naturality in the subset.
-  have he : ModuleCat.ofHom (pullbackCupRestrict π Z M (⋃ i, V i) n p m h u) =
+  have he : ModuleCat.ofHom (pullbackCupRestrict π Z M (⨆ i, s i : Opens Y) n p m h u) =
       (hA'.conePointUniqueUpToIso hB).hom := hB.hom_ext fun i ↦ by
     rw [IsLimit.conePointUniqueUpToIso_hom_comp]
     ext a
-    exact (pullbackCupRestrict_naturality π Z M (subset_iUnion V i.as) h u a).symm
-  have : IsIso (ModuleCat.ofHom (pullbackCupRestrict π Z M (⋃ i, V i) n p m h u)) := by
+    exact (pullbackCupRestrict_naturality π Z M (le_iSup s i.as) h u a).symm
+  have : IsIso (ModuleCat.ofHom (pullbackCupRestrict π Z M (⨆ i, s i : Opens Y) n p m h u)) := by
     rw [he]
     infer_instance
   exact ConcreteCategory.bijective_of_isIso
-    (ModuleCat.ofHom (pullbackCupRestrict π Z M (⋃ i, V i) n p m h u))
+    (ModuleCat.ofHom (pullbackCupRestrict π Z M (⨆ i, s i : Opens Y) n p m h u))
 
 /-- **Additivity of `a ↦ π^*a ⌣ u` over disjoint open sets.** Let `π : X ⟶ Y` be a map, `Z ⊆ X`,
 `u ∈ Hⁿ(X, Z; K)`, and let `V i` be pairwise disjoint open subsets of `Y`, indexed by any type. If

@@ -5,8 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Geometry.Manifold.ContMDiffMap
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
+import TauCeti.Geometry.Manifold.ContMDiff.Log
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 
 /-!
 # Smoothness of the norm of a section of a Riemannian bundle
@@ -15,6 +19,10 @@ For a `C^n` Riemannian metric on a vector bundle `E`, Mathlib's `ContMDiffWithin
 says that the inner product of two `C^n` maps into the total space over a common base map is
 `C^n`. This file deduces that the norm `‖v m‖` of such a map is `C^n` where `v` does not vanish
 (`ContMDiffWithinAt.norm_bundle` and its variants), as the square root of `⟪v m, v m⟫`.
+
+For a `C^n` section `t` of such a bundle, the points where `t` does not vanish form an open set
+`Bundle.nonzeroOpens ht`, and `y ↦ log ‖t y‖²` is a `C^n` function on it, `Bundle.logNormSq ht`,
+since the square norm is `C^n` (Tau Ceti's `TauCeti.contMDiff_norm_sq_bundle`).
 -/
 
 public section
@@ -66,3 +74,47 @@ theorem ContMDiff.norm_bundle
     (h : ∀ x, v x ≠ 0) :
     ContMDiff IM 𝓘(ℝ) n (fun m ↦ ‖v m‖) :=
   fun x ↦ (hv x).norm_bundle (h x)
+
+namespace Bundle
+
+variable {t : Π y, E y}
+
+/-- The open set of the points where a `C^n` section `t` of a Riemannian bundle does not
+vanish. -/
+def nonzeroOpens (ht : ContMDiff IB (IB.prod 𝓘(ℝ, F)) n fun y ↦ TotalSpace.mk' F y (t y)) :
+    TopologicalSpace.Opens B :=
+  ⟨{y | t y ≠ 0}, by
+    have h : Continuous fun y ↦ ‖t y‖ ^ 2 :=
+      ((TauCeti.contMDiff_norm_sq_bundle IB n F E).comp ht).continuous
+    simpa only [ne_eq, pow_eq_zero_iff two_ne_zero, norm_eq_zero] using
+      isOpen_ne_fun h (continuous_const (y := (0 : ℝ)))⟩
+
+@[simp]
+theorem mem_nonzeroOpens
+    {ht : ContMDiff IB (IB.prod 𝓘(ℝ, F)) n fun y ↦ TotalSpace.mk' F y (t y)} {y : B} :
+    y ∈ nonzeroOpens ht ↔ t y ≠ 0 :=
+  Iff.rfl
+
+/-- For a `C^n` section `t` of a Riemannian bundle, the function `y ↦ log ‖t y‖²` as a `C^n`
+function on the open set `nonzeroOpens ht` where `t` does not vanish. -/
+noncomputable def logNormSq
+    (ht : ContMDiff IB (IB.prod 𝓘(ℝ, F)) n fun y ↦ TotalSpace.mk' F y (t y)) :
+    C^n⟮IB, nonzeroOpens ht; 𝓘(ℝ), ℝ⟯ :=
+  ⟨fun y ↦ Real.log (‖t y‖ ^ 2),
+    (((TauCeti.contMDiff_norm_sq_bundle IB n F E).comp ht).comp contMDiff_subtypeVal).log
+      fun y ↦ pow_ne_zero 2 (norm_ne_zero_iff.2 y.property)⟩
+
+@[simp]
+theorem logNormSq_apply
+    (ht : ContMDiff IB (IB.prod 𝓘(ℝ, F)) n fun y ↦ TotalSpace.mk' F y (t y))
+    (y : nonzeroOpens ht) :
+    logNormSq ht y = Real.log (‖t y‖ ^ 2) :=
+  (rfl)
+
+/-- `logNormSq ht` is the restriction of `y ↦ log ‖t y‖²` to `nonzeroOpens ht`. -/
+theorem coe_logNormSq
+    (ht : ContMDiff IB (IB.prod 𝓘(ℝ, F)) n fun y ↦ TotalSpace.mk' F y (t y)) :
+    ⇑(logNormSq ht) = (fun y ↦ Real.log (‖t y‖ ^ 2)) ∘ Subtype.val :=
+  funext fun y ↦ logNormSq_apply ht y
+
+end Bundle
