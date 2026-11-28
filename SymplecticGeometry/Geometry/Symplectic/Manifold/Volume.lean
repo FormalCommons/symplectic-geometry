@@ -41,6 +41,8 @@ this is the outward-normal orientation.
   Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_ofTopForm`, stated for
   `volumeOrientation`, which equals Tau Ceti's `IsNondegenerate.orientation` by
   `volumeOrientation_eq_orientation`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_of_isPositive`: on a surface, an
+  orientation for which `σ` is positive is the symplectic orientation of `σ`.
 * `Orientation.volumeOrientation_sphereVolumeForm`: the symplectic orientation of the volume form
   of the unit two-sphere is its outward-normal orientation.
 
@@ -104,6 +106,15 @@ theorem IsNondegenerate.volumeOrientation_eq_ofTopForm (h : σ.IsNondegenerate)
       (σ.isSmoothForm.of_le zero_le)
       (fun x ↦ by simpa using h.volumeForm_apply_ne_zero (n := 1) hE x) :=
   (h.volumeOrientation_eq_orientation hE).trans (h.orientation_eq_ofTopForm hE)
+
+/-- On a manifold modelled on a plane, if a fiberwise nondegenerate two-form `σ` is positive for
+an orientation `o`, then `o` is the symplectic orientation of `σ`. -/
+theorem IsNondegenerate.volumeOrientation_eq_of_isPositive (h : σ.IsNondegenerate)
+    (hE : finrank ℝ E = 2) {o : Manifold.Orientation I M (Fin 2)} (ho : o.IsPositive σ.val) :
+    h.volumeOrientation (n := 1) hE = o := by
+  have hv := h.isPositive_volumeForm (n := 1) hE
+  rw [volumeForm_one] at hv
+  exact hv.eq ho
 
 end SmoothTwoForm
 
