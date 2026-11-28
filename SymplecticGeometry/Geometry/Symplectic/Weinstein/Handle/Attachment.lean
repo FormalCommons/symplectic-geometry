@@ -68,6 +68,12 @@ with `s` in `tsupport μ` and `y` on `g ⁻¹' {0}`, which is inside the open se
 `g ⁻¹' {0}`. There `τ` is built from the smooth crossing times and crossing point of fact (4), so
 `τ` is smooth everywhere.
 
+Along the orbit of a point `y` of `g ⁻¹' {0}`, `τ` is `t ↦ T y * μ t`, so its derivative along
+`X` there is `T y * μ'`; with `T` bounded by `T₀` and `-1 < T₀ * μ'`, this gives `0 < 1 + dτ(X)`,
+the condition under which the time change by `τ` is a diffeomorphism
+(`TauCeti.globalFlowTimeChangeDiffeomorph`). Where `τ` is not differentiable, `dτ` is `0`, so the
+inequality needs no smoothness of `τ`.
+
 ## Main definitions
 
 * `SymplecticGeometry.IsWeinsteinStructure.attachmentTime`: the time function `τ`.
@@ -90,6 +96,9 @@ with `s` in `tsupport μ` and `y` on `g ⁻¹' {0}`, which is inside the open se
 * `SymplecticGeometry.IsWeinsteinStructure.hasCompactSupport_attachmentTime`,
   `SymplecticGeometry.IsWeinsteinStructure.contMDiff_attachmentTime`: `τ` has compact support and
   is smooth, for a compact level `g ⁻¹' {0}` and a smooth bump `μ` with compact support.
+* `SymplecticGeometry.IsWeinsteinStructure.one_add_mvfderiv_attachmentTime_pos`:
+  `0 < 1 + dτ(X)` everywhere, for a bump `μ` with `-1 < T₀ * μ'`, `T₀` bounding the time from
+  `g ⁻¹' {0}` to `f ⁻¹' {b}`.
 
 ## References
 
@@ -373,6 +382,51 @@ theorem contMDiff_attachmentTime (hb : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f b
   refine contMDiff_of_tsupport fun x hx ↦ hon.contMDiffAt (hU.mem_nhds ?_)
   obtain ⟨⟨s, y⟩, ⟨-, hy⟩, rfl⟩ := hW.tsupport_attachmentTime_subset hgc hμc hx
   exact ⟨-s, by simpa only [Flow.map_neg_apply_map, mem_preimage, mem_singleton_iff] using hy⟩
+
+/-- **The time change of the attachment moves forward along each orbit.** Let `g` be
+differentiable with `dg(X) > 0` on `g ⁻¹' {0}`, let the time `T y` from each point `y` of
+`g ⁻¹' {0}` to the level `f ⁻¹' {b}` lie in `[0, T₀]`, and let the bump `μ` be differentiable with
+`-1 < T₀ * μ' s` for every `s`. Then `τ = hW.attachmentTime g b μ` satisfies `0 < 1 + dτ(X)` at
+every point. -/
+theorem one_add_mvfderiv_attachmentTime_pos (hg : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) g)
+    (hgX : ∀ y, g y = 0 → 0 < mvfderiv 𝓘(ℝ, E) g y (X y)) {T₀ : ℝ}
+    (hT : ∀ y, g y = 0 → Flow.levelCrossingTime hW.flow f b y ∈ Icc 0 T₀)
+    (hμ : Differentiable ℝ μ) (hμT : ∀ s, -1 < T₀ * deriv μ s) (x : M) :
+    0 < 1 + mvfderiv 𝓘(ℝ, E) (hW.attachmentTime g b μ) x (X x) := by
+  by_cases hd : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) (hW.attachmentTime g b μ) x
+  swap
+  · simp [mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hd)]
+  -- `dτ(X)` at `x` is the derivative of `τ` along the orbit of `x` at time `0`.
+  have hτ : HasDerivAt (hW.attachmentTime g b μ ∘ fun t ↦ hW.flow t x)
+      (mvfderiv 𝓘(ℝ, E) (hW.attachmentTime g b μ) x (X x)) 0 := by
+    have hc := Manifold.hasDerivAt_comp_curve
+      (γ := fun t ↦ hW.flow t x) (by rwa [Flow.map_zero_apply]) (hW.isMIntegralCurve_flow x 0)
+    beta_reduce at hc
+    rwa [Flow.map_zero_apply] at hc
+  by_cases h : ∃ t, g (hW.flow t x) = 0
+  swap
+  · -- Off the orbits of `g ⁻¹' {0}`, `τ` vanishes along the whole orbit of `x`.
+    have h0 : (hW.attachmentTime g b μ ∘ fun t ↦ hW.flow t x) = fun _ ↦ 0 := by
+      ext t
+      refine hW.attachmentTime_of_forall_ne fun s hs ↦ h ⟨s + t, ?_⟩
+      rwa [Flow.map_add]
+    rw [h0] at hτ
+    rw [hτ.unique (hasDerivAt_const 0 0)]
+    simp
+  -- Otherwise `y = Φ c x` lies on `g ⁻¹' {0}`, and `τ (Φ t x) = T y * μ (t - c)`.
+  set c := Flow.levelCrossingTime hW.flow g 0 x
+  have hy := Flow.apply_flow_levelCrossingTime h
+  have heq : (hW.attachmentTime g b μ ∘ fun t ↦ hW.flow t x) =
+      fun t ↦ Flow.levelCrossingTime hW.flow f b (hW.flow c x) * μ (t + -c) := by
+    ext t
+    rw [Function.comp_apply, ← hW.attachmentTime_flow_apply hg hgX hy, ← Flow.map_add,
+      neg_add_cancel_right]
+  rw [heq] at hτ
+  rw [hτ.unique ((((hμ _).hasDerivAt).comp_add_const 0 (-c)).const_mul _), zero_add]
+  obtain ⟨h0, hT₀⟩ := hT _ hy
+  rcases le_total 0 (deriv μ (-c)) with hμc | hμc
+  · nlinarith [hμT (-c)]
+  · nlinarith [hμT (-c)]
 
 end IsWeinsteinStructure
 

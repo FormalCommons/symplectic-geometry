@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 import Mathlib.Analysis.Normed.Operator.Mul
+import SymplecticGeometry.Geometry.Manifold.Algebra.Inv
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
@@ -227,8 +228,7 @@ theorem contMDiff_congrModelHomeomorph_symm (e : ∀ x, E x ≃L[𝕜'] E' x)
     (hs' a (mem_baseSet_trivializationAt G E a) (mem_baseSet_trivializationAt G' E' a)).1
   -- In the charts at `a`, the inverse is multiplication by the inverse factor.
   refine ⟨fun x ↦ ContinuousLinearMap.mul 𝕜 𝕜' (s x)⁻¹,
-    (ContinuousLinearMap.mul 𝕜 𝕜').contMDiff.contMDiffAt.comp a
-      ((contDiffAt_inv 𝕜 hsa).contMDiffAt.comp a hs), ?_⟩
+    (ContinuousLinearMap.mul 𝕜 𝕜').contMDiff.contMDiffAt.comp a (hs.inv₀ hsa), ?_⟩
   rintro x ⟨hx', hx⟩ w
   simp only [trivializationAt_eq, trivialization_baseSet] at hx hx' ⊢
   obtain ⟨h0, hmul⟩ := hs' x hx hx'

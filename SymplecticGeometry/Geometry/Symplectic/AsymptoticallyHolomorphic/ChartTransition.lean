@@ -823,8 +823,8 @@ private theorem contDiff_koszulRHS : ContDiff ℝ ∞ (koszulRHS (ι := ι)) := 
   fun_prop
 
 /-- **Uniform bounds on the derivatives of the transitions.** On a boundaryless manifold, if `σ` is
-compatible with `J`, then for every order `r` and every bound `B` there is a constant `C` with the
-following property: for all `k ≥ k₀`, all points `x` and `y` and every `w` in
+compatible with `J`, then for every order `r` and every bound `B` there is a constant `C ≥ 0` with
+the following property: for all `k ≥ k₀`, all points `x` and `y` and every `w` in
 `D.chartTransitionDomain k x y` at which the derivative of the transition `τ` from the chart
 centred at `y` to the chart centred at `x` has norm at most `B`, the `j`-th iterated derivative of
 `τ` at `w` has norm at most `C` for all `1 ≤ j ≤ r`.
@@ -836,7 +836,7 @@ balls of radius `ρ₀ * √k`
 `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq` applies. -/
 theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
     (hJ : σ.Compatible J) (r : ℕ) (B : ℝ) :
-    ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ {x y : M} {w : StdSpace ι},
       w ∈ D.chartTransitionDomain k x y → ‖fderiv ℝ (D.chartTransition k x y) w‖ ≤ B →
       ∀ j, 1 ≤ j → j ≤ r → ‖iteratedFDeriv ℝ j (D.chartTransition k x y) w‖ ≤ C := by
   obtain ⟨CΓ, hCΓ⟩ :=
@@ -854,7 +854,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
   obtain ⟨K, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq (r := r)
     ((contDiff_koszulRHS (ι := ι)).of_le (by simp))
     (hRc.prod (hRc.prod hRc)) R
-  refine ⟨K, fun {k} hk x y w hw hB j hj₁ hj ↦ ?_⟩
+  refine ⟨max K 0, le_max_right _ _, fun {k} hk x y w hw hB j hj₁ hj ↦ ?_⟩
   obtain ⟨hwB, hws, hτB⟩ := D.mem_chartTransitionDomain_iff.1 hw
   have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hws).1
   have hτt : D.chartTransition k x y w ∈ (D.chart k x).target := by
@@ -872,7 +872,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
     calc _ ≤ CΓ * (√k)⁻¹ := hCΓ i hi k hk x' w hw
       _ ≤ |CΓ| * 1 := by gcongr; exact le_abs_self _
       _ ≤ R := by rw [mul_one]; exact le_max_left _ _
-  refine hK (τ := D.chartTransition k x y)
+  refine (hK (τ := D.chartTransition k x y)
     (a := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y))
     (b := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) (w₀ := w)
     (D.contDiffAt_chartTransition hws)
@@ -880,7 +880,8 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_le [I.Boundaryless]
       ((D.chart k y).open_target.mem_nhds hwt)).of_le (by simp))
     (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k x).contDiffAt
       ((D.chart k x).open_target.mem_nhds hτt)).of_le (by simp))
-    ?_ ?_ (fun i _ hi ↦ hΓ y hwB i hi) (fun i _ hi ↦ hΓ x hτB i hi) j hj₁ (by omega)
+    ?_ ?_ (fun i _ hi ↦ hΓ y hwB i hi) (fun i _ hi ↦ hΓ x hτB i hi) j hj₁ (by omega)).trans
+    (le_max_left _ _)
   · filter_upwards [(D.chartTransition k x y).open_source.mem_nhds hws] with w hw
     rw [koszulRHS_apply]
     exact D.fderiv_fderiv_chartTransition hJ hk hw
