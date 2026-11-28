@@ -9,14 +9,19 @@ public import Mathlib.Analysis.Calculus.FDeriv.Defs
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Analysis.InnerProductSpace.SquaredDistance
 import SymplecticGeometry.Analysis.Complex.RealInner
 
 /-!
-# The second derivative of `log ‖F‖²`
+# The first and second derivatives of `log ‖F‖²`
+
+For a function `f : E → G` into an inner product space over `𝕜 = ℝ` or `ℂ` that is
+differentiable at `x` with `f x ≠ 0`, the derivative of `z ↦ log ‖f z‖²` at `x` sends `u` to
+`2 re ⟪f x, df u⟫ / ‖f x‖²` (`HasFDerivAt.log_norm_sq`, `fderiv_log_norm_sq_apply`). The proof
+composes Mathlib's `HasFDerivAt.log` with `HasFDerivAt.inner`, through `z ↦ re ⟪f z, f z⟫`.
 
 For a function `F : E → V` from a real normed space to a real inner product space that is `C²`
 at `x` with `F x ≠ 0`, the second derivative of `z ↦ log ‖F z‖²` at `x` is
@@ -43,6 +48,38 @@ public section
 open TauCeti
 
 namespace SymplecticGeometry
+
+section FirstDerivative
+
+variable (𝕜 : Type*) {E G : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [NormedAddCommGroup G] [InnerProductSpace 𝕜 G] [NormedSpace ℝ G] {f : E → G} {x : E}
+
+/-- **The derivative of `log ‖f‖²`.** If `f : E → G` has derivative `f'` at `x` and
+`f x ≠ 0`, then `z ↦ log (‖f z‖ ^ 2)` has derivative `(‖f x‖ ^ 2)⁻¹ • (re ∘ D)` at `x`, where
+`D` is the derivative of `z ↦ ⟪f z, f z⟫_𝕜` at `x` given by `HasFDerivAt.inner`. -/
+theorem _root_.HasFDerivAt.log_norm_sq {f' : E →L[ℝ] G} (hf : HasFDerivAt f f' x)
+    (hx : f x ≠ 0) :
+    HasFDerivAt (fun z ↦ Real.log (‖f z‖ ^ 2))
+      ((‖f x‖ ^ 2)⁻¹ • (RCLike.reCLM : 𝕜 →L[ℝ] ℝ).comp
+        ((fderivInnerCLM 𝕜 (f x, f x)).comp (f'.prod f'))) x := by
+  have h := (RCLike.reCLM.hasFDerivAt.comp x (hf.inner 𝕜 hf)).log (by
+    simpa [Function.comp_apply, RCLike.reCLM_apply, inner_self_eq_norm_sq] using hx)
+  simpa only [Function.comp_def, RCLike.reCLM_apply, inner_self_eq_norm_sq] using h
+
+/-- **The derivative of `log ‖f‖²`, applied.** If `f : E → G` is differentiable at `x` and
+`f x ≠ 0`, then the derivative of `z ↦ log (‖f z‖ ^ 2)` at `x` sends `u` to
+`2 re ⟪f x, df u⟫_𝕜 / ‖f x‖²`. -/
+theorem fderiv_log_norm_sq_apply (hf : DifferentiableAt ℝ f x) (hx : f x ≠ 0) (u : E) :
+    fderiv ℝ (fun z ↦ Real.log (‖f z‖ ^ 2)) x u =
+      2 * RCLike.re (inner 𝕜 (f x) (fderiv ℝ f x u)) / ‖f x‖ ^ 2 := by
+  rw [(hf.hasFDerivAt.log_norm_sq 𝕜 hx).fderiv]
+  simp only [smul_apply, ContinuousLinearMap.comp_apply,
+    ContinuousLinearMap.prod_apply, fderivInnerCLM_apply, RCLike.reCLM_apply, smul_eq_mul,
+    map_add]
+  rw [← inner_conj_symm (f x) (fderiv ℝ f x u), RCLike.conj_re]
+  ring
+
+end FirstDerivative
 
 variable {E V : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup V]
   [InnerProductSpace ℝ V]
