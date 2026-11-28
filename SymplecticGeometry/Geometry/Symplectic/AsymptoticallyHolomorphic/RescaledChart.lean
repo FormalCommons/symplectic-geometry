@@ -841,6 +841,17 @@ theorem zero_mem_chart_target {k : ℕ} (hk : k₀ ≤ k) (x : M) :
   rw [← D.apply_self hk x]
   exact (D.chart k x).map_source (D.mem_source hk x)
 
+/-- At the centre, the derivative of the inverse of the chart centred at `x` inverts the
+derivative of the chart: it sends the image of a tangent vector `v` at `x` back to `v`. -/
+theorem mfderiv_chart_symm_zero_apply_mvfderiv_apply {k : ℕ} (hk : k₀ ≤ k) (x : M)
+    (v : TangentSpace I x) :
+    mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm 0 (mvfderiv I (D.chart k x) x v) = v := by
+  have h : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chart k x x)
+      (mvfderiv I (D.chart k x) x v) = v := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact (D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) (D.mem_source hk x) v
+  rwa [D.apply_self hk x] at h
+
 /-- The inverse of the chart centred at `x` sends a compact subset of the ball of radius
 `ρ₀ * √k` to a compact subset of `M`. -/
 theorem isCompact_chart_symm_image {k : ℕ} (hk : k₀ ≤ k) (x : M) {K : Set (StdSpace ι)}

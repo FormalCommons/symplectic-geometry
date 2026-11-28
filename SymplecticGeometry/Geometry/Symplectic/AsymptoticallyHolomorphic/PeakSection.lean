@@ -62,6 +62,18 @@ latter, and that peak sections at any sequence of centres are asymptotically hol
   `SymplecticGeometry.RescaledUnitaryCharts.affinePeakSection_eq_sum` and the triangle
   inequalities `SymplecticGeometry.RescaledUnitaryCharts.jetNorm_sum_le` and
   `SymplecticGeometry.RescaledUnitaryCharts.dbarJetNorm_sum_le`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_sum_affinePeakSection_le`: for a sum
+  `∑ x ∈ S, affinePeakSection k x (w x)` over a finite set `S` of centres that has at most
+  `C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from `y`, with `‖w x‖ ≤ δ`, the jet
+  norm at `y` is at most `C * δ`, that of `∂̄` at most `C * δ * k ^ (-1 / 2)`, and the part over
+  the centres at rescaled distance at least `R` has jet norm at most `C * δ * exp (-c * R ^ 2)`.
+  The proof bounds the jet norms of the sum over any finite set by the sum of the previous
+  estimates
+  (`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_sum_affinePeakSection_le_mul_sum` and
+  its `∂̄` version), and bounds these Gaussian sums with
+  `SymplecticGeometry.exists_sum_one_add_rescaledDist_pow_mul_exp_le`. For large `k` the readings
+  of such sums are smooth
+  (`RescaledUnitaryCharts.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection`).
 * `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_peakSection`,
   `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_peakSection_mul`: peak
   sections at a sequence of centres are asymptotically holomorphic.
@@ -231,6 +243,34 @@ theorem eventually_contDiffAt_reading_and_dbarReading_peakSection_mul [T2Space M
     eventually_tsupport_peakFunction_mul_subset_ball (ι := ι) hρ₀] with k hk hf x y j
   exact D.contDiffAt_reading_and_dbarReading_sectionOfReading hk x (hf j)
     (contDiff_peakFunction_mul k j).contDiffOn y
+
+/-- On a Hausdorff boundaryless manifold with `ρ₀ > 0`, for large `k`, at every point `y`, the
+reading and the `∂̄` reading in the chart at `y` of `D.affinePeakSection k x w` are smooth at `0`,
+for every centre `x` and all coefficients `w`. -/
+theorem eventually_contDiffAt_reading_and_dbarReading_affinePeakSection [T2Space M]
+    [I.Boundaryless] (hρ₀ : 0 < ρ₀) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ (x y : M) (w : EuclideanSpace ℂ (Option ι)),
+      ContDiffAt ℝ ∞ (D.reading k y (D.affinePeakSection k x w)) 0 ∧
+        ContDiffAt ℝ ∞ (D.dbarReading k y (D.affinePeakSection k x w)) 0 := by
+  filter_upwards [D.eventually_contDiffAt_reading_and_dbarReading_peakSection hρ₀,
+    D.eventually_contDiffAt_reading_and_dbarReading_peakSection_mul hρ₀] with k h₀ h₁ x y w
+  rw [affinePeakSection_eq_sum]
+  refine D.contDiffAt_reading_and_dbarReading_sum fun j _ ↦
+    D.contDiffAt_reading_and_dbarReading_const_smul ?_ (w j)
+  cases j
+  exacts [h₀ x y, h₁ x y _]
+
+/-- On a Hausdorff boundaryless manifold with `ρ₀ > 0`, for large `k`, at every point `y`, the
+reading and the `∂̄` reading in the chart at `y` of a finite sum of affine combinations of peak
+sections `∑ x ∈ S, D.affinePeakSection k x (w x)` are smooth at `0`. -/
+theorem eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection [T2Space M]
+    [I.Boundaryless] (hρ₀ : 0 < ρ₀) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ (S : Finset M) (w : M → EuclideanSpace ℂ (Option ι)) (y : M),
+      ContDiffAt ℝ ∞ (D.reading k y (∑ x ∈ S, D.affinePeakSection k x (w x))) 0 ∧
+        ContDiffAt ℝ ∞ (D.dbarReading k y (∑ x ∈ S, D.affinePeakSection k x (w x))) 0 := by
+  filter_upwards [D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀]
+    with k h S w y
+  exact D.contDiffAt_reading_and_dbarReading_sum fun x _ ↦ h x y (w x)
 
 /-! ### The estimates -/
 
@@ -437,6 +477,112 @@ theorem exists_dbarJetNorm_affinePeakSection_le [T2Space M] [I.Boundaryless]
           rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
           ring
       _ = _ := by simp only [W]; ring
+
+/-- **Jet norms of sums of affine combinations of peak sections.** Under the hypotheses of
+`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`, for every order `r`
+there are `C ≥ 0`, `N` and `c > 0` such that for large `k`, every point `y`, every finite set `S`
+of centres and all coefficients `w` with `‖w x‖ ≤ δ` on `S`, the `r`-jet norm at `y` of
+`∑ x ∈ S, affinePeakSection k x (w x)` is at most `C * δ` times the sum over `S` of
+`(1 + d) ^ N * exp (-c * d ^ 2)`, with `d = rescaledDist I k x y`. -/
+theorem exists_jetNorm_sum_affinePeakSection_le_mul_sum [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) :
+    ∃ C ≥ (0 : ℝ), ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ (y : M) (S : Finset M) (δ : ℝ)
+      (w : M → EuclideanSpace ℂ (Option ι)), (∀ x ∈ S, ‖w x‖ ≤ δ) →
+        D.jetNorm k r (∑ x ∈ S, D.affinePeakSection k x (w x)) y ≤
+          C * δ * ∑ x ∈ S, (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2) := by
+  obtain ⟨C, N, c, hc, h⟩ := D.exists_jetNorm_affinePeakSection_le hg hJ hα hρ₀ r
+  refine ⟨max C 0, le_max_right _ _, N, c, hc, ?_⟩
+  filter_upwards [h, D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀]
+    with k h hs y S δ w hw
+  refine (D.jetNorm_sum_le fun x _ ↦ (hs x y (w x)).1.of_le (by exact_mod_cast le_top)).trans ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum fun x hx ↦ (h x y (w x)).trans ?_
+  have := rescaledDist_nonneg I k x y
+  rw [mul_assoc _ ((1 + _) ^ _)]
+  refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+  exact (mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)).trans
+    (mul_le_mul_of_nonneg_left (hw x hx) (le_max_right _ _))
+
+/-- **`∂̄` jet norms of sums of affine combinations of peak sections.** Under the hypotheses of
+`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`, for every order `r`
+there are `C ≥ 0`, `N` and `c > 0` such that for large `k`, every point `y`, every finite set `S`
+of centres and all coefficients `w` with `‖w x‖ ≤ δ` on `S`, the `r`-jet norm at `y` of the `∂̄`
+of `∑ x ∈ S, affinePeakSection k x (w x)` is at most `C * δ * k ^ (-1 / 2)` times the sum over
+`S` of `(1 + d) ^ N * exp (-c * d ^ 2)`, with `d = rescaledDist I k x y`. -/
+theorem exists_dbarJetNorm_sum_affinePeakSection_le_mul_sum [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) :
+    ∃ C ≥ (0 : ℝ), ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ (y : M) (S : Finset M) (δ : ℝ)
+      (w : M → EuclideanSpace ℂ (Option ι)), (∀ x ∈ S, ‖w x‖ ≤ δ) →
+        D.dbarJetNorm k r (∑ x ∈ S, D.affinePeakSection k x (w x)) y ≤
+          C * δ * (k : ℝ) ^ (-1 / 2 : ℝ) * ∑ x ∈ S, (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2) := by
+  obtain ⟨C, N, c, hc, h⟩ := D.exists_dbarJetNorm_affinePeakSection_le hg hJ hα hρ₀ r
+  refine ⟨max C 0, le_max_right _ _, N, c, hc, ?_⟩
+  filter_upwards [h, D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀]
+    with k h hs y S δ w hw
+  have hdiff : ∀ x ∈ S, ∀ᶠ z in 𝓝 0,
+      DifferentiableAt ℝ (D.reading k y (D.affinePeakSection k x (w x))) z := fun x _ ↦
+    (((hs x y (w x)).1.of_le (m := 1) (by exact_mod_cast le_top)).eventually (by simp)).mono
+      fun _ hz ↦ hz.differentiableAt (by simp)
+  refine (D.dbarJetNorm_sum_le hdiff fun x _ ↦
+    (hs x y (w x)).2.of_le (by exact_mod_cast le_top)).trans ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum fun x hx ↦ (h x y (w x)).trans ?_
+  have := rescaledDist_nonneg I k x y
+  rw [mul_assoc _ ((1 + _) ^ _)]
+  refine mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right ?_ (by positivity))
+    (by positivity)
+  exact (mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)).trans
+    (mul_le_mul_of_nonneg_left (hw x hx) (le_max_right _ _))
+
+/-- **Sums of affine combinations of peak sections over a set of polynomial counting.** Under the
+hypotheses of `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`, for every
+counting constant `C₀`, exponent `m` and order `r` there are `C` and `c > 0` such that for large
+`k` the following holds. Let `y` be a point and `S` a finite set of centres such that for every
+`ρ ≥ 0` at most `C₀ * (1 + ρ) ^ m` of them lie at rescaled distance at most `ρ` from `y`, and let
+`w x` be coefficients of norm at most `δ` on `S`. Then for
+`t = ∑ x ∈ S, affinePeakSection k x (w x)`:
+* the `r`-jet norm of `t` at `y` is at most `C * δ`;
+* the `r`-jet norm of `∂̄ t` at `y` is at most `C * δ * k ^ (-1 / 2)`;
+* for every `R ≥ 0`, the `r`-jet norm at `y` of the part of the sum over the centres at rescaled
+  distance at least `R` from `y` is at most `C * δ * exp (-c * R ^ 2)`. -/
+theorem exists_jetNorm_sum_affinePeakSection_le [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (C₀ : ℝ) (m r : ℕ) :
+    ∃ C : ℝ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ (y : M) (S : Finset M),
+      (∀ ρ : ℝ, 0 ≤ ρ → ((S.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤
+        C₀ * (1 + ρ) ^ m) →
+      ∀ (δ : ℝ) (w : M → EuclideanSpace ℂ (Option ι)), 0 ≤ δ → (∀ x ∈ S, ‖w x‖ ≤ δ) →
+        D.jetNorm k r (∑ x ∈ S, D.affinePeakSection k x (w x)) y ≤ C * δ ∧
+        D.dbarJetNorm k r (∑ x ∈ S, D.affinePeakSection k x (w x)) y ≤
+          C * δ * (k : ℝ) ^ (-1 / 2 : ℝ) ∧
+        ∀ R : ℝ, 0 ≤ R →
+          D.jetNorm k r (∑ x ∈ S with R ≤ rescaledDist I k x y,
+            D.affinePeakSection k x (w x)) y ≤ C * δ * Real.exp (-c * R ^ 2) := by
+  obtain ⟨C₁, hC₁, N₁, c₁, hc₁, h₁⟩ :=
+    D.exists_jetNorm_sum_affinePeakSection_le_mul_sum hg hJ hα hρ₀ r
+  obtain ⟨C₂, hC₂, N₂, c₂, hc₂, h₂⟩ :=
+    D.exists_dbarJetNorm_sum_affinePeakSection_le_mul_sum hg hJ hα hρ₀ r
+  obtain ⟨K₁, hK₁⟩ := exists_sum_one_add_rescaledDist_pow_mul_exp_le (M := M) I C₀ m N₁ hc₁
+  obtain ⟨K₂, hK₂⟩ := exists_sum_one_add_rescaledDist_pow_mul_exp_le (M := M) I C₀ m N₂ hc₂
+  refine ⟨max (C₁ * K₁) (C₂ * K₂), c₁ / 2, half_pos hc₁, ?_⟩
+  filter_upwards [h₁, h₂] with k h₁ h₂ y S hS δ w hδ hw
+  obtain ⟨e₁, e₃⟩ := hK₁ k y S hS
+  refine ⟨?_, ?_, fun R hR ↦ ?_⟩
+  · calc _ ≤ C₁ * δ * K₁ := (h₁ y S δ w hw).trans (by gcongr)
+      _ = C₁ * K₁ * δ := by ring
+      _ ≤ _ := by gcongr; exact le_max_left _ _
+  · calc _ ≤ C₂ * δ * (k : ℝ) ^ (-1 / 2 : ℝ) * K₂ :=
+          (h₂ y S δ w hw).trans (by gcongr; exact (hK₂ k y S hS).1)
+      _ = C₂ * K₂ * δ * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
+      _ ≤ _ := by gcongr; exact le_max_right _ _
+  · calc _ ≤ C₁ * δ * (K₁ * Real.exp (-(c₁ / 2) * R ^ 2)) :=
+          (h₁ y _ δ w fun x hx ↦ hw x (Finset.mem_filter.1 hx).1).trans (by gcongr; exact e₃ R hR)
+      _ = C₁ * K₁ * δ * Real.exp (-(c₁ / 2) * R ^ 2) := by ring
+      _ ≤ _ := by gcongr; exact le_max_left _ _
 
 /-- **Peak sections are asymptotically holomorphic.** Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`, for every sequence of
