@@ -293,7 +293,7 @@ theorem complexAntilinearPartContinuousLinearMap_apply_apply (J : V →L[ℝ] V)
 
 /-- As a real-linear map, `TauCeti.complexAntilinearPartContinuousLinearMap J J' F` is
 `TauCeti.complexAntilinearPart J J' F`. -/
-theorem coe_complexAntilinearPartContinuousLinearMap_apply (J : V →L[ℝ] V) (J' : W →L[ℝ] W)
+theorem toLinearMap_complexAntilinearPartContinuousLinearMap_apply (J : V →L[ℝ] V) (J' : W →L[ℝ] W)
     (F : V →L[ℝ] W) :
     (complexAntilinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) =
       complexAntilinearPart (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →ₗ[ℝ] W) := by
@@ -334,7 +334,7 @@ theorem complexLinearPartContinuousLinearMap_apply_apply (J : V →L[ℝ] V) (J'
 
 /-- As a real-linear map, `TauCeti.complexLinearPartContinuousLinearMap J J' F` is
 `TauCeti.complexLinearPart J J' F`. -/
-theorem coe_complexLinearPartContinuousLinearMap_apply (J : V →L[ℝ] V) (J' : W →L[ℝ] W)
+theorem toLinearMap_complexLinearPartContinuousLinearMap_apply (J : V →L[ℝ] V) (J' : W →L[ℝ] W)
     (F : V →L[ℝ] W) :
     (complexLinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) =
       complexLinearPart (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →ₗ[ℝ] W) := by
@@ -388,7 +388,7 @@ theorem isComplexLinear_complexLinearPartContinuousLinearMap {J : V →L[ℝ] V}
     (hJ : J ∘L J = -1) (hJ' : J' ∘L J' = -1) (F : V →L[ℝ] W) :
     IsComplexLinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
       (complexLinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) := by
-  rw [coe_complexLinearPartContinuousLinearMap_apply]
+  rw [toLinearMap_complexLinearPartContinuousLinearMap_apply]
   exact isComplexLinear_complexLinearPart
     (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ)
     (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ') _
@@ -399,7 +399,7 @@ theorem isComplexAntilinear_complexAntilinearPartContinuousLinearMap {J : V →L
     {J' : W →L[ℝ] W} (hJ : J ∘L J = -1) (hJ' : J' ∘L J' = -1) (F : V →L[ℝ] W) :
     IsComplexAntilinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
       (complexAntilinearPartContinuousLinearMap J J' F : V →ₗ[ℝ] W) := by
-  rw [coe_complexAntilinearPartContinuousLinearMap_apply]
+  rw [toLinearMap_complexAntilinearPartContinuousLinearMap_apply]
   exact isComplexAntilinear_complexAntilinearPart
     (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ)
     (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ') _
@@ -411,7 +411,7 @@ theorem IsComplexLinear.complexAntilinearPartContinuousLinearMap_eq_zero {J : V 
     (h : IsComplexLinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →ₗ[ℝ] W))
     (hJ' : J' ∘L J' = -1) : complexAntilinearPartContinuousLinearMap J J' F = 0 :=
   ContinuousLinearMap.coe_injective <| by
-    rw [coe_complexAntilinearPartContinuousLinearMap_apply,
+    rw [toLinearMap_complexAntilinearPartContinuousLinearMap_apply,
       h.complexAntilinearPart_eq_zero
         (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ'),
       ContinuousLinearMap.toLinearMap_zero]
@@ -423,7 +423,7 @@ theorem IsComplexAntilinear.complexLinearPartContinuousLinearMap_eq_zero {J : V 
     (h : IsComplexAntilinear (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) (F : V →ₗ[ℝ] W))
     (hJ' : J' ∘L J' = -1) : complexLinearPartContinuousLinearMap J J' F = 0 :=
   ContinuousLinearMap.coe_injective <| by
-    rw [coe_complexLinearPartContinuousLinearMap_apply,
+    rw [toLinearMap_complexLinearPartContinuousLinearMap_apply,
       h.complexLinearPart_eq_zero
         (mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hJ'),
       ContinuousLinearMap.toLinearMap_zero]

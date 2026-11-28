@@ -91,7 +91,7 @@ theorem nondegenerate_bilinFormAt_balancedProductInducedForm_mk_zero (g : G) :
   set π := Submodule.projectionOnto _ _ D.isCompl_𝔪_sup
   refine nondegenerate_bilinFormAt_balancedProductInducedForm_mk_of_dual_prod
     (n := ((0 : A), (0 : V))) (ν := D.τ) (π := π) (β := D.σ.toBilinForm)
-    (by rw [coe_covectorCLM, Prod.mk_zero_zero, covector_zero])
+    (by rw [toLinearMap_covectorCLM, Prod.mk_zero_zero, covector_zero])
     (D.equivDual𝔪.prodCongr (LinearEquiv.refl ℝ V)) (fun u ζ ↦ ?_) (fun u w ↦ ?_)
     D.σ.nondegenerate.1 D.map_projectionOnto_lieAnnihilator_eq_top (fun ζ hζ hπζ ↦ ?_)
     (fundamentalVectorField_eq_zero_of_forall_smul_eq fun k ↦ smul_zero k) g
