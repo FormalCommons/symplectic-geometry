@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
+import SymplecticGeometry.Dynamics.Flow.TimeChange
 import TauCeti.Geometry.Manifold.Flow.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
@@ -32,12 +33,13 @@ too, joining the identity (`c = 0`) to `Ψ` (`c = 1`). A continuous `τ` with co
 bounded, so all of this applies to it. This time change varies the time from point to point;
 it differs from Tau Ceti's `Flow.timeChange`, which multiplies the time by a constant.
 
+The two topological steps, that each reparametrization is onto `ℝ` and that the time change is
+then bijective, hold for any flow of `ℝ` on a topological space: they are
+`Flow.surjective_add_apply` and `Flow.bijective_apply_self`, in
+`SymplecticGeometry/Dynamics/Flow/TimeChange.lean`.
+
 ## Main results
 
-* `Flow.surjective_add_apply`: for any flow `φ` of `ℝ` and continuous bounded `τ`, the
-  reparametrization `t ↦ t + τ (φ t x)` of an orbit is onto `ℝ`.
-* `Flow.bijective_apply_self`: for any flow `φ` of `ℝ`, the time change `x ↦ φ (τ x) x` is
-  bijective if each reparametrization `t ↦ t + τ (φ t x)` is.
 * `TauCeti.hasDerivAt_add_apply_globalFlow`: the derivative of `t ↦ t + τ (φ t x)`.
 * `TauCeti.strictMono_add_apply_globalFlow`: the reparametrization is strictly increasing.
 * `TauCeti.bijective_globalFlow_timeChange`: the time change is bijective.
@@ -59,44 +61,6 @@ public section
 
 open Set Function
 open scoped Manifold ContDiff
-
-namespace Flow
-
-variable {M : Type*} [TopologicalSpace M] (ϕ : Flow ℝ M) {τ : M → ℝ}
-
-/-- If `τ` is continuous and bounded, the reparametrization `s ↦ s + τ (ϕ s x)` of the orbit of
-`x` is onto `ℝ`. -/
-theorem surjective_add_apply (hτ : Continuous τ) (hτb : Bornology.IsBounded (range τ)) (x : M) :
-    Surjective (fun s ↦ s + τ (ϕ s x)) := by
-  obtain ⟨C, hC⟩ := hτb.subset_closedBall 0
-  have hle (y : M) : |τ y| ≤ C := by simpa using hC (mem_range_self y)
-  intro r
-  have hcont : Continuous (fun s ↦ s + τ (ϕ s x)) :=
-    continuous_id.add (hτ.comp (ϕ.continuous continuous_id continuous_const))
-  refine intermediate_value_univ (r - C) (r + C) hcont ⟨?_, ?_⟩
-  · linarith [(abs_le.1 (hle (ϕ (r - C) x))).2]
-  · linarith [(abs_le.1 (hle (ϕ (r + C) x))).1]
-
-/-- If the reparametrization `s ↦ s + τ (ϕ s x)` of every orbit is a bijection of `ℝ`, then the
-time change `x ↦ ϕ (τ x) x` is a bijection of `M`. -/
-theorem bijective_apply_self (hinj : ∀ x, Injective (fun s ↦ s + τ (ϕ s x)))
-    (hsurj : ∀ x, Surjective (fun s ↦ s + τ (ϕ s x))) : Bijective (fun x ↦ ϕ (τ x) x) := by
-  refine ⟨fun a b hab ↦ ?_, fun y ↦ ?_⟩
-  · -- `b` lies on the orbit of `a`, at time `s = τ a - τ b`.
-    have hb : b = ϕ (τ a - τ b) a := by
-      rw [sub_eq_neg_add, Flow.map_add, ← show ϕ (τ b) b = ϕ (τ a) a from hab.symm,
-        ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
-    have hs : τ a - τ b = 0 := by
-      refine hinj a ?_
-      simp only [← hb, Flow.map_zero_apply]
-      ring
-    rw [hb, hs, Flow.map_zero_apply]
-  · obtain ⟨t, ht⟩ := hsurj y 0
-    refine ⟨ϕ t y, ?_⟩
-    simp only at ht ⊢
-    rw [← Flow.map_add, add_comm, ht, Flow.map_zero_apply]
-
-end Flow
 
 namespace TauCeti
 
