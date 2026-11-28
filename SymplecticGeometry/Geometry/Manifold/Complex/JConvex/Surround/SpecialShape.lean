@@ -144,6 +144,11 @@ theorem struweShape_add (δ K a c r : ℝ) :
 theorem struweShape_apply_mul (δ K c : ℝ) : struweShape δ K c (K * δ) = c := by
   simp [struweShape_def]
 
+/-- For `K = 1`, Struwe's shape takes the value `c` at `δ`. -/
+@[simp]
+theorem struweShape_one_apply_self (δ c : ℝ) : struweShape δ 1 c δ = c := by
+  simpa using struweShape_apply_mul δ 1 c
+
 /-- For `δ ≠ 0`, Struwe's shape of width `δ` is the one of width `1` rescaled by `δ`. -/
 theorem struweShape_eq_mul_struweShape_one {δ : ℝ} (hδ : δ ≠ 0) (K c : ℝ) :
     struweShape δ K c = fun r ↦ δ * struweShape 1 K (c / δ) (r / δ) := by
