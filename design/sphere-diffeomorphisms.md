@@ -360,7 +360,7 @@ $\sigma=\omega_{FS}$):
   at `0`, `1` and `∞`.
 - `isLocalDiffeomorph_uniformizingMap`, `bijective_uniformizingMap`, and
   `uniformizingDiffeomorph J : diffPlus` with
-  `pullback_uniformizingDiffeomorph : (uniformizingDiffeomorph J).pullback i = J`.
+  `pullback_uniformizingDiffeomorph : i.pullback (uniformizingDiffeomorph J) = J`.
   The $J$-holomorphy of the ratio of two elements of $E_J$ is a lemma of its
   own, `isPseudoholomorphicOn_div_of_mem_twistOneKernel`, in part 45's
   `CauchyRiemann/Kernel.lean`.
