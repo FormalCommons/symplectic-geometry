@@ -239,7 +239,7 @@ theorem fiberIntegrand_eq_prodFiberIntegrand
       (mpullback (I.prod J) IM (fun p : U × F ↦ e.toOpenPartialHomeomorph.symm (p.1, p.2)) α) b v
     := by
   have hf (y : F) : MDifferentiableAt (I.prod J) (I.prod J) (Prod.map (Subtype.val : U → B) id)
-      (b, y) := ((contMDiff_subtypeVal.prodMap contMDiff_id).mdifferentiableAt one_ne_zero)
+      (b, y) := mdifferentiableAt_subtypeVal.prodMap mdifferentiableAt_id
   have hg (y : F) :
       MDifferentiableAt (I.prod J) IM e.toOpenPartialHomeomorph.symm ((b : B), y) :=
     (he _ (e.mem_target.2 (hU b.property))).mdifferentiableAt
