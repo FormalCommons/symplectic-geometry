@@ -711,6 +711,24 @@ theorem dbarFun_zero (k : ℕ) (x : M) (z : StdSpace ι) :
   flatDbarWith_zero z
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+@[simp]
+theorem dbarFun_neg (k : ℕ) (x : M) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    D.dbarFun k x (-f) z = -D.dbarFun k x f z :=
+  flatDbarWith_neg f z
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- The `∂̄` on the chart at `z` depends only on the germ of the function at `z`. -/
+theorem dbarFun_congr_of_eventuallyEq {k : ℕ} {x : M} {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : D.dbarFun k x f z = D.dbarFun k x g z :=
+  flatDbarWith_congr_of_eventuallyEq h
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- Functions with the same germ at `z` have `∂̄` on the chart with the same germ at `z`. -/
+theorem dbarFun_eventuallyEq {k : ℕ} {x : M} {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : D.dbarFun k x f =ᶠ[𝓝 z] D.dbarFun k x g :=
+  flatDbarWith_eventuallyEq h
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
 /-- The `∂̄` of a constant function on the chart vanishes. -/
 @[simp]
 theorem dbarFun_const (k : ℕ) (x : M) (c : ℂ) (z : StdSpace ι) :

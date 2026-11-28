@@ -811,7 +811,8 @@ of `hJi` besides the statements that pass it on).
   `J x`-linear derivatives.
 - `fundamentalVectorField_chart_symm`: for `ξ, η ∈ 𝔥`,
   `Z = C.lieMap ξ + C.cplx (C.lieMap η)` and `v` in the target of `e`,
-  `X_Z (e.symm v) = mfderiv (e.symm) v (A ξ v + J x (A η v))`, where `A ξ`
+  `X_Z (e.symm v) = mfderiv (e.symm) v (A ξ v) + mfderiv (e.symm) v (J x (A η v))`,
+  where `A ξ`
   is the derivative at `0` of `t ↦ mfderiv (mulInvariantExp (t • ξ) • ·) x`,
   a `J x`-linear map, skew for `g_J` at `x`. For `η = 0` this is the
   derivative of the equivariance at `h = mulInvariantExp (t • ξ)`
