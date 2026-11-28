@@ -560,15 +560,11 @@ theorem mfderiv_transportedCylinder_zero_apply (hΔ : IsSmoothDisc IB γ Δ) {s 
     exact zero_apply _
   -- Along the line `r ↦ (r, 0, θ)`, whose derivative sends `1` to `(1, 0, 0)`, the cylinder
   -- agrees on `[0, 1]` with a constant map.
-  have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
+  exact (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
     (uniqueDiffOn_Icc zero_lt_one s hs)).mfderiv_apply_eq_of_eqOn_comp hs hC
-    (hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ)))
-    (mdifferentiableAt_const (c := e.toOpenPartialHomeomorph.symm (x, c θ)))
+    (hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ))).hasMFDerivWithinAt
+    ((hasMFDerivAt_const (e.toOpenPartialHomeomorph.symm (x, c θ)) s).hasMFDerivWithinAt)
     (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ) 1
-  rw [mfderiv_const] at h
-  -- `inl 1` is `(1, 0, 0)` and `0 1` is `0` only up to the tangent spaces, which are the model
-  -- spaces by definition, so `rw` cannot reach them and `exact` compares them.
-  exact h
 
 omit [IsManifold IF ∞ F] in
 /-- **The transported cylinder is smooth.** Let `D` be a smooth Ehresmann connection on a proper
@@ -795,15 +791,12 @@ theorem mfderiv_transportedCylinder_one_apply (hf : ContMDiff IM IB ∞ proj)
   have hesd : MDifferentiableAt (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (x, g s) :=
     (he_symm.contMDiffAt (e.open_target.mem_nhds (e.mem_target.2 hx))).mdifferentiableAt
       (by simp)
-  have h₂ := (hesd.hasMFDerivAt.comp (s : ℝ)
-    ((hasMFDerivAt_const x (s : ℝ)).prodMk hg.hasMFDerivAt)).mfderiv
   -- Along the line, the cylinder agrees on `[0, 1]` with `r ↦ e⁻¹ (x, g r)`.
-  have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
-    (uniqueDiffOn_Icc zero_lt_one s s.property)).mfderiv_apply_eq_of_eqOn_comp s.property hCd hι
-    (hesd.comp (s : ℝ) (mdifferentiableAt_const.prodMk hg))
-    (fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩]) 1
-  rw [h₂] at h
-  refine h.trans ?_
+  refine ((uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
+    (uniqueDiffOn_Icc zero_lt_one s s.property)).mfderiv_apply_eq_of_eqOn_comp s.property hCd
+    hι.hasMFDerivWithinAt (hesd.hasMFDerivAt.comp (s : ℝ)
+      ((hasMFDerivAt_const x (s : ℝ)).prodMk hg.hasMFDerivAt)).hasMFDerivWithinAt
+    (fun r hr ↦ by rw [comp_apply, comp_apply, hC1 ⟨r, hr⟩, ← hgΦ ⟨r, hr⟩]) 1).trans ?_
   rw [hX, ← hgΦ]
   -- The tangent space of `B × F` at `(x, g s)` is `EB × EF` only by definition, so the composite
   -- and the pair are evaluated through `exact`, up to that unfolding.
