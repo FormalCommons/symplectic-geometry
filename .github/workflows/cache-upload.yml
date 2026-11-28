@@ -84,8 +84,9 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.event == 'merge_group' || github.event.workflow_run.event == 'pull_request')
     runs-on: ubuntu-latest
-    # Each of the two uploads has its own limit, below.
-    timeout-minutes: 45
+    # Each of the two uploads has its own limit, below; with the other
+    # steps' they come to about 48 minutes.
+    timeout-minutes: 50
     environment: lake-cache
     steps:
       # The default branch's `.github`, and nothing of the commit that was
