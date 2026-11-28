@@ -488,10 +488,10 @@ private theorem prodPairIso_hom_fst (p : sphere (0 : E) 1) (φ : (F × ℝ) ≃L
   ext x
   refine Subtype.ext ?_
   rw [ContinuousLinearEquiv.complZeroPairIso_hom, prodPairIso, TopPair.ofSubsetIso_hom]
-  -- Both sides are `φ x`; the subspace of `TopPair.ofSubset` is the subtype only after
-  -- unfolding, and the homeomorphism is `φ` on the subtype by definition.
-  -- The `MapsTo` proofs of the pairs typecheck only after unfolding `ofSubset`, which keeps `rw`
-  -- from matching; `generalize_proofs` replaces them by hypotheses.
+  -- Both sides are `φ x`, and the homeomorphism is `φ` on the subtype by definition.
+  -- The `MapsTo` proofs inside the `ofSubsetMap` terms are lambdas whose type is
+  -- `Set.MapsTo …` only up to unfolding, so the goal fails `rw`'s type check;
+  -- `generalize_proofs` replaces them by hypotheses.
   generalize_proofs
   rw [TopPair.ofSubsetMap_fst_apply]
   -- No `rw` for the second side: `x` is a point of the pair's subspace only after unfolding
@@ -508,16 +508,14 @@ private theorem prodSheetPairMap_comp_prodPairIso_hom (p : sphere (0 : E) 1)
   refine TopPair.hom_ext_of_fst _ ?_
   ext x
   refine Subtype.ext ?_
-  rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, prodPairIso, TopPair.ofSubsetIso_hom,
-    prodSheetPairMap, orthogonalSheetPairMap, ConcreteCategory.comp_apply,
-    ConcreteCategory.comp_apply]
-  -- The sources of the maps of pairs are the punctured spaces only after unfolding
-  -- `TopPair.ofSubset`.
-  -- The `MapsTo` proofs of the pairs typecheck only after unfolding `ofSubset`, which keeps `rw`
-  -- from matching; `generalize_proofs` replaces them by hypotheses.
+  rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
+    ConcreteCategory.comp_apply, prodSheetPairMap_fst, orthogonalSheetPairMap_fst,
+    prodPairIso, TopPair.ofSubsetIso_hom]
+  -- The `MapsTo` proofs inside the `ofSubsetMap` terms are lambdas whose type is
+  -- `Set.MapsTo …` only up to unfolding, so the goal fails `rw`'s type check;
+  -- `generalize_proofs` replaces them by hypotheses.
   generalize_proofs
-  rw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-    TopPair.ofSubsetMap_fst_apply]
+  rw [TopPair.ofSubsetMap_fst_apply]
   exact (hφ x s).trans (congrArg (· + s • (p : E))
     (congrArg Subtype.val (ψ.complZeroPairIso_hom_fst_apply x).symm))
 
