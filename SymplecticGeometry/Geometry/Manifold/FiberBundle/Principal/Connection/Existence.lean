@@ -92,14 +92,17 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
     {x : ManifoldTotalSpace G P}
     (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ e.baseSet) (g : G) :
     TauCeti.mpullback (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y)
-      (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
-        RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x =
-      RoughForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
-        (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val) x := by
-  have hR :=
-    (SmoothForm.mpullback_eq_iff _).1 (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
-  rw [SmoothForm.coe_mapCoeff] at hR
-  rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
+      (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+        (leftMaurerCartanForm IG G).val) x =
+      RoughForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹)
+        (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+          (leftMaurerCartanForm IG G).val) x := by
+  -- `Ad(g⁻¹)` is typed on `GroupLieAlgebra IG G`, so `rw` cannot match `mapCoeff (F := EG)`.
+  have hR := ((SmoothForm.mpullback_eq_iff _).1
+    (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)).trans
+    (SmoothForm.coe_mapCoeff (F := EG) (G := EG) _ _)
+  rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR]
+  exact congrFun (mpullback_mapCoeff (F := EG) (G := EG) _ _ _) x
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -109,8 +112,8 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
     {x : ManifoldTotalSpace G P}
     (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ e.baseSet)
     (ξ : GroupLieAlgebra IG G) :
-    (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
-        RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x
+    (TauCeti.mpullback (F := EG) (IB.prod IG) IG e.manifoldSnd
+        (leftMaurerCartanForm IG G).val) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
   rw [mpullback_apply_one, e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ,
     leftMaurerCartanForm_apply_mulInvariantVectorField]
@@ -155,10 +158,14 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
       RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]
     refine Finset.sum_congr rfl fun b hb ↦ ?_
-    have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
-      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v
-    rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
-    rw [map_smul, ← h]
+    -- As above, `mapCoeff_apply` is applied as a term rather than by `rw`.
+    have h := (DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
+      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v).trans
+      (RoughForm.mapCoeff_apply (F := EG) (G := EG) _ _ _ _)
+    rw [mpullback_apply] at h
+    rw [map_smul]
+    -- `h` is stated in the model space `EG`, the goal in the Lie algebra; they agree by definition.
+    exact congrArg (ρ b (p x) • ·) h
   · rw [hA]
     exact ρ.sum_finsupport_smul_eq_of_forall_eq (Set.mem_univ _)
       fun b hb ↦ mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField
