@@ -42,13 +42,12 @@ A forward orbit from `g ⁻¹' {0}` that stays below `b` tends to a critical poi
 (`TauCeti.IsGradientLike.exists_mem_stableSet_of_isCompact`), which would put its starting point
 in `K`, where `g < 0`.
 
-For fact (4), the points whose orbits meet a level crossed upwards form an open set: just before
-and just after the crossing the orbit is on either side of the level, and so are the nearby
-orbits, which cross it in between by the intermediate value theorem. On that open set, fact (1)
-and transversality are what the library's `TauCeti.contMDiffOn_levelCrossingTime` and
-`TauCeti.contMDiffOn_flow_levelCrossingTime` (`Geometry/Manifold/Flow/LevelCrossing.lean`) ask
-for. The level `g ⁻¹' {0}` is a closed subset of the compact region `f ⁻¹' Icc a b`, on which the
-continuous crossing time of `f ⁻¹' {b}` is bounded.
+For fact (4), the library's `TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
+`TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`
+(`Geometry/Manifold/Flow/LevelCrossing.lean`) give the smoothness of the crossing time and the
+crossing point of a level crossed upwards, on the open set of points whose orbits meet it. The
+level `g ⁻¹' {0}` is a closed subset of the compact region `f ⁻¹' Icc a b`, on which the continuous
+crossing time of `f ⁻¹' {b}` is bounded.
 
 The statements are made for a Weinstein structure and any reals `a, b`; for a Weinstein cobordism
 `hW : IsWeinsteinCobordism ω X f a b` they apply to `hW.isWeinsteinStructure`, with `K` written
@@ -64,11 +63,10 @@ out as above.
   of `{f ≤ b}` enters `{g < 0}`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_flow_apply_eq_upper`: the forward orbit of a
   point of `g ⁻¹' {0}` reaches `f ⁻¹' {b}`.
-* `SymplecticGeometry.IsWeinsteinStructure.isOpen_setOf_exists_flow_apply_eq`: the orbits that
-  cross a level of `g` on which `dg(X) > 0` form an open set.
 * `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
   `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`:
-  the crossing time of such a level, and the crossing point, are smooth on that open set;
+  the crossing time of such a level, and the crossing point, are smooth on the open set of points
+  whose orbits meet it;
   `SymplecticGeometry.IsWeinsteinStructure.contMDiffOn_levelCrossingTime_of_isRegularValue`: so is
   the crossing time of a regular level of `f`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_forall_levelCrossingTime_mem_Ioc`: the time from
@@ -185,63 +183,30 @@ theorem exists_flow_apply_eq_upper {a b : ℝ}
 
 /-! ### Crossing times -/
 
-/-- **Orbits that cross an upward level form an open set.** Let `g` be continuous, and
-differentiable with `dg(X) > 0` at each point of the level `g ⁻¹' {c}`. Then the set of points
-whose orbits under the flow of a Weinstein structure meet that level is open. -/
-theorem isOpen_setOf_exists_flow_apply_eq (hg : Continuous g)
-    (hgX : ∀ x, g x = c → MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g x ∧ 0 < mvfderiv 𝓘(ℝ, E) g x (X x)) :
-    IsOpen {x | ∃ t, g (hW.flow t x) = c} := by
-  refine isOpen_iff_mem_nhds.2 fun x ⟨t, ht⟩ ↦ ?_
-  have hcont (s : ℝ) : Continuous fun y ↦ g (hW.flow s y) :=
-    hg.comp (hW.contMDiff_flow_apply s).continuous
-  -- The orbit of `x` is below the level just before `t` and above it just after, and so are the
-  -- orbits of the nearby points, which then cross the level in between.
-  have hlo := hW.flow_apply_lt_of_flow_apply_le hg hgX x ht.le (sub_one_lt t)
-  have hhi := hW.lt_flow_apply_of_le_flow_apply hg hgX x ht.ge (lt_add_one t)
-  filter_upwards [(hcont (t - 1)).continuousAt.eventually (gt_mem_nhds hlo),
-    (hcont (t + 1)).continuousAt.eventually (lt_mem_nhds hhi)] with y hy₁ hy₂
-  obtain ⟨s, -, hs⟩ := intermediate_value_Icc (by linarith : t - 1 ≤ t + 1)
-    (hg.comp (hW.isMIntegralCurve_flow y).continuous).continuousOn ⟨hy₁.le, hy₂.le⟩
-  exact ⟨s, hs⟩
-
 /-- **The crossing time of an upward level is smooth.** Let `g` be smooth with `dg(X) > 0` at
 each point of the level `g ⁻¹' {c}`. Then the time `Flow.levelCrossingTime φ g c` at which orbits
-of the flow `φ` of a Weinstein structure cross that level is smooth on the open set of points
-whose orbits meet it. -/
+of the flow `φ` of a Weinstein structure cross that level is smooth on the set of points whose
+orbits meet it, which is open by `TauCeti.isOpen_setOf_exists_flow_apply_eq`. -/
 theorem contMDiffOn_levelCrossingTime_of_mvfderiv_pos
     (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
     (hgX : ∀ x, g x = c → 0 < mvfderiv 𝓘(ℝ, E) g x (X x)) :
     ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) (Flow.levelCrossingTime hW.flow g c)
-      {x | ∃ t, g (hW.flow t x) = c} := by
-  have hgX' (x : M) (hx : g x = c) :
-      MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g x ∧ 0 < mvfderiv 𝓘(ℝ, E) g x (X x) :=
-    ⟨(hg x).mdifferentiableAt (by simp), hgX x hx⟩
-  exact _root_.TauCeti.contMDiffOn_levelCrossingTime (n := ⊤) le_top hW.contMDiff_field
-    hW.isCompleteVectorField hW.flowOf_eq_flow
-    (hW.isOpen_setOf_exists_flow_apply_eq hg.continuous hgX')
-    (fun x _ ↦ hW.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos hg.continuous hgX' x)
-    (fun _ hx ↦ hx) (fun _ _ ↦ hg _)
-    fun _ hx ↦ (hgX _ (Flow.apply_flow_levelCrossingTime hx)).ne'
+      {x | ∃ t, g (hW.flow t x) = c} :=
+  _root_.TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos le_top hW.contMDiff_field
+    hW.isCompleteVectorField hW.flowOf_eq_flow hg hgX
 
 /-- **The crossing point of an upward level is smooth.** Let `g` be smooth with `dg(X) > 0` at
 each point of the level `g ⁻¹' {c}`. Then the map `y ↦ φ (Flow.levelCrossingTime φ g c y) y`, for
 `φ` the flow of a Weinstein structure, which follows each orbit to the level, is smooth on the
-open set of points whose orbits meet it. -/
+set of points whose orbits meet it. -/
 theorem contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos
     (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) g)
     (hgX : ∀ x, g x = c → 0 < mvfderiv 𝓘(ℝ, E) g x (X x)) :
     ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞)
       (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow g c y) y)
-      {x | ∃ t, g (hW.flow t x) = c} := by
-  have hgX' (x : M) (hx : g x = c) :
-      MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g x ∧ 0 < mvfderiv 𝓘(ℝ, E) g x (X x) :=
-    ⟨(hg x).mdifferentiableAt (by simp), hgX x hx⟩
-  exact _root_.TauCeti.contMDiffOn_flow_levelCrossingTime (n := ⊤) le_top hW.contMDiff_field
-    hW.isCompleteVectorField hW.flowOf_eq_flow
-    (hW.isOpen_setOf_exists_flow_apply_eq hg.continuous hgX')
-    (fun x _ ↦ hW.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos hg.continuous hgX' x)
-    (fun _ hx ↦ hx) (fun _ _ ↦ hg _)
-    fun _ hx ↦ (hgX _ (Flow.apply_flow_levelCrossingTime hx)).ne'
+      {x | ∃ t, g (hW.flow t x) = c} :=
+  _root_.TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos le_top hW.contMDiff_field
+    hW.isCompleteVectorField hW.flowOf_eq_flow hg hgX
 
 /-- **The crossing time of a regular level is smooth.** For a regular value `b` of the function of
 a Weinstein structure with flow `φ`, the time `Flow.levelCrossingTime φ f b` at which orbits cross
