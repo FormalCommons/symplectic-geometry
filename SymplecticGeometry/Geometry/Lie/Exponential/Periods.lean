@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 public import TauCeti.Geometry.Lie.Subgroup.OneParameter
 
-import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
+import SymplecticGeometry.Geometry.Lie.Subgroup.OneParameter
 
 /-!
 # Periods of the exponential of a Lie group
@@ -35,8 +35,6 @@ multiplication by nonzero integers.
 * `SymplecticGeometry.nsmul_mem_nonzeroPeriods`, `SymplecticGeometry.zsmul_mem_nonzeroPeriods`:
   `nonzeroPeriods I G` is invariant under multiplication by nonzero natural numbers and integers.
 * `SymplecticGeometry.neg_mem_nonzeroPeriods`: `nonzeroPeriods I G` is invariant under negation.
-* `TauCeti.Lie.closedOneParameterSubgroup_eq_bot_iff`: the closed one-parameter subgroup `T_ξ`
-  of `ξ` is trivial exactly when `ξ = 0`.
 * `TauCeti.Lie.IsTorus.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`: a nontrivial
   torus contains `T_λ` for some `λ ∈ nonzeroPeriods I G`.
 * `SymplecticGeometry.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le`: in a compact Lie
@@ -133,15 +131,9 @@ open Lie
 
 variable [IsTopologicalGroup G]
 
-/-- The closed one-parameter subgroup `T_ξ` is trivial exactly when `ξ = 0`. -/
-@[simp]
-theorem _root_.TauCeti.Lie.closedOneParameterSubgroup_eq_bot_iff {ξ : GroupLieAlgebra I G} :
-    closedOneParameterSubgroup ξ = ⊥ ↔ ξ = 0 := by
-  refine ⟨fun h ↦ forall_mulInvariantExp_smul_eq_one_iff.1 fun t ↦ ?_, fun h ↦ by simp [h]⟩
-  simpa [h] using mulInvariantExp_smul_mem_closedOneParameterSubgroup ξ t
-
 variable [FiniteDimensional ℝ E]
 
+variable (I) in
 /-- A nontrivial torus `T` contains the closed one-parameter subgroup of a nonzero period: some
 `λ ∈ nonzeroPeriods I G` has `T_λ ≤ T`. -/
 theorem _root_.TauCeti.Lie.IsTorus.exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le
@@ -164,7 +156,7 @@ one-parameter subgroup inside that of `ξ`: `T_λ ≤ T_ξ`. -/
 theorem exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le {ξ : GroupLieAlgebra I G}
     (hξ : ξ ≠ 0) :
     ∃ l ∈ nonzeroPeriods I G, closedOneParameterSubgroup l ≤ closedOneParameterSubgroup ξ :=
-  (isTorus_closedOneParameterSubgroup ξ).exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le
+  (isTorus_closedOneParameterSubgroup ξ).exists_mem_nonzeroPeriods_closedOneParameterSubgroup_le I
     (closedOneParameterSubgroup_eq_bot_iff.not.2 hξ)
 
 end ClosedOneParameterSubgroup
