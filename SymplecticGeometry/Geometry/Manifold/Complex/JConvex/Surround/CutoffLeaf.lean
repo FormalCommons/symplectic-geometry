@@ -648,7 +648,6 @@ theorem continuous_sqrtAddLeaf (L δ ℓ : ℝ) : Continuous (sqrtAddLeaf L δ �
 theorem deriv_sqrtAddLeaf_of_lt {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : δ < r)
     (hr₂ : r < 2 * δ) :
     deriv (sqrtAddLeaf L δ ℓ) r = 8 * r / √(r ^ 2 - δ ^ 2) := by
-  have hw : 0 < √(r ^ 2 - δ ^ 2) := sqrt_pos.2 (by nlinarith)
   rw [sqrtAddLeaf_eq_cutoffLeaf, deriv_cutoffLeaf_of_lt hL hδ hr hr₂,
     show 64 * r ^ 2 - 64 * δ ^ 2 = 8 ^ 2 * (r ^ 2 - δ ^ 2) by ring, sqrt_sq_mul,
     abs_of_pos (by norm_num)]
