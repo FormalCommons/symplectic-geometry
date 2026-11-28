@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 import Mathlib.Tactic.LinearCombination
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import TauCeti.Analysis.Calculus.FDeriv.Comp
 
 /-!
@@ -209,9 +210,9 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub
   -- Near `x`, `P ∘ D e₂ = P ∘ D e₁ - P ∘ D (e₁ - e₂)`.
   have hev : (fun y ↦ P (fderiv ℝ e₂ y)) =ᶠ[𝓝 x]
       fun y ↦ P (fderiv ℝ e₁ y) - P (fderiv ℝ (e₁ - e₂) y) := by
-    filter_upwards [h₁.eventually (by simp), h₂.eventually (by simp)] with y hy₁ hy₂
-    rw [← map_sub, fderiv_sub (hy₁.differentiableAt (by simp)) (hy₂.differentiableAt (by simp)),
-      sub_sub_cancel]
+    filter_upwards [h₁.eventually_differentiableAt (by simp),
+      h₂.eventually_differentiableAt (by simp)] with y hy₁ hy₂
+    rw [← map_sub, fderiv_sub hy₁ hy₂, sub_sub_cancel]
   rw [hev.fderiv_eq, fderiv_fun_sub (hPd e₁ h₁) (hPd _ h₁₂)]
   have hb : ‖fderiv ℝ (fun y ↦ P (fderiv ℝ (e₁ - e₂) y)) x‖ ≤
       ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
