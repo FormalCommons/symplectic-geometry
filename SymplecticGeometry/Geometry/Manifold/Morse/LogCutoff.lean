@@ -48,6 +48,8 @@ comes from the radial estimates of `Morse/RadialEstimate.lean`.
 * `TauCeti.mul_le_one_sub_smul_add_smul_add_apply`: at one point, a convex combination of two
   differentials satisfying the gradient-like inequality, perturbed by a small error, satisfies it
   with half the constant.
+* `TauCeti.exists_logCutoff_norm_mul_norm_fderiv_le`: a smooth cut-off `β`, equal to `1` near `0`
+  and supported in a given ball, with `‖z‖ ‖Dβ(z)‖` as small as one likes.
 * `TauCeti.exists_logCutoff_mul_le_fderiv_add_smul_mul_apply`: the cut-off `β` above.
 
 ## References
@@ -114,6 +116,88 @@ theorem mul_le_one_sub_smul_add_smul_add_apply {a b e : E →L[ℝ] ℝ} {v : E}
 
 variable [FiniteDimensional ℝ E]
 
+/-- **A logarithmic cut-off.** In a finite-dimensional real normed space, for every `r > 0` and
+`η > 0` there is a smooth `β : E → ℝ` with values in `[0, 1]`, equal to `1` near `0`, with
+topological support in `ball 0 r`, and with `‖z‖ ‖Dβ(z)‖ ≤ η` for every `z`. -/
+theorem exists_logCutoff_norm_mul_norm_fderiv_le {r η : ℝ} (hr : 0 < r) (hη : 0 < η) :
+    ∃ β : E → ℝ, ContDiff ℝ ∞ β ∧ (∀ z, β z ∈ Icc (0 : ℝ) 1) ∧ (∀ᶠ z in 𝓝 0, β z = 1) ∧
+      tsupport β ⊆ ball 0 r ∧ ∀ z, ‖z‖ * ‖fderiv ℝ β z‖ ≤ η := by
+  -- The squared Euclidean norm `ρ` and its comparison with the norm of `E`.
+  set T := toEuclidean (E := E)
+  set ρ : E → ℝ := fun z ↦ ‖T z‖ ^ 2
+  set a₁ := ‖(T.symm : EuclideanSpace ℝ (Fin (Module.finrank ℝ E)) →L[ℝ] E)‖
+  set a₂ := ‖(T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))‖
+  have hz (z : E) : ‖z‖ ≤ a₁ * ‖T z‖ := by
+    simpa using (T.symm : EuclideanSpace ℝ (Fin (Module.finrank ℝ E)) →L[ℝ] E).le_opNorm (T z)
+  have hsqrt (z : E) : √(ρ z) = ‖T z‖ := Real.sqrt_sq (norm_nonneg _)
+  have hρd (z : E) : HasFDerivAt ρ (2 • (innerSL ℝ (T z)).comp
+      (T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))) z :=
+    (T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E))).hasFDerivAt.norm_sq
+  have hρD (z : E) : ‖fderiv ℝ ρ z‖ ≤ (2 * a₂) * √(ρ z) := by
+    rw [(hρd z).fderiv, hsqrt]
+    refine (norm_nsmul_le).trans ?_
+    push_cast
+    calc 2 * ‖(innerSL ℝ (T z)).comp
+          (T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))‖
+        ≤ 2 * (‖innerSL ℝ (T z)‖ * a₂) := by gcongr; exact ContinuousLinearMap.opNorm_comp_le _ _
+      _ = 2 * a₂ * ‖T z‖ := by rw [innerSL_apply_norm]; ring
+  have hρc : ContDiff ℝ ∞ ρ := (contDiff_norm_sq ℝ).comp T.contDiff
+  -- The parameters: `δ` of order `r ^ 2` and `log (δ / ε) = L` large.
+  set κ := a₁ * (logCutoffConst * (2 * a₂))
+  have hκ : 0 ≤ κ := by have := logCutoffConst_pos; positivity
+  set L := 3 + κ / η
+  have hL : 3 ≤ L := le_add_of_nonneg_right (by positivity)
+  set δ := (r / (a₁ + 1)) ^ 2
+  have hδ : 0 < δ := by positivity
+  set ε := δ / Real.exp L
+  have hε : 0 < ε := by positivity
+  have hΛ : Real.log (δ / ε) = L := by
+    rw [show δ / ε = Real.exp L by simp only [ε]; field_simp, Real.log_exp]
+  have h4 : 4 * ε ≤ δ := by
+    have : 4 ≤ Real.exp L := by linarith [Real.add_one_le_exp L]
+    simp only [ε]
+    rw [mul_div_assoc', div_le_iff₀ (Real.exp_pos L)]
+    nlinarith
+  have h2 : 2 * ε ≤ δ := by linarith
+  set β : E → ℝ := fun z ↦ 1 - logCutoffProfile ε δ (ρ z)
+  refine ⟨β, contDiff_const.sub ((contDiff_logCutoffProfile hδ.ne').comp hρc), fun z ↦ ?_, ?_,
+    ?_, fun z ↦ ?_⟩
+  · simpa [β] using mul_one_sub_logCutoffProfile_comp_mem_Icc (χ := 1) (ρ := ρ) (p := z) hε h2
+      zero_le_one le_rfl
+  · have : ∀ᶠ z in 𝓝 (0 : E), ρ z < ε := by
+      refine hρc.continuous.continuousAt.eventually_lt continuousAt_const ?_
+      simpa [ρ] using hε
+    filter_upwards [this] with z hz
+    simp [β, logCutoffProfile_eq_zero_of_le h2 hz.le]
+  · -- The support lies where `ρ ≤ δ`, that is, in the Euclidean ball of radius `r / (a₁ + 1)`.
+    have hsub : tsupport β ⊆ {z | ρ z ≤ δ} := by
+      refine closure_minimal (fun z hz ↦ ?_) (isClosed_le hρc.continuous continuous_const)
+      by_contra h
+      exact hz (by simp [β, logCutoffProfile_eq_one_of_ge hε h2 (not_le.1 h).le])
+    intro z hzs
+    have hTz : ‖T z‖ ≤ r / (a₁ + 1) := by
+      rw [← hsqrt, ← Real.sqrt_sq (by positivity : 0 ≤ r / (a₁ + 1))]
+      exact Real.sqrt_le_sqrt (hsub hzs)
+    rw [mem_ball_zero_iff]
+    calc ‖z‖ ≤ a₁ * ‖T z‖ := hz z
+      _ ≤ a₁ * (r / (a₁ + 1)) := by gcongr
+      _ < r := by rw [mul_div_assoc', div_lt_iff₀ (by positivity)]; nlinarith
+  · -- `‖z‖ ‖Dβ(z)‖ ≤ κ / L ≤ η`.
+    have h := sqrt_mul_norm_fderiv_logCutoffProfile_comp_le hε h4 (hρd z).differentiableAt
+      (by positivity) (hρD z)
+    rw [hΛ] at h
+    have hD : fderiv ℝ β z = -fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z := fderiv_const_sub _
+    rw [hD, norm_neg]
+    calc ‖z‖ * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z‖
+        ≤ a₁ * ‖T z‖ * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z‖ := by gcongr; exact hz z
+      _ = a₁ * (√(ρ z) * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z‖) := by rw [hsqrt]; ring
+      _ ≤ a₁ * (logCutoffConst * (2 * a₂) / L) := by gcongr
+      _ = κ / L := by simp only [κ]; ring
+      _ ≤ η := by
+        rw [div_le_iff₀ (by linarith)]
+        have : κ = η * (κ / η) := by field_simp
+        nlinarith
+
 /-- **A logarithmic cut-off keeps a field gradient-like.** Let `E` be a finite-dimensional real
 normed space, `X : E → E`, and `f H : E → ℝ` differentiable on `ball 0 r₀`, such that for every
 `z` in that ball and some `c > 0` and `A`,
@@ -136,121 +220,43 @@ theorem exists_logCutoff_mul_le_fderiv_add_smul_mul_apply {f H : E → ℝ} {X :
       tsupport β ⊆ ball 0 r ∧ ∀ t ∈ Icc (0 : ℝ) 1, ∀ z ∈ ball (0 : E) r₀,
         c / 2 * (‖X z‖ ^ 2 + ‖fderiv ℝ (f + t • (β * H)) z‖ ^ 2) ≤
           fderiv ℝ (f + t • (β * H)) z (X z) := by
-  -- The squared Euclidean norm `ρ` and its comparison with the norm of `E`.
-  set T := toEuclidean (E := E)
-  set ρ : E → ℝ := fun z ↦ ‖T z‖ ^ 2
-  set a₁ := ‖(T.symm : EuclideanSpace ℝ (Fin (Module.finrank ℝ E)) →L[ℝ] E)‖
-  set a₂ := ‖(T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))‖
-  have hz (z : E) : ‖z‖ ≤ a₁ * ‖T z‖ := by
-    simpa using (T.symm : EuclideanSpace ℝ (Fin (Module.finrank ℝ E)) →L[ℝ] E).le_opNorm (T z)
-  have hsqrt (z : E) : √(ρ z) = ‖T z‖ := Real.sqrt_sq (norm_nonneg _)
-  have hρd (z : E) : HasFDerivAt ρ (2 • (innerSL ℝ (T z)).comp
-      (T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))) z :=
-    (T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E))).hasFDerivAt.norm_sq
-  have hρD (z : E) : ‖fderiv ℝ ρ z‖ ≤ (2 * a₂) * √(ρ z) := by
-    rw [(hρd z).fderiv, hsqrt]
-    refine (norm_nsmul_le).trans ?_
-    push_cast
-    calc 2 * ‖(innerSL ℝ (T z)).comp
-          (T : E →L[ℝ] EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))‖
-        ≤ 2 * (‖innerSL ℝ (T z)‖ * a₂) := by gcongr; exact ContinuousLinearMap.opNorm_comp_le _ _
-      _ = 2 * a₂ * ‖T z‖ := by rw [innerSL_apply_norm]; ring
-  have hρc : ContDiff ℝ ∞ ρ := (contDiff_norm_sq ℝ).comp T.contDiff
-  -- The parameters of the cut-off.
-  set κ := a₁ * (logCutoffConst * (2 * a₂))
-  have hκ : 0 ≤ κ := by have := logCutoffConst_pos; positivity
+  -- The error `t H Dβ` will be at most `m ‖Df‖`, with `2 (m + m ^ 2) ≤ c ^ 2`.
   set A' := max A 0
-  set L := 3 + A' * κ * (4 / c ^ 2 + 1)
-  have hAκ : 0 ≤ A' * κ * (4 / c ^ 2 + 1) := by positivity
-  set δ := (r / (a₁ + 1)) ^ 2
-  have hδ : 0 < δ := by positivity
-  set ε := δ / Real.exp L
-  have hε : 0 < ε := by positivity
-  have hΛ : Real.log (δ / ε) = L := by
-    rw [show δ / ε = Real.exp L by simp only [ε]; field_simp, Real.log_exp]
-  have h4 : 4 * ε ≤ δ := by
-    have : 4 ≤ Real.exp L := by linarith [Real.add_one_le_exp L]
-    simp only [ε]
-    rw [mul_div_assoc', div_le_iff₀ (Real.exp_pos L)]
+  set m := min (c ^ 2 / 4) 1
+  have hm0 : 0 < m := lt_min (by positivity) one_pos
+  have hm : 2 * (m + m ^ 2) ≤ c ^ 2 := by
+    have h1 : m ≤ c ^ 2 / 4 := min_le_left _ _
+    have h2 : m ≤ 1 := min_le_right _ _
     nlinarith
-  have h2 : 2 * ε ≤ δ := by linarith
-  set β : E → ℝ := fun z ↦ 1 - logCutoffProfile ε δ (ρ z)
-  have hβc : ContDiff ℝ ∞ β :=
-    contDiff_const.sub ((contDiff_logCutoffProfile hδ.ne').comp hρc)
-  -- `‖z‖ ‖Dβ(z)‖ ≤ κ / L`.
-  have hβD (z : E) : ‖z‖ * ‖fderiv ℝ β z‖ ≤ κ / L := by
-    have h := sqrt_mul_norm_fderiv_logCutoffProfile_comp_le hε h4 (hρd z).differentiableAt
-      (by positivity) (hρD z)
-    rw [hΛ] at h
-    have hD : fderiv ℝ β z = -fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z := fderiv_const_sub _
-    rw [hD, norm_neg]
-    calc ‖z‖ * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z‖
-        ≤ a₁ * ‖T z‖ * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z‖ := by gcongr; exact hz z
-      _ = a₁ * (√(ρ z) * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) z‖) := by rw [hsqrt]; ring
-      _ ≤ a₁ * (logCutoffConst * (2 * a₂) / L) := by gcongr
-      _ = κ / L := by simp only [κ]; ring
-  refine ⟨β, hβc, fun z ↦ ?_, ?_, ?_, fun t ht z hz₀ ↦ ?_⟩
-  · simpa [β] using mul_one_sub_logCutoffProfile_comp_mem_Icc (χ := 1) (ρ := ρ) (p := z) hε h2
-      zero_le_one le_rfl
-  · have : ∀ᶠ z in 𝓝 (0 : E), ρ z < ε := by
-      refine hρc.continuous.continuousAt.eventually_lt continuousAt_const ?_
-      simpa [ρ] using hε
-    filter_upwards [this] with z hz
-    simp [β, logCutoffProfile_eq_zero_of_le h2 hz.le]
-  · -- The support lies where `ρ ≤ δ`, that is, in the Euclidean ball of radius `r / (a₁ + 1)`.
-    have hsub : tsupport β ⊆ {z | ρ z ≤ δ} := by
-      refine closure_minimal (fun z hz ↦ ?_) (isClosed_le hρc.continuous continuous_const)
-      by_contra h
-      exact hz (by simp [β, logCutoffProfile_eq_one_of_ge hε h2 (not_le.1 h).le])
-    intro z hzs
-    have hρz := hsub hzs
-    have hTz : ‖T z‖ ≤ r / (a₁ + 1) := by
-      rw [← hsqrt, ← Real.sqrt_sq (by positivity : 0 ≤ r / (a₁ + 1))]
-      exact Real.sqrt_le_sqrt hρz
-    rw [mem_ball_zero_iff]
-    calc ‖z‖ ≤ a₁ * ‖T z‖ := hz z
-      _ ≤ a₁ * (r / (a₁ + 1)) := by gcongr
-      _ < r := by rw [mul_div_assoc', div_lt_iff₀ (by positivity)]; nlinarith
-  · -- The differential of `f + t • (β * H)` at `z`.
-    have hfz := (hf z hz₀).differentiableAt (isOpen_ball.mem_nhds hz₀)
-    have hHz := (hH z hz₀).differentiableAt (isOpen_ball.mem_nhds hz₀)
-    have hβz : DifferentiableAt ℝ β z := hβc.differentiable (by simp) z
-    have hDF : fderiv ℝ (f + t • (β * H)) z =
-        (1 - t * β z) • fderiv ℝ f z + (t * β z) • fderiv ℝ (f + H) z +
-          (t * H z) • fderiv ℝ β z := by
-      rw [fderiv_add hfz ((hβz.mul hHz).const_smul t), fderiv_const_smul (hβz.mul hHz),
-        fderiv_mul hβz hHz, fderiv_add hfz hHz]
-      module
-    have hβI : β z ∈ Icc (0 : ℝ) 1 := by
-      simpa [β] using mul_one_sub_logCutoffProfile_comp_mem_Icc (χ := 1) (ρ := ρ) (p := z) hε h2
-        zero_le_one le_rfl
-    have hs : t * β z ∈ Icc (0 : ℝ) 1 :=
-      ⟨mul_nonneg ht.1 hβI.1, by nlinarith [ht.1, ht.2, hβI.1, hβI.2]⟩
-    set η := A' * κ / L
-    have hLpos : 0 < L := by linarith [hAκ]
-    have hη0 : 0 ≤ η := by positivity
-    have hηle : η * (4 / c ^ 2 + 1) ≤ 1 := by
-      rw [div_mul_eq_mul_div, div_le_one hLpos]
-      linarith
-    have hη : 2 * (η + η ^ 2) ≤ c ^ 2 := by
-      have hc2 : 0 < c ^ 2 := by positivity
-      have hη1 : η ≤ 1 := by nlinarith [div_nonneg (by norm_num : (0 : ℝ) ≤ 4) hc2.le]
-      have hηc : 4 * η ≤ c ^ 2 := by
-        have : η * (4 / c ^ 2) ≤ 1 := by nlinarith
-        rw [mul_div_assoc', div_le_one hc2] at this
-        linarith
-      nlinarith
-    rw [hDF]
-    refine mul_le_one_sub_smul_add_smul_add_apply hc hs (h₁ z hz₀) (h₂ z hz₀) hη0 hη ?_
-    -- The error term `t H Dβ`.
-    have hA' : |H z| ≤ A' * ‖z‖ * ‖fderiv ℝ f z‖ :=
-      (h₃ z hz₀).trans (by gcongr; exact le_max_left _ _)
-    rw [norm_smul, Real.norm_eq_abs, abs_mul, abs_of_nonneg ht.1]
-    calc t * |H z| * ‖fderiv ℝ β z‖ ≤ 1 * (A' * ‖z‖ * ‖fderiv ℝ f z‖) * ‖fderiv ℝ β z‖ := by
-          gcongr; exact ht.2
-      _ = A' * (‖z‖ * ‖fderiv ℝ β z‖) * ‖fderiv ℝ f z‖ := by ring
-      _ ≤ A' * (κ / L) * ‖fderiv ℝ f z‖ := by gcongr; exact hβD z
-      _ = η * ‖fderiv ℝ f z‖ := by simp only [η]; ring
+  obtain ⟨β, hβc, hβI, hβ1, hβs, hβD⟩ :=
+    exists_logCutoff_norm_mul_norm_fderiv_le (E := E) hr (div_pos hm0 (by positivity : 0 < A' + 1))
+  refine ⟨β, hβc, hβI, hβ1, hβs, fun t ht z hz₀ ↦ ?_⟩
+  -- The differential of `f + t • (β * H)` at `z`.
+  have hfz := (hf z hz₀).differentiableAt (isOpen_ball.mem_nhds hz₀)
+  have hHz := (hH z hz₀).differentiableAt (isOpen_ball.mem_nhds hz₀)
+  have hβz : DifferentiableAt ℝ β z := hβc.differentiable (by simp) z
+  have hDF : fderiv ℝ (f + t • (β * H)) z =
+      (1 - t * β z) • fderiv ℝ f z + (t * β z) • fderiv ℝ (f + H) z +
+        (t * H z) • fderiv ℝ β z := by
+    rw [fderiv_add hfz ((hβz.mul hHz).const_smul t), fderiv_const_smul (hβz.mul hHz),
+      fderiv_mul hβz hHz, fderiv_add hfz hHz]
+    module
+  have hs : t * β z ∈ Icc (0 : ℝ) 1 :=
+    ⟨mul_nonneg ht.1 (hβI z).1, by nlinarith [ht.1, ht.2, (hβI z).1, (hβI z).2]⟩
+  rw [hDF]
+  refine mul_le_one_sub_smul_add_smul_add_apply hc hs (h₁ z hz₀) (h₂ z hz₀) hm0.le hm ?_
+  -- The error term `t H Dβ`.
+  have hA' : |H z| ≤ A' * ‖z‖ * ‖fderiv ℝ f z‖ :=
+    (h₃ z hz₀).trans (by gcongr; exact le_max_left _ _)
+  have hAm : A' * (m / (A' + 1)) ≤ m := by
+    rw [mul_div_assoc', div_le_iff₀ (by positivity)]
+    nlinarith [le_max_right A 0]
+  rw [norm_smul, Real.norm_eq_abs, abs_mul, abs_of_nonneg ht.1]
+  calc t * |H z| * ‖fderiv ℝ β z‖ ≤ 1 * (A' * ‖z‖ * ‖fderiv ℝ f z‖) * ‖fderiv ℝ β z‖ := by
+        gcongr; exact ht.2
+    _ = A' * (‖z‖ * ‖fderiv ℝ β z‖) * ‖fderiv ℝ f z‖ := by ring
+    _ ≤ A' * (m / (A' + 1)) * ‖fderiv ℝ f z‖ := by gcongr; exact hβD z
+    _ ≤ m * ‖fderiv ℝ f z‖ := mul_le_mul_of_nonneg_right hAm (norm_nonneg _)
 
 end TauCeti
 
