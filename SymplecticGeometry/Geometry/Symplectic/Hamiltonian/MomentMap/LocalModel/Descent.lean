@@ -151,6 +151,8 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
     have h := mvfderiv_apply_fundamentalVectorField ((hf (η, v)).mdifferentiableAt (by simp))
       K.subtype hK (fun k ↦ ContinuousLinearMap.ext fun ζ' ↦ ?_) ξ ζ
     · rw [← hd, h, neg_lie, ← lie_skew]
+      -- `LinearMap.coe_toContinuousLinearMap'` does not rewrite here, as `GroupLieAlgebra I G`
+      -- carries no normed instances; the two sides agree by definition.
       rfl
     · have hk := congrArg (fun ν : Module.Dual ℝ (GroupLieAlgebra I G) ↦ ν ζ')
         (D.covector_smul k (η, v))
