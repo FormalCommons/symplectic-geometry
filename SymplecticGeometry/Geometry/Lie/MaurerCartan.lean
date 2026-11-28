@@ -88,7 +88,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- Right translation by `h` pulls the left Maurer–Cartan form back to its image under the
 adjoint action of `h⁻¹`: `R_h^* θ = Ad(h⁻¹) θ`. -/
-@[simp]
 theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     SmoothForm.mpullback (· * h) contMDiff_mul_right (leftMaurerCartanForm I G) =
       SmoothForm.mapCoeff (F := E) (G := E) (adjointContinuousLinearMap (I := I) h⁻¹)
