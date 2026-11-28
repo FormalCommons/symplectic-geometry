@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.Complexification
+public import SymplecticGeometry.Geometry.Lie.Complexification.Polar
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure

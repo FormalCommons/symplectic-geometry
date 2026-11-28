@@ -43,7 +43,8 @@ once (`TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos`, from
 orbits meet it form an open set: just before and just after its crossing an orbit lies on either
 side of the level, so the nearby orbits do too, and they cross it in between by the intermediate
 value theorem. For a `C^n` function `g`, the crossing time and the crossing point of such a level
-are then `C^n` on that open set.
+are then `C^n` on that open set, and in finite dimension the kernel of the derivative of the
+map to the level at each of its points is the line through the field.
 
 ## Main results
 
@@ -65,6 +66,8 @@ are then `C^n` on that open set.
   `TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`: for a `C^n` function, the crossing
   time and the crossing point of a level crossed upwards are `C^n` at each point of that open
   set, and on it.
+* `TauCeti.ker_mfderiv_flow_levelCrossingTime_of_mvfderiv_pos`: in finite dimension, the
+  derivative of the map to a level crossed upwards has kernel the line through the field.
 
 ## References
 
@@ -185,6 +188,20 @@ theorem subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
     rwa [← flowOf_eq_globalFlow hv hcomplete, hΦ] at h
   exact hcurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos (f := g)
     (hg.continuous.comp hcurve.continuous) fun _ hz ↦ ⟨hg _, hgv _ hz⟩
+
+/-- **The kernel of the derivative of the map to an upward level.** Let `v` be a complete `C¹`
+field on a finite-dimensional manifold, with flow `Φ`, and let `g` be `C¹` with `dg (v) > 0` at
+each point of the level `{g = c}`. If the orbit of `x` meets the level, then the derivative at `x`
+of `y ↦ Φ (Flow.levelCrossingTime Φ g c y) y` has kernel the line spanned by `v x`. -/
+theorem ker_mfderiv_flow_levelCrossingTime_of_mvfderiv_pos [FiniteDimensional ℝ E]
+    (hv : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
+    (hΦ : flowOf v = ⇑Φ) (hg : ContMDiff I 𝓘(ℝ) 1 g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) (hx : ∃ t, g (Φ t x) = c) :
+    (mfderiv I I (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) x).ker = ℝ ∙ v x :=
+  ker_mfderiv_flow_levelCrossingTime hv hcomplete hΦ
+    (Eventually.of_forall (subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos hv hcomplete hΦ
+      (hg.mdifferentiable one_ne_zero) hgv))
+    hx (hg _) (hgv _ (Flow.apply_flow_levelCrossingTime hx)).ne'
 
 variable {n : ℕ∞} (hn : 1 ≤ n) [IsManifold I n M]
   (hv : CMDiff n (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)

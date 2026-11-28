@@ -258,10 +258,8 @@ theorem orientation_map_eq_divisorNormalOrientation_mk {v : Fin (n + 1) → ℂ}
     (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
       divisorNormalOrientation c (Projectivization.mk ℂ v hv) :=
   orientation_map_eq_divisorNormalOrientation c
-    ((LinearEquiv.toSpanNonzeroSingleton ℂ _ v hv).trans
-      (LinearEquiv.ofEq _ _ (Projectivization.submodule_mk v hv).symm)) m fun w ↦ Subtype.ext <| by
-      simp only [hm, LinearEquiv.trans_apply, LinearEquiv.coe_ofEq_apply,
-        LinearEquiv.toSpanNonzeroSingleton_apply]
+    (Projectivization.toTautological hv (Projectivization.submodule_mk v hv)) m fun w ↦
+      Subtype.ext <| by rw [hm, Projectivization.coe_toTautological_apply]
 
 variable [T2Space M] [SecondCountableTopology M]
 

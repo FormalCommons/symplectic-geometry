@@ -167,8 +167,8 @@ may adjust implicit arguments and instance arguments to what elaborates.
    with (e) gives the limit; issue 11 takes it from Tau Ceti's
    `Morse/Bott/ExponentialConvergence.lean`. The weights $w_\mu(p,\xi)$ exist for every
    $\xi$, by monotonicity and compactness of $M$.
-6. **Home.** The complexification is Lie theory, so it is
-   `Geometry/Lie/Complexification.lean`, beside Tau Ceti's folder
+6. **Home.** The complexification is Lie theory, so it is in
+   the folder `Geometry/Lie/Complexification/`, beside Tau Ceti's folder
    `Geometry/Lie/Subgroup/` (Tau Ceti has no file of that name there). The
    Kähler files cannot go in `Geometry/Symplectic/Manifold/Kahler/`, since
    Tau Ceti has the file `Geometry/Symplectic/Manifold/Kahler.lean` (where
@@ -222,14 +222,16 @@ may adjust implicit arguments and instance arguments to what elaborates.
 
 ## Files
 
-- `Geometry/Lie/Complexification.lean`: `LieComplexification`, its API
-  (`expI`, `im`, `re`, `lieMap_re_add_cplx_lieMap_im`, `polar_apply`,
-  `connectedSpace` from connectedness of `G`, `toHom` a closed embedding),
-  the circle example, and the Gauss lemma of decision 7.
+- `Geometry/Lie/Complexification/Basic.lean`: `LieComplexification`, its
+  API (`im`, `re`, `lieMap_re_add_cplx_lieMap_im`, `connectedSpace` from
+  connectedness of `G`).
+- `Geometry/Lie/Complexification/Polar.lean`: `expI`, `polar_apply`,
+  `toHom` a closed embedding, the circle example, and the Gauss lemma of
+  decision 7.
 - `Geometry/Lie/Subgroup/Parabolic.lean`: the parabolic subgroup
   `C.parabolic ξ` of decision 8, its Lie subspace, and
   $G^{\mathbb C}=P(\xi)G$. Tau Ceti's folder `Geometry/Lie/Subgroup/` has no
-  file of that name, and `Complexification.lean` keeps its path.
+  file of that name, and the files of `Complexification/` keep their paths.
 - `Geometry/RealAlgebraic/Semialgebraic/CurveSelection.lean`: decision 4 (a).
 - `Analysis/Calculus/Lojasiewicz/Polynomial.lean`: decision 4 (b), in Tau
   Ceti's folder `Analysis/Calculus/Lojasiewicz/`.
@@ -301,7 +303,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 
 ## Main results
 
-### `Geometry/Lie/Complexification.lean` (the polar radius)
+### `Geometry/Lie/Complexification/Polar.lean` (the polar radius)
 
 For connected `G` and a symmetric `Ad`-invariant `B`, so that `B` is also
 `ad`-invariant (`TauCeti.Lie.lieInvariant_iff_adjoint_invariant`):
@@ -344,7 +346,7 @@ so no statement takes it.
   `C.parabolicSubspace ξ` is the sum of the eigenspaces of `A` with
   eigenvalue `≤ 0`, once `A` is diagonalizable with real eigenvalues
   (next item).
-- `isSelfAdjoint_ad_cplx_lieMap` (`Geometry/Lie/Complexification.lean`): for the form
+- `isSelfAdjoint_ad_cplx_lieMap` (`Geometry/Lie/Complexification/Basic.lean`): for the form
   `Bc x y := B (C.re x) (C.re y) + B (C.im x) (C.im y)`, symmetric and
   positive definite because `lieMap_re_add_cplx_lieMap_im` splits
   `GroupLieAlgebra IC Gc`, the operator `A` is `Bc`-symmetric. Proof: by
@@ -369,15 +371,14 @@ so no statement takes it.
   `F (x, y) := mulInvariantExp (x : EC) * C.toHom (mulInvariantExp y)` on
   `C.parabolicSubspace ξ × E` takes values in the set
   `S := C.parabolic ξ * Set.range C.toHom`.
-- `parabolic_mul_range_toHom_mem_nhds_one : S ∈ 𝓝 1`. In the logarithm
-  chart `mulInvariantLogChart` of Tau Ceti's
-  `Geometry/Lie/Exponential/LocalInverse.lean`, whose derivative at `1` is
-  the identity (`hasFDerivAt_mulInvariantLogChart_one`), the map `F` is
-  strictly differentiable at `0` with derivative `(x, y) ↦ x + C.lieMap y`,
-  which is onto by `parabolicSubspace_sup_range_lieMap`. Mathlib's
-  `HasStrictFDerivAt.map_nhds_eq_of_surj`
-  (`Analysis/Calculus/InverseFunctionTheorem/FDeriv.lean`) then makes the
-  image of `F` a neighbourhood of `1`.
+- `parabolic_mul_range_toHom_mem_nhds_one : S ∈ 𝓝 1`. By
+  `parabolicSubspace_sup_range_lieMap`, `range C.lieMap` contains a
+  complement of `C.parabolicSubspace ξ`. On the product of the two, carried
+  to left-invariant derivations, Tau
+  Ceti's `Submodule.lieExpMulLieExp` is a local diffeomorphism at `0`
+  (`Submodule.isLocalDiffeomorphAt_lieExpMulLieExp_zero_of_isCompl`), so its
+  image, which lies in `S` by `toHom_mulInvariantExp`, is a neighbourhood
+  of `1`.
 - `parabolic_mul_range_toHom_eq_univ : (C.parabolic ξ : Set Gc) * Set.range C.toHom = Set.univ`
   (Theorem D.3), with the two forms used below,
   `exists_mem_parabolic_mul_toHom : ∃ q ∈ C.parabolic ξ, ∃ u, g = q * C.toHom u`
@@ -389,8 +390,8 @@ so no statement takes it.
   `C.parabolic ξ`, so `k ∈ C.parabolic ξ * V ⊆ S`; hence
   `S = closure (C.parabolic ξ) * Set.range C.toHom`, closed by Mathlib's
   `IsClosed.mul_right_of_isCompact` (`Topology/Algebra/Group/Pointwise.lean`),
-  since `G` is compact. `Gc` is connected (`C.connectedSpace`) and `S` is
-  nonempty.
+  since `G` is compact. `S` contains `C.toHom u`, so the clopen `S` contains
+  the curve `t ↦ C.polar (t • η, u)` from it to `C.polar (η, u)`.
 
 ### `KempfNess/Basic.lean`
 
@@ -932,7 +933,7 @@ commutes with `ξ`, so lies in the centralizer of `ξ`, and so commutes
 with every element of `𝔞 ξ`. It is a set in the statements below; a
 proof that needs it as a `Submodule` builds it there.
 
-- `sqrt_polar_symm_fst_le_add_mul` (`Geometry/Lie/Complexification.lean`,
+- `sqrt_polar_symm_fst_le_add_mul` (`Geometry/Lie/Complexification/Polar.lean`,
   with the polar radius): for connected `G`, a symmetric, nonnegative, `Ad`-invariant `B`,
   a curve `a` with `HasLeftTrivializedDerivOn a v univ` and
   `√(B (C.im (v t)) (C.im (v t))) ≤ K` for all `t`, the polar radius
@@ -1088,7 +1089,7 @@ proof that needs it as a `Submodule` builds it there.
   `TauCeti.Lie.tangentAd_mulInvariantExp_apply`,
   `TauCeti.Lie.conj_mulInvariantExp`,
   `LinearMap.IsSelfAdjoint.iSup_eigenspace_eq_top` and
-  `mulInvariantLogChart`; for the
+  `Submodule.isLocalDiffeomorphAt_lieExpMulLieExp_zero_of_isCompl`; for the
   local criterion, `TauCeti.exists_equivariant_contMDiff_chart_of_isCompact_stabilizer`,
   `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`,
   `Subgroup.ambientConnectedComponentOfOne`, `tangentRepresentation`,
@@ -1099,7 +1100,7 @@ proof that needs it as a `Submodule` builds it there.
   `unitaryAction`, checked at `0aaa80fd07b7`.
 - From Mathlib: `IsCompact.continuous_sInf` (`Topology/Order/Compact.lean`)
   and the comparison lemmas of `Analysis/Calculus/MeanValue.lean`; for
-  decision 8, `HasStrictFDerivAt.map_nhds_eq_of_surj`,
+  decision 8,
   `IsClosed.mul_right_of_isCompact`
   and dominated convergence for interval integrals; for the local
   criterion, `HasStrictFDerivAt.toOpenPartialHomeomorph` and
@@ -1117,7 +1118,7 @@ proof that needs it as a `Submodule` builds it there.
 
 Each is a few hundred lines; each is blocked by the issues it names.
 
-1. **The complexification.** `Geometry/Lie/Complexification.lean`, with
+1. **The complexification.** `Geometry/Lie/Complexification/`, with
    the circle example. No blockers.
 2. **The complexified action and the stability predicates.**
    `KempfNess/Basic.lean`. Blocked by 1.
@@ -1135,7 +1136,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    equivariant tubular neighbourhood of an orbit from the moment map in
    the model.
 9. **The gradient flow of $\|\mu\|^2$.** `KempfNess/NormSquare.lean`, and
-   the Gauss lemma of decision 7 in `Geometry/Lie/Complexification.lean`.
+   the Gauss lemma of decision 7 in `Geometry/Lie/Complexification/Polar.lean`.
    Blocked by 3, 6, 7 and 8. The moment limit theorem comes last, after
    the steps that *Main results* lists before it, in that order; it does
    not use the moment-weight inequality of issue 12.
@@ -1212,7 +1213,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
 13. **The parabolic subgroup.** `Geometry/Lie/Subgroup/Parabolic.lean`:
     `C.parabolic ξ`, `C.parabolicLimit ξ` and `C.parabolicSubspace ξ` with
     their API, `tangentAd_expI_smul`, `isSelfAdjoint_ad_cplx_lieMap` (in
-    `Complexification.lean`),
+    `Complexification/Basic.lean`),
     `parabolicSubspace_sup_range_lieMap` and `mulInvariantExp_mem_parabolic`.
     Blocked by 1.
 14. **$G^{\mathbb C}=P(\xi)G$.** The rest of `Parabolic.lean`, from
