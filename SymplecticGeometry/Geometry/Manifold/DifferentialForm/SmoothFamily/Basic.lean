@@ -23,6 +23,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 
@@ -183,10 +184,9 @@ theorem contMDiffAt_mpullback_inclusion_iff_of_family {m : WithTop ℕ∞} {U W 
   refine Iff.trans (Iff.of_eq (congrArg (ContMDiffAt _ _ _ · p) (funext fun q ↦ ?_)))
     (hf.contMDiffAt_mpullback_form_iff le_top)
   have hq : MDifferentiableAt (J.prod I) (J.prod I) (Prod.map id (Opens.inclusion h)) q :=
-    mdifferentiableAt_id.prodMap ((contMDiff_inclusion h).mdifferentiableAt (n := 1) one_ne_zero)
+    mdifferentiableAt_id.prodMap (mdifferentiableAt_inclusion h)
   rw [mpullback_verticalForm_apply _ hq, Prod.map_snd',
-    mpullback_comp_at mdifferentiableAt_snd
-      ((contMDiff_inclusion h).mdifferentiableAt (n := 1) one_ne_zero), Prod.map_fst, id_eq,
+    mpullback_comp_at mdifferentiableAt_snd (mdifferentiableAt_inclusion h), Prod.map_fst, id_eq,
     verticalForm_apply_eq_mpullback_snd]
 
 end TauCeti

@@ -51,7 +51,10 @@ algebraic complex-antilinear part `TauCeti.complexAntilinearPart J J'`, built fr
 `TauCeti.complexAntilinearPartLinearMap`, as a continuous real-linear operator on the continuous
 real-linear maps. For fields of endomorphisms and of operators that are `C^n` at a point, the
 field of their complex-antilinear parts is `C^n` there
-(`ContDiffAt.complexAntilinearPartContinuousLinearMap`).
+(`ContDiffAt.complexAntilinearPartContinuousLinearMap`). Changing the endomorphism of the source
+from `J₂` to `J₁` moves the value at `v` of Tau Ceti's `TauCeti.complexLinearPart` of a continuous
+operator `F` by at most `½ ‖F‖ ‖J₁ - J₂‖ ‖v‖`, when the endomorphism of the target does not increase
+norms (`TauCeti.norm_complexLinearPart_apply_sub_complexLinearPart_apply_le`).
 
 For topological complex modules whose real structure is compatible with the complex one, the
 setting of Tau Ceti's versions for real scalars, both parts commute with complex scalars
@@ -289,6 +292,34 @@ theorem _root_.ContDiffAt.complexAntilinearPartContinuousLinearMap {X : Type*}
   simp [complexAntilinearPart_apply]
 
 end TauCeti
+
+/-! ### Changing the source structure of the algebraic complex-linear part -/
+
+section ChangeOfStructure
+
+variable {V W : Type*} [SeminormedAddCommGroup V] [NormedSpace ℝ V] [SeminormedAddCommGroup W]
+  [NormedSpace ℝ W]
+
+/-- Replacing the endomorphism `J₂` of the source by `J₁` moves the value at `v` of Tau Ceti's
+complex-linear part `TauCeti.complexLinearPart J J' F = ½ (F - J' ∘ F ∘ J)` of a continuous
+real-linear map `F` by at most `½ ‖F‖ ‖J₁ - J₂‖ ‖v‖`, when `J'` does not increase norms. -/
+theorem TauCeti.norm_complexLinearPart_apply_sub_complexLinearPart_apply_le
+    (J₁ J₂ : V →L[ℝ] V) {J' : W →ₗ[ℝ] W} (hJ' : ∀ w, ‖J' w‖ ≤ ‖w‖) (F : V →L[ℝ] W) (v : V) :
+    ‖complexLinearPart (J₁ : V →ₗ[ℝ] V) J' (F : V →ₗ[ℝ] W) v -
+        complexLinearPart (J₂ : V →ₗ[ℝ] V) J' (F : V →ₗ[ℝ] W) v‖ ≤
+      2⁻¹ * (‖F‖ * ‖J₁ - J₂‖ * ‖v‖) := by
+  have h : complexLinearPart (J₁ : V →ₗ[ℝ] V) J' (F : V →ₗ[ℝ] W) v -
+      complexLinearPart (J₂ : V →ₗ[ℝ] V) J' (F : V →ₗ[ℝ] W) v =
+        (2⁻¹ : ℝ) • -J' (F ((J₁ - J₂) v)) := by
+    simp only [complexLinearPart_apply, ContinuousLinearMap.coe_coe, sub_apply, map_sub]
+    module
+  rw [h, norm_smul, norm_neg, Real.norm_of_nonneg (by norm_num)]
+  gcongr
+  calc ‖J' (F ((J₁ - J₂) v))‖ ≤ ‖F‖ * ‖(J₁ - J₂) v‖ := (hJ' _).trans (F.le_opNorm _)
+    _ ≤ ‖F‖ * (‖J₁ - J₂‖ * ‖v‖) := by gcongr; exact (J₁ - J₂).le_opNorm v
+    _ = ‖F‖ * ‖J₁ - J₂‖ * ‖v‖ := by ring
+
+end ChangeOfStructure
 
 /-! ### Equal norms of the two parts of a form with values in a complex line -/
 
