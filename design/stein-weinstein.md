@@ -2290,10 +2290,9 @@ through Tau Ceti's `coe_stableSubspace` and `mem_stableSubspace`), the
 isotropy
 of the core, `range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
 modelDisc k m '' sphere 0 √(c / a)` for `0 < c` (the attaching sphere of
-the model), and, for `k = 0`, `isWeinsteinStructure_handle_zero`. That
-last lemma is the radial structure of `Weinstein/Basic.lean`, carried by
-`IsWeinsteinStructure.pullback` along the linear equivalence of
-`ℂ⁰ × ℂᵐ` with `ℂᵐ`, and by `.comp` with `t ↦ b t`. No flow is defined
+the model), and, for `k = 0`, `isWeinsteinStructure_modelHandle_zero`. That
+last lemma checks the conditions one by one: the results above,
+`isMorse_modelHandle`, and `b ‖p‖²` being proper and bounded below. No flow is defined
 here: Tau Ceti's `ContinuousLinearMap.flow` and `stableSubspace` give
 the flow of any bounded linear field and the stable set of `0`, as 15c
 already uses them. Searched: neither Tau Ceti nor the library has this
@@ -2401,7 +2400,7 @@ gives ($2(k-1)+2m+1=2n-1$), and the model sphere comes with a constant
 framing.
 
 **Index zero.** The model for `k = 0` is a Weinstein structure
-(`isWeinsteinStructure_handle_zero`). The stable set of a minimum is the
+(`isWeinsteinStructure_modelHandle_zero`). The stable set of a minimum is the
 point itself (`IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`,
 15e), so in the attachment theorem `hK` asks only that the minimum lie
 in `{g < 0}`, and a new component of the sublevel is a ball around it.

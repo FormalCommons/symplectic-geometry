@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 public import SymplecticGeometry.Geometry.Manifold.Flow.Linear
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
+public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import TauCeti.Geometry.Symplectic.Complex.ImInner.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
@@ -17,6 +18,7 @@ import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Topology.Maps.Proper.Metric
 
 /-!
 # The standard Weinstein handle
@@ -33,7 +35,8 @@ given by three objects:
   data are those of `JConvex/Surround/Shape.lean`.
 
 For `k ≥ 1` the function is not bounded below, so the triple is not a Weinstein structure; it is
-stated property by property.
+stated property by property. For `k = 0` the coordinate `s` vanishes, the function is `b ‖p‖²`,
+and the triple is a Weinstein structure.
 
 ## Main results
 
@@ -59,6 +62,10 @@ stated property by property.
   grow linearly in `p`. The differential of the model handle function and its bound,
   `SymplecticGeometry.fderiv_modelHandle_apply` and
   `SymplecticGeometry.norm_fderiv_modelHandle_le`, come from `JConvex/Surround/Shape.lean`.
+* `SymplecticGeometry.isWeinsteinStructure_modelHandle_zero`: for `k = 0` and `0 < b` the triple
+  is a Weinstein structure. It is checked condition by condition: the Liouville, completeness and
+  gradient-like results above, the Morse property `SymplecticGeometry.isMorse_modelHandle`, and
+  properness and boundedness below of `b ‖p‖²` (`SymplecticGeometry.modelHandle_zero_apply`).
 
 ## References
 
@@ -294,6 +301,43 @@ theorem isGradientLike_modelHandle_modelHandleField {a b : ℝ} (ha : 0 < a) (hb
         linarith
     _ = min (2 * a) b * ‖p‖ ^ 2 := by field_simp
     _ ≤ _ := hκ
+
+/-! ### Index zero -/
+
+/-- For `k = 0` the model handle function is `p ↦ b ‖p‖²`, for every `a`: the coordinate
+`s = |x|²` vanishes on `ℂ⁰ × ℂᵐ`. -/
+theorem modelHandle_zero_apply (a b : ℝ)
+    (p : EuclideanSpace ℂ (Fin 0) × EuclideanSpace ℂ (Fin m)) :
+    modelHandle 0 m a b p = b * ‖p‖ ^ 2 := by
+  have h : p.1 = 0 := Subsingleton.elim _ _
+  simp [modelHandle_def, Prod.norm_def, h]
+
+/-- **The standard handle of index zero is a Weinstein structure.** On `ℂ⁰ × ℂᵐ`, for `0 < b` and
+every `a`, the constant form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`, the handle field `p ↦ p / 2` and the
+model handle function `p ↦ b ‖p‖²` form a Weinstein structure. -/
+theorem isWeinsteinStructure_modelHandle_zero (a : ℝ) {b : ℝ} (hb : 0 < b) :
+    IsWeinsteinStructure
+      ((imInnerSymplecticForm (EuclideanSpace ℂ (Fin 0))).prod
+        (imInnerSymplecticForm (EuclideanSpace ℂ (Fin m)))).constSmooth
+      (fun p ↦ modelHandleField 0 m p :
+        (p : EuclideanSpace ℂ (Fin 0) × EuclideanSpace ℂ (Fin m)) →
+          TangentSpace 𝓘(ℝ, EuclideanSpace ℂ (Fin 0) × EuclideanSpace ℂ (Fin m)) p)
+      (modelHandle 0 m a b) := by
+  have hf : modelHandle 0 m a b = (b * ·) ∘ fun p ↦ ‖p‖ ^ 2 :=
+    funext (modelHandle_zero_apply a b)
+  -- The function does not depend on `a`, so the Morse and gradient-like results apply with `1`.
+  have h₁ : modelHandle 0 m a b = modelHandle 0 m 1 b := funext fun p ↦ by
+    rw [modelHandle_zero_apply, modelHandle_zero_apply]
+  refine ⟨SymplecticForm.isSymplectic_constSmooth _, contMDiff_modelHandleField,
+    isLiouvilleVectorField_modelHandleField, isCompleteVectorField_modelHandleField, ?_, ?_,
+    h₁ ▸ (isMorse_modelHandle one_pos hb).isGeneralizedMorse,
+    h₁ ▸ isGradientLike_modelHandle_modelHandleField one_pos hb⟩
+  · rw [hf]
+    exact (Homeomorph.mulLeft₀ b hb.ne').isProperMap.comp
+      (by simpa using isProperMap_norm_sq_sub (0 : EuclideanSpace ℂ (Fin 0) ×
+        EuclideanSpace ℂ (Fin m)))
+  · rw [hf, Set.range_comp]
+    exact ⟨0, by rintro _ ⟨_, ⟨p, rfl⟩, rfl⟩; positivity⟩
 
 end SymplecticGeometry
 
