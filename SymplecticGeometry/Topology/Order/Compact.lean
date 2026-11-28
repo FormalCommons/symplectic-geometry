@@ -7,19 +7,38 @@ module
 
 public import Mathlib.Topology.Order.Compact
 public import Mathlib.Topology.Instances.Real.Lemmas
+public import Mathlib.Topology.Algebra.Group.Defs
 
 /-!
-# Two real functions stay apart away from where they agree
+# Uniform gaps between two functions on a compact set
 
-If `f` and `g` are real functions, continuous on a compact set `K`, and `O` is a neighbourhood of
-the points of `K` where `f = g`, then `|f - g|` has a positive lower bound on `K \ O`
-(`IsCompact.exists_pos_forall_le_abs_sub_of_mem_nhdsSet`). It follows from
-`IsCompact.exists_forall_le'` on `K` minus an open set between `K ∩ {f = g}` and `O`.
+* `IsCompact.exists_pos_forall_add_le_of_forall_lt`: if `f < g` on a compact set `s`, with `f` and
+  `g` continuous on `s` with values in a nontrivial linearly ordered topological additive group,
+  then `f + δ ≤ g` on `s` for some `δ > 0`. It extends Tau Ceti's
+  `TauCeti.exists_pos_forall_add_le_of_forall_lt`, which proves this for a finite index type
+  under the same order hypotheses, to a compact set. It is also the version on a compact set of
+  Tau Ceti's `CircleDeg1Lift.exists_pos_forall_add_le_of_forall_lt`, which compares two lifts
+  of circle maps. It follows from `IsCompact.exists_forall_le'` applied to `g - f`.
+* If `f` and `g` are real functions, continuous on a compact set `K`, and `O` is a neighbourhood of
+  the points of `K` where `f = g`, then `|f - g|` has a positive lower bound on `K \ O`
+  (`IsCompact.exists_pos_forall_le_abs_sub_of_mem_nhdsSet`). It follows from
+  `IsCompact.exists_forall_le'` on `K` minus an open set between `K ∩ {f = g}` and `O`.
 -/
 
 public section
 
 open Set Topology
+
+/-- If `f` and `g` are continuous on a compact set `s`, with values in a nontrivial linearly
+ordered topological additive group, and `f x < g x` for every `x ∈ s`, then `f` stays below `g`
+by a uniform margin: there is `δ > 0` with `f x + δ ≤ g x` for every `x ∈ s`. -/
+theorem IsCompact.exists_pos_forall_add_le_of_forall_lt {X α : Type*} [TopologicalSpace X]
+    [AddCommGroup α] [LinearOrder α] [IsOrderedAddMonoid α] [Nontrivial α] [TopologicalSpace α]
+    [OrderClosedTopology α] [ContinuousSub α] {s : Set X} {f g : X → α} (hs : IsCompact s)
+    (hf : ContinuousOn f s) (hg : ContinuousOn g s) (hlt : ∀ x ∈ s, f x < g x) :
+    ∃ δ > 0, ∀ x ∈ s, f x + δ ≤ g x := by
+  obtain ⟨δ, hδ, h⟩ := hs.exists_forall_le' (hg.sub hf) fun x hx ↦ sub_pos.2 (hlt x hx)
+  exact ⟨δ, hδ, fun x hx ↦ le_sub_iff_add_le'.1 (h x hx)⟩
 
 /-- If `f` and `g` are real functions continuous on a compact set `K`, and `O` is a neighbourhood
 of the points of `K` where they agree, then `|f - g|` is bounded below on `K \ O` by some
