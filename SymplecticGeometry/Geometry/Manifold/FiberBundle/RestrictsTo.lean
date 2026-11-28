@@ -76,6 +76,8 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   positive degree on the base vanishes on every fibre, and
   `Bundle.Trivialization.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic`: so does that of a
   form of positive degree semibasic for `proj`.
+* `Bundle.Trivialization.smoothForm_mpullback_fiberInclusionMap_mpullback_eq_zero`: the same
+  vanishing for the smooth pull-backs of smooth forms.
 * `Bundle.Trivialization.mextDeriv_apply_eq_zero_of_mextDeriv_mpullback`: a `C¹` form whose
   pull-back to the fibre through `x` is closed has exterior derivative zero at `x` on tuples of
   vertical vectors. Both vanishing results for the exterior derivative on vertical vectors
@@ -229,6 +231,19 @@ theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj
   obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hk
   exact e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hb
     (TauCeti.RoughForm.isSemibasic_mpullback IB proj β)
+
+/-- **Smooth forms from the base vanish on the fibres.** The smooth pull-back to a fibre of the
+smooth pull-back `proj^* β` of a form of positive degree on the base is zero. -/
+@[simp]
+theorem smoothForm_mpullback_fiberInclusionMap_mpullback_eq_zero [IsManifold IB 1 B]
+    [IsManifold IF 1 F] [IsManifold IM 1 M] (e : Trivialization F proj) {b : B}
+    (hb : b ∈ e.baseSet) (hι : ContMDiff IF IM ∞ (e.fiberInclusionMap hb)) (hk : k ≠ 0)
+    (hproj : ContMDiff IM IB ∞ proj) (β : TauCeti.SmoothForm IB B V k) :
+    TauCeti.SmoothForm.mpullback (e.fiberInclusionMap hb) hι
+      (TauCeti.SmoothForm.mpullback proj hproj β) = 0 := by
+  apply Subtype.ext
+  rw [TauCeti.SmoothForm.coe_mpullback, TauCeti.SmoothForm.coe_mpullback,
+    e.mpullback_fiberInclusionMap_mpullback_eq_zero hb hk, ZeroMemClass.coe_zero]
 
 /-- **Vertical exterior derivative from the fibres.** Let `e` be a trivialization of `proj` that
 is differentiable, with `C²` inverse, and let `α` be a `C¹` form on `M`. If the pull-back of `α`

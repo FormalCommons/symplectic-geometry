@@ -13,7 +13,7 @@ import SymplecticGeometry.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.Basic
 import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
 import SymplecticGeometry.Topology.FiberBundle.Basic

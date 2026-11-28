@@ -74,8 +74,6 @@ function theorem applies again.
 
 * `TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`: `G ×_K Z` is second
   countable.
-* `TauCeti.BalancedProduct.ker_mfderiv_quotientMk_rightTranslation`: on
-  `K.RightTranslation × Z`, the kernel of `dπ` is the orbit tangent space of the diagonal action.
 * `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`: on `G × Z`, a tangent
   vector at `(g, z)` is vertical exactly when it is `(-d(L_g)(ξ'), ξ_Z(z))` for some `ξ ∈ Lie(K)`.
 * `TauCeti.BalancedProduct.surjective_mk_toRightTranslation`,
@@ -188,27 +186,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [ChartedSpace F K] [LieGroup 𝓘(ℝ, F) ∞ K] [ContMDiffSMul 𝓘(ℝ, F) I ∞ K G]
   [ContMDiffSMul 𝓘(ℝ, F) IZ ∞ K Z]
-
-/-- **The vertical directions of `K.RightTranslation × Z → G ×_K Z`.** The kernel of the
-differential at `x` of the projection onto the balanced product is the orbit tangent space at `x`
-of the diagonal action `h • (g, z) = (g h⁻¹, h • z)` of `K`, spanned by its fundamental vector
-fields. -/
-theorem ker_mfderiv_quotientMk_rightTranslation (x : K.RightTranslation × Z) :
-    letI := rightTranslationChartedSpace K Z I IZ F
-    (mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
-      (Quotient.mk (MulAction.orbitRel K (K.RightTranslation × Z))) x).ker =
-      (InfinitesimalAction.fundamental 𝓘(ℝ, F) K (I.prod IZ)
-        (K.RightTranslation × Z)).orbitTangent x := by
-  let _ := rightTranslationChartedSpace K Z I IZ F
-  have := topologicalGroup_of_lieGroup I ∞ (G := G)
-  have := ContMDiffSMul.continuousSMul (I := 𝓘(ℝ, F)) (I' := IZ) (G := K) (M := Z) ∞
-  exact ProperSMul.ker_mfderiv_eq_orbitTangent_fundamental_of_isSubmersionAt (I := 𝓘(ℝ, F))
-    (IsCancelSMul.stabilizer_eq_bot x)
-    ((isSubmersion_quotientMk_rightTranslation (I := I) (IZ := IZ) (F := F)).isSubmersionAt x)
-    (by simp)
-    (Filter.Eventually.of_forall fun _ ↦ MulAction.orbitRel.Quotient.quotient_smul_eq)
-    (Filter.Eventually.of_forall fun _ h ↦
-      MulAction.mem_orbit_iff.1 (MulAction.orbitRel_apply.1 (Quotient.exact h)))
 
 /-- **The vertical directions of `G × Z → G ×_K Z`.** A tangent vector at `(g, z)` lies in the
 kernel of the differential of `(g, z) ↦ [g, z]` exactly when it is `(-d(L_g)(ξ'), ξ_Z(z))` for

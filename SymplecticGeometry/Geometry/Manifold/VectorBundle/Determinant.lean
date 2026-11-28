@@ -18,7 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
 import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 
 /-!

@@ -18,8 +18,8 @@ and a map `f : E → F`:
 
 * `Module.Basis.contDiffOn_repr`, `Module.Basis.contDiffAt_repr`: the coordinates
   `y ↦ b.repr (f y) j` of `f` are `C^n` on a set, or at a point, where `f` is.
-* `Module.Basis.norm_iteratedFDeriv_le_sum`: at a point where `f` is `Cⁿ`, the norm of its `n`-th
-  derivative is at most `∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖`.
+* `Module.Basis.norm_iteratedFDeriv_le_sum_repr`: at a point where `f` is `Cⁿ`, the norm of its
+  `n`-th derivative is at most `∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖`.
 
 The second is a converse of Mathlib's `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`, applied
 to the coordinate functionals. It is Tau Ceti's `TauCeti.norm_iteratedFDeriv_sum_comp_left_le`
@@ -49,7 +49,7 @@ variable [Fintype ι]
 /-- The `n`-th derivative of a function `f` with values in a finite-dimensional space, at a point
 where `f` is `Cⁿ`, has norm at most the sum over a basis `b` of `‖b j‖` times the norm of the
 `n`-th derivative of the `j`-th coordinate `y ↦ b.repr (f y) j`. -/
-theorem norm_iteratedFDeriv_le_sum (b : Basis ι 𝕜 F) {f : E → F} {x : E} {n : ℕ}
+theorem norm_iteratedFDeriv_le_sum_repr (b : Basis ι 𝕜 F) {f : E → F} {x : E} {n : ℕ}
     (hf : ContDiffAt 𝕜 n f x) :
     ‖iteratedFDeriv 𝕜 n f x‖ ≤
       ∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖ := by

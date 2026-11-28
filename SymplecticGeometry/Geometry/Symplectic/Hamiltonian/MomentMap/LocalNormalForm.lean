@@ -17,6 +17,7 @@ public import TauCeti.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
+import SymplecticGeometry.Topology.Algebra.GroupAction.InvariantCore
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.WeaklyHamiltonian
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Nondegenerate

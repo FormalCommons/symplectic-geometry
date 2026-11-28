@@ -289,7 +289,7 @@ theorem of_pow_eq_of_wedgePow (φ : SmoothForm I M ℝ k) (m : ℕ) :
     DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ ^ m =
       DirectSum.of _ (k * m) (wedgePow φ m) := by
   induction m with
-  | zero => rw [pow_zero, wedgePow_zero]; exact of_zero_ofFunction_one.symm
+  | zero => rw [pow_zero, wedgePow_zero_eq_ofFunction_one]; exact of_zero_ofFunction_one.symm
   -- The degree `k * m + k` of the product reduces to `k * (m + 1)`.
   | succ m ih => rw [pow_succ, ih, of_mul_of_eq_of_wedge, wedgePow_succ]; rfl
 

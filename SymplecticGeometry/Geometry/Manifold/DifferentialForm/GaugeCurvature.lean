@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.DifferentialForm.GaugeCurvature
+public import TauCeti.Geometry.Manifold.DifferentialForm.Gauge.Curvature
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth

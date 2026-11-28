@@ -64,7 +64,10 @@ an invertible differential at `x`; for an immersion at `x` between manifolds of 
 dimension, which has one, the direction from `f x` to `x` is
 `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_of_isImmersionAt`; for the action of an
 element of a group acting by smooth maps, on a
-two-form invariant under it, this is `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`),
+two-form invariant under it, this is
+`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff_of_isManifold_one`, which needs only a
+`C¹` manifold, where Tau Ceti's `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff` needs a
+smooth one),
 and, for a two-form closed at `f x`, the
 identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
 pointwise Cartan formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior_apply`). They are the
@@ -303,9 +306,11 @@ theorem nondegenerate_bilinFormAt_mpullback_of_isImmersionAt [FiniteDimensional 
 
 open scoped ContDiff in
 /-- Let a group `G` act on `M` by smooth maps, and let the two-form `σ` on `M` be invariant
-under `y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
-theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {G : Type*} [Group G]
-    [MulAction G M] [ContMDiffConstSMul I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
+under `y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`.
+Unlike Tau Ceti's `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`, `M` need only be a
+`C¹` manifold. -/
+theorem nondegenerate_bilinFormAt_smul_iff_of_isManifold_one [IsManifold I 1 M] {G : Type*}
+    [Group G] [MulAction G M] [ContMDiffConstSMul I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
     (hσ : SmoothForm.mpullback (k • ·) (ContMDiffConstSMul.contMDiff_const_smul k) σ = σ)
     (y : M) :
     (σ.bilinFormAt (k • y)).Nondegenerate ↔ (σ.bilinFormAt y).Nondegenerate := by

@@ -119,12 +119,6 @@ end Transition
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {n : ℕ}
 
-/-- A point of projective space lies in the standard affine open of the preferred chart of
-`𝒪(k)` at that point. -/
-theorem mem_affineOpen_twistCore_indexAt (k : ℤ) (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
-    x ∈ affineOpen ((twistCore k).indexAt x) :=
-  twistCore_baseSet (𝕜 := 𝕜) k _ ▸ (twistCore k).mem_baseSet_at x
-
 /-- The preferred chart of `𝒪(k)` at the coordinate point `[eᵢ]` is the chart `i`, the only
 standard affine open that contains `[eᵢ]`. -/
 @[simp]
