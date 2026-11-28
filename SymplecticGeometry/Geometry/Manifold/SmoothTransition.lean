@@ -62,7 +62,7 @@ theorem contMDiff_smoothTransition {n : ℕ∞ω} (hn : n ≤ ∞) :
 `s' = deriv Real.smoothTransition`. -/
 theorem mfderiv_smoothTransition_one (u : ℝ) :
     mfderiv 𝓘(ℝ) (𝓡∂ 1) smoothTransition u 1 = deriv Real.smoothTransition u • 1 := by
-  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc
+  refine mfderiv_apply_eq_smul_one_Icc
     ((contMDiff_smoothTransition le_rfl).mdifferentiableAt (by simp)) ?_
   have hc : Subtype.val ∘ smoothTransition = Real.smoothTransition :=
     funext coe_smoothTransition

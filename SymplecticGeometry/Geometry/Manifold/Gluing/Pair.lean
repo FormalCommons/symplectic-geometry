@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Gluing two spaces along open subsets
@@ -935,10 +936,8 @@ theorem mpullback_inr_glue {σ₁ : RoughForm I M₁ F k} {σ₂ : RoughForm I M
     obtain ⟨hxU, hy⟩ := (inl_eq_inr_diffeomorph_iff φ).1 hx
     subst hy
     set u : U₁ := ⟨x, hxU⟩
-    have hd₁ : MDifferentiable I I (Subtype.val : U₂ → M₂) :=
-      (contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)
-    have hd₂ : MDifferentiable I I (Subtype.val : U₁ → M₁) :=
-      (contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)
+    have hd₁ : MDifferentiable I I (Subtype.val : U₂ → M₂) := mdifferentiable_subtypeVal
+    have hd₂ : MDifferentiable I I (Subtype.val : U₁ → M₁) := mdifferentiable_subtypeVal
     have hφd : MDifferentiable I I φ := φ.contMDiff.mdifferentiable (by simp)
     rw [← mpullback_subtype_val_apply
         (mpullback I I (inr φ.toHomeomorph)

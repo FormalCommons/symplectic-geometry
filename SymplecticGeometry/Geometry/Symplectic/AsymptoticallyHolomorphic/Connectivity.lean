@@ -6,18 +6,23 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.Morse.Hessian
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Manifold.Morse.ComplexIndex
+import SymplecticGeometry.Geometry.Manifold.Morse.ComplexNegativity
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHessian
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.ContMDiff.Log
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 
 /-!
 # Critical points of `log |s_k|²` for uniformly transverse sequences
@@ -51,6 +56,13 @@ carries `J` at `x` to the standard structure. The Morse index of `f` at `x` is t
 half the dimension of `M`
 (`SymplecticGeometry.IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`), by
 `TauCeti.AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg`.
+
+When each `s k` is smooth, the negativity above passes to the critical points of the smooth
+function `Bundle.logNormSq`, which is `y ↦ log ‖s k y‖²` on the open submanifold
+`Bundle.nonzeroOpens` where `s k` does not vanish, for the restricted almost complex
+structure `J.restrictOpen`
+(`SymplecticGeometry.IsUniformlyTransverse.criticalHessian_logNormSq_add_neg`),
+by `TauCeti.SmoothAlmostComplexStructure.criticalHessian_comp_subtypeVal_add_neg`.
 
 These are the first steps of the Morse theory of `log |s_k|²` away from the zero set.
 
@@ -270,6 +282,34 @@ theorem IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex [I.Boundaryl
     (J.almostComplexStructureAt x).finrank_real_eq_two_mul_complexFinrank
   rw [hE, Nat.mul_div_cancel_left _ two_pos]
   exact h
+
+/-- **The critical Hessian of `log |s_k|²` on `{s_k ≠ 0}` is negative in complex directions.**
+In the setting of `SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a
+boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large, at every critical point
+`x` of `g = logNormSq (hsm k)` on `U = nonzeroOpens (hsm k)`, the critical Hessian satisfies
+`Hess g (v, v) + Hess g (J_U v, J_U v) < 0` for every nonzero tangent vector `v` at `x`, where
+`J_U = J.restrictOpen U`. -/
+theorem IsUniformlyTransverse.criticalHessian_logNormSq_add_neg [I.Boundaryless]
+    (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s)
+    (hsm : ∀ k : ℕ, ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y))) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ x ∈ criticalPoints I (logNormSq (hsm k)),
+      ∀ v : TangentSpace I x, v ≠ 0 →
+        criticalHessian I (logNormSq (hsm k)) x v v +
+          criticalHessian I (logNormSq (hsm k)) x (J.restrictOpen (nonzeroOpens (hsm k)) x v)
+            (J.restrictOpen (nonzeroOpens (hsm k)) x v) < 0 := by
+  filter_upwards [ht.criticalHessian_add_criticalHessian_neg D hJ hα hρ₀ hη hs]
+    with k hk x hx v hv
+  rw [coe_logNormSq] at hx ⊢
+  have hcrit := mem_criticalPoints_comp_subtypeVal.1 hx
+  have hs0 : s k x ≠ 0 := mem_nonzeroOpens.1 x.property
+  have hf := ((contMDiff_norm_sq_bundle I ∞ (PowerModel k) (PowerBundle P k)).comp
+    (hsm k)).contMDiffAt.log (pow_ne_zero 2 (norm_ne_zero_iff.2 hs0))
+  exact J.criticalHessian_comp_subtypeVal_add_neg (hf.of_le (by simp)) hcrit
+    (hk x ((hsm k).mdifferentiableAt (by simp)) hs0 hcrit) v hv
 
 end SymplecticGeometry
 
