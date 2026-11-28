@@ -526,8 +526,7 @@ theorem exists_continuousAt_mem_twistOneKernel_eq_zero (hcover : ∀ x, ∃ i, x
   let U₁ (_ : PUnit.{u + 1}) : TopologicalSpace.Opens (OnePoint ℂ) := (e₁ ⟨⟩).baseSetOpens
   have hU₁ : ∀ x, (U₁ x : Set (OnePoint ℂ)) ⊆ (e₁ x).baseSet :=
     fun x ↦ (e₁ x).coe_baseSetOpens.subset
-  have hp : p ∈ U₁ ⟨⟩ :=
-    Bundle.Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt _ _ p)
+  have hp : p ∈ U₁ ⟨⟩ := FiberBundle.mem_baseSetOpens_trivializationAt _ _ p
   have hev (s : twistOneKernel J₀) : ContinuousAt (fun J ↦ T J s p) ⟨J₀, hJ₀⟩ := by
     obtain ⟨S', hS', hS'c⟩ := hS s
     let := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))

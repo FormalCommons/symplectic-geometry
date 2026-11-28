@@ -16,6 +16,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Hilbe
 import SymplecticGeometry.Analysis.Matrix.HermitianExp
 import SymplecticGeometry.Analysis.Matrix.Spectrum
 import TauCeti.LinearAlgebra.Eigenspace.Anticommute
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 
 /-!
 # Complexified linear actions on complex projective space
