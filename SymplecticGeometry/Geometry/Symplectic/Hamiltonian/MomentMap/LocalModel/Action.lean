@@ -338,6 +338,37 @@ theorem covector_smul (k : K) (p : A × V) :
     coadjointRepresentation_apply, coadjointRepresentation_apply, coadjointRepresentation_apply,
     covector_apply, hτ]
 
+/-- The equivariance of the covectors of the local model, read as continuous linear forms:
+`ν (k • p) = ν p ∘ Ad_{k⁻¹}`. This is the hypothesis `hfK` of
+`TauCeti.CotangentBundle.balancedProductInducedForm`. -/
+theorem covectorCLM_smul (k : K) (p : A × V) :
+    letI := D.fiberDistribMulAction
+    D.covectorCLM (k • p) = D.covectorCLM p ∘L adjointContinuousLinearMap (I := I) (k : G)⁻¹ := by
+  rw [covectorCLM_def, covectorCLM_def]
+  exact ContinuousLinearMap.ext fun ξ ↦
+    (congrArg (· ξ) (D.covector_smul k p)).trans (coadjointRepresentation_apply _ _ _)
+
+/-- The pullback `pr_V^* σ` of the symplectic form of `V` to `A × V` is invariant under the action
+of `K`: `pr_V (k • p) = rep k (pr_V p)` and `rep k` preserves `σ`. This is the hypothesis `hσK` of
+`TauCeti.CotangentBundle.balancedProductInducedForm`. -/
+@[simp]
+theorem mpullback_smul_mpullback_snd_constSmooth (k : K) :
+    letI := D.fiberDistribMulAction
+    SmoothForm.mpullback (fun p : A × V ↦ k • p)
+        (haveI := D.contMDiffSMul_fiberDistribMulAction
+        ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) k)
+        (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth) =
+      SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth := by
+  let := D.fiberDistribMulAction
+  have he : SymplecticForm.IsSymplectomorphism D.σ D.σ
+      (D.rep k).toContinuousLinearEquiv.toLinearEquiv := by
+    rw [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
+    exact D.isSymplectomorphism_rep k
+  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contDiff_snd.contMDiff
+    (D.rep k).toContinuousLinearEquiv.toDiffeomorph.contMDiff
+    (funext fun p ↦ congrArg Prod.snd (D.fiberDistribMulAction_smul k p)),
+    he.mpullback_constSmooth]
+
 /-- The two-form of the local model on `G × (A × V)` is invariant under the action
 `(g, p) ↦ (g * k⁻¹, k • p)` of `k ∈ K`: the covectors `ν` are equivariant (`covector_smul`), and
 each `rep k` preserves `σ`. -/
@@ -350,27 +381,9 @@ theorem mpullback_prodMap_mul_right_smul_form (k : K) :
       D.form := by
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
-  have hk := ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) (I' := 𝓘(ℝ, A × V)) (n := ∞)
-    (M := A × V) k
-  -- The term `pr_V^* σ` is invariant, as `pr_V (k • p) = rep k (pr_V p)` and `rep k` preserves `σ`.
-  have hσ : SmoothForm.mpullback (fun p : A × V ↦ k • p) hk
-      (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth) =
-        SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth := by
-    have he : SymplecticForm.IsSymplectomorphism D.σ D.σ
-        (D.rep k).toContinuousLinearEquiv.toLinearEquiv := by
-      rw [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
-      exact D.isSymplectomorphism_rep k
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contDiff_snd.contMDiff
-      (D.rep k).toContinuousLinearEquiv.toDiffeomorph.contMDiff
-      (funext fun p ↦ congrArg Prod.snd (D.fiberDistribMulAction_smul k p)),
-      he.mpullback_constSmooth]
-  rw [form_def, localModelForm_def]
-  -- `ν (k • p) = Ad*_k (ν p)` is `ν (k • p) = ν p ∘ Ad_{k⁻¹}` on each `ξ`.
-  exact TauCeti.CotangentBundle.mpullback_prodMap_mul_right_inducedForm _ (k : G)⁻¹ hk
-    (fun p ↦ ContinuousLinearMap.ext fun ξ ↦ by
-      rw [← covector_def, ← covector_def]
-      exact
-        (congrArg (· ξ) (D.covector_smul k p)).trans (coadjointRepresentation_apply _ _ _)) hσ
+  rw [form_eq_inducedForm]
+  exact TauCeti.CotangentBundle.mpullback_prodMap_mul_right_inducedForm _ (k : G)⁻¹ _
+    (D.covectorCLM_smul k) (D.mpullback_smul_mpullback_snd_constSmooth k)
 
 /-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
 of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual𝔪`, is

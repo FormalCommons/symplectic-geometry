@@ -10,6 +10,8 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Basic
 
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+
 /-!
 # The data of the Marle–Guillemin–Sternberg local model
 
@@ -76,7 +78,7 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
 
 public section
 
-open TauCeti TauCeti.Lie
+open TauCeti TauCeti.Lie TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -366,6 +368,40 @@ def form : SmoothForm (I.prod 𝓘(ℝ, A × V)) (G × (A × V)) ℝ 2 :=
 
 theorem form_def : D.form = localModelForm D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 :=
   (rfl)
+
+/-- The covectors `ν` of the local model, read as continuous linear forms on `𝔤`, the form in which
+Tau Ceti's `TauCeti.CotangentBundle.inducedForm` takes them. -/
+def covectorCLM (p : A × V) : E →L[ℝ] ℝ :=
+  (LinearMap.toContinuousLinearMap : Module.Dual ℝ E ≃ₗ[ℝ] E →L[ℝ] ℝ) (D.covector p)
+
+theorem covectorCLM_def (p : A × V) :
+    D.covectorCLM p =
+      (LinearMap.toContinuousLinearMap : Module.Dual ℝ E ≃ₗ[ℝ] E →L[ℝ] ℝ) (D.covector p) :=
+  (rfl)
+
+@[simp]
+theorem covectorCLM_apply (p : A × V) (ξ : GroupLieAlgebra I G) :
+    D.covectorCLM p ξ = D.covector p ξ :=
+  (rfl)
+
+@[simp]
+theorem coe_covectorCLM (p : A × V) : (D.covectorCLM p : E →ₗ[ℝ] ℝ) = D.covector p :=
+  (rfl)
+
+/-- The covectors of the local model, read as continuous linear forms on `𝔤`, form a smooth map
+on `A × V`. -/
+theorem contMDiff_covectorCLM : ContMDiff 𝓘(ℝ, A × V) 𝓘(ℝ, E →L[ℝ] ℝ) ∞ D.covectorCLM :=
+  contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) D.contMDiff_covector_apply
+
+/-- The two-form of the local model is Tau Ceti's induced form
+`TauCeti.CotangentBundle.inducedForm` of the covectors `ν`, read as continuous linear forms, and of
+the pullback of `σ` along `pr_V : A × V → V`. -/
+theorem form_eq_inducedForm :
+    D.form = inducedForm I G (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth)
+      D.contMDiff_covectorCLM := by
+  rw [form_def, localModelForm_def]
+  -- `D.covector` is `localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥` by definition.
+  rfl
 
 /-- The two-form of the local model on `G × (A × V)` is closed. -/
 theorem isClosed_form : D.form.IsClosed := by
