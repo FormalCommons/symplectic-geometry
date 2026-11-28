@@ -421,7 +421,7 @@ with every element of `𝔞 ξ`. It is a set in the statements below; a
 proof that needs it as a `Submodule` builds it there.
 
 - `sqrt_polar_symm_fst_le_add_mul` (`Geometry/Lie/Complexification.lean`,
-  with the polar radius): for connected `G`, a symmetric `Ad`-invariant `B`,
+  with the polar radius): for connected `G`, a symmetric, nonnegative, `Ad`-invariant `B`,
   a curve `a` with `HasLeftTrivializedDerivOn a v univ` and
   `√(B (C.im (v t)) (C.im (v t))) ≤ K` for all `t`, the polar radius
   `√(B η η)` of `a t`, for `(η, u) = C.polar.symm (a t)`, is at most that of

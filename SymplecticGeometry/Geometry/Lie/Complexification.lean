@@ -20,8 +20,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
-import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
@@ -660,27 +659,8 @@ theorem sqrt_polar_symm_fst_le_add_mul [FiniteDimensional ℝ E]
     refine (congrArg (fun r ↦ √r * √(B (C.im (v s)) (C.im (v s)))) (hAd _ _)).trans_le ?_
     exact mul_le_mul_of_nonneg_left (hK s) (Real.sqrt_nonneg _)
   have hK0 : 0 ≤ K := (Real.sqrt_nonneg _).trans (hK 0)
-  -- For `ε > 0`, `√(f + ε)` is differentiable, with derivative at most `K`.
-  have key (ε : ℝ) (hε : 0 < ε) : √(f t + ε) ≤ √(f 0 + ε) + K * t := by
-    have hpos' (s : ℝ) : 0 < f s + ε := add_pos_of_nonneg_of_pos (hpos.nonneg _) hε
-    have hd (s : ℝ) : HasDerivAt (fun s ↦ √(f s + ε)) (2 * b s / (2 * √(f s + ε))) s :=
-      ((hfd s).add_const ε).sqrt (hpos' s).ne'
-    have hle (s : ℝ) : deriv (fun s ↦ √(f s + ε)) s ≤ K := by
-      have h2 := Real.sqrt_pos.2 (hpos' s)
-      rw [(hd s).deriv, div_le_iff₀ (by positivity)]
-      have h1 : √(f s) ≤ √(f s + ε) := Real.sqrt_le_sqrt (by linarith)
-      nlinarith [hb s]
-    have := image_sub_le_mul_sub_of_deriv_le (fun s ↦ (hd s).differentiableAt) hle ht
-    linarith
-  refine le_of_forall_pos_le_add fun δ hδ ↦ ?_
-  have h0 : 0 ≤ f 0 := hpos.nonneg _
-  calc √(f t) ≤ √(f t + δ ^ 2) := Real.sqrt_le_sqrt (by nlinarith)
-    _ ≤ √(f 0 + δ ^ 2) + K * t := key _ (by positivity)
-    _ ≤ √(f 0) + δ + K * t := by
-      gcongr
-      refine Real.sqrt_le_iff.2 ⟨by positivity, ?_⟩
-      nlinarith [Real.sq_sqrt h0, Real.sqrt_nonneg (f 0)]
-    _ = √(f 0) + K * t + δ := by ring
+  simpa using Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le (fun s ↦ hpos.nonneg _) hfd
+    (fun s ↦ by linarith [hb s]) hK0 ht
 
 end LieComplexification
 

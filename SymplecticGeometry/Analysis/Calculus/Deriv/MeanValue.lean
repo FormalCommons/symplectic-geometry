@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.Deriv.Basic
 public import Mathlib.Analysis.Convex.Basic
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 
 /-!
@@ -21,6 +22,11 @@ which the proof reduces.
 A real function that is bounded below on `[a, ∞)`, and whose derivative there is at most `c`,
 has `0 ≤ c` (`nonneg_of_bddBelow_of_hasDerivAt_le`): for `c < 0`, Mathlib's
 `Convex.image_sub_le_mul_sub_of_deriv_le` makes it fall below every bound.
+
+A nonnegative function `f : ℝ → ℝ` whose derivative is at most `2 * K * √f`, with `0 ≤ K`, has
+a square root that grows at most like `K` times the elapsed time
+(`Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le`). Away from the zeros of `f` this is the chain
+rule for `√f`; the proof applies the mean value theorem to `√(f + ε)` and lets `ε` tend to `0`.
 -/
 
 public section
@@ -58,5 +64,33 @@ theorem nonneg_of_bddBelow_of_hasDerivAt_le {f f' : ℝ → ℝ} {a c : ℝ}
     simp only [t, add_sub_cancel_left]
     field_simp [hc.ne]
   linarith [hdec t hta]
+
+/-- If `f : ℝ → ℝ` is nonnegative, has a derivative `f' s` at every `s`, and
+`f' s ≤ 2 * K * √(f s)` for every `s`, with `0 ≤ K`, then `√(f b) ≤ √(f a) + K * (b - a)` for
+`a ≤ b`. -/
+theorem Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le {f f' : ℝ → ℝ} {K a b : ℝ}
+    (hf : ∀ s, 0 ≤ f s) (hd : ∀ s, HasDerivAt f (f' s) s) (hle : ∀ s, f' s ≤ 2 * K * √(f s))
+    (hK : 0 ≤ K) (hab : a ≤ b) : √(f b) ≤ √(f a) + K * (b - a) := by
+  -- For `ε > 0`, `√(f + ε)` is differentiable, with derivative at most `K`.
+  have key (ε : ℝ) (hε : 0 < ε) : √(f b + ε) ≤ √(f a + ε) + K * (b - a) := by
+    have hpos (s : ℝ) : 0 < f s + ε := add_pos_of_nonneg_of_pos (hf s) hε
+    have hdε (s : ℝ) : HasDerivAt (fun s ↦ √(f s + ε)) (f' s / (2 * √(f s + ε))) s :=
+      ((hd s).add_const ε).sqrt (hpos s).ne'
+    have hleε (s : ℝ) : deriv (fun s ↦ √(f s + ε)) s ≤ K := by
+      have h2 := Real.sqrt_pos.2 (hpos s)
+      rw [(hdε s).deriv, div_le_iff₀ (by positivity)]
+      have h1 : √(f s) ≤ √(f s + ε) := Real.sqrt_le_sqrt (by linarith)
+      nlinarith [hle s]
+    have := image_sub_le_mul_sub_of_deriv_le (fun s ↦ (hdε s).differentiableAt) hleε hab
+    linarith
+  refine le_of_forall_pos_le_add fun δ hδ ↦ ?_
+  have h0 : 0 ≤ f a := hf a
+  calc √(f b) ≤ √(f b + δ ^ 2) := Real.sqrt_le_sqrt (by nlinarith)
+    _ ≤ √(f a + δ ^ 2) + K * (b - a) := key _ (by positivity)
+    _ ≤ √(f a) + δ + K * (b - a) := by
+      gcongr
+      refine Real.sqrt_le_iff.2 ⟨by positivity, ?_⟩
+      nlinarith [Real.sq_sqrt h0, Real.sqrt_nonneg (f a)]
+    _ = √(f a) + K * (b - a) + δ := by ring
 
 end
