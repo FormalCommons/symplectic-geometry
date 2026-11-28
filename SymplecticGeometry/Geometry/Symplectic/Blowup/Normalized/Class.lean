@@ -506,6 +506,7 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SecondCountableTopology M
   have hb : b = m • TopPair.singularCohomologyMap F 2 D := by
     rw [← map_smul, ← hm, ← TopPair.singularCohomologyMap_comp_apply, hFG,
       TopPair.singularCohomologyMap_id]
+    -- The identity of `ModuleCat` acts as the identity on elements.
     rfl
   -- Compare the pairings of both sides with the class of the simplex `S`.
   obtain ⟨S, t, ht, h1, h2⟩ := hψ.exists_smoothSimplex_singularKronecker_relClass
@@ -533,6 +534,7 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SecondCountableTopology M
     congr 3
     erw [show TopPair.Hom.fst F = 𝟙 _ from TopPair.ofSubsetMap_fst _ _,
       CategoryTheory.Functor.map_id]
+    -- The identity natural transformation of `TopCat.toSSet` acts as the identity on simplices.
     rfl
   rw [← hbdef, hb] at h1
   erw [map_smul] at h1
