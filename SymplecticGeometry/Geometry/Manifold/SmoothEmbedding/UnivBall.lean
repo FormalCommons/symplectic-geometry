@@ -15,7 +15,6 @@ import TauCeti.Analysis.InnerProductSpace.Calculus
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.Orientation.Pullback
 import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
@@ -41,8 +40,8 @@ of the maximal atlas instead of `chartAt`. At `0`, the map `univBall c ρ` has d
 `ρ • id`, so for `0 < ρ` it preserves every orientation of `E` there
 (`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`), and so at every point, since it is
 a local diffeomorphism of the connected space `E`
-(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`, through Tau Ceti's
-`IsPreconnected.isOrientationPreservingAt_iff`).
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`, through
+`IsLocalDiffeomorph.isOrientationPreservingAt_iff`).
 
 ## Main results
 
@@ -129,10 +128,8 @@ theorem isOrientationPreservingAt_univBall [FiniteDimensional ℝ E] {ι : Type*
 theorem isOrientationPreservingAt_univBall_of_pos [FiniteDimensional ℝ E] {ι : Type*}
     [Fintype ι] (hρ : 0 < ρ) (o : Manifold.Orientation 𝓘(ℝ, E) E ι) (x : E) :
     o.IsOrientationPreservingAt o (univBall c ρ) x :=
-  (isPreconnected_univ.isOrientationPreservingAt_iff
-    (fun z _ ↦ (isLocalDiffeomorph_univBall (n := 1) (by simp) z).contMDiffAt)
-    (fun z _ ↦ (isLocalDiffeomorph_univBall (n := 1) (by simp) z).isInvertible_mfderiv
-      one_ne_zero) o o (mem_univ 0) (mem_univ x)).1 (isOrientationPreservingAt_univBall hρ o)
+  ((isLocalDiffeomorph_univBall le_rfl).isOrientationPreservingAt_iff (by simp) o o 0 x).1
+    (isOrientationPreservingAt_univBall hρ o)
 
 end OpenPartialHomeomorph
 
