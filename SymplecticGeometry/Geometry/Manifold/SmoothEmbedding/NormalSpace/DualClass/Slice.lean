@@ -904,22 +904,17 @@ theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
   let := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
   let := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
   subst hr
-  -- The class of `φ⁻¹ ∘ f` is its own pull-back along the identity; the pull-back of the class of
-  -- `f` along `φ` is computed from `relDualClassOf_transDiffeomorph`.
-  refine (ConcreteCategory.congr_hom (TopPair.singularCohomologyMap_id _ _) _).symm.trans
-    (singularCohomologyMap_relDualClass_eq_of_relDualClassOf f hn hdim hf o rfl _ (𝟙 _) _ ?_).symm
-  -- The remaining goal is stated for `ModuleCat.instLinear`; `rw` must find that instance.
-  let : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear
-  rw [TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply,
+  -- `relDualClassOf_transDiffeomorph` is stated for the `ℤ`-linear structure
+  -- `ModuleCat.instLinear`; read both classes for that structure.
+  rw [relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
     relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
-    TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
-    LinearEquiv.refl_apply, ← relDualClassOf_transDiffeomorph,
+    ← TopPair.singularCohomologyLinearCongr_naturality, ← relDualClassOf_transDiffeomorph,
     ← TopPair.singularCohomologyLinearCongr_naturality, transDiffeomorphThomPairMap_def,
     thomPairMapOfComp_def]
   -- The goal agrees with the naturality of the canonical Thom class only up to unfolding
   -- (`thomPairMapOfFiberwise` over `g = ContinuousMap.id Z`), which `rw` does not see.
   congr 3
-  exact o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap rfl rfl _
+  exact (o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap rfl rfl _).symm
 
 /-- **Naturality of the dual class under a diffeomorphism.** Let `φ : X' ≃ X` be a diffeomorphism
 and `o` an orientation of the normal bundle of `f`, of rank `r`. The dual class of `φ⁻¹ ∘ f`,
