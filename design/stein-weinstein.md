@@ -1102,7 +1102,7 @@ containing `ι '' closedBall 0 1`:
       `contDiffOn_struweLineShape` (`Ioi δ`),
       `struweShape_le_struweLineShape` and `struweLineShape_le`
       (`≤ max (S r) (2 * r - 8 * δ) + δ / 8`, `smoothedMax_le_max_add`),
-      `deriv_struweLineShape_le` (`≤ 2` on `Ici (7 * δ / 2)`,
+      `deriv_struweLineShape_le` (`≤ 2` on `Ici (2 * δ)`,
       `deriv_smoothedMax_le_max`), and
       `isConvexShapeAt_struweLineShape_add`: for `δ < r` and `t` with
       `2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t` and
