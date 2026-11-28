@@ -16,6 +16,7 @@ import TauCeti.MeasureTheory.Integral.PolarCoord
 import TauCeti.MeasureTheory.Measure.Haar.OfBasis
 import TauCeti.Topology.Algebra.Support
 import Mathlib.Data.Fin.Tuple.Reflection
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
 # The angular form cut off near the origin
@@ -184,9 +185,7 @@ theorem mextDeriv_radialAngularForm_apply (hβ : Differentiable ℝ β) (ha : 0 
     mextDeriv (radialAngularForm β) z v =
       deriv β ‖z‖ / ‖z‖ * ((v 0).re * (v 1).im - (v 0).im * (v 1).re) := by
   rcases eq_or_ne z 0 with rfl | hz
-  · rw [mextDeriv_congr_of_eventuallyEq (η := (0 : RoughForm 𝓘(ℝ, ℂ) ℂ ℝ 1))
-        (radialAngularForm_eventuallyEq_zero ha hβa),
-      mextDeriv_zero]
+  · rw [mextDeriv_apply_eq_zero_of_eventuallyEq_zero (radialAngularForm_eventuallyEq_zero ha hβa)]
     simp only [norm_zero, div_zero, zero_mul]
     -- The zero alternating map, applied to vectors of the tangent space of `ℂ` at `0`.
     rfl

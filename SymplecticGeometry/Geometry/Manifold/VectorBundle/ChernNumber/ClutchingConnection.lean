@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import SymplecticGeometry.Topology.Sets.Annulus
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Topology.Separation.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
 # A connection built from clutching frames, and its curvature
@@ -325,12 +326,10 @@ theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finit
     ManifoldTotalSpace.mpullback_add_mpullback_proj_apply α₀ a' (hτ.mdifferentiableAt (by simp))
   -- off the discs of radius `b` the curvature vanishes
   have hcurv_out {x : M} (hx : x ∈ U) : hα.curvature.val x = 0 := by
-    rw [hα.curvature_apply_eq_mextDeriv_mpullback (hsout (hUC hx)),
-      mextDeriv_congr_of_eventuallyEq (η := 0) ?_, mextDeriv_zero]
-    · rfl
+    rw [hα.curvature_apply_eq_mextDeriv_mpullback (hsout (hUC hx))]
+    refine mextDeriv_apply_eq_zero_of_eventuallyEq_zero ?_
     filter_upwards [hUo.mem_nhds hx] with y hy
     rw [hpull (hsout (hUC hy)), ha_out hy, add_neg_cancel]
-    rfl
   -- on the `i`-th unit disc it is `-k i d(β(‖z‖) dθ)` in the coordinate
   have hcurv_disc {i : ι} {x : M} (hx : x ∈ (φ i).openDisc) :
       hα.curvature.val x = (-(k i : ℝ)) • mpullback (𝓡 2) 𝓘(ℝ, ℂ) (φ i).coord

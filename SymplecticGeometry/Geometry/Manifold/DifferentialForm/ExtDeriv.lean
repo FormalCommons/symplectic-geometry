@@ -31,6 +31,10 @@ by Tau Ceti's `TauCeti.mextDeriv_neg` and `TauCeti.RoughForm.ofFunction_neg`
 `fderiv_fun_neg` and `fderiv_neg`, the form for `fun x ↦ -f x` is a simp lemma and the form for
 `-f` is not.
 
+For forms of any degree, `dφ` vanishes at a point near which `φ` vanishes
+(`TauCeti.mextDeriv_apply_eq_zero_of_eventuallyEq_zero`), by Tau Ceti's
+`TauCeti.mextDeriv_congr_of_eventuallyEq` and `TauCeti.mextDeriv_zero`.
+
 For forms of any degree, `d(φ - η) = dφ - dη` at a point where the coordinate expressions of `φ`
 and `η` in the chart there are differentiable (`TauCeti.mextDeriv_sub`): Tau Ceti's
 `TauCeti.mextDerivWithin_sub` on the whole space, as Tau Ceti's `TauCeti.mextDeriv_add` follows
@@ -68,6 +72,8 @@ hypothesis holds at every point of `U` when `ω` is of class `Cⁿ` with `n ≠ 
   `d(f + g) = df + dg` and `d(f - g) = df - dg` at a point where `f` and `g` are differentiable.
 * `TauCeti.mextDeriv_ofFunction_sub`: `d(f - g) = df - dg` for differentiable functions.
 * `TauCeti.mextDeriv_ofFunction_neg`, `TauCeti.mextDeriv_ofFunction_fun_neg`: `d(-f) = -df`.
+* `TauCeti.mextDeriv_apply_eq_zero_of_eventuallyEq_zero`: `dφ` vanishes at a point near which
+  `φ` vanishes.
 * `TauCeti.mextDeriv_sub`: `d(φ - η) = dφ - dη` at a point where both forms are differentiable
   in the chart.
 * `TauCeti.mextDeriv_ofFunction_modelSpace_apply`: `df(x)(v) = fderiv ℝ f x (v 0)` on a normed
@@ -89,7 +95,7 @@ hypothesis holds at every point of `U` when `ω` is of class `Cⁿ` with `n ≠ 
 
 public section
 
-open scoped Manifold
+open scoped Manifold Topology
 
 namespace TauCeti
 
@@ -135,6 +141,11 @@ theorem mextDeriv_ofFunction_neg (f : M → F) :
 theorem mextDeriv_ofFunction_fun_neg (f : M → F) :
     mextDeriv (RoughForm.ofFunction I fun x ↦ -f x) = -mextDeriv (RoughForm.ofFunction I f) :=
   mextDeriv_ofFunction_neg f
+
+/-- The exterior derivative of a form vanishes at a point near which the form vanishes. -/
+theorem mextDeriv_apply_eq_zero_of_eventuallyEq_zero {k : ℕ} {φ : RoughForm I M F k} {x : M}
+    (h : ∀ᶠ y in 𝓝 x, φ y = 0) : mextDeriv φ x = 0 := by
+  rw [mextDeriv_congr_of_eventuallyEq (η := 0) h, mextDeriv_zero, Pi.zero_apply]
 
 /-- The exterior derivative is subtractive on forms whose coordinate expressions in the chart at
 the point are differentiable within `range I` there. -/
