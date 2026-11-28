@@ -9,12 +9,14 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.B
 public import SymplecticGeometry.Geometry.Manifold.Morse.ComplexNegativity
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 public import TauCeti.Geometry.Manifold.Morse.CWModel
+public import TauCeti.Topology.Homotopy.HomotopyGroup.ConnectedMap.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import SymplecticGeometry.AlgebraicTopology.Homotopy.Relative.CellDimension
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
@@ -22,6 +24,10 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHessian
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.MorseBott
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Tube
+import SymplecticGeometry.Topology.Category.TopCat.Pushout
+import SymplecticGeometry.Topology.CWComplex.Gluing
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
 import TauCeti.Geometry.Manifold.Morse.Deformation.Cofibration
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -30,7 +36,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
-# Critical points of `log |s_k|²` for uniformly transverse sequences
+# Critical points of `log |s_k|²` and Lefschetz connectivity for uniformly transverse sequences
 
 Let `s` be an asymptotically holomorphic sequence of sections of the powers `PowerBundle P k`
 which is uniformly transverse with constant `η` (`SymplecticGeometry.IsUniformlyTransverse`).
@@ -101,6 +107,21 @@ has the smaller operator norm, and `ContinuousLinearMap.surjective_add_of_norm_l
 (`CovariantDerivative.apply_eq_sectionLinearization`), so the linearization is surjective
 (`SymplecticGeometry.IsUniformlyTransverse.eventually_surjective_sectionLinearization`), which is
 the transversality hypothesis of the tube and Morse–Bott results on the zero set.
+
+Together these give the milestone: for `k` large, `M` is homotopy equivalent to a relative CW
+complex over the zero set `Z = {s k = 0}` with no cell of dimension below `dim M / 2`
+(`SymplecticGeometry.IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_zeroSet`). Take
+`ε > 0` below the threshold of the tube retraction
+`SymplecticGeometry.exists_pos_forall_retraction_sublevel_norm_sq` and below that of
+`SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_log_norm_sq`. The interiors of the
+tube `T = {‖s k‖² ≤ ε}` and of `W = {s k ≠ 0}` cover `M`, so `M` is the pushout of `T` and `W`
+along `A = T ∩ W` (`CategoryTheory.IsPushout.of_interior_union_interior_eq_univ`). Gluing the
+model of `W` over `A` to the tube, and moving the base to its deformation retract `Z`
+(`SymplecticGeometry.exists_relCWComplex_homotopyEquiv_of_isPushout`), keeps the cells. When `Z`
+is nonempty, its inclusion into `M` is then `(dim M / 2 - 1)`-connected
+(`SymplecticGeometry.IsUniformlyTransverse.isNConnected_zeroSet_inclusion`), by
+`ContinuousMap.IsNConnected.of_relCWComplex_homotopyEquiv`, as there are no cells below `dim M / 2`;
+a transverse zero also forces `dim M ≥ 2`, the real rank of the line bundle.
 
 ## References
 
@@ -513,6 +534,97 @@ theorem IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_nonzeroOpens [I.
       manifoldMorseIndex I g x = m} :=
     ⟨fun ⟨x, ⟨hx, _⟩, hxm⟩ ↦ absurd (hgi x hx) (by omega)⟩
   exact (e m).isEmpty
+
+/-- **Lefschetz connectivity: a relative CW model of `M` over the zero set.** In the setting of
+`SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a Hausdorff
+boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large, `M`
+is homotopy equivalent to a Hausdorff relative CW complex `X`, in the universe of `M`, over the
+image of a closed embedding `j` of the zero set `Z_k = {x | s k x = 0}`, with no cell of dimension
+less than `dim M / 2`, by a homotopy equivalence `h` with `h (j z) = z`. So `M` is, up to
+homotopy, `Z_k` with cells of dimension at least `dim M / 2` attached.
+
+Milestone: *Lefschetz connectivity of asymptotically holomorphic hypersurfaces*. -/
+theorem IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_zeroSet [I.Boundaryless]
+    [T2Space M] (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s)
+    (hsm : ∀ k : ℕ, ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y))) :
+    ∀ᶠ k : ℕ in Filter.atTop,
+      ∃ (X : Type u) (_ : TopologicalSpace X) (_ : T2Space X) (j : C({x : M | s k x = 0}, X))
+        (_ : RelCWComplex (Set.univ : Set X) (Set.range j)) (h : X ≃ₕ M),
+        IsClosedEmbedding j ∧ (∀ z, h (j z) = z) ∧
+        ∀ m < Module.finrank ℝ E / 2, IsEmpty (RelCWComplex.cell (Set.univ : Set X) m) := by
+  filter_upwards [ht.exists_relCWComplex_homotopyEquiv_nonzeroOpens D hJ hα hρ₀ hη hs hsm,
+    ht.eventually_surjective_sectionLinearization D hJ hα hρ₀ hη hs] with k hk htr
+  -- A compact manifold is second countable, as the tube retraction asks.
+  have := I.secondCountableTopology
+  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have hsurj (x : M) (hx : s k x = 0) :
+      Function.Surjective (sectionLinearization (F := PowerModel k) I id (s k) x) :=
+    htr x ((hsm k).mdifferentiableAt (by simp)) hx
+  have hcont : Continuous fun y ↦ ‖s k y‖ ^ 2 :=
+    ((contMDiff_norm_sq_bundle I ∞ (PowerModel k) (PowerBundle P k)).comp (hsm k)).continuous
+  -- Choose `ε` below the thresholds of the tube retraction and of the critical points.
+  obtain ⟨ε₁, hε₁, hret⟩ := exists_pos_forall_retraction_sublevel_norm_sq (hsm k) hsurj
+  obtain ⟨ε₂, hε₂, hcrit⟩ :=
+    exists_pos_forall_notMem_criticalPoints_log_norm_sq (hsm k) hsurj (by simp)
+  set ε := min ε₁ ε₂
+  have hε : 0 < ε := lt_min hε₁ hε₂
+  obtain ⟨hZT, r, hr, hr'⟩ := hret ε hε (min_le_left _ _)
+  obtain ⟨hHEP, X, _, _, j, _, h, hj, hh, hcell⟩ :=
+    hk ε hε fun x h0 h1 ↦ hcrit x h0 (h1.trans (min_le_right _ _))
+  -- `M` is the pushout of the tube `T = {‖s k‖² ≤ ε}` and `W = {s k ≠ 0}` along `T ∩ W`.
+  have hAT : {x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε} ⊆ {x | ‖s k x‖ ^ 2 ≤ ε} :=
+    fun _ hx ↦ hx.2
+  have hAW : {x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε} ⊆ (nonzeroOpens (hsm k) : Set M) :=
+    fun x hx ↦ mem_nonzeroOpens.2 fun h0 ↦ by simp [h0] at hx
+  have hWT : (nonzeroOpens (hsm k) : Set M) ∩ {x : M | ‖s k x‖ ^ 2 ≤ ε} ⊆
+      {x : M | 0 < ‖s k x‖ ^ 2 ∧ ‖s k x‖ ^ 2 ≤ ε} :=
+    fun x ⟨hx', hx⟩ ↦ ⟨pow_pos (norm_pos_iff.2 (mem_nonzeroOpens.1 hx')) 2, hx⟩
+  have hcover : interior (nonzeroOpens (hsm k) : Set M) ∪
+      interior {x : M | ‖s k x‖ ^ 2 ≤ ε} = Set.univ := by
+    rw [(nonzeroOpens (hsm k)).isOpen.interior_eq]
+    refine Set.eq_univ_of_forall fun x ↦ ?_
+    by_cases hx : s k x = 0
+    · exact Or.inr (interior_maximal (t := {y | ‖s k y‖ ^ 2 < ε})
+        (Set.ofPred_subset_ofPred.2 fun _ ↦ le_of_lt)
+        (isOpen_lt hcont continuous_const) (by simp [hx, hε]))
+    · exact Or.inl (mem_nonzeroOpens.2 hx)
+  obtain ⟨X', _, _, j', _, h', hj', hh', ⟨e⟩⟩ := exists_relCWComplex_homotopyEquiv_of_isPushout
+    (CategoryTheory.IsPushout.of_interior_union_interior_eq_univ hAW hAT hWT hcover) (hHEP hAW)
+    hZT r hr hr'.homotopic hj.isEmbedding h hh
+  refine ⟨X', _, ‹_›, j', ‹_›, h', hj', hh', fun m hm ↦ ?_⟩
+  have := hcell m hm
+  exact (e m).isEmpty
+
+/-- **Lefschetz connectivity: the inclusion of the zero set is `(n - 1)`-connected.** In the
+setting of `SymplecticGeometry.IsUniformlyTransverse.exists_relCWComplex_homotopyEquiv_zeroSet`,
+for `k` large, if the zero set `Z_k = {x | s k x = 0}` is nonempty, then its inclusion into `M` is
+`(dim M / 2 - 1)`-connected. -/
+theorem IsUniformlyTransverse.isNConnected_zeroSet_inclusion [I.Boundaryless]
+    [T2Space M] (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
+    (ht : IsUniformlyTransverse J α η s)
+    (hsm : ∀ k : ℕ, ContMDiff I (I.prod 𝓘(ℝ, PowerModel k)) ∞
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y))) :
+    ∀ᶠ k : ℕ in Filter.atTop, (∃ x, s k x = 0) →
+      (ContinuousMap.subtypeVal {x : M | s k x = 0}).IsNConnected
+        (Module.finrank ℝ E / 2 - 1) := by
+  filter_upwards [ht.exists_relCWComplex_homotopyEquiv_zeroSet D hJ hα hρ₀ hη hs hsm,
+    ht.eventually_surjective_sectionLinearization D hJ hα hρ₀ hη hs] with k hk htr ⟨x, hx⟩
+  obtain ⟨X, _, _, j, _, h, hj, hh, hcell⟩ := hk
+  -- A zero where `s k` is transverse forces `2 ≤ dim M`, the real rank of the bundle.
+  have hn : 1 ≤ Module.finrank ℝ E / 2 := by
+    have h2 := finrank_le_of_surjective_sectionLinearization
+      (htr x ((hsm k).mdifferentiableAt (by simp)) hx)
+    rw [((PowerModel.toComplex (k := k)).toLinearEquiv.restrictScalars ℝ).finrank_eq,
+      Complex.finrank_real_complex] at h2
+    omega
+  exact ContinuousMap.IsNConnected.of_relCWComplex_homotopyEquiv h hj.isEmbedding hh
+    fun m hm ↦ hcell m (by omega)
 
 end SymplecticGeometry
 
