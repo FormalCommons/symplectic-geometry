@@ -19,6 +19,7 @@ import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Topology.Maps.Embedding
 import SymplecticGeometry.Geometry.Symplectic.Manifold.CharacteristicFoliation
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
@@ -400,13 +401,13 @@ theorem HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq
       filter_upwards [c.open_target.mem_nhds (hc₀ ▸ c.map_source hq₀)] with s hs a b
       have hd : MDifferentiableAt 𝓘(ℝ, E') J c.symm s :=
         c.symm.mdifferentiableAt (by simp) (by simpa using hs)
-      have hf := f.contMDiff.mdifferentiableAt (x := c.symm s) (by simp)
       have hinv (v : TangentSpace 𝓘(ℝ, E') s) :
           mvfderiv J c (c.symm s) (mfderiv 𝓘(ℝ, E') J c.symm s v) = v :=
         (mvfderiv_apply_eq_mfderiv_apply _ _ _).trans
           (c.mfderiv_apply_mfderiv_symm_apply (by simp) hs v)
-      rw [mfderiv_comp_apply s hf hd a, mfderiv_comp_apply s hf hd b,
-        ← SmoothForm.eval₂_mpullback f f.contMDiff, hc (c.symm s) (c.map_target hs), hinv, hinv]
+      refine (SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq f.contMDiff σ hd .rfl
+        a b).symm.trans ?_
+      rw [hc (c.symm s) (c.map_target hs), hinv, hinv]
       exact hL a b)
   refine ⟨e, h₁, h₂, h₃, ?_⟩
   rw [h₄, ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe, range_comp,
@@ -516,10 +517,8 @@ private theorem IsCoisotropicMap.exists_chart_eval₂_eq {hσ : σ.IsNondegenera
   filter_upwards [c.open_target.mem_nhds (hc0 ▸ c.map_source hcq), hc] with s hs hcs a b
   have hcd : MDifferentiableAt 𝓘(ℝ, E') J c.symm s :=
     c.symm.mdifferentiableAt (by simp) (by simpa using hs)
-  rw [mfderiv_comp_apply s (f.contMDiff.mdifferentiableAt (by simp)) hcd,
-    mfderiv_comp_apply s (f.contMDiff.mdifferentiableAt (by simp)) hcd,
-    ← SmoothForm.eval₂_mpullback f f.contMDiff]
-  exact hcs a b
+  exact (SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq f.contMDiff σ hcd .rfl
+    a b).symm.trans (hcs a b)
 
 omit [BoundarylessManifold J Q] in
 /-- `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` when `n = k + r`. -/
