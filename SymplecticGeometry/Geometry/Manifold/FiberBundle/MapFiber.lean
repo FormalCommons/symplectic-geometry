@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
@@ -68,6 +69,8 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `Bundle.Trivialization.mfderiv_snd_apply_of_mfderiv_proj_eq_zero`: on vertical vectors, the
   derivatives of the fibre coordinates of two trivializations differ by the derivative of their
   coordinate change.
+* `Bundle.Trivialization.mfderiv_fiberInclusionMap_mfderiv_snd_apply`: on vertical vectors, the
+  derivative of a fibre inclusion inverts that of the fibre coordinate.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
@@ -364,6 +367,20 @@ theorem mfderiv_snd_apply_of_mfderiv_proj_eq_zero
   -- `h₂` identifies `w` with its image under the two derivatives; the tangent spaces of `F` at
   -- `v` and at `(e (e.fiberInclusionMap hb v)).2` agree only by definition.
   exact h₁.symm.trans (congrArg _ h₂)
+
+/-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
+derivative at `v` of the fibre inclusion over `b` sends the image of a vertical vector `u` at
+`e.fiberInclusionMap hb v` under the derivative of the fibre coordinate of `e` back to `u`. -/
+theorem mfderiv_fiberInclusionMap_mfderiv_snd_apply
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) {u : TangentSpace IM (e.fiberInclusionMap hb v)}
+    (hu : mfderiv IM IB proj (e.fiberInclusionMap hb v) u = 0) :
+    mfderiv IF IM (e.fiberInclusionMap hb) v
+      (mfderiv IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) u) = u := by
+  have h := (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v)).mfderiv_snd_apply u
+  -- The tangent spaces of `F` at `v` and at `(e (e.fiberInclusionMap hb v)).2` agree only by
+  -- definition, so `h` cannot be rewritten in the goal.
+  exact (congrArg _ h).trans (mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v hu)
 
 /-! ### Coordinate changes -/
 
