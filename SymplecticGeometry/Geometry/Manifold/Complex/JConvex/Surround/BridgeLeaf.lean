@@ -46,12 +46,13 @@ a shape `G` and `r ↦ struweLineShape δ r + t`; it is `G` or the raised shape 
   `8 r ≤ G r ≤ 2 r + t + δ / 8 + η`, which gives `r < 8 (t - 8 δ)`; the two pieces are
   within `η` only beyond `7 δ / 2`, where their slopes are at most `8` and `2`
   (`SymplecticGeometry.isConvexShapeAt_smoothedMax_of_imp`).
-* `SymplecticGeometry.bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf`: with `G = sqrtAddLeaf L δ (7 δ)`,
-  `η = δ / 200` and `t = 65 δ / 8 - S δ`, the bridge leaf is `struweSwitchLeaf L δ (7 δ)` on
-  `(δ, ∞)`. Up to `7 δ / 2` the raised shape is the Struwe shape of that leaf, since Struwe's
-  shapes over one cylinder differ by constants; beyond, both leaves are `G`, which is at least
-  `8 r - 3 δ` there, while the raised shape is at most `2 r + 14 δ`.
-* `SymplecticGeometry.bridgeLeaf_sqrtAddLeaf_eq_sqrt`: once `3 ℓ + 8 (3 + L) δ ≤ S δ + t`, the
+* `SymplecticGeometry.bridgeLeaf_sqrtAddLeaf_eqOn_struweSwitchLeaf`: with
+  `G = sqrtAddLeaf L δ (7 δ)`, `η = δ / 200` and `t = 65 δ / 8 - S δ`, the bridge leaf is
+  `struweSwitchLeaf L δ (7 δ)` on `(δ, ∞)`. Up to `7 δ / 2` the raised shape is the Struwe
+  shape of that leaf, since Struwe's shapes over one cylinder differ by constants; beyond,
+  both leaves are `G`, which is at least `8 r - 3 δ` there, while the raised shape is at
+  most `2 r + 14 δ`.
+* `SymplecticGeometry.bridgeLeaf_sqrtAddLeaf_eqOn_sqrt`: once `3 ℓ + 8 (3 + L) δ ≤ S δ + t`, the
   cutoff region `r < (2 + L) δ` of `sqrtAddLeaf L δ ℓ` lies under the raised shape, so in the
   bridge leaf of width `δ / 200` the standard leaf may replace it.
 
@@ -408,7 +409,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrt (hδ : 0 < δ) {ℓ η t r : ℝ} (hℓ 
 `S = struweShape δ 4 0` and `t₀ = 65 δ / 8 - S δ`, the bridge leaf of width `δ / 200` of
 `sqrtAddLeaf L δ (7 δ)` and the Struwe/line shape raised by `t₀` is
 `struweSwitchLeaf L δ (7 δ)` on `(δ, ∞)`. -/
-theorem bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf (L : ℝ) (hδ : 0 < δ) :
+theorem bridgeLeaf_sqrtAddLeaf_eqOn_struweSwitchLeaf (L : ℝ) (hδ : 0 < δ) :
     EqOn (bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ (7 * δ)) (65 * δ / 8 - struweShape δ 4 0 δ))
       (struweSwitchLeaf L δ (7 * δ)) (Ioi δ) := by
   intro r hr
@@ -438,7 +439,7 @@ theorem bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf (L : ℝ) (hδ : 0 < δ) :
 `ℓ ≥ 0` and `t` with `3 ℓ + 8 (3 + L) δ ≤ S δ + t`, where `S = struweShape δ 4 0`. Then on
 `(δ, ∞)` the bridge leaf of width `δ / 200` of `sqrtAddLeaf L δ ℓ` and the Struwe/line shape
 raised by `t` is the bridge leaf of the standard leaf `r ↦ √(64 r² + ℓ²)`. -/
-theorem bridgeLeaf_sqrtAddLeaf_eq_sqrt {L : ℝ} (hL : 0 < L) (hδ : 0 < δ) {ℓ t : ℝ} (hℓ : 0 ≤ ℓ)
+theorem bridgeLeaf_sqrtAddLeaf_eqOn_sqrt {L : ℝ} (hL : 0 < L) (hδ : 0 < δ) {ℓ t : ℝ} (hℓ : 0 ≤ ℓ)
     (ht : 3 * ℓ + 8 * (3 + L) * δ ≤ struweShape δ 4 0 δ + t) :
     EqOn (bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ) t)
       (bridgeLeaf δ (δ / 200) (fun r ↦ √(64 * r ^ 2 + ℓ ^ 2)) t) (Ioi δ) := by
