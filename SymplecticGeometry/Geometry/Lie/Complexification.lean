@@ -660,8 +660,8 @@ theorem sqrt_polar_symm_fst_le_add_mul [FiniteDimensional ℝ E]
     refine (congrArg (fun r ↦ √r * √(B (C.im (v s)) (C.im (v s)))) (hAd _ _)).trans_le ?_
     exact mul_le_mul_of_nonneg_left (hK s) (Real.sqrt_nonneg _)
   have hK0 : 0 ≤ K := (Real.sqrt_nonneg _).trans (hK 0)
-  simpa using Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le (fun s ↦ hpos.nonneg _) hfd
-    (fun s ↦ by linarith [hb s]) hK0 ht
+  simpa using Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le (fun s _ ↦ hpos.nonneg _)
+    (fun s _ ↦ hfd s) (fun s _ ↦ by linarith [hb s]) hK0 ht
 
 end LieComplexification
 
