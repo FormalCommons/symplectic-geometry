@@ -714,7 +714,7 @@ not needed for this.
   (c) applies, by the holomorphic slice theorem at a zero of the moment
   map (R. Sjamaar, *Holomorphic slices, symplectic reduction and
   multiplicities of representations*, Ann. of Math. 141 (1995), §1).
-  The design issue of this lemma splits (a)–(d) into building issues.
+  Its design issue, #8260, splits (a)–(d) into building issues.
 - `exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`
   (`HilbertMumford.lean`), steps 6–7 of the source: in the setting of
   `tendsto_limitPoint`, if `y ∈ MulAction.orbit Gc p`,
@@ -986,8 +986,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
        14 and 15.
     9. `exists_mem_nonzeroPeriods_tendsto_expI_smul`, in
        `KempfNess/HolomorphicSlice.lean` and the files that its design
-       issue gives for (a)–(d); that design issue, which follows this
-       file's design, sets its building issues. Blocked by 12.5, whose
+       issue #8260 gives for (a)–(d), with the building issues that #8260
+       sets. Blocked by #8260 and by 12.5, whose
        semistable criterion (c) applies to projective space.
     10. `isPolystable_of_isSemistable_of_limitPoint_mem_orbit`. Blocked by
         12.8 and 12.9.
