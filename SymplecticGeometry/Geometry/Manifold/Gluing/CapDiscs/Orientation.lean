@@ -259,12 +259,10 @@ private theorem isOrientationPreservingAt_collarPoint (i : ι) (u : annulusParam
       (-((boundaryOrientation o).prod (normalIioOpensOrientation 1)))
       (-o) c (Prod.map (γ i) id u.val) := by
     simpa using c.isOrientationPreservingAt_of_odd o (by simp) odd_one _
-  have h : IsOrientationPreservingAt (-annulusOrientation) o
-      (Subtype.val ∘ collarPoint (c := c) (γ := γ) i) u := by
-    rw [val_comp_collarPoint, ← isOrientationReversingAt_neg_right, annulusOrientation,
-      isOrientationReversingAt_neg_left]
-    exact (hc.comp hprod).comp (isOrientationPreservingAt_restrict _ _ u)
-  exact (isOrientationPreservingAt_restrict_iff_subtype_val_comp _ _ _ _).2 h
+  rw [annulusOrientation, ← restrict_neg,
+    isOrientationPreservingAt_restrict_iff_of_comp_eq (val_comp_collarPoint (c := c) (γ := γ) i),
+    ← isOrientationReversingAt_neg_right, isOrientationReversingAt_neg_left]
+  exact hc.comp hprod
 
 /-- In the parameters, the polar parametrization reverses orientation. -/
 private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
@@ -285,14 +283,10 @@ private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
       (Prod.map id (fun s : normalIioOpens 1 ↦ 1 + (s : EuclideanHalfSpace 1).val 0) u.val) :=
     AddCircle.isOrientationReversingAt_ofReal_mul_toCircle _
       (by have := (u.val.2 : EuclideanHalfSpace 1).property; linarith)
-  have h : IsOrientationPreservingAt (-annulusOrientation)
-      Manifold.Orientation.complex
-      (Subtype.val ∘ polarPoint) u := by
-    rw [val_comp_polarPoint, isOrientationPreservingAt_neg_left, annulusOrientation]
-    exact (hpol.comp_preserving
-      ((isOrientationPreservingAt_id _ u.val.1).prodMap (hd _))).comp_preserving
-      (isOrientationPreservingAt_restrict _ _ u)
-  exact (isOrientationPreservingAt_restrict_iff_subtype_val_comp _ _ _ _).2 h
+  rw [annulusOrientation, ← restrict_neg,
+    isOrientationPreservingAt_restrict_iff_of_comp_eq val_comp_polarPoint,
+    isOrientationPreservingAt_neg_left]
+  exact hpol.comp_preserving ((isOrientationPreservingAt_id _ u.val.1).prodMap (hd _))
 
 include hrev in
 /-- On the annuli, the interior piece and the `i`-th disc carry their orientations to the same
