@@ -20,9 +20,11 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.Deriv.Slope
@@ -614,8 +616,10 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
   have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero x₀)
   simp only [InfinitesimalAction.fundamental_apply] at hcoc
   -- The structure equation, read through `C.im` and `μ x₀`.
-  have hs0 : fderiv ℝ (a w) y v - fderiv ℝ (a v) y w = -⁅a v y, a w y⁆ :=
-    fderiv_leftMaurerCartanForm_mfderiv_sub hγ y v w
+  have hs0 : fderiv ℝ (a w) y v - fderiv ℝ (a v) y w = -⁅a v y, a w y⁆ := by
+    have h := fderiv_leftMaurerCartanForm_mfderiv_sub hγ y v w
+    rwa [GroupLieAlgebra.bracketL_apply, tangentSpaceCastModel_apply,
+      tangentSpaceCastModel_symm_apply, tangentSpaceCastModel_symm_apply] at h
   have hs := congrArg (fun ξ ↦ μ x₀ (C.im ξ)) hs0
   simp only [map_sub, map_neg, LieComplexification.im_lie, map_add] at hs
   rw [hside, hside, hcoc, hcoc, real_inner_comm, ← lie_skew (C.im (a w y))]
