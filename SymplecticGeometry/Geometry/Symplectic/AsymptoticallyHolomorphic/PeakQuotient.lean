@@ -12,6 +12,7 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # Quotients by the cut-off Gaussian and their flat `∂̄`
@@ -235,7 +236,7 @@ theorem exists_jetNormAt_flatDbar_div_peakFunction_le (r : ℕ) (R : ℝ) :
   -- Near `z`, the quotient's flat `∂̄` is `E • modelDbar f`, by
   -- `flatDbar_mul_exp_eq_smul_modelDbar`, and `modelDbar f` is `modelDbarWith J f - T`.
   have hdiff : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ f w :=
-    (hf.eventually (by simp)).mono fun w hw ↦ hw.differentiableAt (by simp)
+    hf.eventually_differentiableAt (by simp)
   have hq : flatDbar (fun y ↦ f y / peakFunction k y) =ᶠ[𝓝 z]
       fun w ↦ E w • (modelDbarWith J f w + -T w) := by
     have h1 := (div_peakFunction_eventuallyEq k f (hz.trans_lt hk)).eventually_nhds

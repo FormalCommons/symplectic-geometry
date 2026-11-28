@@ -29,6 +29,8 @@ generators.
   `(g, x) ↦ g • x` is `C^r` on `G × ℙ 𝕜 V`. Near `x₀` the action is `(g, x) ↦ [g • L x]`, for the
   homogeneous coordinates `L` of the identity that Tau Ceti's
   `Projectivization.exists_contMDiffAt_eventually_eq_mk` gives.
+* `Projectivization.instContMDiffSMulSubgroup`: the same for the action of a subgroup of `G`,
+  which goes through `G`.
 * `Projectivization.instContMDiffConstSMulReal`: each `g` acts by a real-`C^r` map, with no
   assumption on how the action depends on `g`: Tau Ceti's `ContMDiffConstSMul.restrictScalars`
   applied to its `Projectivization.instContMDiffConstSMul` over `𝕜`.
@@ -102,6 +104,15 @@ instance instContMDiffSMul [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → 𝕜) r G 
     rw [id] at hpx
     conv_lhs => rw [hpx]
     exact smul_mk p.1 hp
+
+/-- A subgroup `K` of `G` whose linear action on `𝕜ⁿ⁺¹` is `C^r` acts on
+`ℙ 𝕜 (Fin (n + 1) → 𝕜)` by a `C^r` action. The action of `K` on `ℙ 𝕜 (Fin (n + 1) → 𝕜)` that
+instance search finds goes through `G`, so `Projectivization.instContMDiffSMul` does not apply to
+it as it stands. -/
+instance instContMDiffSMulSubgroup {K : Subgroup G} [TopologicalSpace K] [ChartedSpace H K]
+    [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → 𝕜) r K (Fin (n + 1) → 𝕜)] :
+    ContMDiffSMul I 𝓘(ℝ, Fin n → 𝕜) r K (ℙ 𝕜 (Fin (n + 1) → 𝕜)) :=
+  instContMDiffSMul
 
 /-- A group acting `𝕜`-linearly on `𝕜ⁿ⁺¹` acts on `ℙ 𝕜 (Fin (n + 1) → 𝕜)` by maps that are `C^r`
 for the underlying real manifold structure, since they are `C^r` over `𝕜`
