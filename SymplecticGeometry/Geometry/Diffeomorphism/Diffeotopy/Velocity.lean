@@ -38,6 +38,9 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
 * `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`: the motion sends `∂ₜ` at `(x, t)` to the
   velocity of the trajectory `s ↦ φ_s x`. Its action `(v, 0) ↦ dφ_t v` on spatial vectors is Tau
   Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
+* `TauCeti.Diffeotopy.velocity_apply_eq_mfderiv`: the velocity `X_t (φ_t y)` is the ordinary
+  derivative at `t` of any curve on `ℝ`, differentiable at `t`, that extends the trajectory of `y`,
+  ends of `[0, 1]` included.
 * `TauCeti.Diffeotopy.velocity_reparam`: if `ρ` has derivative `r` at `t`, the reparametrization
   of `φ` along `ρ` has velocity `r X_{ρ t}` at time `t`.
 * `TauCeti.Diffeotopy.eventually_velocity_reparam_eq_zero`: if `ρ` is constant near `t₀`, the
@@ -66,6 +69,11 @@ tangent map of a smooth map.
 `mfderiv_cylinderMap_time` reads the derivative of the motion on `(0, ∂ₜ)` as a partial
 derivative, by Tau Ceti's `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`, as Tau Ceti's
 `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` does for a flow.
+
+`velocity_apply_eq_mfderiv` follows the proof of Tau Ceti's
+`TauCeti.Diffeotopy.velocity_eq_eulerianField`, for a curve that extends one trajectory rather than
+a family of bijections that extends the diffeotopy: the trajectory on `[0, 1]` is the curve
+composed with the inclusion of the interval, whose derivative fixes the unit vector.
 
 For `apply_eq_of_mfderiv_eq_velocity`, no uniqueness theorem for differential equations is
 needed: the derivative `c' s` of the curve `c s = φ_s⁻¹ (γ s)` satisfies
@@ -104,6 +112,19 @@ theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
   exact (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun x s ↦ Φ.cylinderMap (x, s))
       (x := p.1) (y := p.2) hd _).trans
     (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)
+
+/-- **The velocity through an extension past the ends.** Let `g : ℝ → M` be a curve that agrees
+on `[0, 1]` with the trajectory `s ↦ φ_s y` of a `C^n` diffeotopy, `1 ≤ n`. At a time `t` of
+`[0, 1]` where `g` is differentiable, the velocity `X_t (φ_t y)` is the derivative of `g` at `t`,
+an ordinary two-sided derivative even at the ends of `[0, 1]`. -/
+theorem velocity_apply_eq_mfderiv (hn : 1 ≤ n) {g : ℝ → M} {y : M}
+    (hg : ∀ s : unitInterval, g s = Φ (s, y)) {t : unitInterval}
+    (hgt : MDifferentiableAt 𝓘(ℝ, ℝ) J g t) :
+    Φ.velocity t (Φ (t, y)) = mfderiv 𝓘(ℝ, ℝ) J g t 1 := by
+  have h : (fun s : unitInterval ↦ Φ (s, y)) = g ∘ Subtype.val := funext fun s ↦ (hg s).symm
+  rw [velocity_apply, Φ.mfderiv_cylinderMap_time hn (y, t), h]
+  exact (mfderiv_comp_apply t hgt (mdifferentiableAt_subtypeVal_Icc t) 1).trans
+    (congrArg _ (mfderiv_subtypeVal_Icc_one t))
 
 /-- **The velocity of a reparametrization.** If the derivative of `ρ` at `t` sends the unit
 vector to `r` times the unit vector, then the reparametrization of a `C^n` diffeotopy `φ`, `1 ≤ n`,

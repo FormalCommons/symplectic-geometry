@@ -126,9 +126,9 @@ theorem isHodgeDecomposition_hodgePiece_of_compatible (hσ : σ.IsClosed) (hc : 
     obtain ⟨n, hn⟩ := J.even_finrank hM.some
     rw [← two_mul] at hn
     rcases le_or_gt k (2 * n) with hk | hk
-    · let _ : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+    · let _ := hc.riemannianBundle
       exact isHodgeDecomposition_hodgePiece (hc.isNondegenerate.volumeOrientation hn) hJ hσ
-        hc.inner_eq_eval₂ (Nat.add_sub_cancel' hk)
+        hc.inner_riemannianBundle (Nat.add_sub_cancel' hk)
     · have := subsingleton_deRhamCohomology_of_finrank_lt (I := I) M (hn ▸ hk)
       have : Subsingleton (complexDeRhamCohomology I M k) := by
         rw [← Module.finrank_zero_iff (R := ℂ), finrank_complexDeRhamCohomology,
@@ -184,8 +184,8 @@ theorem finrank_hodgePiece_serre (hσ : σ.IsClosed) (hc : σ.Compatible J) (hJ 
     (hn : finrank ℝ E = 2 * n) {k p q : ℕ} (hpq : p + q = k) (hp : p ≤ n) (hq : q ≤ n) :
     finrank ℂ (hodgePiece J k p q) =
       finrank ℂ (hodgePiece J (2 * n - k) (n - q) (n - p)) := by
-  let _ : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
-  have hg := hc.inner_eq_eval₂
+  let _ := hc.riemannianBundle
+  have hg := hc.inner_riemannianBundle
   have o := hc.isNondegenerate.volumeOrientation hn
   refine le_antisymm (finrank_hodgePiece_le o hJ hσ hg (by omega) hpq hp hq) ?_
   have h := finrank_hodgePiece_le o hJ hσ hg (k := 2 * n - k) (l := k) (by omega) (by omega)

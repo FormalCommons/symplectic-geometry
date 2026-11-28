@@ -29,8 +29,6 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
 
 ## Main definitions and results
 
-* `SymplecticGeometry.apply_one_ne_zero_of_mem_twistOneKernel`: `s 1 ≠ 0` and `t 1 ≠ 0`, for
-  `s, t` as above.
 * `SymplecticGeometry.vec_ne_zero_of_mem_twistOneKernel`: the vector
   `![s x * t 1, t x * s 1]` is nonzero, for `s, t` as above.
 * `SymplecticGeometry.uniformizingMap`: the map `σ(J)`.
@@ -70,24 +68,14 @@ variable {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
   {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
 
 /-- Let a two-form `σ` tame both `J` and the standard structure `i`, and let `s, t` be nonzero
-elements of `twistOneKernel J` with `s 0 = 0` and `t ∞ = 0`. Then neither `s` nor `t` vanishes
-at `1`. -/
-theorem apply_one_ne_zero_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
-    {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J)
-    (hs' : s ≠ 0) (ht' : t ≠ 0) (h₀ : s (0 : ℂ) = 0) (hinf : t ∞ = 0) :
-    s (1 : ℂ) ≠ 0 ∧ t (1 : ℂ) ≠ 0 :=
-  ⟨fun h ↦ one_ne_zero (OnePoint.coe_injective
-      (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hs hs' h h₀)),
-    fun h ↦ OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero hJ hi ht ht' h hinf)⟩
-
-/-- Let a two-form `σ` tame both `J` and the standard structure `i`, and let `s, t` be nonzero
 elements of `twistOneKernel J` with `s 0 = 0` and `t ∞ = 0`. Then for every point `x`, the
 vector `![s x * t 1, t x * s 1]` of `ℂ²` is nonzero. -/
 theorem vec_ne_zero_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J)
     (hs' : s ≠ 0) (ht' : t ≠ 0) (h₀ : s (0 : ℂ) = 0) (hinf : t ∞ = 0) (x : OnePoint ℂ) :
     ![s x * t (1 : ℂ), t x * s (1 : ℂ)] ≠ 0 := by
-  obtain ⟨hs₁, ht₁⟩ := apply_one_ne_zero_of_mem_twistOneKernel hJ hi hs ht hs' ht' h₀ hinf
+  have hs₁ := apply_ne_zero_of_mem_twistOneKernel hJ hi hs hs' h₀ (y := (1 : ℂ)) (by simp)
+  have ht₁ := apply_ne_zero_of_mem_twistOneKernel hJ hi ht ht' hinf (y := (1 : ℂ)) (by simp)
   intro hv
   have hx₀ : s x = 0 := by simpa [ht₁] using congrFun hv 0
   have hxinf : t x = 0 := by simpa [hs₁] using congrFun hv 1
@@ -188,12 +176,12 @@ theorem injective_uniformizingMap (J : 𝒥) : Function.Injective (uniformizingM
   set s := chosenSection J (0 : ℂ)
   set t := chosenSection J ∞
   have hi := OnePoint.compatible_fubiniStudyForm.tames
-  obtain ⟨hs₁, ht₁⟩ :=
-    apply_one_ne_zero_of_mem_twistOneKernel J.property hi hs ht hs' ht' h₀ hinf
-  have ht0 : t (0 : ℂ) ≠ 0 := fun h ↦
-    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero J.property hi ht ht' h hinf)
-  have hsinf : s ∞ ≠ 0 := fun h ↦
-    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero J.property hi hs hs' h₀ h)
+  have hs₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi hs hs' h₀ (y := (1 : ℂ)) (by simp)
+  have ht₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi ht ht' hinf (y := (1 : ℂ))
+    (by simp)
+  have ht0 := apply_ne_zero_of_mem_twistOneKernel J.property hi ht ht' hinf (y := (0 : ℂ))
+    (by simp)
+  have hsinf := apply_ne_zero_of_mem_twistOneKernel J.property hi hs hs' h₀ (y := ∞) (by simp)
   intro x y hxy
   rw [uniformizingMap, uniformizingMap, Equiv.apply_eq_iff_eq,
     Projectivization.mk_eq_mk_iff'] at hxy
@@ -233,8 +221,9 @@ theorem contMDiff_uniformizingMap (J : 𝒥) :
   set s := chosenSection J (0 : ℂ)
   set t := chosenSection J ∞
   have hi := OnePoint.compatible_fubiniStudyForm.tames
-  obtain ⟨hs₁, ht₁⟩ :=
-    apply_one_ne_zero_of_mem_twistOneKernel J.property hi hs ht hs' ht' h₀ hinf
+  have hs₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi hs hs' h₀ (y := (1 : ℂ)) (by simp)
+  have ht₁ := apply_ne_zero_of_mem_twistOneKernel J.property hi ht ht' hinf (y := (1 : ℂ))
+    (by simp)
   have hsm := ((mem_twistOneKernel_iff J.val).1 hs).1
   have htm := ((mem_twistOneKernel_iff J.val).1 ht).1
   have hmul (c : ℂ) : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (⊤ : ℕ∞) (fun z : ℂ ↦ c * z) :=

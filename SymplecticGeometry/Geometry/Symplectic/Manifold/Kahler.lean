@@ -12,7 +12,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCiv
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LeviCivita
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 
 /-!
 # The Kähler condition through the Levi-Civita derivative of `J`
@@ -159,7 +159,7 @@ variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
 
 Milestone: *Parallel almost complex structures and the Kähler condition*. -/
 theorem Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff (hJ : σ.Compatible J) :
-    letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
+    letI := hJ.riemannianBundle
     (∀ x (u v w : TangentSpace I x),
       ⟪J.nijenhuis x u v, w⟫ =
         mextDeriv σ.val x ![J x u, v, w] + mextDeriv σ.val x ![u, J x v, w] +
@@ -168,8 +168,8 @@ theorem Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff (hJ : σ.Compa
     ((CovariantDerivative.leviCivitaConnection I M).hom
         (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism = 0 ↔
       σ.IsClosed ∧ J.nijenhuis = 0) := by
-  let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
-  have hg := hJ.inner_eq_eval₂
+  let := hJ.riemannianBundle
+  have hg := hJ.inner_riemannianBundle
   have hL := CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection I (M := M)
   exact ⟨SmoothAlmostComplexStructure.inner_nijenhuis_eq hg hL,
     SmoothAlmostComplexStructure.hom_toEndomorphism_eq_zero_iff hg hL⟩
@@ -178,7 +178,7 @@ theorem Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff (hJ : σ.Compa
 `∇` be the Levi-Civita connection of the metric `g_J(u, v) = σ(u, J v)`. Then `∇J = 0` if and
 only if `σ` is a Kähler form for `J`. -/
 theorem Compatible.leviCivita_hom_toEndomorphism_eq_zero_iff_isKahler (hJ : σ.Compatible J) :
-    letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
+    letI := hJ.riemannianBundle
     (CovariantDerivative.leviCivitaConnection I M).hom
         (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism = 0 ↔
       σ.IsKahler J := by
