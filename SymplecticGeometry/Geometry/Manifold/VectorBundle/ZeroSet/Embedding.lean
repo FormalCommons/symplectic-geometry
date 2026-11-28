@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import Mathlib.Topology.VectorBundle.FiniteDimensional
 import TauCeti.Geometry.Manifold.ModelTransport.Immersion
 import TauCeti.Geometry.Manifold.PullbackGroupoid
 import TauCeti.Geometry.Manifold.Immersion.Basic
@@ -44,6 +45,8 @@ follows `TauCeti.isImmersionOfComplement_coe_regularLevel`.
 
 ## Main declarations
 
+* `TauCeti.finrank_le_of_surjective_sectionLinearization`: if the linearization of `s` at a
+  point is onto, the rank of `E'` is at most the dimension of `V`.
 * `SymplecticGeometry.transverseZeroSetChartedSpace`: the atlas of the zero set of a transverse
   section, modelled on `E`.
 * `SymplecticGeometry.isManifold_transverseZeroSet`: for it, the zero set is a `C^m` manifold.
@@ -88,6 +91,21 @@ local instance instCompleteSpaceFiber : CompleteSpace F' := FiniteDimensional.co
 variable (hm : m ≠ 0) (hsm : ContMDiff J (J.prod 𝓘(𝕜, F')) m fun x ↦ TotalSpace.mk' F' x (s x))
   (hs : ∀ x, s x = 0 → Surjective (sectionLinearization (F := F') J _root_.id s x))
   (hE : finrank 𝕜 E + finrank 𝕜 F' = finrank 𝕜 V)
+
+namespace TauCeti
+
+omit [FiniteDimensional 𝕜 F'] [J.Boundaryless] in
+/-- **Transversality bounds the rank.** If the linearization of a section `s` at a point `x` maps
+`T_x X` onto the fibre `E'_x`, then the rank of `E'` is at most the dimension of the model `V`
+of `X`. -/
+theorem finrank_le_of_surjective_sectionLinearization {x : X}
+    (h : Surjective (sectionLinearization (F := F') J _root_.id s x)) :
+    finrank 𝕜 F' ≤ finrank 𝕜 V := by
+  rw [← VectorBundle.finrank_eq 𝕜 F' E' x]
+  exact LinearMap.finrank_le_finrank_of_surjective
+    (f := (sectionLinearization (F := F') J _root_.id s x).toLinearMap) h
+
+end TauCeti
 
 namespace SymplecticGeometry
 

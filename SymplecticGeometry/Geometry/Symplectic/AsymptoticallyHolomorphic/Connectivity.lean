@@ -55,7 +55,7 @@ negative multiple of the square norm. The critical Hessian is carried to the cha
 carries `J` at `x` to the standard structure. The Morse index of `f` at `x` is then at least
 half the dimension of `M`
 (`SymplecticGeometry.IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`), by
-`TauCeti.AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg`.
+`TauCeti.SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex`.
 
 When each `s k` is smooth, the negativity above passes to the critical points of the smooth
 function `Bundle.logNormSq`, which is `y ↦ log ‖s k y‖²` on the open submanifold
@@ -277,15 +277,7 @@ theorem IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex [I.Boundaryl
       Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I (fun y ↦ Real.log (‖s k y‖ ^ 2)) x := by
   filter_upwards [ht.criticalHessian_add_criticalHessian_neg D hJ hα hρ₀ hη hs]
     with k hk x hdiff hx hcrit
-  have h := AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg
-    (J.almostComplexStructureAt x)
-    (I := I) (fun y ↦ Real.log (‖s k y‖ ^ 2)) x fun v hv ↦ by
-      rw [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap]
-      exact hk x hdiff hx hcrit v hv
-  have hE : Module.finrank ℝ E = 2 * (J.almostComplexStructureAt x).complexFinrank :=
-    (J.almostComplexStructureAt x).finrank_real_eq_two_mul_complexFinrank
-  rw [hE, Nat.mul_div_cancel_left _ two_pos]
-  exact h
+  exact J.finrank_div_two_le_manifoldMorseIndex _ x (hk x hdiff hx hcrit)
 
 /-- **The critical Hessian of `log |s_k|²` on `{s_k ≠ 0}` is negative in complex directions.**
 In the setting of `SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a
