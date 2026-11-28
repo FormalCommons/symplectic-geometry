@@ -1711,19 +1711,19 @@ Proof, the same in both forms except in step 4:
 3. *A cutoff in the parameter near `P₀`.* The holonomic approximation
    theorems ask the datum to be holonomic on an open set containing
    `P₀ ×ˢ univ`; the invariant gives it on `P₀ ×ˢ univ` only. With
-   `T := closedBall 0 2`, the set
-   `O := {l | ∀ i, ∀ x ∈ T, ‖fderiv ℝ (f i l) x - G i l x‖ < ε₁}` is open
+   `T := closedBall 0 2`, the set, for each cube `i`,
+   `O i := {l | ∀ x ∈ T, ‖fderiv ℝ (f i l) x - G i l x‖ < ε₁}` is open
    and contains `P₀`: `IsCompact.isOpen_setOfPred_forall_norm_sub_lt`, in
    `Topology/Compactness/Normed.lean`, for jointly continuous
    `f g : Λ × D → F'` and a compact `T`
    (`IsCompact.eventually_forall_of_forall_eventually`); step 1 of the
-   continuous version uses it too. Take `χ : Λ → [0, 1]`, `1`
-   on an open `O' ⊇ P₀` and `0` off `O` (smooth on `L` by
+   continuous version uses it too. Take `χ i : Λ → [0, 1]`, `1`
+   on an open `O' i ⊇ P₀` and `0` off `O i` (smooth on `L` by
    `exists_contMDiffMap_zero_one_nhds_of_isClosed`, continuous on `P` by
    `exists_continuous_zero_one_of_isClosed`), and replace `G i` by
-   `G' i l x := G i l x + χ l • (fderiv ℝ (f i l) x - G i l x)`. It is
+   `G' i l x := G i l x + χ i l • (fderiv ℝ (f i l) x - G i l x)`. It is
    holonomic on the open
-   `(univ ×ˢ (c.chart i) ⁻¹' N) ∪ (O' ×ˢ univ)`, which contains
+   `(univ ×ˢ (c.chart i) ⁻¹' N) ∪ (O' i ×ˢ univ)`, which contains
    `univ ×ˢ (B i ×ˢ {0})` (item 2 of `exists_relativeSet`) and
    `P₀ ×ˢ univ`, and `‖G' i - G i‖ < ε₁` on `Λ × T`.
 4. *Approximation.* For each cube, `exists_holonomic_approximation_family`
