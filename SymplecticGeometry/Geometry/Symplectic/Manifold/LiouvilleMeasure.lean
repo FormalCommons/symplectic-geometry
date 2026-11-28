@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
+public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
@@ -14,6 +15,8 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 import TauCeti.Geometry.Manifold.Measure.Atlas
+import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -34,7 +37,11 @@ symplectic volume form of `TauCeti.integralTopForm_smul_eq_integral_measure`, an
 dimension, including dimension `0`. With `f = 1` and Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, it shows that the
 symplectic volume of a nonempty compact manifold is positive
-(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`).
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`). Together with Tau
+Ceti's Stokes theorem `TauCeti.integralTopForm_eq_zero_of_mem_exactForms`, this shows that a
+nondegenerate two-form on a nonempty closed manifold of positive dimension is not exact
+(`TauCeti.SmoothTwoForm.IsNondegenerate.notMem_exactForms`): otherwise its volume form, a wedge
+power of it, would be exact too.
 
 It also computes Liouville integrals in symplectic coordinates. A partial diffeomorphism
 `Φ : N → M` that pulls `σ` back to a two-form `τ` on its source carries the Liouville measure of
@@ -239,6 +246,26 @@ theorem IsNondegenerate.integralTopForm_volumeForm_pos [CompactSpace M] [Nonempt
   simp only [one_smul] at h1
   rw [h1, integral_const, smul_eq_mul, mul_one]
   exact ENNReal.toReal_pos (isOpen_univ.measure_pos _ Set.univ_nonempty).ne' (measure_ne_top _ _)
+
+/-- **A nondegenerate two-form on a closed manifold is not exact.** On a nonempty compact
+Hausdorff boundaryless manifold modelled on a space of dimension `2 * n` with `n ≠ 0`, a fiberwise
+nondegenerate two-form `σ` is not the exterior derivative of a one-form. In particular a
+symplectic form on such a manifold has a nonzero de Rham class. If `σ` were exact, then so would
+be its volume form `σⁿ / n!`, whose integral would then vanish by Stokes' theorem, while it is
+positive. The hypothesis `n ≠ 0` is needed: on a manifold of dimension `0`, every two-form is
+zero, hence exact, and nondegenerate. -/
+theorem IsNondegenerate.notMem_exactForms [CompactSpace M] [Nonempty M] [T2Space M]
+    [BoundarylessManifold I M] (h : σ.IsNondegenerate) (hn : finrank ℝ E = 2 * n) (hn₀ : n ≠ 0) :
+    σ ∉ exactForms I M 2 := by
+  intro hσ
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hn₀
+  have hvol : σ.volumeForm (m + 1) ∈ exactForms I M (2 * (m + 1)) := by
+    have hw := Submodule.smul_mem _ ((m + 1).factorial : ℝ)⁻¹
+      (SmoothForm.wedgePow_succ_mem_exactForms hσ m)
+    rwa [wedgePow_eq_factorial_smul_volumeForm, smul_smul, inv_mul_cancel₀ (by positivity),
+      one_smul] at hw
+  exact (h.integralTopForm_volumeForm_pos hn).ne'
+    (integralTopForm_eq_zero_of_mem_exactForms _ hvol)
 
 end Volume
 

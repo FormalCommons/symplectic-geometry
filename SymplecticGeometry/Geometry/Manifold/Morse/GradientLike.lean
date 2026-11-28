@@ -242,20 +242,20 @@ theorem eq_zero_iff_mem_criticalPoints_of_mul_le
 namespace IsGradientLike
 
 /-- A gradient-like field increases `f` strictly at every point that is not critical for `f`. -/
-theorem mvfderiv_apply_pos (hX : IsGradientLike f X) {x : M} (hx : mvfderiv 𝓘(ℝ, E) f x ≠ 0) :
-    0 < mvfderiv 𝓘(ℝ, E) f x (X x) := by
+theorem mvfderiv_apply_pos (hX : IsGradientLike f X) {x : M}
+    (hx : x ∉ criticalPoints 𝓘(ℝ, E) f) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) := by
   obtain ⟨g, δ, -, hδ, h⟩ := hX
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
   have hgrad : 0 < ‖mgradient 𝓘(ℝ, E) f x‖ :=
-    norm_pos_iff.2 (by rwa [ne_eq, mgradient_eq_zero_iff])
+    norm_pos_iff.2 (by rwa [ne_eq, mgradient_eq_zero_iff, ← mem_criticalPoints])
   have : 0 ≤ g.inner x (X x) (X x) := g.toRiemannianMetric.inner_self_nonneg x (X x)
   exact lt_of_lt_of_le (by have := hδ x; positivity) (h x)
 
 /-- A gradient-like field does not decrease `f`: `df(X) ≥ 0` at every point. -/
 theorem mvfderiv_apply_nonneg (hX : IsGradientLike f X) (x : M) :
     0 ≤ mvfderiv 𝓘(ℝ, E) f x (X x) := by
-  by_cases hx : mvfderiv 𝓘(ℝ, E) f x = 0
-  · simp [hx]
+  by_cases hx : x ∈ criticalPoints 𝓘(ℝ, E) f
+  · simp [mem_criticalPoints.1 hx]
   · exact (hX.mvfderiv_apply_pos hx).le
 
 /-- A gradient-like field increases `f` strictly at every point of the level `f⁻¹(c)` of a
@@ -263,14 +263,14 @@ regular value `c` of `f`. -/
 theorem mvfderiv_apply_pos_of_isRegularValue (hX : IsGradientLike f X) {c : ℝ}
     (hc : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f c) {x : M} (hx : f x = c) :
     0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
-  hX.mvfderiv_apply_pos (isRegularPoint_iff_mvfderiv_ne_zero.1 (hc.isRegularPoint hx))
+  hX.mvfderiv_apply_pos (isRegularPoint_iff_notMem_criticalPoints.1 (hc.isRegularPoint hx))
 
 /-- A gradient-like field increases `f` strictly at every point `x` with `f x ∈ s`, if `f` has
 no critical point in `f⁻¹(s)`. -/
 theorem mvfderiv_apply_pos_of_criticalPoints_inter_preimage_eq_empty
     (hX : IsGradientLike f X) {s : Set ℝ} (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' s = ∅)
     {x : M} (hx : f x ∈ s) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
-  hX.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc x ⟨mem_criticalPoints.2 h, hx⟩
+  hX.mvfderiv_apply_pos fun h ↦ eq_empty_iff_forall_notMem.1 hc x ⟨h, hx⟩
 
 /-- A gradient-like field increases `f` strictly at every point of the level `f⁻¹(a)`, if `a < c`
 and `f` has no critical point in the band `f⁻¹([a, c))`. -/
@@ -289,11 +289,12 @@ theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :
 /-- Along an integral curve of a gradient-like field on a convex set `s` of times that meets no
 critical point of `f`, the function `f` is strictly increasing on `s`. -/
 theorem strictMonoOn_comp (hX : IsGradientLike f X) {γ : ℝ → M} {s : Set ℝ} (hs : Convex ℝ s)
-    (hγ : IsMIntegralCurveOn γ X s) (hcrit : ∀ t ∈ s, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) :
+    (hγ : IsMIntegralCurveOn γ X s) (hcrit : ∀ t ∈ s, γ t ∉ criticalPoints 𝓘(ℝ, E) f) :
     StrictMonoOn (f ∘ γ) s := by
   have hf : ∀ t ∈ s, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t) := fun t ht ↦ by
     by_contra hnd
-    exact hcrit t ht (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hnd))
+    exact hcrit t ht (mem_criticalPoints_iff_mfderiv_eq_zero.2
+      (mfderiv_zero_of_not_mdifferentiableAt hnd))
   -- Tau Ceti states the decreasing case; apply it to `-f`.
   have hneg := hγ.strictAntiOn_comp (f := -f) hs (fun t ht ↦ (hf t ht).neg) fun t ht ↦ by
     rw [mvfderiv_neg, neg_apply, neg_lt_zero]
@@ -303,7 +304,7 @@ theorem strictMonoOn_comp (hX : IsGradientLike f X) {γ : ℝ → M} {s : Set �
 /-- Along an integral curve of a gradient-like field that meets no critical point of `f`, the
 function `f` is strictly increasing. -/
 theorem strictMono_comp (hX : IsGradientLike f X) {γ : ℝ → M} (hγ : IsMIntegralCurve γ X)
-    (hcrit : ∀ t, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) : StrictMono (f ∘ γ) :=
+    (hcrit : ∀ t, γ t ∉ criticalPoints 𝓘(ℝ, E) f) : StrictMono (f ∘ γ) :=
   strictMonoOn_univ.1 <| hX.strictMonoOn_comp convex_univ (hγ.isMIntegralCurveOn univ)
     fun t _ ↦ hcrit t
 
@@ -395,7 +396,7 @@ theorem mpullback {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Fin
     have hloc : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ x :=
       isLocalDiffeomorph_of_mfderiv_eq hΦ (by simp) hΦ' x
     have hf0 := mfderiv_zero_of_not_mdifferentiableAt hf
-    have hX0x : X (Φ x) = 0 := hX0 _ (mem_criticalPoints.2 (mvfderiv_eq_zero_iff.2 hf0))
+    have hX0x : X (Φ x) = 0 := hX0 _ (mem_criticalPoints_iff_mfderiv_eq_zero.2 hf0)
     have hD : mvfderiv 𝓘(ℝ, E') (f ∘ Φ) x = 0 := mvfderiv_eq_zero_iff.2 (by
       rw [hloc.mfderiv_comp (by simp), hf0, ContinuousLinearMap.zero_comp])
     simp [VectorField.mpullback_apply, hX0x, hD, mgradient_eq_zero_iff.2 hD]
@@ -967,7 +968,7 @@ theorem mem_criticalPoints_of_eventuallyEq_const (hX : IsGradientLike f X) {γ :
     {t₀ c : ℝ} (hγ : IsMIntegralCurveAt γ X t₀) (hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t₀))
     (hfγ : f ∘ γ =ᶠ[𝓝 t₀] fun _ ↦ c) : γ t₀ ∈ criticalPoints 𝓘(ℝ, E) f := by
   by_contra h
-  have := (hX.mvfderiv_apply_pos (mt mem_criticalPoints.2 h)).ne'
+  have := (hX.mvfderiv_apply_pos h).ne'
   rw [mvfderiv_apply_eq_mfderiv_apply] at this
   exact this (hγ.mfderiv_apply_eq_zero_of_eventuallyEq_const hf hfγ)
 
