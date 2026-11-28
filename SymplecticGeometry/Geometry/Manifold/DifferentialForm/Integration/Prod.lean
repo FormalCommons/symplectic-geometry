@@ -9,11 +9,11 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 import Mathlib.MeasureTheory.Integral.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.LinearAlgebra.Basis.Fin
-import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Append
 
 /-!
 # The integral of a product of top forms supported in charts
@@ -34,9 +34,11 @@ partition of unity can be fed to it.
 The proof works in the product of the two charts, whose target is the product of their targets.
 On the block basis `(b₁, 0), …, (b_m, 0), (0, b'₁), …, (0, b'_n)` of `E × E'` the chart coefficient
 of `pr₁^* β ∧ pr₂^* γ` is the product of the chart coefficients of `β` on `b` and of `γ` on `b'`
-(`TauCeti.mpullback_extChartAt_prod_symm_wedge_apply`), the chart sign of the product lift is the
-product of the chart signs, and the Haar measure of the block basis is the product of the Haar
-measures; Fubini's theorem then splits the chart integral. This adapts the proof of Tau Ceti's
+(`TauCeti.mpullback_extChartAt_prod_symm_wedge_mpullback_fst_snd_apply`, which follows from the
+block-frame value `TauCeti.RoughForm.wedge_mpullback_fst_snd_apply_append`), the chart sign of
+the product lift is the product of the chart signs, and the Haar measure of the block basis is the
+product of the Haar measures; Fubini's theorem then splits the chart integral. This adapts the
+proof of Tau Ceti's
 `TauCeti.integralTopForm_wedge_mpullback_fst_of_tsupport_subset_chart`
 (`TauCeti/Geometry/Manifold/DeRham/Integration/FiberFlux.lean`), which treats a product `M × ℂ` with
 a form on `M × ℂ` that need not be a wedge of pullbacks, to a product of two arbitrary
@@ -44,8 +46,9 @@ factors.
 
 ## Main results
 
-* `TauCeti.mpullback_extChartAt_prod_symm_wedge_apply`: in the product chart, the coefficient of
-  `pr₁^* β ∧ pr₂^* γ` on a block basis is the product of the coefficients of `β` and of `γ`.
+* `TauCeti.mpullback_extChartAt_prod_symm_wedge_mpullback_fst_snd_apply`: in the product chart,
+  the coefficient of `pr₁^* β ∧ pr₂^* γ` on a block basis is the product of the coefficients of
+  `β` and of `γ`.
 * `TauCeti.integralTopForm_wedge_mpullback_fst_snd_of_tsupport_subset_chart`: the splitting
   `∫ pr₁^* β ∧ pr₂^* γ = (∫ β) (∫ γ)` for `β` and `γ` supported in one chart each.
 
@@ -70,43 +73,11 @@ variable {E E' H H' B F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace B] [ChartedSpace H B] [TopologicalSpace F] [ChartedSpace H' F]
   [IsManifold I 1 B] [IsManifold J 1 F] [I.Boundaryless] [J.Boundaryless]
 
-/-- On the target of the product chart at `p`, the pullback of `pr₁^* β` along the inverse
-product chart, evaluated on vectors `v i` of `E × E'`, is the pullback of `β` along the inverse
-chart of the first factor, evaluated on the first components of the `v i`. -/
-theorem mpullback_extChartAt_prod_symm_mpullback_fst_apply {k : ℕ}
-    (β : RoughForm I B ℝ k) (p : B × F) {y : E × E'} (hy : y ∈ (extChartAt (I.prod J) p).target)
-    (v : Fin k → E × E') :
-    mpullback 𝓘(ℝ, E × E') (I.prod J) (extChartAt (I.prod J) p).symm
-        (mpullback (I.prod J) I Prod.fst β) y v =
-      mpullback 𝓘(ℝ, E) I (extChartAt I p.1).symm β y.1 (fun i ↦ (v i).1) := by
-  -- The vectors `v i` are tangent vectors of the model `E × E'` only up to unfolding
-  -- `TangentSpace`, so the evaluation lemma is applied with `erw`.
-  erw [mpullback_apply, mpullback_apply, mpullback_apply]
-  simp only [mfderiv_extChartAt_symm_prod_apply hy, mfderiv_fst]
-  -- A projection applied to a pair is its component.
-  rfl
-
-/-- On the target of the product chart at `p`, the pullback of `pr₂^* γ` along the inverse
-product chart, evaluated on vectors `v i` of `E × E'`, is the pullback of `γ` along the inverse
-chart of the second factor, evaluated on the second components of the `v i`. -/
-theorem mpullback_extChartAt_prod_symm_mpullback_snd_apply {k : ℕ}
-    (γ : RoughForm J F ℝ k) (p : B × F) {y : E × E'} (hy : y ∈ (extChartAt (I.prod J) p).target)
-    (v : Fin k → E × E') :
-    mpullback 𝓘(ℝ, E × E') (I.prod J) (extChartAt (I.prod J) p).symm
-        (mpullback (I.prod J) J Prod.snd γ) y v =
-      mpullback 𝓘(ℝ, E') J (extChartAt J p.2).symm γ y.2 (fun i ↦ (v i).2) := by
-  -- The vectors `v i` are tangent vectors of the model `E × E'` only up to unfolding
-  -- `TangentSpace`, so the evaluation lemma is applied with `erw`.
-  erw [mpullback_apply, mpullback_apply, mpullback_apply]
-  simp only [mfderiv_extChartAt_symm_prod_apply hy, mfderiv_snd]
-  -- A projection applied to a pair is its component.
-  rfl
-
 /-- **The chart coefficient of a wedge of pullbacks from the two factors.** On the target of the
 product chart at `p`, the pullback of `pr₁^* β ∧ pr₂^* γ` along the inverse product chart takes on
 the block basis `(b₁, 0), …, (b_m, 0), (0, b'₁), …, (0, b'_n)` the product of the values of the
 chart pullbacks of `β` on `b` and of `γ` on `b'`. -/
-theorem mpullback_extChartAt_prod_symm_wedge_apply {m n : ℕ}
+theorem mpullback_extChartAt_prod_symm_wedge_mpullback_fst_snd_apply {m n : ℕ}
     (β : RoughForm I B ℝ m) (γ : RoughForm J F ℝ n) (p : B × F) {y : E × E'}
     (hy : y ∈ (extChartAt (I.prod J) p).target) (b : Module.Basis (Fin m) ℝ E)
     (b' : Module.Basis (Fin n) ℝ E') :
@@ -115,18 +86,23 @@ theorem mpullback_extChartAt_prod_symm_wedge_apply {m n : ℕ}
         y ((b.prod b').reindex finSumFinEquiv) =
       mpullback 𝓘(ℝ, E) I (extChartAt I p.1).symm β y.1 b *
         mpullback 𝓘(ℝ, E') J (extChartAt J p.2).symm γ y.2 b' := by
-  rw [mpullback_wedge, RoughForm.wedge_def, RoughForm.wedgeWith_apply',
-    Module.Basis.coe_prod_reindex_finSumFinEquiv]
-  refine (ContinuousAlternatingMap.pairedWedge_apply_append_of_forall _ _ _ _ _ _
-    fun v i j ↦ ?_).trans ?_
-  · -- The second factor vanishes on a tuple with an entry tangent to the first factor; as above,
-    -- the entries are tangent vectors of `E × E'` only up to unfolding, hence `erw`.
-    erw [mpullback_extChartAt_prod_symm_mpullback_snd_apply γ p hy]
-    exact ContinuousAlternatingMap.map_coord_zero _ j
-      (congrArg Prod.snd (Function.update_self j ((b i, 0) : E × E') v))
-  · rw [ContinuousLinearMap.mul_apply']
-    erw [mpullback_extChartAt_prod_symm_mpullback_fst_apply β p hy,
-      mpullback_extChartAt_prod_symm_mpullback_snd_apply γ p hy]
+  -- The basis vectors are tangent vectors of the model `E × E'` only up to unfolding
+  -- `TangentSpace`, so the evaluation lemma is applied with `erw`.
+  erw [mpullback_apply, mpullback_apply, mpullback_apply]
+  have hv : (fun i ↦ mfderiv 𝓘(ℝ, E × E') (I.prod J) (extChartAt (I.prod J) p).symm y
+      (((b.prod b').reindex finSumFinEquiv) i)) =
+      Fin.append (fun i ↦ ((mfderiv 𝓘(ℝ, E) I (extChartAt I p.1).symm y.1 (b i), 0) : E × E'))
+        fun j ↦ ((0, mfderiv 𝓘(ℝ, E') J (extChartAt J p.2).symm y.2 (b' j)) : E × E') := by
+    funext i
+    rw [Module.Basis.coe_prod_reindex_finSumFinEquiv, mfderiv_extChartAt_symm_prod_apply hy]
+    induction i using Fin.addCases
+    · simp only [Fin.append_left]
+      exact Prod.ext rfl (map_zero _)
+    · simp only [Fin.append_right]
+      exact Prod.ext (map_zero _) rfl
+  rw [hv]
+  exact (RoughForm.wedge_mpullback_fst_snd_apply_append β γ _ _ _).trans
+    (by rw [extChartAt_prod_symm_apply])
 
 variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E']
 
@@ -159,21 +135,11 @@ theorem integralTopForm_wedge_mpullback_fst_snd_of_tsupport_subset_chart {m n : 
     rw [Manifold.OrientationLift.prod_modelOrientation, hb, hb']
     exact (Orientation.prod_basis_orientation b b' _ _).symm
   set φ := RoughForm.wedge (mpullback (I.prod J) I Prod.fst β)
-    (mpullback (I.prod J) J Prod.snd γ) with hφ
+    (mpullback (I.prod J) J Prod.snd γ)
   have hφs : IsSmoothForm (I.prod J) 0 φ :=
     (hβ.mpullback contMDiff_fst).wedge (hγ.mpullback contMDiff_snd)
-  -- The support of `φ` lies in the product of the supports of `β` and `γ`.
-  have hsupp : _root_.tsupport (α := (E × E') [⋀^Fin (m + n)]→L[ℝ] ℝ) φ ⊆
-      _root_.tsupport (α := E [⋀^Fin m]→L[ℝ] ℝ) β ×ˢ
-        _root_.tsupport (α := E' [⋀^Fin n]→L[ℝ] ℝ) γ := by
-    rw [hφ, RoughForm.wedge_def]
-    exact subset_inter
-      ((RoughForm.tsupport_wedgeWith_subset_left _ _ _).trans
-        (RoughForm.tsupport_mpullback_subset_preimage continuous_fst β))
-      ((RoughForm.tsupport_wedgeWith_subset_right _ _ _).trans
-        (RoughForm.tsupport_mpullback_subset_preimage continuous_snd γ))
-  have hc : IsCompact (_root_.tsupport (α := (E × E') [⋀^Fin (m + n)]→L[ℝ] ℝ) φ) :=
-    (hβc.prod hγc).of_isClosed_subset (isClosed_tsupport _) hsupp
+  have hsupp := RoughForm.tsupport_wedge_mpullback_fst_snd_subset β γ
+  have hc := RoughForm.isCompact_tsupport_wedge_mpullback_fst_snd hβc hγc
   have hs : _root_.tsupport (α := (E × E') [⋀^Fin (m + n)]→L[ℝ] ℝ) φ ⊆
       (chartAt (ModelProd H H') (x₀, y₀)).source := by
     refine hsupp.trans fun q hq ↦ ?_
@@ -201,7 +167,7 @@ theorem integralTopForm_wedge_mpullback_fst_snd_of_tsupport_subset_chart {m n : 
     rw [htarget]
     exact ⟨ha, hc⟩
   -- The block basis is a frame of `E × E'`, a tangent space only up to unfolding, hence `erw`.
-  erw [mpullback_extChartAt_prod_symm_wedge_apply β γ (x₀, y₀) hac b b',
+  erw [mpullback_extChartAt_prod_symm_wedge_mpullback_fst_snd_apply β γ (x₀, y₀) hac b b',
     extChartAt_prod_symm_apply, Manifold.OrientationLift.prod_signAt_of_mem l l'
       (by simpa only [extChartAt_source] using (extChartAt I x₀).map_target ha)
       (by simpa only [extChartAt_source] using (extChartAt J y₀).map_target hc)]
