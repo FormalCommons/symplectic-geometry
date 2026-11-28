@@ -162,8 +162,8 @@ private theorem isOpen_negJets [FiniteDimensional ℝ E] : IsOpen (NegJets E) :=
   -- `Q p` is homogeneous of degree two, so it is enough to test it on the unit sphere.
   have hsmul (p : (E [×1]→L[ℝ] ℝ) × (E [×2]→L[ℝ] ℝ) × (E →L[ℝ] E)) (c : ℝ) (u : E) :
       Q p (c • u) = c ^ 2 * Q p u := by
-    have h (y : E) : (![c • y, c • y] : Fin 2 → E) = fun i ↦ c • ![y, y] i := by
-      ext i; fin_cases i <;> rfl
+    have h (y : E) : (![c • y, c • y] : Fin 2 → E) = fun i ↦ c • ![y, y] i :=
+      FinVec.etaExpand_eq fun i ↦ c • ![y, y] i
     simp only [Q, map_smul, h, ContinuousMultilinearMap.map_smul_univ, Finset.prod_const,
       Finset.card_univ, Fintype.card_fin, smul_eq_mul, mul_add]
   have hset : NegJets E = {p | p.1 ≠ 0} ∪ {p | ∀ w ∈ Metric.sphere (0 : E) 1, Q p w < 0} := by
