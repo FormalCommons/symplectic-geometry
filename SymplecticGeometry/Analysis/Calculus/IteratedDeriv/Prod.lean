@@ -6,15 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
-import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Prod
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
 
 /-!
 # Iterated derivatives in the second variable of a function of two variables
 
 * `ContDiffAt.continuousAt_iteratedDeriv_prod_right`: if `f : P × 𝕜 → F` is `Cⁿ` at `(p, x)`,
   then for `m ≤ n` the `m`-th iterated derivative of the slices `y ↦ f (q.1, y)`, evaluated at
-  `q.2`, is continuous in `q` at `(p, x)`. It is the one-variable form of
-  `ContDiffAt.continuousAt_iteratedFDeriv_prod_right`.
+  `q.2`, is continuous in `q` at `(p, x)`. It is the one-variable form of the case of order zero
+  of Tau Ceti's `ContDiffAt.iteratedFDeriv_snd`.
 -/
 
 public section
@@ -28,4 +28,6 @@ theorem ContDiffAt.continuousAt_iteratedDeriv_prod_right {n : WithTop ℕ∞} {f
     {p : P} {x : 𝕜} (hf : ContDiffAt 𝕜 n f (p, x)) {m : ℕ} (hm : m ≤ n) :
     ContinuousAt (fun q : P × 𝕜 ↦ iteratedDeriv m (fun y ↦ f (q.1, y)) q.2) (p, x) := by
   simp only [iteratedDeriv_eq_iteratedFDeriv]
-  exact (continuous_eval_const _).continuousAt.comp (hf.continuousAt_iteratedFDeriv_prod_right hm)
+  have h := ContDiffAt.iteratedFDeriv_snd (m := 0) (f := fun a y ↦ f (a, y)) hf
+    (i := m) (by simpa using hm)
+  exact (continuous_eval_const _).continuousAt.comp h.continuousAt

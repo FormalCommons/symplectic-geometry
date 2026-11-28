@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
 import TauCeti.Analysis.Calculus.BumpFunction.Convolution
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Lp
 import TauCeti.Analysis.Complex.Wirtinger.Lp
 import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
@@ -324,15 +325,12 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_le_of_contDiff {K : Set ℂ} (
     have h := (hv.of_le (by simp)).eLpNorm_fderiv_le_of_norm_le
       (hK.of_isClosed_subset (isClosed_tsupport v) hvK) hm fun z hz ↦ hμK z (hvK hz)
     simp only [zero_add, Finset.sum_range_succ, Finset.sum_range_zero]
-    have hPv : ContDiff ℝ ∞ (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) :=
-      (hv.conjWirtingerDeriv_apply (by simp) 1).add (hμ.smul (hv.wirtingerDeriv_apply (by simp) 1))
     rw [eLpNorm_congr_norm_ae ((hv.continuous_iteratedFDeriv (by simp)).aestronglyMeasurable)
         ((hv.continuous_fderiv (by simp)).aestronglyMeasurable)
-        (.of_forall fun _ ↦ norm_iteratedFDeriv_one v),
-      eLpNorm_congr_norm_ae ((hPv.continuous_iteratedFDeriv (by simp)).aestronglyMeasurable)
-        hPv.continuous.aestronglyMeasurable (.of_forall fun _ ↦ norm_iteratedFDeriv_zero)]
+        (.of_forall fun _ ↦ norm_iteratedFDeriv_one v), TauCeti.eLpNorm_iteratedFDeriv_zero,
+      TauCeti.eLpNorm_iteratedFDeriv_zero]
     set A := eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume
-    set B := eLpNorm (iteratedFDeriv ℝ 0 v) 2 volume
+    set B := eLpNorm v 2 volume
     calc B + eLpNorm (fderiv ℝ v) 2 volume ≤ (A + B) + 2 * (1 - (m : ℝ≥0∞))⁻¹ * (A + B) := by
           gcongr
           · exact le_add_self
