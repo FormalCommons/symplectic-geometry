@@ -135,10 +135,10 @@ every fibre, and whether it needs an induction on the torus.
     open onto the cone $\mu(x)+\operatorname{range}\Phi\times\mathfrak q^*$,
     and its fibres are products of a ball with a fibre of $\Phi$ inside a ball,
     preconnected by Tau Ceti's `isPreconnected_preimage_weightMomentMap_inter`.
-  Tau Ceti's slice model, `exists_isConvexChart_of_eqOn_add_weightMomentMap`
-  with the weights extended by zero on $\mathfrak q$ and $u$ read in the
-  covectors vanishing on $\mathfrak k$, then gives a convexity chart around
-  $x$, at every point of a manifold with a
+  Tau Ceti's `exists_isConvexChart_of_eqOn_add_weightMomentMap`, for its
+  slice model with the weights extended by zero on $\mathfrak q$ and $u$ read
+  among the covectors vanishing on $\mathfrak k$, then gives a convexity chart
+  around $x$, at every point of a manifold with a
   symplectic torus action and a moment map, compact or not.
 - **The local-to-global theorem is Tau Ceti's.** The part defines no
   predicate of local convexity: the local result is stated with Tau Ceti's
