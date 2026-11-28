@@ -63,7 +63,10 @@ centre `x` makes `C` smooth on an open set of parameters that contains `[0, 1] �
 that its derivative in `s` is an ordinary one even at `s = 0` and `s = 1`; for `s ∈ [0, 1]`
 the two starting points agree. Smoothness in the time `t` comes from the smoothness of
 transport in a family of curves and in its final time
-(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`).
+(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`), and the same
+argument, with a further parameter `a` beside `s`, makes the cylinders of a family `a ↦ Δ a`,
+smooth for `a` in an open set, smooth in `a` too
+(`TauCeti.IsEhresmannConnection.contMDiffOn_transportedCylinder_param`).
 
 At `t = 1`, the cylinder is read through the holonomy diffeotopy `Φ`: for `s ∈ [0, 1]`,
 `C (s, 1, θ) = e⁻¹ (x, Φ (s, c θ))`. Its derivative in `s` is an ordinary one, while the velocity
@@ -119,6 +122,8 @@ variation of holonomy, `TauCeti.IsEhresmannConnection.period_interior_velocity_h
 * `TauCeti.IsEhresmannConnection.contMDiffOn_transportedCylinder`,
   `TauCeti.IsEhresmannConnection.transportedCylinder_add_one`: the transported cylinder is smooth
   where it starts in the base set of the chart, and `1`-periodic in `θ` for a periodic loop.
+* `TauCeti.IsEhresmannConnection.contMDiffOn_transportedCylinder_param`: for a family `a ↦ Δ a`
+  smooth for `a` in an open set, the transported cylinder is jointly smooth in `a` too.
 * `TauCeti.IsEhresmannConnection.transportedCylinder_zero_of_isSmoothDisc`,
   `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_zero_apply`: for a smooth disc and
   `s ∈ [0, 1]`, the cylinder starts at `e.symm (x, c θ)` and does not move in `s` at `t = 0`.
@@ -568,6 +573,54 @@ theorem mfderiv_transportedCylinder_zero_apply (hΔ : IsSmoothDisc IB γ Δ) {s 
     ((hasMFDerivAt_const (e.toOpenPartialHomeomorph.symm (x, c θ)) s).hasMFDerivWithinAt)
     (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ) 1
 
+section Param
+
+variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N] [IN.Boundaryless]
+  [T2Space N]
+
+omit [IsManifold IF ∞ F] in
+/-- **The transported cylinder is smooth in an extra parameter.** Let `D` be a smooth Ehresmann
+connection on a proper smooth map `proj`, `e` a trivialization of `proj` with a smooth inverse,
+`c : ℝ → F` smooth, `U` an open set of a finite-dimensional boundaryless Hausdorff manifold `N`,
+and `Δ : N → ℝ × ℝ → B` a family with `(a, s, t) ↦ Δ a (s, t)` smooth on `U ×ˢ univ`. The map
+`(a, s, t, θ) ↦ hD.transportedCylinder e (Δ a) c (s, t, θ)` is smooth on the set of the
+`(a, s, t, θ)` with `a ∈ U` and `Δ a (s, 0) ∈ e.baseSet`. -/
+theorem contMDiffOn_transportedCylinder_param (hD : IsEhresmannConnection IM IB ∞ proj D)
+    (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    {U : Set N} (hU : IsOpen U) {Δ : N → ℝ × ℝ → B}
+    (hΔ : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ × ℝ)) IB ∞ (fun p : N × ℝ × ℝ ↦ Δ p.1 p.2) (U ×ˢ univ))
+    (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) :
+    ContMDiffOn (IN.prod 𝓘(ℝ, ℝ × ℝ × ℝ)) IM ∞
+      (fun q : N × ℝ × ℝ × ℝ ↦ hD.transportedCylinder e (Δ q.1) c q.2)
+      {q | q.1 ∈ U ∧ Δ q.1 (q.2.1, 0) ∈ e.baseSet} := by
+  -- The curves `t ↦ Δ a (s, t)`, as a family with parameters `(a, s)`.
+  have hΓ : ContMDiffOn ((IN.prod 𝓘(ℝ, ℝ)).prod 𝓘(ℝ, ℝ)) IB ((⊤ : ℕ∞) + 1)
+      (fun p : (N × ℝ) × ℝ ↦ Δ p.1.1 (p.1.2, p.2)) ((U ×ˢ univ) ×ˢ univ) :=
+    (hΔ.comp (contMDiff_fst.fst.prodMk (contMDiff_fst.snd.prodMk_space contMDiff_snd)).contMDiffOn
+      fun _ (hp : _ ∈ (U ×ˢ univ) ×ˢ univ) ↦ ⟨hp.1.1, mem_univ _⟩).of_le (by simp)
+  have hT := hD.contMDiffOn_parallelTransport_param_endTime le_top (hf.of_le (by simp)) hfp
+    (hU.prod isOpen_univ) hΓ 0
+  -- The parameters `((a, s), t)` and the point where the transport starts.
+  have hv : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ × ℝ × ℝ)) (IB.prod IF) ∞
+      (fun q : N × ℝ × ℝ × ℝ ↦ (Δ q.1 (q.2.1, 0), c q.2.2.2)) (U ×ˢ univ) :=
+    (hΔ.comp (contMDiff_fst.prodMk ((by fun_prop : ContDiff ℝ ∞
+        fun p : ℝ × ℝ × ℝ ↦ (p.1, (0 : ℝ))).contMDiff.comp contMDiff_snd)).contMDiffOn
+      fun _ (hq : _ ∈ U ×ˢ univ) ↦ ⟨hq.1, mem_univ _⟩).prodMk
+      (hc.comp ((by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ p.2.2).contMDiff.comp
+        contMDiff_snd)).contMDiffOn
+  have hg : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ × ℝ × ℝ)) (((IN.prod 𝓘(ℝ, ℝ)).prod 𝓘(ℝ, ℝ)).prod IM) ∞
+      (fun q : N × ℝ × ℝ × ℝ ↦ (((q.1, q.2.1), q.2.2.1),
+        e.toOpenPartialHomeomorph.symm (Δ q.1 (q.2.1, 0), c q.2.2.2)))
+      {q | q.1 ∈ U ∧ Δ q.1 (q.2.1, 0) ∈ e.baseSet} :=
+    ((contMDiff_fst.prodMk (contDiff_fst.contMDiff.comp contMDiff_snd)).prodMk
+        (contDiff_snd.fst.contMDiff.comp contMDiff_snd)).contMDiffOn.prodMk
+      (he_symm.comp (hv.mono fun _ hq ↦ ⟨hq.1, mem_univ _⟩) fun _ hq ↦ e.mem_target.2 hq.2)
+  exact (hT.comp hg fun q hq ↦ ⟨⟨hq.1, mem_univ _⟩, e.proj_symm_apply' hq.2⟩).congr
+    fun q _ ↦ transportedCylinder_def q.2
+
 omit [IsManifold IF ∞ F] in
 /-- **The transported cylinder is smooth.** Let `D` be a smooth Ehresmann connection on a proper
 smooth map `proj`, `Δ : ℝ × ℝ → B` smooth, `e` a trivialization of `proj` with a smooth inverse,
@@ -578,20 +631,13 @@ theorem contMDiffOn_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ pr
     (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
     (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) :
     ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ (hD.transportedCylinder e Δ c)
-      {p | Δ (p.1, 0) ∈ e.baseSet} := by
-  have hT := hD.contMDiffOn_parallelTransport_param_endTime le_top (hf.of_le (by simp)) hfp
-    ((contMDiff_prod_modelWithCornersSelf_iff.2 hΔ).of_le (by simp)) 0
-  -- The parameters `(s, t)` and the point where the transport starts.
-  have hv : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) (IB.prod IF) ∞
-      fun p : ℝ × ℝ × ℝ ↦ (Δ (p.1, 0), c p.2.2) :=
-    (hΔ.comp (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ (p.1, (0 : ℝ))).contMDiff).prodMk
-      (hc.comp (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ p.2.2).contMDiff)
-  have hg : ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) ((𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)).prod IM) ∞
-      (fun p : ℝ × ℝ × ℝ ↦ ((p.1, p.2.1), e.toOpenPartialHomeomorph.symm (Δ (p.1, 0), c p.2.2)))
       {p | Δ (p.1, 0) ∈ e.baseSet} :=
-    ((contDiff_fst.contMDiff.prodMk (contDiff_snd.fst).contMDiff).contMDiffOn).prodMk
-      (he_symm.comp hv.contMDiffOn fun _ hp ↦ e.mem_target.2 hp)
-  exact (hT.comp hg fun p hp ↦ e.proj_symm_apply' hp).congr fun p _ ↦ transportedCylinder_def p
+  -- The constant family, with parameters in `ℝ`, read at the parameter `0`.
+  (hD.contMDiffOn_transportedCylinder_param (IN := 𝓘(ℝ, ℝ)) (Δ := fun _ : ℝ ↦ Δ) hf hfp he_symm
+    isOpen_univ (hΔ.comp contMDiff_snd).contMDiffOn hc).comp
+    ((contMDiff_const (c := (0 : ℝ))).prodMk contMDiff_id).contMDiffOn fun _ hp ↦ ⟨mem_univ _, hp⟩
+
+end Param
 
 omit [IsManifold IF ∞ F] in
 /-- In the setting of `contMDiffOn_transportedCylinder`, the transported cylinder is smooth at
