@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Riemannian.Basic
+import SymplecticGeometry.Topology.MetricSpace.SeparatedSum
 import TauCeti.Geometry.Manifold.Riemannian.Distance
 
 /-!
@@ -42,6 +43,12 @@ version on any manifold, but for the real version only on a preconnected one
 * `SymplecticGeometry.ofReal_le_rescaledEDist_iff` and
   `SymplecticGeometry.rescaledEDist_le_ofReal_iff`: on a preconnected manifold, bounds by
   `ENNReal.ofReal r` on the extended distance are bounds by `r` on the real one.
+* `SymplecticGeometry.exists_sum_one_add_rescaledDist_pow_mul_exp_le`: over a finite set with
+  polynomially many points in each rescaled ball about `y`, the sums of Gaussians in the rescaled
+  distance to `y` are bounded uniformly in `k`, `y` and the set, with Gaussian decay for the part
+  far from `y`. It applies `Metric.sum_one_add_dist_pow_mul_exp_le` and
+  `Metric.sum_one_add_dist_pow_mul_exp_le_of_le_dist` to the pseudometric on `M` induced by
+  `x ↦ rescaledDist I k x y`, so `M` need not be connected.
 
 ## References
 
@@ -161,6 +168,42 @@ theorem rescaledDist_triangle [PreconnectedSpace M] [IsManifold I 1 M]
   simp only [rescaledDist_def]
   exact ENNReal.toReal_le_add (rescaledEDist_triangle k x y z) (rescaledEDist_ne_top k x y)
     (rescaledEDist_ne_top k y z)
+
+open Finset in
+variable (I) in
+/-- **Gaussian sums in the rescaled distance.** Let `C₀` be a counting constant, `m` and `N`
+natural numbers and `c > 0`. There is `K` such that for every `k`, every point `y` and every
+finite set `S` with at most `C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from `y`,
+for every `ρ ≥ 0`, the sum over `S` of `(1 + d) ^ N * exp (-c * d ^ 2)`, with
+`d = rescaledDist I k x y`, is at most `K`, and for every `R ≥ 0` the same sum over the points
+with `R ≤ d` is at most `K * exp (-(c / 2) * R ^ 2)`. The manifold need not be connected. -/
+theorem exists_sum_one_add_rescaledDist_pow_mul_exp_le (C₀ : ℝ) (m N : ℕ) {c : ℝ} (hc : 0 < c) :
+    ∃ K : ℝ, ∀ (k : ℕ) (y : M) (S : Finset M),
+      (∀ ρ : ℝ, 0 ≤ ρ → (#{x ∈ S | rescaledDist I k x y ≤ ρ} : ℝ) ≤ C₀ * (1 + ρ) ^ m) →
+      ∑ x ∈ S, (1 + rescaledDist I k x y) ^ N * Real.exp (-c * rescaledDist I k x y ^ 2) ≤ K ∧
+      ∀ R : ℝ, 0 ≤ R → ∑ x ∈ S with R ≤ rescaledDist I k x y,
+        (1 + rescaledDist I k x y) ^ N * Real.exp (-c * rescaledDist I k x y ^ 2) ≤
+          K * Real.exp (-(c / 2) * R ^ 2) := by
+  -- The constants of the Gaussian sums of `SeparatedSum.lean` depend only on `C₀`, `m`, `N` and
+  -- `c`, not on the pseudometric, the set or the point.
+  obtain ⟨K, hK⟩ : ∃ K : ℝ, ∀ (_ : PseudoMetricSpace M) (S : Finset M) (y : M),
+      (∀ ρ : ℝ, 0 ≤ ρ → (#{x ∈ S | dist x y ≤ ρ} : ℝ) ≤ C₀ * (1 + ρ) ^ m) →
+      ∑ x ∈ S, (1 + dist x y) ^ N * Real.exp (-c * dist x y ^ 2) ≤ K ∧
+      ∀ R : ℝ, 0 ≤ R → ∑ x ∈ S with R ≤ dist x y,
+        (1 + dist x y) ^ N * Real.exp (-c * dist x y ^ 2) ≤ K * Real.exp (-(c / 2) * R ^ 2) :=
+    ⟨max _ _, fun _ _ _ hS ↦ ⟨(Metric.sum_one_add_dist_pow_mul_exp_le hS hc N).trans
+      (le_max_left _ _), fun _ hR ↦ (Metric.sum_one_add_dist_pow_mul_exp_le_of_le_dist hS hc N
+        hR).trans (mul_le_mul_of_nonneg_right (le_max_right _ _) (Real.exp_pos _).le)⟩⟩
+  refine ⟨K, fun k y S hS ↦ ?_⟩
+  -- Only the rescaled distance to `y` enters: we apply these bounds to the pseudometric that
+  -- `x ↦ rescaledDist I k x y` induces on `M` from `ℝ`.
+  let inst : PseudoMetricSpace M := PseudoMetricSpace.induced (rescaledDist I k · y) inferInstance
+  have hd : ∀ x, @dist M inst.toDist x y = rescaledDist I k x y := fun x ↦ by
+    -- `dist x y` for the induced pseudometric is, by definition, the distance in `ℝ` of the
+    -- images of `x` and `y`.
+    change dist (rescaledDist I k x y) (rescaledDist I k y y) = _
+    rw [rescaledDist_self, Real.dist_eq, sub_zero, abs_of_nonneg (rescaledDist_nonneg I k x y)]
+  simpa only [hd] using hK inst S y fun ρ hρ ↦ by simpa only [hd] using hS ρ hρ
 
 end SymplecticGeometry
 

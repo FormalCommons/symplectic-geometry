@@ -2330,7 +2330,9 @@ theorem IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq
     (hgX : ∀ x, g x = 0 → 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
     (hK : K ⊆ {x | g x < 0}) (hgb : ∀ x, g x ≤ 0 → f x < b) :
     ∃ τ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ τ ∧ (∀ x, 0 ≤ τ x) ∧
-      (∀ x, f x ≤ a → τ x = 0) ∧ HasCompactSupport τ ∧
+      (∀ x, f x ≤ a → τ x = 0) ∧
+      (∀ x ∈ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b,
+        hW.isWeinsteinStructure.flow.stableSet p, τ x = 0) ∧ HasCompactSupport τ ∧
       ∃ Ψ : M ≃ₘ⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M,
         (∀ x, Ψ x = hW.isWeinsteinStructure.flow (τ x) x) ∧
         Ψ '' {x | g x ≤ 0} = {x | f x ≤ b}
@@ -2338,7 +2340,8 @@ theorem IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq
 
 So any sublevel `{g ≤ 0}` with `X` pointing out along its boundary, that
 contains `K` in its interior and stays below `b`, is moved onto
-`{f ≤ b}` along the orbits of `X`, without moving `{f ≤ a}`. This is the
+`{f ≤ b}` along the orbits of `X`, without moving `{f ≤ a}` or the stable
+sets in `K`. This is the
 form in which issue 19 can say that the domain a surrounding produces is
 the lower domain with the handles attached (the note of the review of
 #6050). The proof uses `ω` only through the flow and the gradient-like

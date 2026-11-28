@@ -138,6 +138,13 @@ theorem modelConnection_zero (z : StdSpace ι) :
   ext v
   simp [modelConnection_apply]
 
+/-- At the origin, where the model connection form vanishes, the model connection of `f` is the
+derivative of `f`. -/
+theorem modelConnection_zero_eq_fderiv (f : StdSpace ι → ℂ) :
+    modelConnection f 0 = fderiv ℝ f 0 := by
+  ext v
+  simp [modelConnection_apply]
+
 /-- The **Leibniz rule for the model connection**: for `f` and `g` differentiable at `z`, the
 model connection of `f * g` at `z` is `f z` times that of `g` plus `g z • df_z`. -/
 theorem modelConnection_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)

@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistrib
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
@@ -81,6 +82,10 @@ since it inverts the flat maps of the smooth family `σ`.
 ## Main results
 
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
+* `TauCeti.RoughForm.fiberComponent_add`, `fiberComponent_fun_smul` and their neighbours: the
+  slice over `x` is linear in `τ`, and a factor `g` on `EB × F` restricts to the fibre as
+  `y ↦ g (x, y)`; by `fiberComponent_fun_smul_fst`, a factor `f(x)` that depends only on the base
+  point comes out of the slice over `x` as the scalar `f x`.
 * `TauCeti.RoughForm.mextDeriv_fiberComponent_apply`: on vectors tangent to the fibre over `x`,
   the exterior derivative of `τ` is that of its slice `σ(x)`, for `τ` of class `C¹` at the point.
 * `TauCeti.RoughForm.differentiableAt_fiberComponent`: the slices of a form differentiable at
@@ -176,6 +181,51 @@ theorem fiberComponent_apply (x : EB) (y : F) (w₁ w₂ : TangentSpace IF y) :
   -- The two sides differ only in the type of the vectors, `TangentSpace` of the product or
   -- the product of the tangent spaces, which agree by definition.
   rfl
+
+/-- The fibre component of a sum of two-forms is the sum of their fibre components. -/
+@[simp]
+theorem fiberComponent_add (σ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) (x : EB) :
+    (τ + σ).fiberComponent x = τ.fiberComponent x + σ.fiberComponent x := by
+  simp only [fiberComponent_def, mpullback_add]
+
+/-- The fibre component of a difference of two-forms is the difference of their fibre
+components. -/
+@[simp]
+theorem fiberComponent_sub (σ : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2) (x : EB) :
+    (τ - σ).fiberComponent x = τ.fiberComponent x - σ.fiberComponent x := by
+  simp only [fiberComponent_def, mpullback_sub]
+
+/-- The fibre components of the zero two-form vanish. -/
+@[simp]
+theorem fiberComponent_zero (x : EB) :
+    (0 : RoughForm (𝓘(ℝ, EB).prod IF) (EB × F) ℝ 2).fiberComponent x = 0 := by
+  simp only [fiberComponent_def, mpullback_zero]
+
+/-- The fibre component of `-τ` is minus that of `τ`. -/
+@[simp]
+theorem fiberComponent_neg (x : EB) : (-τ).fiberComponent x = -τ.fiberComponent x := by
+  simp only [fiberComponent_def, mpullback_neg]
+
+/-- The fibre component of `c • τ`, for a constant `c`, is `c` times that of `τ`. -/
+@[simp]
+theorem fiberComponent_smul (c : ℝ) (x : EB) :
+    (c • τ).fiberComponent x = c • τ.fiberComponent x := by
+  simp only [fiberComponent_def, mpullback_smul]
+
+/-- Multiplying `τ` by a function `g` on `EB × F` multiplies its fibre component over `x`, at a
+point `y` of `F`, by `g (x, y)`. -/
+@[simp]
+theorem fiberComponent_fun_smul (g : EB × F → ℝ) (x : EB) :
+    fiberComponent (fun z ↦ g z • τ z) x = fun y ↦ g (x, y) • τ.fiberComponent x y := by
+  rw [fiberComponent_def, mpullback_fun_smul, fiberComponent_def]
+
+/-- Multiplying `τ` by a function `f` of the base point multiplies its fibre component over `x`
+by `f x`. -/
+theorem fiberComponent_fun_smul_fst (f : EB → ℝ) (x : EB) :
+    fiberComponent (fun z ↦ f z.1 • τ z) x = f x • τ.fiberComponent x := by
+  rw [fiberComponent_fun_smul]
+  ext1 y
+  rw [Pi.smul_apply]
 
 /-- The exterior derivative of the fibre component of `τ` over `x` is that of `τ` on vectors
 tangent to the fibre: on `w₁, w₂, u` at `y`, `d(σ(x))` takes the value of `dτ` at `(x, y)` on
