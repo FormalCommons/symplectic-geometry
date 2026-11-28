@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
+import SymplecticGeometry.Topology.Constructions.SumProd
 import TauCeti.Analysis.Complex.Circle.Basic
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 
@@ -321,8 +322,7 @@ theorem isCollared_discComplementBoundary (hφ : Pairwise (Disjoint on fun i ↦
     · exact absurd (congrArg Subtype.val h) ((hd hij).ne_of_mem (hsub i q) (hsub j q'))
   refine isCollared_iff.2 ⟨c ∘ Homeomorph.prodAssoc _ _ _,
     ⟨hc.comp (Homeomorph.prodAssoc _ _ _).isOpenEmbedding, fun p ↦ Subtype.ext ?_⟩⟩
-  simp only [c, comp_apply, ← Homeomorph.coe_toEquiv, Homeomorph.prodAssoc_toEquiv,
-    Equiv.prodAssoc_apply, coe_discComplementBoundary_apply,
+  simp only [c, comp_apply, Homeomorph.prodAssoc_apply, coe_discComplementBoundary_apply,
     CoordinateDisc.boundaryCircle_apply]
   congr 1
   ext
