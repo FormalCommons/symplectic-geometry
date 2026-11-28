@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 public import TauCeti.Geometry.Manifold.Gluing.PartialDiffeomorph
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Topology.Compactness.Compact
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -118,6 +119,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
   `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
 * The instance `SecondCountableTopology (GluedAlong φ)`: the glued space of two second
   countable spaces is second countable.
+* The instance `SigmaCompactSpace (GluedAlong φ)`: the glued space of two σ-compact spaces is
+  σ-compact.
 * `SymplecticGeometry.GluedAlong.compactSpace_of_isCompact`: the glued space is compact when the
   images of a compact subset of each piece cover it.
 * `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
@@ -277,6 +280,14 @@ theorem exists_inl_or_exists_inr (z : GluedAlong φ) : (∃ x, inl φ x = z) ∨
 /-- Every point of the glued space comes from `M₁` or from `M₂`. -/
 theorem range_inl_union_range_inr : range (inl φ) ∪ range (inr φ) = univ :=
   eq_univ_of_forall (exists_inl_or_exists_inr φ)
+
+/-- The glued space of two σ-compact spaces is σ-compact: it is the union of the images of the
+two pieces under the continuous maps `inl` and `inr`. -/
+instance [SigmaCompactSpace M₁] [SigmaCompactSpace M₂] : SigmaCompactSpace (GluedAlong φ) :=
+  isSigmaCompact_univ_iff.1 <| by
+    simpa only [range_inl_union_range_inr] using
+      (isSigmaCompact_range (continuous_inl φ)).union
+        (isSigmaCompact_range (continuous_inr φ))
 
 /-- A point `x` of `M₁` and a point `y` of `M₂` have the same image in the glued space exactly
 when `x ∈ U₁` and `φ x = y`. -/
