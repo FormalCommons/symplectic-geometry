@@ -169,7 +169,7 @@ every time `t ≥ 0`. -/
 theorem exists_forall_mem_source_and_norm_centeredExtChartAt_le (hX : IsGradientLike f X)
     (hf : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) 1 f)
     (hXc : Continuous fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)) {p : M}
-    (hp : ∀ᶠ y in 𝓝[≠] p, mvfderiv 𝓘(ℝ, E) f y ≠ 0) :
+    (hp : ∀ᶠ y in 𝓝[≠] p, y ∉ criticalPoints 𝓘(ℝ, E) f) :
     ∃ r₀ > 0, closedBall (0 : E) r₀ ⊆ (centeredExtChartAt 𝓘(ℝ, E) p).target ∧
       ∀ r ∈ Ioc 0 r₀, ∃ ε > 0, ∀ γ : ℝ → M, IsMIntegralCurve γ X → Tendsto γ atTop (𝓝 p) →
         γ 0 ∈ (centeredExtChartAt 𝓘(ℝ, E) p).source →
@@ -185,8 +185,9 @@ theorem exists_forall_mem_source_and_norm_centeredExtChartAt_le (hX : IsGradient
     exact h (by simpa [e, dist_eq_norm] using hw)
   -- A ball about `e p` in the chart target whose points other than `e p` are not critical.
   have hev : ∀ᶠ w in 𝓝 (e p),
-      w ∈ e.target ∧ (e.symm w ≠ p → mvfderiv 𝓘(ℝ, E) f (e.symm w) ≠ 0) := by
-    have h₁ : ∀ᶠ y in 𝓝 p, y ≠ p → mvfderiv 𝓘(ℝ, E) f y ≠ 0 := eventually_nhdsWithin_iff.1 hp
+      w ∈ e.target ∧ (e.symm w ≠ p → e.symm w ∉ criticalPoints 𝓘(ℝ, E) f) := by
+    have h₁ : ∀ᶠ y in 𝓝 p, y ≠ p → y ∉ criticalPoints 𝓘(ℝ, E) f :=
+      eventually_nhdsWithin_iff.1 hp
     have h₂ : Tendsto e.symm (𝓝 (e p)) (𝓝 p) := by
       simpa only [e, extChartAt_to_inv] using (continuousAt_extChartAt_symm p).tendsto
     exact Filter.Eventually.and (extChartAt_target_mem_nhds (I := 𝓘(ℝ, E)) p) (h₂.eventually h₁)
@@ -204,7 +205,7 @@ theorem exists_forall_mem_source_and_norm_centeredExtChartAt_le (hX : IsGradient
   have hdf : Continuous fun y ↦ mvfderiv 𝓘(ℝ, E) f y (X y) :=
     (hf.contMDiff_mvfderiv_apply (m := 0) (by simp)).continuous.comp hXc
   have hpos (w : E) (hw : w ∈ K) : 0 < mvfderiv 𝓘(ℝ, E) f (e.symm w) (X (e.symm w)) := by
-    refine hX.mvfderiv_apply_pos (mt mem_criticalPoints.1 ((hball w (hrδ hw.2)).2 fun h ↦ ?_))
+    refine hX.mvfderiv_apply_pos ((hball w (hrδ hw.2)).2 fun h ↦ ?_)
     have hwp : w = e p := by rw [← e.right_inv (hKt hw), h]
     have := hw.1
     rw [mem_ofPred_eq, hwp, sub_self, norm_zero] at this
