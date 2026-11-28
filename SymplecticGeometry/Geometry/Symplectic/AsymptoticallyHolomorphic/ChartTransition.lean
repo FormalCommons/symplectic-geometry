@@ -374,17 +374,18 @@ theorem norm_iteratedFDeriv_comp_chartPushforward_le [I.Boundaryless] {F : Type*
         exact D.iteratedFDeriv_jStruct_le hk hr x w hw
 
 /-- **Jets of `J` read in the charts against `J₀`.** On a boundaryless manifold, for every order
-`r` there is a constant `C`, independent of `k ≥ k₀` and of the centre `x`, such that at every
+`r` there is a constant `C ≥ 0`, independent of `k ≥ k₀` and of the centre `x`, such that at every
 point `z` of the ball of radius `ρ₀ * √k`, the `r`-jet norm at `z` of `J_{k,x} - J₀`, for `J_{k,x}`
 the structure `J` read in the chart centred at `x` and `J₀ = stdComplexStructure ι`, is at most
 `C * (√k)⁻¹ * (1 + ‖z‖)`. -/
 theorem exists_jetNormAt_chartPushforward_sub_le [I.Boundaryless] (r : ℕ) :
-    ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) {z : StdSpace ι}, z ∈ ball 0 (ρ₀ * √k) →
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) {z : StdSpace ι}, z ∈ ball 0 (ρ₀ * √k) →
       jetNormAt ℝ r (fun w ↦ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w -
           LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z ≤
         C * (√k)⁻¹ * (1 + ‖z‖) := by
   set S : ℝ := ∑ j ∈ Finset.range r, |D.bound (j + 1)|
-  refine ⟨|D.bound 1| + r * S, fun {k} hk x z hz ↦ ?_⟩
+  have : 0 ≤ S := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
+  refine ⟨|D.bound 1| + r * S, by positivity, fun {k} hk x z hz ↦ ?_⟩
   have hJJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
     J.contDiffAt_chartPushforward (D.chart k x) (D.ball_subset_target hk x hz)
   have hS : ∀ j < r, ‖iteratedFDeriv ℝ (j + 1) (fun w ↦
@@ -400,7 +401,6 @@ theorem exists_jetNormAt_chartPushforward_sub_le [I.Boundaryless] (r : ℕ) :
       (fun _ _ ↦ abs_nonneg _) (Finset.mem_range.2 hj))
   refine (jetNormAt_le_of_norm_iteratedFDeriv_succ_le hS).trans ?_
   have h1 := D.jStruct_sub_le hk x z hz
-  have : 0 ≤ S := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
   have hb : D.bound 1 * (√k)⁻¹ * ‖z‖ ≤ |D.bound 1| * (√k)⁻¹ * ‖z‖ := by
     gcongr; exact le_abs_self _
   have : 0 ≤ (√k)⁻¹ := by positivity

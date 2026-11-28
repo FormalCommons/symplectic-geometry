@@ -89,8 +89,8 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   the cutoff and tolerance `τ` of `SymplecticGeometry.exists_blend_shapeFamily` on the band; the
   ends `a = ℓ₀ + s`, `b = ℓ₁ - s`, with strips in that open set and `s` so small that `χ` and its
   first two `r`-derivatives move by less than `τ / 4` over a step `s` in `ℓ`; the gap `g`
-  between `χ ℓ₁` and the members over `[a, b]`, and a point `c ∈ (b, ℓ₁)` after which the
-  members are within `g / 4` of `χ ℓ₁`
+  between `χ ℓ₁` and the members over `[a, b]` (`IsCompact.exists_pos_add_le_of_continuousOn`),
+  and a point `c ∈ (b, ℓ₁)` after which the members are within `g / 4` of `χ ℓ₁`
   (`IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn`); the raise `q`, a smooth step
   from `0` to `κ ≤ min (τ / 4) (g / 4)` that rises on `(ℓ₀ + s / 4, c)`
   (`Real.exists_contDiff_monotone_eqOn_zero_Iic_deriv_pos_Ioo`); and last the error `ε < q b` of
@@ -705,18 +705,9 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
   have hχcont : ContinuousOn (fun x : ℝ × ℝ ↦ χ x.1 x.2) Q :=
     ContinuousOn.uncurry_of_iteratedDeriv hcont
   obtain ⟨g, hg, hgap⟩ : ∃ g > 0, ∀ ℓ ∈ Icc a b, ∀ r ∈ Icc r₁ r₂, χ ℓ r + g ≤ χ ℓ₁ r := by
-    have hKab : IsCompact (Icc a b ×ˢ Icc r₁ r₂) := isCompact_Icc.prod isCompact_Icc
-    have hcf : ContinuousOn (fun x : ℝ × ℝ ↦ χ ℓ₁ x.2 - χ x.1 x.2) (Icc a b ×ˢ Icc r₁ r₂) := by
-      refine ContinuousOn.sub ?_ (hχcont.mono fun x hx ↦ ⟨hMQ hx.1, hx.2⟩)
-      exact hχcont.comp (continuous_const.prodMk continuous_snd).continuousOn
-        fun x hx ↦ ⟨right_mem_Icc.2 hℓ.le, hx.2⟩
-    obtain ⟨x₀, hx₀, hmin⟩ := hKab.exists_isMinOn
-      ⟨(a, r₁), left_mem_Icc.2 hab.le, left_mem_Icc.2 hr.le⟩ hcf
-    refine ⟨χ ℓ₁ x₀.2 - χ x₀.1 x₀.2, sub_pos.2 (htop _ ⟨hMQ hx₀.1 |>.1, by linarith [hx₀.1.2]⟩
-      _ hx₀.2), fun ℓ hℓ' r hr' ↦ ?_⟩
-    have : χ ℓ₁ x₀.2 - χ x₀.1 x₀.2 ≤ χ ℓ₁ r - χ ℓ r :=
-      hmin (show (ℓ, r) ∈ Icc a b ×ˢ Icc r₁ r₂ from ⟨hℓ', hr'⟩)
-    linarith
+    obtain ⟨g, hg, H⟩ := isCompact_Icc.exists_pos_add_le_of_continuousOn hχcont hbℓ.le
+      fun ℓ hℓ' r hr' ↦ htop ℓ ⟨hℓ'.1, hℓ'.2.trans_lt hbℓ⟩ r hr'
+    exact ⟨g, hg, fun ℓ hℓ' ↦ H ℓ ⟨(hMQ hℓ').1, hℓ'.2⟩⟩
   -- The point `c ∈ (b, ℓ₁)` from which on the members are within `g / 4` of `χ ℓ₁`.
   obtain ⟨c, ⟨hbc, hcℓ⟩, hc'⟩ := isCompact_Icc.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn
     hχcont (by positivity : 0 < g / 4) (by linarith) hbℓ

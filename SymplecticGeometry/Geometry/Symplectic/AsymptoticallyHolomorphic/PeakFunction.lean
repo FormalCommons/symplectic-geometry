@@ -69,7 +69,7 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   closed ball of radius `2 * k ^ (1 / 6)`, and so, for every `ε > 0` and large `k`, in the ball
   of radius `ε * √k` (`SymplecticGeometry.eventually_tsupport_peakFunction_subset_ball`,
   `SymplecticGeometry.eventually_tsupport_peakFunction_mul_subset_ball`).
-* `SymplecticGeometry.contDiff_gaussian`,
+* `SymplecticGeometry.contDiff_gaussian`, `SymplecticGeometry.contDiff_ofReal_gaussian`,
   `SymplecticGeometry.contDiff_ofReal_exp_norm_sq_div_four`:
   the Gaussian `exp (-‖z‖ ^ 2 / 4)` and its inverse `exp (‖z‖ ^ 2 / 4)` are smooth.
 * `SymplecticGeometry.peakFunction_eqOn_ball`: on the ball of radius `k ^ (1 / 6)` the cut-off
@@ -265,6 +265,11 @@ theorem peakFunction_eq_ofRealCLM_comp (k : ℕ) :
 theorem contDiff_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
     ContDiff ℝ n fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4) :=
   Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).neg.div_const 4)
+
+/-- The Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function, is smooth. -/
+theorem contDiff_ofReal_gaussian [InnerProductSpace ℝ E] {n : ℕ∞} :
+    ContDiff ℝ n fun z : E ↦ (Real.exp (-‖z‖ ^ 2 / 4) : ℂ) :=
+  Complex.ofRealCLM.contDiff.comp (contDiff_gaussian (E := E))
 
 /-- The inverse Gaussian `exp (‖z‖ ^ 2 / 4)`, as a complex function, is smooth. -/
 theorem contDiff_ofReal_exp_norm_sq_div_four [InnerProductSpace ℝ E] {n : ℕ∞} :
@@ -986,7 +991,7 @@ theorem modelDbar_coord_mul_gaussian (j : ι) :
       (complexToRealEuclidean ι).symm z j * (Real.exp (-‖z‖ ^ 2 / 4) : ℂ)) = 0 := by
   ext z : 1
   have hG : ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) :=
-    Complex.ofRealCLM.contDiff.comp contDiff_gaussian
+    contDiff_ofReal_gaussian
   rw [modelDbar_coord_mul (hG.differentiable one_ne_zero z) j, modelDbar_gaussian]
   ext v
   simp
@@ -1092,7 +1097,7 @@ private theorem modelDbar_peakFunction_eq (k : ℕ) :
       ((peakCutoff (‖y‖ / (k : ℝ) ^ (1 / 6 : ℝ)) : ℝ) : ℂ) :=
     Complex.ofRealCLM.contDiff.comp (contDiff_peakCutoff_norm_div (by positivity))
   have hG : ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) :=
-    Complex.ofRealCLM.contDiff.comp contDiff_gaussian
+    contDiff_ofReal_gaussian
   have hP : peakFunction (E := StdSpace ι) k = fun y ↦
       ((peakCutoff (‖y‖ / (k : ℝ) ^ (1 / 6 : ℝ)) : ℝ) : ℂ) * (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) := by
     ext y
