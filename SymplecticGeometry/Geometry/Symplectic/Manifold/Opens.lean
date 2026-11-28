@@ -28,6 +28,8 @@ to the `U i` is. With the test of closedness on an open cover from
 * `TauCeti.SmoothTwoForm.isNondegenerate_mpullback_subtypeVal_iff`: the restriction of a
   two-form to an open set is nondegenerate exactly when the form is nondegenerate at each point of
   the set.
+* `TauCeti.SmoothTwoForm.eval₂_mpullback_subtypeVal`: at a point of an open set, the restricted
+  form evaluates as the ambient one.
 * `TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtypeVal`: a closed two-form that is
   nondegenerate at each point of an open set restricts to a symplectic form on it.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mpullback_subtypeVal_apply`: at a
@@ -63,6 +65,16 @@ theorem isNondegenerate_mpullback_subtypeVal_iff {σ : SmoothTwoForm I M} {U : O
       (h.nondegenerate_bilinFormAt _),
     fun h ↦ isNondegenerate_def.2 fun x ↦
       (nondegenerate_bilinFormAt_mpullback_subtype_val_iff (σ := σ) x).2 (h x x.property)⟩
+
+/-- At a point `x` of an open set `U`, the restriction of a two-form `σ` to `U` evaluates on two
+tangent vectors as `σ` does at `x`, the tangent spaces of `U` and of `M` at `x` being the same
+model space. -/
+theorem eval₂_mpullback_subtypeVal {σ : SmoothTwoForm I M} {U : Opens M} (x : U)
+    (v w : TangentSpace I x) :
+    SmoothBundleForm.eval₂ (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) x
+      v w = SmoothBundleForm.eval₂ σ x v w := by
+  rw [← SmoothForm.bilinFormAt_apply, bilinFormAt_mpullback_subtype_val]
+  exact SmoothForm.bilinFormAt_apply σ x v w
 
 /-- A closed two-form `σ` that is nondegenerate at every point of an open set `U` restricts to a
 symplectic form on `U`. -/
