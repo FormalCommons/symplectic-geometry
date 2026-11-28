@@ -196,8 +196,8 @@ Holonomy around loops that bound discs. About 450 lines.
   `holonomyDiffeotopy_apply`, `final_holonomyDiffeotopy` (the holonomy of
   the boundary loop `t ↦ Δ (1, t)`), `timeSlice_holonomyDiffeotopy`, and,
   for a symplectic connection and `e = A.trivAt b`,
-  `timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer` (every slice
-  preserves `σ`).
+  `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`
+  (every slice preserves `σ`).
 - `period_interior_velocity_holonomyDiffeotopy` (the variation of holonomy):
   let `τ` be vertically closed and vertically nondegenerate, restrict to
   `σ`, and define the connection. Let `c : ℝ → F` be a smooth loop of

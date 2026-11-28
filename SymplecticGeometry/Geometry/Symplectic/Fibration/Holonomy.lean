@@ -69,8 +69,9 @@ preserve `σ`.
   the loops of a smooth disc depend smoothly on the loop.
 * `TauCeti.IsEhresmannConnection.final_holonomyDiffeotopy`: the holonomy diffeotopy of a disc
   ends at the holonomy of its boundary loop.
-* `TauCeti.IsEhresmannConnection.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`: for a
-  symplectic connection, every slice of the holonomy diffeotopy preserves `σ`.
+* `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`, in the namespace
+  `TauCeti.IsEhresmannConnection`: for a symplectic connection, every slice of the holonomy
+  diffeotopy preserves `σ`.
 
 ## References
 
@@ -218,6 +219,11 @@ theorem of_isSmoothDisc_slice {x : B} {γ' : Path x x} {D : ℝ × ℝ → B}
 
 end BoundsSmoothDisc
 
+/-- Each loop `t ↦ Δ (s, t)` of a smooth disc `Δ` is smooth. -/
+theorem _root_.TauCeti.IsSmoothDisc.contMDiff_slice {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B}
+    (hΔ : TauCeti.IsSmoothDisc IB γ Δ) (s : ℝ) : ContMDiff 𝓘(ℝ, ℝ) IB ∞ fun t ↦ Δ (s, t) :=
+  hΔ.contMDiff.comp (contDiff_const.prodMk contDiff_id).contMDiff
+
 end Disc
 
 end SymplecticGeometry
@@ -315,12 +321,6 @@ theorem hasHamiltonianDiscHolonomy_iff_forall_exists (hn : 1 ≤ n) (hfp : IsPro
     Diffeomorph.coe_mul, comp_apply, comp_apply, hψi, hφe, hψe, hγ.apply_one]
 
 section HolonomyDiffeotopy
-
-omit [FiniteDimensional ℝ EB] [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
-/-- Each loop `t ↦ Δ (s, t)` of a smooth disc `Δ` is smooth. -/
-theorem _root_.TauCeti.IsSmoothDisc.contMDiff_slice {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B}
-    (hΔ : IsSmoothDisc IB γ Δ) (s : ℝ) : ContMDiff 𝓘(ℝ, ℝ) IB ∞ fun t ↦ Δ (s, t) :=
-  hΔ.contMDiff.comp (contDiff_const.prodMk contDiff_id).contMDiff
 
 variable [CompleteSpace EF] [BoundarylessManifold IF F]
   {e : Trivialization F proj} {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B}
@@ -420,14 +420,15 @@ theorem final_holonomyDiffeotopy (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.bas
         hfp ((hΔ.contMDiff_slice _).of_le (by simp)) he
         he_symm he he_symm ((hΔ.apply_seam 1).symm ▸ hx) ((hΔ.apply_seam_one 1).symm ▸ hx) := by
   rw [Diffeotopy.final_def, timeSlice_holonomyDiffeotopy]
-  rfl
+  simp only [Set.Icc.coe_one]
 
 /-- **The holonomy diffeotopy of a symplectic connection is symplectic.** For a symplectic smooth
 Ehresmann connection on a proper map with a smooth atlas `A`, every slice of the holonomy
 diffeotopy of a disc, read in a chart of `A` whose base set contains the centre of the disc,
 preserves `σ`. -/
-theorem timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer {A : MapFiber.Atlas F proj}
-    {σ : SmoothTwoForm IF F} (h : hD.IsSymplectic A σ) (hA : A.IsContMDiff ∞ IB IF IM) {b : B}
+theorem IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer
+    {A : MapFiber.Atlas F proj} {σ : SmoothTwoForm IF F} (h : hD.IsSymplectic A σ)
+    (hfp : IsProperMap proj) (hA : A.IsContMDiff ∞ IB IF IM) {b : B}
     (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ (A.trivAt b).baseSet) (s : unitInterval) :
     (hD.holonomyDiffeotopy hA.contMDiff_proj hfp (hA.contMDiffOn_trivAt b)
         (hA.contMDiffOn_trivAt_symm b) hΔ hx).timeSlice s ∈
