@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Cayley.Path
 public import TauCeti.Topology.Homotopy.HomotopyEquiv
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Contractible
@@ -25,7 +26,12 @@ the bundle of alternating two-forms of `TM`:
   the smooth almost complex structures is a homotopy equivalence, with homotopy inverse
   `J ↦ ω_{g,J}`;
 * `M` has a smooth almost complex structure exactly when it has a nondegenerate smooth two-form,
-  and `ω ↦ J_{g,ω}` induces a bijection between the path components of the two spaces.
+  and `ω ↦ J_{g,ω}` induces a bijection between the path components of the two spaces;
+* for a `σ`-compatible structure `J₀`, Tau Ceti's Cayley path
+  `TauCeti.SmoothTwoForm.Compatible.cayleyPath` from `J₀` to a `σ`-tame structure `J` is jointly
+  continuous in the time and in `J`, so that, run backwards, it contracts the `σ`-tame structures
+  onto `J₀`, relative to `J₀`. This part needs neither the Hausdorff nor the σ-compact
+  hypothesis.
 
 Tau Ceti puts no topology on `TauCeti.SmoothTwoForm`, so the spaces of forms are subtypes of
 this library's `SymplecticGeometry.Bundle.ContMDiffTwoForm I ⊤ EB (TangentSpace I)`, which
@@ -33,12 +39,19 @@ this library's `SymplecticGeometry.Bundle.ContMDiffTwoForm I ⊤ EB (TangentSpac
 two-forms, with the frame topology of sections; tameness and compatibility are Tau Ceti's, read
 through `tangentEquiv`.
 
-Every statement is the case `V = TM` of the corresponding statement for vector bundles in
+Every statement but the contraction is the case `V = TM` of a statement for vector bundles in
 `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean`,
 carried over by the homeomorphism
 `SymplecticGeometry.Bundle.ContMDiffComplexStructure.tangentHomeomorph` and the comparisons
 `SymplecticGeometry.Bundle.ContMDiffTwoForm.tames_tangentEquiv_iff` and
-`SymplecticGeometry.Bundle.ContMDiffTwoForm.compatible_tangentEquiv_iff`.
+`SymplecticGeometry.Bundle.ContMDiffTwoForm.compatible_tangentEquiv_iff`; for the continuity of
+Tau Ceti's Cayley path it is
+`SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.continuous_cayleyPath`. The contraction is
+the homotopy built inside the proof of
+`SymplecticGeometry.Bundle.ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`, with Tau
+Ceti's path and the fixed point `J₀` (`TauCeti.SmoothTwoForm.Compatible.cayleyPath_self`).
+It is the counterpart, for smooth structures on `M`, of Tau Ceti's linear
+`TauCeti.SymplecticForm.Compatible.cayleyContraction`, whose name it takes.
 
 ## Main results
 
@@ -57,6 +70,11 @@ carried over by the homeomorphism
   `ContinuousMap.HomotopyEquiv.zerothHomotopyCongr`.
 * `SymplecticGeometry.contractibleSpace_compatible_tames_tangent`: the conjunction of these
   statements.
+* `TauCeti.SmoothTwoForm.Compatible.continuous_cayleyPath`: the joint continuity of Tau Ceti's
+  Cayley path from a compatible structure.
+* `TauCeti.SmoothTwoForm.Compatible.cayleyContraction`, with
+  `TauCeti.SmoothTwoForm.Compatible.cayleyContraction_apply`: the contraction of the `σ`-tame
+  structures onto a `σ`-compatible `J₀`, as a homotopy relative to `{J₀}`.
 
 ## References
 
@@ -189,6 +207,69 @@ theorem nonempty_iff_exists_isNondegenerate :
     exact ⟨J⟩
 
 end TauCeti.SmoothAlmostComplexStructure
+
+/-! ### The Cayley contraction onto a compatible structure -/
+
+namespace TauCeti.SmoothTwoForm.Compatible
+
+variable {σ : SmoothTwoForm I M} {J₀ : SmoothAlmostComplexStructure I M}
+
+omit [T2Space M] [SigmaCompactSpace M] in
+/-- For a covering frame system of the endomorphism bundle of `TM`, the Cayley path from a
+`σ`-compatible structure `J₀` to a `σ`-tame structure `J` is jointly continuous in the time and in
+`J`, for the `C^∞` topology `TauCeti.SmoothAlmostComplexStructure.frameTopology`. -/
+theorem continuous_cayleyPath (h₀ : σ.Compatible J₀) (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    Continuous fun p : ℝ × {J : SmoothAlmostComplexStructure I M // σ.Tames J} ↦
+      h₀.cayleyPath p.2.property p.1 := by
+  let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := ⊤) e U hU
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  let H := ContMDiffComplexStructure.tangentHomeomorph e U hU
+  have h₀' : (ContMDiffTwoForm.tangentEquiv.symm σ).Compatible (H.symm J₀) := by
+    rw [← ContMDiffTwoForm.compatible_tangentEquiv_iff]
+    simpa [H] using h₀
+  have hT (J : {J : SmoothAlmostComplexStructure I M // σ.Tames J}) :
+      (ContMDiffTwoForm.tangentEquiv.symm σ).Tames (H.symm J.val) := by
+    rw [← ContMDiffTwoForm.tames_tangentEquiv_iff]
+    simpa [H] using J.property
+  refine (H.continuous.comp ((h₀'.continuous_cayleyPath e U hU hcover).comp
+    (continuous_fst.prodMk ((H.symm.continuous.comp (continuous_subtypeVal.comp
+      continuous_snd)).subtype_mk fun p ↦ hT p.2)))).congr fun p ↦ ?_
+  ext x v
+  simp [H, cayleyPath_toEndomorphism]
+
+omit [T2Space M] [SigmaCompactSpace M] in
+/-- For a covering frame system of the endomorphism bundle of `TM`, the Cayley paths run backwards
+contract the space of `σ`-tame smooth almost complex structures onto a `σ`-compatible structure
+`J₀`, relative to `J₀`: at time `t` the homotopy sends `J` to the Cayley path from `J₀` to `J` at
+time `1 - t`, so it starts at the identity, ends at the constant map at `J₀`, and fixes `J₀` at
+every time. -/
+noncomputable def cayleyContraction (h₀ : σ.Compatible J₀) (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    (ContinuousMap.id {J : SmoothAlmostComplexStructure I M // σ.Tames J}).HomotopyRel
+      (ContinuousMap.const _ ⟨J₀, h₀.tames⟩) {⟨J₀, h₀.tames⟩} :=
+  letI := SmoothAlmostComplexStructure.frameTopology e U hU
+  { toFun := fun p ↦ ⟨h₀.cayleyPath p.2.property (1 - p.1), h₀.tames_cayleyPath p.2.property _⟩
+    continuous_toFun := ((h₀.continuous_cayleyPath e U hU hcover).comp
+      ((continuous_const.sub (continuous_subtypeVal.comp continuous_fst)).prodMk
+        continuous_snd)).subtype_mk _
+    map_zero_left := fun J ↦ Subtype.ext (h₀.cayleyPath_of_one_le J.property (by simp))
+    map_one_left := fun J ↦ Subtype.ext (h₀.cayleyPath_of_nonpos J.property (by simp))
+    prop' := fun t J hJ ↦ by
+      obtain rfl := hJ
+      exact Subtype.ext (h₀.cayleyPath_self _) }
+
+omit [T2Space M] [SigmaCompactSpace M] in
+/-- At time `t`, the Cayley contraction onto `J₀` sends a `σ`-tame structure `J` to the Cayley
+path from `J₀` to `J` at time `1 - t`. -/
+@[simp]
+theorem cayleyContraction_apply (h₀ : σ.Compatible J₀) (hcover : ∀ x, ∃ i, x ∈ U i)
+    (t : unitInterval) (J : {J : SmoothAlmostComplexStructure I M // σ.Tames J}) :
+    (h₀.cayleyContraction e U hU hcover (t, J) : SmoothAlmostComplexStructure I M) =
+      h₀.cayleyPath J.property (1 - t) :=
+  (rfl)
+
+end TauCeti.SmoothTwoForm.Compatible
 
 /-! ### The homotopy equivalence `ω ↦ J_{g,ω}` -/
 
