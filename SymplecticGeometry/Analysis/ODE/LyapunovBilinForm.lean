@@ -196,8 +196,7 @@ theorem apply_self_pos_of_mem_unstableSubspace (hB : ∀ u v, B u v = B v u) (hc
 
 /-- **An operator with a positive definite Lyapunov form has no nonzero stable vector.** If `B` is
 symmetric and positive definite, and `0 < B v (A v)` for every nonzero `v`, then the stable
-subspace of `A` is `⊥`. The bound `c * ‖v‖ ^ 2 ≤ B v (A v)` follows by compactness of the unit
-sphere, and `B` would be negative on a nonzero stable vector. -/
+subspace of `A` is `⊥`. No uniform constant `c` with `c * ‖v‖ ^ 2 ≤ B v (A v)` is assumed. -/
 theorem stableSubspace_eq_bot_of_apply_pos (hB : ∀ u v, B u v = B v u)
     (hBpos : ∀ v, v ≠ 0 → 0 < B v v) (hBA : ∀ v, v ≠ 0 → 0 < B v (A v)) :
     A.stableSubspace = ⊥ := by
