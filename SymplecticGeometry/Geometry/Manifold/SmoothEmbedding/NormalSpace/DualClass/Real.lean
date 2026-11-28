@@ -47,7 +47,7 @@ pairs as its cast. So the slice of the real relative dual class pairs with such 
 The same holds on any disc transverse to `f` at `x`: a map `g` from a neighbourhood `B` of `0`
 in `ℝ²` that meets `f(Z)` only at `g 0 = f x`, and whose derivative at `0`, followed by the
 quotient onto `ν_x`, is an isomorphism `m` as above. By the local-degree lemma
-`singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv` (`DualClass/Slice.lean`), `g` pulls
+`singularCohomologyMap_slice_eq_of_hasFDerivAt` (`DualClass/Slice.lean`), `g` pulls
 the class back as the inclusion of `B` into `ℝ²` followed by the slice read through `m`; by the
 naturality of the Kronecker pairing and of the class of a simplex, a simplex of `B` carried to
 `σ` then pairs to `-1` with the pull-back
@@ -305,7 +305,7 @@ neighbourhood `U` of `Δ²`, with `0 ∈ φ (interior Δ²)`, and `τ` a singula
 the inclusion carries to `σ`. Then the pulled-back class, read through integral chains, pairs
 with the class of `τ` in `H₂(B, B ∖ {0}; ℤ)` to `-1`.
 
-By `singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`, `g` pulls the class back as the
+By `singularCohomologyMap_slice_eq_of_hasFDerivAt`, `g` pulls the class back as the
 normal slice of a normalized tube read through `m` does, after the inclusion of `B` into `ℝ²`;
 the inclusion carries the class of `τ` to that of `σ`. -/
 theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt
@@ -359,7 +359,7 @@ theorem singularKronecker_realRelDualClass_relClass_of_hasFDerivAt
   set y := TopPair.singularCohomologyMap (m.complZeroPairIso.hom ≫
     f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) 2 (f.realRelDualClass hn hdim hf o hr)
   -- By the local-degree lemma, `g` pulls the class back as the normal slice read through `m`.
-  rw [singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv hΦ x m hB hgB hg0 hgf hg hA,
+  rw [singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x m hB hgB hg0 hgf hg hA,
     TopPair.singularCohomologyMap_comp_apply,
     ← TopPair.singularCohomologyMap_comp_apply m.complZeroPairIso.hom]
   -- Read through integral chains, the pull-back along the inclusion is the integral one.

@@ -679,10 +679,8 @@ theorem exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_model
     exact Φ.map_source (hUs hp)
   · rintro _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩
     refine ⟨modelDisc k m x, ⟨?_, ?_⟩, rfl⟩
-    · simp [shape_snd, hγ.1]
-    · have hs : (shape (modelDisc k m x)).1 = ‖x‖ ^ 2 := by
-        simp [EuclideanSpace.real_norm_sq_eq]
-      rw [hs, mem_sphere_zero_iff_norm.1 hx]
+    · simp [hγ.1]
+    · simp only [shape_modelDisc, mem_sphere_zero_iff_norm.1 hx]
       nlinarith [hγ.1]
   · rintro _ ⟨p, hp, rfl⟩
     exact hpsh p hp.1.le hp.2.le
