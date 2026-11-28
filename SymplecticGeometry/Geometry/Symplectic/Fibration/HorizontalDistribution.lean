@@ -44,6 +44,9 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.isVerticallyClosed_mpullback`: the pull-back of a two-form on the base
   is vertically closed, so adding it does not change vertical closedness
   (`isVerticallyClosed_add_mpullback_iff`).
+* `TauCeti.RoughForm.IsVerticallyClosedOn.mpullback`: the pull-back of a form that is vertically
+  closed on the image of a set, by a map whose derivative preserves vertical vectors, is
+  vertically closed on that set.
 * `TauCeti.SmoothTwoForm.IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap`: a vertically
   closed two-form pulls back to a closed form along every fibre inclusion of a smooth
   trivialization.
@@ -169,6 +172,39 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mono {τ : RoughForm IM M 
     {s t : Set M} (h : τ.IsVerticallyClosedOn IB proj s) (hts : t ⊆ s) :
     τ.IsVerticallyClosedOn IB proj t :=
   fun x hx ↦ h x (hts hx)
+
+section Pullback
+
+variable {EM' : Type*} [NormedAddCommGroup EM'] [NormedSpace ℝ EM'] {HM' : Type*}
+  [TopologicalSpace HM'] {IM' : ModelWithCorners ℝ EM' HM'} {M' : Type*} [TopologicalSpace M']
+  [ChartedSpace HM' M'] {EB' : Type*} [NormedAddCommGroup EB'] [NormedSpace ℝ EB'] {HB' : Type*}
+  [TopologicalSpace HB'] {IB' : ModelWithCorners ℝ EB' HB'} {B' : Type*} [TopologicalSpace B']
+  [ChartedSpace HB' B']
+
+omit [IsManifold IM ∞ M] in
+/-- **The pull-back of a vertically closed form by a fibred map is vertically closed.** Let
+`Ψ : M' → M` be `C²` at each point `x` of `s`, let `τ` be `C¹` at `Ψ x`, and let the derivative
+of `Ψ` at `x` send the kernel of the derivative of `proj' : M' → B'` at `x` into that of
+`proj : M → B` at `Ψ x`. If `τ` is vertically closed for `proj` on `Ψ '' s`, then its pull-back
+`Ψ^* τ` is vertically closed for `proj'` on `s`. -/
+theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mpullback [IsManifold IM 2 M]
+    [IsManifold IM' 2 M'] {proj' : M' → B'} {Ψ : M' → M} {τ : RoughForm IM M ℝ 2} {s : Set M'}
+    (h : τ.IsVerticallyClosedOn IB proj (Ψ '' s)) (hΨ : ∀ x ∈ s, ContMDiffAt IM' IM 2 Ψ x)
+    (hτ : ∀ x ∈ s, ContMDiffAt IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ)) 1
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y (τ y)) (Ψ x))
+    (hker : ∀ x ∈ s, ∀ η ∈ (mfderiv IM' IB' proj' x).ker,
+      mfderiv IM' IM Ψ x η ∈ (mfderiv IM IB proj (Ψ x)).ker) :
+    (mpullback IM' IM Ψ τ).IsVerticallyClosedOn IB' proj' s := by
+  intro x hx η₁ hη₁ η₂ hη₂ v
+  rw [← mpullback_mextDeriv_at (hΨ x hx) (hτ x hx), mpullback_apply]
+  have h3 : (fun i ↦ mfderiv IM' IM Ψ x (![η₁, η₂, v] i)) =
+      ![mfderiv IM' IM Ψ x η₁, mfderiv IM' IM Ψ x η₂, mfderiv IM' IM Ψ x v] := by
+    funext i
+    fin_cases i <;> rfl
+  rw [h3]
+  exact h _ (mem_image_of_mem Ψ hx) _ (hker x hx η₁ hη₁) _ (hker x hx η₂ hη₂) _
+
+end Pullback
 
 /-- A closed two-form is vertically closed for every map. -/
 theorem _root_.TauCeti.SmoothForm.IsClosed.isVerticallyClosed (h : τ.IsClosed) :
