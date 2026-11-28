@@ -450,13 +450,8 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
       (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, D.frame k x y⟩) α.val (ψ.symm z)
         ![mfderiv 𝓘(ℝ, StdSpace ι) I ψ.symm z v] = -(2⁻¹ * stdForm ι z v) := by
     have h0 := D.connectionForm_eq_model hk x z hz v
-    rw [mpullback_apply, (stdForm ι).radialPrimitive_apply z v] at h0
-    convert h0 using 4
-    rename_i i
-    fin_cases i
-    -- Both sides are `mfderiv … v`; `Matrix.cons_val_zero` does not apply, since `![v]` is typed
-    -- in `StdSpace ι` and the other vector in a tangent space.
-    rfl
+    rwa [mpullback_apply_one (v := (v : TangentSpace 𝓘(ℝ, StdSpace ι) z)),
+      (stdForm ι).radialPrimitive_apply z v] at h0
   have hsm (c w : ℂ) : c • L w = L (c * w) := by
     rw [hL, hL, ← map_smul, smul_eq_mul]
   rw [powerConnection_apply_frame α k hα hU (D.contMDiffOn_frame hk x) ⟨z, hz, rfl⟩ hf hsf,
