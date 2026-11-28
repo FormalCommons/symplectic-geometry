@@ -30,8 +30,8 @@ small. The size of the perturbation is `δ` and the lower bound is `δ / (log (1
   `A` and `n`. It is the milestone for `A⁻¹ f` with the parameter `δ / A`.
 * `SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le`: the estimate with a `C¹` bound
   `A ≥ 1` for functions on `StdSpace ι`, with the flat `∂̄` `SymplecticGeometry.flatDbar`, the
-  flat `∂` `SymplecticGeometry.flatDel`, and the complex coordinates of
-  `SymplecticGeometry.peakFunction_mul`. It is the previous estimate for `f ∘ e`, for the
+  flat `∂` `SymplecticGeometry.flatDel`, and the complex coordinates
+  `TauCeti.complexToRealEuclideanCoord`. It is the previous estimate for `f ∘ e`, for the
   isometry `e = TauCeti.complexToRealEuclideanIsometry ι`.
 
 ## Implementation notes
@@ -439,7 +439,8 @@ theorem exists_norm_le_max_ge_of_dbar_le_of_one_le {A : ℝ} (hA : 1 ≤ A) :
 Read through the real isometry `e = complexToRealEuclideanIsometry ι`, the estimate holds for
 functions on `StdSpace ι`, with the flat `∂̄` in place of the conjugate Wirtinger derivative, the
 flat `∂` in place of the Wirtinger derivative, and the
-complex coordinates `(complexToRealEuclidean ι).symm z j` of `SymplecticGeometry.peakFunction_mul`.
+complex coordinates `(complexToRealEuclidean ι).symm z j`, the values at `z` of
+`TauCeti.complexToRealEuclideanCoord ι j`.
 -/
 
 variable {ι : Type*} [Fintype ι]
