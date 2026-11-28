@@ -45,14 +45,11 @@ theorem Filter.EventuallyEq.map_ker_mfderiv {p : P → M} {q : Q → N} {Φ : P 
     (hΦs : Function.Surjective (mfderiv K L Φ y)) :
     (mfderiv K I p y).ker.map (mfderiv K L Φ y).toLinearMap =
       (mfderiv L J q (Φ y)).ker := by
-  have hk : (mfderiv K I p y).ker =
-      (mfderiv L J q (Φ y)).ker.comap (mfderiv K L Φ y).toLinearMap := by
-    ext v
-    rw [Submodule.mem_comap, LinearMap.mem_ker, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
-      ContinuousLinearMap.coe_coe, ← map_eq_zero_iff _ hψi, ← mfderiv_comp_apply y hψ hp,
-      hcomm.symm.mfderiv_eq, ContinuousLinearMap.comp_apply, mfderiv_comp_apply y hq hΦ,
-      ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.map_eq_zero_iff,
-      ContinuousLinearMap.coe_coe]
-  rw [hk, Submodule.map_comap_eq_of_surjective hΦs]
+  have h := (mfderiv_comp y hq hΦ).symm.trans <|
+    (hcomm.mfderiv_eq (I := K) (I' := J)).trans (mfderiv_comp y hψ hp)
+  rw [← Submodule.map_comap_eq_of_surjective hΦs (mfderiv L J q (Φ y)).ker]
+  congr 1
+  ext v
+  simpa [← map_eq_zero_iff _ hψi] using congr($h v = 0).symm
 
 end
