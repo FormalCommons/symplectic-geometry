@@ -15,7 +15,7 @@ import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Covector
 
 /-!
-# Wedge powers of a two-form in top degree
+# Wedge powers of a two-form
 
 Let `ω` be a real alternating two-form and `γ` a one-form on a real vector space `E` of dimension
 `2 n + 2`, and let `v ∈ E` with `γ(v) = 0`. Then the top-degree form `γ ∧ ι_v ω ∧ ω ^ n` is zero.
@@ -28,6 +28,9 @@ this contraction is `γ(v) ω ^ (n + 1) - γ ∧ ι_v (ω ^ (n + 1))`, and the p
 `γ(v) = 0` and `n + 1 ≠ 0`. The power rule changes the degree `2 n + 1` into `1 + 2 n`, which
 `ContinuousAlternatingMap.pairedWedge_apply_of_right_eq_smul_cast` handles.
 
+The file also evaluates a wedge power of a two-form on a pair followed by vectors that the
+first vector of the pair pairs to zero with.
+
 ## Main results
 
 * `ContinuousAlternatingMap.pairedWedge_curryLeftTopological_wedgePow_eq_zero`: in dimension
@@ -36,11 +39,15 @@ this contraction is `γ(v) ω ^ (n + 1) - γ ∧ ι_v (ω ^ (n + 1))`, and the p
   `(A^* ω) ^ n = det A • ω ^ n`, by Tau Ceti's
   `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap` and
   `ContinuousAlternatingMap.compContinuousLinearMap_eq_det_smul`, since `ω ^ n` has top degree.
+* `ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero`: if `φ(u 0, ·)` vanishes on
+  `w : Fin (2 * k) → E`, then `φ ^ (k + 1)` takes the value `(k + 1) φ(u) φ ^ k (w)` on the
+  concatenation of the pair `u` and `w`, by Tau Ceti's
+  `ContinuousAlternatingMap.wedgePow_succ_apply_vecCons_vecCons`.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  proof of Theorem 5.1.6.
+  proof of Theorem 5.1.6, and §6.4 (the computation behind (6.4.3)–(6.4.4)).
 -/
 
 public section
@@ -98,6 +105,25 @@ theorem wedgePow_compContinuousLinearMap_eq_det_smul {n : ℕ}
     rw [LinearMap.det_eq_one_of_not_module_finite hfin, one_smul]
     ext v
     exact (wedgePow_zero_apply _ v).trans (wedgePow_zero_apply _ v).symm
+
+/-- **Wedge power on a block orthogonal to a pair.** For a two-form `φ`, a pair `u` and vectors
+`w : Fin (2 * k) → E` with `φ(u 0, w j) = 0` for all `j`, the `(k + 1)`-st wedge power of `φ`
+takes the value `(k + 1) φ(u) φ ^ k (w)` on the concatenation of `u` and `w`. -/
+theorem wedgePow_succ_apply_append_of_eq_zero (φ : E [⋀^Fin 2]→L[ℝ] ℝ) {k : ℕ}
+    {u : Fin 2 → E} {w : Fin (2 * k) → E} (h : ∀ j, φ ![u 0, w j] = 0) :
+    φ.wedgePow (k + 1) (Fin.append u w ∘ Fin.cast (by omega)) =
+      (k + 1) * φ u * φ.wedgePow k w := by
+  have hu : Fin.append u w ∘ Fin.cast (by omega) =
+      Matrix.vecCons (u 0) (Matrix.vecCons (u 1) w) := by
+    ext i
+    refine Fin.cases ?_ (fun i ↦ Fin.cases ?_ (fun j ↦ ?_) i) i
+    · exact (congrArg (Fin.append u w) (Fin.ext rfl)).trans (Fin.append_left u w 0)
+    · exact (congrArg (Fin.append u w) (Fin.ext rfl)).trans (Fin.append_left u w 1)
+    · exact (congrArg (Fin.append u w) (Fin.ext (by simp; omega))).trans
+        (Fin.append_right u w j)
+  rw [hu, wedgePow_succ_apply_vecCons_vecCons φ k (u 1) h, ← mul_assoc]
+  congr 2
+  exact congrArg φ (by ext i; fin_cases i <;> simp)
 
 end ContinuousAlternatingMap
 
