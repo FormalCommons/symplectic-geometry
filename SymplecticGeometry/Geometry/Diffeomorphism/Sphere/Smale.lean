@@ -12,6 +12,7 @@ public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import Mathlib.Topology.Homotopy.Equiv
 public import SymplecticGeometry.Geometry.Diffeomorphism.Sphere.Trivialization
 import SymplecticGeometry.Geometry.Diffeomorphism.Orientation
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
@@ -227,21 +228,13 @@ private noncomputable abbrev frameAt (x : OnePoint ℂ) :=
   trivializationAt (ℂ →L[ℝ] ℂ)
     (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x) x
 
-/-- The base sets of the trivializations `frameAt`. -/
-private noncomputable abbrev frameDomain (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) :=
-  ⟨(frameAt x).baseSet, (frameAt x).open_baseSet⟩
-
-private theorem frameDomain_subset (x : OnePoint ℂ) :
-    (frameDomain x : Set (OnePoint ℂ)) ⊆ (frameAt x).baseSet :=
-  subset_rfl
-
-private theorem mem_frameDomain (x : OnePoint ℂ) : ∃ y, x ∈ frameDomain y :=
-  ⟨x, TopologicalSpace.Opens.mem_mk.2 (FiberBundle.mem_baseSet_trivializationAt' x)⟩
-
 /-- The second component of `diffPlusTrivialization`, as an element of `mobiusSubgroup`. -/
 private theorem diffPlusTrivialization_apply_snd (φ : diffPlus) :
-    let _ := SmoothAlmostComplexStructure.frameTopology frameAt frameDomain frameDomain_subset
-    (diffPlusTrivialization frameAt frameDomain frameDomain_subset mem_frameDomain φ).2 =
+    let _ := SmoothAlmostComplexStructure.frameTopology frameAt (frameAt · |>.baseSetOpens)
+      fun x ↦ (frameAt x).coe_baseSetOpens.subset
+    (diffPlusTrivialization frameAt (frameAt · |>.baseSetOpens)
+      (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+      (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _) φ).2 =
       ⟨φ * (uniformizingDiffeomorph (complexStructureMap φ))⁻¹,
         mul_inv_uniformizingDiffeomorph_mem_mobiusSubgroup φ⟩ :=
   Subtype.ext (coe_diffPlusTrivialization_apply_snd _ _ _ _ φ)
@@ -254,11 +247,14 @@ noncomputable def diffPlusPolarRetraction : C(diffPlus, diffPlus) where
     (mobiusPolarRetraction ⟨φ * (uniformizingDiffeomorph (complexStructureMap φ))⁻¹,
       mul_inv_uniformizingDiffeomorph_mem_mobiusSubgroup φ⟩)
   continuous_toFun := by
-    let _ := SmoothAlmostComplexStructure.frameTopology frameAt frameDomain frameDomain_subset
+    let _ := SmoothAlmostComplexStructure.frameTopology frameAt (frameAt · |>.baseSetOpens)
+      fun x ↦ (frameAt x).coe_baseSetOpens.subset
     refine ((continuous_inclusion mobiusSubgroup_le_diffPlus).comp
       (mobiusPolarRetraction.continuous.comp (continuous_snd.comp
-        (diffPlusTrivialization frameAt frameDomain frameDomain_subset
-          mem_frameDomain).continuous))).congr fun φ ↦ ?_
+        (diffPlusTrivialization frameAt (frameAt · |>.baseSetOpens)
+          (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+          (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)).continuous))).congr
+      fun φ ↦ ?_
     exact congrArg (fun g ↦ Subgroup.inclusion mobiusSubgroup_le_diffPlus (mobiusPolarRetraction g))
       (diffPlusTrivialization_apply_snd φ)
 
@@ -290,17 +286,26 @@ private noncomputable def diffPlusPolarHomotopyFun (x : unitInterval × diffPlus
 /-- Through the trivialization `Φ`, the deformation of `Diff⁺(S²)` is
 `(t, φ) ↦ Φ⁻¹ (c_t (Φ φ).1, m_t (Φ φ).2)`. -/
 private theorem diffPlusPolarHomotopyFun_eq (x : unitInterval × diffPlus) :
-    let _ := SmoothAlmostComplexStructure.frameTopology frameAt frameDomain frameDomain_subset
+    let _ := SmoothAlmostComplexStructure.frameTopology frameAt (frameAt · |>.baseSetOpens)
+      fun x ↦ (frameAt x).coe_baseSetOpens.subset
     diffPlusPolarHomotopyFun x =
-      (diffPlusTrivialization frameAt frameDomain frameDomain_subset mem_frameDomain).symm
-        (complexStructureContraction frameAt frameDomain frameDomain_subset mem_frameDomain
-          (x.1, (diffPlusTrivialization frameAt frameDomain frameDomain_subset
-            mem_frameDomain x.2).1),
-        mobiusPolarHomotopy (x.1, (diffPlusTrivialization frameAt frameDomain frameDomain_subset
-          mem_frameDomain x.2).2)) := by
-  let _ := SmoothAlmostComplexStructure.frameTopology frameAt frameDomain frameDomain_subset
-  have hc : complexStructureContraction frameAt frameDomain frameDomain_subset mem_frameDomain
-      (x.1, complexStructureMap x.2) =
+      (diffPlusTrivialization frameAt (frameAt · |>.baseSetOpens)
+        (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+        (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)).symm
+        (complexStructureContraction frameAt (frameAt · |>.baseSetOpens)
+          (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+          (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)
+          (x.1, (diffPlusTrivialization frameAt (frameAt · |>.baseSetOpens)
+            (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+            (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _) x.2).1),
+        mobiusPolarHomotopy (x.1, (diffPlusTrivialization frameAt (frameAt · |>.baseSetOpens)
+          (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+          (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _) x.2).2)) := by
+  let _ := SmoothAlmostComplexStructure.frameTopology frameAt (frameAt · |>.baseSetOpens)
+    fun x ↦ (frameAt x).coe_baseSetOpens.subset
+  have hc : complexStructureContraction frameAt (frameAt · |>.baseSetOpens)
+      (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+      (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _) (x.1, complexStructureMap x.2) =
         ⟨OnePoint.compatible_fubiniStudyForm.cayleyPath (complexStructureMap x.2).property
           (1 - x.1), OnePoint.compatible_fubiniStudyForm.tames_cayleyPath _ _⟩ :=
     Subtype.ext (complexStructureContraction_apply _ _ _ _ _ _)
@@ -318,7 +323,8 @@ noncomputable def diffPlusPolarHomotopy :
       {φ | (φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) ∈ rotationSubgroup} where
   toFun := diffPlusPolarHomotopyFun
   continuous_toFun := by
-    let _ := SmoothAlmostComplexStructure.frameTopology frameAt frameDomain frameDomain_subset
+    let _ := SmoothAlmostComplexStructure.frameTopology frameAt (frameAt · |>.baseSetOpens)
+      fun x ↦ (frameAt x).coe_baseSetOpens.subset
     rw [show diffPlusPolarHomotopyFun = _ from funext diffPlusPolarHomotopyFun_eq]
     fun_prop
   map_zero_left φ := by
@@ -332,16 +338,20 @@ noncomputable def diffPlusPolarHomotopy :
       Subgroup.coe_one, mul_one, coe_diffPlusPolarRetraction_apply,
       diffPlusTrivialization_apply_snd]
   prop' t φ hφ := by
-    let _ := SmoothAlmostComplexStructure.frameTopology frameAt frameDomain frameDomain_subset
+    let _ := SmoothAlmostComplexStructure.frameTopology frameAt (frameAt · |>.baseSetOpens)
+      fun x ↦ (frameAt x).coe_baseSetOpens.subset
     obtain ⟨g, rfl⟩ : ∃ g : mobiusSubgroup,
         Subgroup.inclusion mobiusSubgroup_le_diffPlus g = φ :=
       ⟨⟨φ, rotationSubgroup_le_mobiusSubgroup hφ⟩, rfl⟩
     refine (diffPlusPolarHomotopyFun_eq (t, _)).trans ?_
     rw [diffPlusTrivialization_inclusion, ContinuousMap.id_apply,
-      (complexStructureContraction frameAt frameDomain frameDomain_subset mem_frameDomain).eq_fst
-      t rfl, mobiusPolarHomotopy.eq_fst t hφ]
-    exact (Homeomorph.symm_apply_eq _).2 (diffPlusTrivialization_inclusion frameAt frameDomain
-      frameDomain_subset mem_frameDomain g).symm
+      (complexStructureContraction frameAt (frameAt · |>.baseSetOpens)
+        (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+        (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)).eq_fst t rfl,
+      mobiusPolarHomotopy.eq_fst t hφ]
+    exact (Homeomorph.symm_apply_eq _).2 (diffPlusTrivialization_inclusion frameAt
+      (frameAt · |>.baseSetOpens) (fun x ↦ (frameAt x).coe_baseSetOpens.subset)
+      (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _) g).symm
 
 /-- At time `t`, the deformation of `Diff⁺(S²)` sends `φ` to `m_t(φ σ(φ^* i)⁻¹) σ(J_t)`, where `m`
 is the polar homotopy of the Möbius group and `J_t` the Cayley path from `i` to `φ^* i` at time
