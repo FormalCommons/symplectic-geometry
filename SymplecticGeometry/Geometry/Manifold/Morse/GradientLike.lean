@@ -416,9 +416,11 @@ theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0
     IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
   -- The metric is the Euclidean one carried over by `toEuclidean`.
   set e := toEuclidean (E := E)
-  set g := riemannianMetricToEuclidean E
-  have hg (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g.inner x v w = inner ℝ (e v) (e w) :=
-    riemannianMetricToEuclidean_inner x v w
+  set g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (TangentSpace 𝓘(ℝ, E)) :=
+    (riemannianMetricToEuclidean E).ofLE le_top
+  have hg (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g.inner x v w = inner ℝ (e v) (e w) := by
+    rw [ContMDiffRiemannianMetric.ofLE_inner]
+    exact riemannianMetricToEuclidean_inner x v w
   obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖e v‖ ≤ L * ‖v‖ :=
     ⟨_, e.toContinuousLinearMap.le_opNorm⟩
   obtain ⟨K, hK0, hK⟩ : ∃ K, 0 ≤ K ∧ ∀ v, ‖v‖ ≤ K * ‖e v‖ :=

@@ -130,9 +130,11 @@ theorem IsGradientLikeAt.exists_mul_le_fderiv_comp_symm {f : M → ℝ}
     (Filter.inter_mem hU (e.open_source.mem_nhds hp))
   -- The metric that `T = toEuclidean` carries to `E`.
   set T := toEuclidean (E := E)
-  set g₀ := SymplecticGeometry.riemannianMetricToEuclidean E
-  have hg₀ (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g₀.inner x v w = inner ℝ (T v) (T w) :=
-    SymplecticGeometry.riemannianMetricToEuclidean_inner x v w
+  set g₀ : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (TangentSpace 𝓘(ℝ, E)) :=
+    (SymplecticGeometry.riemannianMetricToEuclidean E).ofLE le_top
+  have hg₀ (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g₀.inner x v w = inner ℝ (T v) (T w) := by
+    rw [ContMDiffRiemannianMetric.ofLE_inner]
+    exact SymplecticGeometry.riemannianMetricToEuclidean_inner x v w
   obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖T v‖ ≤ L * ‖v‖ := ⟨_, T.toContinuousLinearMap.le_opNorm⟩
   obtain ⟨K', hK'⟩ : ∃ K', ∀ v, ‖v‖ ≤ K' * ‖T v‖ :=
     ⟨_, fun v ↦ by simpa using T.symm.toContinuousLinearMap.le_opNorm (T v)⟩
