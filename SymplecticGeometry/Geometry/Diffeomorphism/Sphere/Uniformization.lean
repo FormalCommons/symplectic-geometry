@@ -18,6 +18,7 @@ import TauCeti.Geometry.Manifold.Instances.OnePoint.Automorphism
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.ScalarTopology
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The uniformizing map of a tame almost complex structure on the sphere
@@ -586,10 +587,12 @@ theorem continuous_uniformizingDiffeomorph (hcover : ∀ x, ∃ i, x ∈ U i) :
     Continuous uniformizingDiffeomorph := by
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
   -- The frame system of `𝒪(1)` given by the trivializations at all points.
-  let e' (x : OnePoint ℂ) := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber x
-  let U' (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e' x).open_baseSet⟩
-  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun _ ↦ subset_rfl
-  have hcover' : ∀ x, ∃ y, x ∈ U' y := fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩
+  let e' := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber
+  let U' (x : OnePoint ℂ) := (e' x).baseSetOpens
+  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun x ↦
+    (e' x).coe_baseSetOpens.subset
+  have hcover' :=
+    FiberBundle.exists_mem_baseSetOpens_trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber
   let _ := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
     e' U' hU'
   have := ContMDiffSection.continuousSMul_frameTopology_ofNormedAlgebra (𝕜' := ℂ)

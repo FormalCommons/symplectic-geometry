@@ -750,18 +750,14 @@ theorem surroundFamily_neg_eight_mul (hδ : 0 ≤ δ) (r : ℝ) :
   rw [surroundFamily_of_nonpos (by linarith), sqrtSubLeaf_neg_eight_mul]
 
 /-- **The leaves of the glued family are `i`-convex shapes.** Let `δ > 0`, `24 δ ≤ ℓ₀ ≤ ℓₜ / 2`
-and `M ≥ 8`, let `L ≥ 1` be large compared with bounds `A` of `smoothTransition'`, `B` of
-`smoothTransition''` and `N` of `x smoothTransition'' x`, let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be an
+and `M ≥ 8`, let `L` be a cutoff scale, let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be an
 `i`-convex shape at every `r > δ`, `C²` on `(δ, ∞)` and a constant plus `struweShape δ 4 0` on
 `[δ, 9 δ / 2]`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be at least `ℓ` on `(δ, ∞)`, the standard
 leaf `r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
 `[3 δ, ℓ / 4]`. Then for `ℓ ∈ [-8 δ, ℓₜ]` the leaf `ℓ` of the glued family is an `i`-convex
 shape at every `r > δ`. -/
-theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hN : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ N)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
+theorem isConvexShapeAt_surroundFamily {ℓₜ r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
     (hM : 8 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
     (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
     (hF2 : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
@@ -776,14 +772,14 @@ theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
   rcases le_or_gt ℓ 0 with h0 | h0
   · -- The cutoff leaf with `b = (ℓ + 8 δ) / 64 ∈ [0, δ / 8]` and `c = 64 δ² - ℓ² ∈ [0, 64 δ²]`.
     rw [surroundFamily_of_nonpos h0, sqrtSubLeaf_eq_cutoffLeaf]
-    exact isConvexShapeAt_cutoffLeaf hA hB hN hL₁ hL hδ (by linarith) (by linarith)
+    exact isConvexShapeAt_cutoffLeaf hL hδ (by linarith) (by linarith)
       (by nlinarith) (by nlinarith) hr
   rcases le_or_gt ℓ (7 * δ) with h7 | h7
   · rw [surroundFamily_of_pos_of_le h0 h7]
-    exact isConvexShapeAt_struweSwitchLeaf hA hB hN hL₁ hL hδ ⟨h0.le, h7⟩ hr
+    exact isConvexShapeAt_struweSwitchLeaf hL hδ ⟨h0.le, h7⟩ hr
   rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
   · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
-    exact isConvexShapeAt_bridgeFamily hA hB hN hL₁ hL hδ hℓ₀ hM (fun ℓ h ↦ hFc ℓ (hsub h))
+    exact isConvexShapeAt_bridgeFamily hL hδ hℓ₀ hM (fun ℓ h ↦ hFc ℓ (hsub h))
       (fun ℓ h ↦ hF2 ℓ (hsub h))
       (fun ℓ h ↦ (hFS ℓ (hsub h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
       hFℓ hFs hFd ⟨h7.le, h2⟩ hr
@@ -865,11 +861,8 @@ theorem tendsto_deriv_surroundFamily {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ
 /-- **The leaves of the glued family are increasing.** Under the hypotheses of
 `SymplecticGeometry.isConvexShapeAt_surroundFamily`, each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the glued
 family is strictly increasing on `[δ, ∞)`. -/
-theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hN : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ N)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
+theorem strictMonoOn_surroundFamily {ℓₜ : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
     (hM : 8 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
     (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
     (hF2 : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
@@ -879,9 +872,9 @@ theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
     (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
     (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) : StrictMonoOn (surroundFamily L δ ℓ₀ M F ℓ) (Ici δ) :=
   strictMonoOn_Ici_of_isConvexShapeAt
-    (continuousOn_surroundFamily (by linarith) hδ (by linarith) (by linarith) hℓₜ hFS
+    (continuousOn_surroundFamily (by linarith [hL.one_le]) hδ (by linarith) (by linarith) hℓₜ hFS
       (fun ℓ h ↦ (hF2 ℓ h).continuousOn) hℓ.2)
-    fun _ hr ↦ isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc hF2 hFS
+    fun _ hr ↦ isConvexShapeAt_surroundFamily hL hδ hℓ₀ hM hℓₜ hFc hF2 hFS
       hFℓ hFs hFd hℓ hr
 
 /-- **The glued family and its `r`-derivatives are jointly continuous.** Let `0 < L`, `0 < δ`,
@@ -1084,8 +1077,8 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
       (∀ ℓ ∈ Icc (-8 * δ) 1, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
       (∀ ℓ ∈ Icc (-8 * δ) 1, ∀ r, δ < r → χ ℓ r ≤ χ 1 r) ∧
       1 < χ 1 δ ∧ χ 1 δ < 1 + γ := by
-  obtain ⟨A, B, N, L, hA, hB, hN, hL₁, hL⟩ := exists_smoothTransition_bounds
-  have hL₀ : 0 < L := by linarith
+  obtain ⟨L, hL⟩ := eventually_isCutoffScale.exists
+  have hL₀ : 0 < L := by linarith [hL.one_le]
   obtain ⟨C, hC, hF⟩ := exists_convexShapeFamily_struweShape_sqrt hγ
   -- The bounds on `δ`: `(6 C + 32 + 8 L) δ < 6 γ` and `(30 C + 60 + 16 L) δ < 1`.
   have hP : 0 < 6 * C + 32 + 8 * L := by linarith
@@ -1128,9 +1121,9 @@ theorem exists_convexShapeFamily_surround {γ : ℝ} (hγ : 0 < γ) :
   · exact contDiffOn_surroundFamily (n := ⊤) hL₀.le hδ hℓₜ (fun ℓ h ↦ hFsm ℓ h.1) hℓ
   · exact continuousOn_surroundFamily hL₀.le hδ hℓ₀' hM₀ hℓₜ hFS'
       (fun ℓ h ↦ (hFsm ℓ h.1).continuousOn) hℓ.2
-  · exact strictMonoOn_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
+  · exact strictMonoOn_surroundFamily hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
       hFd hℓ
-  · exact isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
+  · exact isConvexShapeAt_surroundFamily hL hδ hℓ₀ hM hℓₜ hFc' hF2 hFS' hFℓ₂ hF4₂
       hFd hℓ hr
   · -- The leaves `F ℓ`, `ℓ ≤ 1`, are standard from `ℓ γ' ≤ γ` on.
     refine surroundFamily_eq_sqrt (R := γ) hL₀ hδ hℓ₀' hM₀ hℓₜ (fun ℓ h r hr ↦ ?_) hℓ.2
