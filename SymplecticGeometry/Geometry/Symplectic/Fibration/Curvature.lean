@@ -67,7 +67,7 @@ namespace TauCeti.IsEhresmannConnection
 variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [CompleteSpace EB] {HB : Type*}
   [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
   [ChartedSpace HB B] [IsManifold IB 2 B]
-  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] {HM : Type*}
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [CompleteSpace EM] {HM : Type*}
   [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M]
   [ChartedSpace HM M] [IsManifold IM ∞ M]
   {proj : M → B} {τ : SmoothTwoForm IM M} {n : ℕ∞ω}
@@ -92,15 +92,6 @@ theorem apply_curvature_eq_mvfderiv_sub_mextDeriv
       mvfderiv IM (fun y ↦ τ.val y ![hD.horizontalLiftField v₁ y, hD.horizontalLiftField v₂ y])
           x η -
         mextDeriv τ.val x ![hD.horizontalLiftField v₁ x, hD.horizontalLiftField v₂ x, η] := by
-  -- `τ` pairs a horizontal vector with a vertical one to zero, in either order.
-  have hpair {y : M} {h e : TangentSpace IM y}
-      (hh : h ∈ SmoothTwoForm.horizontalDistribution IB proj τ y)
-      (he : e ∈ (mfderiv IM IB proj y).ker) : τ.val y ![e, h] = 0 ∧ τ.val y ![h, e] = 0 := by
-    have h0 := SmoothTwoForm.mem_horizontalDistribution_iff.1 hh e he
-    rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply] at h0
-    refine ⟨h0, ?_⟩
-    rw [← SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_swap,
-      SmoothBundleForm.eval₂_apply, h0, neg_zero]
   -- A vertical field `W` through `η`: the vertical part of a local extension of `η`.
   -- Read as a `C^1` connection, `hD` has a `C^1` vertical projection, `proj` being `C^2`.
   have hD₁ := hD.of_le hn
@@ -128,20 +119,21 @@ theorem apply_curvature_eq_mvfderiv_sub_mextDeriv
       (.of_forall fun y ↦ hD.mfderiv_horizontalLiftField v y) (.of_forall hWv)
   have hzero {v : Π b : B, TangentSpace IB b} :
       (fun y ↦ τ.val y ![hD.horizontalLiftField v y, W y]) = 0 :=
-    funext fun y ↦ (hpair (hD.horizontalLiftField_mem v y) (hWv y)).2
+    funext fun y ↦ SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
+        (hD.horizontalLiftField_mem v y) (hWv y)
   have h := SmoothForm.mextDeriv_apply_two (φ := τ) hU hV hW
   rw [hzero, hzero, mvfderiv_zero, hWx,
-    (hpair (hD.horizontalLiftField_mem v₂ x) (hbr hv₁)).1,
-    (hpair (hD.horizontalLiftField_mem v₁ x) (hbr hv₂)).1] at h
+    SmoothTwoForm.val_eq_zero_of_mem_ker_of_mem_horizontalDistribution (hbr hv₁)
+      (hD.horizontalLiftField_mem v₂ x),
+    SmoothTwoForm.val_eq_zero_of_mem_ker_of_mem_horizontalDistribution (hbr hv₂)
+      (hD.horizontalLiftField_mem v₁ x)] at h
   -- The bracket of the lifts is the curvature plus the horizontal lift of the bracket.
   have hsplit : mlieBracket IM (hD.horizontalLiftField v₁) (hD.horizontalLiftField v₂) x =
       hD.curvature v₁ v₂ x + hD.horizontalLiftField (mlieBracket IB v₁ v₂) x := by
     rw [curvature_apply, sub_add_cancel]
-  have hlift := (hpair (hD.horizontalLiftField_mem (mlieBracket IB v₁ v₂) x) hη).2
-  have hadd (a b : TangentSpace IM x) : τ.val x ![a + b, η] = τ.val x ![a, η] + τ.val x ![b, η] :=
-    by simp only [← SmoothBundleForm.eval₂_apply, ← SmoothForm.bilinFormAt_apply, map_add,
-      LinearMap.add_apply]
-  rw [hsplit, hadd, hlift, add_zero] at h
+  have hlift := SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
+    (hD.horizontalLiftField_mem (mlieBracket IB v₁ v₂) x) hη
+  rw [hsplit, ContinuousAlternatingMap.vecCons_add, hlift, add_zero] at h
   rw [h, zero_apply, zero_apply]
   abel
 
