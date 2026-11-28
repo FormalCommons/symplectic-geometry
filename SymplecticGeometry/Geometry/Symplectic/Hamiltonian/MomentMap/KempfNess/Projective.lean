@@ -11,6 +11,8 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ComplexProjectiveSpace
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Pseudoholomorphic
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
+import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 
 /-!
 # Complexified linear actions on complex projective space
@@ -55,6 +57,14 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   sign convention of the stability theory. It is not derived again: it is the restriction of
   `SymplecticGeometry.isEquivariantMomentMap_neg_unitaryProjectivizationMoment` along `φ`, by
   Tau Ceti's `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.comp_monoidHom`.
+* `SymplecticGeometry.coe_apply_expI_smul`: for a smooth representation `ρ : Gc → GL(n + 1, ℂ)`
+  that restricts to `φ` on `G` and whose derivative `dρ` at `1` is complex, `ρ (C.expI (t • ξ))`
+  is the matrix exponential of `t • (i • X)`, with `X` the skew-Hermitian matrix of `dφ ξ`, as in
+  `projectivizationMoment_mk_apply`. The exponential `C.expI` goes to the exponential of
+  `GL(n + 1, ℂ)` at `dρ` (`ContMDiffMonoidMorphism.coe_map_mulInvariantExp`), the identity
+  `dρ (C.cplx Z) = i • dρ Z` takes out the factor `i`, and `dρ (C.lieMap ξ) = X` by the chain
+  rule (`SymplecticGeometry.mfderiv_coe_apply_lieMap`), since `φ` is smooth into the unitary
+  group, an embedded Lie subgroup.
 
 ## References
 
@@ -158,6 +168,97 @@ theorem isEquivariantMomentMap_neg_projectivizationMoment
   simpa only [projectivizationMoment_def, LinearMap.neg_comp] using h
 
 end Moment
+
+section Exponential
+
+open TauCeti.Lie
+open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+
+/-- **The derivative of a representation on the compact directions.** Let
+`ρ : Gc → GL(n + 1, ℂ)` be a smooth homomorphism whose restriction to `G` along `C.toHom` is
+`φ : G →* U(n + 1)`. For `ξ` in the Lie algebra of `G`, the derivative at `1` of
+`g ↦ (ρ g : Matrix _ _ ℂ)` at `C.lieMap ξ` is the skew-Hermitian matrix of `dφ ξ`
+(through `matrixUnitaryLieAlgebraEquiv`). -/
+theorem mfderiv_coe_apply_lieMap (C : LieComplexification I G IC Gc)
+    (ρ : ContMDiffMonoidMorphism IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) ∞ Gc
+      (GL (Fin (n + 1)) ℂ))
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (hφ : ∀ g, (φ g : GL (Fin (n + 1)) ℂ) = ρ (C.toHom g)) (ξ : GroupLieAlgebra I G) :
+    mfderiv IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+        (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 (C.lieMap ξ) =
+      (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
+        Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) := by
+  let d := matrixUnitaryEmbeddedLieSubgroupData (n := Fin (n + 1)) (𝕜 := ℂ)
+  have hsub : ∀ k, d.subtypeVal k = k := d.subtypeVal_apply
+  have hcomp : (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) ∘ C.toHom =
+      (fun k : unitarySubgroup (GL (Fin (n + 1)) ℂ) ↦
+        ((k : GL (Fin (n + 1)) ℂ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) ∘ φ :=
+    funext fun g ↦ by simp [hφ]
+  have hincl : MDifferentiableAt 𝓘(ℝ, 𝔨[Fin (n + 1)])
+      𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+      (fun k : unitarySubgroup (GL (Fin (n + 1)) ℂ) ↦
+        ((k : GL (Fin (n + 1)) ℂ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 := by
+    have h := (Units.hasMFDerivAt_val (𝕜 := ℝ) (d.subtypeVal 1)).mdifferentiableAt.comp 1
+      (d.subtypeVal.contMDiff_toFun.mdifferentiableAt (by simp))
+    simpa only [Function.comp_def, hsub] using h
+  -- `φ` is smooth: the inclusion of the unitary group is a smooth embedding, and `φ` followed
+  -- by it is `ρ ∘ C.toHom`.
+  have hφd : MDifferentiableAt I 𝓘(ℝ, 𝔨[Fin (n + 1)]) φ 1 := by
+    have h : ContMDiff I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ∞ φ :=
+      d.isSmoothEmbedding_subtypeVal.contMDiff_iff_comp.2 <|
+        (ρ.contMDiff_toFun.comp C.toHom.contMDiff_toFun).congr fun g ↦ by simp [hφ]
+    exact h.mdifferentiableAt (by simp)
+  have hf : MDifferentiableAt IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+      (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 :=
+    (Units.hasMFDerivAt_val (𝕜 := ℝ) (ρ 1)).mdifferentiableAt.comp 1
+      (ρ.contMDiff_toFun.mdifferentiableAt (by simp))
+  have htoHom : MDifferentiableAt I IC C.toHom 1 :=
+    C.toHom.contMDiff_toFun.mdifferentiableAt (by simp)
+  have h1 := mfderiv_comp_apply_of_eq 1 hf htoHom (map_one C.toHom) ξ
+  rw [hcomp] at h1
+  rw [coe_matrixUnitaryLieAlgebraEquiv_apply, MonoidHom.groupLieAlgebraMap_apply, C.lieMap_apply]
+  exact h1.symm.trans (mfderiv_comp_apply_of_eq 1 hincl hφd (map_one φ) ξ)
+
+variable [FiniteDimensional ℝ E]
+
+/-- **A complexified representation along `C.expI` is a matrix exponential.** Let
+`ρ : Gc → GL(n + 1, ℂ)` be a smooth homomorphism whose restriction to `G` along `C.toHom` is
+`φ : G →* U(n + 1)`, and whose derivative `dρ` at `1`, the derivative of `g ↦ (ρ g : Matrix _ _ ℂ)`,
+is complex: `dρ (C.cplx Z) = i • dρ Z`. Then for `ξ` in the Lie algebra of `G` and `t : ℝ`,
+`ρ (C.expI (t • ξ))` is the exponential of `t • (i • X)`, where `X` is the skew-Hermitian matrix of
+`dφ ξ` (through `matrixUnitaryLieAlgebraEquiv`); so it is the exponential of `-t` times the
+Hermitian matrix `-i • X`. -/
+theorem coe_apply_expI_smul (C : LieComplexification I G IC Gc)
+    (ρ : ContMDiffMonoidMorphism IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) ∞ Gc
+      (GL (Fin (n + 1)) ℂ))
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (hφ : ∀ g, (φ g : GL (Fin (n + 1)) ℂ) = ρ (C.toHom g))
+    (hρ : ∀ Z : GroupLieAlgebra IC Gc,
+      mfderiv IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+          (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 (C.cplx Z) =
+        Complex.I • (show Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ from
+          mfderiv IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+            (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 Z))
+    (ξ : GroupLieAlgebra I G) (t : ℝ) :
+    ((ρ (C.expI (t • ξ)) : GL (Fin (n + 1)) ℂ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) =
+      NormedSpace.exp (t • (Complex.I •
+        (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
+          Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))) := by
+  have := C.finiteDimensional
+  rw [C.expI_smul, ρ.coe_map_mulInvariantExp, map_smul, hρ, mfderiv_coe_apply_lieMap C ρ φ hφ]
+  -- The two sides differ only by the `show` of `hρ`, which reads a tangent vector of
+  -- `GL (Fin (n + 1)) ℂ` as a matrix.
+  rfl
+
+end Exponential
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
