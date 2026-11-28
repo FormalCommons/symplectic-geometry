@@ -261,9 +261,9 @@ theorem exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub {σ₀ σ₁ : Smooth
     exact h
 
 omit [I.Boundaryless] [T2Space M] in
-/-- The slices of a two-form `ρ` on `ℝ × M` that are nondegenerate at every point for the times of
-`[0, 1]`, and at the points outside a compact set `K` for all times, are nondegenerate at every
-point for the times of some `(-δ, 1 + δ)`. -/
+/-- If the slices `ρ_t` of a two-form `ρ` on `ℝ × M` have invertible flat maps at every point for
+the times `t ∈ [0, 1]`, and at the points outside a compact set `K` for all times, then they have
+invertible flat maps at every point for the times of some `(-δ, 1 + δ)`. -/
 private theorem exists_pos_forall_isInvertible_flat_mpullback_prodMk
     (ρ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) {K : Set M} (hK : IsCompact K)
     (hI : ∀ (t : unitInterval) x, (flat (SmoothForm.mpullback (Prod.mk (t : ℝ))
