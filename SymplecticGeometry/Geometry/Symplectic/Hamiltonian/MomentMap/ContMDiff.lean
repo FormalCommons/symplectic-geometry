@@ -35,6 +35,8 @@ convention of many texts, and that their derivatives are then values of `σ`. Th
   infinitesimal action `a`, the derivative of `x ↦ μ x Z` in the direction `v` is `-σ(a Z x, v)`.
 * `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq_of_neg`: the norm square of `μ` is
   smooth if `-μ` is a moment map.
+* `TauCeti.SmoothTwoForm.IsMomentMap.exists_pos_forall_sqrt_momentNormSq_le_of_neg`: on a compact
+  manifold, the root of the norm square of `μ` is bounded.
 -/
 
 public section
@@ -76,6 +78,16 @@ linear map `K : 𝔤* → 𝔤`. -/
 theorem contMDiff_momentNormSq_of_neg {K : Module.Dual ℝ 𝔤 →ₗ[ℝ] 𝔤}
     (h : σ.IsMomentMap a fun x ↦ -μ x) : ContMDiff I 𝓘(ℝ) ∞ (momentNormSq μ K) := by
   simpa only [SymplecticGeometry.momentNormSq_neg'] using h.contMDiff_momentNormSq (K := K)
+
+/-- If `-μ` is a moment map on a compact manifold, the root `√(μ x (K (μ x)))` of the norm square
+of `μ` has a positive upper bound on `M`, for any linear map `K : 𝔤* → 𝔤`. -/
+theorem exists_pos_forall_sqrt_momentNormSq_le_of_neg [CompactSpace M]
+    {K : Module.Dual ℝ 𝔤 →ₗ[ℝ] 𝔤} (h : σ.IsMomentMap a fun x ↦ -μ x) :
+    ∃ L, 0 < L ∧ ∀ x, √(momentNormSq μ K x) ≤ L := by
+  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
+    (h.contMDiff_momentNormSq_of_neg (K := K)).continuous.sqrt.continuousOn
+  exact ⟨max L 1, lt_max_of_lt_right one_pos,
+    fun x ↦ le_max_of_le_left (hL ⟨x, Set.mem_univ x, rfl⟩)⟩
 
 end NormSq
 

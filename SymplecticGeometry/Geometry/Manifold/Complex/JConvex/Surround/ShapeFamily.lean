@@ -322,11 +322,8 @@ theorem exists_convexShapeFamily_struweShape {d K β : ℝ} (hd : 0 < d)
     · simp only [(hFφ' hℓ h).eq_of_nhds, (hFφ' hℓ' h).eq_of_nhds]
       exact hφm ℓ ℓ' (hℓ₀ hℓ) hlt r (by linarith)
   · rw [hFS ℓ hr, struweShape_add]
-  · refine (tendsto_deriv_struweShape hδ hK₁.le (ℓ + d * K * δ)).congr' ?_
-    filter_upwards [Ioo_mem_nhdsGT (show δ < 3 * K * δ / 4 by nlinarith)] with x hx
-    refine (Filter.EventuallyEq.deriv_eq ?_).symm
-    filter_upwards [Iio_mem_nhds hx.2] with y hy
-    exact hFS ℓ (mem_Iio.1 hy).le
+  · exact tendsto_deriv_of_eqOn_struweShape hδ hK₁.le (show δ < 3 * K * δ / 4 by nlinarith)
+      fun x hx ↦ hFS ℓ hx.2.le
 
 /-! ### The explicit leaves below the cone -/
 
