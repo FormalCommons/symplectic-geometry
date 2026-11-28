@@ -10,6 +10,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.LocalTransversality
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakQuotient
+import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-!
@@ -42,6 +43,9 @@ Gaussian (`RescaledUnitaryCharts.reading_affinePeakSection`).
   most `δ`. Near each centre of `T` the corrected section has transversality quantity at least
   `ε / 4 - C₂ * δ * exp (-c₂ * R ^ 2)`, and at every point the quantity drops by at most `C₁ * δ`.
   Its hypotheses are global bounds on the `2`-jet of `s` and the `1`-jet of `∂̄ s`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_sum_erase_affinePeakSection_le`: near
+  a centre `x` of such a set `T`, the peak sections at the other centres of `T` have jet norm
+  `O(δ * exp (-c * R ^ 2))`.
 
 The proof of the local correction divides the reading of `s` by the cut-off Gaussian, which meets
 the hypotheses of the local transversality estimate
@@ -54,7 +58,8 @@ the section.
 For one colour, the changes of chart of `ChartChange.lean` turn the global bounds on `s` into the
 hypotheses of the local correction at each centre. Near a centre `x ∈ T`, the corrections at the
 other centres are at rescaled distance at least `R - 2` and form a Gaussian tail
-(`exists_jetNorm_sum_affinePeakSection_le`), and at every point the whole sum has `1`-jet norm
+(`exists_jetNorm_sum_affinePeakSection_le`, then `Real.exp_neg_mul_max_sub_sq_le`, in
+`exists_jetNorm_sum_erase_affinePeakSection_le`), and at every point the whole sum has `1`-jet norm
 `O(δ)`.
 Both effects on the transversality quantity are bounded by
 `abs_max_norm_add_sub_max_norm_le_jetNorm`.
@@ -202,6 +207,54 @@ theorem exists_local_correction [I.Boundaryless] [RiemannianBundle (fun x : M �
     (D.reading_sub_affinePeakSection_eventuallyEq hk x s w (hz1.trans_lt hkρ) (hz1.trans_lt hk6))
     hqwd hB (hwz z hz)
 
+/-- **Peak sections at the other centres of a separated set.** Let `M` be preconnected, Hausdorff
+and boundaryless, with the metric `σ(·, J ·)`. For every counting constant `C₀`, exponent `m`,
+order `r` and radius `a` there are `C` and `c > 0` such that for all large `k`: let `T` be a finite
+set of centres with at most `C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from any
+point, for every `ρ ≥ 0`, whose distinct points are at rescaled distance at least `R ≥ 0`. Then
+for `x ∈ T`, every point `y` at rescaled distance at most `a` from `x` and coefficients `w` of
+norm at most `δ ≥ 0` on `T`, the `r`-jet norm at `y` of the sum of
+`D.affinePeakSection k x' (w x')` over `x' ∈ T.erase x` is at most `C * δ * exp (-c * R ^ 2)`. -/
+theorem exists_jetNorm_sum_erase_affinePeakSection_le [T2Space M] [I.Boundaryless]
+    [PreconnectedSpace M] [DecidableEq M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
+    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (C₀ : ℝ) (m r : ℕ)
+    (a : ℝ) :
+    ∃ C c : ℝ, 0 < c ∧ ∀ᶠ k : ℕ in Filter.atTop, ∀ (T : Finset M) (R : ℝ), 0 ≤ R →
+      (∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+        ((T.filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m) →
+      (∀ x ∈ T, ∀ x' ∈ T, x ≠ x' → R ≤ rescaledDist I k x x') →
+      ∀ x ∈ T, ∀ y : M, rescaledDist I k x y ≤ a →
+      ∀ (δ : ℝ) (w : M → EuclideanSpace ℂ (Option ι)), 0 ≤ δ → (∀ x ∈ T, ‖w x‖ ≤ δ) →
+        D.jetNorm k r (∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x')) y ≤
+          C * δ * Real.exp (-c * R ^ 2) := by
+  obtain ⟨C, c, hc, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m r
+  refine ⟨max C 0 * Real.exp (c * a ^ 2), c / 2, half_pos hc, ?_⟩
+  filter_upwards [Hsum] with k hsum T R hR hT hsep x hx y hy δ w hδ hw
+  -- The other centres of `T` lie at rescaled distance at least `R - a` from `y`.
+  set R' := max (R - a) 0
+  have hfar : (T.erase x).filter (fun x' ↦ R' ≤ rescaledDist I k x' y) = T.erase x := by
+    refine Finset.filter_true_of_mem fun x' hx' ↦ max_le ?_ (rescaledDist_nonneg I k x' y)
+    obtain ⟨hne, hx'T⟩ := Finset.mem_erase.1 hx'
+    have h1 := hsep x hx x' hx'T (Ne.symm hne)
+    have h2 := rescaledDist_triangle (I := I) k x y x'
+    rw [rescaledDist_comm (I := I) k y x'] at h2
+    linarith
+  have hcount (ρ : ℝ) (hρ : 0 ≤ ρ) :
+      (((T.erase x).filter fun x' ↦ rescaledDist I k x' y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m :=
+    le_trans (by exact_mod_cast Finset.card_le_card (Finset.filter_subset_filter _
+      (Finset.erase_subset x T))) (hT y ρ hρ)
+  have htail := (hsum y (T.erase x) hcount δ w hδ fun x' hx' ↦
+    hw x' (Finset.mem_of_mem_erase hx')).2.2 R' (le_max_right _ _)
+  rw [hfar] at htail
+  refine htail.trans ?_
+  calc C * δ * Real.exp (-c * R' ^ 2) ≤ max C 0 * δ * Real.exp (-c * R' ^ 2) := by
+        gcongr; exact le_max_left _ _
+    _ ≤ max C 0 * δ * (Real.exp (c * a ^ 2) * Real.exp (-(c / 2) * R ^ 2)) := by
+        gcongr; exact Real.exp_neg_mul_max_sub_sq_le hc.le hR
+    _ = _ := by ring
+
 /-- **Correcting one colour of a separated set of centres.** Let `M` be preconnected, Hausdorff and
 boundaryless, with the metric `σ(·, J ·)`, let `α` be a connection form and `ρ₀ > 0`. For every
 bound `B`, counting constant `C₀` and exponent `m` there are an exponent `p > 0`, `δ₀ > 0` and
@@ -249,18 +302,20 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
   obtain ⟨ρ₃, hρ₃, hρ₃₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
   set B' := max (C₃ * 3 ^ 2 * B) (C₄ * 3 * B)
   obtain ⟨p, hp, δ₀, hδ₀, H⟩ := D.exists_local_correction hg hα hρ₀ B'
-  obtain ⟨C, c, hc, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1
-  refine ⟨p, hp, δ₀, hδ₀, max C 0, max C 0 * Real.exp (4 * c), c / 2, half_pos hc,
-    fun δ hδ hδδ₀ ↦ ?_⟩
+  obtain ⟨C, c, -, Hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1
+  obtain ⟨C₂, c₂, hc₂, Htail⟩ :=
+    D.exists_jetNorm_sum_erase_affinePeakSection_le hg hJ hα hρ₀ C₀ m 1 2
+  refine ⟨p, hp, δ₀, hδ₀, max C 0, C₂, c₂, hc₂, fun δ hδ hδδ₀ ↦ ?_⟩
   set ρ := min (min ρ₁ ρ₂) ρ₃
   have hρ : 0 < ρ := lt_min (lt_min hρ₁ hρ₂) hρ₃
   have hkρ : ∀ᶠ k : ℕ in Filter.atTop, (11 / 10 : ℝ) < ρ * √k :=
     ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ).eventually_gt_atTop _
-  filter_upwards [H δ hδ hδδ₀, Hsum, Filter.eventually_ge_atTop k₀, Filter.eventually_ne_atTop 0,
+  filter_upwards [H δ hδ hδδ₀, Hsum, Htail, Filter.eventually_ge_atTop k₀,
+    Filter.eventually_ne_atTop 0,
     hkρ, D.eventually_contDiffAt_reading_and_dbarReading_affinePeakSection hρ₀,
     D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀]
-    with k hloc hsum hk hk0 hkρ hsm₁ hsm T R hR hT hsep s hs hsB
+    with k hloc hsum htail hk hk0 hkρ hsm₁ hsm T R hR hT hsep s hs hsB
   -- Points of the ball of radius `11 / 10` lie in the balls where the chart changes apply, and
   -- at rescaled distance at most `2` from the centre.
   have hball {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) {ρ' : ℝ} (hρ' : ρ ≤ ρ') :
@@ -268,11 +323,7 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
     mem_ball_zero_iff.2 (hz.trans (hkρ.trans_le (by gcongr)))
   have hdist (x : M) {z : StdSpace ι} (hz : ‖z‖ < 11 / 10) :
       rescaledDist I k x ((D.chart k x).symm z) ≤ 2 := by
-    have h := D.rescaledEDist_symm_symm_le hg hρ₃₀ hk x (hcmp hk x)
-      (hball (z := 0) (by simp) (min_le_right _ _)) (hball hz (min_le_right _ _))
-    rw [D.chart_symm_zero hk x, zero_sub, norm_neg, rescaledEDist_le_ofReal_iff (by positivity)]
-      at h
-    refine h.trans ?_
+    refine (D.rescaledDist_symm_le hg hρ₃₀ hk x (hcmp hk x) (hball hz (min_le_right _ _))).trans ?_
     have h32 : √(3 / 2 : ℝ) ≤ 5 / 4 := Real.sqrt_le_iff.2 ⟨by norm_num, by norm_num⟩
     nlinarith [norm_nonneg z]
   have hdiff (y : M) : ∀ᶠ v in 𝓝 0, DifferentiableAt ℝ (D.reading k y s) v :=
@@ -304,23 +355,6 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
   refine ⟨w, fun x _ ↦ hw x, fun x hx z hz ↦ ?_, fun y ↦ ?_⟩
   · have hz1 : ‖z‖ < 11 / 10 := (mem_closedBall_zero_iff.1 hz).trans_lt (by norm_num)
     set y := (D.chart k x).symm z
-    -- The other centres of `T` lie at rescaled distance at least `R - 2` from `y`.
-    set R' := max (R - 2) 0
-    have hfar : (T.erase x).filter (fun x' ↦ R' ≤ rescaledDist I k x' y) = T.erase x := by
-      refine Finset.filter_true_of_mem fun x' hx' ↦ max_le ?_ (rescaledDist_nonneg I k x' y)
-      obtain ⟨hne, hx'T⟩ := Finset.mem_erase.1 hx'
-      have h1 := hsep x hx x' hx'T (Ne.symm hne)
-      have h2 := rescaledDist_triangle (I := I) k x y x'
-      rw [rescaledDist_comm (I := I) k y x'] at h2
-      linarith [hdist x hz1]
-    have hcount (y' : M) (ρ' : ℝ) (hρ' : 0 ≤ ρ') :
-        (((T.erase x).filter fun x' ↦ rescaledDist I k x' y' ≤ ρ').card : ℝ) ≤
-          C₀ * (1 + ρ') ^ m :=
-      le_trans (by exact_mod_cast Finset.card_le_card (Finset.filter_subset_filter _
-        (Finset.erase_subset x T))) (hT y' ρ' hρ')
-    have htail := (hsum y (T.erase x) (hcount y) δ w hδ.le fun x' _ ↦ hw x').2.2 R'
-      (le_max_right _ _)
-    rw [hfar] at htail
     have heq : s - ∑ x' ∈ T, D.affinePeakSection k x' (w x') =
         (s - D.affinePeakSection k x (w x)) +
           -∑ x' ∈ T.erase x, D.affinePeakSection k x' (w x') := by
@@ -333,24 +367,7 @@ theorem exists_correction_of_separated [T2Space M] [I.Boundaryless] [Preconnecte
             ((hsm₁ x y (w x)).1.differentiableAt (by simp)))
       (by rw [reading_neg]; exact ((hsm _ w y).1.differentiableAt (by simp)).neg)
     rw [jetNorm_neg, ← heq] at hstab
-    have hexp : Real.exp (-c * R' ^ 2) ≤ Real.exp (4 * c) * Real.exp (-(c / 2) * R ^ 2) := by
-      rw [← Real.exp_add, Real.exp_le_exp]
-      have : R ^ 2 / 2 - 4 ≤ R' ^ 2 := by
-        rcases le_total R 2 with h | h
-        · have : R' = 0 := max_eq_right (by linarith)
-          rw [this]
-          nlinarith
-        · have : R' = R - 2 := max_eq_left (by linarith)
-          rw [this]
-          nlinarith [sq_nonneg (R - 4)]
-      nlinarith
-    have hC : C * δ * Real.exp (-c * R' ^ 2) ≤
-        max C 0 * Real.exp (4 * c) * δ * Real.exp (-(c / 2) * R ^ 2) := by
-      calc C * δ * Real.exp (-c * R' ^ 2) ≤ max C 0 * δ * Real.exp (-c * R' ^ 2) := by
-            gcongr; exact le_max_left _ _
-        _ ≤ max C 0 * δ * (Real.exp (4 * c) * Real.exp (-(c / 2) * R ^ 2)) := by
-            gcongr
-        _ = _ := by ring
+    have htail' := htail T R hR hT hsep x hx y (hdist x hz1) δ w hδ.le fun x' _ ↦ hw x'
     have := hwQ x z hz
     linarith [(abs_le.1 hstab).1]
   · have hstab := D.abs_max_norm_add_sub_max_norm_le_jetNorm hg hα hρ₀ hk hk0
