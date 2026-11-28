@@ -1011,15 +1011,15 @@ theorem isPseudoholomorphicAt_ballLiftPartialDiffeomorph {y : BlowupModel n}
   by_cases hyε : y ∈ openNbhd n ε
   · -- Near `y`, `lift ∘ ψ̃` is the identity.
     have hz : Φ y ∈ range (inr (gluingHomeomorph hN.blowupChart)) :=
-      ⟨_, ((hΦapp y hy).trans (hψ.ballLift_of_mem_openNbhd ⟨y, hy⟩ hyε)).symm⟩
+      ⟨_, (hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hyε).symm⟩
     have hl := Blowup.isLocalDiffeomorphAt_lift hN.blowupChart hz
     refine IsPseudoholomorphicAt.of_comp (v := Blowup.lift hN.blowupChart) ?_
       (Blowup.isPseudoholomorphicAt_lift _ J _ hz) (hl.isInvertible_mfderiv (by simp)).injective
       hΦ
     refine (isPseudoholomorphicAt_id _ y).congr_of_eventuallyEq ?_
     filter_upwards [(isOpen_openNbhd ε).mem_nhds hyε] with y' hy'
-    rw [Function.comp_apply, hΦapp y' (openNbhd_mono hψ.width_lt_radius.le hy'),
-      hψ.ballLift_of_mem_openNbhd _ hy', Blowup.lift_inr, id]
+    rw [Function.comp_apply, hψ.ballLiftPartialDiffeomorph_of_mem_openNbhd hy', Blowup.lift_inr,
+      id]
   · -- Off the divisor, the blowdown of the blowup composed with `ψ̃` is `ψ ∘ π`.
     set e := complexToRealEuclidean (Fin (n + 1))
     have hy0 := hψ.blowdown_ne_zero_of_notMem hyε
