@@ -977,23 +977,21 @@ proof that needs it as a `Submodule` builds it there.
   `IsCompact.continuous_sInf` gives continuity.
 - `mem_closure_smul_nonzeroPeriods` (`Geometry/Lie/Exponential/Periods.lean`):
   for compact `G` and `ξ ≠ 0`, `ξ` lies in the closure of the positive
-  multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof,
-  with an `Ad`-invariant `B` from
-  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`:
-  given `δ` with `0 < δ < |ξ|` and the `B`-ball of radius `δ` inside the
-  source of `mulInvariantExpOpenPartialHomeomorph` and inside a set on
-  which `mulInvariantExp` is injective
-  (`exists_injOn_mulInvariantExp_modelSpace`), its image is a neighbourhood
-  of `1`, so by Mathlib's `mapClusterPt_one_atTop_pow` some `m ≥ 1` has
-  `mulInvariantExp (m • ξ) = mulInvariantExp η` with `|η| < δ`. For `ζ'`
-  commuting with `ξ`, `h = mulInvariantExp (s • ζ')` commutes with
-  `mulInvariantExp (m • ξ)` (`commute_lieExp_of_lie_eq_zero`), so
-  `conj_lieExp` (with `lieExp_eq_mulInvariantExp`) and injectivity on the
-  `Ad`-invariant ball give `Ad h η = η`, and `hasDerivAt_Ad_lieExp_smul_apply_zero` gives
-  `⁅ζ', η⁆ = 0`. So `η ∈ 𝔞 ξ`, in particular `⁅ξ, η⁆ = 0`, and
+  multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof:
+  given a neighbourhood of `ξ`, take a balanced neighbourhood `W` of `0`
+  (Mathlib's `balancedCore`) on which Tau Ceti's `mulInvariantLog` inverts
+  `mulInvariantExp` (`eventually_mulInvariantLog_exp`), not containing
+  `ξ`, with `ξ + W` inside the given one. By Mathlib's
+  `mapClusterPt_one_atTop_pow` some `m ≥ 1` has
+  `mulInvariantExp (m • ξ) = mulInvariantExp η` with
+  `η ∈ W`. For `ζ'` commuting with `ξ`, `mulInvariantExp (s • ζ')` commutes
+  with `mulInvariantExp (m • ξ)` (`commute_lieExp_of_lie_eq_zero`), and
+  `conj_mulInvariantExp`, injectivity of the exponential near `η` and
+  `hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero` give `⁅ζ', η⁆ = 0`.
+  So `η ∈ 𝔞 ξ`, in particular `⁅ξ, η⁆ = 0`, and
   `λ = m • ξ - η` has `mulInvariantExp λ = 1`
   (`lieExp_add_of_lie_eq_zero`), lies in `𝔞 ξ`, is nonzero because
-  `|m • ξ| ≥ |ξ| > δ > |η|`, and `|ξ - m⁻¹ • λ| = |η| / m < δ`. The
+  `m⁻¹ • η ∈ W` is not `ξ`, and `ξ - m⁻¹ • λ = m⁻¹ • η ∈ W`. The
   route through Tau Ceti's tori (`isTorus_closedOneParameterSubgroup`,
   `Exponential/CommutativeGroup/Kronecker.lean`) would need the Lie algebra
   of the closed subgroup inside `𝔤` and its exponential, which this route

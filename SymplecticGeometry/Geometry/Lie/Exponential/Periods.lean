@@ -38,6 +38,8 @@ multiplication by nonzero integers.
 * `SymplecticGeometry.nsmul_mem_nonzeroPeriods`, `SymplecticGeometry.zsmul_mem_nonzeroPeriods`:
   `nonzeroPeriods I G` is invariant under multiplication by nonzero natural numbers and integers.
 * `SymplecticGeometry.neg_mem_nonzeroPeriods`: `nonzeroPeriods I G` is invariant under negation.
+* `exists_mulInvariantExp_eq_pow_of_mem_nhds`: in a compact Lie group, every neighbourhood of `0`
+  contains some `η` whose exponential is a positive power of a given element.
 * `SymplecticGeometry.mem_closure_smul_nonzeroPeriods`: for compact `G`, a nonzero `ξ` is a limit
   of positive multiples of periods that bracket to zero with everything that brackets to zero
   with `ξ`.
@@ -63,9 +65,33 @@ public section
 open TauCeti Filter
 open scoped Manifold ContDiff Topology
 
-namespace SymplecticGeometry
-
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+section Recurrence
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
+  [BoundarylessManifold I G] [CompactSpace G]
+
+/-- In a compact Lie group, every neighbourhood `W` of `0` in the Lie algebra contains some `η`
+whose exponential is a positive power of a given element `g`. -/
+theorem exists_mulInvariantExp_eq_pow_of_mem_nhds (g : G) {W : Set (GroupLieAlgebra I G)}
+    (hW : W ∈ 𝓝 0) : ∃ m : ℕ, 0 < m ∧ ∃ η ∈ W, mulInvariantExp η = g ^ m := by
+  let _ : IsTopologicalGroup G := topologicalGroup_of_lieGroup I ∞
+  -- Near `1`, the logarithm lands in `W` and is a right inverse of the exponential.
+  have hlog : ∀ᶠ h in 𝓝 (1 : G), mulInvariantLog (I := I) h ∈ W ∧
+      mulInvariantExp (mulInvariantLog (I := I) h) = h := by
+    refine Eventually.and ?_ (eventually_mulInvariantExp_log (I := I) (G := G))
+    have hcont := (contMDiffAt_mulInvariantLog_one (I := I) (G := G)).continuousAt
+    exact hcont.preimage_mem_nhds (by rwa [mulInvariantLog_one])
+  obtain ⟨m, hm, hmW, hmexp⟩ :=
+    ((mapClusterPt_one_atTop_pow g).frequently hlog).forall_exists_of_atTop 1
+  exact ⟨m, hm, _, hmW, hmexp⟩
+
+end Recurrence
+
+namespace SymplecticGeometry
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -127,15 +153,14 @@ theorem zsmul_mem_nonzeroPeriods {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ nonzer
   · rw [neg_zsmul, natCast_zsmul, neg_mem_nonzeroPeriods_iff]
     exact nsmul_mem_nonzeroPeriods hξ (by simpa using hn)
 
-/-- **Periods approximate the double centralizer.** For a compact Lie group `G` and a nonzero `ξ`
-in its Lie algebra, `ξ` lies in the closure of the positive multiples `c • λ` of the periods
-`λ ∈ nonzeroPeriods I G` that lie in the double centralizer of `ξ`, that is, that bracket to zero
-with every `ζ` such that `⁅ζ, ξ⁆ = 0`. -/
+/-- **Positive multiples of periods approximate a direction.** For a compact Lie group `G` and a
+nonzero `ξ` in its Lie algebra, `ξ` lies in the closure of the positive multiples `c • λ` of
+the periods `λ ∈ nonzeroPeriods I G` that bracket to zero with every `ζ` such that
+`⁅ζ, ξ⁆ = 0`. -/
 theorem mem_closure_smul_nonzeroPeriods [FiniteDimensional ℝ E] [CompactSpace G]
     {ξ : GroupLieAlgebra I G} (hξ : ξ ≠ 0) :
     ξ ∈ closure {x | ∃ c : ℝ, 0 < c ∧ ∃ l ∈ nonzeroPeriods I G,
       (∀ ζ : GroupLieAlgebra I G, ⁅ζ, ξ⁆ = 0 → ⁅ζ, l⁆ = 0) ∧ x = c • l} := by
-  let _ : IsTopologicalGroup G := topologicalGroup_of_lieGroup I ∞
   rw [mem_closure_iff_nhds]
   intro V hV
   -- `U` is a neighbourhood of `0` on which the logarithm inverts the exponential.
@@ -147,58 +172,42 @@ theorem mem_closure_smul_nonzeroPeriods [FiniteDimensional ℝ E] [CompactSpace 
   set W := balancedCore ℝ (U ∩ {ξ}ᶜ ∩ {v | ξ + v ∈ V})
   have hW : W ∈ 𝓝 0 := balancedCore_mem_nhds_zero
     (inter_mem (inter_mem hU (isOpen_compl_singleton.mem_nhds (Ne.symm hξ))) hV')
-  have hWsub := balancedCore_subset (𝕜 := ℝ) (U ∩ {ξ}ᶜ ∩ {v | ξ + v ∈ V})
-  have hWbal : Balanced ℝ W := balancedCore.balanced _
   -- Some power `exp ξ ^ m` with `m > 0` is `exp η` for some `η ∈ W`.
-  have hlog : ∀ᶠ g in 𝓝 (1 : G), mulInvariantLog (I := I) g ∈ W ∧
-      mulInvariantExp (mulInvariantLog (I := I) g) = g := by
-    refine (Filter.Eventually.and ?_ (eventually_mulInvariantExp_log (I := I) (G := G)))
-    have hcont := (contMDiffAt_mulInvariantLog_one (I := I) (G := G)).continuousAt
-    exact hcont.preimage_mem_nhds (by rwa [mulInvariantLog_one])
-  obtain ⟨m, hm, hmW, hmexp⟩ :=
-    ((mapClusterPt_one_atTop_pow (mulInvariantExp ξ)).frequently hlog).forall_exists_of_atTop 1
-  set η := mulInvariantLog (I := I) (mulInvariantExp ξ ^ m)
+  obtain ⟨m, hm, η, hηW, hηexp⟩ := exists_mulInvariantExp_eq_pow_of_mem_nhds (mulInvariantExp ξ) hW
   have hm₀ : (0 : ℝ) < m := by exact_mod_cast hm
   have hexpη : mulInvariantExp η = mulInvariantExp (m • ξ) := by
-    rw [hmexp, mulInvariantExp_nsmul]
+    rw [hηexp, mulInvariantExp_nsmul]
+  -- Since `W` is balanced, the multiples `c • η` with `|c| ≤ m⁻¹` stay in the set it is cut from.
+  have hsmul : ∀ c : ℝ, ‖c‖ ≤ ‖(m : ℝ)⁻¹‖ → c • η ∈ U ∩ {ξ}ᶜ ∩ {v | ξ + v ∈ V} := by
+    have hinv : ‖(m : ℝ)⁻¹‖ ≤ 1 := by
+      rw [norm_inv, Real.norm_natCast]
+      exact inv_le_one_of_one_le₀ (by exact_mod_cast hm)
+    exact fun c hc ↦ balancedCore_subset _ <| (balancedCore.balanced _).smul_mem
+      (hc.trans hinv) hηW
   -- Every `ζ` that commutes with `ξ` commutes with `η`.
-  have hcomm : ∀ ζ : GroupLieAlgebra I G, ⁅ζ, ξ⁆ = 0 → ⁅ζ, η⁆ = 0 := by
-    intro ζ hζ
-    refine Lie.lie_eq_zero_of_eventually_tangentAd_mulInvariantExp_smul_apply_eq_self ?_
-    have hcont : ContinuousAt
-        (fun s : ℝ ↦ Lie.tangentAd (I := I) (mulInvariantExp (s • ζ)) η) 0 :=
-      (Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero (I := I) ζ η).continuousAt
-    have hη : η ∈ U := (hWsub hmW).1.1
-    filter_upwards [hcont.eventually_mem (by
-      rw [zero_smul, mulInvariantExp_zero, Lie.tangentAd_one, LieEquiv.refl_apply]
-      exact isOpen_interior.mem_nhds hη)] with s hs
-    have hc : Commute (mulInvariantExp (s • ζ)) (mulInvariantExp η) := by
-      rw [hexpη]
-      exact Lie.commute_mulInvariantExp_of_lie_eq_zero (by rw [smul_lie, lie_nsmul, hζ,
-        smul_zero, smul_zero])
-    have he : mulInvariantExp (Lie.tangentAd (I := I) (mulInvariantExp (s • ζ)) η) =
-        mulInvariantExp η := by
-      rw [← Lie.conj_mulInvariantExp, hc.eq, mul_inv_cancel_right]
-    have h1 := interior_subset hs
+  have hη : η ∈ U := (balancedCore_subset _ hηW).1.1
+  have hinj : ∀ᶠ v in 𝓝 η, mulInvariantExp v = mulInvariantExp η → v = η := by
+    filter_upwards [isOpen_interior.mem_nhds hη] with v hv he
+    have h1 := interior_subset hv
     have h2 := interior_subset hη
     rw [Set.mem_ofPred_eq] at h1 h2
     rw [← h1, he, h2]
-  -- The period is `λ = m • ξ - η`.
+  have hcomm : ∀ ζ : GroupLieAlgebra I G, ⁅ζ, ξ⁆ = 0 → ⁅ζ, η⁆ = 0 := fun ζ hζ ↦
+    Lie.lie_eq_zero_of_eventually_commute_mulInvariantExp_smul hinj <| .of_forall fun s ↦ by
+      rw [hexpη]
+      exact Lie.commute_mulInvariantExp_of_lie_eq_zero (by rw [smul_lie, lie_nsmul, hζ,
+        smul_zero, smul_zero])
+  -- The period is `λ = m • ξ - η`, with `m⁻¹ • λ = ξ - m⁻¹ • η`.
+  have hl : (m : ℝ)⁻¹ • (m • ξ - η) = ξ + -(m : ℝ)⁻¹ • η := by
+    rw [← Nat.cast_smul_eq_nsmul ℝ, smul_sub, inv_smul_smul₀ hm₀.ne', sub_eq_add_neg, ← neg_smul]
   refine ⟨(m : ℝ)⁻¹ • (m • ξ - η), ?_, (m : ℝ)⁻¹, inv_pos.2 hm₀, m • ξ - η, ⟨?_, ?_⟩, ?_, rfl⟩
-  · have hmem : -(m : ℝ)⁻¹ • η ∈ W :=
-      hWbal.smul_mem (by rw [norm_neg, norm_inv, Real.norm_natCast]; exact
-        inv_le_one_of_one_le₀ (by exact_mod_cast hm)) hmW
-    have := (hWsub hmem).2
+  · have := (hsmul (-(m : ℝ)⁻¹) (by simp)).2
     rw [Set.mem_ofPred_eq] at this
-    rwa [← Nat.cast_smul_eq_nsmul ℝ, smul_sub, inv_smul_smul₀ hm₀.ne', sub_eq_add_neg,
-      ← neg_smul]
+    rwa [hl]
   · intro h
     rw [sub_eq_zero] at h
-    have hmem : (m : ℝ)⁻¹ • η ∈ W :=
-      hWbal.smul_mem (by rw [norm_inv, Real.norm_natCast]; exact
-        inv_le_one_of_one_le₀ (by exact_mod_cast hm)) hmW
-    rw [← h, ← Nat.cast_smul_eq_nsmul ℝ, inv_smul_smul₀ hm₀.ne'] at hmem
-    exact (hWsub hmem).1.2 rfl
+    refine (hsmul (m : ℝ)⁻¹ (by simp)).1.2 ?_
+    rw [← h, ← Nat.cast_smul_eq_nsmul ℝ, inv_smul_smul₀ hm₀.ne', Set.mem_singleton_iff]
   · have hadd := Lie.mulInvariantExp_add_of_lie_eq_zero (X := m • ξ - η) (Y := η) (by
       rw [sub_lie, lie_self, sub_zero, nsmul_lie, hcomm ξ (lie_self ξ), smul_zero])
     rwa [sub_add_cancel, hexpη, right_eq_mul] at hadd
