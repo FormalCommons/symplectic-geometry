@@ -116,6 +116,8 @@ The regularity of the family, which the gluing of `exists_convexShapeFamily_surr
   the last, `F ℓ` is itself a Struwe shape plus a constant there. Hence the slope of each leaf
   tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_bridgeFamily`) and each leaf is
   continuous on `[δ, ∞)` (`SymplecticGeometry.continuousOn_bridgeFamily`).
+* `SymplecticGeometry.contDiffOn_bridgeFamily`: each leaf is as smooth on `(δ, ∞)` as the
+  shapes `F ℓ` are, the other shapes of the bridge leaves being smooth there.
 * `SymplecticGeometry.bridgeFamily_eq_sqrt`: from `max R ((t₁ + 2 δ) / 6)` on, where every `F ℓ`
   is standard from `R` on, each leaf is the standard leaf, since there the raised shape lies more
   than the width below `8 r` (`SymplecticGeometry.bridgeLeaf_eq_sqrt`).
@@ -1161,6 +1163,20 @@ theorem continuousOn_bridgeFamily {L ℓ₀ M ℓ : ℝ} (hL : 0 ≤ L) (hδ : 0
   · exact hb (continuous_sqrtAddLeaf L δ ℓ).continuousOn
   · exact hb (by fun_prop : Continuous fun r : ℝ ↦ √(64 * r ^ 2 + ℓ ^ 2)).continuousOn
   · exact hb (hFc ℓ ⟨(not_le.1 h0).le, hℓ.2⟩)
+
+/-- **The leaves of the bridge family are smooth.** For `δ > 0`, if every `F ℓ`,
+`ℓ ∈ [ℓ₀, 2 ℓ₀]`, is `Cⁿ` on `(δ, ∞)`, then so is each leaf `ℓ ≤ 2 ℓ₀` of the bridge family. -/
+theorem contDiffOn_bridgeFamily {n : ℕ∞} {L ℓ₀ M ℓ : ℝ} (hδ : 0 < δ) {F : ℝ → ℝ → ℝ}
+    (hF : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContDiffOn ℝ n (F ℓ) (Ioi δ)) (hℓ : ℓ ≤ 2 * ℓ₀) :
+    ContDiffOn ℝ n (bridgeFamily L δ ℓ₀ M F ℓ) (Ioi δ) := by
+  rw [bridgeFamily_def]
+  split_ifs with h15 h0
+  · exact contDiffOn_bridgeLeaf hδ _
+      ((contDiffOn_sqrtAddLeaf L hδ.le ℓ).of_le (by exact_mod_cast le_top)) _
+  · refine contDiffOn_bridgeLeaf hδ _ (fun r hr ↦ ?_) _
+    have hr : 0 < r := hδ.trans hr
+    exact (ContDiffAt.sqrt (by fun_prop) (by positivity)).contDiffWithinAt
+  · exact contDiffOn_bridgeLeaf hδ _ (hF ℓ ⟨(not_le.1 h0).le, hℓ⟩) _
 
 /-! ### The far part and the upper bound of the glued bridge family -/
 
