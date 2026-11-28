@@ -46,9 +46,10 @@
 #
 # The script says after each part how many seconds have passed since its
 # start, and how often curl tried a request again, so that a slow upload
-# shows where its time went. curl says each such try on its standard error
-# when only its progress meter is turned off, in every version: the count
-# of tries that `--write-out` has is too new for the runners' curl.
+# shows where its time went. curl gives a warning on its standard error
+# before each such try when only its progress meter is turned off, and the
+# script counts those: the count that `--write-out` has is too new for the
+# runners' curl.
 #
 # DIR comes from a build, which ran the code of a pull request, so nothing in
 # it is trusted and nothing from it is run:
@@ -80,11 +81,14 @@ key=$(cat)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 fail() { echo "::error::$1"; exit 1; }
-# What curl wrote to its standard error, in a file. Each try of a request
-# after the first is a line that ends in `retries left.` or `retry left.`:
-# `again` counts those, and `said` shows the first lines of the rest.
-again() { grep -cE 'retr(y|ies) left' "$1" || true; }
-said() { grep -vE 'retr(y|ies) left' "$1" | head -n 20 >&2 || true; }
+# What curl wrote to its standard error, in a file. Before each try of a
+# request after the first it gives a warning that begins `Problem`, after a
+# 503 as after a broken connection. curl breaks a warning at 79 columns, so
+# the longer of these go on in a line `Warning: left.`; the start is always
+# on the first line, and its later words differ between curl's versions.
+# `again` counts the warnings, and `said` shows the first lines of the rest.
+again() { grep -c '^Warning: Problem ' "$1" || true; }
+said() { grep -vE '^Warning: (Problem |left\.$)' "$1" | head -n 20 >&2 || true; }
 
 [ -f "$dir/outputs.jsonl" ] && [ ! -L "$dir/outputs.jsonl" ] || fail "the staged build has no mappings file"
 
