@@ -490,7 +490,14 @@ private theorem prodPairIso_hom_fst (p : sphere (0 : E) 1) (φ : (F × ℝ) ≃L
   rw [ContinuousLinearEquiv.complZeroPairIso_hom, prodPairIso, TopPair.ofSubsetIso_hom]
   -- Both sides are `φ x`; the subspace of `TopPair.ofSubset` is the subtype only after
   -- unfolding, and the homeomorphism is `φ` on the subtype by definition.
-  erw [TopPair.ofSubsetMap_snd_apply, TopPair.ofSubsetMap_fst_apply]
+  -- The `MapsTo` proofs of the pairs typecheck only after unfolding `ofSubset`, which keeps `rw`
+  -- from matching; `generalize_proofs` replaces them by hypotheses.
+  generalize_proofs
+  rw [TopPair.ofSubsetMap_fst_apply]
+  -- No `rw` for the second side: `x` is a point of the pair's subspace only after unfolding
+  -- `ofSubset`, so the lemma is applied with its pair given.
+  refine Eq.trans ?_ (TopPair.ofSubsetMap_snd_apply (X := TopCat.of (F × ℝ)) (Y := TopCat.of E)
+    (B := {0}ᶜ) (B' := {0}ᶜ) _ _ x).symm
   rfl
 
 private theorem prodSheetPairMap_comp_prodPairIso_hom (p : sphere (0 : E) 1)
@@ -506,7 +513,10 @@ private theorem prodSheetPairMap_comp_prodPairIso_hom (p : sphere (0 : E) 1)
     ConcreteCategory.comp_apply]
   -- The sources of the maps of pairs are the punctured spaces only after unfolding
   -- `TopPair.ofSubset`.
-  erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
+  -- The `MapsTo` proofs of the pairs typecheck only after unfolding `ofSubset`, which keeps `rw`
+  -- from matching; `generalize_proofs` replaces them by hypotheses.
+  generalize_proofs
+  rw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
     TopPair.ofSubsetMap_fst_apply]
   exact (hφ x s).trans (congrArg (· + s • (p : E))
     (congrArg Subtype.val (ψ.complZeroPairIso_hom_fst_apply x).symm))

@@ -140,8 +140,10 @@ theorem singularCohomologyMap_localChart_canonicalThomClass (e : Trivialization 
   congr 3
   refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun x ↦ ?_)
   rw [Trivialization.coordPairMap_fst_apply, hφ x]
-  -- The point `x` of the pair is a point of `univ ×ˢ S` only up to unfolding `ofSubset`.
-  erw [TopPair.ofSubsetMap_fst_apply]
+  -- The `MapsTo` proofs of the pairs typecheck only after unfolding `ofSubset`, which keeps `rw`
+  -- from matching; `generalize_proofs` replaces them by hypotheses.
+  generalize_proofs
+  rw [TopPair.ofSubsetMap_fst_apply]
   exact hfst x
 
 section Cap
