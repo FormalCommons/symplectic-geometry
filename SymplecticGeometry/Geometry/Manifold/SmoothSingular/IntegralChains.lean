@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+import SymplecticGeometry.Algebra.Homology.Additive
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Smoothing
 
 /-!
@@ -181,7 +182,7 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom_deRhamHom_mk {p : �
       (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (N := ModuleCat.of ℤ ℝ) ℤ p _) z).trans ?_
   -- The cycles of the restricted cochain complex are those of the restricted short complex only
   -- after unfolding, which `rw` does not see.
-  erw [TopCat.mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles_apply]
+  erw [HomologicalComplex.mapCyclesIso_inv_comp_cyclesMap_comp_iCycles_apply]
   rw [ConcreteCategory.comp_apply]
   erw [TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f]
   rw [← ConcreteCategory.comp_apply _ (integrationCochain (R := ℤ) _),
