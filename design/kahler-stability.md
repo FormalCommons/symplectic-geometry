@@ -801,9 +801,11 @@ of `hJi` besides the statements that pass it on).
   subgroup theorem. The average keeps `J` constant because each `h ∈ H` is
   `J`-holomorphic near `x`, by the invariance of `J`; that `dh_x` is
   `J`-linear would not be enough. The averaging lemma that Tau Ceti's
-  proof uses is private there, so this file proves the step it needs
-  (differentiation under the integral sign of a family of maps with
-  `J x`-linear derivatives) and credits Tau Ceti's theorem.
+  proof uses is private there; the library proves the step it needs
+  (differentiation under the integral sign) in
+  `Geometry/Manifold/GroupAction/EquivariantAverage.lean`, which credits
+  Tau Ceti's theorem, and this file deduces from it that the average has
+  `J x`-linear derivatives.
 - `fundamentalVectorField_chart_symm`: for `ξ, η ∈ 𝔥`,
   `Z = C.lieMap ξ + C.cplx (C.lieMap η)` and `v` in the target of `e`,
   `X_Z (e.symm v) = mfderiv (e.symm) v (A ξ v + J x (A η v))`, where `A ξ`
@@ -980,48 +982,37 @@ proof that needs it as a `Submodule` builds it there.
   `momentWeight_expI_smul_of_lie_eq_zero`, hence for `y ∈ K` by continuity.
   The map `(y, ξ) ↦ μ y ξ` is continuous (`𝔤` is finite-dimensional), so
   `IsCompact.continuous_sInf` gives continuity.
-- `exists_pow_mem_of_mem_nhds_one` (`Topology/Algebra/Group/Recurrence.lean`,
-  with its additive version): in a compact topological group, every
-  neighbourhood of `1` contains `g ^ n` for some `n > 0`. Proof: the powers
-  `g ^ n` have a cluster point, so two of them, `g ^ k` and `g ^ l` with
-  `k < l`, lie in one translate `x * W` of a neighbourhood `W` with
-  `W⁻¹ * W ⊆ V`. No such lemma turned up in Mathlib or Tau Ceti at the
-  pinned versions; its building issue searches again first.
 - `mem_closure_smul_nonzeroPeriods` (`Geometry/Lie/Exponential/Periods.lean`):
   for compact `G` and `ξ ≠ 0`, `ξ` lies in the closure of the positive
-  multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof,
-  with an `Ad`-invariant `B` from
-  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`:
-  given `δ` with `0 < δ < |ξ|` and the `B`-ball of radius `δ` inside the
-  source of `mulInvariantExpOpenPartialHomeomorph` and inside a set on
-  which `mulInvariantExp` is injective
-  (`exists_injOn_mulInvariantExp_modelSpace`), its image is a neighbourhood
-  of `1`, so by `exists_pow_mem_of_mem_nhds_one` some `m ≥ 1` has
-  `mulInvariantExp (m • ξ) = mulInvariantExp η` with `|η| < δ`. For `ζ'`
-  commuting with `ξ`, `h = mulInvariantExp (s • ζ')` commutes with
-  `mulInvariantExp (m • ξ)` (`commute_lieExp_of_lie_eq_zero`), so
-  `conj_lieExp` (with `lieExp_eq_mulInvariantExp`) and injectivity on the
-  `Ad`-invariant ball give `Ad h η = η`, and `hasDerivAt_Ad_lieExp_smul_apply_zero` gives
-  `⁅ζ', η⁆ = 0`. So `η ∈ 𝔞 ξ`, in particular `⁅ξ, η⁆ = 0`, and
+  multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof:
+  given a neighbourhood of `ξ`, take a balanced neighbourhood `W` of `0`
+  (Mathlib's `balancedCore`) on which Tau Ceti's `mulInvariantLog` inverts
+  `mulInvariantExp` (`eventually_mulInvariantLog_exp`), not containing
+  `ξ`, with `ξ + W` inside the given one. By Mathlib's
+  `mapClusterPt_one_atTop_pow` some `m ≥ 1` has
+  `mulInvariantExp (m • ξ) = mulInvariantExp η` with
+  `η ∈ W`. For `ζ'` commuting with `ξ`, `mulInvariantExp (s • ζ')` commutes
+  with `mulInvariantExp (m • ξ)` (`commute_lieExp_of_lie_eq_zero`), and
+  `conj_mulInvariantExp`, injectivity of the exponential near `η` and
+  `hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero` give `⁅ζ', η⁆ = 0`.
+  So `η ∈ 𝔞 ξ`, in particular `⁅ξ, η⁆ = 0`, and
   `λ = m • ξ - η` has `mulInvariantExp λ = 1`
   (`lieExp_add_of_lie_eq_zero`), lies in `𝔞 ξ`, is nonzero because
-  `|m • ξ| ≥ |ξ| > δ > |η|`, and `|ξ - m⁻¹ • λ| = |η| / m < δ`. The
+  `m⁻¹ • η ∈ W` is not `ξ`, and `ξ - m⁻¹ • λ = m⁻¹ • η ∈ W`. The
   route through Tau Ceti's tori (`isTorus_closedOneParameterSubgroup`,
   `Exponential/CommutativeGroup/Kronecker.lean`) would need the Lie algebra
   of the closed subgroup inside `𝔤` and its exponential, which this route
   does not.
 - `isSemistable_of_iInf_momentNormSq_smul_eq_zero` (`KempfNess/Stability.lean`,
-  the converse of `IsSemistable.iInf_momentNormSq_smul_eq_zero`): in the
-  setting of `momentNormSq_limit_eq_iInf`, if
-  `⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0` then `p` is semistable: the
-  limit of the flow (`tendsto_maximalIntegralCurve_momentNormSq`) lies in
-  the closure of the orbit (`exists_mem_orbit_maximalIntegralCurve`), and
-  `momentNormSq_limit_eq_iInf` and `momentNormSq_eq_zero_iff` make it a
-  zero of `μ`. The proof of
-  `isSemistable_iff_bddBelow_kempfNessFunction` has this step inline; the
-  building issue moves it here.
+  the converse of `IsSemistable.iInf_momentNormSq_smul_eq_zero`): for `B`
+  positive definite and `momentNormSq μ (B.toDual hB).symm` continuous, if
+  `⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0` then `p` is semistable:
+  `M` is compact, so `momentNormSq` attains a minimum on the closure of the
+  orbit, which is at most the infimum, hence `0`, and
+  `momentNormSq_eq_zero_iff` makes the minimum point a zero of `μ`.
 - `exists_momentWeight_pos_of_iInf_momentNormSq_pos` (`HilbertMumford.lean`):
-  in that setting, if `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
+  in the setting of `momentNormSq_limit_eq_iInf`, if
+  `0 < m²` for `m² := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)`,
   some `ξ` with `B ξ ξ = 1` has `0 < momentWeight C μ p ξ`. Proof: take
   the flow curve `g` of `exists_mem_orbit_maximalIntegralCurve`, so
   `Φ_p (g t) ≤ -2 * m² * t` for `t ≥ 0` (`Φ_p 1 = 0` by
@@ -1158,8 +1149,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
     2. `hasDerivAt_moment_apply_expI`, `momentWeight_smul`,
        `momentWeight_expI_smul_of_lie_eq_zero` and
        `continuousOn_momentWeight`. No blockers.
-    3. `exists_pow_mem_of_mem_nhds_one` and
-       `mem_closure_smul_nonzeroPeriods`. No blockers.
+    3. `mem_closure_smul_nonzeroPeriods`. No blockers.
     4. `isSemistable_of_iInf_momentNormSq_smul_eq_zero` and
        `exists_momentWeight_pos_of_iInf_momentNormSq_pos`. Blocked by 12.1
        and by the slope identity (#7892).

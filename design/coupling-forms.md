@@ -199,8 +199,8 @@ Holonomy around loops that bound discs. About 450 lines.
   `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`
   (every slice preserves `σ`).
 - `period_interior_velocity_holonomyDiffeotopy` (the variation of holonomy):
-  let `τ` be vertically closed and vertically nondegenerate, restrict to
-  `σ`, and define the connection. Let `c : ℝ → F` be a smooth loop of
+  let `τ` restrict to a closed `σ` and define the connection, and let every
+  slice of the diffeotopy preserve `σ`. Let `c : ℝ → F` be a smooth loop of
   period one, and $C(s,t,\theta)$ the transport along $D(s,\cdot)$ from $0$
   to $t$ of $e^{-1}(x,c(\theta))$. Then the line integral over $c$ of
   $\iota(X_s)\sigma$, with $X_s$ the velocity of the diffeotopy at `s`, is
