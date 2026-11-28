@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Leibniz
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Data.Fin.VecNotation
 
@@ -277,6 +278,7 @@ theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG
     GroupLieAlgebra.bracketL_apply (I := IG) (G := G)
       (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
       (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]),
+    tangentSpaceCastModel_apply, tangentSpaceCastModel_symm_apply, tangentSpaceCastModel_symm_apply,
     InfinitesimalAction.fundamental_apply (I' := IF) (M := F)
       (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]),
     InfinitesimalAction.fundamental_apply (I' := IF) (M := F)

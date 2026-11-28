@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
@@ -277,7 +278,9 @@ theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
   have hd := Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero (I := IG) (-ξ) (β.val x v)
   refine (hv.unique hd).trans
     ((LieAlgebra.ad_apply ℝ (GroupLieAlgebra IG G) (-ξ) _).trans ((neg_lie ξ _).trans ?_))
-  exact congrArg Neg.neg (GroupLieAlgebra.bracketL_apply (I := IG) (G := G) ξ (β.val x v)).symm
+  refine congrArg Neg.neg ?_
+  rw [GroupLieAlgebra.bracketL_apply (I := IG) (G := G) ξ (β.val x v), tangentSpaceCastModel_apply,
+    tangentSpaceCastModel_symm_apply (I := IG) (1 : G) ξ, tangentSpaceCastModel_symm_apply]
 
 end LieAlgebraValued
 
