@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import TauCeti.LinearAlgebra.Complex.LinearPart
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelDbar
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Analysis.Calculus.FDeriv.Bilinear
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
@@ -22,9 +22,9 @@ Let `F : StdSpace ι → ℂ` be `C²` at `0` with `F 0 ≠ 0`, let `Jf` be a fi
 endomorphisms of `StdSpace ι`, differentiable at `0` with `Jf 0 = J₀` the standard complex
 structure, and let `G z` be the complex-antilinear part, for `Jf z` and multiplication by `i`,
 of the covariant derivative `dF_z + i A₀(z) F z` of the model connection form
-`A₀(z) w = -ω₀(z, w) / 2`. This is the shape of
-`SymplecticGeometry.RescaledUnitaryCharts.dbarReading`, with `Jf` in place of the pushed-forward
-almost complex structure.
+`A₀(z) w = -ω₀(z, w) / 2`: the model `∂̄` `SymplecticGeometry.modelDbarWith Jf F z`. This is
+the shape of `SymplecticGeometry.RescaledUnitaryCharts.dbarReading`, with `Jf` in place of the
+pushed-forward almost complex structure.
 
 The main result, `fderiv_fderiv_log_norm_sq_add_stdComplexStructure_le`, says that the second
 derivative `H` of `g = log ‖F‖²` at `0` satisfies
@@ -99,11 +99,7 @@ section
 
 variable (hF : ContDiffAt ℝ 2 F 0) (hJ : DifferentiableAt ℝ Jf 0)
   (hJ0 : ∀ w, Jf 0 w = stdComplexStructure ι w) (hGd : DifferentiableAt ℝ G 0)
-  (hG : ∀ᶠ z in 𝓝 0, G z = LinearMap.toContinuousLinearMap (complexAntilinearPart
-    (Jf z : StdSpace ι →ₗ[ℝ] StdSpace ι) (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-    ((fderiv ℝ F z - ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap
-      ((stdForm ι).toBilinForm z)).smulRight (Complex.I * F z) : StdSpace ι →L[ℝ] ℂ) :
-        StdSpace ι →ₗ[ℝ] ℂ)))
+  (hG : ∀ᶠ z in 𝓝 0, G z = modelDbarWith Jf F z)
 
 include hG
 
@@ -116,9 +112,8 @@ private theorem eventually_apply_eq :
       (2⁻¹ * (stdForm ι).toBilinForm.toContinuousBilinearMap z (Jf z w)) •
         (Complex.I * F z))) := by
   filter_upwards [hG] with z hz w
-  rw [hz]
-  simp [complexAntilinearPart_apply, -stdForm_apply]
-  ring
+  rw [hz, modelDbarWith_apply, modelConnection_apply, modelConnection_apply]
+  simp [-stdForm_apply]
 
 include hJ0
 
@@ -190,9 +185,10 @@ private theorem fderiv_fderiv_apply_add_stdComplexStructure_eq (v : StdSpace ι)
 
 /-- **The Hessian of `log |F|²` in the directions `v` and `J₀ v`, in a chart.** Let
 `F : StdSpace ι → ℂ` be `C²` at `0` with `F 0 ≠ 0`, let `Jf` be differentiable at `0` with
-`Jf 0 = J₀`, and let `G` agree near `0` with the complex-antilinear part, for `Jf z` and
-multiplication by `i`, of `dF_z - (ω₀(z, ·) / 2) • (i F z)`; let `G` be differentiable at `0`.
-Then the second derivative `H` of `z ↦ log (‖F z‖ ^ 2)` at `0` satisfies
+`Jf 0 = J₀`, and let `G` agree near `0` with `SymplecticGeometry.modelDbarWith Jf F`, the
+complex-antilinear part, for `Jf z` and multiplication by `i`, of
+`dF_z - (ω₀(z, ·) / 2) • (i F z)`; let `G` be differentiable at `0`. Then the second
+derivative `H` of `z ↦ log (‖F z‖ ^ 2)` at `0` satisfies
 `H(v, v) + H(J₀ v, J₀ v) ≤ (-2 + 8 ε) ‖v‖²` for every `v`, where
 `ε = ‖dG₀‖ / ‖F 0‖ + ‖dJf₀‖ ‖dF₀‖ / ‖F 0‖ + ‖G 0‖ ‖dF₀‖ / ‖F 0‖²`. -/
 theorem fderiv_fderiv_log_norm_sq_add_stdComplexStructure_le (hF0 : F 0 ≠ 0)
