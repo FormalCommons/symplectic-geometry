@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
+import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -79,6 +80,11 @@ which is smooth with onto derivative.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffAt_extChartAt_proj_prodMk_snd` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd`: a chart of a
   smooth atlas, read through a chart of the base, is smooth with onto derivative.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffOn_symm_extChartAt_symm` and
+  `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffAt_symm_extChartAt_symm`: conversely, the inverse
+  of a chart of a smooth atlas, read through the inverse of a chart of the base, is smooth where
+  it is defined; `Bundle.Trivialization.isOpen_extChartAt_target_inter_symm_preimage_baseSet`
+  says that this domain is open when the base has no boundary.
 * `TauCeti.MapFiber.Atlas.apply_eq_of_mfderiv_eq_zero_of_proj_eq`: over a preconnected model
   fibre, a real function whose derivative vanishes on vertical vectors at every point of a fibre
   takes the same value at any two points of that fibre.
@@ -481,6 +487,14 @@ theorem toHomeomorph_mapFiberDiffeomorph :
 
 end mapFiberDiffeomorph
 
+/-- For a trivialization `e` over a boundaryless base and the extended chart `φ` of `B` at
+`b₀`, the points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e` form an open set
+of the model space. -/
+theorem isOpen_extChartAt_target_inter_symm_preimage_baseSet [IB.Boundaryless] (b₀ : B) :
+    IsOpen ((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' e.baseSet) := by
+  simpa only [(isOpen_extChartAt_target b₀).interior_eq] using
+    e.isOpen_interior_extChartAt_target_inter_symm_preimage_baseSet (IB := IB) b₀
+
 end Bundle.Trivialization
 
 /-! ### Smooth atlases -/
@@ -593,6 +607,34 @@ theorem IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd [IsManifold IB
     hinv.surjective.prodMap Function.surjective_id
   -- The cast between the tangent spaces at equal points is the identity.
   exact fun q ↦ let ⟨p, hp⟩ := hL.comp (he.mfderiv_surjective hxe) q; ⟨p, hp⟩
+
+/-- For a chart `e = A.trivAt b'` of a `C^n` atlas and the extended chart `φ` of `B` at `b₀`, the
+map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` is `C^n` on the product with `F` of the set of the points `x` of the
+target of `φ` with `φ⁻¹ x` in the base set of `e`. -/
+theorem IsContMDiff.contMDiffOn_symm_extChartAt_symm [IsManifold IB n B]
+    (hA : A.IsContMDiff n IB IF IM) (b' b₀ : B) :
+    ContMDiffOn (𝓘(𝕜, EB).prod IF) IM n
+      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+        ((extChartAt IB b₀).symm q.1, q.2))
+      (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
+        univ) := by
+  refine (hA.contMDiffOn_trivAt_symm b').comp
+    (((contMDiffOn_extChartAt_symm b₀).comp contMDiffOn_fst ?_).prodMk contMDiffOn_snd) ?_
+  · exact fun _ hq ↦ hq.1.1
+  · exact fun _ hq ↦ (A.trivAt b').mem_target.2 hq.1.2
+
+/-- For a chart `e = A.trivAt b'` of a `C^n` atlas over a boundaryless base and the extended chart
+`φ` of `B` at `b₀`, the map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` is `C^n` at each `q` such that `q.1` lies
+in the target of `φ` and `φ⁻¹ q.1` in the base set of `e`. -/
+theorem IsContMDiff.contMDiffAt_symm_extChartAt_symm [IB.Boundaryless] [IsManifold IB n B]
+    (hA : A.IsContMDiff n IB IF IM) {b' b₀ : B} {q : EB × F}
+    (hq : q.1 ∈ (extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) :
+    ContMDiffAt (𝓘(𝕜, EB).prod IF) IM n
+      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+        ((extChartAt IB b₀).symm q.1, q.2)) q :=
+  (hA.contMDiffOn_symm_extChartAt_symm b' b₀).contMDiffAt
+    ((((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet b₀).prod
+      isOpen_univ).mem_nhds ⟨hq, mem_univ _⟩)
 
 end TauCeti.MapFiber.Atlas
 
