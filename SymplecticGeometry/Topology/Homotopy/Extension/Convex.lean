@@ -28,6 +28,11 @@ the homotopy to `I × X → C`, and its end is the extension.
   about `c ∈ C` and a closed subset `A` with the homotopy extension property, every map that is
   continuous on `A` and sends it into `C` agrees there with a continuous map `X → V` with range
   in `C`.
+
+## References
+
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Chapter 0, the section "The Homotopy Extension Property".
 -/
 
 public section
