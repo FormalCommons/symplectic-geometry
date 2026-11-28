@@ -7,9 +7,9 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
-import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.ManifoldFamily
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Prod
@@ -26,6 +26,14 @@ space (`ContMDiffSection.continuous_toContMDiffMap`). Read in a chart of the tot
 Mathlib builds from a trivialization, a section is the pair of a chart of the base, which does not
 depend on the section, and the coordinates of the section in that trivialization; these are
 continuous in the section by Tau Ceti's `continuous_frameCoordinates_of_cover`.
+
+The preferred trivializations `trivializationAt F V x`, each over its base set, form a covering
+frame system that every vector bundle carries; its frame topology is
+`ContMDiffSection.trivializationAtFrameTopology`. Since their base sets cover the base, Tau Ceti's
+`frameTopology_le_of_cover` makes it finer than the frame topology of any other frame system
+(`ContMDiffSection.trivializationAtFrameTopology_le`), so a family of sections that is continuous
+into it is continuous into all of them. This follows
+`Bundle.ContMDiffTwoForm.trivializationAtFrameTopology`.
 
 The main result concerns fibre maps `Φ p x : V x → W x` that depend on a parameter `p` in a
 manifold `P` and are jointly `C^n` in the parameter, the point and the fibre value on an open
@@ -66,6 +74,9 @@ family. This follows this library's proof of smoothness,
 ## Main definitions and results
 
 * `ContMDiffSection.toContMDiffMap`, `ContMDiffSection.continuous_toContMDiffMap`
+* `ContMDiffSection.trivializationAtFrameTopology`,
+  `ContMDiffSection.continuous_trivializationAtFrameTopology_iff`,
+  `ContMDiffSection.trivializationAtFrameTopology_le`
 * `ContMDiffSection.fiberwiseMap`, `ContMDiffSection.continuous_fiberwiseMap`
 * `ContMDiffSection.pullbackMap`, `ContMDiffSection.continuous_pullbackMap`
 * `ContMDiffSection.tendsto_frameTopology_of_forall_isCompact`
@@ -212,6 +223,56 @@ theorem continuous_toContMDiffMap (hcover : ∀ x, ∃ i, x ∈ U i) :
   exact (tendsto_id.prodMap (map_nhds_subtypeVal w).le).eventually h
 
 end Frames
+
+section TrivializationAt
+
+variable [∀ x, AddCommGroup (V x)] [∀ x, Module 𝕜 (V x)] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V I] [IsManifold I n M]
+
+variable (I F V n) in
+/-- The frame topology on the `C^n` sections of `V` given by the preferred trivializations
+`trivializationAt F V x` of `V`, each over its base set. -/
+@[instance_reducible]
+noncomputable def trivializationAtFrameTopology : TopologicalSpace Cₛ^n⟮I; F, V⟯ :=
+  frameTopology (I := I) (n := n) (trivializationAt F V)
+    (fun x ↦ (trivializationAt F V x).baseSetOpens)
+    fun x ↦ (trivializationAt F V x).coe_baseSetOpens.subset
+
+variable (I F V n) in
+theorem trivializationAtFrameTopology_def :
+    trivializationAtFrameTopology I F V n =
+      frameTopology (I := I) (n := n) (trivializationAt F V)
+        (fun x ↦ (trivializationAt F V x).baseSetOpens)
+        fun x ↦ (trivializationAt F V x).coe_baseSetOpens.subset :=
+  (rfl)
+
+/-- A family of sections is continuous for `trivializationAtFrameTopology` exactly when its
+coordinates in each preferred trivialization `trivializationAt F V x`, over its base set, are
+continuous for the weak Whitney topology. -/
+theorem continuous_trivializationAtFrameTopology_iff {P : Type*} [TopologicalSpace P]
+    {s : P → Cₛ^n⟮I; F, V⟯} :
+    letI := trivializationAtFrameTopology I F V n
+    Continuous s ↔ ∀ x, Continuous fun p ↦
+      (trivializationAt F V x).frameCoordinates (trivializationAt F V x).coe_baseSetOpens.subset
+        (s p) := by
+  rw [trivializationAtFrameTopology_def]
+  exact continuous_frameTopology_iff_frameCoordinates (trivializationAt F V)
+    (fun x ↦ (trivializationAt F V x).baseSetOpens)
+    fun x ↦ (trivializationAt F V x).coe_baseSetOpens.subset
+
+/-- The frame topology of the preferred trivializations is finer than the frame topology of any
+frame system `e`, `U`. -/
+theorem trivializationAtFrameTopology_le [LocallyCompactSpace E] {ι : Type*}
+    (e : ι → Trivialization F (π F V)) [∀ i, MemTrivializationAtlas (e i)]
+    (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet) :
+    trivializationAtFrameTopology I F V n ≤ frameTopology (I := I) (n := n) e U hU := by
+  rw [trivializationAtFrameTopology_def]
+  exact frameTopology_le_of_cover (trivializationAt F V)
+    (fun x ↦ (trivializationAt F V x).baseSetOpens)
+    (fun x ↦ (trivializationAt F V x).coe_baseSetOpens.subset)
+    (FiberBundle.exists_mem_baseSetOpens_trivializationAt F V) e U hU
+
+end TrivializationAt
 
 section FiberwiseMap
 
