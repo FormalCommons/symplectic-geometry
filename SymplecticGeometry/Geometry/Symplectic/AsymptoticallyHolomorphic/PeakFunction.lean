@@ -516,13 +516,13 @@ theorem modelDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 /-- As a real-linear map, the model `∂` of `f` at `z` is Tau Ceti's complex-linear part
 `TauCeti.complexLinearPart` of the model connection of `f` at `z`, for `J₀` and multiplication
 by `i`. -/
-theorem coe_modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+theorem toLinearMap_modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     (modelDel f z : StdSpace ι →ₗ[ℝ] ℂ) =
       complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  rw [modelDel_def, coe_complexLinearPartContinuousLinearMap_apply,
-    LinearMap.coe_toContinuousLinearMap, Complex.coe_smulIEquiv_eq_ofComplexModule]
+  rw [modelDel_def, toLinearMap_complexLinearPartContinuousLinearMap_apply,
+    LinearMap.coe_toContinuousLinearMap, Complex.toLinearMap_smulIEquiv_eq_ofComplexModule]
 
 theorem modelDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     modelDel f z v = (2⁻¹ : ℝ) •
@@ -541,15 +541,16 @@ theorem modelDel_add_modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 theorem modelDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     modelDel (c • f) z = c • modelDel f z := by
   apply ContinuousLinearMap.coe_injective
-  rw [coe_modelDel, ContinuousLinearMap.toLinearMap_smul, coe_modelDel, modelConnection_smul,
-    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
+  rw [toLinearMap_modelDel, ContinuousLinearMap.toLinearMap_smul, toLinearMap_modelDel,
+    modelConnection_smul, ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
 
 /-- The model `∂` is additive on functions differentiable at `z`. -/
 theorem modelDel_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) : modelDel (f + g) z = modelDel f z + modelDel g z := by
   apply ContinuousLinearMap.coe_injective
-  rw [coe_modelDel, modelConnection_add hf hg, ContinuousLinearMap.toLinearMap_add,
-    complexLinearPart_add, ContinuousLinearMap.toLinearMap_add, coe_modelDel, coe_modelDel]
+  rw [toLinearMap_modelDel, modelConnection_add hf hg, ContinuousLinearMap.toLinearMap_add,
+    complexLinearPart_add, ContinuousLinearMap.toLinearMap_add, toLinearMap_modelDel,
+    toLinearMap_modelDel]
 
 @[simp]
 theorem modelDel_neg (f : StdSpace ι → ℂ) (z : StdSpace ι) :
@@ -569,7 +570,7 @@ theorem modelDel_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
 @[simp]
 theorem modelDel_zero (z : StdSpace ι) : modelDel (0 : StdSpace ι → ℂ) z = 0 := by
   apply ContinuousLinearMap.coe_injective
-  rw [coe_modelDel, modelConnection_zero, ContinuousLinearMap.toLinearMap_zero,
+  rw [toLinearMap_modelDel, modelConnection_zero, ContinuousLinearMap.toLinearMap_zero,
     complexLinearPart_zero]
 
 /-- The model `∂` of `f` at `z` has operator norm at most that of the model connection of `f` at
@@ -587,9 +588,9 @@ theorem modelDel_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differe
     (hg : DifferentiableAt ℝ g z) :
     modelDel (fun y ↦ f y * g y) z = f z • modelDel g z + g z • flatDel f z := by
   apply ContinuousLinearMap.coe_injective
-  simp only [coe_modelDel, modelConnection_mul hf hg, ContinuousLinearMap.toLinearMap_add,
+  simp only [toLinearMap_modelDel, modelConnection_mul hf hg, ContinuousLinearMap.toLinearMap_add,
     ContinuousLinearMap.toLinearMap_smul, complexLinearPart_add, complexLinearPart_complex_smul,
-    coe_flatDel]
+    toLinearMap_flatDel]
 
 /-- The derivative of the Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function. -/
 private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
@@ -700,7 +701,7 @@ theorem modelDel_gaussian (z : StdSpace ι) :
     modelDel (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z =
       (Real.exp (-‖z‖ ^ 2 / 4) : ℂ) • gaussianConnectionForm z := by
   apply ContinuousLinearMap.coe_injective
-  simp only [coe_modelDel, modelConnection_gaussian, ← Complex.coe_smul,
+  simp only [toLinearMap_modelDel, modelConnection_gaussian, ← Complex.coe_smul,
     ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul,
     complexLinearPart_gaussianConnectionForm]
 
