@@ -15,6 +15,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
@@ -539,16 +540,13 @@ theorem exists_smoothForm_mpullback_eq_and_eq_of_notMem (Φ : PartialDiffeomorph
         ∀ x ∉ C, β.val x = η.val x := by
   set D := Φ.toDiffeomorphSourceTarget
   have hcover : Cᶜ ∪ ((⟨Φ.target, Φ.open_target⟩ : Opens M') : Set M') = univ :=
-    eq_univ_of_forall fun x ↦ (em (x ∈ C)).elim (fun hx ↦ Or.inr (hCΦ hx)) Or.inl
+    compl_subset_iff_union.1 (by rwa [compl_compl])
   obtain ⟨β, hβC, hβT⟩ := TauCeti.SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq
     hC.isOpen_compl hcover η
     (TauCeti.SmoothForm.mpullback D.symm D.symm.contMDiff
       (TauCeti.SmoothForm.mpullback (Subtype.val : (⟨Φ.source, Φ.open_source⟩ : Opens M) → M)
         contMDiff_subtypeVal α))
     fun x hx ↦ by
-      have hy : Φ (D.symm x) = x := by
-        rw [Φ.toDiffeomorphSourceTarget_symm_apply_coe]
-        exact Φ.right_inv x.property
       rw [← TauCeti.SmoothForm.coe_mpullback_subtype_val_apply η x,
         ← TauCeti.SmoothForm.mpullback_symm_mpullback D
           (TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal η)]
@@ -556,7 +554,7 @@ theorem exists_smoothForm_mpullback_eq_and_eq_of_notMem (Φ : PartialDiffeomorph
       refine TauCeti.mpullback_apply_congr ?_
       rw [TauCeti.mpullback_toDiffeomorphSourceTarget_apply Φ (by simp),
         TauCeti.mpullback_subtype_val_apply]
-      exact hα _ (D.symm x).property (hy ▸ hx)
+      exact hα _ (D.symm x).property (Φ.apply_toDiffeomorphSourceTarget_symm x ▸ hx)
   exact ⟨β, (TauCeti.SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff Φ).1
     (by rw [hβT, TauCeti.SmoothForm.mpullback_mpullback_symm]), hβC⟩
 

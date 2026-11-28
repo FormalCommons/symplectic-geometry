@@ -133,10 +133,9 @@ The symplectic form is called `σ`, since `ω` is a token once the scope `ContDi
 definition asks for `0 < δ`, without which the open ball is empty and `ψ₀` gives no chart at
 `p₀`.
 
-The form `ω̃_{ψ,l,ε}` is glued by `SmoothForm.exists_forall_eq_and_mpullback_subtypeVal_eq`, which
-glues a form on the blowup, here the pull-back of `σ` by the blowdown, with a form on an open
-subset, here the image of the lift; the forms are compared through Tau Ceti's
-`SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff`. The image of `closedNbhd n (l + ε)` is
+The form `ω̃_{ψ,l,ε}` comes from
+`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem` along the lift, with `η`
+the pull-back of `σ` by the blowdown and `C` the image of `closedNbhd n (l + ε)`. That image is
 compact, so closed since `M`, and hence the blowup, is Hausdorff. If `h` is not a profile of the
 blowup, `normalizedBlowupForm hψ h` is the pull-back of `σ` by the blowdown.
 
@@ -876,9 +875,8 @@ theorem eq_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h)
         hx⟩) h₁
     exact (SmoothForm.coe_mpullback_subtype_val_apply α ⟨x, hx⟩).symm.trans
       (h₂.trans (SmoothForm.coe_mpullback_subtype_val_apply _ ⟨x, hx⟩))
-  · have hK : x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := fun ⟨y, hy, hyx⟩ ↦
-      hx (hyx ▸ hψ.ballLiftPartialDiffeomorph.map_source
-        (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy))
+  · have hK : x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := fun hK ↦
+      hx (hψ.image_closedNbhd_subset_target hK)
     exact (hα' x hK).trans (hψ.normalizedBlowupForm_eq_on_compl x hK).symm
 
 /-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup
@@ -921,8 +919,7 @@ theorem isSymplectic_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfil
     refine IsOpenCover.mk (eq_top_iff.2 fun z _ ↦ Opens.mem_iSup.2 ?_)
     by_cases hz : z ∈ Φ.target
     · exact ⟨0, hz⟩
-    · refine ⟨1, ⟨fun ⟨y, hy, hyz⟩ ↦ hz (hyz ▸ Φ.map_source
-        (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy)), ?_⟩⟩
+    · refine ⟨1, ⟨fun hK ↦ hz (hψ.image_closedNbhd_subset_target hK), ?_⟩⟩
       exact (Blowup.mem_offDivisorOpens _).2 fun hZ ↦
         hz (hψ.exceptionalDivisor_subset_ballLiftPartialDiffeomorph_target hZ)
   refine (SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtypeVal hcover).2 ?_
