@@ -58,8 +58,9 @@ of a principal bundle given by a local section.
   the model fibre are, as Tau Ceti's `TauCeti.FiberBundle.t2Space_totalSpace` says of
   `Bundle.TotalSpace F E`.
 * `Bundle.Trivialization.manifoldSnd`: the fibre coordinate of a trivialization, as a map on the
-  charted total space, for any trivialization; for those of the atlas it is Tau Ceti's
-  `TauCeti.ManifoldTotalSpace.fiberCoord`.
+  charted total space, for any trivialization; for `trivializationAt F E b₀` it is Tau Ceti's
+  `TauCeti.ManifoldTotalSpace.fiberCoord F E b₀`
+  (`Bundle.Trivialization.manifoldSnd_trivializationAt`).
 * `TauCeti.PrincipalBundle.contMDiffAt_snd_trivializationOfSection`: the fibre coordinate of the
   trivialization that a `C^n` local section determines is `C^n` over the section's domain.
 -/
@@ -268,6 +269,14 @@ theorem manifoldSnd_apply (x : TauCeti.ManifoldTotalSpace F E) :
 theorem manifoldSnd_homeomorph (p : TotalSpace F E) :
     e.manifoldSnd (TauCeti.ManifoldTotalSpace.homeomorph F E p) = (e p).2 := by
   rw [manifoldSnd_apply, Homeomorph.symm_apply_apply]
+
+/-- The fibre coordinate of the trivialization of a fibre bundle at `b₀` is Tau Ceti's fibre
+coordinate `TauCeti.ManifoldTotalSpace.fiberCoord F E b₀`. -/
+theorem manifoldSnd_trivializationAt [∀ b, TopologicalSpace (E b)] [FiberBundle F E] (b₀ : B) :
+    (trivializationAt F E b₀).manifoldSnd = TauCeti.ManifoldTotalSpace.fiberCoord F E b₀ := by
+  funext x
+  obtain ⟨p, rfl⟩ := (TauCeti.ManifoldTotalSpace.homeomorph F E).surjective x
+  rw [manifoldSnd_homeomorph, TauCeti.ManifoldTotalSpace.fiberCoord_homeomorph]
 
 end ManifoldSnd
 

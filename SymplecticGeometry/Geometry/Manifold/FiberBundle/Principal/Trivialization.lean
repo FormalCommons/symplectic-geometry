@@ -29,9 +29,10 @@ for `θ` differentiable over the base set of `e`, stated for an arbitrary form o
   `θ` maps the orbit of `x` to the left translate of `G` by `θ x`.
 
 They give the local connection forms of `Principal/CircleConnection.lean`, for the angular form of
-the circle and for the trivialization of a local section as well as those of the atlas. For the
-trivializations of the atlas, Tau Ceti states the same facts of its fibre coordinate
-`TauCeti.ManifoldTotalSpace.fiberCoord` (`TauCeti.PrincipalBundle.fiberCoord_op_smul`,
+the circle and for the trivialization of a local section. The fibre coordinate of
+`trivializationAt G P b₀` is Tau Ceti's `TauCeti.ManifoldTotalSpace.fiberCoord G P b₀`
+(`Bundle.Trivialization.manifoldSnd_trivializationAt`), of which Tau Ceti states the same
+facts (`TauCeti.PrincipalBundle.fiberCoord_op_smul`,
 `TauCeti.PrincipalBundle.mfderiv_fiberCoord_rightFundamentalVectorField`).
 
 ## References
