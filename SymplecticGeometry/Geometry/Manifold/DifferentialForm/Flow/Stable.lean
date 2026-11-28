@@ -28,8 +28,8 @@ form read in the chart is bounded, and the pushed vectors are bounded by hypothe
 is zero.
 
 Weinstein structures use this, with the scaling of `ω` and `ι_X ω` by their Liouville flow, for
-the isotropy of the stable sets of their critical points, as in Proposition 11.9 (a) of
-Cieliebak and Eliashberg.
+the isotropy of the stable sets of their critical points, as in Proposition 11.9 (b) and
+Lemma 11.13 (a) of Cieliebak and Eliashberg.
 
 ## References
 

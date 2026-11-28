@@ -177,7 +177,9 @@ at `p` (`ContinuousLinearMap.hasDerivAt_neg_apply_self_comp`). The linear bound 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11; this file proves Proposition 11.9 (a), the isotropy of the stable manifolds
+  Lemma 11.13 (a), that the one-form `ι_X ω` vanishes on the stable manifold of a critical point
+  of a Weinstein structure, so that this manifold is isotropic; Proposition 11.9 (b) proves the
+  isotropy of the local stable manifold by the same argument
 * C. Chicone, *Ordinary Differential Equations with Applications*, second edition,
   Springer, 2006, §4.3, for the local stable manifold of a hyperbolic rest point
 -/
@@ -961,7 +963,7 @@ nondegenerate critical point of `f`, and `γ : N → M` differentiable at `y`, w
 stable set of `p`. Then the one-form `ι_X ω` vanishes at `γ y` on the image of the differential
 of `γ` at `y`.
 
-See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+See [CieliebakEliashberg2012], Lemma 11.13 (a). -/
 theorem interior_apply_mfderiv_eq_zero_of_range_subset_stableSet {p : M}
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {γ : N → M} {y : N}
     (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hs : range γ ⊆ hW.flow.stableSet p)
@@ -976,7 +978,7 @@ critical point of `f`, and `γ : N → M` differentiable at `y`, with range in t
 `p`. Then `ω` vanishes at `γ y` on every pair of vectors in the image of the differential of `γ`
 at `y`.
 
-See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+See [CieliebakEliashberg2012], Lemma 11.13 (a). -/
 theorem apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet {p : M}
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {γ : N → M} {y : N}
     (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hs : range γ ⊆ hW.flow.stableSet p)
