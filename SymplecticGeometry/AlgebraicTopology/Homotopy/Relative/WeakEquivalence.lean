@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Homotopy.Relative.Basic
 public import TauCeti.Topology.Homotopy.HomotopyGroup.WeakHomotopyEquivalence
+import TauCeti.AlgebraicTopology.Homotopy.Relative.Deformation
 import TauCeti.AlgebraicTopology.Homotopy.Relative.Exact
 import TauCeti.Topology.Homotopy.HomotopyGroup.LoopSpace
 import TauCeti.Topology.Homotopy.HomotopyGroup.Map
@@ -26,10 +27,11 @@ Theorem 4.3) shows:
 
 Here `π_{n+1}(X, A, a₀)` is Tau Ceti's `TauCeti.RelHomotopyGroup N` with `n = Nat.card N`.
 Together they give the converse of
-`TauCeti.RelHomotopyGroup.subsingleton_of_injective_of_surjective` for all degrees at once: the
-inclusion of a subset `A ⊆ X` is a weak homotopy equivalence if and only if every path component
-of `X` meets `A` and all relative homotopy sets `π_{n+1}(X, A, a)`, `a ∈ A`, are trivial
-(`ContinuousMap.isWeakHomotopyEquivalence_subtypeVal_iff`).
+`TauCeti.RelHomotopyGroup.subsingleton_of_isWeakHomotopyEquivalence` for all degrees at once: the
+embedding `A → X` of a topological pair is a weak homotopy equivalence if and only if every path
+component of `X` meets the image of `A` and all relative homotopy sets `π_{n+1}(X, A, a)`,
+`a ∈ A`, are trivial (`TauCeti.TopPair.isWeakHomotopyEquivalence_map_iff`). For the inclusion
+of a subset this is `ContinuousMap.isWeakHomotopyEquivalence_subtypeVal_iff`.
 
 The proofs follow those of `TauCeti.surjective_homotopyGroupMap_skeletonLT` and
 `TauCeti.injective_homotopyGroupMap_skeletonLT`, which make the same deductions for the skeleta
@@ -74,30 +76,46 @@ basepoint `a₀` by a path in `X` is joined to it by a path in `A`. Here `N` is 
 theorem joined_of_subsingleton [IsEmpty N] [Subsingleton (RelHomotopyGroup N X)]
     {c : X.pair.snd} (h : Joined (X.pair.map c) (X.pair.map X.basepoint)) :
     Joined c X.basepoint := by
-  let φA := homotopyGroupEquivZerothHomotopyOfIsEmpty (X := X.pair.snd) N X.basepoint
-  let φX := homotopyGroupEquivZerothHomotopyOfIsEmpty (X := X.pair.fst) N
-    (X.pair.map X.basepoint)
-  -- The class of `c` in `π_0(A, a₀)`, as a zero-dimensional cube.
-  let pt (z : X.pair.snd) : HomotopyGroup N X.pair.snd X.basepoint :=
-    ⟦(genLoopHomeoOfIsEmpty N X.basepoint).symm z⟧
-  have hφA (z : X.pair.snd) : φA (pt z) = ZerothHomotopy.mk z := by
-    rw [homotopyGroupEquivZerothHomotopyOfIsEmpty_mk, genLoopHomeoOfIsEmpty_symm_apply]
-  have hconst : (⟦GenLoop.const⟧ : HomotopyGroup N X.pair.snd X.basepoint) = pt X.basepoint :=
-    congrArg _ (GenLoop.ext _ _ fun _ ↦ rfl)
-  -- Its image in `π_0(X, a₀)` is the trivial class, so it is a boundary, hence trivial.
-  have hmap : HomotopyGroup.map X.pair.map.hom rfl (pt c) =
+  have hmap : HomotopyGroup.map X.pair.map.hom rfl
+      (⟦(genLoopHomeoOfIsEmpty N X.basepoint).symm c⟧ :
+        HomotopyGroup N X.pair.snd X.basepoint) =
       (⟦GenLoop.const⟧ : HomotopyGroup N X.pair.fst (X.pair.map X.basepoint)) := by
-    refine φX.injective ?_
-    rw [homotopyGroupEquivZerothHomotopyOfIsEmpty_map_mk, genLoopHomeoOfIsEmpty_symm_apply,
-      homotopyGroupEquivZerothHomotopyOfIsEmpty_mk]
-    exact ZerothHomotopy.sound h.somePath
+    rw [HomotopyGroup.map_mk]
+    refine HomotopyGroup.mk_eq_mk_iff_joined.2 ?_
+    rwa [GenLoop.map_apply, genLoopHomeoOfIsEmpty_symm_apply, GenLoop.const_apply]
   obtain ⟨r, hr⟩ := mem_range_boundary_iff.2 hmap
-  rw [Subsingleton.elim r default, boundary_default, hconst] at hr
-  have := congrArg φA hr
-  rw [hφA, hφA] at this
-  exact (Quotient.exact this).symm
+  rw [Subsingleton.elim r default, boundary_default] at hr
+  exact (HomotopyGroup.mk_eq_mk_iff_joined.1 hr).symm
 
 end TauCeti.RelHomotopyGroup
+
+namespace TauCeti.TopPair
+
+/-- **Trivial relative homotopy sets characterize weak equivalences.** The embedding `A → X` of a
+topological pair `(X, A)` is a weak homotopy equivalence if and only if every point of `X` is
+joined by a path to a point of the image of `A`, and the relative homotopy set `π_{n+1}(X, A, a)`
+is trivial for every `n` and every `a ∈ A`. -/
+theorem isWeakHomotopyEquivalence_map_iff (P : TopPair) :
+    P.map.hom.IsWeakHomotopyEquivalence ↔
+      (∀ x : P.fst, ∃ a : P.snd, Joined (P.map a) x) ∧
+        ∀ (n : ℕ) (a : P.snd), Subsingleton (RelHomotopyGroup (Fin n) ⟨P, a⟩) := by
+  refine ⟨fun hf ↦ ⟨hf.exists_joined, fun n a ↦
+      RelHomotopyGroup.subsingleton_of_isWeakHomotopyEquivalence (X := ⟨P, a⟩) hf⟩,
+    fun ⟨hjoined, hrel⟩ ↦ ⟨hjoined, fun n a ↦ ⟨?_, ?_⟩⟩⟩
+  · rcases n with _ | n
+    · refine HomotopyGroup.map_injective_of_isEmpty_of_joined _ rfl fun b c hbc ↦ ?_
+      have := hrel 0 c
+      exact RelHomotopyGroup.joined_of_subsingleton (X := ⟨P, c⟩) (N := Fin 0) hbc
+    · have := hrel (n + 1) a
+      exact RelHomotopyGroup.injective_homotopyGroupMap_of_subsingleton (X := ⟨P, a⟩)
+  · rcases n with _ | n
+    · exact HomotopyGroup.map_surjective_of_isEmpty_of_exists_joined _ rfl hjoined
+    · have := hrel n a
+      rw [HomotopyGroup.map_eq_congrEquiv_symm_comp _ rfl (finSuccEquiv n), Equiv.comp_surjective,
+        Equiv.surjective_comp]
+      exact RelHomotopyGroup.surjective_homotopyGroupMap_of_subsingleton (X := ⟨P, a⟩)
+
+end TauCeti.TopPair
 
 namespace ContinuousMap
 
@@ -105,33 +123,14 @@ open TauCeti
 
 variable {X : Type*} [TopologicalSpace X] {A : Set X}
 
-/-- **Trivial relative homotopy sets characterize weak equivalences.** The inclusion of a subset
-`A ⊆ X` is a weak homotopy equivalence if and only if every point of `X` is joined by a path to a
-point of `A`, and the relative homotopy set `π_{n+1}(X, A, a)` is trivial for every `n` and every
-`a ∈ A`. -/
+/-- The inclusion of a subset `A ⊆ X` is a weak homotopy equivalence if and only if every point of
+`X` is joined by a path to a point of `A`, and the relative homotopy set `π_{n+1}(X, A, a)` is
+trivial for every `n` and every `a ∈ A`. -/
 theorem isWeakHomotopyEquivalence_subtypeVal_iff :
     (ContinuousMap.subtypeVal A).IsWeakHomotopyEquivalence ↔
       (∀ x : X, ∃ a : A, Joined (a : X) x) ∧
         ∀ (n : ℕ) (a : A),
-          Subsingleton (RelHomotopyGroup (Fin n) ⟨TopPair.ofSubset (X := TopCat.of X) A, a⟩) := by
-  refine ⟨fun hf ↦ ⟨hf.exists_joined, fun n a ↦
-      RelHomotopyGroup.subsingleton_of_injective_of_surjective (hf.map_bijective _ a).injective
-        (hf.map_bijective _ a).surjective⟩,
-    fun ⟨hjoined, hrel⟩ ↦ ⟨hjoined, fun n a ↦ ⟨?_, ?_⟩⟩⟩
-  · rcases n with _ | n
-    · refine HomotopyGroup.map_injective_of_isEmpty_of_joined _ rfl fun b c hbc ↦ ?_
-      have := hrel 0 c
-      exact RelHomotopyGroup.joined_of_subsingleton
-        (X := ⟨TopPair.ofSubset (X := TopCat.of X) A, c⟩) (N := Fin 0) hbc
-    · have := hrel (n + 1) a
-      exact RelHomotopyGroup.injective_homotopyGroupMap_of_subsingleton
-        (X := ⟨TopPair.ofSubset (X := TopCat.of X) A, a⟩)
-  · rcases n with _ | n
-    · exact HomotopyGroup.map_surjective_of_isEmpty_of_exists_joined _ rfl hjoined
-    · have := hrel n a
-      rw [HomotopyGroup.map_eq_congrEquiv_symm_comp _ rfl (finSuccEquiv n), Equiv.comp_surjective,
-        Equiv.surjective_comp]
-      exact RelHomotopyGroup.surjective_homotopyGroupMap_of_subsingleton
-        (X := ⟨TopPair.ofSubset (X := TopCat.of X) A, a⟩)
+          Subsingleton (RelHomotopyGroup (Fin n) ⟨TopPair.ofSubset (X := TopCat.of X) A, a⟩) :=
+  (TopPair.ofSubset (X := TopCat.of X) A).isWeakHomotopyEquivalence_map_iff
 
 end ContinuousMap
