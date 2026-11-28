@@ -32,6 +32,7 @@ import TauCeti.Topology.Algebra.Module.ComplexSmulI
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContDiffBound
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere
@@ -52,6 +53,9 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
   exactly one point of the sphere.
 * `SymplecticGeometry.surjective_sectionLinearization_of_mem_twistOneKernel`: that zero is
   simple: the linearization `TauCeti.sectionLinearization` of the section there is onto.
+* `SymplecticGeometry.isPseudoholomorphicOn_div_of_mem_twistOneKernel`: for `s, t` in
+  `twistOneKernel J`, the quotient `s / t` is pseudoholomorphic from `J` to the standard structure
+  of `ℂ` where `t ≠ 0` (`isPseudoholomorphicAt_div_of_mem_twistOneKernel` at a point).
 * `SymplecticGeometry.isFredholm_twistOneDelBarSobolev` and
   `SymplecticGeometry.index_twistOneDelBarSobolev`: for such `J` and every order `k`, the Sobolev
   realization `twistOneDelBarSobolev J k` is Fredholm of real index `4`.
@@ -101,6 +105,18 @@ times a factor that is only continuous but nonzero at the zero; at a zero such a
 the derivative and nothing more (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`), so the
 derivative of the coordinate is invertible, and so is the linearization
 (`TauCeti.surjective_sectionLinearization_iff`).
+
+For the quotient `u = s / t` of two kernel elements near a point where `t ≠ 0`, `u` is the
+quotient of the coordinates of `s` and `t` in the frame of the chart, hence differentiable
+(`OnePoint.mdifferentiableAt_div_twistCore`), and `s = u • t` near the point, so that
+`D_J (u • t) = D_J s = 0` there by locality
+(`TauCeti.IsRealCauchyRiemannOperator.apply_eq_of_eventuallyEq`). As `D_J` is complex linear,
+`t ≠ 0` and `D_J t = 0`, this is the pseudoholomorphy of `u`
+(`TauCeti.IsRealCauchyRiemannOperator.apply_smul_eq_zero_iff_isPseudoholomorphicAt`, from the
+Leibniz rule `TauCeti.IsRealCauchyRiemannOperator.leibniz_complex`). This adapts Tau Ceti's
+`TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul` and
+`TauCeti.IsRealCauchyRiemannOperator.apply_smul_eq_zero_iff`, stated over a complex manifold, to
+an arbitrary structure `J` on the sphere.
 
 For the index, give the structures tamed by `σ` the `C^∞` topology in the preferred frames of the
 endomorphism bundle of the tangent bundle. There they form a contractible space
@@ -330,6 +346,49 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
     fun y ↦ ⟨y / deriv h (ψ.toOpenPartialHomeomorph z), by simpa using div_mul_cancel₀ y hd⟩
   simp only [ContinuousLinearMap.coe_comp]
   exact hCs.comp ((hds.comp (NormedSpace.fromTangentSpace _).surjective).comp hDs)
+
+/-! ### Quotients of kernel elements -/
+
+/-- **The quotient of two kernel elements on `𝒪(1)` is `J`-holomorphic.** Let `s` and `t` be
+smooth sections of `𝒪(1)` with `D_J s = D_J t = 0`. At a point `x` where `t x ≠ 0`, the
+function `p ↦ s p / t p` is pseudoholomorphic from `J` to the standard complex structure of `ℂ`.
+The quotient is well defined as a function, since `s p` and `t p` lie in the same fibre. -/
+theorem isPseudoholomorphicAt_div_of_mem_twistOneKernel {s t : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J) {x : OnePoint ℂ} (hx : t x ≠ 0) :
+    IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ)
+      (fun p ↦ s p / t p) x := by
+  obtain ⟨hs₁, hs₂⟩ := (mem_twistOneKernel_iff J).1 hs
+  obtain ⟨ht₁, ht₂⟩ := (mem_twistOneKernel_iff J).1 ht
+  have hsx := hs₁.mdifferentiableAt (x := x) (by simp)
+  have htx := ht₁.mdifferentiableAt (x := x) (by simp)
+  have hu := OnePoint.mdifferentiableAt_div_twistCore 1 hsx htx hx
+  -- Near `x`, `s` is the quotient times `t`.
+  -- `t` does not vanish near `x`, since its coordinate in the frame at `x` does not.
+  have hct := ((twistCore (𝕜 := ℂ) 1).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
+    (by simp) |>.1 htx
+  simp only [OnePoint.twistCore_localTriv_apply] at hct
+  have hct0 : OnePoint.twistTransition 1 x x x * t x ≠ 0 := by
+    rwa [OnePoint.twistTransition_self, one_mul]
+  let t' : Π p, (twistCore (𝕜 := ℂ) 1).Fiber p := t
+  have hst : ∀ᶠ p in 𝓝 x, ((fun p ↦ s p / t p) • t') p = s p := by
+    filter_upwards [hct.continuousAt.eventually_ne hct0] with p hp
+    -- The fibres of `𝒪(1)` are `ℂ`, with its multiplication as scalar action.
+    exact div_mul_cancel₀ (s p) (right_ne_zero_of_mul hp)
+  have hD := isRealCauchyRiemannOperator_twistOneDelBar J
+  rw [← (hD.apply_smul_eq_zero_iff_isPseudoholomorphicAt (isComplexLinearOperator_twistOneDelBar J)
+    htx hx (congrFun ht₂ x) hu), hD.apply_eq_of_eventuallyEq hsx hst, congrFun hs₂ x,
+    Pi.zero_apply]
+
+/-- **The quotient of two kernel elements on `𝒪(1)` is `J`-holomorphic.** For smooth sections
+`s` and `t` of `𝒪(1)` with `D_J s = D_J t = 0`, the function `p ↦ s p / t p` is
+pseudoholomorphic from `J` to the standard complex structure of `ℂ` on the set where `t` does
+not vanish. -/
+theorem isPseudoholomorphicOn_div_of_mem_twistOneKernel {s t : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J) :
+    IsPseudoholomorphicOn J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ)
+      (fun p ↦ s p / t p) {x | t x ≠ 0} :=
+  isPseudoholomorphicOn_iff.2 fun _ hx ↦
+  (isPseudoholomorphicAt_div_of_mem_twistOneKernel hs ht hx).isPseudoholomorphicWithinAt
 
 /-! ### Index, dimension of the kernel and surjectivity -/
 
