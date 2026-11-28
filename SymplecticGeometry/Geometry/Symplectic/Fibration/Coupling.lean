@@ -456,11 +456,7 @@ theorem isBasic_sub_of_horizontalDistribution_eq [PreconnectedSpace F]
     intro z hz ρ
     have h₁ := hE.mdifferentiableAt_horizontalLiftField (by simp) (hproj z) (hz ▸ hU₁)
     have h₂ := hE.mdifferentiableAt_horizontalLiftField (by simp) (hproj z) (hz ▸ hU₂)
-    convert ρ.mdifferentiableAt_apply_vectorField
-      (V := ![hE.horizontalLiftField U₁, hE.horizontalLiftField U₂])
-      (fun i ↦ by fin_cases i <;> assumption) using 3 with z
-    ext i
-    fin_cases i <;> simp
+    exact ρ.mdifferentiableAt_apply_two h₁ h₂
   -- `g` is constant on the fibre over `proj x`: along vertical vectors, its two halves have the
   -- same derivative.
   have hconst : g x = g y := by
