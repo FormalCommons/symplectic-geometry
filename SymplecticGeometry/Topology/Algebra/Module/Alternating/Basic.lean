@@ -15,6 +15,7 @@ import SymplecticGeometry.Logic.Equiv.Fin.Basic
 import TauCeti.Algebra.BigOperators.Finset.Pairs
 import TauCeti.Data.Fin.VecNotation
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Topology.Algebra.Module.Alternating.Curry
 
 /-!
 # Continuous alternating maps
@@ -55,6 +56,13 @@ of vectors of `M₂`, on a vector of `M₂` and a basis vector of `M₁`, and on
 basis vectors of `M₁` (`ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`). The part along `M₁`
 is expanded by Tau Ceti's `ContinuousAlternatingMap.apply_vecCons_eq_sum_repr`, and its double
 sum folded onto the increasing pairs by Tau Ceti's `TauCeti.sum_univ_prod_eq_sum_lt_add_swap`.
+So a two-form on `M₁ × M₂` that vanishes on the pairs `(bsᵢ, 0), (bsⱼ, 0)` with `i < j` vanishes
+on all pairs of vectors of `M₁` (`ContinuousAlternatingMap.apply_vecCons_inl_eq_zero_of_basis`),
+and so does a three-form whose last vector is a fixed vector of `M₂`
+(`ContinuousAlternatingMap.apply_vecCons_inl_inl_inr_eq_zero_of_basis`, through Tau Ceti's
+`ContinuousAlternatingMap.curryLeftTopological`). Conversely, the coefficients `c k l`, `k < l`,
+of the expansion are its values on the basis pairs
+(`Module.Basis.sum_sum_mul_coord_mul_sub_coord_mul`).
 
 A continuous alternating map of three vectors of `M₁ × M₂` is zero once it vanishes on the
 triples with two members in `M₂`, on those with two members in `M₁` followed by one in `M₂`, and on
@@ -241,6 +249,31 @@ theorem apply_vecCons_prod_eq_sum (bs : Module.Basis ι R M₁) (T : (M₁ × M�
   rw [hsplit, hbase, hbs (0, w₁) u₂, hbs (0, w₂) u₁, Finset.sum_sub_distrib]
   abel
 
+omit [Fintype ι] in
+/-- A two-form `S` on `M₁ × M₂` vanishes on all pairs of vectors of `M₁` once it vanishes on the
+pairs `(bs i, 0), (bs j, 0)` with `i < j` of a basis `bs` of `M₁`. -/
+theorem apply_vecCons_inl_eq_zero_of_basis [Finite ι] (bs : Module.Basis ι R M₁)
+    (S : (M₁ × M₂) [⋀^Fin 2]→L[R] N) (h : ∀ i j, i < j → S ![(bs i, 0), (bs j, 0)] = 0)
+    (a b : M₁) : S ![(a, 0), (b, 0)] = 0 := by
+  have := Fintype.ofFinite ι
+  rw [S.apply_vecCons_prod_eq_sum bs]
+  have h0 (u : M₁ × M₂) : S ![0, u] = 0 := S.map_coord_zero 0 rfl
+  simp only [Prod.mk_zero_zero, h0, smul_zero, sub_self, Finset.sum_const_zero, zero_add]
+  exact Finset.sum_eq_zero fun i _ ↦ Finset.sum_eq_zero fun j hj ↦ by
+    rw [h i j (Finset.mem_filter.1 hj).2, smul_zero]
+
+omit [Fintype ι] in
+/-- A three-form `T` on `M₁ × M₂` vanishes on all triples `(a, 0), (b, 0), (0, w)` once it
+vanishes on the triples `(bs i, 0), (bs j, 0), (0, w)` with `i < j` of a basis `bs` of `M₁`. -/
+theorem apply_vecCons_inl_inl_inr_eq_zero_of_basis [Finite ι] [ContinuousAdd N]
+    [ContinuousConstSMul R N] (bs : Module.Basis ι R M₁) (T : (M₁ × M₂) [⋀^Fin 3]→L[R] N) (w : M₂)
+    (h : ∀ i j, i < j → T ![(bs i, 0), (bs j, 0), (0, w)] = 0) (a b : M₁) :
+    T ![(a, 0), (b, 0), (0, w)] = 0 := by
+  rw [← T.map_vecCons_rotate, ← curryLeftTopological_apply_apply]
+  refine apply_vecCons_inl_eq_zero_of_basis bs _ (fun i j hij ↦ ?_) a b
+  rw [curryLeftTopological_apply_apply, T.map_vecCons_rotate]
+  exact h i j hij
+
 end Prod
 
 section ProdFinThree
@@ -263,5 +296,27 @@ theorem eq_zero_of_forall_prod_fin_three (T : (M₁ × M₂) [⋀^Fin 3]→L[R] 
 end ProdFinThree
 
 end ContinuousAlternatingMap
+
+namespace Module.Basis
+
+variable {R M ι : Type*} [CommRing R] [AddCommGroup M] [Module R M] [Fintype ι] [LinearOrder ι]
+
+/-- For `i < j`, the double sum `∑_{k<l} c k l (xₖ(bs i) xₗ(bs j) - xₖ(bs j) xₗ(bs i))`, where
+`xₖ = bs.coord k`, is `c i j`: the coefficients `c k l` of a two-form
+`∑_{k<l} c k l dxₖ ∧ dxₗ` in the coordinates of a basis `bs` are its values on the pairs
+`bs i, bs j`. -/
+theorem sum_sum_mul_coord_mul_sub_coord_mul (bs : Module.Basis ι R M) (c : ι → ι → R)
+    {i j : ι} (hij : i < j) :
+    ∑ k, ∑ l with k < l, c k l * (bs.coord k (bs i) * bs.coord l (bs j) -
+      bs.coord k (bs j) * bs.coord l (bs i)) = c i j := by
+  classical
+  simp only [Module.Basis.coord_apply, Module.Basis.repr_self, Finsupp.single_apply]
+  rw [Finset.sum_eq_single i (fun k _ hk ↦ Finset.sum_eq_zero fun l hl ↦ ?_) (by simp),
+    Finset.sum_eq_single j (fun l _ hl ↦ ?_) (by simp [hij])]
+  · simp [hij.ne, hij.ne']
+  · grind
+  · grind
+
+end Module.Basis
 
 end
