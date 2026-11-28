@@ -37,6 +37,10 @@ is a well defined map from the sphere to itself, read through Mathlib's identifi
   `SymplecticGeometry.uniformizingMap_infty`: `σ(J)` fixes `0`, `1` and `∞`.
 * `SymplecticGeometry.injective_uniformizingMap`: `σ(J)` is injective, since `σ(J) x = σ(J) y`
   gives a nonzero element `t y • s - s y • t` of `E_J` vanishing at `x` and at `y`.
+* `SymplecticGeometry.contMDiff_uniformizingMap`: `σ(J)` is smooth. Where `t` does not vanish it
+  is the inclusion of `ℂ` applied to a constant multiple of the quotient `s / t` of smooth
+  sections of `𝒪(1)` (`OnePoint.contMDiffAt_div_twistCore`), and where `s` does not vanish it is
+  the inverse of the inverted chart applied to a constant multiple of `t / s`.
 
 ## References
 
@@ -208,6 +212,57 @@ theorem injective_uniformizingMap (J : 𝒥) : Function.Injective (uniformizingM
     refine vec_ne_zero_of_mem_twistOneKernel J.property hi hs ht hs' ht' h₀ hinf y ?_
     simp [(mul_eq_zero.1 e0).resolve_right ht0, (mul_eq_zero.1 einf).resolve_right hsinf]
   exact eq_of_mem_twistOneKernel_of_eq_zero J.property hi hw hw' hwx hwy
+
+/-- **`σ(J)` is smooth.** The uniformizing map of a structure `J` tamed by the Fubini–Study form
+is a smooth map from the sphere to itself, for its structure as a real surface. -/
+theorem contMDiff_uniformizingMap (J : 𝒥) :
+    ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (⊤ : ℕ∞) (uniformizingMap J) := by
+  obtain ⟨hs, hs', h₀⟩ := chosenSection_spec J (0 : ℂ)
+  obtain ⟨ht, ht', hinf⟩ := chosenSection_spec J ∞
+  set s := chosenSection J (0 : ℂ)
+  set t := chosenSection J ∞
+  have hi := OnePoint.compatible_fubiniStudyForm.tames
+  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦ one_ne_zero
+    (OnePoint.coe_injective (eq_of_mem_twistOneKernel_of_eq_zero J.property hi hs hs' h h₀))
+  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦
+    OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero J.property hi ht ht' h hinf)
+  have hsm := ((mem_twistOneKernel_iff J.val).1 hs).1
+  have htm := ((mem_twistOneKernel_iff J.val).1 ht).1
+  have hmul (c : ℂ) : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (⊤ : ℕ∞) (fun z : ℂ ↦ c * z) :=
+    ((contDiff_const.mul contDiff_id : ContDiff ℂ (⊤ : ℕ∞) fun z : ℂ ↦ c * z).restrict_scalars
+      ℝ).contMDiff
+  have hσ (p : OnePoint ℂ) : uniformizingMap J p =
+      if t p * s (1 : ℂ) = 0 then (∞ : OnePoint ℂ)
+      else (((t p * s (1 : ℂ))⁻¹ * (s p * t (1 : ℂ)) : ℂ) : OnePoint ℂ) := by
+    rw [uniformizingMap_eq J hs ht hs' ht' h₀ hinf, OnePoint.equivProjectivization_symm_apply_mk]
+    -- The decidability instances of the two conditions differ.
+    simp only [Matrix.cons_val_one, Matrix.cons_val_zero]
+    congr
+  intro x
+  by_cases hx : t x = 0
+  · -- Near `x`, where `s` does not vanish, `σ(J)` reads through the inverted chart.
+    have hsx : s x ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _
+      ((eq_of_mem_twistOneKernel_of_eq_zero J.property hi hs hs' h₀ h).trans
+        (eq_of_mem_twistOneKernel_of_eq_zero J.property hi ht ht' hx hinf))
+    have hq := (hmul (s (1 : ℂ) * (t (1 : ℂ))⁻¹)).contMDiffAt.comp x
+      (OnePoint.contMDiffAt_div_twistCore 1 (htm x) (hsm x) hsx)
+    refine (OnePoint.contMDiff_invChart_symm_real.contMDiffAt.comp x hq).congr_of_eventuallyEq ?_
+    filter_upwards [OnePoint.eventually_ne_zero_twistCore 1 (hsm x).continuousAt hsx] with p hp
+    rw [Function.comp_apply, Function.comp_apply, hσ]
+    by_cases htp : t p = 0
+    · simp [htp]
+    · have hne : s (1 : ℂ) * (t (1 : ℂ))⁻¹ * (t p / s p) ≠ 0 := by simp [*]
+      rw [ite_eq_right (mul_ne_zero htp hs₁), OnePoint.invChart_symm_of_ne_zero hne]
+      congr 1
+      field_simp
+  · -- Near `x`, where `t` does not vanish, `σ(J)` reads through the inclusion of `ℂ`.
+    have hq := (hmul ((s (1 : ℂ))⁻¹ * t (1 : ℂ))).contMDiffAt.comp x
+      (OnePoint.contMDiffAt_div_twistCore 1 (hsm x) (htm x) hx)
+    refine (OnePoint.contMDiff_coe_real.contMDiffAt.comp x hq).congr_of_eventuallyEq ?_
+    filter_upwards [OnePoint.eventually_ne_zero_twistCore 1 (htm x).continuousAt hx] with p hp
+    rw [Function.comp_apply, Function.comp_apply, hσ, ite_eq_right (mul_ne_zero hp hs₁)]
+    congr 1
+    field_simp
 
 end SymplecticGeometry
 

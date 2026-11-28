@@ -28,6 +28,11 @@ degree `k`:
 * `OnePoint.twistTransition_ne_zero`: the transition functions do not vanish on chart overlaps;
 * `OnePoint.mdifferentiableAt_div_twistCore`: the quotient of two sections of `𝒪(k)` that are
   real differentiable at a point is real differentiable there where the denominator is nonzero;
+* `OnePoint.contMDiffAt_div_twistCore`: the same for sections that are `C^n` at a point, by the
+  same reading in coordinates, adapted to `C^n` from the differentiability step of Tau Ceti's
+  `TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul`;
+* `OnePoint.eventually_ne_zero_twistCore`: a section of `𝒪(k)` that is continuous and nonzero at
+  a point is nonzero near it;
 * `OnePoint.twistCore_localTriv_symmL_apply`: over the chart at `y`, the real frame of the
   trivialization at `y` is multiplication by a transition function;
 * `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars;
@@ -119,6 +124,48 @@ theorem mdifferentiableAt_div_twistCore (k : ℤ) {s t : OnePoint ℂ → ℂ} {
   refine (hcs.div hct (by rwa [twistTransition_self, one_mul])).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
   exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
+
+/-- The quotient `p ↦ s p / t p` of two sections of `𝒪(k)` that are `C^n` at `x` for the real
+structure is `C^n` at `x` if `t x ≠ 0`. The quotient is a function, since `s p` and `t p` lie in
+the same fibre. -/
+theorem contMDiffAt_div_twistCore (k : ℤ) {n : ℕ∞ω} {s t : OnePoint ℂ → ℂ} {x : OnePoint ℂ}
+    (hs : ContMDiffAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) n
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (s p)) x)
+    (ht : ContMDiffAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) n
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) x)
+    (hx : t x ≠ 0) :
+    ContMDiffAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) n (fun p ↦ s p / t p) x := by
+  -- The coordinates of `s` and `t` in the trivialization at `x`.
+  have hxx : x ∈ ((twistCore (𝕜 := ℂ) k).localTriv x).baseSet := by simp
+  have hcs := (Trivialization.contMDiffAt_section_iff _ hxx).1 hs
+  have hct := (Trivialization.contMDiffAt_section_iff _ hxx).1 ht
+  simp only [twistCore_localTriv_apply] at hcs hct
+  have hct0 : twistTransition k x x x * t x ≠ 0 := by rwa [twistTransition_self, one_mul]
+  -- Near `x` the quotient is the quotient of the coordinates.
+  have hdiv : ContDiffAt ℝ n (fun z : ℂ × ℂ ↦ z.1 / z.2)
+      (twistTransition k x x x * s x, twistTransition k x x x * t x) :=
+    (contDiffAt_fst.div contDiffAt_snd hct0).restrict_scalars ℝ
+  refine (hdiv.contMDiffAt.comp x (hcs.prodMk_space hct)).congr_of_eventuallyEq ?_
+  filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
+  exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
+
+/-- A section of `𝒪(k)` that is continuous at `x`, as a map into the total space, and does not
+vanish at `x`, does not vanish near `x`. -/
+theorem eventually_ne_zero_twistCore (k : ℤ) {t : OnePoint ℂ → ℂ} {x : OnePoint ℂ}
+    (ht : ContinuousAt
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) x)
+    (hx : t x ≠ 0) : ∀ᶠ p in 𝓝 x, t p ≠ 0 := by
+  -- The coordinate of `t` in the trivialization at `x` is continuous at `x`.
+  set e := (twistCore (𝕜 := ℂ) k).localTriv x
+  have hmem : TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) x (t x) ∈ e.source := by
+    simp [e, e.mem_source]
+  have hc : ContinuousAt (fun p ↦ (e ⟨p, t p⟩).2) x :=
+    continuous_snd.continuousAt.comp
+      ((e.continuousOn.continuousAt (e.open_source.mem_nhds hmem)).comp (x := x)
+        (f := fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) ht)
+  simp only [e, twistCore_localTriv_apply] at hc
+  filter_upwards [hc.eventually_ne (by rwa [twistTransition_self, one_mul])] with p hp
+  exact right_ne_zero_of_mul hp
 
 open scoped TauCeti.ComplexManifold in
 /-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section
