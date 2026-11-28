@@ -46,7 +46,10 @@ differentiating the distance.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11
+  §9.3, the inequality (9.9) by which gradient-like fields are defined. The barrier keeps an
+  orbit that tends to a critical point near it, as needed to compare the stable set of a
+  critical point of a Weinstein structure with its local stable manifold (§9.2), on the way from
+  Proposition 11.9 (b) to Lemma 11.13 (a)
 * M. Audin and M. Damian, *Morse Theory and Floer Homology*, Springer Universitext, 2014,
   Chapter 2.
 -/

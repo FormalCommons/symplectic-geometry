@@ -22,9 +22,10 @@ involve only `h`, and those along vectors `(0, v)` only `g`:
 * `fderiv_fderiv_comp_snd_mul_comp_fst_apply_mk_zero`,
   `fderiv_fderiv_comp_snd_mul_comp_fst_apply_zero_mk`.
 
-For `E = 𝕜`, `fderiv_comp_snd_mul_comp_fst_apply_one_zero` and
-`fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero` state the derivatives along `(1, 0)` with
-`deriv`.
+For `E = 𝕜`, `fderiv_comp_snd_mul_comp_fst_apply_one_zero` states the derivative along `(1, 0)`
+with `deriv`. For the second derivative along `(1, 0)`, and that of a product
+`y ↦ φ (P y) * η (ℓ y)` with `ℓ` a linear form, see Tau Ceti's
+`TauCeti.fderiv_fderiv_mul_comp_apply`.
 
 The second derivatives restrict to the fibres `x ↦ (x, b)` and `y ↦ (a, y)` with Tau Ceti's
 `TauCeti.fderiv_fderiv_comp_apply` and `TauCeti.fderiv_fderiv_slice_right_apply`, and pull out
@@ -101,15 +102,6 @@ theorem fderiv_comp_snd_mul_comp_fst_apply_one_zero {h : 𝕜 → 𝕜} {a : �
     (hg : DifferentiableAt 𝕜 g b) (hh : DifferentiableAt 𝕜 h a) :
     fderiv 𝕜 (fun x : 𝕜 × F ↦ g x.2 * h x.1) (a, b) (1, 0) = g b * deriv h a := by
   simp [fderiv_comp_snd_mul_comp_fst_apply_mk_zero hg hh]
-
-/-- For `h : 𝕜 → 𝕜`, the second derivative of `x ↦ g x.2 * h x.1` at `(a, b)` along `(1, 0)`
-twice is `g b * h'' a`. -/
-theorem fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero {h : 𝕜 → 𝕜} {a : 𝕜}
-    (hg : ContDiffAt 𝕜 2 g b) (hh : ContDiffAt 𝕜 2 h a) :
-    fderiv 𝕜 (fderiv 𝕜 (fun x : 𝕜 × F ↦ g x.2 * h x.1)) (a, b) (1, 0) (1, 0) =
-      g b * deriv (deriv h) a := by
-  rw [fderiv_fderiv_comp_snd_mul_comp_fst_apply_mk_zero hg hh,
-    TauCeti.fderiv_fderiv_apply_one_one]
 
 section ProdMk
 
