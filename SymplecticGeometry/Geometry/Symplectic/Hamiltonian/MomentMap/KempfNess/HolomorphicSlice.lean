@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
 import Mathlib.Analysis.InnerProductSpace.Projection.Basic
 import Mathlib.Analysis.Normed.Module.FiniteDimension
 import Mathlib.Geometry.Manifold.VectorField.Pullback
+import TauCeti.Analysis.Fredholm.SemiFredholm
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.HolomorphicChart
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stabilizer
 import TauCeti.RepresentationTheory.Continuous.InvariantComplement
@@ -72,9 +73,9 @@ and form a space of dimension `2 dim 𝔥`. At `v = 0` they make up the whole ke
 `T` only in `0` and the isotropy algebra of `x` in `Gc` is `C.lieMap 𝔥 ⊕ C.cplx (C.lieMap 𝔥)`
 (`SymplecticGeometry.mem_ker_sliceOperator_zero_iff`). The source argues that the operator is onto
 near `0`; here the same count is made through the kernel: read through the inverse of
-`d(e.symm)_v`, the operator depends continuously on `v`, so its rank can only go up near `0`
-(Mathlib's `isOpen_setOfPred_nat_le_rank`), and the dimension of its kernel can only go down
-(`SymplecticGeometry.eventually_finrank_ker_sliceOperator_le`).
+`d(e.symm)_v`, the operator depends continuously on `v`, so the dimension of its kernel can only
+go down near `0` (`SymplecticGeometry.eventually_finrank_ker_sliceOperator_le`, through Tau Ceti's
+`ContinuousLinearMap.eventually_nhds_finiteDimensional_ker_and_finrank_ker_le`).
 
 ## Main definitions
 
@@ -430,12 +431,12 @@ theorem sliceOperator_apply {x : M} (e : LinearizingChart G I' x)
 
 omit [TopologicalSpace G] [FiniteDimensional ℝ E]
   [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
-/-- **The kernel of the slice operator is lower semicontinuous in dimension.** For a linearizing
+/-- **The dimension of the kernel of the slice operator is upper semicontinuous.** For a linearizing
 chart `e` at `x`, a subspace `S` of `T_x M` and `v₀` in the target of `e`, the kernel of the
 slice operator at `v` has dimension at most that at `v₀`, for every `v` near `v₀`: read through
 the inverse of `d(e.symm)_v`, the slice operator is `(Z, w) ↦ Y_Z v - w`, with `Y_Z` the
-pull-back of `X_Z` by `e.symm`, which is continuous in `v`, and the rank of a continuous family of
-linear maps can only go up nearby. -/
+pull-back of `X_Z` by `e.symm`, which is continuous in `v`, and the kernel of an operator near
+one with closed range is no larger than its kernel. -/
 theorem eventually_finrank_ker_sliceOperator_le [FiniteDimensional ℝ E'] [FiniteDimensional ℝ EC]
     {x : M} (e : LinearizingChart G I' x) (S : Submodule ℝ (TangentSpace I' x)) {v₀ : E'}
     (hv₀ : v₀ ∈ e.chart.target) :
@@ -458,11 +459,12 @@ theorem eventually_finrank_ker_sliceOperator_le [FiniteDimensional ℝ E'] [Fini
   let ψ := (Module.finBasis ℝ (GroupLieAlgebra IC Gc × S)).equivFun.symm
   let L'' (v : E') : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →L[ℝ] E' :=
     LinearMap.toContinuousLinearMap (L' v ∘ₗ ψ.toLinearMap)
-  have hrank (v : E') : LinearMap.range
-      (L'' v : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →ₗ[ℝ] E') =
-        LinearMap.range (L' v) := by
-    simp only [L'', LinearMap.coe_toContinuousLinearMap]
-    exact LinearMap.range_comp_of_range_eq_top _ ψ.range
+  have hfr (v : E') (hv : v ∈ e.chart.target) :
+      Module.finrank ℝ (L'' v).ker = Module.finrank ℝ (LinearMap.ker (L v)) := by
+    have h : (L'' v).ker = (LinearMap.ker (L' v)).comap ψ.toLinearMap := by
+      simp only [L'', LinearMap.coe_toContinuousLinearMap,
+        LinearMap.ker_comp]
+    rw [h, Submodule.comap_equiv_eq_map_symm, LinearEquiv.finrank_map_eq, hker v hv]
   -- `L'' v p` is `Y v - c`, with `Y` the pull-back of a fundamental vector field.
   have hcont : ContinuousOn L'' e.chart.target := by
     refine continuousOn_clm_apply.2 fun p ↦ ?_
@@ -480,33 +482,22 @@ theorem eventually_finrank_ker_sliceOperator_le [FiniteDimensional ℝ E'] [Fini
     change (mfderiv 𝓘(ℝ, E') I' e.chart.symm v).inverse (L v (ψ p)) = _
     rw [sliceOperator_apply, map_sub]
     exact congrArg (_ - ·) ((hinv v hv).inverse_apply_self (c : TangentSpace 𝓘(ℝ, E') v))
-  -- The rank of `L' v` is at least that of `L' v₀` near `v₀`.
-  set r := Module.finrank ℝ (LinearMap.range (L' v₀))
-  have hopen := hcont.isOpen_inter_preimage e.chart.open_target (isOpen_setOfPred_nat_le_rank r)
-  have h₀ : v₀ ∈ e.chart.target ∩ L'' ⁻¹' {f | (r : Cardinal) ≤
-      (f : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →ₗ[ℝ] E').rank} := by
-    refine ⟨hv₀, ?_⟩
-    -- Unfold the membership to a statement about the range of `L'' v₀`.
-    change (r : Cardinal) ≤ Module.rank ℝ (LinearMap.range _)
-    rw [hrank v₀, Module.finrank_eq_rank]
-  filter_upwards [hopen.mem_nhds h₀] with v ⟨hvt, hvr⟩
-  have hvr' : r ≤ Module.finrank ℝ (LinearMap.range (L' v)) := by
-    have h : (r : Cardinal) ≤ Module.rank ℝ (LinearMap.range
-        (L'' v : (Fin (Module.finrank ℝ (GroupLieAlgebra IC Gc × S)) → ℝ) →ₗ[ℝ] E')) := hvr
-    rwa [← Module.finrank_eq_rank, Nat.cast_le, hrank v] at h
-  have h1 := LinearMap.finrank_range_add_finrank_ker (L' v)
-  have h2 := LinearMap.finrank_range_add_finrank_ker (L' v₀)
-  rw [hker v hvt] at h1
-  rw [hker v₀ hv₀] at h2
-  omega
+  -- The kernel of `L'' v` has dimension at most that of `L'' v₀` near `v₀`.
+  have hrange : IsClosed ((L'' v₀).range : Set E') := Submodule.isClosed_of_finiteDimensional _
+  filter_upwards [(hcont.continuousAt (e.chart.open_target.mem_nhds hv₀)).eventually
+    (ContinuousLinearMap.eventually_nhds_finiteDimensional_ker_and_finrank_ker_le hrange),
+    e.chart.open_target.mem_nhds hv₀] with v hv hvt
+  rw [← hfr v hvt, ← hfr v₀ hv₀]
+  exact hv.2
 
 variable [T2Space Gc] [T2Space M] [I'.Boundaryless] [FiniteDimensional ℝ E']
 
 omit [FiniteDimensional ℝ E'] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
 /-- In a linearizing chart `e` at `x` in which `J` is constant, equal to `J x`, the slice
-operator at `v` vanishes on `(C.lieMap ξ + C.cplx (C.lieMap η), A_ξ v + J x (A_η v))` for `ξ, η`
-in the isotropy algebra of `x`, where `A` is the linearized isotropy action
-(`TauCeti.isotropyLinearization`): this is `SymplecticGeometry.fundamentalVectorField_chart_symm`.
+operator at a point `v` of the target of `e` vanishes on the pair
+`(C.lieMap ξ + C.cplx (C.lieMap η), A_ξ v + J x (A_η v))` for `ξ, η` in the isotropy algebra of
+`x`, where `A` is the linearized isotropy action (`TauCeti.isotropyLinearization`): this is
+`SymplecticGeometry.fundamentalVectorField_chart_symm`.
 -/
 theorem sliceOperator_apply_eq_zero {C : LieComplexification I G IC Gc}
     {J : SmoothAlmostComplexStructure I' M} (hC : IsComplexifiedAction C J) {x : M}
