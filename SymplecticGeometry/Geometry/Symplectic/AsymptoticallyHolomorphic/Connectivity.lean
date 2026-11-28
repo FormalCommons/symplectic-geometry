@@ -337,7 +337,7 @@ theorem IsUniformlyTransverse.exists_isMorse_eqOn_logNormSq [I.Boundaryless] [T2
         IsRegularValue I 𝓘(ℝ) g (Real.log ε) ∧
         (∀ b, IsCompact (g ⁻¹' Set.Icc (Real.log ε) b)) ∧
         ∃ b, IsRegularValue I 𝓘(ℝ) g b ∧ {x | g x ≤ b} = Set.univ := by
-  filter_upwards [ht.criticalHessian_logNormSq_add_neg D hJ hα hρ₀ hη hs hsm]
+  filter_upwards [ht.isComplexNegativeAt_logNormSq D hJ hα hρ₀ hη hs hsm]
     with k hk ε hε hcrit
   have hpos (x : nonzeroOpens (hsm k)) : 0 < ‖s k x‖ ^ 2 :=
     pow_pos (norm_pos_iff.2 (mem_nonzeroOpens.1 x.property)) 2
