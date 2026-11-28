@@ -212,7 +212,8 @@ theorem divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc (hv : v ≠ 0)
     (Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul
       hN.blowupChart hv hg hg0 hlift (e w))
   rw [show A w = (A.comp (e.symm : ℂ →L[ℝ] EuclideanSpace ℝ (Fin 2))) (e w) by simp]
-  rwa [he, LinearIsometryEquiv.coe_toContinuousLinearEquiv] at h
+  rwa [he, LinearIsometryEquiv.coe_toContinuousLinearEquiv,
+    Projectivization.coe_toTautological_apply] at h
 
 /-- **The line disc is a transverse disc, oriented as the normal bundle.** There is a linear
 isomorphism `m : ℝ² ≃ ν_[v]` onto the normal space of the exceptional divisor at `[v]` that carries
