@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.LocallyConvex.HahnBanach
+public import TauCeti.Geometry.Lie.FundamentalVectorField.Isotropy
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Manifold.GroupAction.EquivariantSlice
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
@@ -18,6 +19,8 @@ import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
 /-!
 # The tube map of an orbit
@@ -60,6 +63,15 @@ The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
 (`SymplecticGeometry.LinearizingChart.hasMFDerivAt_symm`) adapt steps of the proof of Tau Ceti's
 `TauCeti.exists_equivariant_slice_of_isCompact_stabilizer`, stated on their own.
 
+A linearizing chart is a smooth partial diffeomorphism
+(`SymplecticGeometry.LinearizingChart.toPartialDiffeomorph`), so Mathlib's and Tau Ceti's
+`PartialDiffeomorph` API applies to it. In the chart, the fundamental vector field of an element
+`ξ` of the isotropy algebra `𝔤_x` is linear: for `A_ξ` the derivative at `t = 0` of
+`t ↦ d(exp (t ξ))_x` (`TauCeti.isotropyLinearization`), differentiating
+`exp (t ξ) • e.symm v = e.symm (d(exp (t ξ))_x v)` at `t = 0` gives
+`X_ξ (e.symm v) = d(e.symm)_v (A_ξ v)`
+(`SymplecticGeometry.LinearizingChart.fundamentalVectorField_symm`).
+
 When `V` is a complement of `𝔤 · x`, the tube map is a local diffeomorphism at `[1, 0]`: its
 differential there is onto by the above, and injective because `dπ` is onto and kills `𝔤_x × 0`,
 along which `t ↦ (exp (t ξ), 0)` stays in the class `[1, 0]`. The inverse function theorem for a
@@ -72,6 +84,8 @@ need not be small.
 ## Main definitions
 
 * `SymplecticGeometry.LinearizingChart`: a chart at `x` in which the stabilizer acts linearly.
+* `SymplecticGeometry.LinearizingChart.toPartialDiffeomorph`: the chart as a partial
+  diffeomorphism.
 * `SymplecticGeometry.LinearizingChart.SliceDomain`: an invariant open subset of a subspace
   inside the target of the chart, with the action of the stabilizer.
 * `SymplecticGeometry.LinearizingChart.SliceDomain.sliceMap`: the equivariant map
@@ -83,6 +97,8 @@ need not be small.
 
 * `SymplecticGeometry.LinearizingChart.nonempty`: linearizing charts exist at points with
   compact stabilizer.
+* `SymplecticGeometry.LinearizingChart.fundamentalVectorField_symm`: in a linearizing chart, the
+  fundamental vector field of an element `ξ` of the isotropy algebra is `v ↦ A_ξ v`.
 * `SymplecticGeometry.LinearizingChart.SliceDomain.instContMDiffSMul`: the stabilizer acts
   smoothly on a slice domain.
 * `SymplecticGeometry.LinearizingChart.SliceDomain.contMDiff_tubeMap`,
@@ -171,15 +187,40 @@ theorem symm_mfderiv_smul {g : G} (hg : g ∈ stabilizer G x) {v : E'}
   rw [e.mfderiv_smul_eq hg hv,
     e.chart.left_inv (e.smul_mem_source g hg _ (e.chart.map_target hv))]
 
-/-- A linearizing chart is differentiable on its source, with inverse differentiable on its
-target. -/
-theorem mdifferentiable : e.chart.MDifferentiable I' 𝓘(ℝ, E') :=
-  ⟨e.contMDiffOn.mdifferentiableOn (by simp), e.contMDiffOn_symm.mdifferentiableOn (by simp)⟩
+/-- A linearizing chart as a smooth partial diffeomorphism from `M` to `E'`. -/
+def toPartialDiffeomorph : PartialDiffeomorph I' 𝓘(ℝ, E') M E' ∞ where
+  toPartialEquiv := e.chart.toPartialEquiv
+  open_source := e.chart.open_source
+  open_target := e.chart.open_target
+  contMDiffOn_toFun := e.contMDiffOn
+  contMDiffOn_invFun := e.contMDiffOn_symm
+
+@[simp]
+theorem toOpenPartialHomeomorph_toPartialDiffeomorph :
+    e.toPartialDiffeomorph.toOpenPartialHomeomorph = e.chart :=
+  (rfl)
+
+@[simp]
+theorem coe_toPartialDiffeomorph : ⇑e.toPartialDiffeomorph = e.chart :=
+  (rfl)
+
+theorem coe_toPartialDiffeomorph_symm : ⇑e.toPartialDiffeomorph.symm = e.chart.symm :=
+  (rfl)
+
+@[simp]
+theorem toPartialDiffeomorph_source : e.toPartialDiffeomorph.source = e.chart.source :=
+  (rfl)
+
+@[simp]
+theorem toPartialDiffeomorph_target : e.toPartialDiffeomorph.target = e.chart.target :=
+  (rfl)
 
 /-- The inverse of a linearizing chart at `x` has derivative the identity at `0`. -/
 theorem hasMFDerivAt_symm :
     HasMFDerivAt 𝓘(ℝ, E') I' e.chart.symm 0 (ContinuousLinearMap.id ℝ E') := by
-  have hsd := e.mdifferentiable.mdifferentiableAt_symm e.zero_mem_target
+  have hd := e.toPartialDiffeomorph.toOpenPartialHomeomorph_mdifferentiable (by simp)
+  rw [toOpenPartialHomeomorph_toPartialDiffeomorph] at hd
+  have hsd := hd.mdifferentiableAt_symm e.zero_mem_target
   have hed : MDifferentiableAt I' 𝓘(ℝ, E') e.chart (e.chart.symm 0) :=
     by rw [e.symm_zero]; exact e.hasMFDerivAt.mdifferentiableAt
   refine hsd.hasMFDerivAt.congr_mfderiv (ContinuousLinearMap.ext fun w ↦ ?_)
@@ -193,6 +234,55 @@ theorem hasMFDerivAt_symm_comp_subtype (V : Submodule ℝ E') :
     HasMFDerivAt 𝓘(ℝ, V) I' (fun v : V ↦ e.chart.symm (v : E')) 0 V.subtypeL := by
   have h := e.hasMFDerivAt_symm.comp (0 : V) V.subtypeL.hasMFDerivAt
   exact h.congr_mfderiv (ContinuousLinearMap.id_comp _)
+
+section FundamentalVectorField
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace G]
+  [ChartedSpace H G] [LieGroup I (minSmoothness ℝ 3) G] [T2Space G] [BoundarylessManifold I G]
+  [CompleteSpace E'] [I'.Boundaryless] [IsManifold I' ∞ M] [ContMDiffSMul I I' ∞ G M] [T2Space M]
+
+/-- **Fundamental vector fields of the isotropy algebra in a linearizing chart.** For `ξ` in the
+isotropy algebra of `x` and `v` in the target of a linearizing chart `e` at `x`, the fundamental
+vector field of `ξ` at `e.symm v` is the image under the differential of `e.symm` at `v` of
+`A_ξ v`, where `A_ξ` is the linearized isotropy action of `ξ` on `T_x M`
+(`TauCeti.isotropyLinearization`). -/
+theorem fundamentalVectorField_symm
+    (ξ : (InfinitesimalAction.fundamental I G I' M).isotropy x) {v : E'}
+    (hv : v ∈ e.chart.target) :
+    fundamentalVectorField I' (ξ : GroupLieAlgebra I G) (e.chart.symm v) =
+      mfderiv 𝓘(ℝ, E') I' e.chart.symm v (isotropyLinearization I' x ξ v) := by
+  -- Differentiate `exp (t ξ) • e.symm v = e.symm (d(exp (t ξ))_x v)` at `t = 0`.
+  have hcurve : (fun t : ℝ ↦ mulInvariantExp (t • (ξ : GroupLieAlgebra I G)) • e.chart.symm v) =
+      fun t : ℝ ↦ e.chart.symm ((mfderiv I' I'
+        (fun y : M ↦ mulInvariantExp (t • (ξ : GroupLieAlgebra I G)) • y) x : E' →L[ℝ] E') v) :=
+    funext fun t ↦ (e.symm_mfderiv_smul (mulInvariantExp_smul_mem_stabilizer ξ t) hv).symm
+  have h0 : (mfderiv I' I'
+      (fun y : M ↦ mulInvariantExp ((0 : ℝ) • (ξ : GroupLieAlgebra I G)) • y) x : E' →L[ℝ] E')
+        v = v := by
+    rw [mfderiv_mulInvariantExp_zero_smul_smul]
+    -- `ContinuousLinearMap.one_apply` does not match once the differential is read on `E'`.
+    rfl
+  have hd := e.toPartialDiffeomorph.toOpenPartialHomeomorph_mdifferentiable (by simp)
+  rw [toOpenPartialHomeomorph_toPartialDiffeomorph] at hd
+  have hsd : MDifferentiableAt 𝓘(ℝ, E') I' e.chart.symm ((mfderiv I' I'
+      (fun y : M ↦ mulInvariantExp ((0 : ℝ) • (ξ : GroupLieAlgebra I G)) • y) x : E' →L[ℝ] E')
+        v) := by
+    rw [h0]
+    exact hd.mdifferentiableAt_symm hv
+  have h₁ := Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt
+    (isMIntegralCurve_mulInvariantExp_smul_smul (I' := I') (ξ : GroupLieAlgebra I G)
+      (e.chart.symm v) 0).hasMFDerivWithinAt uniqueDiffWithinAt_univ
+  have h₂ := hsd.curveVelocity_comp_mfderiv
+    (hasDerivAt_mfderiv_mulInvariantExp_smul_smul_apply (I' := I') ξ v)
+  have h00 : mulInvariantExp ((0 : ℝ) • (ξ : GroupLieAlgebra I G)) • e.chart.symm v =
+      e.chart.symm v := by
+    rw [zero_smul, mulInvariantExp_zero, one_smul]
+  beta_reduce at h₁
+  rw [h00, Manifold.curveVelocityWithin_univ, hcurve] at h₁
+  exact h₁.symm.trans (h₂.trans (by rw [h0]))
+
+end FundamentalVectorField
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- **Linearizing charts exist at points with compact stabilizer**, for a smooth action of a
