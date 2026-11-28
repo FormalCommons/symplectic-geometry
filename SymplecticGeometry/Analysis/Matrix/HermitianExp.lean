@@ -13,7 +13,8 @@ import Mathlib.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Matrix.EuclideanLin
 import TauCeti.Analysis.Matrix.Exponential.EuclideanCLM
 import TauCeti.Analysis.Normed.Operator.Exponential
-import TauCeti.LinearAlgebra.Basis.Diagonal
+import TauCeti.Analysis.InnerProductSpace.Orthonormal.Coordinates
+import TauCeti.Analysis.Matrix.Spectrum
 import SymplecticGeometry.Analysis.Matrix.Spectrum
 import SymplecticGeometry.Analysis.SpecificLimits.ExpWeightedMean
 
@@ -85,12 +86,9 @@ theorem toEuclideanLin_exp_smul_eigenvectorBasis (t : ℝ) (i : n) :
 those of `x` multiplied by `Real.exp (t * hA.eigenvalues i)`. -/
 theorem repr_toEuclideanLin_exp_smul (t : ℝ) (x : EuclideanSpace 𝕜 n) (i : n) :
     hA.eigenvectorBasis.repr (toEuclideanLin (NormedSpace.exp (t • A)) x) i =
-      Real.exp (t * hA.eigenvalues i) * hA.eigenvectorBasis.repr x i := by
-  simpa using hA.eigenvectorBasis.toBasis.repr_apply_eq_mul_of_apply_eq_smul
-    hA.eigenvectorBasis.toBasis (g := toEuclideanLin (NormedSpace.exp (t • A)))
-    (w := fun j ↦ (Real.exp (t * hA.eigenvalues j) : 𝕜))
-    (fun j ↦ by rw [OrthonormalBasis.coe_toBasis, hA.toEuclideanLin_exp_smul_eigenvectorBasis])
-    x i
+      Real.exp (t * hA.eigenvalues i) * hA.eigenvectorBasis.repr x i :=
+  hA.eigenvectorBasis.repr_apply_of_eigenbasis _
+    (hA.toEuclideanLin_exp_smul_eigenvectorBasis t) x i
 
 /-- The squared coordinates of `exp (t • A) x` in the eigenvector basis of a Hermitian matrix `A`
 are those of `x` multiplied by `Real.exp (2 * t * hA.eigenvalues i)`. -/
