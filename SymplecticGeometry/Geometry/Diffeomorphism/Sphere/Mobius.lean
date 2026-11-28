@@ -128,9 +128,9 @@ theorem mobiusHom_injective : Function.Injective mobiusHom :=
 that pull the almost complex structure `i` of the Riemann sphere back to itself. -/
 noncomputable def mobiusSubgroup : Subgroup (TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞) where
   carrier := {φ | (ofComplexManifold ℂ (OnePoint ℂ)).pullback φ = ofComplexManifold ℂ (OnePoint ℂ)}
-  one_mem' := pullback_refl _
+  one_mem' := pullback_one _
   mul_mem' {φ ψ} hφ hψ := by
-    simp only [Set.mem_ofPred_eq, Diffeomorph.mul_def, pullback_trans] at hφ hψ ⊢
+    simp only [Set.mem_ofPred_eq, pullback_mul] at hφ hψ ⊢
     rw [hφ, hψ]
   inv_mem' {φ} hφ := (pullback_symm_eq_iff φ).2 hφ
 
