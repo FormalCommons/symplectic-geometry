@@ -15,8 +15,8 @@ import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 # Surjectivity of real-linear maps with dominant complex-linear part
 
 Let `W` be a complex normed space of dimension one and let `A, B : V →L[ℝ] W` be real-linear maps
-from a real normed space, with `A` complex linear and `B` complex antilinear for a map `J` on `V`
-and multiplication by `i` on `W`. If `‖B‖ < ‖A‖`, then `A + B` is surjective. No symplectic form
+from a real normed space, such that `A` commutes and `B` anticommutes with a map `J` on `V` and
+multiplication by `i` on `W`. If `‖B‖ < ‖A‖`, then `A + B` is surjective. No symplectic form
 or inner product is involved, and the norm on `V` is arbitrary. The almost complex structures
 (`TauCeti.AlmostComplexStructure`, `TauCeti.AlmostComplexStructure.ofComplexModule`) come from
 Tau Ceti's `Geometry/Symplectic/` folder, but nothing here uses a symplectic form.
