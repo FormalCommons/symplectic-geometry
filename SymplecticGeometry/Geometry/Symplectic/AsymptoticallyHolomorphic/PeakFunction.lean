@@ -475,20 +475,18 @@ theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differ
 
 /-! ### The model `∂` -/
 
-/-- The **model `∂`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
-complex-linear part `TauCeti.complexLinearPart` of the model connection
-`SymplecticGeometry.modelConnection f z`, for `J₀ = stdComplexStructure ι` and multiplication by
-`i` on `ℂ`. It is the `(1,0)` counterpart of the model `∂̄` `SymplecticGeometry.modelDbar`. -/
+/-- The **model `∂`** of a complex function `f` on `StdSpace ι` at `z`: the operator
+`TauCeti.complexLinearPartContinuousLinearMap` for `J₀ = stdComplexStructure ι` and
+multiplication by `i` on `ℂ`, applied to the model connection
+`SymplecticGeometry.modelConnection f z`. It is the `(1,0)` counterpart of the model `∂̄`
+`SymplecticGeometry.modelDbar`. -/
 noncomputable def modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
-  LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-    (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ))
+  complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
+    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (modelConnection f z)
 
 theorem modelDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
-    modelDel f z =
-      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
-        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+    modelDel f z = complexLinearPartContinuousLinearMap (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (modelConnection f z) :=
   (rfl)
 
 /-- As a real-linear map, the model `∂` of `f` at `z` is Tau Ceti's complex-linear part
@@ -499,21 +497,20 @@ theorem coe_modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
       complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap]
+  rw [modelDel_def, complexLinearPartContinuousLinearMap_apply,
+    LinearMap.coe_toContinuousLinearMap]
 
 theorem modelDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     modelDel f z v = (2⁻¹ : ℝ) •
       (modelConnection f z v - Complex.I * modelConnection f z (stdComplexStructure ι v)) := by
-  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap', complexLinearPart_apply]
+  rw [modelDel_def, complexLinearPartContinuousLinearMap_apply_apply, complexLinearPart_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
 
 /-- The model connection of `f` at `z` is the sum of its model `∂` and its model `∂̄`. -/
 theorem modelDel_add_modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     modelDel f z + modelDbar f z = modelConnection f z := by
-  apply ContinuousLinearMap.coe_injective
-  rw [ContinuousLinearMap.toLinearMap_add, coe_modelDel, modelDbar_def, modelDbarWith_def,
-    complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
-    LinearMap.coe_toContinuousLinearMap, complexLinearPart_add_complexAntilinearPart]
+  rw [modelDel_def, modelDbar_def, modelDbarWith_def, LinearMap.coe_toContinuousLinearMap,
+    complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap_apply]
 
 /-- The model `∂` commutes with complex scalars. -/
 @[simp]
