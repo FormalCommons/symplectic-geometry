@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Topology.Connected.Clopen
-import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Curve
@@ -66,9 +65,11 @@ For trivializations `e e' : Bundle.Trivialization Z f` with fibre `Z`, transport
 model fibre as `TauCeti.IsEhresmannConnection.parallelTransportIn`: a point `v` goes to the
 second coordinate in `e'` of the transport of the point with coordinates `(γ s, v)` in `e`. When
 `e` and `e'` are `C^n` with `C^n` inverses, in the form of the fields of Tau Ceti's
-`TauCeti.MapFiber.Atlas.IsContMDiff`, this reading is a `C^n` diffeomorphism of `Z`, since
-transport is the restriction of a diffeomorphism of `P`; for a loop and `e = e'` it is the
-holonomy of the loop read in `e`.
+`TauCeti.MapFiber.Atlas.IsContMDiff`, this reading is a `C^n` diffeomorphism of `Z`; for a loop
+and `e = e'` it is the holonomy of the loop read in `e`. Its smoothness is the case of a constant
+family of curves of the smoothness of the reading in a family
+(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportIn_param`), which composes `e.symm`,
+the transport in the family and `e'`.
 
 ## Main results
 
@@ -92,6 +93,8 @@ holonomy of the loop read in `e`.
   parameters and the points of `P`.
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`: for a family that is
   `C^(n+1)` on an open set of parameters, transport is `C^n` in the parameter and the point.
+* `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportIn_param`: for a family of curves,
+  transport read in two trivializations is `C^n` in the parameter and the point of `Z`.
 * `TauCeti.IsEhresmannConnection.parallelTransportInDiffeomorph`: transport read in two
   trivializations, as a `C^n` diffeomorphism of the model fibre, with inverse the transport back
   (`TauCeti.IsEhresmannConnection.symm_parallelTransportInDiffeomorph`).
@@ -478,6 +481,50 @@ theorem parallelTransportIn_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I
     hD.parallelTransport_parallelTransport hn hf hfp hγ (e.proj_symm_apply' hs),
     parallelTransportIn_def]
 
+/-- **Smoothness of transport in trivializations, in a family of curves.** Let `D` be a `C^n`
+Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional
+boundaryless Hausdorff manifolds, `U` an open set of a manifold `N` of the same kind,
+`Γ : N × ℝ → B` a family of curves that is `C^(n+1)` on `U ×ˢ univ`, and `e`, `e'`
+trivializations of `f` with fibre `Z`, the inverse of `e` being `C^n` on its target and `e'` being
+`C^n` on its source. The map `(a, v) ↦` transport of `v` along `u ↦ Γ (a, u)` from `s` to `t`,
+read in `e` and `e'`, is `C^n` on the set of pairs with `a ∈ U`, `Γ (a, s) ∈ e.baseSet` and
+`Γ (a, t) ∈ e'.baseSet`. -/
+theorem contMDiffOn_parallelTransportIn_param (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {U : Set N} (hU : IsOpen U) {Γ : N × ℝ → B}
+    (hΓ : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ (U ×ˢ univ)) {e e' : Trivialization Z f}
+    (he : ContMDiffOn (J.prod IZ) I n e.toOpenPartialHomeomorph.symm e.target)
+    (he' : ContMDiffOn I (J.prod IZ) n e' e'.source) (s t : ℝ) :
+    ContMDiffOn (IN.prod IZ) IZ n
+      (fun p : N × Z ↦ hD.parallelTransportIn e e' (fun u ↦ Γ (p.1, u)) s t p.2)
+      {p | p.1 ∈ U ∧ Γ (p.1, s) ∈ e.baseSet ∧ Γ (p.1, t) ∈ e'.baseSet} := by
+  have hT := hD.contMDiffOn_parallelTransport_param hn hf hfp hU hΓ s t
+  -- The curve `u ↦ Γ (a, u)`, for `a ∈ U`.
+  have hslice {a : N} (ha : a ∈ U) : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) fun u ↦ Γ (a, u) :=
+    hΓ.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ ⟨ha, mem_univ _⟩
+  -- The point with coordinates `(Γ (a, s), v)` in `e`, at the parameter `a`.
+  have hΓs : ContMDiffOn (IN.prod IZ) (J.prod IZ) n (fun p : N × Z ↦ (Γ (p.1, s), p.2))
+      {p | p.1 ∈ U ∧ Γ (p.1, s) ∈ e.baseSet ∧ Γ (p.1, t) ∈ e'.baseSet} := by
+    have hΓ' : ContMDiffOn IN J n (fun a ↦ Γ (a, s)) U :=
+      (hΓ.of_le (by simp)).comp (contMDiffOn_id.prodMk contMDiffOn_const)
+        fun a ha ↦ ⟨ha, mem_univ _⟩
+    exact ContMDiffOn.prodMk (hΓ'.comp contMDiffOn_fst fun _ hp ↦ hp.1) contMDiffOn_snd
+  have hg : ContMDiffOn (IN.prod IZ) (IN.prod I) n
+      (fun p : N × Z ↦ (p.1, e.toOpenPartialHomeomorph.symm (Γ (p.1, s), p.2)))
+      {p | p.1 ∈ U ∧ Γ (p.1, s) ∈ e.baseSet ∧ Γ (p.1, t) ∈ e'.baseSet} :=
+    contMDiffOn_fst.prodMk (he.comp hΓs fun p hp ↦ e.mem_target.2 hp.2.1)
+  have hx {p : N × Z} (hp : Γ (p.1, s) ∈ e.baseSet) :
+      f (e.toOpenPartialHomeomorph.symm (Γ (p.1, s), p.2)) = Γ (p.1, s) :=
+    e.proj_symm_apply' hp
+  have h₁ := hT.comp hg fun p hp ↦ ⟨hp.1, hx hp.2.1⟩
+  have h₂ := he'.comp h₁ fun p hp ↦ by
+    refine e'.mem_source.2 ?_
+    have hy := hD.parallelTransport_mem_preimage hn hf hfp (hslice hp.1) (hx hp.2.1) t
+    rw [mem_preimage, mem_singleton_iff] at hy
+    rw [comp_apply, hy]
+    exact hp.2.2
+  exact (contMDiff_snd.comp_contMDiffOn h₂).congr fun p _ ↦ by
+    simp only [comp_apply, parallelTransportIn_def]
+
 /-- **Smoothness of transport in trivializations.** Let `D` be a `C^n` Ehresmann connection,
 `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional boundaryless Hausdorff
 manifolds, `γ` a `C^(n+1)` curve in `B`, and `e`, `e'` trivializations of `f` with fibre `Z`, the
@@ -489,18 +536,10 @@ theorem contMDiff_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1)
     {e e' : Trivialization Z f}
     (he : ContMDiffOn (J.prod IZ) I n e.toOpenPartialHomeomorph.symm e.target)
     (he' : ContMDiffOn I (J.prod IZ) n e' e'.source) {s t : ℝ} (hs : γ s ∈ e.baseSet)
-    (ht : γ t ∈ e'.baseSet) : ContMDiff IZ IZ n (hD.parallelTransportIn e e' γ s t) := by
-  obtain ⟨Ψ, hΨ, -⟩ := hD.exists_diffeomorph_eqOn_parallelTransport hn hf hfp hγ s t
-  have hx (v : Z) : e.toOpenPartialHomeomorph.symm (γ s, v) ∈ f ⁻¹' {γ s} :=
-    e.proj_symm_apply' hs
-  have h₁ : ContMDiff IZ I n fun v : Z ↦ e.toOpenPartialHomeomorph.symm (γ s, v) :=
-    funext (e.fiberInclusionMap_apply hs) ▸ e.contMDiff_fiberInclusionMap he hs
-  have h₂ : ContMDiff IZ (J.prod IZ) n fun v ↦ e' (Ψ (e.toOpenPartialHomeomorph.symm (γ s, v))) :=
-    he'.comp_contMDiff (Ψ.contMDiff.comp h₁) fun v ↦ e'.mem_source.2 <| by
-      rw [hΨ (hx v), mem_singleton_iff.1 (hD.parallelTransport_mem_preimage hn hf hfp hγ (hx v) t)]
-      exact ht
-  exact (contMDiff_snd.comp h₂).congr fun v ↦ by
-    simp only [comp_apply, parallelTransportIn_def, hΨ (hx v)]
+    (ht : γ t ∈ e'.baseSet) : ContMDiff IZ IZ n (hD.parallelTransportIn e e' γ s t) :=
+  (hD.contMDiffOn_parallelTransportIn_param (IN := 𝓘(ℝ, ℝ)) (N := ℝ) hn hf hfp isOpen_univ
+    (Γ := fun p ↦ γ p.2) (hγ.comp contMDiff_snd).contMDiffOn he he' s t).comp_contMDiff
+    ((contMDiff_const (c := (0 : ℝ))).prodMk contMDiff_id) fun _ ↦ ⟨mem_univ _, hs, ht⟩
 
 /-- **Parallel transport in trivializations as a diffeomorphism.** Let `D` be a `C^n` Ehresmann
 connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional boundaryless

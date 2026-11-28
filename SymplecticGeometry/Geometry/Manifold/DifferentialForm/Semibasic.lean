@@ -16,6 +16,7 @@ import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
+import Mathlib.Data.Fin.Tuple.Reflection
 
 /-!
 # Forms semibasic for a map
@@ -38,6 +39,9 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
 
 * `TauCeti.RoughForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`: at `x`, a form semibasic for `f`
   takes the same value on two tuples whose images under the differential of `f` agree.
+* `TauCeti.RoughForm.isSemibasicAt_iff_of_degree_one` and
+  `TauCeti.RoughForm.isSemibasic_iff_of_degree_one`: a one-form is semibasic for `f` exactly
+  when it vanishes on each vector in the kernel of the differential of `f`.
 * Closure of both predicates under `0`, `+`, `-` and real multiples, and every `0`-form is
   semibasic. `TauCeti.SmoothForm.isSemibasic_add`, `TauCeti.SmoothForm.isSemibasic_smul`, … and
   `TauCeti.SmoothForm.isSemibasic_iff` state closure and the vanishing on vertical arguments for
@@ -120,6 +124,16 @@ theorem isSemibasicAt_iff {α : RoughForm I M F k} {x : M} :
   simp only [isSemibasicAt_def, Submodule.mem_conormalForms, LinearMap.mem_ker,
     ContinuousLinearMap.coe_coe, ContinuousAlternatingMap.coe_toAlternatingMap]
 
+/-- A one-form is semibasic for `f` at `x` exactly when its value at `x` vanishes on every vector
+sent to zero by the differential of `f` at `x`. -/
+theorem isSemibasicAt_iff_of_degree_one {α : RoughForm I M F 1} {x : M} :
+    IsSemibasicAt IB f α x ↔
+      ∀ v : TangentSpace I x, mfderiv I IB f x v = 0 → α x ![v] = 0 := by
+  refine isSemibasicAt_iff.trans ⟨fun h v hv ↦ h ![v] 0 hv, fun h v i hv ↦ ?_⟩
+  obtain rfl : i = 0 := Subsingleton.elim _ _
+  rw [show v = ![v 0] from (FinVec.etaExpand_eq v).symm]
+  exact h (v 0) hv
+
 /-- A form semibasic for `f` at `x` vanishes at `x` on tuples one of which is sent to zero by
 the differential of `f`. -/
 theorem IsSemibasicAt.apply_eq_zero {α : RoughForm I M F k} {x : M}
@@ -194,6 +208,13 @@ theorem isSemibasic_iff {α : RoughForm I M F k} :
     IsSemibasic IB f α ↔ ∀ (x : M) (v : Fin k → TangentSpace I x) (i : Fin k),
       mfderiv I IB f x (v i) = 0 → α x v = 0 :=
   forall_congr' fun _ ↦ isSemibasicAt_iff
+
+/-- A one-form is semibasic for `f` exactly when, at every point `x`, its value at `x` vanishes
+on every vector sent to zero by the differential of `f` at `x`. -/
+theorem isSemibasic_iff_of_degree_one {α : RoughForm I M F 1} :
+    IsSemibasic IB f α ↔
+      ∀ (x : M) (v : TangentSpace I x), mfderiv I IB f x v = 0 → α x ![v] = 0 :=
+  forall_congr' fun _ ↦ isSemibasicAt_iff_of_degree_one
 
 /-- A form semibasic for `f` vanishes at every point `x` on the tuples one of which is sent to
 zero by the differential of `f` at `x`. -/
@@ -338,13 +359,8 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 theorem isSemibasicAt_mextDeriv_ofFunction_comp {g : B → F} {x : M}
     (hg : MDifferentiableAt IB 𝓘(ℝ, F) g (f x)) (hf : MDifferentiableAt I IB f x) :
     IsSemibasicAt IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) x := by
-  refine isSemibasicAt_iff.mpr fun v i hv ↦ ?_
-  obtain rfl : i = 0 := Subsingleton.elim (α := Fin 1) _ _
-  have hv' : v = ![v 0] := by
-    ext j
-    fin_cases j
-    rfl
-  rw [hv', mextDeriv_ofFunction_apply, mfderiv_comp_apply x hg hf, hv]
+  refine isSemibasicAt_iff_of_degree_one.mpr fun v hv ↦ ?_
+  rw [mextDeriv_ofFunction_apply, mfderiv_comp_apply x hg hf, hv]
   exact map_zero _
 
 /-- **Differentials of functions on the base are semibasic.** For differentiable `f : M → B` and
