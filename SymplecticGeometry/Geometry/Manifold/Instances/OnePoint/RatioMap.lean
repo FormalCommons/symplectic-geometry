@@ -56,8 +56,8 @@ does not elaborate; the value lemmas of `ratioMap` therefore take the values as 
 The two local forms give smoothness: the quotients are `C^n` by
 `OnePoint.contMDiffAt_div_twistCore`, and the inclusion of `ℂ` and the inverse of the inverted
 chart are smooth (Tau Ceti's `OnePoint.contMDiff_coe_real` and
-`OnePoint.contMDiff_invChart_symm_real`). The argument is the one of
-`SymplecticGeometry.contMDiff_uniformizingMap`, for arbitrary sections.
+`OnePoint.contMDiff_invChart_symm_real`). `SymplecticGeometry.contMDiff_uniformizingMap` is
+derived from these results.
 
 For continuity, the weak Whitney topology is local in the source
 (`ContMDiffMap.continuous_of_forall_continuous_restrict_manifold`), so it suffices to work over

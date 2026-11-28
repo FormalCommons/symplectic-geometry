@@ -29,6 +29,7 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import SymplecticGeometry.Analysis.InnerProductSpace.Ellipsoid
 import TauCeti.Analysis.ODE.ExponentialDichotomy
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # The linearization of a gradient-like field at a nondegenerate critical point
@@ -145,8 +146,8 @@ private theorem IsGradientLike.exists_eventually_mul_sq_le (hX : IsGradientLike 
     (hδc.continuousAt.eventually (lt_mem_nhds (half_lt_self (hδ p)))).and
       (hgW.eventually (gt_mem_nhds hgWp))
   have hF : ∀ᶠ u in 𝓝 (φ p), DifferentiableAt ℝ (f ∘ φ.symm) u :=
-    (((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt.eventually (by simp)).mono
-      fun u hu ↦ hu.differentiableAt (by norm_num)
+    ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt.eventually_differentiableAt
+      (by simp)
   have hsymm : Tendsto φ.symm (𝓝 (φ p)) (𝓝 p) := by
     have := continuousAt_extChartAt_symm (I := 𝓘(ℝ, E)) p
     rwa [ContinuousAt, extChartAt_to_inv] at this

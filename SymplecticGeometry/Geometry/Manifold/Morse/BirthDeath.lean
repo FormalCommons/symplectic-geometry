@@ -297,15 +297,26 @@ theorem fderiv_normalForm_apply (z v : E) :
   rw [hN, h.fderiv]
   simp [mul_comm]
 
+/-- The derivative of the normal form of a birth–death chart along the `i`-th coordinate vector
+`L⁻¹ eᵢ`: `wᵢ (L z)ᵢ`, plus `(L z)_{i₀}²` when `i` is the cubic coordinate `i₀`. -/
+theorem fderiv_normalForm_apply_coord_symm_single (z : E) (i : Fin (Module.finrank ℝ E)) :
+    fderiv ℝ φ.normalForm z (φ.toMorseBottChart.coord.symm (Pi.single i 1)) =
+      φ.toMorseBottChart.weight i * φ.toMorseBottChart.coord z i +
+        if i = φ.cubicIndex then φ.toMorseBottChart.coord z φ.cubicIndex ^ 2 else 0 := by
+  rw [fderiv_normalForm_apply, LinearEquiv.apply_symm_apply,
+    Finset.sum_eq_single i (fun j _ hj ↦ by simp [hj]) (by simp)]
+  by_cases hi : i = φ.cubicIndex
+  · subst hi
+    simp
+  · simp [hi, Ne.symm hi]
+
 /-- The only critical point of the normal form of a birth–death chart is the origin. -/
 theorem fderiv_normalForm_eq_zero_iff {z : E} : fderiv ℝ φ.normalForm z = 0 ↔ z = 0 := by
   refine ⟨fun h ↦ ?_, ?_⟩
   · have hz : ∀ i, φ.toMorseBottChart.coord z i = 0 := by
       intro i
       have := congrArg (fun T : E →L[ℝ] ℝ ↦ T (φ.toMorseBottChart.coord.symm (Pi.single i 1))) h
-      simp only [fderiv_normalForm_apply, LinearEquiv.apply_symm_apply,
-        zero_apply] at this
-      rw [Finset.sum_eq_single i (fun j _ hj ↦ by simp [hj]) (by simp)] at this
+      simp only [fderiv_normalForm_apply_coord_symm_single, zero_apply] at this
       by_cases hi : i = φ.cubicIndex
       · subst hi
         simpa [φ.weight_cubicIndex] using this
