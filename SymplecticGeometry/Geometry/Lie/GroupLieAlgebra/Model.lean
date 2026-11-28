@@ -17,15 +17,9 @@ space `E` of `G` by definition. Differential forms with values in the Lie algebr
 Tau Ceti's connection forms and Maurer–Cartan form are, with values in `E`, which carries the norm.
 Tau Ceti's adjoint action `TauCeti.Lie.adjointContinuousLinearMap g` acts on such forms by
 `TauCeti.SmoothForm.mapCoeff` once it is read as a map of `E`. This file gives the bracket of
-`GroupLieAlgebra I G` as a continuous bilinear map of `E`, for `TauCeti.SmoothForm.wedgeWith`, and
-makes `GroupLieAlgebra I G` finite-dimensional whenever `E` is.
+`GroupLieAlgebra I G` as a continuous bilinear map of `E`, for `TauCeti.SmoothForm.wedgeWith`.
 It also evaluates Tau Ceti's linear equivalence `groupLieAlgebraEquivModelVectorSpace` of
 `GroupLieAlgebra I G` with `E`, and its inverse: both send each vector to itself.
-
-## Main instances
-
-* `GroupLieAlgebra.instFiniteDimensional`: the Lie algebra of a Lie group modelled on a
-  finite-dimensional space is finite-dimensional.
 
 ## Main definitions
 
@@ -49,15 +43,6 @@ open TauCeti TauCeti.Lie
 open scoped Manifold ContDiff
 
 namespace GroupLieAlgebra
-
-/-- The Lie algebra of a Lie group modelled on a finite-dimensional space `E` is
-finite-dimensional, since it is `E` as a module. -/
-instance instFiniteDimensional {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
-    {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-    {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] :
-    FiniteDimensional 𝕜 (GroupLieAlgebra I G) :=
-  inferInstanceAs (FiniteDimensional 𝕜 E)
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)

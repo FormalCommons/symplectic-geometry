@@ -11,7 +11,6 @@ public import TauCeti.LinearAlgebra.TotallyReal.CompatibleForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.Functor
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
-import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 import SymplecticGeometry.Analysis.RCLike.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 
