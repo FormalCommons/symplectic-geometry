@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.OpenPartialHomeomorph.Basic
 public import Mathlib.Topology.Algebra.Group.ContinuousDiv
+import TauCeti.Data.Set.Image
 
 /-!
 # Fibres of the restriction of an open partial homeomorphism to its source
@@ -40,8 +41,7 @@ variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y] (e : OpenPartia
 the point `⟨a, ha⟩` only. -/
 theorem sourceRestrict_preimage_singleton {a : X} (ha : a ∈ e.source) :
     e.sourceRestrict ⁻¹' {e a} = {(⟨a, ha⟩ : e.source)} :=
-  Set.Subset.antisymm (fun _ hx ↦ Subtype.ext (e.sourceRestrict_preimage ha hx))
-    (Set.singleton_subset_iff.2 (Set.mem_singleton_iff.2 (e.sourceRestrict_apply _)))
+  e.sourceRestrict_apply ⟨a, ha⟩ ▸ e.isOpenEmbedding_sourceRestrict.injective.preimage_singleton _
 
 /-- If `e` sends a point `a` of its source to `y`, and `e.symm` maps a set `S` containing `y` into
 `T`, then `a ∈ T`. -/
