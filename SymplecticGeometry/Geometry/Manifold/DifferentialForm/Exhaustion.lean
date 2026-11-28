@@ -23,14 +23,11 @@ For forms `γ n` that vanish on the sets `V n` of an increasing open cover, the 
 sum, is a smooth form, equal to its `n`-th partial sum on `V n`, and its exterior derivative is
 there the `n`-th partial sum of the series `∑ d γ n` (`TauCeti.SmoothForm.exists_eq_sum_range`).
 
-Both rest on the locality of the exterior derivative: at a point of an open set on which two
-smooth forms agree, their exterior derivatives agree
-(`TauCeti.SmoothForm.mextDerivₗ_apply_eq_of_forall_mem`), by Tau Ceti's
+Both rest on the locality of the exterior derivative, Tau Ceti's
 `TauCeti.mextDeriv_congr_of_eventuallyEq`.
 
 ## Main results
 
-* `TauCeti.SmoothForm.mextDerivₗ_apply_eq_of_forall_mem`: the exterior derivative is local.
 * `TauCeti.SmoothForm.exists_eq_limit`: the limit of a sequence of smooth forms that settles
   on the open sets of a cover, with its exterior derivative.
 * `TauCeti.SmoothForm.exists_eq_sum_range`: the sum of a series of smooth forms whose `n`-th term
@@ -53,14 +50,6 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
-/-- **The exterior derivative is local.** Smooth forms that agree on an open set `U` have
-exterior derivatives that agree on `U`. -/
-theorem mextDerivₗ_apply_eq_of_forall_mem [IsManifold I 2 M] {φ ψ : SmoothForm I M F k}
-    {U : Set M} (hU : IsOpen U) (h : ∀ y ∈ U, φ.val y = ψ.val y) {x : M} (hx : x ∈ U) :
-    (mextDerivₗ I k φ).val x = (mextDerivₗ I k ψ).val x := by
-  rw [mextDerivₗ_apply, mextDerivₗ_apply]
-  exact mextDeriv_congr_of_eventuallyEq (Filter.mem_of_superset (hU.mem_nhds hx) h)
-
 /-- **The limit of smooth forms that settle on the open sets of a cover.** Let `V n` be open
 sets covering `M` and `η n` smooth forms such that `η m = η n` on `V n` for `n ≤ m`. Then there
 is a smooth form `θ` equal to `η n` on each `V n`, whose exterior derivative is equal to that
@@ -81,8 +70,9 @@ theorem exists_eq_limit [IsManifold I 2 M] {η : ℕ → SmoothForm I M F k} {V 
     filter_upwards [(hVo (p x)).mem_nhds (hp x)] with y hy
     rw [heq (p x) y hy]
   let θ : SmoothForm I M F k := ⟨_, hsmooth.mem_smoothBundleForms⟩
-  exact ⟨θ, fun n x hx ↦
-    ⟨heq n x hx, mextDerivₗ_apply_eq_of_forall_mem (hVo n) (heq n) hx⟩⟩
+  refine ⟨θ, fun n x hx ↦ ⟨heq n x hx, ?_⟩⟩
+  rw [mextDerivₗ_apply, mextDerivₗ_apply]
+  exact mextDeriv_congr_of_eventuallyEq (eventually_of_mem ((hVo n).mem_nhds hx) (heq n))
 
 /-- **The sum of a series of smooth forms that vanish on the sets of an increasing cover.** Let
 `V n` be an increasing sequence of open sets covering `M` and `γ n` smooth forms with `γ n = 0`
