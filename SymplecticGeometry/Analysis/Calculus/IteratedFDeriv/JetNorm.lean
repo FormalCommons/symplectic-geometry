@@ -185,6 +185,23 @@ theorem jetNormAt_add_le {r : ℕ} {f g : E → F} {z : E} (hf : ContDiffAt 𝕜
   rw [iteratedFDeriv_add_apply (hf.of_le hjr) (hg.of_le hjr)]
   exact norm_add_le _ _
 
+/-- The **triangle inequality for jet norms** over a finite sum of functions of class `C^r` at
+`z`. -/
+theorem jetNormAt_sum_le {κ : Type*} {r : ℕ} {t : Finset κ} {f : κ → E → F} {z : E}
+    (hf : ∀ i ∈ t, ContDiffAt 𝕜 r (f i) z) :
+    jetNormAt 𝕜 r (∑ i ∈ t, f i) z ≤ ∑ i ∈ t, jetNormAt 𝕜 r (f i) z := by
+  classical
+  induction t using Finset.induction_on with
+  | empty => simp
+  | insert a t ha ih =>
+    have hf' : ∀ i ∈ t, ContDiffAt 𝕜 r (f i) z := fun i hi ↦ hf i (Finset.mem_insert_of_mem hi)
+    have hsum : ContDiffAt 𝕜 r (∑ i ∈ t, f i) z := by
+      rw [Finset.sum_fn]
+      exact ContDiffAt.sum hf'
+    rw [Finset.sum_insert ha, Finset.sum_insert ha]
+    exact (jetNormAt_add_le (hf a (Finset.mem_insert_self a t)) hsum).trans
+      (add_le_add_right (ih hf') _)
+
 /-- The `(r + 1)`-jet norm of `f` at `z` is the norm of `f z` plus the `r`-jet norm of
 `fderiv 𝕜 f` at `z`. -/
 theorem jetNormAt_succ (r : ℕ) (f : E → F) (z : E) :

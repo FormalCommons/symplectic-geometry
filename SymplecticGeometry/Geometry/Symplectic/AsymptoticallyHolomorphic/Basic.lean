@@ -37,7 +37,7 @@ of `jetNormAt`. It is nonnegative and monotone in `r`; for `k₀ ≤ k` its orde
 `s x`, since the chart sends `x` to `0` (`SymplecticGeometry.RescaledUnitaryCharts.chart_symm_zero`)
 and the frame is unitary; it vanishes on the zero section, is unchanged by negation, and scales
 by `‖c‖` under multiplication by `c : ℂ`; and for sections whose readings are `C^r` at `0` it
-satisfies the triangle inequality.
+satisfies the triangle inequality, also over finite sums.
 
 The connection `powerConnection α k` is read in the same chart and frame as
 `D.connectionReading k x s z = df_z + i A₀(z) f(z)`, for `f` the reading of `s` and
@@ -69,7 +69,8 @@ differentiable at `z`.
 The `r`-jet norm of the `∂̄` reading, `D.dbarJetNorm k r s x`, is its jet norm at `0`; it is
 nonnegative and monotone in `r`, vanishes on the zero section, is unchanged by negation, scales by
 `‖c‖` under multiplication by `c : ℂ`, and satisfies the triangle inequality for sections whose
-readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`.
+readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`, also over finite
+sums.
 
 These are the chart norms by which the estimates on asymptotically holomorphic sequences of
 sections are stated, in the rescaled metrics `k ω(·, J ·)`.
@@ -263,6 +264,13 @@ theorem jetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     (hs : ContDiffAt ℝ r (D.reading k x s) 0) (ht : ContDiffAt ℝ r (D.reading k x t) 0) :
     D.jetNorm k r (s + t) x ≤ D.jetNorm k r s x + D.jetNorm k r t x := by
   simpa only [jetNorm_def, reading_add] using jetNormAt_add_le hs ht
+
+/-- The **triangle inequality for jet norms** over a finite sum of sections whose readings are
+`C^r` at `0`. -/
+theorem jetNorm_sum_le {κ : Type*} {k r : ℕ} {x : M} {t : Finset κ}
+    {s : κ → Π y, PowerBundle P k y} (hs : ∀ i ∈ t, ContDiffAt ℝ r (D.reading k x (s i)) 0) :
+    D.jetNorm k r (∑ i ∈ t, s i) x ≤ ∑ i ∈ t, D.jetNorm k r (s i) x := by
+  simpa only [jetNorm_def, reading_sum] using jetNormAt_sum_le hs
 
 /-- The jet norm of a complex multiple `c • s` is `‖c‖` times that of `s`. -/
 @[simp]
@@ -554,6 +562,38 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     D.dbarJetNorm k r (s + t) x ≤ D.dbarJetNorm k r s x + D.dbarJetNorm k r t x := by
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_add_eventuallyEq hs ht)]
   exact jetNormAt_add_le hs' ht'
+
+/-- The `∂̄` reading of a finite sum of sections whose readings are differentiable near `z₀` is,
+as a germ at `z₀`, the sum of their `∂̄` readings. -/
+theorem dbarReading_sum_eventuallyEq {κ : Type*} {k : ℕ} {x : M} {t : Finset κ}
+    {s : κ → Π y, PowerBundle P k y} {z₀ : StdSpace ι}
+    (hs : ∀ i ∈ t, ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x (s i)) z) :
+    D.dbarReading k x (∑ i ∈ t, s i) =ᶠ[𝓝 z₀] ∑ i ∈ t, D.dbarReading k x (s i) := by
+  classical
+  induction t using Finset.induction_on with
+  | empty =>
+    simp only [Finset.sum_empty]
+    exact .of_forall fun z ↦ D.dbarReading_zero k x z
+  | insert a t ha ih =>
+    have hs' := fun i hi ↦ hs i (Finset.mem_insert_of_mem hi)
+    have hsum : ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x (∑ i ∈ t, s i)) z := by
+      filter_upwards [(Filter.eventually_all_finset t).2 hs'] with z hz
+      rw [reading_sum, Finset.sum_fn]
+      exact DifferentiableAt.fun_sum hz
+    rw [Finset.sum_insert ha, Finset.sum_insert ha]
+    filter_upwards [D.dbarReading_add_eventuallyEq (hs a (Finset.mem_insert_self a t)) hsum,
+      ih hs'] with z hz hz'
+    rw [hz, Pi.add_apply, hz', Pi.add_apply]
+
+/-- The **triangle inequality for jet norms of `∂̄`** over a finite sum of sections whose
+readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`. -/
+theorem dbarJetNorm_sum_le {κ : Type*} {k r : ℕ} {x : M} {t : Finset κ}
+    {s : κ → Π y, PowerBundle P k y}
+    (hs : ∀ i ∈ t, ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x (s i)) z)
+    (hs' : ∀ i ∈ t, ContDiffAt ℝ r (D.dbarReading k x (s i)) 0) :
+    D.dbarJetNorm k r (∑ i ∈ t, s i) x ≤ ∑ i ∈ t, D.dbarJetNorm k r (s i) x := by
+  rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_sum_eventuallyEq hs)]
+  exact jetNormAt_sum_le hs'
 
 /-! ### Smoothness and germs of the readings -/
 

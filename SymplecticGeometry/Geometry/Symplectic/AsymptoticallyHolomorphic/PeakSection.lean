@@ -54,6 +54,14 @@ latter, and that peak sections at any sequence of centres are asymptotically hol
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`,
   `SymplecticGeometry.RescaledUnitaryCharts.exists_dbarJetNorm_peakSection_le` and their
   versions for `peakSection_mul`: the Gaussian decay of the jet norms and of the `∂̄` jet norms.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_affinePeakSection_le`,
+  `SymplecticGeometry.RescaledUnitaryCharts.exists_dbarJetNorm_affinePeakSection_le`: the same
+  Gaussian decay for `affinePeakSection k x w`, with constants uniform in `w` and a factor `‖w‖`.
+  They combine the bounds for the `n + 1` peak sections with
+  `Real.exists_forall_le_one_add_pow_mul_exp_neg_mul_sq`, through
+  `SymplecticGeometry.RescaledUnitaryCharts.affinePeakSection_eq_sum` and the triangle
+  inequalities `SymplecticGeometry.RescaledUnitaryCharts.jetNorm_sum_le` and
+  `SymplecticGeometry.RescaledUnitaryCharts.dbarJetNorm_sum_le`.
 * `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_peakSection`,
   `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_peakSection_mul`: peak
   sections at a sequence of centres are asymptotically holomorphic.
@@ -151,6 +159,13 @@ theorem affinePeakSection_smul (k : ℕ) (x : M) (c : ℂ) (w : EuclideanSpace �
   simp only [affinePeakSection_def, PiLp.smul_apply, smul_eq_mul, mul_smul, smul_add,
     Finset.smul_sum]
 
+
+/-- The affine combination of peak sections as a sum over `Option ι`: the coefficient `w none`
+multiplies the peak section and `w (some j)` the peak section times the `j`-th coordinate. -/
+theorem affinePeakSection_eq_sum (k : ℕ) (x : M) (w : EuclideanSpace ℂ (Option ι)) :
+    D.affinePeakSection k x w =
+      ∑ j : Option ι, w j • j.elim (D.peakSection k x) (D.peakSection_mul k x) := by
+  simp [affinePeakSection_def, Fintype.sum_option]
 /-- For `k₀ ≤ k`, the reading of `D.affinePeakSection k x w` in the chart at `x` is
 `(w₀ + Σ_j w_j z_j)` times the cut-off Gaussian on the ball of radius `ρ₀ * √k`, for
 `z_j = (complexToRealEuclidean ι).symm z j`. -/
@@ -187,6 +202,35 @@ theorem reading_sub_affinePeakSection_eventuallyEq {k : ℕ} (hk : k₀ ≤ k) (
   simp only [hp]
   field_simp
   ring
+
+/-! ### Smoothness of the readings -/
+
+/-- On a Hausdorff boundaryless manifold with `ρ₀ > 0`, for large `k`, at every point `y`, the
+reading and the `∂̄` reading in the chart at `y` of the peak section at every `x` are smooth at
+`0`. -/
+theorem eventually_contDiffAt_reading_and_dbarReading_peakSection [T2Space M] [I.Boundaryless]
+    (hρ₀ : 0 < ρ₀) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ x y : M,
+      ContDiffAt ℝ ∞ (D.reading k y (D.peakSection k x)) 0 ∧
+        ContDiffAt ℝ ∞ (D.dbarReading k y (D.peakSection k x)) 0 := by
+  filter_upwards [Filter.eventually_ge_atTop k₀,
+    eventually_tsupport_peakFunction_subset_ball (E := StdSpace ι) hρ₀]
+    with k hk hf x y
+  exact D.contDiffAt_reading_and_dbarReading_sectionOfReading hk x hf
+    (contDiff_peakFunction k).contDiffOn y
+
+/-- On a Hausdorff boundaryless manifold with `ρ₀ > 0`, for large `k`, at every point `y`, the
+reading and the `∂̄` reading in the chart at `y` of `D.peakSection_mul k x j` are smooth at `0`,
+for every `x` and `j`. -/
+theorem eventually_contDiffAt_reading_and_dbarReading_peakSection_mul [T2Space M]
+    [I.Boundaryless] (hρ₀ : 0 < ρ₀) :
+    ∀ᶠ k : ℕ in Filter.atTop, ∀ (x y : M) (j : ι),
+      ContDiffAt ℝ ∞ (D.reading k y (D.peakSection_mul k x j)) 0 ∧
+        ContDiffAt ℝ ∞ (D.dbarReading k y (D.peakSection_mul k x j)) 0 := by
+  filter_upwards [Filter.eventually_ge_atTop k₀,
+    eventually_tsupport_peakFunction_mul_subset_ball (ι := ι) hρ₀] with k hk hf x y j
+  exact D.contDiffAt_reading_and_dbarReading_sectionOfReading hk x (hf j)
+    (contDiff_peakFunction_mul k j).contDiffOn y
 
 /-! ### The estimates -/
 
@@ -287,6 +331,110 @@ theorem exists_dbarJetNorm_peakSection_mul_le [T2Space M] [I.Boundaryless]
     (fun _ hε ↦ (eventually_tsupport_peakFunction_mul_subset_ball hε).mono fun _ h ↦ h j)
     ⟨A, N, c, hc, .of_forall fun k ↦ h k j⟩
     ⟨A', N', c', hc', Filter.eventually_ge_atTop 1 |>.mono fun k hk ↦ h' k hk j⟩
+
+/-- **Gaussian decay of the affine combinations of peak sections, linear in the coefficients.**
+Under the hypotheses of `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`,
+for every order `r` there are `C`, `N` and `c > 0` such that for large `k`, all points `x` and
+`y` and all coefficients `w`, the `r`-jet norm at `y` of `D.affinePeakSection k x w` is at most
+`C * ‖w‖ * (1 + d) ^ N * exp (-c * d ^ 2)`, for `d` the rescaled distance
+`√(2π k) · d_g(x, y)`. -/
+theorem exists_jetNorm_affinePeakSection_le [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) :
+    ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop,
+      ∀ (x y : M) (w : EuclideanSpace ℂ (Option ι)),
+        D.jetNorm k r (D.affinePeakSection k x w) y ≤
+          C * ‖w‖ * (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2) := by
+  have hb : ∀ j : Option ι, ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ p : M × M,
+      D.jetNorm k r (j.elim (D.peakSection k p.1) (D.peakSection_mul k p.1)) p.2 ≤
+        C * 1 * (1 + rescaledDist I k p.1 p.2) ^ N *
+          Real.exp (-c * rescaledDist I k p.1 p.2 ^ 2) := by
+    rintro (_ | j)
+    · obtain ⟨C, N, c, hc, h⟩ := D.exists_jetNorm_peakSection_le hg hJ hα hρ₀ r
+      exact ⟨C, N, c, hc, h.mono fun k h p ↦ by simpa using h p.1 p.2⟩
+    · obtain ⟨C, N, c, hc, h⟩ := D.exists_jetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
+      exact ⟨C, N, c, hc, h.mono fun k h p ↦ by simpa using h p.1 p.2⟩
+  obtain ⟨C, -, N, c, hc, h⟩ := Real.exists_forall_le_one_add_pow_mul_exp_neg_mul_sq
+    (fun k (p : M × M) ↦ rescaledDist_nonneg I k p.1 p.2) (fun _ ↦ zero_le_one) hb
+  refine ⟨C * Fintype.card (Option ι), N, c, hc, ?_⟩
+  filter_upwards [h, D.eventually_contDiffAt_reading_and_dbarReading_peakSection hρ₀,
+    D.eventually_contDiffAt_reading_and_dbarReading_peakSection_mul hρ₀] with k h h₀ h₁ x y w
+  set W := (1 + rescaledDist I k x y) ^ N * Real.exp (-c * rescaledDist I k x y ^ 2)
+  have hs : ∀ j : Option ι,
+      ContDiffAt ℝ ∞ (D.reading k y (j.elim (D.peakSection k x) (D.peakSection_mul k x))) 0
+    | none => (h₀ x y).1
+    | some j => (h₁ x y j).1
+  rw [affinePeakSection_eq_sum]
+  refine (D.jetNorm_sum_le fun j _ ↦ ?_).trans ?_
+  · rw [reading_smul]
+    exact ((hs j).of_le (m := r) (by simp)).const_smul (w j)
+  · calc ∑ j : Option ι, D.jetNorm k r
+            (w j • j.elim (D.peakSection k x) (D.peakSection_mul k x)) y
+        ≤ ∑ _j : Option ι, ‖w‖ * (C * W) := by
+          refine Finset.sum_le_sum fun j _ ↦ ?_
+          rw [jetNorm_smul]
+          exact mul_le_mul (PiLp.norm_apply_le w j) ((h j (x, y)).trans_eq (by ring))
+            (D.jetNorm_nonneg _ _ _ _) (norm_nonneg _)
+      _ = C * Fintype.card (Option ι) * ‖w‖ * W := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+          ring
+      _ = _ := by simp only [W]; ring
+
+/-- **Gaussian decay of `∂̄` of the affine combinations of peak sections, linear in the
+coefficients.** Under the hypotheses of
+`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`, for every order `r`
+there are `C`, `N` and `c > 0` such that for large `k`, all points `x` and `y` and all
+coefficients `w`, the `r`-jet norm at `y` of `∂̄` of `D.affinePeakSection k x w` is at most
+`C * ‖w‖ * k ^ (-1 / 2) * (1 + d) ^ N * exp (-c * d ^ 2)`, for `d` the rescaled distance
+`√(2π k) · d_g(x, y)`. -/
+theorem exists_dbarJetNorm_affinePeakSection_le [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) (r : ℕ) :
+    ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop,
+      ∀ (x y : M) (w : EuclideanSpace ℂ (Option ι)),
+        D.dbarJetNorm k r (D.affinePeakSection k x w) y ≤
+          C * ‖w‖ * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k x y) ^ N *
+            Real.exp (-c * rescaledDist I k x y ^ 2) := by
+  have hb : ∀ j : Option ι, ∃ C : ℝ, ∃ N : ℕ, ∃ c > 0, ∀ᶠ k : ℕ in Filter.atTop, ∀ p : M × M,
+      D.dbarJetNorm k r (j.elim (D.peakSection k p.1) (D.peakSection_mul k p.1)) p.2 ≤
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + rescaledDist I k p.1 p.2) ^ N *
+          Real.exp (-c * rescaledDist I k p.1 p.2 ^ 2) := by
+    rintro (_ | j)
+    · obtain ⟨C, N, c, hc, h⟩ := D.exists_dbarJetNorm_peakSection_le hg hJ hα hρ₀ r
+      exact ⟨C, N, c, hc, h.mono fun k h p ↦ by simpa using h p.1 p.2⟩
+    · obtain ⟨C, N, c, hc, h⟩ := D.exists_dbarJetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
+      exact ⟨C, N, c, hc, h.mono fun k h p ↦ by simpa using h p.1 p.2⟩
+  obtain ⟨C, -, N, c, hc, h⟩ := Real.exists_forall_le_one_add_pow_mul_exp_neg_mul_sq
+    (fun k (p : M × M) ↦ rescaledDist_nonneg I k p.1 p.2) (fun _ ↦ by positivity) hb
+  refine ⟨C * Fintype.card (Option ι), N, c, hc, ?_⟩
+  filter_upwards [h, D.eventually_contDiffAt_reading_and_dbarReading_peakSection hρ₀,
+    D.eventually_contDiffAt_reading_and_dbarReading_peakSection_mul hρ₀] with k h h₀ h₁ x y w
+  set W := (1 + rescaledDist I k x y) ^ N * Real.exp (-c * rescaledDist I k x y ^ 2)
+  have hs : ∀ j : Option ι,
+      ContDiffAt ℝ ∞ (D.reading k y (j.elim (D.peakSection k x) (D.peakSection_mul k x))) 0 ∧
+        ContDiffAt ℝ ∞
+          (D.dbarReading k y (j.elim (D.peakSection k x) (D.peakSection_mul k x))) 0
+    | none => h₀ x y
+    | some j => h₁ x y j
+  rw [affinePeakSection_eq_sum]
+  refine (D.dbarJetNorm_sum_le (fun j _ ↦ ?_) (fun j _ ↦ ?_)).trans ?_
+  · rw [reading_smul]
+    exact (((hs j).1.of_le (by exact_mod_cast le_top : ((1 : ℕ∞) : WithTop ℕ∞) ≤ ∞)).eventually
+      (by simp)).mono fun z hz ↦ (hz.differentiableAt (by simp)).const_smul _
+  · rw [funext (D.dbarReading_smul k y (w j) _)]
+    exact ((hs j).2.of_le (m := r) (by simp)).const_smul (w j)
+  · calc ∑ j : Option ι, D.dbarJetNorm k r
+            (w j • j.elim (D.peakSection k x) (D.peakSection_mul k x)) y
+        ≤ ∑ _j : Option ι, ‖w‖ * (C * (k : ℝ) ^ (-1 / 2 : ℝ) * W) := by
+          refine Finset.sum_le_sum fun j _ ↦ ?_
+          rw [dbarJetNorm_smul]
+          exact mul_le_mul (PiLp.norm_apply_le w j) ((h j (x, y)).trans_eq (by ring))
+            (D.dbarJetNorm_nonneg _ _ _ _) (norm_nonneg _)
+      _ = C * Fintype.card (Option ι) * ‖w‖ * (k : ℝ) ^ (-1 / 2 : ℝ) * W := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+          ring
+      _ = _ := by simp only [W]; ring
 
 /-- **Peak sections are asymptotically holomorphic.** Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_peakSection_le`, for every sequence of
