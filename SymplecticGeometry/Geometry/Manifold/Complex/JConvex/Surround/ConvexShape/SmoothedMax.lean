@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.Order.Compact
 import SymplecticGeometry.Topology.Order.Piecewise
@@ -340,34 +341,29 @@ theorem exists_forall_isConvexShapeAt_smoothedMax {P : Type*} [TopologicalSpace 
   set S := K ×ˢ Set.Icc r₁ r₂
   have hS : IsCompact S := hK.prod isCompact_Icc
   have hr₀ : ∀ q ∈ S, q.2 ≠ 0 := fun q hq ↦ (hcM q.1 hq.1 q.2 hq.2).pos.ne'
-  have hsnd : ContinuousOn (fun q : P × ℝ ↦ q.2) S := continuous_snd.continuousOn
-  have value {F : P → ℝ → ℝ}
-      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S) :
-      ContinuousOn (fun q : P × ℝ ↦ F q.1 q.2) S := by
-    simpa only [iteratedDeriv_zero] using hd 0 zero_le_two
-  have slope {F : P → ℝ → ℝ}
-      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S) :
-      ContinuousOn (fun q : P × ℝ ↦ deriv (F q.1) q.2) S := by
-    simpa only [iteratedDeriv_one] using hd 1 one_le_two
+  have hsM := ContinuousOn.deriv_of_iteratedDeriv hdM one_le_two
+  have hsA := ContinuousOn.deriv_of_iteratedDeriv hdA one_le_two
   -- A common margin `a` in the second inequality of `isConvexShapeAt_iff` for both families.
   have margin {F : P → ℝ → ℝ}
       (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S)
       (hc : ∀ p ∈ K, ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt (F p) r) :
       ∃ a > 0, ∀ q ∈ S,
         a ≤ iteratedDeriv 2 (F q.1) q.2 + deriv (F q.1) q.2 ^ 3 / q.2 - 1 / F q.1 q.2 := by
+    have hv := ContinuousOn.uncurry_of_iteratedDeriv hd
+    have hs := ContinuousOn.deriv_of_iteratedDeriv hd one_le_two
     have h₁ : ContinuousOn (fun q : P × ℝ ↦ deriv (F q.1) q.2 ^ 3 / q.2) S :=
-      ((slope hd).pow 3).div hsnd hr₀
+      (hs.pow 3).div continuousOn_snd hr₀
     have h₂ : ContinuousOn (fun q : P × ℝ ↦ 1 / F q.1 q.2) S :=
-      continuousOn_const.div (value hd) fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).pos_value.ne'
+      continuousOn_const.div hv fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).pos_value.ne'
     exact hS.exists_forall_le' (((hd 2 le_rfl).add h₁).sub h₂)
       fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).one_div_lt_iteratedDeriv_add
   obtain ⟨a₁, ha₁, hA₁⟩ := margin hdM hcM
   obtain ⟨a₂, ha₂, hA₂⟩ := margin hdA hcA
   -- Bounds on the error terms.
   have hcq : ContinuousOn (fun q : P × ℝ ↦ (deriv (M q.1) q.2 + deriv (A q.1) q.2) / q.2) S :=
-    ((slope hdM).add (slope hdA)).div hsnd hr₀
+    (hsM.add hsA).div continuousOn_snd hr₀
   obtain ⟨Q, hQ⟩ := hS.exists_bound_of_continuousOn hcq
-  obtain ⟨G, hG⟩ := hS.exists_bound_of_continuousOn ((((slope hdM).sub (slope hdA)).pow 2).mul hcq)
+  obtain ⟨G, hG⟩ := hS.exists_bound_of_continuousOn (((hsM.sub hsA).pow 2).mul hcq)
   obtain ⟨δ₀, hδ₀, h⟩ := exists_pos_forall_isConvexShapeAt_smoothedMax (lt_min ha₁ ha₂) G Q
   refine ⟨δ₀, hδ₀, fun δ hδ p hp r hr ↦ ?_⟩
   have hq : (p, r) ∈ S := ⟨hp, hr⟩
@@ -399,10 +395,8 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
     (M := fun _ : Unit ↦ χ₁) (A := fun _ ↦ χ₂) (fun _ _ _ _ ↦ h₁.contDiffAt)
     (fun _ _ _ _ ↦ h₂.contDiffAt) (fun _ _ ↦ hc₁)
     (fun _ _ ↦ hc₂)
-    (fun k hk ↦ ((h₁.continuous_iteratedDeriv k (by exact_mod_cast hk)).comp
-      continuous_snd).continuousOn)
-    (fun k hk ↦ ((h₂.continuous_iteratedDeriv k (by exact_mod_cast hk)).comp
-      continuous_snd).continuousOn)
+    (h₁.continuousOn_iteratedDeriv_snd le_rfl)
+    (h₂.continuousOn_iteratedDeriv_snd le_rfl)
   -- A lower bound `β` for `|χ₁ - χ₂|` on `[r₁, r₂]` outside `O`.
   obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
     h₁.continuous.continuousOn h₂.continuous.continuousOn hO
@@ -812,15 +806,10 @@ theorem exists_forall_isConvexShapeOverRAt_smoothedMin {P : Type*} [TopologicalS
   set S := K ×ˢ Set.Icc R₁ R₂
   have hS : IsCompact S := hK.prod isCompact_Icc
   have hR₀ : ∀ q ∈ S, q.2 ≠ 0 := fun q hq ↦ (hcM q.1 hq.1 q.2 hq.2).pos.ne'
-  have hsnd : ContinuousOn (fun q : P × ℝ ↦ q.2) S := continuous_snd.continuousOn
-  have value {F : P → ℝ → ℝ}
-      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S) :
-      ContinuousOn (fun q : P × ℝ ↦ F q.1 q.2) S := by
-    simpa only [iteratedDeriv_zero] using hd 0 zero_le_two
-  have slope {F : P → ℝ → ℝ}
-      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S) :
-      ContinuousOn (fun q : P × ℝ ↦ deriv (F q.1) q.2) S := by
-    simpa only [iteratedDeriv_one] using hd 1 one_le_two
+  have hvM := ContinuousOn.uncurry_of_iteratedDeriv hdM
+  have hvA := ContinuousOn.uncurry_of_iteratedDeriv hdA
+  have hsM := ContinuousOn.deriv_of_iteratedDeriv hdM one_le_two
+  have hsA := ContinuousOn.deriv_of_iteratedDeriv hdA one_le_two
   -- A common margin in the last two inequalities of `isConvexShapeOverRAt_iff` for a family.
   have margin {F : P → ℝ → ℝ}
       (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S)
@@ -828,13 +817,15 @@ theorem exists_forall_isConvexShapeOverRAt_smoothedMin {P : Type*} [TopologicalS
       ∃ a > 0, ∀ q ∈ S,
         a ≤ 1 / F q.1 q.2 - deriv (F q.1) q.2 ^ 3 / q.2 - iteratedDeriv 2 (F q.1) q.2 ∧
         a ≤ (1 + deriv (F q.1) q.2 ^ 2) / F q.1 q.2 - iteratedDeriv 2 (F q.1) q.2 := by
+    have hv := ContinuousOn.uncurry_of_iteratedDeriv hd
+    have hs := ContinuousOn.deriv_of_iteratedDeriv hd one_le_two
     have hne : ∀ q ∈ S, F q.1 q.2 ≠ 0 := fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).pos_value.ne'
     obtain ⟨a, ha, hA⟩ := hS.exists_forall_le'
-      (((continuousOn_const.div (value hd) hne).sub (((slope hd).pow 3).div hsnd hR₀)).sub
+      (((continuousOn_const.div hv hne).sub ((hs.pow 3).div continuousOn_snd hR₀)).sub
         (hd 2 le_rfl))
       fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).iteratedDeriv_two_lt
     obtain ⟨b, hb, hB⟩ := hS.exists_forall_le'
-      (((continuousOn_const.add ((slope hd).pow 2)).div (value hd) hne).sub (hd 2 le_rfl))
+      (((continuousOn_const.add (hs.pow 2)).div hv hne).sub (hd 2 le_rfl))
       fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).iteratedDeriv_two_lt_one_add_sq_div
     exact ⟨min a b, lt_min ha hb, fun q hq ↦
       ⟨(min_le_left _ _).trans (hA q hq), (min_le_right _ _).trans (hB q hq)⟩⟩
@@ -842,11 +833,11 @@ theorem exists_forall_isConvexShapeOverRAt_smoothedMin {P : Type*} [TopologicalS
   obtain ⟨a₂, ha₂, hA₂⟩ := margin hdA hcA
   -- A positive lower bound `μ` for both families, and bounds on the error terms.
   obtain ⟨μ, hμ, hμS⟩ := hS.exists_forall_le'
-    (continuous_min.comp_continuousOn ((value hdM).prodMk (value hdA))) fun q hq ↦
+    (continuous_min.comp_continuousOn (hvM.prodMk hvA)) fun q hq ↦
       lt_min (hcM q.1 hq.1 q.2 hq.2).pos_value (hcA q.1 hq.1 q.2 hq.2).pos_value
   obtain ⟨Q, hQ⟩ := hS.exists_bound_of_continuousOn
-    (((slope hdM).abs.add (slope hdA).abs).div hsnd hR₀)
-  obtain ⟨B, hB⟩ := hS.exists_bound_of_continuousOn (((slope hdM).sub (slope hdA)).pow 2)
+    ((hsM.abs.add hsA.abs).div continuousOn_snd hR₀)
+  obtain ⟨B, hB⟩ := hS.exists_bound_of_continuousOn ((hsM.sub hsA).pow 2)
   obtain ⟨δ₀, hδ₀, h⟩ :=
     exists_pos_forall_isConvexShapeOverRAt_smoothedMin (lt_min ha₁ ha₂) hμ B Q
   refine ⟨δ₀, hδ₀, fun δ hδ p hp R hR ↦ ?_⟩
@@ -881,10 +872,8 @@ theorem exists_isConvexShapeOverRAt_eq_min {ρ₁ ρ₂ : ℝ → ℝ} {R₁ R�
   obtain ⟨δ₀, hδ₀, h⟩ := exists_forall_isConvexShapeOverRAt_smoothedMin isCompact_univ
     (M := fun _ : Unit ↦ ρ₁) (A := fun _ ↦ ρ₂) (fun _ _ _ _ ↦ h₁.contDiffAt)
     (fun _ _ _ _ ↦ h₂.contDiffAt) (fun _ _ ↦ hc₁) (fun _ _ ↦ hc₂)
-    (fun k hk ↦ ((h₁.continuous_iteratedDeriv k (by exact_mod_cast hk)).comp
-      continuous_snd).continuousOn)
-    (fun k hk ↦ ((h₂.continuous_iteratedDeriv k (by exact_mod_cast hk)).comp
-      continuous_snd).continuousOn)
+    (h₁.continuousOn_iteratedDeriv_snd le_rfl)
+    (h₂.continuousOn_iteratedDeriv_snd le_rfl)
   -- A lower bound `β` for `|ρ₁ - ρ₂|` on `[R₁, R₂]` outside `O`.
   obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
     h₁.continuous.continuousOn h₂.continuous.continuousOn hO
