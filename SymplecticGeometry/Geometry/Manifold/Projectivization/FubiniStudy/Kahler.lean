@@ -15,15 +15,18 @@ import SymplecticGeometry.Data.Matrix.Mul
 import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Geometry.Manifold.Instances.ComplexProjectiveSpace.Projectivization
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
+import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
 
 /-!
 # The Fubini–Study form is Kähler
 
 This file proves the symmetries and the Kähler property of the Fubini–Study form
 `SymplecticGeometry.fubiniStudyForm n` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`, and gives its Kähler
-potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`, on the form
+potentials in the affine charts. Most statements are proved on `ℂⁿ⁺¹ ∖ 0`, on the form
 `ρ = fubiniStudyLift n` to which the Fubini–Study form pulls back along the projection
 `Projectivization.mkNonzero ℂ n`, a surjective submersion. Write `J` for the complex structure
 `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold` of a complex manifold.
@@ -37,11 +40,15 @@ potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`
 * `SymplecticGeometry.mpullback_unitary_fubiniStudyForm`: the case of the unitary group, acting by
   Tau Ceti's `Projectivization.mapDiffeomorph`.
 * `SymplecticGeometry.compatible_fubiniStudyForm`: the Fubini–Study form is compatible with `J`.
-  The projection is pseudoholomorphic (`Projectivization.isPseudoholomorphic_mkNonzero`), so its
-  derivative carries multiplication by `i` to `J` (`Projectivization.mfderiv_mkNonzero_I_smul`),
-  and `ρ` is invariant under multiplication by `i`. A tangent vector of `ℂPⁿ` at `[z]` is the
-  image of a vector `u` with `star z ⬝ᵥ u = 0`, and on such a vector
-  `ρ_z(u, i u) = |u|² / |z|² > 0`.
+  It is `π` times the pull-back of Tau Ceti's form, which is compatible with the complex
+  structure of `TauCeti.ComplexProjectiveSpace n`
+  (`TauCeti.ComplexProjectiveSpace.compatible_fubiniStudyForm`), along the inverse of the
+  holomorphic diffeomorphism `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`, and
+  compatibility passes to pull-backs along pseudoholomorphic immersions
+  (`TauCeti.SmoothTwoForm.Compatible.mpullback`).
+* `Projectivization.isPseudoholomorphic_mkNonzero` and `Projectivization.mfderiv_mkNonzero_I_smul`:
+  the projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is pseudoholomorphic, so its derivative carries multiplication by
+  `i` to `J`.
 * `SymplecticGeometry.isKahler_fubiniStudyForm`: the Fubini–Study form is Kähler for `J`.
 * `SymplecticGeometry.isKahler_mpullback_fubiniStudyForm`: on a smooth embedding `f : N → ℂPⁿ`
   with `J`-invariant tangent images, the pull-back of the Fubini–Study form is symplectic and
@@ -196,60 +203,21 @@ section Kahler
 
 open SmoothAlmostComplexStructure
 
-/-- The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0` is invariant under multiplication by `i`. -/
-private theorem fubiniStudyLift_I_smul (z : puncturedSpace (Fin (n + 1) → ℂ))
-    (v w : Fin (n + 1) → ℂ) :
-    (fubiniStudyLift n).eval₂ z (Complex.I • v) (Complex.I • w) =
-      (fubiniStudyLift n).eval₂ z v w := by
-  rw [fubiniStudyLift_apply z (Complex.I • v) (Complex.I • w), fubiniStudyLift_apply z v w]
-  simp only [stdComplexPiSymplecticForm_apply_eq_im, star_smul, smul_dotProduct, dotProduct_smul,
-    smul_eq_mul, Complex.star_def, Complex.conj_I, Complex.mul_re, Complex.mul_im, Complex.I_re,
-    Complex.I_im, Complex.neg_re, Complex.neg_im]
-  ring
-
-/-- On a vector `u ≠ 0` Hermitian-orthogonal to `z`, `ρ_z(u, i u)` is positive: it is
-`|u|² / |z|²`. -/
-private theorem fubiniStudyLift_I_smul_pos (z : puncturedSpace (Fin (n + 1) → ℂ))
-    {u : Fin (n + 1) → ℂ} (hzu : star (z : Fin (n + 1) → ℂ) ⬝ᵥ u = 0) (hu : u ≠ 0) :
-    0 < (fubiniStudyLift n).eval₂ z u (Complex.I • u) := by
-  have hz := mem_puncturedSpace.1 z.property
-  rw [fubiniStudyLift_apply z u (Complex.I • u)]
-  simp only [stdComplexPiSymplecticForm_apply_eq_im, dotProduct_smul, smul_eq_mul, hzu, mul_zero,
-    Complex.zero_re, Complex.zero_im, zero_mul, sub_zero, zero_div, Complex.mul_im, Complex.I_re,
-    Complex.I_im, one_mul]
-  rw [zero_add, re_star_dotProduct_self, ← norm_sq_complexToRealEuclidean,
-    ← norm_sq_complexToRealEuclidean]
-  exact div_pos (pow_pos (norm_pos_iff.2 (by simpa)) 2) (pow_pos (norm_pos_iff.2 (by simpa)) 2)
-
 /-- The Fubini–Study form is compatible with the complex structure `J` of `ℂPⁿ`: it is
 `J`-invariant, and `ω_FS(v, J v) > 0` for every nonzero tangent vector `v`. -/
 theorem compatible_fubiniStudyForm :
     (fubiniStudyForm n).Compatible (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) := by
-  have hD := (isSubmersion_mkNonzero ℂ n).surjective_mfderiv (by simp)
-  refine ⟨SmoothTwoForm.invariant_iff.2 fun x v w ↦ ?_, SmoothTwoForm.tames_iff.2 fun x t ht ↦ ?_⟩
-  · obtain ⟨z, rfl⟩ := surjective_mkNonzero ℂ n x
-    obtain ⟨(v : Fin (n + 1) → ℂ), rfl⟩ := hD z v
-    obtain ⟨(w : Fin (n + 1) → ℂ), rfl⟩ := hD z w
-    rw [← mfderiv_mkNonzero_I_smul z v, ← mfderiv_mkNonzero_I_smul z w]
-    -- The vectors are read in `Fin (n + 1) → ℂ`, so the evaluation lemmas are applied by `exact`.
-    exact (eval₂_fubiniStudyForm_mfderiv_mkNonzero z _ _).trans
-      ((fubiniStudyLift_I_smul z v w).trans (eval₂_fubiniStudyForm_mfderiv_mkNonzero z _ _).symm)
-  · obtain ⟨z, rfl⟩ := surjective_mkNonzero ℂ n x
-    obtain ⟨(v : Fin (n + 1) → ℂ), rfl⟩ := hD z t
-    -- Replace `v` by its component `u` Hermitian-orthogonal to `z`, which has the same image.
-    have hz : star (z : Fin (n + 1) → ℂ) ⬝ᵥ (z : Fin (n + 1) → ℂ) ≠ 0 :=
-      dotProduct_star_self_eq_zero.not.2 (mem_puncturedSpace.1 z.property)
-    set c : ℂ := (star (z : Fin (n + 1) → ℂ) ⬝ᵥ v) / (star (z : Fin (n + 1) → ℂ) ⬝ᵥ z)
-    set u : Fin (n + 1) → ℂ := v - c • (z : Fin (n + 1) → ℂ)
-    have hu : mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z u =
-        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z v :=
-      (map_sub _ _ _).trans <| (congrArg (_ - ·) (mfderiv_mkNonzero_smul_self z c)).trans
-        (sub_zero _)
-    rw [← hu, ← mfderiv_mkNonzero_I_smul z u]
-    refine lt_of_lt_of_eq (fubiniStudyLift_I_smul_pos z ?_ fun h ↦ ht ?_)
-      (eval₂_fubiniStudyForm_mfderiv_mkNonzero z _ _).symm
-    · rw [dotProduct_sub, dotProduct_smul, smul_eq_mul, div_mul_cancel₀ _ hz, sub_self]
-    · exact hu.symm.trans ((congrArg _ h).trans (map_zero _))
+  have hhol : IsPseudoholomorphic (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)))
+      (ofComplexManifold (Fin n → ℂ) (ComplexProjectiveSpace n))
+      (ComplexProjectiveSpace.diffeomorphProjectivization n).symm := by
+    rw [ComplexProjectiveSpace.coe_diffeomorphProjectivization_symm]
+    exact isPseudoholomorphic_ofComplexManifold_iff.2
+      ((ComplexProjectiveSpace.contMDiff_homeomorphProjectivization_symm n 1).mdifferentiable
+        one_ne_zero)
+  rw [fubiniStudyForm_def]
+  exact (ComplexProjectiveSpace.compatible_fubiniStudyForm.mpullback hhol _ fun x ↦
+    ((ComplexProjectiveSpace.diffeomorphProjectivization n).symm.isInvertible_mfderiv
+      (by simp) (x := x)).injective).smul _ Real.pi_pos
 
 /-- The Fubini–Study form is Kähler for the complex structure of `ℂPⁿ`: it is closed, compatible
 with the complex structure, and the complex structure is integrable. -/
