@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
+public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
+public import Mathlib.Topology.VectorBundle.Riemannian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 
 /-!
@@ -32,10 +34,17 @@ For a covariant derivative `D` on `V` and a section `s`, the one-form `η = D s 
 Both parts are also written as Tau Ceti's `TauCeti.complexLinearPart` and
 `TauCeti.complexAntilinearPart` for the pointwise structures `j.almostComplexStructureAt x` and
 `TauCeti.AlmostComplexStructure.ofComplexModule (V x)`, turned into continuous maps by
-`LinearMap.toContinuousLinearMap`, which is how the hypotheses of the zero set results of
-`SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ZeroSet` are stated
+`LinearMap.toContinuousLinearMap`
 (`TauCeti.SmoothAlmostComplexStructure.oneZeroPart_eq_toContinuousLinearMap_complexLinearPart`,
 `TauCeti.SmoothAlmostComplexStructure.zeroOnePart_eq_toContinuousLinearMap_complexAntilinearPart`).
+For a Riemannian metric on `M` and normed fibres `W x`, the two parts are also the continuous
+operators `TauCeti.complexLinearPartContinuousLinearMap` and
+`TauCeti.complexAntilinearPartContinuousLinearMap` for `j.toEndomorphism x` and
+`Complex.smulIEquiv (W x)`, evaluated at `η`
+(`TauCeti.SmoothAlmostComplexStructure.oneZeroPart_eq_complexLinearPartContinuousLinearMap`,
+`TauCeti.SmoothAlmostComplexStructure.zeroOnePart_eq_complexAntilinearPartContinuousLinearMap`),
+which is how the hypotheses of the zero set results of
+`SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ZeroSet` are stated.
 
 ## Main definitions
 
@@ -184,5 +193,34 @@ theorem zeroOnePart_eq_toContinuousLinearMap_complexAntilinearPart
   simp [zeroOnePart_apply, complexAntilinearPart_apply]
 
 end FiniteDimensional
+
+section Normed
+
+open Bundle
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  {W : M → Type*} [∀ x, NormedAddCommGroup (W x)] [∀ x, NormedSpace ℝ (W x)]
+  [∀ x, NormedSpace ℂ (W x)] [∀ x, IsScalarTower ℝ ℂ (W x)]
+
+/-- For a Riemannian metric on `M` and normed fibres, the `(1,0)`-part of a one-form is the
+operator `TauCeti.complexLinearPartContinuousLinearMap` for `j.toEndomorphism x` and
+multiplication by `i`, evaluated at the one-form. -/
+theorem oneZeroPart_eq_complexLinearPartContinuousLinearMap (η : TangentSpace I x →L[ℝ] W x) :
+    j.oneZeroPart η = complexLinearPartContinuousLinearMap (j.toEndomorphism x)
+      (Complex.smulIEquiv (W x) : W x →L[ℝ] W x) η := by
+  ext v
+  simp [oneZeroPart_apply, complexLinearPart_apply]
+
+/-- For a Riemannian metric on `M` and normed fibres, the `(0,1)`-part of a one-form is the
+operator `TauCeti.complexAntilinearPartContinuousLinearMap` for `j.toEndomorphism x` and
+multiplication by `i`, evaluated at the one-form. -/
+theorem zeroOnePart_eq_complexAntilinearPartContinuousLinearMap
+    (η : TangentSpace I x →L[ℝ] W x) :
+    j.zeroOnePart η = complexAntilinearPartContinuousLinearMap (j.toEndomorphism x)
+      (Complex.smulIEquiv (W x) : W x →L[ℝ] W x) η := by
+  ext v
+  simp [zeroOnePart_apply, complexAntilinearPart_apply]
+
+end Normed
 
 end TauCeti.SmoothAlmostComplexStructure

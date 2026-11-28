@@ -64,16 +64,17 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `ℓ ∈ [ℓ₀, 2 ℓ₀]` are bounded on `[3 δ, ℓ / 4]` (a continuous function on a compact set), and
   the top leaf has height between `1` and `1 + γ`.
 
-* `SymplecticGeometry.sqrtSubLeaf` and `SymplecticGeometry.exists_isConvexShapeAt_sqrtSubLeaf`:
+* `SymplecticGeometry.sqrtSubLeaf` and `SymplecticGeometry.eventually_isConvexShapeAt_sqrtSubLeaf`:
   the leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`. They do not come from
   bending linear shapes, as in Cieliebak and Eliashberg's Lemma 4.25, but have a closed form: the
   leaf `ℓ` is the cutoff leaf `SymplecticGeometry.cutoffLeaf L δ b c` of `Surround/CutoffLeaf.lean`
   with `b = (ℓ + 8 δ) / 64` and `c = 64 δ² - ℓ²`, that is, with the cutoff
   `h r = smoothTransition ((r - 2 δ) / (L δ))`,
   `(ℓ + 8 δ) / 64 (1 - h r) + √(64 (r² - δ²) + (64 δ² - ℓ²) h r)`. Since `0 ≤ b ≤ δ / 8` and
-  `0 ≤ c ≤ 64 δ²`, for `L` large enough every leaf is an `i`-convex shape at every `r > δ`
-  (`SymplecticGeometry.exists_isConvexShapeAt_cutoffLeaf`). The rescaling to `δ = 1`
-  (`SymplecticGeometry.sqrtSubLeaf_eq_mul_sqrtSubLeaf_one`), the form up to `2 δ`
+  `0 ≤ c ≤ 64 δ²`, when `L` is a cutoff scale every leaf is an `i`-convex shape at every `r > δ`
+  (`SymplecticGeometry.isConvexShapeAt_sqrtSubLeaf`, from
+  `SymplecticGeometry.isConvexShapeAt_cutoffLeaf`), so for every large enough `L`. The rescaling
+  to `δ = 1` (`SymplecticGeometry.sqrtSubLeaf_eq_mul_sqrtSubLeaf_one`), the form up to `2 δ`
   (`SymplecticGeometry.sqrtSubLeaf_of_le`) and the slope at `δ` are those of `cutoffLeaf`.
   From `(2 + L) δ` on, the leaf `ℓ` is `√(64 r² - ℓ²)` (`SymplecticGeometry.sqrtSubLeaf_of_ge`).
   Its leaf `0` is the leaf `0` of `SymplecticGeometry.sqrtAddLeaf`
@@ -540,16 +541,24 @@ theorem sqrtSubLeaf_radicand_pos (L : ℝ) {ℓ r : ℝ} (hr : δ ^ 2 < r ^ 2)
       (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) :=
   cutoffLeaf_radicand_pos L hr (by linarith)
 
-/-- **The explicit leaves below the cone are `i`-convex shapes.** There is `L₀ ≥ 1` such that for
-every `L ≥ L₀`, `δ > 0` and `ℓ ∈ [-8 δ, 0]`, the leaf `sqrtSubLeaf L δ ℓ` is an `i`-convex shape
-at every `r > δ`. -/
-theorem exists_isConvexShapeAt_sqrtSubLeaf :
-    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, δ < r →
-      IsConvexShapeAt (sqrtSubLeaf L δ ℓ) r := by
-  obtain ⟨L₀, hL₀, h⟩ := exists_isConvexShapeAt_cutoffLeaf
-  refine ⟨L₀, hL₀, fun L hL δ hδ ℓ ⟨hℓ₀, hℓ₁⟩ r hr ↦ ?_⟩
-  -- The coefficients are `(ℓ + 8 δ) / 64 ≤ δ / 8` and `64 δ² - ℓ² ≤ 64 δ²`.
-  exact h L hL δ hδ _ ⟨by linarith, by linarith⟩ _ ⟨by nlinarith, by nlinarith⟩ r hr
+/-- The leaves `sqrtSubLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [-8 δ, 0]`, are `i`-convex shapes at
+every `r > δ` when `L` is a cutoff scale. -/
+theorem isConvexShapeAt_sqrtSubLeaf {L ℓ r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc (-8 * δ) 0)
+    (hr : δ < r) : IsConvexShapeAt (sqrtSubLeaf L δ ℓ) r := by
+  obtain ⟨hℓ₀, hℓ₁⟩ := hℓ
+  -- The coefficients are `(ℓ + 8 δ) / 64 ∈ [0, δ / 8]` and `64 δ² - ℓ² ∈ [0, 64 δ²]`.
+  rw [sqrtSubLeaf_eq_cutoffLeaf]
+  exact isConvexShapeAt_cutoffLeaf hL hδ (by linarith) (by linarith)
+    (by nlinarith) (by nlinarith) hr
+
+/-- **The explicit leaves below the cone are `i`-convex shapes.** For every large enough `L`, every
+`δ > 0` and every `ℓ ∈ [-8 δ, 0]`, the leaf `sqrtSubLeaf L δ ℓ` is an `i`-convex shape at every
+`r > δ`. -/
+theorem eventually_isConvexShapeAt_sqrtSubLeaf :
+    ∀ᶠ L in atTop, ∀ δ, 0 < δ → ∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, δ < r →
+      IsConvexShapeAt (sqrtSubLeaf L δ ℓ) r :=
+  eventually_isCutoffScale.mono fun _ hL _ hδ _ hℓ _ hr ↦ isConvexShapeAt_sqrtSubLeaf hL hδ hℓ hr
 
 /-- The bottom leaf: the leaf `-8 δ` is `√(64 r² - 64 δ²)` at every `r`. -/
 theorem sqrtSubLeaf_neg_eight_mul (L δ r : ℝ) :
@@ -648,10 +657,11 @@ theorem exists_convexShapeFamily_sqrt_sub :
       (∀ ℓ ∈ Icc (-8 * δ) 0, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
       (∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, K * δ ≤ r → χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
       ∀ r, δ < r → StrictMonoOn (fun ℓ ↦ χ ℓ r) (Icc (-8 * δ) 0) := by
-  obtain ⟨L, hL, hconv⟩ := exists_isConvexShapeAt_sqrtSubLeaf
+  obtain ⟨L, hconv, hL⟩ :=
+    (eventually_isConvexShapeAt_sqrtSubLeaf.and (eventually_ge_atTop 1)).exists
   refine ⟨2 + L, by linarith, fun δ hδ ↦ ⟨sqrtSubLeaf L δ,
     ⟨_, ?_, contDiffOn_uncurry_sqrtSubLeaf L hδ.le⟩,
-    fun ℓ hℓ r hr ↦ hconv L le_rfl δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
+    fun ℓ hℓ r hr ↦ hconv δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
     fun ℓ _ r hr ↦ ?_, fun ℓ _ ↦ tendsto_deriv_sqrtSubLeaf (by linarith) hδ ℓ,
     fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ strictMonoOn_sqrtSubLeaf L hδ.le hr⟩⟩
   · refine (isOpen_setOf_lt_snd_and_abs_fst_lt δ).mem_nhdsSet.2 ?_
@@ -770,10 +780,8 @@ theorem isConvexShapeAt_surroundFamily {ℓₜ r : ℝ}
   obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
   have hsub : Icc ℓ₀ (2 * ℓ₀) ⊆ Icc ℓ₀ ℓₜ := Icc_subset_Icc_right hℓₜ
   rcases le_or_gt ℓ 0 with h0 | h0
-  · -- The cutoff leaf with `b = (ℓ + 8 δ) / 64 ∈ [0, δ / 8]` and `c = 64 δ² - ℓ² ∈ [0, 64 δ²]`.
-    rw [surroundFamily_of_nonpos h0, sqrtSubLeaf_eq_cutoffLeaf]
-    exact isConvexShapeAt_cutoffLeaf hL hδ (by linarith) (by linarith)
-      (by nlinarith) (by nlinarith) hr
+  · rw [surroundFamily_of_nonpos h0]
+    exact isConvexShapeAt_sqrtSubLeaf hL hδ ⟨hℓ₁, h0⟩ hr
   rcases le_or_gt ℓ (7 * δ) with h7 | h7
   · rw [surroundFamily_of_pos_of_le h0 h7]
     exact isConvexShapeAt_struweSwitchLeaf hL hδ ⟨h0.le, h7⟩ hr

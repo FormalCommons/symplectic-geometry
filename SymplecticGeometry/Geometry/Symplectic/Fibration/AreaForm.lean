@@ -188,21 +188,23 @@ theorem exists_trivialization_mpullback_fiberInclusionMap_eq [T2Space B]
   set e := A.trivAt b
   have he := hA.contMDiffOn_trivAt b
   have he_symm := hA.contMDiffOn_trivAt_symm b
-  set U : TopologicalSpace.Opens B := ⟨e.baseSet, e.open_baseSet⟩
-  have hU : (U : Set B) ⊆ e.baseSet := subset_rfl
+  set U : TopologicalSpace.Opens B := e.baseSetOpens
+  have hU : (U : Set B) ⊆ e.baseSet := e.coe_baseSetOpens.subset
   -- The fibre forms `σ_p` over `U` are the slices of one form on `U × F`, and Moser's theorem
   -- for families of area forms gives `χ p` with `(χ p)^* σ_p = σ₀`.
   have hσ := e.mpullback_prodMk_mpullback_symm he_symm hU τ
   obtain ⟨Φ, χ, hΦ, hχ, hχo⟩ :=
     SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_integralTopForm_eq o hσ₀ _
-      (fun p ↦ by rw [hσ]; exact (hτ p p.property).1) fun p ↦ by rw [hσ]; exact (hτ p p.property).2
+      (fun p ↦ by rw [hσ]; exact (hτ p (hU p.property)).1) fun p ↦ by
+        rw [hσ]; exact (hτ p (hU p.property)).2
   simp only [hσ] at hχ
   have hΦ' (q : U × F) : Φ.toHomeomorph q = (q.1, (χ q.1).toHomeomorph q.2) := hΦ q
   refine ⟨e.transFiberwiseHomeomorph hU Φ.toHomeomorph.symm
       (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hΦ'),
     e.contMDiffOn_transFiberwiseHomeomorph hU _ _ he Φ.symm.contMDiff,
     e.contMDiffOn_transFiberwiseHomeomorph_symm hU _ _ he_symm Φ.contMDiff,
-    Trivialization.transFiberwiseHomeomorph_baseSet .., fun b' hb' ↦ ?_, fun c x hx hc ↦ ?_⟩
+    (Trivialization.transFiberwiseHomeomorph_baseSet ..).trans e.coe_baseSetOpens,
+    fun b' hb' ↦ ?_, fun c x hx hc ↦ ?_⟩
   · have hb : b' ∈ U := by rwa [Trivialization.transFiberwiseHomeomorph_baseSet] at hb'
     refine (SmoothForm.mpullback_eq_iff (Trivialization.contMDiff_fiberInclusionMap _
       (e.contMDiffOn_transFiberwiseHomeomorph_symm hU Φ.toHomeomorph.symm
@@ -215,8 +217,8 @@ theorem exists_trivialization_mpullback_fiberInclusionMap_eq [T2Space B]
       ← SmoothForm.mpullback_mpullback _ _ (χ ⟨b', hb⟩).contMDiff]
     exact hχ ⟨b', hb⟩
   · rw [Trivialization.transFiberwiseHomeomorph_baseSet] at hx
-    obtain ⟨ψ, hψ, hψe⟩ := hasStructureGroup_iff.1 hH b c x hx hc
-    obtain ⟨ψ', hψ', hψ'e⟩ := hasStructureGroup_iff.1 hH c b x hc hx
+    obtain ⟨ψ, hψ, hψe⟩ := hasStructureGroup_iff.1 hH b c x (hU hx) hc
+    obtain ⟨ψ', hψ', hψ'e⟩ := hasStructureGroup_iff.1 hH c b x hc (hU hx)
     refine ⟨⟨ψ * χ ⟨x, hx⟩, mul_mem hψ (hχo _), ?_⟩,
       ⟨(χ ⟨x, hx⟩)⁻¹ * ψ', mul_mem (inv_mem (hχo _)) hψ', ?_⟩⟩
     · rw [Trivialization.coordChange_transFiberwiseHomeomorph_symm_left e hU
