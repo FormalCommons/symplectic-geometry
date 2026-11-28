@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.Tangent.LeftInvariantDerivation
 public import TauCeti.Topology.Algebra.Lie.Bracket
+import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The bracket on the model space of a Lie group
@@ -31,6 +32,9 @@ It also evaluates Tau Ceti's linear equivalence `groupLieAlgebraEquivModelVector
 * `groupLieAlgebraEquivModelVectorSpace_apply` and
   `groupLieAlgebraEquivModelVectorSpace_symm_apply`: Tau Ceti's identification of
   `GroupLieAlgebra I G` with `E`, and its inverse, send each vector to itself.
+* `toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_apply`: an endomorphism of
+  `GroupLieAlgebra I G`, conjugated to `E` by that identification, acts on `E` as itself; the
+  `_ad_apply` form evaluates the conjugate of `ad X` to the bracket with `X`.
 * `GroupLieAlgebra.adjointContinuousLinearMap_bracketL`: the adjoint action preserves the
   bracket.
 -/
@@ -116,6 +120,30 @@ model space to itself, read as an element of the Lie algebra `GroupLieAlgebra I 
 theorem groupLieAlgebraEquivModelVectorSpace_symm_apply (v : E) :
     (groupLieAlgebraEquivModelVectorSpace (I := I) (G := G)).symm v = v :=
   (rfl)
+
+variable [FiniteDimensional ℝ E]
+
+/-- An endomorphism `f` of the Lie algebra `GroupLieAlgebra I G`, carried to the model space `E`
+by conjugation with `groupLieAlgebraEquivModelVectorSpace` and read as a continuous linear map,
+sends each vector `v` of `E` to `f v`. -/
+theorem toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_apply
+    (f : Module.End ℝ (GroupLieAlgebra I G)) (v : E) :
+    Module.End.toContinuousLinearMap E
+      ((groupLieAlgebraEquivModelVectorSpace (I := I) (G := G)).conj f) v = f v := by
+  rw [Module.End.toContinuousLinearMap_apply, LinearEquiv.conj_apply_apply,
+    groupLieAlgebraEquivModelVectorSpace_apply, groupLieAlgebraEquivModelVectorSpace_symm_apply]
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
+/-- The adjoint map `ad X` of the Lie algebra `GroupLieAlgebra I G`, carried to the model space
+`E` by conjugation with `groupLieAlgebraEquivModelVectorSpace` and read as a continuous linear
+map, sends each `v` to the bracket `⁅X, v⁆`. -/
+theorem toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_ad_apply
+    [LieGroup I ∞ G] (X v : GroupLieAlgebra I G) :
+    Module.End.toContinuousLinearMap E
+      ((groupLieAlgebraEquivModelVectorSpace (I := I) (G := G)).conj
+        (LieAlgebra.ad ℝ (GroupLieAlgebra I G) X)) v = ⁅X, v⁆ :=
+  (toContinuousLinearMap_conj_groupLieAlgebraEquivModelVectorSpace_apply (E := E) _ v).trans
+    (LieAlgebra.ad_apply ℝ (GroupLieAlgebra I G) X v)
 
 end ModelVectorSpace
 
