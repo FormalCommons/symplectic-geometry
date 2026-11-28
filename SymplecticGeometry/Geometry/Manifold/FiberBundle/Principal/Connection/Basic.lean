@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -79,7 +80,8 @@ form are a smooth Ehresmann connection on `π`.
 
 The forms take their values in the model space `EG` of `G`, which is `𝔤` by definition and
 carries the norm that `SmoothForm` needs, as Tau Ceti's connection forms do. The adjoint action
-enters the form-level statements as `GroupLieAlgebra.adjointL IG g : EG →L[ℝ] EG`. The statements
+enters the form-level statements as Tau Ceti's `adjointContinuousLinearMap (I := IG) g`, read as
+a map of `EG` by `SmoothForm.mapCoeff (F := EG) (G := EG)`. The statements
 about connection forms are in Tau Ceti's namespace `TauCeti.PrincipalBundle.IsConnectionForm`, so
 that dot notation finds them. The proof of `TauCeti.PrincipalBundle.isConnectionForm_sum_smul`
 follows that of Tau Ceti's `TauCeti.PrincipalBundle.IsConnectionForm.smul_add_smul`.
@@ -111,7 +113,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 namespace SymplecticGeometry
 
-/-! ### Connection forms and tensorial forms -/
+/-! ### Tensorial forms -/
 
 /-- A **tensorial form** of type `Ad` on a smooth principal `G`-bundle `P`: a smooth `k`-form `a`
 on the total space with values in the Lie algebra `𝔤` of `G` that is equivariant,
@@ -125,7 +127,8 @@ structure IsTensorialForm {k : ℕ}
   `Ad(g⁻¹)`. -/
   mpullback_op_smul (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
-      (contMDiff_const_smul (op g)) a = SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) a
+      (contMDiff_const_smul (op g)) a =
+        SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) a
   /-- A tensorial form is semibasic for the projection: it vanishes as soon as one of its
   arguments is vertical. -/
   isSemibasic : RoughForm.IsSemibasic (F := EG) IB
@@ -162,10 +165,8 @@ at `x` on `v`. -/
 theorem apply_mfderiv_op_smul (ha : IsTensorialForm a) (g : G) (x : ManifoldTotalSpace G P)
     (v : Fin k → TangentSpace (IB.prod IG) x) :
     a.val (op g • x) (fun i ↦ mfderiv (IB.prod IG) (IB.prod IG) (fun y ↦ op g • y) x (v i)) =
-      GroupLieAlgebra.adjointL IG g⁻¹ (a.val x v) := by
-  have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (ha.mpullback_op_smul g)) x) v
-  simp only [SmoothForm.mpullback_apply, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply] at h
-  exact h
+      adjointContinuousLinearMap (I := IG) g⁻¹ (a.val x v) :=
+  (SmoothForm.mpullback_eq_mapCoeff_iff _).1 (ha.mpullback_op_smul g) x v
 
 /-- The difference of two tensorial forms is tensorial. -/
 theorem sub (ha : IsTensorialForm a) (hb : IsTensorialForm b) : IsTensorialForm (a - b) := by
@@ -246,25 +247,19 @@ theorem of_mpullback_op_smul
       A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ)
     (h₂ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) A =
-        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A) :
+        SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) A) :
     IsConnectionForm A where
   apply_rightFundamentalVectorField := h₁
-  apply_mfderiv_op_smul g x v := by
-    have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (h₂ g)) x) ![v]
-    simp only [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-      GroupLieAlgebra.adjointL_apply] at h
-    exact h
+  apply_mfderiv_op_smul g :=
+    (SmoothForm.mpullback_eq_mapCoeff_iff_one (F := EG) (G := EG) _).1 (h₂ g)
 
 /-- **The equivariance of a connection form, as forms.** The pull-back of a connection form `A`
 by the action of `g` is its image `Ad(g⁻¹) ∘ A` under the adjoint action of `g⁻¹`. -/
 theorem mpullback_op_smul (hA : IsConnectionForm A) (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) A =
-        SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A := by
-  refine SmoothBundleForm.ext fun x v ↦ ?_
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by rw [Subsingleton.elim i 0]; rfl⟩
-  rw [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-    hA.apply_mfderiv_op_smul, GroupLieAlgebra.adjointL_apply]
+        SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) A :=
+  (SmoothForm.mpullback_eq_mapCoeff_iff_one _).2 (hA.apply_mfderiv_op_smul g)
 
 /-- The horizontal space of a connection form is a complement of the vertical space, the kernel
 of the derivative of the projection. -/
@@ -369,9 +364,12 @@ theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ
     {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG k} :
     IsTensorialForm a ↔ RoughForm.IsBasic (V := EG) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG) a.val := by
-  -- The adjoint action of a commutative group is trivial.
-  have hAd (g : G) : SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) a = a := by
-    rw [GroupLieAlgebra.adjointL_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
+  -- The adjoint action of a commutative group is trivial. Tau Ceti states it as the identity of
+  -- `GroupLieAlgebra IG G`; the `show` reads it as the identity of the model space `EG`.
+  have hAd (g : G) :
+      SmoothForm.mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) a = a := by
+    rw [show (adjointContinuousLinearMap (I := IG) g⁻¹ : EG →L[ℝ] EG) = ContinuousLinearMap.id ℝ EG
+      from adjointContinuousLinearMap_eq_id g⁻¹, SmoothForm.mapCoeff_id, LinearMap.id_apply]
   refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
       (fun g ↦ (h.mpullback_op_smul g).trans (hAd g))
       (ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff.mp h.isSemibasic),

@@ -29,8 +29,9 @@ versions pinned when this file was written (Tau Ceti `c9d170eed5a8`).
   Ceti's `TauCeti.Lie.adjointContinuousLinearMap g : 𝔤 →L[ℝ] 𝔤`. Forms
   with values in `𝔤` take their values in the model space `EG`, which is
   `𝔤` by definition and carries the norm, as Tau Ceti's connection forms
-  do; there the adjoint action is `GroupLieAlgebra.adjointL IG g` and the
-  bracket `GroupLieAlgebra.bracketL IG G`, both `: EG →L[ℝ] …`.
+  do; there the adjoint action is `adjointContinuousLinearMap (I := IG) g`
+  read as a map `EG →L[ℝ] EG`, and the bracket is
+  `GroupLieAlgebra.bracketL IG G : EG →L[ℝ] EG →L[ℝ] EG`.
 - **The bundle.** $P$ is a smooth principal `G`-bundle in Tau Ceti's form,
   with the instances of the merged
   `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean`:
@@ -82,7 +83,8 @@ two more.
   invariant formula for $d$ of a one-form, `SmoothForm.mextDeriv_apply_one`
   (`DifferentialForm/VectorField.lean`). The equivariance of a connection
   form is then the equation of forms
-  `mpullback (op g • ·) A = mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A`.
+  `mpullback (op g • ·) A =
+  mapCoeff (F := EG) (G := EG) (adjointContinuousLinearMap (I := IG) g⁻¹) A`.
 - **The bracket $[A\wedge A]$.** It is
   `SmoothForm.wedgeWith (GroupLieAlgebra.bracketL IG G) A A`, Tau Ceti's
   `TauCeti.lieL ℝ 𝔤 𝔤` read on `EG`, where Tau Ceti's
@@ -196,7 +198,8 @@ left-invariant fields.
   `TauCeti.PrincipalBundle.IsConnectionForm`.
   `IsConnectionForm.mpullback_op_smul (g : G) :
   SmoothForm.mpullback (fun x ↦ op g • x) _ A =
-  SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A` states the
+  SmoothForm.mapCoeff (F := EG) (G := EG)
+  (adjointContinuousLinearMap (I := IG) g⁻¹) A` states the
   equivariance as forms.
 - Existence over a paracompact base is Tau Ceti's
   `TauCeti.PrincipalBundle.exists_isConnectionForm`. Its case
