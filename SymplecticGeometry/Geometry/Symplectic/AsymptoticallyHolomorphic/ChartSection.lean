@@ -55,11 +55,11 @@ The `∂̄` reading of a section in the chart at `x` is the antilinear part of i
 `L` for `J_{k,x}`, the structure `J` read in the chart, while the model `∂̄`
 (`SymplecticGeometry.modelDbar`) of its reading is the antilinear part of the same `L` for
 `J₀ = stdComplexStructure ι`; the two differ by `(i / 2) L ∘ (J_{k,x} - J₀)`
-(`SymplecticGeometry.RescaledUnitaryCharts.dbarReading_eq_modelDbar_add`). On the ball of radius
+(`SymplecticGeometry.modelDbarWith_eq_add`). On the ball of radius
 `ρ₀ * √k`, the jets of `J_{k,x} - J₀` are of size `(1 + ‖z‖) / √k`
 (`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_chartPushforward_sub_le`), and those
 of `L` of size `1 + ‖z‖` times the jets of the reading
-(`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_connectionReading_le`), so the Leibniz
+(`SymplecticGeometry.exists_jetNormAt_modelConnection_le`), so the Leibniz
 bound `SymplecticGeometry.jetNormAt_bilinear_le` bounds the `r`-jet norm of the `∂̄` reading by
 that of the model `∂̄` plus `C * (1 + ‖z‖) ^ 2 / √k` times the `(r + 1)`-jet norm of the reading,
 with `C` independent of `k`, `x` and the section.
@@ -316,23 +316,6 @@ theorem contDiffAt_reading_and_dbarReading_sectionOfReading [T2Space M] [I.Bound
 
 /-! ### `∂̄` against the model `∂̄` -/
 
-/-- The `∂̄` reading of `s` in the chart at `x` is the model `∂̄` of its reading plus the
-correction `(i / 2) L ∘ (J_{k,x}(z) - J₀)`, for `L` the connection read in the chart,
-`J_{k,x}` the structure `J` read in the chart and `J₀ = stdComplexStructure ι`. -/
-theorem dbarReading_eq_modelDbar_add (k : ℕ) (x : M) (s : Π y, PowerBundle P k y)
-    (z : StdSpace ι) :
-    D.dbarReading k x s z = modelDbar (D.reading k x s) z +
-      (((2⁻¹ : ℂ) * Complex.I) • D.connectionReading k x s z).comp
-        (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z -
-          LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) := by
-  ext v
-  rw [dbarReading_apply, add_apply, modelDbar_def, modelDbarWith_apply, ← connectionReading_def,
-    ContinuousLinearMap.comp_apply, sub_apply, map_sub, smul_apply,
-    LinearMap.coe_toContinuousLinearMap']
-  simp only [FunLike.coe_smul, Pi.smul_apply, smul_eq_mul, Complex.real_smul]
-  push_cast
-  ring
-
 /-- **`∂̄` against the model `∂̄` in the chart at the centre.** On a boundaryless manifold, for
 every order `r` there is a constant `C`, independent of `k ≥ k₀`, of the centre `x` and of the
 section `s`, such that at every point `z` of the ball of radius `ρ₀ * √k` where the reading `f` of
@@ -354,12 +337,12 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
   let : NormedSpace ℝ ((StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] ℂ) :=
     ContinuousLinearMap.toNormedSpace
   set B := ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℂ
-  obtain ⟨A₁, hA₁⟩ := D.exists_jetNormAt_connectionReading_le r
+  obtain ⟨A₁, hA₁⟩ := exists_jetNormAt_modelConnection_le (ι := ι) r
   obtain ⟨A₂, hA₂⟩ := D.exists_jetNormAt_chartPushforward_sub_le r
   refine ⟨2 ^ r * ‖B‖ * ‖c‖ * A₁ * A₂, fun {k} hk x s z hz hs ↦ ?_⟩
   set g := D.reading k x s
   set JJ := J.chartPushforward (D.chart k x).toOpenPartialHomeomorph
-  set L := D.connectionReading k x s
+  set L := modelConnection g
   have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
   have hJJ : ContDiffAt ℝ r JJ z :=
     ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
@@ -369,9 +352,9 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
   -- The correction term is bilinear in `c • L` and `J_{k,x} - J₀`.
   have heq : D.dbarReading k x s = modelDbar g + fun w ↦ B ((c • L) w) (JJ w - J₀) := by
     funext w
-    rw [D.dbarReading_eq_modelDbar_add, Pi.add_apply, ContinuousLinearMap.compL_apply,
-      Pi.smul_apply]
-  have hcL : ContDiffAt ℝ r (c • L) z := (D.contDiffAt_connectionReading hs').const_smul c
+    rw [dbarReading_def, modelDbarWith_eq_add _ (fun _ ↦ J₀), ← modelDbar_def, Pi.add_apply,
+      ContinuousLinearMap.compL_apply, Pi.smul_apply]
+  have hcL : ContDiffAt ℝ r (c • L) z := (contDiffAt_modelConnection hs').const_smul c
   have hJJ₀ : ContDiffAt ℝ r (fun w ↦ JJ w - J₀) z := hJJ.sub contDiffAt_const
   have hT := jetNormAt_bilinear_le B hcL hJJ₀
   rw [jetNormAt_smul] at hT
@@ -383,12 +366,12 @@ theorem exists_jetNormAt_dbarReading_le [I.Boundaryless] (r : ℕ) :
   have : 0 ≤ ‖B‖ := ContinuousLinearMap.opNorm_nonneg B
   have hL0 : 0 ≤ jetNormAt ℝ r L z := jetNormAt_nonneg _ _ _
   have : 0 ≤ jetNormAt ℝ r (fun w ↦ JJ w - J₀) z := jetNormAt_nonneg _ _ _
-  have : 0 ≤ A₁ * (1 + ‖z‖) * jetNormAt ℝ (r + 1) g z := hL0.trans (hA₁ k x s hs)
+  have : 0 ≤ A₁ * (1 + ‖z‖) * jetNormAt ℝ (r + 1) g z := hL0.trans (hA₁ g hs)
   calc 2 ^ r * ‖B‖ * (‖c‖ * jetNormAt ℝ r L z) * jetNormAt ℝ r (fun w ↦ JJ w - J₀) z
       ≤ 2 ^ r * ‖B‖ * (‖c‖ * (A₁ * (1 + ‖z‖) * jetNormAt ℝ (r + 1) g z)) *
           (A₂ * (√k)⁻¹ * (1 + ‖z‖)) := by
         gcongr
-        exacts [hA₁ k x s hs, hA₂ hk x hz]
+        exacts [hA₁ g hs, hA₂ hk x hz]
     _ = 2 ^ r * ‖B‖ * ‖c‖ * A₁ * A₂ * (√k)⁻¹ * (1 + ‖z‖) ^ 2 * jetNormAt ℝ (r + 1) g z := by
         ring
 
