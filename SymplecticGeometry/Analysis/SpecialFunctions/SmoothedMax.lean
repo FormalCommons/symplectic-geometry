@@ -104,7 +104,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   (`le_deriv_smoothedMaxChain`, `deriv_smoothedMaxChain_le`, `abs_deriv_smoothedMaxChain_le`),
   and are `A i` where the `A j` climb
   by at least `δ` from each to the next (`smoothedMaxChain_eq`,
-  `smoothedMaxChain_eventuallyEq`).
+  `smoothedMaxChain_eventuallyEq`). The chains of smoothed minima `-smoothedMaxChain δ (-A)`
+  keep the bounds of the absolute slopes (`abs_deriv_neg_smoothedMaxChain_neg_le`) and are at
+  least `c` where the `A j` are at least `c + i δ / 2` (`le_neg_smoothedMaxChain_neg`).
 * `SymplecticGeometry.abs_smoothedMax_sub_le`, `SymplecticGeometry.abs_deriv_smoothedMax_sub_le`
   and `SymplecticGeometry.abs_iteratedDeriv_two_smoothedMax_sub_le`: the value and the first two
   derivatives of the smoothed maximum of two functions are as close to any target as the farther
@@ -1001,6 +1003,23 @@ theorem abs_deriv_smoothedMaxChain_le (δ : ℝ) {G : ℝ}
     |deriv (smoothedMaxChain δ A i) r| ≤ G :=
   abs_le.2 ⟨le_deriv_smoothedMaxChain δ hA fun j hj ↦ (abs_le.1 (hG j hj)).1,
     deriv_smoothedMaxChain_le δ hA fun j hj ↦ (abs_le.1 (hG j hj)).2⟩
+
+/-- The derivative at `r` of a member of the chain of smoothed minima
+`-smoothedMaxChain δ (-A)` is at most `G` in absolute value if those of `A 0, …, A i` are. -/
+theorem abs_deriv_neg_smoothedMaxChain_neg_le (δ : ℝ) {G : ℝ}
+    (hA : ∀ j ≤ i, DifferentiableAt ℝ (A j) r) (hG : ∀ j ≤ i, |deriv (A j) r| ≤ G) :
+    |deriv (fun r ↦ -smoothedMaxChain δ (fun j r ↦ -A j r) i r) r| ≤ G := by
+  rw [deriv.fun_neg, abs_neg]
+  exact abs_deriv_smoothedMaxChain_le δ (fun j hj ↦ (hA j hj).neg) fun j hj ↦ by
+    rw [deriv.fun_neg, abs_neg]
+    exact hG j hj
+
+/-- For `δ > 0`, the `i`-th member of the chain of smoothed minima `-smoothedMaxChain δ (-A)` is
+at least `c` at `r` if `A 0, …, A i` are at least `c + i δ / 2` there. -/
+theorem le_neg_smoothedMaxChain_neg (hδ : 0 < δ) {c : ℝ} (h : ∀ j ≤ i, c + i * δ / 2 ≤ A j r) :
+    c ≤ -smoothedMaxChain δ (fun j r ↦ -A j r) i r := by
+  obtain ⟨j, hj, hle⟩ := exists_smoothedMaxChain_le_add hδ (fun j r ↦ -A j r) i r
+  linarith [h j hj]
 
 /-- For `δ > 0`, if at `r` each of `A 0, …, A i` lies at least `δ` below the next, then the
 `i`-th member of the chain of smoothed maxima is `A i` at `r`. -/
