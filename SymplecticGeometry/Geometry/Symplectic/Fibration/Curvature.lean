@@ -867,7 +867,7 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
     exact (τ.eval₂_smoothFiberComponent x y _ w).symm
   -- `dτ` on the constant fields and `(0, w)`, by Tau Ceti's formula on a parameter product.
   have hdτ := mextDeriv_horizontalLiftField_const hD bs hσ hτ i j w
-  have hcurl := SmoothTwoForm.fderiv_mixedComponent_sub_fderiv_mixedComponent τ bs i j x y w
+  have hcurl := SmoothTwoForm.mixedCurl_eq_mvfderiv_baseComponent_sub_mextDeriv τ bs i j x y w
   -- The derivative along `(0, w)` of `τ(Lᵢ, Lⱼ)` is read on the fibre over `x`.
   have hfd := (SmoothTwoForm.contMDiff_baseComponent τ bs i j (x, y)).mdifferentiableAt (by simp)
   have hL (k : ι) := hD.mdifferentiableAt_horizontalLiftField hn (hproj (x, y))
@@ -885,7 +885,6 @@ theorem curvatureIn_local (hn : 1 ≤ n) {y : F}
       (v := (((0 : EB), w) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y))) rfl]
     exact (congrArg (fun φ ↦ mvfderiv IF φ y w) (funext fun y' ↦
       (sub_val_horizontalLiftField_const hD bs hσ i j y').symm)).trans h
-  rw [RoughForm.mixedCurl_def]
   linear_combination -hlhs + hid - hdτ - hcurl + hS
 
 /-- **Hamiltonian curvature in a product chart.** In the setting of `curvatureIn_local`, suppose
