@@ -589,11 +589,12 @@ theorem surroundFamily_neg_eight_mul (hδ : 0 ≤ δ) (r : ℝ) :
 
 /-- **The leaves of the glued family are `i`-convex shapes.** Let `δ > 0`, `24 δ ≤ ℓ₀ ≤ ℓₜ / 2`
 and `M ≥ 8`, let `L ≥ 1` be large compared with bounds `A` of `smoothTransition'`, `B` of
-`smoothTransition''` and `N` of `x smoothTransition'' x`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be
-an `i`-convex shape at every `r > δ`, `C²` on `(δ, ∞)`, a constant plus `struweShape δ 4 0` on
-`(δ, 9 δ / 2]`, at least `ℓ` on `(δ, ∞)`, the standard leaf `r ↦ √(64 r² + ℓ²)` from `ℓ / 4`
-on, and of slope at most `M` in absolute value on `[3 δ, ℓ / 4]`. Then for `ℓ ∈ [-8 δ, ℓₜ]` the
-leaf `ℓ` of the glued family is an `i`-convex shape at every `r > δ`. -/
+`smoothTransition''` and `N` of `x smoothTransition'' x`, let every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, be an
+`i`-convex shape at every `r > δ`, and let every `F ℓ`, `ℓ ∈ [ℓ₀, 2 ℓ₀]`, be `C²` on `(δ, ∞)`, a
+constant plus `struweShape δ 4 0` on `(δ, 9 δ / 2]`, at least `ℓ` on `(δ, ∞)`, the standard leaf
+`r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
+`[3 δ, ℓ / 4]`. Then for `ℓ ∈ [-8 δ, ℓₜ]` the leaf `ℓ` of the glued family is an `i`-convex
+shape at every `r > δ`. -/
 theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
     (hA : ∀ x, |deriv smoothTransition x| ≤ A)
     (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
@@ -601,11 +602,12 @@ theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
     (hM : 8 ≤ M) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
     (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
-    (hF2 : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
-    (hFS : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
-    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → ℓ ≤ F ℓ r)
-    (hFs : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
-    (hFd : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
+    (hF2 : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀),
+      ∃ c, ∀ r ∈ Ioc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r)
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
+    (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
     (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) (hr : δ < r) :
     IsConvexShapeAt (surroundFamily L δ ℓ₀ M F ℓ) r := by
   obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
@@ -621,29 +623,24 @@ theorem isConvexShapeAt_surroundFamily {A B N ℓₜ r : ℝ}
   rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
   · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
     exact isConvexShapeAt_bridgeFamily hA hB hN hL₁ hL hδ hℓ₀ hM (fun ℓ h ↦ hFc ℓ (hsub h))
-      (fun ℓ h ↦ hF2 ℓ (hsub h)) (fun ℓ h ↦ hFS ℓ (hsub h)) (fun ℓ h ↦ hFℓ ℓ (hsub h))
-      (fun ℓ h ↦ hFs ℓ (hsub h)) (fun ℓ h ↦ hFd ℓ (hsub h)) ⟨h7.le, h2⟩ hr
+      hF2 hFS hFℓ hFs hFd ⟨h7.le, h2⟩ hr
   · rw [surroundFamily_of_lt hδ.le h7 h2]
     exact hFc ℓ ⟨by linarith, hℓ₂⟩ r hr
 
-/-- **The leaves of the glued family are smooth.** For `0 ≤ L`, `0 < δ` and `2 ℓ₀ ≤ ℓₜ`, if
-every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, is smooth on `(δ, ∞)`, then so is each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the
+/-- **The leaves of the glued family are `Cⁿ`.** For `0 ≤ L`, `0 < δ` and `2 ℓ₀ ≤ ℓₜ`, if
+every `F ℓ`, `ℓ ∈ [ℓ₀, ℓₜ]`, is `Cⁿ` on `(δ, ∞)`, then so is each leaf `ℓ ∈ [-8 δ, ℓₜ]` of the
 glued family. -/
-theorem contDiffOn_surroundFamily {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (hℓₜ : 2 * ℓ₀ ≤ ℓₜ)
-    (hF : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ ∞ (F ℓ) (Ioi δ)) (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) :
-    ContDiffOn ℝ ∞ (surroundFamily L δ ℓ₀ M F ℓ) (Ioi δ) := by
+theorem contDiffOn_surroundFamily {n : ℕ∞} {ℓₜ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
+    (hℓₜ : 2 * ℓ₀ ≤ ℓₜ) (hF : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ n (F ℓ) (Ioi δ))
+    (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) : ContDiffOn ℝ n (surroundFamily L δ ℓ₀ M F ℓ) (Ioi δ) := by
   obtain ⟨hℓ₁, hℓ₂⟩ := hℓ
   rcases le_or_gt ℓ 0 with h0 | h0
   · rw [surroundFamily_of_nonpos h0]
-    exact contDiffOn_sqrtSubLeaf L hδ.le (by rw [abs_of_nonpos h0]; linarith)
+    exact (contDiffOn_sqrtSubLeaf L hδ.le (by rw [abs_of_nonpos h0]; linarith)).of_le
+      (by exact_mod_cast le_top)
   rcases le_or_gt ℓ (7 * δ) with h7 | h7
   · rw [surroundFamily_of_pos_of_le h0 h7]
-    -- The leaf of the jointly smooth family `(ℓ, r) ↦ struweSwitchLeaf L δ ℓ r`.
-    have h : ContDiffOn ℝ ∞ (Function.uncurry (struweSwitchLeaf L δ) ∘ fun r ↦ (ℓ, r))
-        (Ioi δ) := fun r hr ↦
-      ((contDiffAt_uncurry_struweSwitchLeaf hL hδ (q := (ℓ, r)) hr).comp r
-        (contDiffAt_const.prodMk contDiffAt_id)).contDiffWithinAt
-    exact h.congr fun r _ ↦ by simp
+    exact contDiffOn_struweSwitchLeaf hL hδ ℓ
   rcases le_or_gt ℓ (2 * ℓ₀) with h2 | h2
   · rw [surroundFamily_of_lt_of_le hδ.le h7 h2]
     exact contDiffOn_bridgeFamily hδ (fun ℓ h ↦ hF ℓ (Icc_subset_Icc_right hℓₜ h)) h2
@@ -716,15 +713,17 @@ theorem strictMonoOn_surroundFamily {A B N ℓₜ : ℝ}
     (hFc : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
     (hF2 : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
     (hFS : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
-    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, δ < r → ℓ ≤ F ℓ r)
-    (hFs : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
-    (hFd : ∀ ℓ ∈ Icc ℓ₀ ℓₜ, ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
+    (hFℓ : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → ℓ ≤ F ℓ r)
+    (hFs : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2))
+    (hFd : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M)
     (hℓ : ℓ ∈ Icc (-8 * δ) ℓₜ) : StrictMonoOn (surroundFamily L δ ℓ₀ M F ℓ) (Ici δ) :=
   strictMonoOn_Ici_of_isConvexShapeAt
     (continuousOn_surroundFamily (by linarith) hδ (by linarith) (by linarith) hℓₜ hFS
       (fun ℓ h ↦ (hF2 ℓ h).continuousOn) hℓ.2)
-    fun _ hr ↦ isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc hF2
-      (fun ℓ h ↦ (hFS ℓ h).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩) hFℓ hFs hFd hℓ hr
+    fun _ hr ↦ isConvexShapeAt_surroundFamily hA hB hN hL₁ hL hδ hℓ₀ hM hℓₜ hFc
+      (fun ℓ h ↦ hF2 ℓ (Icc_subset_Icc_right hℓₜ h))
+      (fun ℓ h ↦ (hFS ℓ (Icc_subset_Icc_right hℓₜ h)).imp fun _ hc r hr ↦ hc r ⟨hr.1.le, hr.2⟩)
+      hFℓ hFs hFd hℓ hr
 
 end surroundFamily
 

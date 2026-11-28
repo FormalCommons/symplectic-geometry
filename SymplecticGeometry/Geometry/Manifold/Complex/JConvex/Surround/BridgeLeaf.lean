@@ -1144,26 +1144,6 @@ theorem tendsto_deriv_bridgeFamily {L ℓ₀ M ℓ : ℝ} (hL : 0 ≤ L) (hδ : 
   obtain ⟨c, u, hu, h⟩ := exists_eqOn_bridgeFamily_struweShape hL hδ hℓ₀ hM hFS hℓ
   exact tendsto_deriv_of_eqOn_struweShape hδ (by norm_num) hu (h.mono Ioo_subset_Ico_self)
 
-/-- **The leaves of the bridge family are continuous up to the cylinder.** Under the hypotheses
-of `SymplecticGeometry.exists_eqOn_bridgeFamily_struweShape`, if moreover every `F ℓ`,
-`ℓ ∈ [ℓ₀, 2 ℓ₀]`, is continuous on `(δ, ∞)`, then each leaf `ℓ ∈ [0, 2 ℓ₀]` of the bridge
-family is continuous on `[δ, ∞)`. -/
-theorem continuousOn_bridgeFamily {L ℓ₀ M ℓ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
-    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) {F : ℝ → ℝ → ℝ}
-    (hFS : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
-    (hFc : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContinuousOn (F ℓ) (Ioi δ)) (hℓ : ℓ ∈ Icc 0 (2 * ℓ₀)) :
-    ContinuousOn (bridgeFamily L δ ℓ₀ M F ℓ) (Ici δ) := by
-  obtain ⟨c, u, hu, h⟩ := exists_eqOn_bridgeFamily_struweShape hL hδ hℓ₀ hM hFS hℓ
-  refine continuousOn_Ici_of_eqOn_struweShape hδ (by norm_num) ?_ hu h
-  have hb {η t : ℝ} {G : ℝ → ℝ} (hG : ContinuousOn G (Ioi δ)) :
-      ContinuousOn (bridgeLeaf δ η G t) (Ioi δ) :=
-    (contDiffOn_bridgeLeaf (n := 0) hδ η (contDiffOn_zero.2 hG) t).continuousOn
-  rw [bridgeFamily_def]
-  split_ifs with h15 h0
-  · exact hb (continuous_sqrtAddLeaf L δ ℓ).continuousOn
-  · exact hb (by fun_prop : Continuous fun r : ℝ ↦ √(64 * r ^ 2 + ℓ ^ 2)).continuousOn
-  · exact hb (hFc ℓ ⟨(not_le.1 h0).le, hℓ.2⟩)
-
 /-- **The leaves of the bridge family are smooth.** For `δ > 0`, if every `F ℓ`,
 `ℓ ∈ [ℓ₀, 2 ℓ₀]`, is `Cⁿ` on `(δ, ∞)`, then so is each leaf `ℓ ≤ 2 ℓ₀` of the bridge family. -/
 theorem contDiffOn_bridgeFamily {n : ℕ∞} {L ℓ₀ M ℓ : ℝ} (hδ : 0 < δ) {F : ℝ → ℝ → ℝ}
@@ -1177,6 +1157,20 @@ theorem contDiffOn_bridgeFamily {n : ℕ∞} {L ℓ₀ M ℓ : ℝ} (hδ : 0 < �
     have hr : 0 < r := hδ.trans hr
     exact (ContDiffAt.sqrt (by fun_prop) (by positivity)).contDiffWithinAt
   · exact contDiffOn_bridgeLeaf hδ _ (hF ℓ ⟨(not_le.1 h0).le, hℓ⟩) _
+
+/-- **The leaves of the bridge family are continuous up to the cylinder.** Under the hypotheses
+of `SymplecticGeometry.exists_eqOn_bridgeFamily_struweShape`, if moreover every `F ℓ`,
+`ℓ ∈ [ℓ₀, 2 ℓ₀]`, is continuous on `(δ, ∞)`, then each leaf `ℓ ∈ [0, 2 ℓ₀]` of the bridge
+family is continuous on `[δ, ∞)`. -/
+theorem continuousOn_bridgeFamily {L ℓ₀ M ℓ : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ)
+    (hℓ₀ : 15 * δ / 2 < ℓ₀) (hM : 0 ≤ M) {F : ℝ → ℝ → ℝ}
+    (hFS : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r)
+    (hFc : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContinuousOn (F ℓ) (Ioi δ)) (hℓ : ℓ ∈ Icc 0 (2 * ℓ₀)) :
+    ContinuousOn (bridgeFamily L δ ℓ₀ M F ℓ) (Ici δ) := by
+  obtain ⟨c, u, hu, h⟩ := exists_eqOn_bridgeFamily_struweShape hL hδ hℓ₀ hM hFS hℓ
+  exact continuousOn_Ici_of_eqOn_struweShape hδ (by norm_num)
+    (contDiffOn_bridgeFamily (n := 0) hδ (fun ℓ h ↦ contDiffOn_zero.2 (hFc ℓ h)) hℓ.2).continuousOn
+    hu h
 
 /-! ### The far part and the upper bound of the glued bridge family -/
 
