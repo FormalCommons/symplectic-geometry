@@ -10,6 +10,9 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.Relativ
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.SliceIntegral
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ExceptionalClass
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Real
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Weight
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Family
+public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Integral
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -67,6 +70,20 @@ transverse to `Z` and oriented as its normal bundle
 (`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`, in the namespace
 `TauCeti.SmoothEmbedding`). So `m = π l²`.
 
+Mapping that relative class to `H²(Blowup; ℝ)` gives (v), `deRhamHom_normalizedBlowupForm`: the
+image under `TauCeti.deRhamHom` of the class of `ω̃_{ψ,l,ε}` is the pull-back by `π` of that of
+`σ` plus `π l²` times the real image of the exceptional class `e = Blowup.exceptionalClass`. The
+image of the relative class is the de Rham image of `ω̃_{ψ,l,ε} - π^* σ`
+(`TauCeti.singularCohomologyπ_relativeDeRhamHom`), and that of the dual class is the real image of
+`e` (`TauCeti.SmoothEmbedding.singularCohomologyπ_realRelDualClass`). McDuff–Salamon write the
+class as `π^*[σ] - π l² e`. The sign differs because the relative version of the library's `e`,
+the real relative dual class `D`, pairs to `-1` with a positively oriented disc normal to `Z`,
+while the book's Poincaré dual pairs to `+1` with it (see `ERRATA.md`).
+
+Last, `normalizedBlowupForm_spec` collects the defining properties of `ω̃_{ψ,l,ε}` and the items
+(i)–(vii) of McDuff–Salamon, Theorem 7.1.21, proved in `Normalized/Basic.lean`,
+`Normalized/Weight.lean`, `Normalized/Family.lean` and here.
+
 ## Main results
 
 * `IsNormalizedBallEmbedding.exists_mextDeriv_eq_mpullback_subtypeVal_normalizedBlowupForm_sub`:
@@ -76,11 +93,15 @@ transverse to `Z` and oriented as its normal bundle
   the class of such a relative cocycle pairs to `-π l²` with a disc through `Z` along a line.
 * `IsNormalizedBallEmbedding.relativeDeRhamHom_mk_eq_smul_realRelDualClass`: that class is
   `π l²` times the real relative dual class of `Z`.
+* `IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm`: the class of `ω̃_{ψ,l,ε}` is
+  `π^*[σ] + π l² e` in `H²(Blowup; ℝ)`.
+* `IsNormalizedBallEmbedding.normalizedBlowupForm_spec`: McDuff–Salamon, Theorem 7.1.21.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
-  proof of Theorem 7.1.21 (v).
+  Theorem 7.1.21 and the proof of its item (v).
+* [D. McDuff, L. Polterovich, *Symplectic packings and algebraic geometry*][McDuffPolterovich1994].
 -/
 
 public section
@@ -535,6 +556,161 @@ theorem relativeDeRhamHom_mk_eq_smul_realRelDualClass [SigmaCompactSpace M] {h :
     exact h1
   rw [mul_neg_one, neg_inj] at hm'
   rw [hb, hm']
+
+/-- **The class of `ω̃_{ψ,l,ε}`** (McDuff–Salamon, Theorem 7.1.21 (v)). Let `σ` be symplectic and
+`h` a profile of the blowup of weight `l` with collar `ε`. In `H²(Blowup; ℝ)`, the image under
+`TauCeti.deRhamHom` of the class of `ω̃_{ψ,l,ε} = normalizedBlowupForm hψ h` is the pull-back by
+the blowdown `π` of the image of the class of `σ`, plus `π l²` times the real image of the
+exceptional class `e = Blowup.exceptionalClass`.
+
+The sign comes from the library's convention for `e`: its relative version, the real relative
+dual class of the divisor, pairs to `-1` with a positively oriented disc that meets the divisor
+once, transversally
+(`TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`).
+McDuff–Salamon's Poincaré dual of the divisor pairs to `+1` with such a disc, and with it the
+class is `π^*[σ] - π l² e`. -/
+theorem deRhamHom_normalizedBlowupForm [SecondCountableTopology M] [SigmaCompactSpace M]
+    {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h) (hσ : σ.IsSymplectic) :
+    deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+        (deRhamCohomology.mk _ 2 ⟨hψ.normalizedBlowupForm h,
+          (hψ.isSymplectic_normalizedBlowupForm hh hσ).isClosed.mem_closedForms⟩) =
+      TopCat.singularCohomologyMap (TopCat.ofHom ⟨Blowup.blowdown hN.blowupChart,
+          (Blowup.contMDiff_blowdown_real hN.blowupChart).continuous⟩) 2
+        (deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) M 2
+          (deRhamCohomology.mk _ 2 ⟨σ, hσ.isClosed.mem_closedForms⟩)) +
+      (Real.pi * l ^ 2) •
+        (TopCat.of (Blowup hN.blowupChart)).singularCohomologyRealImageAddMonoidHom 2
+          (Blowup.exceptionalClass hN.blowupChart) := by
+  have hω := (hψ.isSymplectic_normalizedBlowupForm hh hσ).isClosed
+  set π' := SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
+    (Blowup.contMDiff_blowdown_real _) σ
+  have hπ' : π'.IsClosed := hσ.isClosed.mpullback _ _
+  -- The relative cocycle `(ω̃_{ψ,l,ε} - π^* σ, β)` of `(Blowup, W)`, `W` the complement of `Z`.
+  obtain ⟨β, hβ, hβ0⟩ := hψ.exists_mextDeriv_eq_mpullback_subtypeVal_normalizedBlowupForm_sub hh
+  let y : relativeDeRhamCohomology.cocycles 𝓘(ℝ, Fin (n + 1) → ℂ)
+      (Blowup.offDivisorOpens hN.blowupChart) 1 :=
+    ⟨(hψ.normalizedBlowupForm h - π', β), (relativeDeRhamCohomology.mem_cocycles_iff _ _ _).2
+      ⟨(mem_closedForms_iff_mextDerivₗ_eq_zero _ _).1 (hω.sub hπ').mem_closedForms,
+        Subtype.ext ((mextDerivₗ_apply _ _ _).trans hβ).symm⟩⟩
+  -- Map its class, `π l²` times the dual class, to absolute cohomology.
+  have hb := congrArg ((TopPair.ofSubset ((Blowup.offDivisorOpens hN.blowupChart :
+      Set (Blowup hN.blowupChart)) : Set (TopCat.of (Blowup hN.blowupChart)))).singularCohomologyπ
+        (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
+    (hψ.relativeDeRhamHom_mk_eq_smul_realRelDualClass hh y rfl hβ0)
+  -- The pair's ambient space is `Blowup` only up to unfolding `TopPair.ofSubset`, so the lemmas
+  -- below apply through `trans` but not through `rw`.
+  have hb' := (singularCohomologyπ_relativeDeRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ)
+    (Blowup.offDivisorOpens hN.blowupChart) 2 _).symm.trans hb
+  rw [relativeDeRhamCohomology.π_mk] at hb'
+  have key : deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+      (deRhamCohomology.mk _ 2 ⟨hψ.normalizedBlowupForm h - π', (hω.sub hπ').mem_closedForms⟩) =
+      (Real.pi * l ^ 2) •
+        (TopCat.of (Blowup hN.blowupChart)).singularCohomologyRealImageAddMonoidHom 2
+          (Blowup.exceptionalClass hN.blowupChart) := by
+    refine hb'.trans ((map_smul _ _ _).trans (congrArg _ ?_))
+    refine (TopPair.singularCohomologyπ_singularCohomologyMap_ofSubsetMap _ _ 2 _).trans ?_
+    refine (CategoryTheory.ConcreteCategory.congr_hom (TopCat.singularCohomologyMap_id _ 2)
+      _).trans ?_
+    refine (CategoryTheory.ConcreteCategory.id_apply _).trans ?_
+    rw [Blowup.exceptionalClass_def]
+    exact SmoothEmbedding.singularCohomologyπ_realRelDualClass _ _ _ _ _ _
+  -- The class of `ω̃_{ψ,l,ε} - π^* σ` is that of `ω̃_{ψ,l,ε}` minus the pull-back of that of `σ`.
+  have hsub : deRhamCohomology.mk 𝓘(ℝ, Fin (n + 1) → ℂ) 2
+      ⟨hψ.normalizedBlowupForm h - π', (hω.sub hπ').mem_closedForms⟩ =
+      deRhamCohomology.mk _ 2 ⟨hψ.normalizedBlowupForm h, hω.mem_closedForms⟩ -
+        deRhamCohomology.map (Blowup.blowdown hN.blowupChart) (Blowup.contMDiff_blowdown_real _) 2
+          (deRhamCohomology.mk _ 2 ⟨σ, hσ.isClosed.mem_closedForms⟩) := by
+    rw [deRhamCohomology.map_mk, ← map_sub]
+    exact congrArg _ (Subtype.ext (by rw [Submodule.coe_sub, closedForms.coe_mpullback]))
+  rw [hsub, map_sub, deRhamHom_map] at key
+  rw [← key, add_sub_cancel]
+
+/-- **The symplectic form of the almost complex blowup** (McDuff–Salamon, Theorem 7.1.21). Let
+`(M, σ, J)` be normalized at `p₀` by `ψ₀` (`hN`), with `σ` symplectic and `M` Hausdorff, second
+countable and σ-compact, and let `ψ` be a normalized ball embedding of radius `r`, weight `l` and
+width `ε` (`hψ`), with lift `ψ̃ = hψ.ballLiftPartialDiffeomorph` and `L(a) = closedNbhd n a`. The
+form `ω̃_{ψ,l,ε} = hψ.normalizedBlowupForm` of the blowup `Blowup hN.blowupChart`, for the
+profile `blowupProfile l ε`, is symplectic, and it is the only two-form that `ψ̃` pulls back to
+`ω̃_{l,ε} = profileForm n l ε` on `openNbhd n r` and that is `π^* σ` off `ψ̃ '' L(l + ε)`.
+Moreover:
+* (i) `ψ̃` pulls it back to `ω̃_l = blowupForm n l` on `L(ε)`;
+* (ii) for every `0 < ε' ≤ ε`, it is symplectomorphic to the blowup of weight `l` along `ψ`,
+  with collar `ε'`;
+* (iii) the forms of a smooth family of normalized ball embeddings, with smooth weights and
+  widths, are a smooth family;
+* (iv) if `ψ` is pseudoholomorphic from `J₀` to `J` on the closed ball `B(l + ε)`, it is
+  compatible with the almost complex blowup `J̃` of `J`;
+* (v) in `H²(Blowup; ℝ)`, the image under `TauCeti.deRhamHom` of its class is the pull-back of
+  that of `σ` plus `π l²` times the real image of the exceptional class `Blowup.exceptionalClass`
+  (whose sign is the opposite of McDuff–Salamon's; see `deRhamHom_normalizedBlowupForm`);
+* (vi) it is joined to a form compatible with `J̃` by a smooth family of symplectic forms;
+* (vii) the forms of any two profiles of the blowup of weight `l` with collar `ε` are related by
+  a diffeotopy that fixes every point off `ψ̃ '' L(l + ε)`.
+
+Milestone: *Symplectic structure on the almost complex blowup*. -/
+theorem normalizedBlowupForm_spec [SecondCountableTopology M] [SigmaCompactSpace M]
+    (hσ : σ.IsSymplectic) :
+    (hψ.normalizedBlowupForm.IsSymplectic ∧
+      (∀ y ∈ openNbhd n r, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        hψ.ballLiftPartialDiffeomorph hψ.normalizedBlowupForm.val y =
+          (profileForm n l ε (blowupProfile l ε)).val y) ∧
+      (∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε),
+        hψ.normalizedBlowupForm.val x = (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
+          (Blowup.contMDiff_blowdown_real _) σ).val x) ∧
+      ∀ α : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart),
+        (∀ y ∈ openNbhd n r, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+          hψ.ballLiftPartialDiffeomorph α.val y = (profileForm n l ε (blowupProfile l ε)).val y) →
+        (∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε),
+          α.val x = (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
+            (Blowup.contMDiff_blowdown_real _) σ).val x) →
+        α = hψ.normalizedBlowupForm) ∧
+    (∀ y ∈ closedNbhd n ε, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      hψ.ballLiftPartialDiffeomorph hψ.normalizedBlowupForm.val y = (blowupForm n l).val y) ∧
+    (∀ ε' (hε' : 0 < ε') (hε'ε : ε' ≤ ε),
+      ∃ Θ : Blowup hN.blowupChart ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
+          WeightBlowup (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε',
+        hψ.normalizedBlowupForm.IsSymplectomorphism
+          (WeightBlowup.form (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε')
+          Θ) ∧
+    (∀ (r' : ℝ) (Ψ : unitInterval × StdSpace (Fin (n + 1)) → M) (L E : unitInterval → ℝ)
+      (hΨ : ∀ t, IsNormalizedBallEmbedding hN (fun z ↦ Ψ (t, z)) r' (L t) (E t)),
+      IsSymplecticBallFamily σ r' Ψ → ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ L →
+        ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ E →
+        IsSmoothFamily (𝓡∂ 1) fun t ↦ (hΨ t).normalizedBlowupForm) ∧
+    ((∀ z ∈ closedBall (0 : StdSpace (Fin (n + 1))) (l + ε),
+        IsPseudoholomorphicAt (stdComplexStructure (Fin (n + 1))).constSmooth J ψ z) →
+      hψ.normalizedBlowupForm.Compatible
+        (Blowup.almostComplexStructure hN.blowupChart J hN.blowupChart_isHolomorphic)) ∧
+    deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+        (deRhamCohomology.mk _ 2 ⟨hψ.normalizedBlowupForm,
+          (hψ.isSymplectic_normalizedBlowupForm
+            (isBlowupProfile_blowupProfile hψ.weight_pos hψ.width_pos)
+              hσ).isClosed.mem_closedForms⟩) =
+      TopCat.singularCohomologyMap (TopCat.ofHom ⟨Blowup.blowdown hN.blowupChart,
+          (Blowup.contMDiff_blowdown_real hN.blowupChart).continuous⟩) 2
+        (deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) M 2
+          (deRhamCohomology.mk _ 2 ⟨σ, hσ.isClosed.mem_closedForms⟩)) +
+      (Real.pi * l ^ 2) •
+        (TopCat.of (Blowup hN.blowupChart)).singularCohomologyRealImageAddMonoidHom 2
+          (Blowup.exceptionalClass hN.blowupChart) ∧
+    (∃ τ : unitInterval → SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart),
+      IsSmoothFamily (𝓡∂ 1) τ ∧ (∀ t, (τ t).IsSymplectic) ∧ τ 0 = hψ.normalizedBlowupForm ∧
+      (τ 1).Compatible
+        (Blowup.almostComplexStructure hN.blowupChart J hN.blowupChart_isHolomorphic)) ∧
+    ∀ h₀ h₁ : ℝ → ℝ, IsBlowupProfile l ε h₀ → IsBlowupProfile l ε h₁ →
+      ∃ Φ : Diffeotopy 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (Blowup hN.blowupChart),
+        (∀ t, ∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε), Φ (t, x) = x) ∧
+        SmoothForm.mpullback Φ.final Φ.final.contMDiff (hψ.normalizedBlowupForm h₁) =
+          hψ.normalizedBlowupForm h₀ := by
+  have hh := isBlowupProfile_blowupProfile hψ.weight_pos hψ.width_pos
+  exact ⟨⟨hψ.isSymplectic_normalizedBlowupForm hh hσ, hψ.normalizedBlowupForm_eq_on_ballLift hh,
+      hψ.normalizedBlowupForm_eq_on_compl, fun _ hα hα' ↦ hψ.eq_normalizedBlowupForm hh hα hα'⟩,
+    hψ.normalizedBlowupForm_eq_blowupForm_on hh,
+    fun ε' hε' hε'ε ↦ ⟨_, hψ.isSymplectomorphism_normalizedBlowupSymplectomorph hh hε' hε'ε⟩,
+    fun _ _ _ _ hΨ hΨf hL hE ↦ isSmoothFamily_normalizedBlowupForm hΨ hΨf hL hE,
+    hψ.compatible_normalizedBlowupForm hh, hψ.deRhamHom_normalizedBlowupForm hh hσ,
+    hψ.exists_path_compatible hσ,
+    fun _ _ hh₀ hh₁ ↦ hψ.exists_diffeotopy_normalizedBlowupForm_of_profile hσ hh₀ hh₁⟩
 
 end IsNormalizedBallEmbedding
 
