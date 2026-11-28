@@ -138,10 +138,47 @@ private noncomputable def StageData.init {g : M → ℝ} {a : ℝ} (ha : ∀ x, 
   hτP₀ := fun l hl ↦ by simp [hP₀α l hl]
   hδ := fun l ↦ by simp
 
+/-- The data of the next stage, at the level `b`, from the outputs of a stage on `s`: the
+homotopy `H`, whose end `H (·, 1)` is the new `τ`, closed forms `α' l = s.α l + d (γ l)`,
+one-forms `β'` and an open `N' ⊇ {g ≤ b}` on which `H (l, 1) = α' l + d (β' l)`. The new `δ` is
+`s.δ + γ`, so `δ + β` does not change on a set `V` where `γ` vanishes and `β'` agrees with
+`s.β`. -/
+private theorem StageData.exists_next {g : M → ℝ} {a b : ℝ} {K P₀ : Set P}
+    {αs : P → SmoothTwoForm I M} (s : StageData I M P g a K P₀ αs)
+    {H : P × unitInterval → SmoothTwoForm I M} {α' : P → SmoothTwoForm I M}
+    {β' γ : P → SmoothForm I M ℝ 1} {N' V : Set M} (hα'c : ∀ l, mextDerivₗ I 2 (α' l) = 0)
+    (hγ : ∀ l, α' l = s.α l + mextDerivₗ I 1 (γ l)) (hnd : ∀ l ∈ K, (H (l, 1)).IsNondegenerate)
+    (hN' : IsOpen N') (hbN' : {x | g x ≤ b} ⊆ N')
+    (hHN' : ∀ l, ∀ x ∈ N', (H (l, 1)).val x = (α' l + mextDerivₗ I 1 (β' l)).val x)
+    (hHP₀ : ∀ l ∈ P₀, H (l, 1) = α' l + mextDerivₗ I 1 (β' l))
+    (hγV : ∀ l, ∀ x ∈ V, (γ l).val x = 0) (hβV : ∀ l, ∀ x ∈ V, (β' l).val x = (s.β l).val x) :
+    ∃ s' : StageData I M P g b K P₀ αs, s'.τ = (fun l ↦ H (l, 1)) ∧ s'.α = α' ∧ s'.β = β' ∧
+      ∀ l, ∀ x ∈ V, (s'.δ l + s'.β l).val x = (s.δ l + s.β l).val x :=
+  ⟨{ τ := fun l ↦ H (l, 1), α := α', β := β', δ := fun l ↦ s.δ l + γ l, N := N',
+      hαc := hα'c, hnd := hnd, hN := hN', haN := hbN', hτN := hHN', hτP₀ := hHP₀,
+      hδ := fun l ↦ by rw [hγ, s.hδ, map_add, add_assoc] },
+    rfl, rfl, rfl, fun l x hx ↦ by
+      simp only [SmoothBundleForm.add_apply, hγV l x hx, hβV l x hx, add_zero]⟩
+
+/-- The forms of the constant homotopy `(l, t) ↦ τ l` are closed in the class of `α₀` over `P₀`,
+and also over `K` when `M` or `K` is empty. -/
+private theorem closed_const_of_isEmpty {K P₀ : Set P} (hMK : IsEmpty M ∨ K = ∅)
+    {τ α : P → SmoothTwoForm I M} (hαc : ∀ l, mextDerivₗ I 2 (α l) = 0)
+    {α₀ : SmoothTwoForm I M} (hα₀ : ∀ l, α l - α₀ ∈ exactForms I M 2)
+    (hP₀α : ∀ l ∈ P₀, α l = τ l) :
+    (∀ l ∈ P₀, mextDerivₗ I 2 (τ l) = 0 ∧ τ l - α₀ ∈ exactForms I M 2) ∧
+      ∀ l ∈ K, mextDerivₗ I 2 (τ l) = 0 ∧ τ l - α₀ ∈ exactForms I M 2 := by
+  refine ⟨fun l hl ↦ by simpa only [← hP₀α l hl] using ⟨hαc l, hα₀ l⟩, fun l hl ↦ ?_⟩
+  rcases hMK with hM | rfl
+  · -- On an empty manifold every form is zero.
+    rw [Subsingleton.elim (mextDerivₗ I 2 (τ l)) 0, Subsingleton.elim (τ l - α₀) 0]
+    exact ⟨rfl, zero_mem _⟩
+  · exact absurd hl (notMem_empty l)
+
 /-- The recursion and the final argument of the relative h-principle, shared by its smooth and
 continuous versions. The data of stage `k` lie in `D k` and give a `StageData` at the level
 `e k`; `next` gives the data of the following stage and `Φ` the homotopy of the stage, which
-changes neither the forms nor `δ + β` on a set `V ⊇ {g ≤ e k}`. Starting from `s₀`, the stages
+changes neither the forms nor `δ + β` on `{g ≤ e k}`. Starting from `s₀`, the stages
 `Φ n (seq n)` settle on the open cover by the sets `{g < e (n + 1)}`, and the form
 `ε l := αs l + d θ l`, for the limit `θ l` of the one-forms `δ + β`, agrees there with the end of
 stage `n`. Their infinite concatenation ending at `ε` is nondegenerate over `K`, runs through
@@ -152,12 +189,12 @@ private theorem exists_seq_of_stages {g : M → ℝ} (hg : Continuous g) {e : �
     (hαsc : ∀ l, mextDerivₗ I 2 (αs l) = 0) {α₀ : SmoothTwoForm I M}
     (hα₀ : ∀ l, αs l - α₀ ∈ exactForms I M 2) {D : ℕ → Type*}
     (data : ∀ k, D k → StageData I M P g (e k) K P₀ αs) (next : ∀ k, D k → D (k + 1))
-    (Φ : ∀ k, D k → P × unitInterval → SmoothTwoForm I M) (V : ∀ k, D k → Set M)
+    (Φ : ∀ k, D k → P × unitInterval → SmoothTwoForm I M)
     (hΦ₀ : ∀ k s l, Φ k s (l, 0) = (data k s).τ l)
     (hΦ₁ : ∀ k s l, Φ k s (l, 1) = (data (k + 1) (next k s)).τ l)
     (hΦnd : ∀ k s, ∀ l ∈ K, ∀ t, (Φ k s (l, t)).IsNondegenerate)
-    (hV : ∀ k s, {x | g x ≤ e k} ⊆ V k s)
-    (hΦV : ∀ k s l t, ∀ x ∈ V k s, (Φ k s (l, t)).val x = ((data k s).τ l).val x ∧
+    (hΦg : ∀ k s l t x, g x ≤ e k → (Φ k s (l, t)).val x = ((data k s).τ l).val x)
+    (hθg : ∀ k s l x, g x ≤ e k →
       ((data (k + 1) (next k s)).δ l + (data (k + 1) (next k s)).β l).val x =
         ((data k s).δ l + (data k s).β l).val x)
     (hΦP₀ : ∀ k s, ∀ l ∈ P₀, ∀ t, mextDerivₗ I 2 (Φ k s (l, t)) = 0 ∧
@@ -183,7 +220,7 @@ private theorem exists_seq_of_stages {g : M → ℝ} (hg : Continuous g) {e : �
     refine (Nat.rel_of_forall_rel_succ_of_le_of_le (· = ·)
       (f := fun k ↦ ((data k (seq k)).τ l).val x) (fun k hk ↦ ?_) le_rfl hnm).symm
     rw [hseq, ← hΦ₁ k (seq k) l]
-    exact (hΦV k (seq k) l 1 x (hV k (seq k) (hx.trans (hemono.monotone hk)))).1.symm
+    exact (hΦg k (seq k) l 1 x (hx.trans (hemono.monotone hk))).symm
   have hθset (l : P) {n m : ℕ} (hnm : n ≤ m) {x : M} (hx : g x ≤ e n) :
       ((data m (seq m)).δ l + (data m (seq m)).β l).val x =
         ((data n (seq n)).δ l + (data n (seq n)).β l).val x := by
@@ -191,7 +228,7 @@ private theorem exists_seq_of_stages {g : M → ℝ} (hg : Continuous g) {e : �
       (f := fun k ↦ ((data k (seq k)).δ l + (data k (seq k)).β l).val x) (fun k hk ↦ ?_)
       le_rfl hnm).symm
     rw [hseq]
-    exact (hΦV k (seq k) l 0 x (hV k (seq k) (hx.trans (hemono.monotone hk)))).2.symm
+    exact (hθg k (seq k) l x (hx.trans (hemono.monotone hk))).symm
   -- The open cover by the sets `{g < e (n + 1)}`, on which the later stages no longer move.
   set U : ℕ → Set M := fun n ↦ {x | g x < e (n + 1)}
   have hUo (n : ℕ) : IsOpen (U n) := isOpen_lt hg continuous_const
@@ -221,7 +258,7 @@ private theorem exists_seq_of_stages {g : M → ℝ} (hg : Continuous g) {e : �
     fun n m hnm p x hx ↦ ?_, hεU, fun l hl t ↦ ?_, fun l hl t ↦ ?_, hεc⟩
   · rw [hΦ₀, hΦ₁, hseq]
   · have hxm : g x ≤ e m := (show g x < e (n + 1) from hx).le.trans (hemono.monotone hnm)
-    rw [(hΦV m (seq m) p.1 p.2 x (hV m (seq m) hxm)).1, hτset p.1 hnm hx.le, hΦ₁, ← hseq]
+    rw [hΦg m (seq m) p.1 p.2 x hxm, hτset p.1 hnm hx.le, hΦ₁, ← hseq]
   · refine infiniteConcat_mem (s := {σ : SmoothTwoForm I M | σ.IsNondegenerate})
       (fun n t ↦ hΦnd n (seq n) l hl t) ?_ t
     -- Nondegeneracy is pointwise, and the end agrees near each point with the end of a stage.
@@ -279,55 +316,29 @@ private structure SmoothStageData (I : ModelWithCorners ℝ E H) (M L : Type*) [
   hβ : IsSmoothFamily 𝓘(ℝ, L) β
 
 /-- One stage, on the data of `SmoothStageData`: from the data at the level `a`, the data at the
-level `b` and the homotopy between them, which changes neither the forms nor `δ + β` on a set
-containing `{g ≤ a}`. -/
+level `b` and the homotopy between them, which changes neither the forms nor `δ + β` on
+`{g ≤ a}`. -/
 private theorem SmoothStageData.exists_next {g : M → ℝ} {a₀ a b : ℝ} (c : BandCore I g a₀ a b)
     (hg : Continuous g) {K P₀ : Set L} (hK : IsCompact K) (hP₀ : IsClosed P₀)
     {αs : L → SmoothTwoForm I M} (s : SmoothStageData I M L g a K P₀ αs) :
-    ∃ (s' : SmoothStageData I M L g b K P₀ αs) (H : L × unitInterval → SmoothTwoForm I M)
-      (V : Set M),
+    ∃ (s' : SmoothStageData I M L g b K P₀ αs) (H : L × unitInterval → SmoothTwoForm I M),
       IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) H ∧ (∀ l, H (l, 0) = s.τ l) ∧
       (∀ l, H (l, 1) = s'.τ l) ∧ (∀ l ∈ K, ∀ t, (H (l, t)).IsNondegenerate) ∧
-      {x | g x ≤ a} ⊆ V ∧
-      (∀ l t, ∀ x ∈ V, (H (l, t)).val x = (s.τ l).val x ∧
-        (s'.δ l + s'.β l).val x = (s.δ l + s.β l).val x) ∧
+      (∀ l t x, g x ≤ a → (H (l, t)).val x = (s.τ l).val x) ∧
+      (∀ l x, g x ≤ a → (s'.δ l + s'.β l).val x = (s.δ l + s.β l).val x) ∧
       ∀ l ∈ P₀, ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - s.α l ∈ exactForms I M 2 := by
   obtain ⟨H, α', β', V, N', hH, hα', hβ', hH₀, hHnd, hV, hHV, hα'c, hN', hbN', hHN', hHP₀⟩ :=
     c.exists_stage_family hg hK hP₀ s.hτ s.hα s.hαc s.hnd s.hβ s.hN s.haN s.hτN s.hτP₀
   choose hα'd γ hγ hγV using hα'c
+  obtain ⟨s', hs'τ, hs'α, hs'β, hs'θ⟩ :=
+    s.toStageData.exists_next hα'd hγ (fun l hl ↦ hHnd l hl 1) hN' hbN'
+      hHN' (fun l hl ↦ (hHP₀ l hl).1) hγV fun l x hx ↦ (hHV l 0 x hx).2.2
   have h₁ : ContMDiff 𝓘(ℝ, L) (𝓘(ℝ, L).prod (𝓡∂ 1)) ∞ fun l : L ↦ (l, (1 : unitInterval)) :=
     contMDiff_id.prodMk contMDiff_const
-  refine ⟨
-    { τ := fun l ↦ H (l, 1), α := α', β := β', δ := fun l ↦ s.δ l + γ l, N := N',
-      hαc := hα'd, hnd := fun l hl ↦ hHnd l hl 1, hN := hN', haN := hbN', hτN := hHN',
-      hτP₀ := fun l hl ↦ (hHP₀ l hl).1, hδ := fun l ↦ ?_, hτ := hH.comp _ h₁, hα := hα',
-      hβ := hβ' },
-    H, V, hH, hH₀, fun l ↦ rfl, hHnd, subset_of_mem_nhdsSet hV, fun l t x hx ↦ ?_,
-    fun l hl t ↦ (hHP₀ l hl).2 t⟩
-  · rw [hγ, s.hδ, map_add, add_assoc]
-  · obtain ⟨h₁, -, h₃⟩ := hHV l t x hx
-    refine ⟨h₁, ?_⟩
-    simp only [SmoothBundleForm.add_apply, hγV l x hx, h₃, add_zero]
-
-omit [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [FiniteDimensional ℝ L]
-  [I.Boundaryless] in
-/-- The constant homotopy, when `M` or `K` is empty. -/
-private theorem exists_isSmoothFamily_homotopy_closed_of_isEmpty {K P₀ : Set L}
-    (hMK : IsEmpty M ∨ K = ∅) {τ : L → SmoothTwoForm I M} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
-    (hnd : ∀ l ∈ K, (τ l).IsNondegenerate) {α : L → SmoothTwoForm I M}
-    (hαc : ∀ l, mextDerivₗ I 2 (α l) = 0) {α₀ : SmoothTwoForm I M}
-    (hα₀ : ∀ l, α l - α₀ ∈ exactForms I M 2) (hP₀α : ∀ l ∈ P₀, α l = τ l) :
-    ∃ H : L × unitInterval → SmoothTwoForm I M, IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) H ∧
-      (∀ l, H (l, 0) = τ l) ∧ (∀ l ∈ K, ∀ t, (H (l, t)).IsNondegenerate) ∧
-      (∀ l ∈ P₀, ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - α₀ ∈ exactForms I M 2) ∧
-      ∀ l ∈ K, mextDerivₗ I 2 (H (l, 1)) = 0 ∧ H (l, 1) - α₀ ∈ exactForms I M 2 := by
-  refine ⟨fun p ↦ τ p.1, hτ.comp _ contMDiff_fst, fun l ↦ rfl, fun l hl _ ↦ hnd l hl,
-    fun l hl _ ↦ by simpa only [← hP₀α l hl] using ⟨hαc l, hα₀ l⟩, fun l hl ↦ ?_⟩
-  rcases hMK with hM | rfl
-  · -- On an empty manifold every form is zero.
-    rw [Subsingleton.elim (mextDerivₗ I 2 (τ l)) 0, Subsingleton.elim (τ l - α₀) 0]
-    exact ⟨rfl, zero_mem _⟩
-  · exact absurd hl (notMem_empty l)
+  exact ⟨{ s' with hτ := hs'τ ▸ hH.comp _ h₁, hα := hs'α ▸ hα', hβ := hs'β ▸ hβ' },
+    H, hH, hH₀, fun l ↦ (congrFun hs'τ l).symm, hHnd,
+    fun l t x hx ↦ (hHV l t x (subset_of_mem_nhdsSet hV hx)).1,
+    fun l x hx ↦ hs'θ l x (subset_of_mem_nhdsSet hV hx), fun l hl t ↦ (hHP₀ l hl).2 t⟩
 
 /-- **The parametric relative h-principle for symplectic forms, smooth version.** Let `M` be a
 manifold without boundary none of whose connected components is compact, `K ⊆ L` compact and
@@ -351,20 +362,22 @@ theorem exists_isSmoothFamily_homotopy_closed
       (∀ l ∈ P₀, ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - α₀ ∈ exactForms I M 2) ∧
       ∀ l ∈ K, mextDerivₗ I 2 (H (l, 1)) = 0 ∧ H (l, 1) - α₀ ∈ exactForms I M 2 := by
   by_cases hMK : IsEmpty M ∨ K = ∅
-  · exact exists_isSmoothFamily_homotopy_closed_of_isEmpty hMK hτ hnd hαc hα₀ hP₀α
+  · obtain ⟨hP₀c, hKc⟩ := closed_const_of_isEmpty hMK hαc hα₀ hP₀α
+    exact ⟨fun p ↦ τ p.1, hτ.comp _ contMDiff_fst, fun l ↦ rfl, fun l hl _ ↦ hnd l hl,
+      fun l hl _ ↦ hP₀c l hl, hKc⟩
   obtain ⟨_, l₀, hl₀⟩ : Nonempty M ∧ K.Nonempty := by
     rw [not_or, not_isEmpty_iff, ← ne_eq, ne_empty_iff_nonempty] at hMK
     exact hMK
   obtain ⟨g, d, e, hg, hemono, hetop, he₀, hc⟩ := exists_bandCore_levels hM (hnd l₀ hl₀)
   -- The data of the stages, defined by recursion, and their composition.
-  choose next Φ V hΦ hΦ₀ hΦ₁ hΦnd hV hΦV hΦP₀ using
+  choose next Φ hΦ hΦ₀ hΦ₁ hΦnd hΦg hθg hΦP₀ using
     fun k (s : SmoothStageData I M L g (e k) K P₀ α) ↦ s.exists_next (hc k).some hg hK hP₀
   let s₀ : SmoothStageData I M L g (e 0) K P₀ α :=
     { StageData.init he₀ hαc hnd hP₀α with
       hτ := hτ, hα := hα, hβ := isSmoothFamily_const 0 }
   obtain ⟨seq, ε, hseq₀, hUcov, hseam, hΦU, hεU, hεnd, hεP₀, hε⟩ :=
-    exists_seq_of_stages hg hemono hetop hαc hα₀ (fun _ s ↦ s.toStageData) next Φ V hΦ₀ hΦ₁
-      hΦnd hV hΦV hΦP₀ s₀
+    exists_seq_of_stages hg hemono hetop hαc hα₀ (fun _ s ↦ s.toStageData) next Φ hΦ₀ hΦ₁
+      hΦnd hΦg hθg hΦP₀ s₀
   refine ⟨_, IsSmoothFamily.infiniteConcat (fun n ↦ hΦ n (seq n)) hseam
       (fun n ↦ isOpen_lt hg continuous_const) hUcov hΦU hεU, fun l ↦ ?_, hεnd, hεP₀,
     fun l _ ↦ by simpa only [infiniteConcat_one] using hε l⟩
@@ -472,7 +485,7 @@ private structure ContinuousStageData (I : ModelWithCorners ℝ E H) (M P : Type
 
 /-- One stage, on the data of `ContinuousStageData` for the frame topology: from the data at the
 level `a`, the data at the level `b` and the homotopy between them, which changes neither the
-forms nor `δ + β` on a set containing `{g ≤ a}`. The parameter space `S × ∏ i, (Fin (n i) → ℝ)`
+forms nor `δ + β` on `{g ≤ a}`. The parameter space `S × ∏ i, (Fin (n i) → ℝ)`
 of the new one-forms of `BandCore.exists_stage_continuous_family` is identified with
 `Fin m' → ℝ` for its dimension `m'`. -/
 private theorem ContinuousStageData.exists_next {g : M → ℝ} {a₀ a b : ℝ}
@@ -483,14 +496,13 @@ private theorem ContinuousStageData.exists_next {g : M → ℝ} {a₀ a b : ℝ}
       g a P₀ αs) :
     ∃ (s' : ContinuousStageData I M P
         (ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW)
-        g b P₀ αs) (H : P × unitInterval → SmoothTwoForm I M) (V : Set M),
+        g b P₀ αs) (H : P × unitInterval → SmoothTwoForm I M),
       (@Continuous _ _ _
         (ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW)
         fun p ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (H p)) ∧ (∀ l, H (l, 0) = s.τ l) ∧
       (∀ l, H (l, 1) = s'.τ l) ∧ (∀ l t, (H (l, t)).IsNondegenerate) ∧
-      {x | g x ≤ a} ⊆ V ∧
-      (∀ l t, ∀ x ∈ V, (H (l, t)).val x = (s.τ l).val x ∧
-        (s'.δ l + s'.β l).val x = (s.δ l + s.β l).val x) ∧
+      (∀ l t x, g x ≤ a → (H (l, t)).val x = (s.τ l).val x) ∧
+      (∀ l x, g x ≤ a → (s'.δ l + s'.β l).val x = (s.δ l + s.β l).val x) ∧
       ∀ l ∈ P₀, ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - s.α l ∈ exactForms I M 2 := by
   let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
   obtain ⟨H, α', n, σ, B'', V, N', hH, hα', hσ, hB'', hH₀, hHnd, hV, hHV, hα'c, hN', hbN', hHN',
@@ -500,25 +512,22 @@ private theorem ContinuousStageData.exists_next {g : M → ℝ} {a₀ a b : ℝ}
       (fun l x hx ↦ by rw [← s.hβ]; exact s.hτN l x hx)
       (fun l hl ↦ by rw [← s.hβ]; exact s.hτP₀ l hl)
   choose hα'd γ hγ hγV using hα'c
+  obtain ⟨s', hs'τ, hs'α, hs'β, hs'θ⟩ :=
+    s.toStageData.exists_next hα'd hγ (fun l _ ↦ hHnd l 1) hN' hbN'
+      hHN' (fun l hl ↦ (hHP₀ l hl).1) hγV fun l x hx ↦ by rw [s.hβ]; exact (hHV l 0 x hx).2.2
   -- The parameters of the new one-forms, identified with `Fin m' → ℝ`.
   let φ : ((Fin s.m → ℝ) × ((i : c.ι) → Fin (n i) → ℝ)) ≃L[ℝ]
       (Fin (Module.finrank ℝ ((Fin s.m → ℝ) × ((i : c.ι) → Fin (n i) → ℝ))) → ℝ) :=
     ContinuousLinearEquiv.ofFinrankEq (Module.finrank_fin_fun ℝ).symm
-  refine ⟨
-    { τ := fun l ↦ H (l, 1), α := α', β := fun l ↦ B'' (s.u l, fun i ↦ σ i l),
-      δ := fun l ↦ s.δ l + γ l, N := N', hαc := hα'd, hnd := fun l _ ↦ hHnd l 1, hN := hN',
-      haN := hbN', hτN := hHN', hτP₀ := fun l hl ↦ (hHP₀ l hl).1, hδ := fun l ↦ ?_,
+  exact ⟨{ s' with
       m := _, B := fun v ↦ B'' (φ.symm v), u := fun l ↦ φ (s.u l, fun i ↦ σ i l),
-      hτ := hH.comp (continuous_id.prodMk continuous_const), hα := hα',
+      hτ := hs'τ ▸ hH.comp (continuous_id.prodMk continuous_const), hα := hs'α ▸ hα',
       hB := hB''.comp _ φ.symm.contDiff.contMDiff,
       hu := φ.continuous.comp (s.hu.prodMk (continuous_pi hσ)),
-      hβ := fun l ↦ by simp only [ContinuousLinearEquiv.symm_apply_apply] },
-    H, V, hH, hH₀, fun l ↦ rfl, hHnd, subset_of_mem_nhdsSet hV, fun l t x hx ↦ ?_,
-    fun l hl t ↦ (hHP₀ l hl).2 t⟩
-  · rw [hγ, s.hδ, map_add, add_assoc]
-  · obtain ⟨h₁, -, h₃⟩ := hHV l t x hx
-    refine ⟨h₁, ?_⟩
-    simp only [SmoothBundleForm.add_apply, hγV l x hx, h₃, add_zero, s.hβ]
+      hβ := fun l ↦ by rw [hs'β, ContinuousLinearEquiv.symm_apply_apply] },
+    H, hH, hH₀, fun l ↦ (congrFun hs'τ l).symm, hHnd,
+    fun l t x hx ↦ (hHV l t x (subset_of_mem_nhdsSet hV hx)).1,
+    fun l x hx ↦ hs'θ l x (subset_of_mem_nhdsSet hV hx), fun l hl t ↦ (hHP₀ l hl).2 t⟩
 
 /-- **The parametric relative h-principle for symplectic forms, continuous version.** Let `M` be
 a manifold without boundary none of whose connected components is compact, give the smooth
@@ -564,27 +573,24 @@ theorem exists_continuousMap_homotopy_closed
       ∀ l, mextDerivₗ I 2 (H (l, 1)) = 0 ∧ H (l, 1) - α₀ ∈ exactForms I M 2 by
     obtain ⟨H, hH, hH₀, hHnd, hHP₀, hH₁⟩ := h
     refine ⟨⟨fun p ↦ ⟨Bundle.ContMDiffTwoForm.tangentEquiv.symm (H p),
-        Bundle.ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.1 (by
-          rw [LinearEquiv.apply_symm_apply]; exact hHnd p)⟩, hH.subtype_mk _⟩,
+        Bundle.ContMDiffTwoForm.isNondegenerate_tangentEquiv_symm_iff.2 (hHnd p)⟩,
+        hH.subtype_mk _⟩,
       fun l ↦ Subtype.ext ?_, fun l hl t ↦ ?_, fun l ↦ ?_⟩
     · simp only [ContinuousMap.coe_mk, hH₀, τ', LinearEquiv.symm_apply_apply]
     · simpa only [ContinuousMap.coe_mk, LinearEquiv.apply_symm_apply] using hHP₀ l hl t
     · simpa only [ContinuousMap.coe_mk, LinearEquiv.apply_symm_apply] using hH₁ l
   by_cases hMP : IsEmpty M ∨ IsEmpty P
   · -- The constant homotopy.
-    refine ⟨fun p ↦ τ' p.1, hτ'.comp continuous_fst, fun l ↦ rfl, fun p ↦ hnd p.1,
-      fun l hl _ ↦ by simpa only [τ', ← hP₀α l hl] using ⟨hαc l, hα₀ l⟩, fun l ↦ ?_⟩
-    rcases hMP with hM | hP
-    · -- On an empty manifold every form is zero.
-      rw [Subsingleton.elim (mextDerivₗ I 2 (τ' l)) 0, Subsingleton.elim (τ' l - α₀) 0]
-      exact ⟨rfl, zero_mem _⟩
-    · exact hP.elim l
+    obtain ⟨hP₀c, hc⟩ := closed_const_of_isEmpty (K := univ)
+      (hMP.imp_right univ_eq_empty_iff.2) hαc hα₀ hP₀α
+    exact ⟨fun p ↦ τ' p.1, hτ'.comp continuous_fst, fun l ↦ rfl, fun p ↦ hnd p.1,
+      fun l hl _ ↦ hP₀c l hl, fun l ↦ hc l (mem_univ l)⟩
   obtain ⟨_, ⟨l₀⟩⟩ : Nonempty M ∧ Nonempty P := by
     rw [not_or, not_isEmpty_iff, not_isEmpty_iff] at hMP
     exact hMP
   obtain ⟨g, d, e, hg, hemono, hetop, he₀, hc⟩ := exists_bandCore_levels hM (hnd l₀)
   -- The data of the stages, defined by recursion, and their composition.
-  choose next Φ V hΦ hΦ₀ hΦ₁ hΦnd hV hΦV hΦP₀ using
+  choose next Φ hΦ hΦ₀ hΦ₁ hΦnd hΦg hθg hΦP₀ using
     fun k (s : ContinuousStageData I M P T g (e k) P₀ α) ↦
       s.exists_next fr W hW (hc k).some hg hcover hP₀
   let s₀ : ContinuousStageData I M P T g (e 0) P₀ α :=
@@ -592,8 +598,8 @@ theorem exists_continuousMap_homotopy_closed
       m := 0, B := fun _ ↦ 0, u := fun _ ↦ 0, hτ := hτ', hα := hα,
       hB := isSmoothFamily_const 0, hu := continuous_const, hβ := fun _ ↦ rfl }
   obtain ⟨seq, ε, hseq₀, hUcov, hseam, hΦU, hεU, hεnd, hεP₀, hε⟩ :=
-    exists_seq_of_stages hg hemono hetop hαc hα₀ (fun _ s ↦ s.toStageData) next Φ V hΦ₀ hΦ₁
-      (fun k s l _ t ↦ hΦnd k s l t) hV hΦV hΦP₀ s₀
+    exists_seq_of_stages hg hemono hetop hαc hα₀ (fun _ s ↦ s.toStageData) next Φ hΦ₀ hΦ₁
+      (fun k s l _ t ↦ hΦnd k s l t) hΦg hθg hΦP₀ s₀
   refine ⟨_, Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_infiniteConcat fr W hW
       (fun n ↦ hΦ n (seq n)) hseam (fun n ↦ isOpen_lt hg continuous_const) hUcov hΦU hεU,
     fun l ↦ ?_, fun p ↦ hεnd p.1 (mem_univ _) p.2, hεP₀,
