@@ -811,7 +811,7 @@ theorem exists_forall_flow_strictAntiOn
   -- The derivative of `-H (ζ s) (ζ s)` at `t ≥ 0`, through the chart solution `w`.
   have hderiv (t : ℝ) (ht : 0 ≤ t) : ∃ d < 0, HasDerivAt (fun s ↦ -H (ζ s) (ζ s)) d t := by
     have hO : IsOpen {s | hW.flow s (D.ι z) ∈ e.source} :=
-      (isOpen_extChartAt_source p).preimage (hW.isMIntegralCurve_flow (D.ι z)).continuous
+      (isOpen_extChartAt_source p).preimage (hW.flow.continuous_eval_const (D.ι z))
     have hwi : IsIntegralCurveOn w (fun _ ↦ Y) {s | hW.flow s (D.ι z) ∈ e.source} := by
       have h := TauCeti.isIntegralCurveOn_centeredExtChartAt_globalFlow
         (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField

@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import Mathlib.Algebra.DirectSum.Ring
+public import TauCeti.Algebra.DirectSum.Ring
 public import Mathlib.Algebra.Polynomial.AlgebraMap
 import all TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 
@@ -49,8 +50,9 @@ The ring map preserves the unit by `TopCat.singularCohomologyMap_integralCohomol
 pull-back of the unit class, which Tau Ceti does not state; its proof reads the definition of
 `TopCat.integralCohomologyOne` through `import all`.
 
-The graded structures and the lemmas on the inclusions follow Tau Ceti's
-`TauCeti.NormalizedCubicalChain.gRing` and `TauCeti.cubicalChainLof_mul`,
+The graded ring is Tau Ceti's `TauCeti.DirectSum.gRingOfMul` of the cup product and the unit
+class, with graded commutativity added. The proofs of its laws and the lemmas on the inclusions
+follow Tau Ceti's `TauCeti.NormalizedCubicalChain.gRing` and `TauCeti.cubicalChainLof_mul`,
 `TauCeti.cubicalChainLof_one`.
 
 ## References
@@ -89,13 +91,29 @@ theorem integralCup_zsmul_left {p q n : ℕ} (h : p + q = n) (m : ℤ)
 
 namespace EvenIntegralCohomology
 
-/-- The unit of the graded structure: the unit class in degree `0`. -/
-instance gOne : GradedMonoid.GOne fun k : ℕ ↦ ↥(X.integralCohomology (2 * k)) where
-  one := X.integralCohomologyOne
-
-/-- The multiplication of the graded structure: the integral cup product. -/
-instance gMul : GradedMonoid.GMul fun k : ℕ ↦ ↥(X.integralCohomology (2 * k)) where
-  mul := fun {i j} a b ↦ X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring) a b
+/-- The integral cup product makes the even-degree classes a graded commutative ring. Its product
+is the cup product `H^{2i} × H^{2j} → H^{2(i + j)}` and its unit the unit class; Tau Ceti's
+`TauCeti.DirectSum.gRingOfMul` fills in the fields that follow from bi-additivity. -/
+instance gCommRing : DirectSum.GCommRing fun k : ℕ ↦ ↥(X.integralCohomology (2 * k)) :=
+  { TauCeti.DirectSum.gRingOfMul
+      (fun i j ↦ LinearMap.toAddMonoidHom'.comp
+        (X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring)).toAddMonoidHom)
+      X.integralCohomologyOne
+      (fun {n} b ↦ Sigma.ext (Nat.zero_add n) <|
+        (X.integralCup_heq (p := 0) (q := 2 * n) (n := 2 * (0 + n)) (by ring) (zero_add _) _
+          b).trans (heq_of_eq (X.integralCup_integralCohomologyOne (2 * n) b)))
+      (fun {n} a ↦ Sigma.ext (Nat.add_zero n) <|
+        (X.integralCup_heq (p := 2 * n) (q := 0) (n := 2 * (n + 0)) (by ring) (add_zero _) a
+          _).trans (heq_of_eq (X.integralCup_integralCohomologyOne_right (2 * n) a)))
+      (fun {i j k} a b c ↦ Sigma.ext (Nat.add_assoc i j k) <|
+        (heq_of_eq (X.integralCup_assoc (p := 2 * i) (q := 2 * j) (r := 2 * k)
+          (m := 2 * (i + j)) (m' := 2 * (j + k)) (n := 2 * (i + j + k)) (by ring) (by ring)
+          (by ring) (by ring) a b c)).trans (X.integralCup_heq _ _ _ _)) with
+    mul_comm := fun ⟨i, a⟩ ⟨j, b⟩ ↦ Sigma.ext (Nat.add_comm i j) <| by
+      have h := X.integralCup_gradedComm (p := 2 * j) (q := 2 * i) (n := 2 * (i + j))
+        (by ring) (by ring) b a
+      rw [Even.neg_one_pow ⟨2 * j * i, by ring⟩, one_smul] at h
+      exact (heq_of_eq h).trans (X.integralCup_heq _ _ _ _) }
 
 /-- The unit of the graded structure is the unit class. -/
 @[simp]
@@ -110,34 +128,6 @@ theorem gMul_mul {i j : ℕ} (a : X.integralCohomology (2 * i)) (b : X.integralC
     GradedMonoid.GMul.mul (A := fun k : ℕ ↦ ↥(X.integralCohomology (2 * k))) a b =
       X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring) a b :=
   (rfl)
-
-/-- The integral cup product makes the even-degree classes a graded commutative ring. -/
-instance gCommRing : DirectSum.GCommRing fun k : ℕ ↦ ↥(X.integralCohomology (2 * k)) where
-  one_mul := fun ⟨n, b⟩ ↦ Sigma.ext (Nat.zero_add n) <|
-    (X.integralCup_heq (p := 0) (q := 2 * n) (n := 2 * (0 + n)) (by ring) (zero_add _) _ b).trans
-      (heq_of_eq (X.integralCup_integralCohomologyOne (2 * n) b))
-  mul_one := fun ⟨n, a⟩ ↦ Sigma.ext (Nat.add_zero n) <|
-    (X.integralCup_heq (p := 2 * n) (q := 0) (n := 2 * (n + 0)) (by ring) (add_zero _) a _).trans
-      (heq_of_eq (X.integralCup_integralCohomologyOne_right (2 * n) a))
-  mul_assoc := fun ⟨i, a⟩ ⟨j, b⟩ ⟨k, c⟩ ↦ Sigma.ext (Nat.add_assoc i j k) <|
-    (heq_of_eq (X.integralCup_assoc (p := 2 * i) (q := 2 * j) (r := 2 * k) (m := 2 * (i + j))
-      (m' := 2 * (j + k)) (n := 2 * (i + j + k)) (by ring) (by ring) (by ring) (by ring)
-      a b c)).trans (X.integralCup_heq _ _ _ _)
-  mul_zero := fun {_ _} a ↦ map_zero (X.integralCup _ _ _ _ a)
-  zero_mul := fun {_ _} b ↦ by rw [gMul_mul, map_zero, LinearMap.zero_apply]
-  mul_add := fun {_ _} a b c ↦ map_add (X.integralCup _ _ _ _ a) b c
-  add_mul := fun {_ _} a b c ↦ by rw [gMul_mul, gMul_mul, gMul_mul, map_add, LinearMap.add_apply]
-  natCast := fun n ↦ n • X.integralCohomologyOne
-  natCast_zero := zero_nsmul _
-  natCast_succ := fun n ↦ succ_nsmul _ n
-  intCast := fun n ↦ n • X.integralCohomologyOne
-  intCast_ofNat := fun n ↦ natCast_zsmul _ n
-  intCast_negSucc_ofNat := fun n ↦ negSucc_zsmul _ n
-  mul_comm := fun ⟨i, a⟩ ⟨j, b⟩ ↦ Sigma.ext (Nat.add_comm i j) <| by
-    have h := X.integralCup_gradedComm (p := 2 * j) (q := 2 * i) (n := 2 * (i + j))
-      (by ring) (by ring) b a
-    rw [Even.neg_one_pow ⟨2 * j * i, by ring⟩, one_smul] at h
-    exact (heq_of_eq h).trans (X.integralCup_heq _ _ _ _)
 
 end EvenIntegralCohomology
 

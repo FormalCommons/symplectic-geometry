@@ -26,10 +26,10 @@ integral of `proj^* β ∧ α` is `β ∧` the fibre integral of `α`, the degre
 `p + (q + m) = (p + q) + m`.
 
 Both sides are smooth forms on `B`, and such forms are equal once their restrictions to the base
-sets of the charts `A.trivAt b'` agree (`TauCeti.SmoothForm.ext_of_mpullback_subtype_val`). On
+sets of the charts `A.trivAt b'` agree (`TauCeti.SmoothForm.ext_of_mpullback_subtypeVal`). On
 such a base set `U` the fibre integral is the fibre integral on the product `U × F` of the
 pull-back along `(b, y) ↦ e⁻¹ (b, y)`
-(`TauCeti.MapFiber.Atlas.mpullback_subtype_val_fiberIntegral`). Pull-back along smooth maps
+(`TauCeti.MapFiber.Atlas.mpullback_subtypeVal_fiberIntegral`). Pull-back along smooth maps
 commutes with `d` (`TauCeti.SmoothForm.mextDerivₗ_mpullback`), and on a product the statement is
 `SymplecticGeometry.prodFiberIntegral_mextDeriv`. For the projection formula, pull-back
 commutes with the wedge product (`TauCeti.SmoothForm.mpullback_wedge`), `proj ∘ e⁻¹` is the
@@ -95,10 +95,10 @@ theorem fiberIntegral_mextDeriv [IsManifold IM 2 M] (α : SmoothForm IM M ℝ (r
     A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm IM M ℝ k)
         (by omega : r + m + 1 = r + 1 + m) (mextDerivₗ IM (r + m) α)) =
       mextDerivₗ I r (A.fiberIntegral hA ho α) := by
-  refine SmoothForm.ext_of_mpullback_subtype_val A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
-  rw [mpullback_subtype_val_fiberIntegral, SmoothForm.mpullback_cast,
+  refine SmoothForm.ext_of_mpullback_subtypeVal A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
+  rw [mpullback_subtypeVal_fiberIntegral, SmoothForm.mpullback_cast,
     ← SmoothForm.mextDerivₗ_mpullback, prodFiberIntegral_mextDeriv,
-    ← SmoothForm.mextDerivₗ_mpullback, mpullback_subtype_val_fiberIntegral]
+    ← SmoothForm.mextDerivₗ_mpullback, mpullback_subtypeVal_fiberIntegral]
 
 /-- **The fibre integral of a closed form is closed.** Under the hypotheses of
 `TauCeti.MapFiber.Atlas.fiberIntegral_mextDeriv`, the fibre integral of a closed form of degree
@@ -120,14 +120,14 @@ theorem fiberIntegral_wedge_mpullback {p q : ℕ} (β : SmoothForm I B ℝ p)
         (Nat.add_assoc p q m).symm
         (SmoothForm.wedge (SmoothForm.mpullback proj hA.contMDiff_proj β) α)) =
       SmoothForm.wedge β (A.fiberIntegral hA ho α) := by
-  refine SmoothForm.ext_of_mpullback_subtype_val A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
-  rw [mpullback_subtype_val_fiberIntegral, SmoothForm.mpullback_cast, SmoothForm.mpullback_wedge,
+  refine SmoothForm.ext_of_mpullback_subtypeVal A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
+  rw [mpullback_subtypeVal_fiberIntegral, SmoothForm.mpullback_cast, SmoothForm.mpullback_wedge,
     SmoothForm.mpullback_mpullback_of_comp_eq ((A.trivAt b').contMDiff_symm_val_prod
       (hA.contMDiffOn_trivAt_symm b') subset_rfl) hA.contMDiff_proj contMDiff_fst
       contMDiff_subtypeVal (funext fun x ↦ (A.trivAt b').proj_symm_apply
         ((A.trivAt b').mem_target.2 x.1.property)),
     prodFiberIntegral_wedge_mpullback_fst, SmoothForm.mpullback_wedge,
-    mpullback_subtype_val_fiberIntegral]
+    mpullback_subtypeVal_fiberIntegral]
 
 end TauCeti.MapFiber.Atlas
 

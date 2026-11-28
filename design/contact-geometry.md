@@ -550,7 +550,7 @@ Named like Tau Ceti's file, in Tau Ceti's namespaces.
   `mfderiv I J f x ((mpullback f hf α).contactMoserVectorField (mpullback f hf β) x) = α.contactMoserVectorField β (f x)`;
   the proof of Tau Ceti's `IsContactForm.mfderiv_reebVectorField_mpullback`,
   through `eq_contactMoserVectorField_iff`.
-- `TauCeti.SmoothForm.IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtype_val`:
+- `TauCeti.SmoothForm.IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtypeVal`:
   the case of an open subset, with `TauCeti.Manifold.tangentSpaceOpenEquiv`.
 
 ### `Geometry/Contact/Family.lean`

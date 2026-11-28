@@ -228,9 +228,7 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
   have hF0 : ‖D.reading k x (s k) 0‖ = ‖s k x‖ := by
     rw [D.norm_reading, D.chart_symm_zero hk x]
   have hJd : DifferentiableAt ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0 :=
-    ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds h0)).differentiableAt (by simp)
+    (J.contDiffAt_chartPushforward (D.chart k x) h0).differentiableAt (by simp)
   rw [criticalHessian_add_criticalHessian_eq D hk (hF.of_le (by simp)) hx hcrit v]
   have hu : (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v : StdSpace ι) ≠ 0 := by
     intro h
@@ -239,9 +237,7 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
     exact hv hv'.symm
   refine (fderiv_fderiv_log_norm_sq_add_stdComplexStructure_le (hF.of_le (by simp)) hJd
     (D.chartPushforward_zero hk x) (hGd.differentiableAt (by simp))
-    (Filter.Eventually.of_forall fun z ↦ by
-      rw [D.dbarReading_def, modelDbarWith_def, complexAntilinearPartContinuousLinearMap_apply,
-        modelConnection_def])
+    (Filter.Eventually.of_forall (D.dbarReading_def k x (s k)))
     (norm_ne_zero_iff.1 (hF0 ▸ norm_ne_zero_iff.2 hx)) _).trans_lt ?_
   -- The error term is at most a constant times `k ^ (-1/2)`, which is below `1 / 4`.
   have hε := chartError_le D hρ₀ hk hk1 hη hjet hdbar (hF0 ▸ hle x hdiff hx hcrit)

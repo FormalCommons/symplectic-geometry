@@ -165,8 +165,8 @@ theorem mextDeriv_glueForms_apply_of_mem_ker [IsManifold IX 1 X]
     ContinuousAlternatingMap.sum_apply, ← Finset.sum_attach]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   have hx : x ∈ W i := hW i ((ρ.mem_fintsupport_iff (proj x) i).mp i.property)
-  have hμ := ((contMDiffAt_mpullback_subtype_val_iff (extendByZeroOfOpens (η i)) ⟨x, hx⟩).1
-    (by rw [mpullback_subtype_val_extendByZeroOfOpens]; exact (hη i).contMDiff _))
+  have hμ := ((contMDiffAt_mpullback_subtypeVal_iff (extendByZeroOfOpens (η i)) ⟨x, hx⟩).1
+    (by rw [mpullback_subtypeVal_extendByZeroOfOpens]; exact (hη i).contMDiff _))
       |>.mdifferentiableAt (by simp)
   rw [mextDeriv_fun_smul_comp_apply_of_mem_ker ((ρ i).contMDiff.mdifferentiableAt (by simp))
     (hproj.mdifferentiableAt (by simp)) hμ hv, mextDeriv_extendByZeroOfOpens_coe (η i) ⟨x, hx⟩]

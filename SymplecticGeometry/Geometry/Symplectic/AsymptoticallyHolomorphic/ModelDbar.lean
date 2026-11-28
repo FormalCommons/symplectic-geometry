@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 
@@ -41,6 +42,12 @@ chart, and the model operators of the peak functions are these at the constant s
 * `SymplecticGeometry.contDiffAt_modelConnection`, `SymplecticGeometry.contDiffAt_flatDbarWith`,
   `SymplecticGeometry.contDiffAt_modelDbarWith`: where `f` is `C^(n + 1)` and `J` is `C^n`, all
   three are `C^n`.
+* `SymplecticGeometry.exists_jetNormAt_modelConnection_le`: since `ω₀(z, ·)` is linear in `z`,
+  the `r`-jet norm of `modelConnection f` at `z` is at most a constant, depending only on `r`,
+  times `1 + ‖z‖` and the `(r + 1)`-jet norm of `f` at `z`
+  (from `SymplecticGeometry.jetNormAt_bilinear_le`).
+* `SymplecticGeometry.modelDbarWith_eq_add`: changing the field of structures from `J'` to `J`
+  adds `(i / 2) L ∘ (J z - J' z)` to the model `∂̄`, for `L = modelConnection f z`.
 * `SymplecticGeometry.modelConnection_congr_of_eventuallyEq`,
   `SymplecticGeometry.flatDbarWith_congr_of_eventuallyEq`,
   `SymplecticGeometry.modelDbarWith_congr_of_eventuallyEq`: their values at `z` depend only on the
@@ -84,6 +91,19 @@ theorem modelConnection_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     modelConnection f z v = fderiv ℝ f z v - (2⁻¹ * stdForm ι z v : ℝ) • (Complex.I * f z) := by
   rw [modelConnection_def, sub_apply, smulRight_apply, smul_apply,
     LinearMap.coe_toContinuousLinearMap', smul_eq_mul]
+
+/-- The model connection as a function of the point:
+`w ↦ df_w - R (ω₀(w, ·) / 2) (i f(w))`, for `R = ContinuousLinearMap.smulRightL`, a continuous
+bilinear map. -/
+theorem modelConnection_eq (f : StdSpace ι → ℂ) :
+    modelConnection f = fun w ↦ fderiv ℝ f w -
+      smulRightL ℝ ℝ ℝ (StdSpace ι) ℂ
+        ((2⁻¹ : ℝ) • (stdForm ι).toBilinForm.toContinuousBilinearMap w) (Complex.I * f w) := by
+  funext w
+  ext v
+  rw [modelConnection_apply]
+  simp only [sub_apply, smulRightL_apply_apply, smulRight_apply, smul_apply,
+    LinearMap.toContinuousBilinearMap_apply, smul_eq_mul]
 
 /-- The model connection is additive on functions differentiable at `z`. -/
 theorem modelConnection_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
@@ -144,6 +164,52 @@ theorem contDiffAt_modelConnection {n : ℕ∞} {f : StdSpace ι → ℂ} {z : S
   have h := (hf.fderiv_right le_rfl).sub
     (hω.contDiffAt.smulRight ((contDiffAt_const (c := Complex.I)).mul (hf.of_le le_self_add)))
   exact h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ modelConnection_def ..)
+
+/-- **Jets of the model connection.** For every order `r` there is a constant `C` such that, for
+every `f` and at every point `z` where `f` is `C^(r + 1)`, the `r`-jet norm at `z` of the model
+connection of `f` is at most `C * (1 + ‖z‖)` times the `(r + 1)`-jet norm of `f` at `z`. -/
+theorem exists_jetNormAt_modelConnection_le (r : ℕ) :
+    ∃ C : ℝ, ∀ (f : StdSpace ι → ℂ) {z : StdSpace ι}, ContDiffAt ℝ (r + 1 : ℕ) f z →
+      jetNormAt ℝ r (modelConnection f) z ≤ C * (1 + ‖z‖) * jetNormAt ℝ (r + 1) f z := by
+  set Ω : StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+    (2⁻¹ : ℝ) • (stdForm ι).toBilinForm.toContinuousBilinearMap
+  -- Instance search does not find the operator norm on this space of bilinear maps unaided.
+  let : NormedAddCommGroup (ℂ →L[ℝ] StdSpace ι →L[ℝ] ℂ) := ContinuousLinearMap.toNormedAddCommGroup
+  let : NormedSpace ℝ (ℂ →L[ℝ] StdSpace ι →L[ℝ] ℂ) := ContinuousLinearMap.toNormedSpace
+  set R := smulRightL ℝ ℝ ℝ (StdSpace ι) ℂ
+  refine ⟨1 + 2 ^ r * ‖R‖ * ‖Ω‖, fun g z hs ↦ ?_⟩
+  set J1 := jetNormAt ℝ (r + 1) g z
+  have hJ1 : 0 ≤ J1 := jetNormAt_nonneg _ _ _
+  have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
+  have hΩ : jetNormAt ℝ r Ω z ≤ ‖Ω‖ * (1 + ‖z‖) := by
+    have := jetNormAt_continuousLinearMap_le Ω r z
+    have := Ω.le_opNorm z
+    nlinarith [norm_nonneg Ω]
+  have hIg : jetNormAt ℝ r (fun w ↦ Complex.I * g w) z ≤ J1 := by
+    have : jetNormAt ℝ r (Complex.I • g) z = jetNormAt ℝ r g z := by simp
+    exact this.le.trans (jetNormAt_mono g z (Nat.le_succ r))
+  have hIc : ContDiffAt ℝ r (fun w ↦ Complex.I * g w) z :=
+    (contDiffAt_const (c := Complex.I)).mul (hs.of_le (by exact_mod_cast Nat.le_succ r))
+  have hRjet := jetNormAt_bilinear_le R Ω.contDiff.contDiffAt hIc
+  have hd : jetNormAt ℝ r (fderiv ℝ g) z ≤ J1 :=
+    (le_add_of_nonneg_left (norm_nonneg (g z))).trans_eq (jetNormAt_succ r g z).symm
+  have hadd := jetNormAt_add_le (hs'.fderiv_right le_rfl)
+    ((R.contDiff.contDiffAt.comp z Ω.contDiff.contDiffAt).clm_apply hIc).neg
+  have hL : modelConnection g = fderiv ℝ g + -fun w ↦ R (Ω w) (Complex.I * g w) := by
+    funext w
+    simp only [modelConnection_eq, Pi.add_apply, Pi.neg_apply, sub_eq_add_neg, Ω, R, smul_apply]
+  rw [hL]
+  refine (hadd.trans_eq (congrArg _
+    (jetNormAt_neg r (fun w ↦ R (Ω w) (Complex.I * g w)) z))).trans ?_
+  have : 0 ≤ ‖R‖ := ContinuousLinearMap.opNorm_nonneg R
+  have : 0 ≤ ‖Ω‖ := Ω.opNorm_nonneg
+  have : 0 ≤ jetNormAt ℝ r Ω z := jetNormAt_nonneg _ _ _
+  have : 0 ≤ jetNormAt ℝ r (fun w ↦ Complex.I * g w) z := jetNormAt_nonneg _ _ _
+  calc _ ≤ J1 + 2 ^ r * ‖R‖ * (‖Ω‖ * (1 + ‖z‖)) * J1 := by
+        refine add_le_add hd (hRjet.trans ?_)
+        gcongr
+    _ ≤ (1 + 2 ^ r * ‖R‖ * ‖Ω‖) * (1 + ‖z‖) * J1 := by
+        nlinarith [mul_nonneg hJ1 (norm_nonneg z)]
 
 /-! ### The flat `∂̄` for a field of structures -/
 
@@ -246,6 +312,20 @@ theorem modelDbarWith_apply (J : StdSpace ι → StdSpace ι →L[ℝ] StdSpace 
   simp only [modelDbarWith_def, complexAntilinearPartContinuousLinearMap_apply_apply,
     TauCeti.complexAntilinearPart_apply, coe_coe, AlmostComplexStructure.ofComplexModule_apply,
     smul_eq_mul]
+
+/-- **Change of structure in the model `∂̄`.** For two fields `J` and `J'` of real-linear
+endomorphisms of `StdSpace ι`, the model `∂̄` of `f` for `J` at `z` is that for `J'` plus
+`(i / 2) L ∘ (J z - J' z)`, for `L` the model connection of `f` at `z`. -/
+theorem modelDbarWith_eq_add (J J' : StdSpace ι → StdSpace ι →L[ℝ] StdSpace ι)
+    (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDbarWith J f z = modelDbarWith J' f z +
+      (((2⁻¹ : ℂ) * Complex.I) • modelConnection f z).comp (J z - J' z) := by
+  ext v
+  rw [add_apply, modelDbarWith_apply, modelDbarWith_apply, comp_apply, sub_apply, map_sub,
+    smul_apply]
+  simp only [FunLike.coe_smul, Pi.smul_apply, smul_eq_mul, Complex.real_smul]
+  push_cast
+  ring
 
 /-- The model `∂̄` is additive on functions differentiable at `z`. -/
 theorem modelDbarWith_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)

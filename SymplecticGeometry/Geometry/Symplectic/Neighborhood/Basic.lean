@@ -141,7 +141,7 @@ theorem exists_symplectomorphism_extension [SecondCountableTopology M₀]
   have hform (q : Q) (v w : TangentSpace I₁ (f₁ q)) :
       hc₁.isNondegenerate.symplecticFormAt (g q) v w =
         hω₁.isNondegenerate.symplecticFormAt (f₁ q) v w :=
-    (hω₁.isNondegenerate.symplecticFormAt_mpullback_subtype_val_apply (g q) v w).trans
+    (hω₁.isNondegenerate.symplecticFormAt_mpullback_subtypeVal_apply (g q) v w).trans
       (congrArg (fun y ↦ hω₁.isNondegenerate.symplecticFormAt y v w)
         (f₁.val_codRestrict_apply U _ q))
   have horth (q : Q) (v : TangentSpace I₁ (f₁ q)) :

@@ -28,7 +28,7 @@ import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
-import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
+public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
@@ -85,7 +85,7 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   `TauCeti.contMDiff_bundle_symm`; and `SymplecticGeometry.SymplecticFraming.transDiffeomorph`,
   the first along a diffeomorphism `ψ : M ≃ M'`, for the embedding `ψ ∘ ι`, whose tangent images
   are symplectic by
-  `TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff`;
+  `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff`;
   `SymplecticGeometry.SymplecticFraming.ofPos`, the framing obtained from linear isomorphisms
   `e q : ℂ ≃ N_q ι`, smooth in `q`, on which the normal form `ω_ι` of `ι` is positive, by rescaling
   `e q` by `(√(ω_ι (e q 1) (e q i)))⁻¹`. On the plane `ℂ` every alternating form is a multiple
@@ -573,8 +573,7 @@ def transDiffeomorph (Φ : SymplecticFraming hι hP) (ψ : M ≃ₘ⟮I, I'⟯ M
     (hσ' : σ'.IsNondegenerate) (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ)
     (hP' : finrank ℝ ℂ = finrank ℝ E' - finrank ℝ EQ) :
     SymplecticFraming (hσ := hσ') (ι := ι.transDiffeomorphOfBoundaryless ψ (by simp))
-      (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _ ▸
-        (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ).2 hι)
+      ((ι.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff ψ (by simp) hψ).2 hι)
       hP' :=
   Φ.transLocalDiffeomorph ψ.isLocalDiffeomorph hψ
     (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm

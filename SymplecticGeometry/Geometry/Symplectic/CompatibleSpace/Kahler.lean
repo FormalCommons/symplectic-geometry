@@ -142,18 +142,12 @@ theorem mextDeriv_traceTwoForm_apply (A X Y Z : V →L[ℝ] V) :
 theorem traceTwoForm_conj (Ψ : V ≃L[ℝ] V) (A X Y : V →L[ℝ] V) :
     (traceTwoForm V).eval₂ (Ψ.arrowCongr Ψ A) (Ψ.arrowCongr Ψ X) (Ψ.arrowCongr Ψ Y) =
       (traceTwoForm V).eval₂ A X Y := by
-  -- Conjugation by `Ψ` is multiplicative and preserves traces.
-  have hm (P Q R : V →L[ℝ] V) : Ψ.arrowCongr Ψ P * Ψ.arrowCongr Ψ Q * Ψ.arrowCongr Ψ R =
-      Ψ.arrowCongr Ψ (P * Q * R) := by
+  -- Conjugation by `Ψ` is Mathlib's algebra equivalence `Ψ.conjContinuousAlgEquiv`, which
+  -- preserves traces (`ContinuousLinearEquiv.trace_conjContinuousAlgEquiv`).
+  have h (P : V →L[ℝ] V) : Ψ.arrowCongr Ψ P = Ψ.conjContinuousAlgEquiv P := by
     ext v
     simp
-  have hc (P : V →L[ℝ] V) :
-      LinearMap.trace ℝ V ↑(Ψ.arrowCongr Ψ P) = LinearMap.trace ℝ V ↑P := by
-    have h : Ψ.arrowCongr Ψ P = (Ψ : V →L[ℝ] V) ∘L P ∘L (Ψ.symm : V →L[ℝ] V) := by
-      ext v
-      simp
-    rw [h, ← TauCeti.traceCLM_apply, ← TauCeti.traceCLM_apply, Ψ.traceCLM_comp_comp_symm]
-  rw [traceTwoForm_apply, traceTwoForm_apply, hm, hm, hc, hc]
+  simp only [traceTwoForm_apply, h, ← map_mul, ContinuousLinearEquiv.trace_conjContinuousAlgEquiv]
 
 end ContinuousLinearMap
 

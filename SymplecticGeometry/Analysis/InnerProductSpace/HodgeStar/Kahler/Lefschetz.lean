@@ -29,7 +29,7 @@ symbol of the exterior derivative at the covector `⟪u, ·⟫`), `ι_u` for the
 identity is `L ι_u - ι_u L = 𝒥 ε_u - ε_u 𝒥`. The symbol of the codifferential `d*` at
 `⟪u, ·⟫` is `δ_u = -ι_u`, by Tau Ceti's
 `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar` and
-`TauCeti.wedgeCovector_eq_alternatizeUncurryFin`.
+`TauCeti.alternatizeUncurryFin_innerSL_smulRight`.
 So the identity reads `L δ_u - δ_u L = -(𝒥 ε_u - ε_u 𝒥)`, the pointwise form of
 `[L, d*] = -[𝒥, d]`.
 

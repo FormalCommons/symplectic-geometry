@@ -306,7 +306,7 @@ with `IsWeinsteinStructure.mextDeriv_interior` ($d(\iota_X\omega)=\omega$,
 from Tau Ceti's `isLiouvilleVectorField_iff_mextDeriv_interior_eq`),
 `IsWeinsteinStructure.comp` (`h ∘ f`), `IsWeinsteinStructure.pullback`
 (along a diffeomorphism), and the example of `ℂⁿ` with the radial field
-and $|z|^2$, from Tau Ceti's `Liouville/Radial/`.
+and $|z|^2$, Liouville by `SymplecticForm.isLiouvilleVectorField_constSmooth`.
 
 A Weinstein domain is a compact manifold with boundary over the
 half-space, as a strong filling is in *Liouville structures*:
@@ -988,9 +988,10 @@ containing `ι '' closedBall 0 1`:
     and it crosses `ℓ + d * r` only at `K * δ` (`linear_lt_struweShape`,
     `struweShape_lt_linear`). The line is a convex shape on
     `Icc (K * δ / 2) (2 * K * δ)` by `isConvexShapeAt_linear` (the third
-    hypothesis). `ContDiffOn.exists_contDiff_eqOn_Ici` extends `S` from
-    `Ici (K * δ / 4)`, which lies in `Ioi δ` since `4 < K`, to a smooth
-    function on `ℝ`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
+    hypothesis). Tau Ceti's
+    `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact` gives a smooth
+    function on `ℝ` that is `S` near `Icc (K * δ / 4) (2 * K * δ)`, which
+    lies in `Ioi δ` since `4 < K`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
     `Icc (K * δ / 2) (2 * K * δ)` with `u = 3 * K * δ / 4` and
     `v = 3 * K * δ / 2` joins the two; `G` is `S` left of `K * δ / 2`
     and that join from there on. So no version of the smoothed maximum
@@ -1287,8 +1288,8 @@ containing `ι '' closedBall 0 1`:
        (`Surround/ConvexShape/SmoothedMax.lean`, through the public pointwise step
        `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
        only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
-       and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
-       `Icc r₁ r₂`, whose values and first two `r`-derivatives are
+       and families `M p`, `A p`, `p ∈ K`, of convex shapes that are `C²`
+       at each point of `Icc r₁ r₂`, whose values and first two `r`-derivatives are
        continuous on `K ×ˢ Icc r₁ r₂`, some `δ₀ > 0` makes
        `fun r ↦ smoothedMax δ (M p r) (A p r)` a convex shape on
        `Icc r₁ r₂` for all `δ ∈ Ioc 0 δ₀` and `p ∈ K` at once:
@@ -2349,7 +2350,7 @@ birth–death points are allowed.
   `g < 0` to `g > 0`. This is a fact about any flow, as
   `subsingleton_setOfPred_flow_apply_eq` (15e) is for a regular level of
   `f`, and it goes with the library's
-  `Geometry/Manifold/Flow/LevelCrossing.lean` if it fits there.
+  `Geometry/Manifold/IntegralCurve/Monotone.lean` if it fits there.
   (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
   it reaches `{f ≤ a}`, or it stays in the compact region, where its
   limit set consists of critical points (Tau Ceti's

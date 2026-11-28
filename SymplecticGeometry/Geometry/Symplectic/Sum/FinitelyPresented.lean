@@ -16,6 +16,7 @@ import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.GeneralPosition
 import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Orientation
 import SymplecticGeometry.Geometry.Manifold.NullSet
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.SmoothEmbedding
 import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
@@ -389,9 +390,8 @@ theorem mpullback_diffeomorph_prodForm (σ : SmoothTwoForm I M) :
 nondegenerate. -/
 theorem isNondegenerate_prodForm {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) :
     (prodForm (p := p) I L σ).IsNondegenerate :=
-  ((diffeomorph I L).symm.isLocalDiffeomorph.isNondegenerate_mpullback_iff
-      (diffeomorph I L).symm.surjective).2
-    (hσ.prod (isSymplectic_torusSymplecticForm p).isNondegenerate)
+  (hσ.prod (isSymplectic_torusSymplecticForm p).isNondegenerate
+    ).isNondegenerate_mpullback_of_isLocalDiffeomorph (diffeomorph I L).symm.isLocalDiffeomorph
 
 /-- For a symplectic form `σ` on `M`, such as an area form of a surface, the product form of
 `ProdTorusOnModel I M p L` is symplectic. -/
@@ -453,9 +453,8 @@ theorem mpullback_graphTorus_prodForm (hh : ContMDiff 𝓘(ℝ) I ∞ h)
     (σ : SmoothTwoForm I M) :
     SmoothForm.mpullback (graphTorus I L hh) (graphTorus I L hh).contMDiff
       (prodForm I L σ) = torusSymplecticForm p := by
-  rw [← mpullback_graphTorus_prod_torusSymplecticForm hh σ,
-    ← mpullback_diffeomorph_prodForm I L σ, SmoothForm.mpullback_mpullback]
-  exact SmoothForm.mpullback_congr _ _ (coe_graphTorus I L hh) _
+  rw [graphTorus_def, SmoothEmbedding.mpullback_transDiffeomorphOfBoundaryless _ _ _
+    (mpullback_diffeomorph_prodForm I L σ), mpullback_graphTorus_prod_torusSymplecticForm hh σ]
 
 /-- For a nondegenerate two-form `σ` on `M`, the embedded torus has symplectic tangent images for
 the product form of `ProdTorusOnModel I M p L`. -/
@@ -463,9 +462,9 @@ theorem hasSymplecticTangentImages_graphTorus {σ : SmoothTwoForm I M} (hσ : σ
     (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
     (isNondegenerate_prodForm (p := p) I L hσ).HasSymplecticTangentImages
       (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)) (graphTorus I L hh) := by
-  rw [coe_graphTorus]
-  exact (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff
-    (diffeomorph I L) (mpullback_diffeomorph_prodForm I L σ)).2
+  rw [graphTorus_def]
+  exact (SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff _
+    (diffeomorph I L) _ (mpullback_diffeomorph_prodForm I L σ)).2
     (SymplecticGeometry.hasSymplecticTangentImages_graphTorus hσ hh)
 
 /-- **The embedded tori are symplectically framed.** For a nondegenerate two-form `σ` on a

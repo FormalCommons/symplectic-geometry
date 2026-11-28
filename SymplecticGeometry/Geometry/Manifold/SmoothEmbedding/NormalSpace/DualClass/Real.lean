@@ -35,12 +35,12 @@ The normal slices of the real relative dual class are the real images of the mod
 For a normalized tube `Φ`, a point `x : Z` and a linear isomorphism `m : Q ≃ ν_x` carrying an
 orientation `ν` of `Q` to `o x`, the class pulled back along `m` and the normal slice of `Φ` at
 `x` is the real image of `ν.modelThomGenerator hQ`
-(`TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_realRelDualClass`): the slice
-criterion `eq_relDualClassOf_iff_forall_slice` reduces it to the fibre restriction of the real
-Thom class, and the naturality of the model generators under linear isomorphisms
-(`Orientation.singularCohomologyMap_modelThomGenerator`) moves it from the trivialization at `x`
-to `m`. In rank two, with `Q = ℝ²` oriented by its standard basis, the generator pairs to `-1`
-with the class of a smooth `2`-simplex of `ℝ²` that is positively oriented around `0`
+(`TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_realRelDualClass`). This is the real
+image of the integral statement `singularCohomologyMap_normalSlice_relDualClass` of
+`DualClass/Slice.lean`, since the real relative dual class is the real image of the integral one
+and the real image commutes with maps of pairs. In rank two, with `Q = ℝ²` oriented by its
+standard basis, the generator pairs to `-1` with the class of a smooth `2`-simplex of `ℝ²` that
+is positively oriented around `0`
 (`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`), and the real image
 pairs as its cast. So the slice of the real relative dual class pairs with such a simplex to `-1`
 (`TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`).
@@ -228,25 +228,9 @@ theorem singularCohomologyMap_normalSlice_realRelDualClass (f : SmoothEmbedding 
       ((TopPair.ofSubset (X := TopCat.of Q) ({0}ᶜ : Set Q)).singularCohomologyRealImage r
         (ν.modelThomGenerator hQ) : (TopPair.ofSubset (X := TopCat.of Q) ({0}ᶜ : Set Q)
           ).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) r) := by
-  let := f.normalSpaceFiberBundle hn hdim
-  let := f.normalSpaceVectorBundle hn hdim
-  subst hr
-  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
-  have hx : x ∈ e.baseSet := FiberBundle.mem_baseSet_trivializationAt' x
-  -- The slice pulls the class back as the fibre restriction of the real Thom class.
-  rw [TopPair.singularCohomologyMap_comp_apply, realRelDualClass_def,
-    (eq_relDualClassOf_iff_forall_slice f hn hdim hf hΦ _ _).1 rfl x,
-    o.singularCohomologyMap_fiberThomPairMap_realCanonicalThomClass rfl e hx]
-  have h : ν.map _ (m.trans (e.continuousLinearEquivAt ℝ x hx)).toLinearEquiv =
-      e.mapOrientation _ hx (o x) := by
-    rw [Trivialization.mapOrientation_apply, ← hm, ← Orientation.map_trans]
-    -- `(e.continuousLinearEquivAt ℝ x hx).toLinearEquiv` is `e.linearEquivAt ℝ x hx`.
-    congr 1
-  rw [← Orientation.singularCohomologyMap_modelThomGenerator _ ν hQ rfl, h,
-    ContinuousLinearEquiv.complZeroPairIso_trans, Iso.trans_hom,
-    TopPair.singularCohomologyMap_comp_apply,
-    TopPair.singularCohomologyRealImage_naturality_apply,
-    TopPair.singularCohomologyRealImage_naturality_apply]
+  rw [realRelDualClass_eq_singularCohomologyRealImage,
+    ← TopPair.singularCohomologyRealImage_naturality_apply,
+    singularCohomologyMap_normalSlice_relDualClass f hn hdim hf o hr hΦ x ν hQ m hm]
 
 /-- **The value of the real dual class of a codimension-two submanifold on a normal disc.** Let
 the normal bundle have rank two, `Φ` be a normalized tube of `f`, `x : Z`, and

@@ -16,7 +16,6 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
-import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -68,8 +67,9 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
-* `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`: for nonempty finite-dimensional
-  `M`, the model fibre of a smooth atlas has dimension `dim M - dim B`.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_eq_add` and
+  `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`: for nonempty finite-dimensional
+  `M`, a smooth atlas has `dim M = dim B + dim F`, so its fibre has dimension `dim M - dim B`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.isContMDiffDistribution_ker_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffVectorBundle_ker_mfderiv`: the vertical spaces of
   a `C^n` atlas form a `C^m` distribution and vector bundle of rank `dim M - dim B` when
@@ -444,22 +444,30 @@ theorem IsContMDiff.surjective_mfderiv (hA : A.IsContMDiff n IB IF IM) (hn : n �
     (hA.mdifferentiable_trivAt hn (proj x))
     ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))
 
+/-- **The dimension count of an atlas.** If `proj : M → B` has a `C^n` atlas with model fibre
+`F`, `n ≠ 0`, `M` is finite-dimensional and has a point, then `dim M = dim B + dim F`: the
+derivative of a chart at a point of its source identifies the tangent space of `M` with
+`EB × EF`. -/
+theorem IsContMDiff.finrank_eq_add [FiniteDimensional 𝕜 EM] (hA : A.IsContMDiff n IB IF IM)
+    (hn : n ≠ 0) (x : M) :
+    Module.finrank 𝕜 EM = Module.finrank 𝕜 EB + Module.finrank 𝕜 EF := by
+  -- The tangent spaces of `M` and `B × F` are `EM` and `EB × EF` by definition; the type ascription
+  -- states this, so that `Module.finrank_prod` applies.
+  let L : EM ≃ₗ[𝕜] EB × EF := ((hA.mdifferentiable_trivAt hn (proj x)).mfderiv
+    ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))).toLinearEquiv
+  have : Module.Finite 𝕜 (EB × EF) := Module.Finite.equiv L
+  have : Module.Finite 𝕜 EB :=
+    Module.Finite.of_surjective (LinearMap.fst 𝕜 EB EF) LinearMap.fst_surjective
+  have : Module.Finite 𝕜 EF :=
+    Module.Finite.of_surjective (LinearMap.snd 𝕜 EB EF) LinearMap.snd_surjective
+  rw [← Module.finrank_prod, L.finrank_eq]
+
 /-- **The dimension of the fibre.** If `proj : M → B` has a `C^n` atlas with model fibre `F`,
-`n ≠ 0`, and `M` is nonempty and finite-dimensional, then `dim M - dim B = dim F`: the derivative
-of `proj` is onto, and its kernel is the image of the injective derivative of a fibre inclusion. -/
+`n ≠ 0`, and `M` is nonempty and finite-dimensional, then `dim M - dim B = dim F`. -/
 theorem IsContMDiff.finrank_sub_finrank_eq [FiniteDimensional 𝕜 EM] [Nonempty M]
     (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) :
     Module.finrank 𝕜 EM - Module.finrank 𝕜 EB = Module.finrank 𝕜 EF := by
-  obtain ⟨x⟩ := ‹Nonempty M›
-  have hb := A.mem_baseSet_trivAt (proj x)
-  have he := hA.mdifferentiable_trivAt hn (proj x)
-  set e := A.trivAt (proj x)
-  set v := (e x).2
-  have hM := (e.isRegularPoint_proj he
-    (e.fiberInclusionMap_mem_source hb v)).finrank_ker_mfderiv_add_finrank
-  have hF := LinearMap.finrank_range_of_inj (e.injective_mfderiv_fiberInclusionMap he hb v)
-  rw [e.range_mfderiv_fiberInclusionMap he hb v, TauCeti.finrank_tangentSpace] at hF
-  omega
+  rw [hA.finrank_eq_add hn (Classical.arbitrary M), Nat.add_sub_cancel_left]
 
 /-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` on the
 source of the chart. -/
