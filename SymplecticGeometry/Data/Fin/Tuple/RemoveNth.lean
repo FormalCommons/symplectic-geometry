@@ -30,6 +30,9 @@ Mathlib's `Fin.removeNth_insertNth` and `Fin.insertNth_self_removeNth`. Splittin
 alternating sum over the entries of a concatenation into the sums over its two blocks
 (`Fin.sum_neg_one_pow_smul_removeNth_append`, and `Fin.sum_neg_one_pow_smul_removeNth_append_zero`
 when the second block is empty) follows.
+
+For a block of one entry, `Fin.snoc f z`, removing an entry of `f` keeps `z` last:
+`Fin.removeNth_castSucc_snoc`.
 -/
 
 public section
@@ -96,6 +99,18 @@ theorem sum_neg_one_pow_smul_removeNth_append_zero {G : Type*} [AddCommGroup G] 
   rw [removeNth_cast_castAdd_append a c i h, Function.comp_apply, cast_cast, cast_eq_self,
     append_left]
   simp
+
+/-- Removing an entry `i` of `f` from `Fin.snoc f z` gives `Fin.snoc (Fin.removeNth i f) z`: the
+last entry stays last. -/
+theorem removeNth_castSucc_snoc {n : ℕ} (i : Fin (n + 1)) (f : Fin (n + 1) → α) (z : α) :
+    removeNth i.castSucc (snoc f z : Fin (n + 2) → α) = snoc (removeNth i f) z := by
+  funext m
+  refine lastCases ?_ (fun m ↦ ?_) m
+  · simp [removeNth_apply]
+  · simp only [removeNth_apply, succAbove, lt_def, snoc_castSucc, val_castSucc]
+    split_ifs
+    · simp
+    · rw [succ_castSucc, snoc_castSucc]
 
 end Fin
 
