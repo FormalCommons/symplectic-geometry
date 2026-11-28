@@ -1,0 +1,212 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Kernel
+public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
+
+/-!
+# The uniformizing map of a tame almost complex structure on the sphere
+
+Let `J` be a smooth almost complex structure on the Riemann sphere `OnePoint ℂ` tamed by the
+Fubini–Study form `OnePoint.fubiniStudyForm`, and let `E_J = twistOneKernel J` be the kernel of
+the real Cauchy–Riemann operator `D_J` on the line bundle `𝒪(1)`. Pick nonzero `s, t ∈ E_J`
+with `s 0 = 0` and `t ∞ = 0` (`SymplecticGeometry.exists_mem_twistOneKernel_eq_zero`). Every
+nonzero element of `E_J` vanishes at a single point
+(`SymplecticGeometry.existsUnique_eq_zero_of_mem_twistOneKernel`), so `s` and `t` have no common
+zero and do not vanish at `1`. Hence
+
+  `σ(J) x = [s x · t 1 : t x · s 1]`
+
+is a well defined map from the sphere to itself, read through Mathlib's identification
+`OnePoint.equivProjectivization` of `OnePoint ℂ` with `ℙ¹(ℂ)`.
+
+## Main definitions and results
+
+* `SymplecticGeometry.vec_ne_zero_of_mem_twistOneKernel`: the vector
+  `![s x * t 1, t x * s 1]` is nonzero, for `s, t` as above.
+* `SymplecticGeometry.uniformizingMap`: the map `σ(J)`.
+* `SymplecticGeometry.uniformizingMap_eq`: `σ(J)` is given by the formula above for every choice
+  of `s` and `t`, since the elements of `E_J` vanishing at a point form a complex line
+  (`SymplecticGeometry.exists_smul_eq_of_mem_twistOneKernel`).
+* `SymplecticGeometry.uniformizingMap_zero`, `SymplecticGeometry.uniformizingMap_one` and
+  `SymplecticGeometry.uniformizingMap_infty`: `σ(J)` fixes `0`, `1` and `∞`.
+* `SymplecticGeometry.injective_uniformizingMap`: `σ(J)` is injective, since `σ(J) x = σ(J) y`
+  gives a nonzero element `t y • s - s y • t` of `E_J` vanishing at `x` and at `y`.
+
+## References
+
+* [D. McDuff, D. Salamon, *J-holomorphic curves and symplectic topology*, 2nd
+  ed.][McDuffSalamon2012] (Riemann–Roch for real Cauchy–Riemann operators on line bundles over
+  the sphere).
+-/
+
+public section
+
+open scoped OnePoint SymplecticGeometry Manifold ContDiff TauCeti.ComplexManifold
+open TauCeti
+
+namespace SymplecticGeometry
+
+/-- The smooth almost complex structures on the Riemann sphere tamed by the Fubini–Study form. -/
+local notation "𝒥" =>
+  {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) // OnePoint.fubiniStudyForm.Tames J}
+
+section Vector
+
+variable {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+  {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+
+/-- Let a two-form `σ` tame both `J` and the standard structure `i`, and let `s, t` be nonzero
+elements of `twistOneKernel J` with `s 0 = 0` and `t ∞ = 0`. Then for every point `x`, the
+vector `![s x * t 1, t x * s 1]` of `ℂ²` is nonzero. -/
+theorem vec_ne_zero_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (ht : t ∈ twistOneKernel J)
+    (hs' : s ≠ 0) (ht' : t ≠ 0) (h₀ : s (0 : ℂ) = 0) (hinf : t ∞ = 0) (x : OnePoint ℂ) :
+    ![s x * t (1 : ℂ), t x * s (1 : ℂ)] ≠ 0 := by
+  have u₀ := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hs hs'
+  have uinf := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi ht ht'
+  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦ one_ne_zero (OnePoint.coe_injective (u₀.unique h h₀))
+  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (uinf.unique h hinf)
+  intro hv
+  have hx₀ : s x = 0 := by simpa [ht₁] using congrFun hv 0
+  have hxinf : t x = 0 := by simpa [hs₁] using congrFun hv 1
+  exact OnePoint.coe_ne_infty _ ((u₀.unique h₀ hx₀).trans (uinf.unique hxinf hinf))
+
+end Vector
+
+/-- The nonzero element of `twistOneKernel J` vanishing at `x` that `uniformizingMap` uses. -/
+private noncomputable def chosenSection (J : 𝒥) (x : OnePoint ℂ) : OnePoint ℂ → ℂ :=
+  (exists_mem_twistOneKernel_eq_zero J.property OnePoint.compatible_fubiniStudyForm.tames
+    x).choose
+
+private theorem chosenSection_spec (J : 𝒥) (x : OnePoint ℂ) :
+    chosenSection J x ∈ twistOneKernel J.val ∧ chosenSection J x ≠ 0 ∧
+      chosenSection J x x = 0 :=
+  (exists_mem_twistOneKernel_eq_zero J.property OnePoint.compatible_fubiniStudyForm.tames
+    x).choose_spec
+
+private theorem chosenSection_vec_ne_zero (J : 𝒥) (x : OnePoint ℂ) :
+    ![chosenSection J (0 : ℂ) x * chosenSection J ∞ (1 : ℂ),
+      chosenSection J ∞ x * chosenSection J (0 : ℂ) (1 : ℂ)] ≠ 0 :=
+  vec_ne_zero_of_mem_twistOneKernel J.property OnePoint.compatible_fubiniStudyForm.tames
+    (chosenSection_spec J _).1 (chosenSection_spec J ∞).1 (chosenSection_spec J _).2.1
+    (chosenSection_spec J ∞).2.1 (chosenSection_spec J _).2.2 (chosenSection_spec J ∞).2.2 x
+
+/-- **The uniformizing map** `σ(J)` of a structure `J` tamed by the Fubini–Study form: with
+`s, t` nonzero elements of `twistOneKernel J` vanishing at `0` and at `∞`, the point `x` goes
+to `[s x · t 1 : t x · s 1]`, read through `OnePoint.equivProjectivization`. By
+`uniformizingMap_eq`, it does not depend on the choice of `s` and `t`. -/
+noncomputable def uniformizingMap (J : 𝒥) (x : OnePoint ℂ) : OnePoint ℂ :=
+  (OnePoint.equivProjectivization ℂ).symm <| Projectivization.mk ℂ
+    ![chosenSection J (0 : ℂ) x * chosenSection J ∞ (1 : ℂ),
+      chosenSection J ∞ x * chosenSection J (0 : ℂ) (1 : ℂ)]
+    (chosenSection_vec_ne_zero J x)
+
+/-- **`σ(J)` does not depend on the sections.** For any nonzero `s, t ∈ twistOneKernel J` with
+`s 0 = 0` and `t ∞ = 0`, the map `uniformizingMap J` sends `x` to
+`[s x · t 1 : t x · s 1]`. -/
+theorem uniformizingMap_eq (J : 𝒥) {s t : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J.val)
+    (ht : t ∈ twistOneKernel J.val) (hs' : s ≠ 0) (ht' : t ≠ 0) (h₀ : s (0 : ℂ) = 0)
+    (hinf : t ∞ = 0) (x : OnePoint ℂ) :
+    uniformizingMap J x = (OnePoint.equivProjectivization ℂ).symm (Projectivization.mk ℂ
+      ![s x * t (1 : ℂ), t x * s (1 : ℂ)]
+      (vec_ne_zero_of_mem_twistOneKernel J.property OnePoint.compatible_fubiniStudyForm.tames
+        hs ht hs' ht' h₀ hinf x)) := by
+  have hi := OnePoint.compatible_fubiniStudyForm.tames
+  obtain ⟨ht₀, ht₀', ht₀0⟩ := chosenSection_spec J (0 : ℂ)
+  obtain ⟨htinf, htinf', htinf0⟩ := chosenSection_spec J ∞
+  obtain ⟨a, ha⟩ := exists_smul_eq_of_mem_twistOneKernel J.property hi ht₀ hs ht₀' ht₀0 h₀
+  obtain ⟨b, hb⟩ :=
+    exists_smul_eq_of_mem_twistOneKernel J.property hi htinf ht htinf' htinf0 hinf
+  rw [uniformizingMap, Equiv.apply_eq_iff_eq, Projectivization.mk_eq_mk_iff']
+  refine ⟨(a * b)⁻¹, ?_⟩
+  have hab : a * b ≠ 0 := by
+    refine mul_ne_zero (fun h ↦ hs' ?_) (fun h ↦ ht' ?_)
+    · rw [← ha, h, zero_smul]
+    · rw [← hb, h, zero_smul]
+  have ha0 : a ≠ 0 := left_ne_zero_of_mul hab
+  have hb0 : b ≠ 0 := right_ne_zero_of_mul hab
+  subst ha hb
+  ext i
+  fin_cases i <;> simp <;> field_simp
+
+/-- `σ(J)` fixes `0`. -/
+@[simp]
+theorem uniformizingMap_zero (J : 𝒥) : uniformizingMap J (0 : ℂ) = (0 : ℂ) := by
+  have h₀ := (chosenSection_spec J (0 : ℂ)).2.2
+  have h := chosenSection_vec_ne_zero J (0 : ℂ)
+  rw [uniformizingMap, OnePoint.equivProjectivization_symm_apply_mk]
+  simp only [Matrix.cons_val_one, Matrix.cons_val_zero, h₀, zero_mul, mul_zero] at h ⊢
+  have h₁ : chosenSection J ∞ (0 : ℂ) * chosenSection J (0 : ℂ) (1 : ℂ) ≠ 0 :=
+    fun h' ↦ h (by ext i; fin_cases i <;> simp [h'])
+  simp [h₁]
+
+/-- `σ(J)` fixes `1`. -/
+@[simp]
+theorem uniformizingMap_one (J : 𝒥) : uniformizingMap J (1 : ℂ) = (1 : ℂ) := by
+  have h := chosenSection_vec_ne_zero J (1 : ℂ)
+  rw [uniformizingMap, OnePoint.equivProjectivization_symm_apply_mk]
+  simp only [Matrix.cons_val_one, Matrix.cons_val_zero]
+  have h₁ : chosenSection J ∞ (1 : ℂ) * chosenSection J (0 : ℂ) (1 : ℂ) ≠ 0 :=
+    fun h' ↦ h (by ext i; fin_cases i <;> simp [h', mul_comm])
+  simp only [h₁, ↓reduceIte]
+  rw [mul_comm (chosenSection J (0 : ℂ) _), inv_mul_cancel₀ h₁]
+
+/-- `σ(J)` fixes `∞`. -/
+@[simp]
+theorem uniformizingMap_infty (J : 𝒥) : uniformizingMap J ∞ = (∞ : OnePoint ℂ) := by
+  rw [uniformizingMap, OnePoint.equivProjectivization_symm_apply_mk]
+  simp [(chosenSection_spec J ∞).2.2]
+
+/-- **`σ(J)` is injective.** If `σ(J) x = σ(J) y`, the element `t y • s - s y • t` of
+`twistOneKernel J` is nonzero and vanishes at `x` and at `y`, so `x = y`. -/
+theorem injective_uniformizingMap (J : 𝒥) : Function.Injective (uniformizingMap J) := by
+  obtain ⟨hs, hs', h₀⟩ := chosenSection_spec J (0 : ℂ)
+  obtain ⟨ht, ht', hinf⟩ := chosenSection_spec J ∞
+  set s := chosenSection J (0 : ℂ)
+  set t := chosenSection J ∞
+  have hi := OnePoint.compatible_fubiniStudyForm.tames
+  have u₀ := existsUnique_eq_zero_of_mem_twistOneKernel J.property hi hs hs'
+  have uinf := existsUnique_eq_zero_of_mem_twistOneKernel J.property hi ht ht'
+  have hs₁ : s (1 : ℂ) ≠ 0 := fun h ↦ one_ne_zero (OnePoint.coe_injective (u₀.unique h h₀))
+  have ht₁ : t (1 : ℂ) ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (uinf.unique h hinf)
+  have ht0 : t (0 : ℂ) ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (uinf.unique h hinf)
+  have hsinf : s ∞ ≠ 0 := fun h ↦ OnePoint.coe_ne_infty _ (u₀.unique h₀ h)
+  intro x y hxy
+  rw [uniformizingMap, uniformizingMap, Equiv.apply_eq_iff_eq,
+    Projectivization.mk_eq_mk_iff'] at hxy
+  obtain ⟨c, hc⟩ := hxy
+  have hx₀ : s x = c * s y := by
+    have := congrFun hc 0
+    simp only [Pi.smul_apply, Matrix.cons_val_zero, smul_eq_mul] at this
+    exact mul_right_cancel₀ ht₁ (by rw [← this]; ring)
+  have hxinf : t x = c * t y := by
+    have := congrFun hc 1
+    simp only [Pi.smul_apply, Matrix.cons_val_one, Matrix.cons_val_zero, smul_eq_mul] at this
+    exact mul_right_cancel₀ hs₁ (by rw [← this]; ring)
+  -- The section `w = t y • s - s y • t` vanishes at `x` and at `y`.
+  set w : OnePoint ℂ → ℂ := t y • s - s y • t
+  have hw : w ∈ twistOneKernel J.val :=
+    sub_mem (Submodule.smul_mem _ _ hs) (Submodule.smul_mem _ _ ht)
+  have hwy : w y = 0 := by simp [w, mul_comm]
+  have hwx : w x = 0 := by simp [w, hx₀, hxinf]; ring
+  -- It is nonzero, since `s` and `t` do not both vanish at `y`.
+  have hw' : w ≠ 0 := by
+    intro h
+    have e0 := congrFun h (0 : ℂ)
+    have einf := congrFun h ∞
+    simp only [w, Pi.sub_apply, Pi.smul_apply, smul_eq_mul, h₀, hinf, mul_zero, sub_zero,
+      zero_sub, Pi.zero_apply, neg_eq_zero] at e0 einf
+    have hy₀ : s y = 0 := (mul_eq_zero.1 e0).resolve_right ht0
+    have hyinf : t y = 0 := (mul_eq_zero.1 einf).resolve_right hsinf
+    exact OnePoint.coe_ne_infty _ ((u₀.unique h₀ hy₀).trans (uinf.unique hyinf hinf))
+  exact (existsUnique_eq_zero_of_mem_twistOneKernel J.property hi hw hw').unique hwx hwy
+
+end SymplecticGeometry
+
+end
