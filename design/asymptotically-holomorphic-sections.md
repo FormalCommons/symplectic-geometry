@@ -487,14 +487,14 @@ and the prerequisites, placed by topic.
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
   and `realFirstChernClass_map` to `FiberBundle/Principal/RealChernClass.lean`,
   as `design/compatible-symplectic-forms.md` states them.
-- `LinearAlgebra/Complex/DominantLinearPart.lean`: for a real-linear
+- `LinearAlgebra/Complex/DominantLinearPart/`: for a real-linear
   $F=A+B:V\to\mathbb C$ on a Hermitian space $(V,\omega,J)$, with $A$
   complex linear, $B$ antilinear and $\|B\|<\|A\|$, $F$ is surjective, its
   kernel is a symplectic subspace, and the orientation of the kernel that
   $F$ induces (as for transverse zero sets) agrees with the symplectic one.
   Main results:
-  `surjective_of_norm_lt`, `isSymplectic_ker_of_norm_lt`,
-  `orientation_ker_eq_of_norm_lt`.
+  `surjective_of_norm_lt` (`Basic.lean`), `isSymplectic_ker_of_norm_lt`,
+  `orientation_ker_eq_of_norm_lt` (`Symplectic.lean`).
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph
   of maximal degree at most $\Delta$ is $(\Delta+1)$-colourable
   (`SimpleGraph.colorable_of_forall_degree_le`), from Tau Ceti's
@@ -668,7 +668,7 @@ each prerequisite issue first searches both for its statement.
 6. **Powers of a Hermitian line bundle** (`Power/Basic.lean`). Waits for nothing.
 7. **The connection on the powers** (`Power/Connection.lean`). Waits for 6.
 8. **Real-linear forms with dominant complex-linear part**
-   (`DominantLinearPart.lean`). Waits for nothing.
+   (`DominantLinearPart/`). Waits for nothing.
 9. **Transverse symplectic zero sets** (`ZeroSet.lean`, without the
    class). Waits for 8.
 10. **The class of the zero set** (`ZeroSet.lean`, the milestone). Waits for

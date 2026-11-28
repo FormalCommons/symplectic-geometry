@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Cayley.Path
 public import TauCeti.Topology.Homotopy.HomotopyEquiv
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Contractible
+import SymplecticGeometry.Topology.Homotopy.Subtype
 
 /-!
 # Contractible spaces of tame and compatible almost complex structures on a manifold
@@ -50,9 +51,10 @@ Tau Ceti's Cayley path it is
 `SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.continuous_cayleyPath`. The contraction is
 built as `SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.cayleyContraction` is, with Tau
 Ceti's path and the fixed point `J₀` (`TauCeti.SmoothTwoForm.Compatible.cayleyPath_self`), and
-its restriction to the compatible structures, by Tau Ceti's
-`TauCeti.SmoothTwoForm.Compatible.compatible_cayleyPath`, is built as
-`SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.compatibleCayleyContraction` is. The tame
+its restriction to the compatible structures is
+`ContinuousMap.HomotopyRel.restrictSubtype`, which applies since the Cayley path between
+compatible structures stays among them (Tau Ceti's
+`TauCeti.SmoothTwoForm.Compatible.compatible_cayleyPath`). The tame
 and the compatible structures are contractible through them, for a compatible `J₀` that
 `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible` gives.
 They are the counterparts, for smooth structures on `M`, of Tau Ceti's linear
@@ -186,17 +188,10 @@ noncomputable def compatibleCayleyContraction (h₀ : σ.Compatible J₀)
     (ContinuousMap.id {J : SmoothAlmostComplexStructure I M // σ.Compatible J}).HomotopyRel
       (ContinuousMap.const _ ⟨J₀, h₀⟩) {⟨J₀, h₀⟩} :=
   letI := SmoothAlmostComplexStructure.frameTopology e U hU
-  { toFun := fun p ↦ ⟨h₀.cayleyContraction e U hU hcover (p.1, ⟨p.2, p.2.property.tames⟩),
-      h₀.compatible_cayleyPath p.2.property _⟩
-    continuous_toFun := (continuous_subtypeVal.comp
-      ((h₀.cayleyContraction e U hU hcover).continuous.comp
-        (continuous_fst.prodMk ((continuous_subtypeVal.comp continuous_snd).subtype_mk _)))
-      ).subtype_mk _
-    map_zero_left := fun J ↦ Subtype.ext (by simp)
-    map_one_left := fun J ↦ Subtype.ext (by simp)
-    prop' := fun t J hJ ↦ by
-      obtain rfl := hJ
-      exact Subtype.ext (by simp) }
+  (h₀.cayleyContraction e U hU hcover).restrictSubtype (fun _ hJ ↦ hJ.tames) h₀
+    fun t J hJ ↦ by
+      rw [h₀.cayleyContraction_apply e U hU hcover]
+      exact h₀.compatible_cayleyPath hJ _
 
 omit [T2Space M] [SigmaCompactSpace M] in
 /-- At time `t`, the compatible Cayley contraction onto `J₀` sends a `σ`-compatible structure `J`
@@ -206,7 +201,9 @@ theorem compatibleCayleyContraction_apply (h₀ : σ.Compatible J₀) (hcover : 
     (t : unitInterval) (J : {J : SmoothAlmostComplexStructure I M // σ.Compatible J}) :
     (h₀.compatibleCayleyContraction e U hU hcover (t, J) : SmoothAlmostComplexStructure I M) =
       h₀.cayleyPath J.property.tames (1 - t) :=
-  (rfl)
+  letI := SmoothAlmostComplexStructure.frameTopology e U hU
+  (ContinuousMap.HomotopyRel.coe_restrictSubtype_apply _ _ _ _ _).trans
+    (h₀.cayleyContraction_apply e U hU hcover t _)
 
 end TauCeti.SmoothTwoForm.Compatible
 
