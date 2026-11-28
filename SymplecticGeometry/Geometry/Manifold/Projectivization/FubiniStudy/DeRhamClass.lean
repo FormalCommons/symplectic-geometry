@@ -13,6 +13,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Projec
 public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Projectivization
 import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.ChernClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
