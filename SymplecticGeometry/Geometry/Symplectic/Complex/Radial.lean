@@ -47,6 +47,9 @@ blowup constructions read the forms they build off `Z` in these terms.
   the real form of `dᶜ`: it is `potentialForm` of that potential. By `Dolbeault/Potential.lean`
   it is `(i/2) ∂∂bar (g ∘ s)`, and half of Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of
   `g ∘ s` (`TauCeti.SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm`).
+* `SymplecticGeometry.mpullback_subtypeVal_potentialForm_radialFunction`: for `g` smooth on
+  all of `ℝ`, the form of the potential `radialFunction hg = g ∘ s` on `ι → ℂ` restricts to
+  `radialPotentialForm ι g` on `Z`.
 * `SymplecticGeometry.radialPotentialForm_apply`: at `z`, with `s = |z|²`,
   `ω_g(v, w) = g'(s) ω₀(v, w) + g''(s) (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v))`, the second term
   being the value of `(i/2) ∂s ∧ ∂bar s`. It is read off from the Levi form, since `ddbarForm` is
@@ -141,6 +144,21 @@ theorem radialPotentialForm_def (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (Io
       (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))).potentialForm
         (SmoothForm.ofFunction (radialPotential hg)) :=
   (rfl)
+
+/-- For `g` smooth on all of `ℝ`, the form of the potential `g |z|²` on `ι → ℂ` restricts on
+`(ι → ℂ) ∖ 0` to the radial potential form of `g`: the inclusion is holomorphic, so restricting
+commutes with forms of potentials (`mpullback_potentialForm`). -/
+theorem mpullback_subtypeVal_potentialForm_radialFunction {g : ℝ → ℝ} (hg : ContDiff ℝ ∞ g) :
+    SmoothForm.mpullback (Subtype.val : puncturedSpace (ι → ℂ) → ι → ℂ) contMDiff_subtypeVal
+        ((ofComplexManifold (ι → ℂ) (ι → ℂ)).potentialForm
+          (SmoothForm.ofFunction (radialFunction hg))) =
+      radialPotentialForm ι g hg.contDiffOn := by
+  rw [radialPotentialForm_def,
+    mpullback_potentialForm _ (isPseudoholomorphic_ofComplexManifold_subtype_val _)]
+  congr 1
+  refine SmoothBundleForm.ext fun z v ↦ ?_
+  rw [SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply,
+    SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply, radialFunction_coe]
 
 /-- **The form of a radial potential.** With `s = |z|²`, `⟨z, v⟩ = Re (star z ⬝ᵥ v)` and
 `ω₀ = stdComplexPiSymplecticForm ι`, the form of the potential `g ∘ s` is
