@@ -10,6 +10,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.ModelSpace
+import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -45,6 +47,12 @@ coordinate expression of `φ` in the directions `Vₚ`, evaluated on the other v
 (`TauCeti.mextDeriv_apply_eq_sum_fderivWithin`): Tau Ceti's `TauCeti.mextDeriv_def` followed by
 Mathlib's `extDerivWithin_apply`.
 
+On an open set `s`, the exterior derivative of a `C^(n+1)` section is a `C^n` section
+(`TauCeti.contMDiffOn_mextDeriv_of_isOpen`), and the exterior derivative of `dφ` vanishes at
+every point of `s` when `φ` is a `C²` section on `s` (`TauCeti.mextDeriv_mextDeriv_of_isOpen`).
+These are Tau Ceti's `TauCeti.contMDiffOn_mextDerivWithin` and
+`TauCeti.mextDerivWithin_mextDerivWithin`, read through `TauCeti.mextDerivWithin_of_isOpen`.
+
 On an open subset `U` of a normed space `E`, with the model `𝓘(ℝ, E)`, the exterior derivative of
 a form `ω` differentiable at `b`, at `b` on `v₀, …, vₖ ∈ E`, is the alternating sum of the
 derivatives at `b`, in the directions `vᵢ`, of the functions `b' ↦ ω b' (v without vᵢ)` on `U`
@@ -66,6 +74,9 @@ hypothesis holds at every point of `U` when `ω` is of class `Cⁿ` with `n ≠ 
   space.
 * `TauCeti.mextDeriv_apply_eq_sum_fderivWithin`: the coordinate formula for `dφ` in the chart at
   `x`.
+* `TauCeti.contMDiffOn_mextDeriv_of_isOpen`: on an open set, `dφ` of a `C^(n+1)` section is a
+  `C^n` section.
+* `TauCeti.mextDeriv_mextDeriv_of_isOpen`: on an open set, `d(dφ) = 0` for a `C²` section.
 * `TauCeti.IsSmoothForm.mdifferentiableAt_opens`: a `Cⁿ` form, `n ≠ 0`, on an open subset of a
   normed space is differentiable at every point.
 * `TauCeti.mextDeriv_opens_apply`: the formula for `dω` on an open subset of a normed space.
@@ -147,6 +158,30 @@ theorem mextDeriv_apply_eq_sum_fderivWithin {k : ℕ} {φ : RoughForm I M F k} {
   rw [mextDeriv_def]
   exact extDerivWithin_apply hφ
     (I.uniqueDiffOn _ (extChartAt_target_subset_range x (mem_extChartAt_target x))) V
+
+/-- On an open set, the exterior derivative costs one derivative: if `φ` is a `C^(n+1)` section
+on an open set `s`, then `dφ` is a `C^n` section on `s`. -/
+theorem contMDiffOn_mextDeriv_of_isOpen [IsManifold I 2 M] {k : ℕ} {φ : RoughForm I M F k}
+    {s : Set M} (hs : IsOpen s) {n : WithTop ℕ∞}
+    (hφ : ContMDiffOn I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) (n + 1)
+      (fun y ↦ Bundle.TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (φ y)) s) :
+    ContMDiffOn I (I.prod 𝓘(ℝ, E [⋀^Fin (k + 1)]→L[ℝ] F)) n
+      (fun y ↦ Bundle.TotalSpace.mk' (E [⋀^Fin (k + 1)]→L[ℝ] F) y (mextDeriv φ y)) s :=
+  (contMDiffOn_mextDerivWithin φ hφ hs.uniqueMDiffOn
+    (hs.interior_eq.symm ▸ subset_closure)).congr fun y hy ↦ by
+      rw [mextDerivWithin_of_isOpen hs hy]
+
+/-- On an open set, the exterior derivative squares to zero: if `φ` is a `C²` section on an open
+set `s`, then `d(dφ)` vanishes at every point of `s`. -/
+theorem mextDeriv_mextDeriv_of_isOpen [IsManifold I 2 M] {k : ℕ} {φ : RoughForm I M F k}
+    {s : Set M} (hs : IsOpen s)
+    (hφ : ContMDiffOn I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) 2
+      (fun y ↦ Bundle.TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (φ y)) s)
+    {x : M} (hx : x ∈ s) : mextDeriv (mextDeriv φ) x = 0 := by
+  rw [← mextDerivWithin_of_isOpen hs hx, ← mextDerivWithin_congr (s := s)
+    (fun y hy ↦ mextDerivWithin_of_isOpen hs hy) (mextDerivWithin_of_isOpen hs hx)]
+  exact mextDerivWithin_mextDerivWithin φ hφ hs.uniqueMDiffOn
+    (hs.interior_eq.symm ▸ subset_closure) hx
 
 end Manifold
 

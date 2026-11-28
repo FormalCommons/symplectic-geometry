@@ -11,9 +11,8 @@ public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 import SymplecticGeometry.Data.Fin.Tuple.RemoveNth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
-import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
-import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -40,10 +39,10 @@ a constant field in the parameter, splitting `dφ` into derivatives in the param
   Then the parameter terms are as above, with `(0, v)` kept last, and the term of `(0, v)` is
   `(-1) ^ (n + 1)` times the derivative along `v` of `y ↦ φ_(p, y)((a₀, 0), …, (aₙ, 0))`.
 * `TauCeti.RoughForm.mextDeriv_prod_apply_inl_eq_zero`: over an open set `U` of `P`, with `M`
-  connected and `φ` of class `C²` on `U × M`, if `dφ` vanishes on `n` parameter vectors and one
+  preconnected and `φ` of class `C²` on `U × M`, if `dφ` vanishes on `n` parameter vectors and one
   vector along `M`, and `φ` vanishes on `n` parameter vectors over `U × {x₀}`, then `dφ`
   vanishes on `n + 1` parameter vectors over `U × M`. By `d(dφ) = 0` and the third formula,
-  `dφ((a₀, 0), …, (aₙ, 0))` is constant along the connected `M`, and by the second formula it
+  `dφ((a₀, 0), …, (aₙ, 0))` is constant along the preconnected `M`, and by the second formula it
   vanishes at `x₀`.
 
 The proof is that of Tau Ceti's
@@ -204,12 +203,12 @@ theorem mextDeriv_prod_apply_snoc_inr {n : ℕ}
     -- The zero of `TangentSpace I y` is that of `E` only by unfolding `TangentSpace`.
     rfl
 
-/-- **Vanishing of the exterior derivative on parameter vectors.** Let `M` be connected, `U` an
-open set of `P`, and `φ` a rough `n`-form on `P × M`, of class `C²` on `U × M`. Suppose that at
+/-- **Vanishing of the exterior derivative on parameter vectors.** Let `M` be preconnected, `U`
+an open set of `P`, and `φ` a rough `n`-form on `P × M`, of class `C²` on `U × M`. Suppose that at
 every point of `U × M`, `dφ` vanishes on `n` vectors `(a, 0)` followed by one vector `(0, v)`,
 and that for some `x₀ : M`, `φ` vanishes on `n` vectors `(a, 0)` at every point of `U × {x₀}`.
 Then `dφ` vanishes on `n + 1` vectors `(a, 0)` at every point of `U × M`. -/
-theorem mextDeriv_prod_apply_inl_eq_zero [ConnectedSpace M] {n : ℕ}
+theorem mextDeriv_prod_apply_inl_eq_zero [PreconnectedSpace M] {n : ℕ}
     {φ : RoughForm (𝓘(ℝ, P).prod I) (P × M) F n} {U : Set P} (hU : IsOpen U)
     (hφ : ContMDiffOn (𝓘(ℝ, P).prod I)
       ((𝓘(ℝ, P).prod I).prod 𝓘(ℝ, (P × E) [⋀^Fin n]→L[ℝ] F)) 2
@@ -222,19 +221,13 @@ theorem mextDeriv_prod_apply_inl_eq_zero [ConnectedSpace M] {n : ℕ}
   have : IsManifold I 1 M := .of_le (n := 2) (by norm_num)
   set W : Set (P × M) := U ×ˢ Set.univ
   have hW : IsOpen W := hU.prod isOpen_univ
-  have hWc : W ⊆ closure (interior W) := by rw [hW.interior_eq]; exact subset_closure
-  -- `dφ` is a `C¹` section on `W`, with `d(dφ) = 0` there.
+  -- `dφ` is a `C¹` section on `W`.
   have hdφ : ContMDiffOn (𝓘(ℝ, P).prod I)
       ((𝓘(ℝ, P).prod I).prod 𝓘(ℝ, (P × E) [⋀^Fin (n + 1)]→L[ℝ] F)) 1
       (fun z ↦ TotalSpace.mk' ((P × E) [⋀^Fin (n + 1)]→L[ℝ] F) z (mextDeriv φ z)) W :=
-    (contMDiffOn_mextDerivWithin φ (n := 1) hφ hW.uniqueMDiffOn hWc).congr fun z hz ↦ by
-      rw [mextDerivWithin_of_isOpen hW hz]
+    contMDiffOn_mextDeriv_of_isOpen hW (n := 1) hφ
   have hdφd {z : P × M} (hz : z ∈ W) :=
     ((hdφ z hz).contMDiffAt (hW.mem_nhds hz)).mdifferentiableAt one_ne_zero
-  have hdd {z : P × M} (hz : z ∈ W) : mextDeriv (mextDeriv φ) z = 0 := by
-    rw [← mextDerivWithin_of_isOpen hW hz, ← mextDerivWithin_congr (s := W)
-      (fun y hy ↦ mextDerivWithin_of_isOpen hW hy) (mextDerivWithin_of_isOpen hW hz)]
-    exact mextDerivWithin_mextDerivWithin φ hφ hW.uniqueMDiffOn hWc hz
   -- Along `M`, `y ↦ dφ_(p, y)((a₀, 0), …, (aₙ, 0))` has zero derivative.
   set g : M → F := fun y ↦ mextDeriv φ (p, y) (fun i ↦ (a i, 0))
   have hg : MDifferentiable I 𝓘(ℝ, F) g := fun y ↦ by
@@ -254,14 +247,11 @@ theorem mextDeriv_prod_apply_inl_eq_zero [ConnectedSpace M] {n : ℕ}
     ext v
     rw [← mvfderiv_apply_eq_mfderiv_apply]
     have h := mextDeriv_prod_apply_snoc_inr (hdφd (z := (p, y)) ⟨hp, trivial⟩) a v
-    rw [hdd ⟨hp, trivial⟩] at h
+    rw [mextDeriv_mextDeriv_of_isOpen hW hφ ⟨hp, trivial⟩] at h
     rw [ContinuousAlternatingMap.coe_zero, Pi.zero_apply, Finset.sum_eq_zero fun i _ ↦ ?_,
       zero_add] at h
     · rw [zero_apply]
-      have hc : ((-1 : ℤ) ^ (n + 1) * (-1) ^ (n + 1)) = 1 := by rw [← mul_pow]; simp
-      rw [← one_smul ℤ (mvfderiv I g y v), ← hc, mul_smul]
-      -- The zero of `h` is that of a fibre of the trivial bundle, which is `F` by unfolding.
-      exact (congrArg _ h.symm).trans (smul_zero (A := F) _)
+      exact ((isUnit_neg_one (α := ℤ)).pow (n + 1)).smul_eq_zero.mp h.symm
     have h : (fun q ↦ mextDeriv φ (q, y) (Fin.snoc (i.removeNth fun j ↦ (a j, 0)) (0, v)))
         =ᶠ[nhds p] fun _ ↦ 0 :=
       Filter.eventuallyEq_of_mem (hU.mem_nhds hp) fun q hq ↦ hvert q hq y (i.removeNth a) v
