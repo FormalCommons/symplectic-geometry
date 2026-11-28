@@ -70,7 +70,7 @@ variable {E : Type} {H : Type*} {X : Type} [NormedAddCommGroup E] [NormedSpace �
   {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
   [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] {hn : ((⊤ : ℕ∞) : WithTop ℕ∞) ≠ 0}
 
-attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
+attribute [local instance] Complex.fact_finrank_real_eq_two_mul_finrank
 
 variable [FiniteDimensional ℝ E]
 
