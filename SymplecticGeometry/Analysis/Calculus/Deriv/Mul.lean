@@ -20,6 +20,7 @@ import TauCeti.Analysis.Calculus.ContDiff.Bounds
   real functions with positive derivative at `x` has positive derivative at `x`. The derivative
   is computed by Mathlib's `deriv_const_mul`; the differentiability of `f` and `g` at `x` follows
   from their derivatives being nonzero (`differentiableAt_of_deriv_ne_zero`).
+  `deriv_mul_add_one_sub_mul_neg` is the same for negative derivatives, applied to `-f`, `-g`.
 * `iteratedDeriv_mul_add_one_sub_mul_sub_iteratedDeriv`: the `n`-th derivative of a blend
   `ρ * f + (1 - ρ) * g` differs from that of `g` by `∑ i ≤ n, (n choose i) ρ⁽ⁱ⁾ (f - g)⁽ⁿ⁻ⁱ⁾`,
   since the blend is `g + ρ * (f - g)`; this is Mathlib's Leibniz rule `iteratedDeriv_mul`.
@@ -44,6 +45,19 @@ theorem deriv_mul_add_one_sub_mul_pos {f g : ℝ → ℝ} {x c : ℝ} (hf : 0 < 
   rcases hc₀.eq_or_lt with rfl | hc₀
   · simpa using hg
   · nlinarith
+
+/-- A combination `c * f + (1 - c) * g`, with `0 ≤ c ≤ 1`, of two real functions with negative
+derivatives at `x` has negative derivative at `x`. -/
+theorem deriv_mul_add_one_sub_mul_neg {f g : ℝ → ℝ} {x c : ℝ} (hf : deriv f x < 0)
+    (hg : deriv g x < 0) (hc₀ : 0 ≤ c) (hc₁ : c ≤ 1) :
+    deriv (fun y ↦ c * f y + (1 - c) * g y) x < 0 := by
+  have h := deriv_mul_add_one_sub_mul_pos (f := fun y ↦ -f y) (g := fun y ↦ -g y)
+    (by rw [deriv.fun_neg]; linarith) (by rw [deriv.fun_neg]; linarith) hc₀ hc₁
+  have he : (fun y ↦ c * -f y + (1 - c) * -g y) = fun y ↦ -(c * f y + (1 - c) * g y) := by
+    funext y
+    ring
+  rw [he, deriv.fun_neg] at h
+  linarith
 
 /-- The `n`-th derivative of the blend `ρ * f + (1 - ρ) * g` of `f` and `g` by `ρ`, minus that of
 `g`, is `∑ i ≤ n, (n choose i) ρ⁽ⁱ⁾ (f⁽ⁿ⁻ⁱ⁾ - g⁽ⁿ⁻ⁱ⁾)`, for `ρ`, `f` and `g` that are `Cⁿ` at
