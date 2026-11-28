@@ -9,8 +9,11 @@ public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Cayley.Path
+public import Mathlib.Topology.Homotopy.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Contractible
 import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 
 /-!
@@ -44,6 +47,13 @@ local notation for it.
   continuous from the weak Whitney topology on `Diff⁺(S²)` (`TauCeti.DiffeomorphWeakWhitney`) to
   Tau Ceti's `C^∞` topology `TauCeti.SmoothAlmostComplexStructure.frameTopology` on `𝒥`; it is
   the case of the sphere of `TauCeti.SmoothAlmostComplexStructure.continuous_pullback`.
+* `SymplecticGeometry.complexStructureContraction`: for any covering frame system, a homotopy
+  relative to `{i}` from the identity of `𝒥` to the constant map at `i`, with
+  `SymplecticGeometry.complexStructureContraction_apply`. At time `t` it sends `J` to the Cayley
+  path from `i` to `J` at time `1 - t` (Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.cayleyPath`
+  for `OnePoint.compatible_fubiniStudyForm`): it is the case `J₀ = i` of
+  `TauCeti.SmoothTwoForm.Compatible.cayleyContraction`. At each point of `S²` the Cayley path
+  shrinks the disc of tame complex structures on the tangent plane radially onto its centre.
 
 ## References
 
@@ -152,6 +162,34 @@ theorem continuous_complexStructureMap {ι : Type*}
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
   exact ((SmoothAlmostComplexStructure.continuous_pullback e U hU _).comp
     continuous_subtypeVal).subtype_mk _
+
+/-- For any covering frame system of `End(TS²)`, the space `𝒥` of structures tamed by the
+Fubini–Study form contracts onto the structure `i` of the Riemann sphere, relative to `i`, for the
+`C^∞` topology: at time `t` the homotopy sends `J` to the Cayley path from `i` to `J` at time
+`1 - t`. -/
+noncomputable def complexStructureContraction {ι : Type*}
+    (e : ι → Bundle.Trivialization (ℂ →L[ℝ] ℂ) (Bundle.TotalSpace.proj (F := ℂ →L[ℝ] ℂ)
+      (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+    [∀ k, MemTrivializationAtlas (e k)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+    (hU : ∀ k, (U k : Set (OnePoint ℂ)) ⊆ (e k).baseSet) (hcover : ∀ x, ∃ k, x ∈ U k) :
+    letI := SmoothAlmostComplexStructure.frameTopology e U hU
+    (ContinuousMap.id 𝒥).HomotopyRel (ContinuousMap.const _ tameOfComplexManifold)
+      {tameOfComplexManifold} :=
+  OnePoint.compatible_fubiniStudyForm.cayleyContraction e U hU hcover
+
+/-- At time `t`, the contraction of `𝒥` onto `i` sends `J` to the Cayley path from `i` to `J` at
+time `1 - t`. -/
+@[simp]
+theorem complexStructureContraction_apply {ι : Type*}
+    (e : ι → Bundle.Trivialization (ℂ →L[ℝ] ℂ) (Bundle.TotalSpace.proj (F := ℂ →L[ℝ] ℂ)
+      (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+    [∀ k, MemTrivializationAtlas (e k)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+    (hU : ∀ k, (U k : Set (OnePoint ℂ)) ⊆ (e k).baseSet) (hcover : ∀ x, ∃ k, x ∈ U k)
+    (t : unitInterval) (J : 𝒥) :
+    (complexStructureContraction e U hU hcover (t, J) :
+        SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)) =
+      OnePoint.compatible_fubiniStudyForm.cayleyPath J.property (1 - t) :=
+  OnePoint.compatible_fubiniStudyForm.cayleyContraction_apply e U hU hcover t J
 
 end SymplecticGeometry
 
