@@ -31,7 +31,9 @@ compactly supported function `f`:
 
 (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_smul_volumeForm`). It is the case of the
 symplectic volume form of `TauCeti.integralTopForm_smul_eq_integral_measure`, and holds in every
-dimension, including dimension `0`. With `f = 1` and Tau Ceti's
+dimension, including dimension `0`. With `f = 1`, on a compact manifold it says that the integral
+of `σⁿ / n!` is the Liouville measure of the whole manifold
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm`); with Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, it shows that the
 symplectic volume of a nonempty compact manifold is positive
 (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`).
@@ -45,7 +47,9 @@ subset of the source onto a set of the same Liouville measure
 `∫ f dλ_σ = ∫_{Φ.source} f ∘ Φ dλ_τ` for every `f` vanishing outside the target
 (`TauCeti.SmoothTwoForm.IsSymplecticMapOn.integral_liouvilleMeasure`). The manifolds `N` and `M`
 may be modelled on different spaces of the same dimension; the proof restricts `Φ` to its open
-source and applies `MeasurableEmbedding.map_liouvilleMeasure` there. On the standard
+source and applies `MeasurableEmbedding.map_liouvilleMeasure` there. In the same way a
+symplectomorphism carries one Liouville measure to the other
+(`TauCeti.SmoothTwoForm.IsSymplectomorphism.map_liouvilleMeasure`). On the standard
 space `StdSpace ι` with the constant form `ω₀ = stdForm ι`, the Liouville measure is Lebesgue
 measure (`SymplecticGeometry.liouvilleMeasure_constSmooth_stdForm`), so a symplectic chart from
 `StdSpace (Fin n)` turns a Liouville integral into a Lebesgue integral over the chart's source
@@ -108,6 +112,17 @@ theorem IsNondegenerate.integralTopForm_smul_volumeForm (h : σ.IsNondegenerate)
   exact integralTopForm_smul_eq_integral_measure _ ((σ.volumeForm n).isSmoothForm.of_le bot_le)
     (signBasis_orientationAt_mul_nonneg_of_iff _
       fun _ c ↦ h.orientation_eq_orientationAt_volumeOrientation_iff hn.out c) hf hc
+
+/-- **The symplectic volume is the total Liouville measure.** On a compact manifold modelled on a
+space of dimension `2 * n`, the integral of the volume form `σⁿ / n!` of a fiberwise
+nondegenerate two-form `σ` against its symplectic orientation is the Liouville measure of the
+whole manifold. -/
+theorem IsNondegenerate.integralTopForm_volumeForm [CompactSpace M] (h : σ.IsNondegenerate) :
+    integralTopForm (h.volumeOrientation hn.out) (σ.volumeForm n).val =
+      (σ.liouvilleMeasure n).real Set.univ := by
+  simpa only [one_smul, integral_const, smul_eq_mul, mul_one] using
+    h.integralTopForm_smul_volumeForm (n := n) (f := fun _ ↦ (1 : ℝ)) continuous_const
+      (HasCompactSupport.of_compactSpace _)
 
 /-! ### Null sets in charts -/
 
@@ -218,6 +233,28 @@ theorem IsSymplecticMapOn.integral_liouvilleMeasure {F : Type*} [NormedAddCommGr
 
 end PartialDiffeomorph
 
+/-! ### Symplectomorphisms -/
+
+section Symplectomorphism
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [Fact (finrank ℝ E' = 2 * n)] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N] [MeasurableSpace N] [BorelSpace N]
+  [LindelofSpace N] {τ : SmoothTwoForm J N} {φ : M ≃ₘ⟮I, J⟯ N}
+
+/-- **Symplectomorphisms preserve the Liouville measure.** A diffeomorphism `φ : M → N` that is a
+symplectomorphism from `σ` to `τ` carries the Liouville measure of `σ` to that of `τ`. The two
+manifolds may be modelled on different spaces of the same dimension `2 * n`. -/
+theorem IsSymplectomorphism.map_liouvilleMeasure (hφ : σ.IsSymplectomorphism τ φ) :
+    (σ.liouvilleMeasure n).map φ = τ.liouvilleMeasure n := by
+  have h : mpullback I J φ τ.val = σ.val := by
+    rw [← SmoothForm.coe_mpullback φ φ.contMDiff, isSymplectomorphism_iff_mpullback_eq.1 hφ]
+  have hm : MeasurableEmbedding φ := by simpa using φ.toHomeomorph.measurableEmbedding
+  rw [hm.map_liouvilleMeasure (φ.contMDiff.mdifferentiable (by simp)) h,
+    ← φ.coe_toEquiv, φ.toEquiv.range_eq_univ, Measure.restrict_univ]
+
+end Symplectomorphism
+
 section Volume
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
@@ -234,10 +271,7 @@ theorem IsNondegenerate.integralTopForm_volumeForm_pos [CompactSpace M] [Nonempt
   borelize M
   have : Fact (finrank ℝ E = 2 * n) := ⟨hn⟩
   have := h.isOpenPosMeasure_liouvilleMeasure (n := n)
-  have h1 := h.integralTopForm_smul_volumeForm (n := n) (f := fun _ ↦ (1 : ℝ)) continuous_const
-    (HasCompactSupport.of_compactSpace _)
-  simp only [one_smul] at h1
-  rw [h1, integral_const, smul_eq_mul, mul_one]
+  rw [h.integralTopForm_volumeForm, measureReal_def]
   exact ENNReal.toReal_pos (isOpen_univ.measure_pos _ Set.univ_nonempty).ne' (measure_ne_top _ _)
 
 end Volume

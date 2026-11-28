@@ -585,7 +585,8 @@ and `hψ₂`.
 - `deRhamHom_normalizedBlowupForm_eq_iff`: the classes agree if $\lambda_1=\lambda_2$, and only
   then when `1 ≤ n` (the real image of the exceptional class is nonzero,
   `Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero`)
-  or when `n = 0` and `M` is compact (total area, from
+  or, in `deRhamHom_normalizedBlowupForm_eq_iff_of_compactSpace`, when `n = 0`
+  and `M` is compact (total area, from
   `liouvilleMeasure_form_add` through `Normalized/Weight.lean`).
 - `exists_diffeotopy_of_based_family`: if $\lambda_1=\lambda_2=\lambda$ and
   the restrictions to $B(\lambda)$ are joined by a family with centre

@@ -6,6 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Class
+import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
+import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
+import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Equiv
 
 /-!
 # Uniqueness of the symplectic blowup: paths between forms and equal classes
@@ -15,8 +19,8 @@ Fix a normalization `hN : IsNormalizedAt σ J p₀ δ ψ₀` and two normalized 
 `hψ₂ : IsNormalizedBallEmbedding hN ψ₂ r₂ l₂ ε₂`.
 This file shows that their forms `ω̃_{ψ₁,l₁,ε₁}` and `ω̃_{ψ₂,l₂,ε₂}` on `Blowup hN.blowupChart`
 are joined by a smooth family of symplectic forms, and that their de Rham classes have the same
-image in real singular cohomology when the weights agree, and, for `1 ≤ n`, only then
-(McDuff–Salamon, Theorem 7.1.23).
+image in real singular cohomology when the weights agree, and only then when `1 ≤ n` or when
+`n = 0` and `M` is compact (McDuff–Salamon, Theorem 7.1.23).
 
 ## Main results
 
@@ -26,6 +30,8 @@ image in real singular cohomology when the weights agree, and, for `1 ≤ n`, on
   for equal weights, the classes of the two forms have the same image in real cohomology.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm_eq_iff`: for
   `1 ≤ n`, the two images agree if and only if `l₁ = l₂`.
+* `IsNormalizedBallEmbedding.deRhamHom_normalizedBlowupForm_eq_iff_of_compactSpace`: for `n = 0`
+  and compact `M`, the two images agree if and only if `l₁ = l₂`.
 
 ## Implementation notes
 
@@ -41,6 +47,18 @@ differ by `π (l₁² - l₂²)` times the real image of `Blowup.exceptionalClas
 `1 ≤ n` (`Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero`); the weights
 are positive, so `l₁ = l₂`.
 
+For `n = 0` this argument does not apply, and the total area decides instead. The images agree
+for the default profiles too, as they do not depend on the profile, so by the de Rham theorem
+(`TauCeti.bijective_deRhamHom`) the default forms have the same de Rham class. Both forms carry
+the same symplectic orientation `o`, which is constant along the path above
+(`TauCeti.SmoothTwoForm.volumeOrientation_eq_of_isSmoothFamily`). On the compact blowup,
+integrating a class against `o` is well defined (`TauCeti.deRhamCohomology.integral_mk`), and the
+integral of each form is its total Liouville measure
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm`). That measure is the area of
+`σ` minus the volume of `B(lᵢ)`
+(`IsNormalizedBallEmbedding.liouvilleMeasure_normalizedBlowupForm_add`), finite on compact `M`,
+and the volume `π lᵢ²` of the disc determines `lᵢ > 0`.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
@@ -51,7 +69,7 @@ public section
 
 noncomputable section
 
-open Set Topology Metric
+open Set Topology Metric MeasureTheory Module
 open scoped ContDiff Manifold TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
@@ -150,6 +168,71 @@ theorem deRhamHom_normalizedBlowupForm_eq_iff [SecondCountableTopology M]
     (Blowup.singularCohomologyRealImageAddMonoidHom_exceptionalClass_ne_zero _ hn) h
   rw [mul_right_inj' Real.pi_ne_zero] at h'
   exact (pow_left_inj₀ hψ₁.weight_pos.le hψ₂.weight_pos.le two_ne_zero).1 h'
+
+/-- **On a compact surface, normalized blowup forms have equal classes exactly for equal
+weights.** Let `M` be compact, Hausdorff and second countable, of complex dimension `n + 1 = 1`,
+`σ` symplectic, and `ψ₁`, `ψ₂` normalized ball embeddings, for the same normalization, of weights
+`l₁`, `l₂`, with profiles `h₁`, `h₂` of the blowup. The classes of the forms `ω̃_{ψ₁,l₁,ε₁}` and
+`ω̃_{ψ₂,l₂,ε₂}` have the same image under `TauCeti.deRhamHom` in `H²(Blowup; ℝ)` if and only if
+`l₁ = l₂`. -/
+theorem deRhamHom_normalizedBlowupForm_eq_iff_of_compactSpace [SecondCountableTopology M]
+    [CompactSpace M] (hψ₁ : IsNormalizedBallEmbedding hN ψ₁ r₁ l₁ ε₁)
+    (hψ₂ : IsNormalizedBallEmbedding hN ψ₂ r₂ l₂ ε₂) {h₁ h₂ : ℝ → ℝ}
+    (hh₁ : IsBlowupProfile l₁ ε₁ h₁) (hh₂ : IsBlowupProfile l₂ ε₂ h₂) (hσ : σ.IsSymplectic)
+    (hn : n = 0) :
+    deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+        (deRhamCohomology.mk _ 2 ⟨hψ₁.normalizedBlowupForm h₁,
+          (hψ₁.isSymplectic_normalizedBlowupForm hh₁ hσ).isClosed.mem_closedForms⟩) =
+      deRhamHom 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart) 2
+        (deRhamCohomology.mk _ 2 ⟨hψ₂.normalizedBlowupForm h₂,
+          (hψ₂.isSymplectic_normalizedBlowupForm hh₂ hσ).isClosed.mem_closedForms⟩) ↔
+      l₁ = l₂ := by
+  refine ⟨fun h ↦ ?_, hψ₁.deRhamHom_normalizedBlowupForm_eq_of_weight_eq hψ₂ hh₁ hh₂ hσ⟩
+  subst hn
+  have hk : finrank ℝ (Fin (0 + 1) → ℂ) = 2 * 1 := by simp [finrank_pi_fintype]
+  have : Fact (finrank ℝ (Fin (0 + 1) → ℂ) = 2 * 1) := ⟨hk⟩
+  borelize M (Blowup hN.blowupChart)
+  -- The images do not depend on the profiles, so those of the default forms agree, and by the de
+  -- Rham theorem so do the classes of the default forms.
+  have hb₁ := isBlowupProfile_blowupProfile hψ₁.weight_pos hψ₁.width_pos
+  have hb₂ := isBlowupProfile_blowupProfile hψ₂.weight_pos hψ₂.width_pos
+  rw [hψ₁.deRhamHom_normalizedBlowupForm hh₁ hσ, hψ₂.deRhamHom_normalizedBlowupForm hh₂ hσ,
+    ← hψ₁.deRhamHom_normalizedBlowupForm hb₁ hσ, ← hψ₂.deRhamHom_normalizedBlowupForm hb₂ hσ] at h
+  have hmk := (bijective_deRhamHom _ _ 2).1 h
+  -- The two forms have the same symplectic orientation, which is constant along the path
+  -- between them.
+  have hω₁ := (hψ₁.isSymplectic_normalizedBlowupForm hb₁ hσ).isNondegenerate
+  have hω₂ := (hψ₂.isSymplectic_normalizedBlowupForm hb₂ hσ).isNondegenerate
+  have ho : hω₁.volumeOrientation hk = hω₂.volumeOrientation hk := by
+    obtain ⟨τ, hτ, hτs, hτ0, hτ1⟩ := hψ₁.exists_path_normalizedBlowupForm hψ₂ hσ
+    have := SmoothTwoForm.volumeOrientation_eq_of_isSmoothFamily hτ
+      (fun t ↦ (hτs t).isNondegenerate) hk 0 1
+    -- The proofs of nondegeneracy depend on the forms, so generalize them before rewriting.
+    revert hω₁ hω₂
+    rw [← hτ0, ← hτ1]
+    exact fun _ _ ↦ this
+  -- On the compact blowup, integrating against this orientation gives the total area, which
+  -- therefore agrees for the two forms.
+  have harea := congrArg (deRhamCohomology.integral (hω₁.volumeOrientation hk)) hmk
+  rw [deRhamCohomology.integral_mk, deRhamCohomology.integral_mk] at harea
+  have e₁ := hω₁.integralTopForm_volumeForm (n := 1)
+  have e₂ := hω₂.integralTopForm_volumeForm (n := 1)
+  rw [SmoothTwoForm.volumeForm_one] at e₁ e₂
+  rw [e₁, ho, e₂] at harea
+  have hA : (hψ₁.normalizedBlowupForm).liouvilleMeasure 1 univ =
+      (hψ₂.normalizedBlowupForm).liouvilleMeasure 1 univ :=
+    (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 harea
+  -- Each area is that of `σ` minus the volume of the ball `B(lᵢ)`, which is `lᵢ²` times that of
+  -- the unit ball.
+  have hV := (hψ₁.liouvilleMeasure_normalizedBlowupForm_add (m := 1) hb₁).trans
+    (hψ₂.liouvilleMeasure_normalizedBlowupForm_add (m := 1) hb₂).symm
+  rw [hA, ENNReal.add_right_inj (measure_ne_top _ _),
+    Measure.addHaar_closedBall _ _ hψ₁.weight_pos.le,
+    Measure.addHaar_closedBall _ _ hψ₂.weight_pos.le,
+    ENNReal.mul_left_inj (measure_ball_pos _ _ one_pos).ne' measure_ball_lt_top.ne,
+    ENNReal.ofReal_eq_ofReal_iff (pow_nonneg hψ₁.weight_pos.le _)
+      (pow_nonneg hψ₂.weight_pos.le _)] at hV
+  exact (pow_left_inj₀ hψ₁.weight_pos.le hψ₂.weight_pos.le (by simp)).1 hV
 
 end IsNormalizedBallEmbedding
 
