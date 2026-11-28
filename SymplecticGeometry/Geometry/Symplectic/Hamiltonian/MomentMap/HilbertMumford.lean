@@ -13,8 +13,10 @@ import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.NormSquare
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
 import TauCeti.Analysis.Calculus.Deriv.Growth
 import TauCeti.LinearAlgebra.BilinearForm.Basic
@@ -108,6 +110,19 @@ over the closure of the points `exp (i η) p` with `η ∈ 𝔞`, which is compa
 in `ξ ∈ 𝔞` (`continuousOn_momentWeight`, by `IsCompact.continuous_sInf`). This follows the proof
 of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
 
+A positive infimum `m²` of `‖μ‖²` over the orbit of `p` gives a unit direction of positive weight
+(`exists_momentWeight_pos_of_iInf_momentNormSq_pos`), by the argument of Lemma 10.5 of
+[GeorgoulasRobbinSalamon2021] (arXiv v2) run along the negative gradient flow of `‖μ‖²`, which
+avoids their generalized Kempf existence theorem. Along the curve `g` in `Gc` that this flow
+gives (`exists_mem_orbit_maximalIntegralCurve`), `Φ_p (g t) ≤ -2 m² t`, while the polar radius of
+`g t` is at most `2 L t`, for `L` a bound of `√(‖μ‖²)` on `M`
+(`exists_sqrt_le_kempfNessFunction_expI_le`). Convexity of `Φ_p` along `s ↦ exp (i s ζ)`
+(`mul_kempfNessFunction_expI_smul_le`) turns this into `Φ_p (exp (i s ζ)) ≤ -(m² / L) s` up to
+the radius, for the unit directions `ζ` of the polar decomposition. These accumulate at some
+`ζ₀`, where the bound then holds for every `s ≥ 0`, and the asymptotic slope
+(`tendsto_kempfNessFunction_expI_neg_smul_div`) gives `w_μ(p, -ζ₀) ≥ m² / L`
+(`le_momentWeight_neg_of_kempfNessFunction_expI_smul_le`).
+
 ## Main definitions
 
 * `SymplecticGeometry.momentWeight C μ p ξ`: the limit of `μ (C.expI (t • ξ) • p) ξ` as
@@ -164,11 +179,13 @@ of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
 * `SymplecticGeometry.exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`: a period `ζ` along
   which a point of the orbit of `p` flows to a zero of `μ` outside that orbit gives a period
   `ξ` with `w_μ(p, ξ) = 0` and `p⁺_ξ` outside the orbit.
+* `SymplecticGeometry.exists_momentWeight_pos_of_iInf_momentNormSq_pos`: if the infimum of `‖μ‖²`
+  over the orbit of `p` is positive, some `ξ` with `B ξ ξ = 1` has `0 < w_μ(p, ξ)`.
 
 ## References
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemma 7.5 and Theorem 7.4.
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemmas 7.5 and 10.5 and Theorem 7.4.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
 -/
 
@@ -636,6 +653,54 @@ theorem tendsto_kempfNessFunction_expI_neg_smul_div (h : IsComplexifiedAction C 
     (.of_forall (hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ))
     (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
 
+omit [CompactSpace M] in
+/-- **Chords of the Kempf–Ness function along a geodesic.** Under the hypotheses of
+`tendsto_deriv_kempfNessFunction`, for `0 < s ≤ r`,
+`r * Φ_p (C.expI (s • ζ)) ≤ s * Φ_p (C.expI (r • ζ))`: the convex function
+`s ↦ Φ_p (C.expI (s • ζ))` vanishes at `0`, so it lies below its chord from `0` to `r`. -/
+theorem mul_kempfNessFunction_expI_smul_le (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) (ζ : GroupLieAlgebra I G) {s r : ℝ} (hs : 0 < s) (hsr : s ≤ r) :
+    r * kempfNessFunction C μ p (C.expI (s • ζ)) ≤
+      s * kempfNessFunction C μ p (C.expI (r • ζ)) := by
+  have hr := hs.trans_le hsr
+  have hc := (convexOn_kempfNessFunction_geodesic C μ p h hμ hg 1 ζ).secant_mono
+    (a := 0) (x := s) (y := r) trivial trivial trivial hs.ne' hr.ne' hsr
+  simp only [one_mul, zero_smul, C.expI_zero, kempfNessFunction_one, sub_zero] at hc
+  rw [div_le_div_iff₀ hs hr] at hc
+  linarith
+
+/-- **A linear bound gives a weight.** Under the hypotheses of `tendsto_deriv_kempfNessFunction`,
+if `Φ_p (C.expI (s • ζ)) ≤ -(c * s)` for every `s > 0`, then `c ≤ w_μ(p, -ζ)`. -/
+theorem le_momentWeight_neg_of_kempfNessFunction_expI_smul_le (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {p : M} {ζ : GroupLieAlgebra I G} {c : ℝ}
+    (hc : ∀ s > 0, kempfNessFunction C μ p (C.expI (s • ζ)) ≤ -(c * s)) :
+    c ≤ momentWeight C μ p (-ζ) := by
+  -- `Φ_p (C.expI (s • ζ)) / s` tends to `-w_μ(p, -ζ)` and is at most `-c`.
+  have hslope := tendsto_kempfNessFunction_expI_neg_smul_div h hμ hg p (-ζ)
+  simp only [smul_neg, neg_neg] at hslope
+  have : -momentWeight C μ p (-ζ) ≤ -c :=
+    le_of_tendsto hslope ((eventually_gt_atTop 0).mono fun s hs ↦
+      (div_le_iff₀ hs).2 (by linarith [hc s hs]))
+  linarith
+
+omit [ConnectedSpace G] [FiniteDimensional ℝ E'] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+  [ContMDiffSMul IC I' ∞ Gc M] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+/-- On a compact manifold, with `-μ` a moment map for `σ`, the norm `√(‖μ‖²)` of `B` has a
+positive upper bound on `M`, for every nondegenerate form `B` on the Lie algebra. -/
+theorem exists_pos_forall_sqrt_momentNormSq_le
+    {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (hμ : σ.IsMomentMap a fun x ↦ -μ x)
+    (B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)) (hB : B.Nondegenerate) :
+    ∃ L, 0 < L ∧ ∀ y, √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
+  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
+    (hμ.contMDiff_momentNormSq.continuous.sqrt.continuousOn :
+      ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
+  refine ⟨max L 1, lt_max_of_lt_right one_pos, fun y ↦ le_max_of_le_left ?_⟩
+  simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
+
 omit [ConnectedSpace G] [FiniteDimensional ℝ E'] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
   [ContMDiffSMul IC I' ∞ Gc M] [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
 /-- **Kempf–Ness functions along a convergent curve.** On a compact manifold, with `-μ` a moment
@@ -655,11 +720,7 @@ theorem exists_eventually_abs_kempfNessFunction_le
   have hBs : B.IsSymm := ContinuousLinearMap.isSymm_toBilinForm_iff.2 hgs
   have hB : B.Nondegenerate := B.nondegenerate_of_anisotropic hBp.anisotropic
   -- A bound `L` for `√(‖μ‖²)` on `M`, so `|Φ_p (k s)|` is at most `L` times the polar radius.
-  obtain ⟨L, hL⟩ := isCompact_univ.bddAbove_image
-    (hμ.contMDiff_momentNormSq.continuous.sqrt.continuousOn :
-      ContinuousOn (fun y ↦ √(momentNormSq (fun x ↦ -μ x) (B.toDual hB).symm y)) Set.univ)
-  have hL' (y : M) : √(momentNormSq μ (B.toDual hB).symm y) ≤ L := by
-    simpa [momentNormSq_neg] using hL ⟨y, Set.mem_univ y, rfl⟩
+  obtain ⟨L, -, hL'⟩ := exists_pos_forall_sqrt_momentNormSq_le hμ B hB
   have hc : Continuous fun g' : Gc ↦
       L * √(B ((C.polar.symm g').1 : GroupLieAlgebra I G) (C.polar.symm g').1) :=
     continuous_const.mul (((LinearMap.continuous_apply_self B).comp
@@ -898,6 +959,152 @@ theorem IsSemistable.momentWeight_nonpos (h : IsComplexifiedAction C J)
     ((isSemistable_iff_bddBelow_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG p).1 hp)
 
 end Semistable
+
+/-! ### A destabilizing direction -/
+
+section Destabilizing
+
+open _root_.Bundle
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
+  [T2Space M] [BoundarylessManifold I' M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **Linear descent of the Kempf–Ness function along the flow of `‖μ‖²`.** In the setting of
+`exists_mem_orbit_maximalIntegralCurve`, let `B` be moreover nonnegative and `Ad`-invariant, let
+`m²` be the infimum of `‖μ‖²` over the `Gc`-orbit of `p`, and let `L` bound `√(‖μ‖²)` on `M`,
+both norms being those of `B`. Then for every `t ≥ 0` there is `η` with `√(B η η) ≤ 2 * L * t`
+and `Φ_p (C.expI η) ≤ -(2 * m² * t)`. -/
+theorem exists_sqrt_le_kempfNessFunction_expI_le (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hpos : B.IsNonneg)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) {L : ℝ}
+    (hL : ∀ x, √(momentNormSq μ (B.toDual hB).symm x) ≤ L) {t : ℝ} (ht : 0 ≤ t) :
+    ∃ η : GroupLieAlgebra I G, √(B η η) ≤ 2 * L * t ∧
+      kempfNessFunction C μ p (C.expI η) ≤
+        -(2 * (⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)) * t) := by
+  obtain ⟨g, hg0, hgd, -, hΦ⟩ := exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hg hBs p
+  refine ⟨(C.polar.symm (g t)).1, ?_, ?_⟩
+  · -- The imaginary part of `g⁻¹ ġ` is `-2 μ♯(g⁻¹ p)`, of norm at most `2 * L`.
+    have hK (s : ℝ) : √(B (C.im ((-2 : ℝ) • C.cplx (C.lieMap
+        (momentSharp B hB μ ((g s)⁻¹ • p))))) (C.im ((-2 : ℝ) • C.cplx (C.lieMap
+        (momentSharp B hB μ ((g s)⁻¹ • p)))))) ≤ 2 * L := by
+      rw [map_smul, C.im_cplx_lieMap, LinearMap.map_smul₂, map_smul, smul_eq_mul, smul_eq_mul,
+        ← mul_assoc, ← momentNormSq_toDual_symm_eq_apply_momentSharp,
+        Real.sqrt_mul (by norm_num), show (-2 : ℝ) * -2 = 2 ^ 2 by norm_num,
+        Real.sqrt_sq (by norm_num)]
+      exact mul_le_mul_of_nonneg_left (hL _) (by norm_num)
+    have hR := C.sqrt_polar_symm_fst_le_add_mul hBs hpos hBG hgd hK ht
+    rwa [hg0, ← C.expI_zero, C.polar_symm_expI_fst, map_zero,
+      Real.sqrt_zero, zero_add] at hR
+  · -- `Φ_p ∘ g` has derivative `-2 ‖μ (g⁻¹ p)‖² ≤ -2 m²` and vanishes at `0`.
+    have hbdd := bddBelow_range_momentNormSq_comp (hB := hB) (μ := μ) hpos (· • p : Gc → M)
+    have := image_sub_le_mul_sub_of_deriv_le
+      (C := -2 * ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p))
+      (fun s ↦ (hΦ s).differentiableAt)
+      (fun s ↦ (hΦ s).deriv.trans_le <| by
+        have := ciInf_le hbdd (g s)⁻¹
+        linarith) ht
+    rw [hg0, kempfNessFunction_one, sub_zero, sub_zero, ← C.expI_mul_toHom_polar_symm (g t),
+      kempfNessFunction_mul_toHom] at this
+    linarith
+
+/-- **A positive infimum of the norm square gives a direction of positive weight.** In the
+setting of `exists_mem_orbit_maximalIntegralCurve`, with `B` moreover positive definite and
+`Ad`-invariant, if the infimum of `‖μ‖²` over the `Gc`-orbit of `p` is positive, then some `ξ` with
+`B ξ ξ = 1` has `0 < w_μ(p, ξ)`. -/
+theorem exists_momentWeight_pos_of_iInf_momentNormSq_pos (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p : M}
+    (hm : 0 < ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)) :
+    ∃ ξ : GroupLieAlgebra I G, B ξ ξ = 1 ∧ 0 < momentWeight C μ p ξ := by
+  set m := ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p)
+  have hpos : B.IsNonneg := LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg
+  obtain ⟨L, hL0, hL⟩ := exists_pos_forall_sqrt_momentNormSq_le hμ.toIsMomentMap B hB
+  -- For each `n`, a direction `η n` of radius `r n ≤ 2 L (n + 1)` along which `Φ_p` is at most
+  -- `-2 m² (n + 1)`; then also `2 m² (n + 1) ≤ L r n`.
+  choose η hηr hηΦ using fun n : ℕ ↦ exists_sqrt_le_kempfNessFunction_expI_le (C := C) h hμ hg
+    hBs hpos hBG p hL (t := n + 1) (by positivity)
+  set r : ℕ → ℝ := fun n ↦ √(B (η n) (η n))
+  have hηΦ' (n : ℕ) : kempfNessFunction C μ p (C.expI (η n)) ≤ -(2 * m * (n + 1)) := hηΦ n
+  have hrlow (n : ℕ) : 2 * m * (n + 1) ≤ L * r n := by
+    have hlow := kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le C μ p h hμ hg (hB := hB) hBs
+      hpos 1 (η n) 1
+    rw [inv_one, one_smul, one_mul, map_one, mul_one, kempfNessFunction_one] at hlow
+    have := mul_le_mul_of_nonneg_right (hL p) (Real.sqrt_nonneg (B (η n) (η n)))
+    linarith [hηΦ' n]
+  have hr0 (n : ℕ) : 0 < r n :=
+    pos_of_mul_pos_right ((by positivity : 0 < 2 * m * (n + 1)).trans_le (hrlow n)) hL0.le
+  -- The unit directions `ζ n` have a convergent subsequence, with limit `ζ₀`.
+  set ζ : ℕ → GroupLieAlgebra I G := fun n ↦ (r n)⁻¹ • η n
+  have hζ (n : ℕ) : B (ζ n) (ζ n) = 1 := by
+    have hrB : B (η n) (η n) = r n ^ 2 := (Real.sq_sqrt (hpos.nonneg _)).symm
+    simp only [ζ, map_smul, LinearMap.smul_apply, smul_eq_mul, hrB]
+    field_simp [(hr0 n).ne']
+  have hζη (n : ℕ) : r n • ζ n = η n := by simp [ζ, smul_smul, (hr0 n).ne']
+  have hK : IsCompact {v : E | B v v ≤ 1} :=
+    LinearMap.BilinForm.isCompact_setOfPred_apply_self_le (E := E) hBp 1
+  -- The Lie algebra is the model space `E` by definition, with its topology.
+  obtain ⟨ζ₀', -, φ, hφ, hlim⟩ := hK.tendsto_subseq (X := E) (x := ζ) fun n ↦ (hζ n).le
+  obtain ⟨ζ₀, rfl⟩ : ∃ ζ₀ : GroupLieAlgebra I G, ζ₀ = ζ₀' := ⟨ζ₀', rfl⟩
+  have hBc : Continuous fun v : E ↦ B v v := LinearMap.continuous_apply_self B
+  have hζ₀ : B ζ₀ ζ₀ = 1 := by
+    have hconst : (fun v : E ↦ B v v) ∘ (ζ ∘ φ) = fun _ ↦ 1 := funext fun n ↦ hζ (φ n)
+    have := (hBc.tendsto ζ₀).comp hlim
+    rw [hconst] at this
+    exact tendsto_nhds_unique this tendsto_const_nhds
+  -- Along every `ζ n`, convexity bounds `Φ_p (C.expI (s • ζ n))` by `-(m / L * s)` on
+  -- `[0, r n]`.
+  have hconv (n : ℕ) {s : ℝ} (hs : 0 < s) (hsr : s ≤ r n) :
+      kempfNessFunction C μ p (C.expI (s • ζ n)) ≤ -(m / L * s) := by
+    have hc := mul_kempfNessFunction_expI_smul_le h hμ hg p (ζ n) hs hsr
+    rw [hζη] at hc
+    have h1 : -(m / L * s) * (r n * L) = -(m * s * r n) := by field_simp
+    refine le_of_mul_le_mul_right ?_ (mul_pos (hr0 n) hL0)
+    rw [h1]
+    nlinarith [mul_le_mul_of_nonneg_right hc hL0.le,
+      mul_le_mul_of_nonneg_right (hηΦ' n) (mul_nonneg hs.le hL0.le),
+      mul_le_mul_of_nonneg_left (hηr n) (mul_nonneg hm.le hs.le)]
+  -- In the limit, `Φ_p (C.expI (s • ζ₀)) ≤ -(m / L * s)` for every `s > 0`.
+  have hφt : Tendsto (fun n ↦ r (φ n)) atTop atTop := by
+    refine tendsto_atTop_mono (f := fun n ↦ 2 * m * ((φ n : ℝ) + 1) / L)
+      (fun n ↦ (div_le_iff₀' hL0).2 (hrlow (φ n))) ?_
+    refine Tendsto.atTop_div_const hL0 (Tendsto.const_mul_atTop (by positivity) ?_)
+    exact tendsto_atTop_add_const_right _ 1
+      (tendsto_natCast_atTop_atTop.comp hφ.tendsto_atTop)
+  have hlimit (s : ℝ) (hs : 0 < s) :
+      kempfNessFunction C μ p (C.expI (s • ζ₀)) ≤ -(m / L * s) := by
+    have hc : Continuous fun v : E ↦ kempfNessFunction C μ p (C.expI (s • v)) :=
+      (contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).continuous.comp
+        (C.contMDiff_expI.continuous.comp (continuous_const_smul s))
+    exact le_of_tendsto ((hc.tendsto ζ₀).comp hlim)
+      ((hφt.eventually_ge_atTop s).mono fun n hn ↦ hconv (φ n) hs hn)
+  -- So the weight of `-ζ₀` is at least `m / L`.
+  exact ⟨-ζ₀, by rw [LinearMap.map_neg₂, map_neg, neg_neg, hζ₀],
+    (div_pos hm hL0).trans_le
+      (le_momentWeight_neg_of_kempfNessFunction_expI_smul_le h hμ hg hlimit)⟩
+
+end Destabilizing
 
 /-! ### A weight-zero direction whose limit point leaves the orbit -/
 
