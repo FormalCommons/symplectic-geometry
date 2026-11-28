@@ -772,15 +772,8 @@ variable {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Ty
 at `ε • v`. -/
 theorem isOrientationPreservingAt_rescale (hε : 0 < ε) {v : E}
     (hf : IsOrientationPreservingAt oE o f (ε • v)) :
-    IsOrientationPreservingAt oE o (rescale f ε) v := by
-  let L := (LinearEquiv.smulOfNeZero ℝ E ε hε.ne').toContinuousLinearEquiv
-  have hL : 0 < LinearMap.det (L : E →ₗ[ℝ] E) := by
-    have : (L : E →ₗ[ℝ] E) = ε • LinearMap.id := by
-      ext
-      simp [L]
-    rw [this, LinearMap.det_smul, LinearMap.det_id, mul_one]
-    positivity
-  exact hf.comp (isOrientationPreservingAt_of_det_pos oE L hL v)
+    IsOrientationPreservingAt oE o (rescale f ε) v :=
+  hf.comp (by simpa using isOrientationPreservingAt_add_smul_sub oE hε 0 0 v)
 
 /-- For `0 < ε`, the rescaled ball `v ↦ f (ε • v)` reverses orientation at `v` when `f` does so
 at `ε • v`. -/

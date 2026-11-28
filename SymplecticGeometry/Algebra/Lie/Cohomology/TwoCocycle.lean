@@ -73,7 +73,7 @@ theorem d_two_eq_zero_iff (ω : L [⋀^Fin 2]→ₗ[R] M) :
     rw [d₂₃_twoCochainEquiv, h, zero_apply, LinearMap.zero_apply,
       LinearMap.zero_apply, LinearMap.zero_apply]
   · ext v
-    have hv : v = ![v 0, v 1, v 2] := by ext i; fin_cases i <;> rfl
+    have hv : v = ![v 0, v 1, v 2] := (FinVec.etaExpand_eq v).symm
     rw [hv, ← d₂₃_twoCochainEquiv, h, LinearMap.zero_apply, LinearMap.zero_apply,
       LinearMap.zero_apply, zero_apply]
 
