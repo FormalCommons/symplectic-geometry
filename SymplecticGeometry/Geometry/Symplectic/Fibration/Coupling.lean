@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
@@ -81,6 +82,14 @@ The argument:
   difference is constant along the fibre over `b`, which is preconnected
   (`TauCeti.MapFiber.Atlas.apply_eq_of_mfderiv_eq_zero_of_proj_eq`).
 
+When `F` is connected, hence nonempty, `proj` is a surjective smooth submersion
+(`TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`), so the basic form `τ' - τ` descends to a
+smooth form `β` on `B` with `τ' - τ = proj^* β`, by Tau Ceti's
+`TauCeti.SmoothForm.descendedForm`; `β` is closed since `τ' - τ` is
+(`TauCeti.SmoothForm.isClosed_descendedForm_iff`), and it is the only form with that pull-back
+(`TauCeti.SmoothForm.eq_descendedForm_iff`). This is the uniqueness part of McDuff–Salamon
+[McDuffSalamon2017], Theorem 6.4.1 (`TauCeti.MapFiber.Atlas.eq_add_mpullback_of_isClosed`).
+
 ## Main definitions
 
 * `TauCeti.IsEhresmannConnection.fiberMean`: the fibre integral of `τ(w₁♯, w₂♯) σᵏ / k!`.
@@ -98,6 +107,8 @@ The argument:
   forms with the same restriction to the fibres and the same connection is semibasic.
 * `TauCeti.MapFiber.Atlas.isBasic_sub_of_horizontalDistribution_eq`: the difference of two closed
   forms with the same restriction to the fibres and the same connection is basic.
+* `TauCeti.MapFiber.Atlas.eq_add_mpullback_of_isClosed`: two such closed forms differ by the
+  pull-back of a unique closed two-form on the base.
 
 ## References
 
@@ -370,5 +381,32 @@ theorem isBasic_sub_of_horizontalDistribution_eq [PreconnectedSpace F]
   refine (hlift x rfl v fun _ ↦ rfl).trans (hconst.trans (hlift y hxy.symm w fun i ↦ ?_).symm)
   -- The images of `w` and `v` agree, read over `proj y = proj x`.
   exact eq_of_heq ((heq_tangentSpaceCast hxy.symm _).symm.trans (heq_of_eq (hvw i).symm))
+
+
+/-- **Closed forms with the same fibres and connection differ by a closed form on the base.** Let
+`A` be a smooth atlas of `proj : M → B` with connected model fibre `F`, and let `τ` and `τ'` be
+closed two-forms on `M` that restrict to the same nondegenerate form `σ` on `F` and have the same
+horizontal spaces. Then there is exactly one closed two-form `β` on `B` with `τ' = τ + proj^* β`. -/
+theorem eq_add_mpullback_of_isClosed [ConnectedSpace F] (hA : A.IsContMDiff ∞ IB IF IM)
+    (hσ : σ.IsNondegenerate) (hτc : τ.IsClosed) (hτ'c : τ'.IsClosed) (hτ : A.RestrictsTo σ τ)
+    (hτ' : A.RestrictsTo σ τ')
+    (hD : SmoothTwoForm.horizontalDistribution IB proj τ =
+      SmoothTwoForm.horizontalDistribution IB proj τ') :
+    ∃! β : SmoothTwoForm IB B,
+      β.IsClosed ∧ τ' = τ + SmoothForm.mpullback proj hA.contMDiff_proj β := by
+  have hsub : Manifold.IsSubmersion IM IB ∞ proj := hA.isSubmersion ENat.LEInfty.out
+  -- `proj` is onto, since the model fibre is nonempty.
+  obtain ⟨y₀⟩ := (inferInstance : Nonempty F)
+  have hsurj : Function.Surjective proj := fun b ↦
+    ⟨(A.trivAt b).toOpenPartialHomeomorph.symm (b, y₀),
+      (A.trivAt b).proj_symm_apply' (A.mem_baseSet_trivAt b)⟩
+  have hbasic := isBasic_sub_of_horizontalDistribution_eq hA hσ hτc hτ'c hτ hτ' hD
+  have hpull : SmoothForm.mpullback proj hA.contMDiff_proj
+      (SmoothForm.descendedForm hsub hsurj (τ' - τ) hbasic) = τ' - τ :=
+    SmoothForm.mpullback_descendedForm
+  refine ⟨SmoothForm.descendedForm hsub hsurj (τ' - τ) hbasic,
+    ⟨SmoothForm.isClosed_descendedForm_iff.2 (hτ'c.sub hτc), by
+      rw [hpull, add_sub_cancel]⟩, fun β ⟨_, hβ⟩ ↦ SmoothForm.eq_descendedForm_iff.2 ?_⟩
+  rw [hβ, add_sub_cancel_left]
 
 end TauCeti.MapFiber.Atlas
