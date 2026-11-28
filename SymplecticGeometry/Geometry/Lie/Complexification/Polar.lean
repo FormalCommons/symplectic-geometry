@@ -27,6 +27,7 @@ import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Model
 import TauCeti.Topology.Algebra.Module.FiniteDimension
+import TauCeti.Geometry.Lie.InvariantVectorField.Basic
 
 /-!
 # The polar decomposition of a complexification
@@ -51,6 +52,8 @@ a curve. It ends with the example `Circle` in `ℂˣ`.
 ## Main results
 
 * `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
+* `SymplecticGeometry.LieComplexification.hasMFDerivAt_expI_mul_toHom_mulInvariantExp_zero`: the
+  derivative of `(ξ, η) ↦ expI ξ * toHom (exp η)` at `0` is `(ξ, η) ↦ cplx (lieMap ξ) + lieMap η`.
 * `SymplecticGeometry.LieComplexification.commute_expI_of_lie_eq_zero`: `expI η` and `expI ξ`
   commute when `⁅η, ξ⁆ = 0`.
 * `SymplecticGeometry.LieComplexification.isClosedEmbedding_toHom`: `toHom` is a closed
@@ -188,6 +191,51 @@ Lie algebra of `G`: it is `ξ ↦ polar (ξ, 1)`. -/
 theorem contMDiff_expI : ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ :=
   (C.polar.contMDiff.comp (contMDiff_id.prodMk (contMDiff_const (c := (1 : G))))).congr
     fun ξ ↦ (C.polar_apply ξ 1).trans (by rw [map_one, mul_one]) |>.symm
+
+/-- **The derivative of `(ξ, η) ↦ expI ξ * toHom (exp η)` at `0`.** Read on `E × E`, where `E` is
+the model space of the Lie algebra of `G`, the map `(ξ, η) ↦ C.expI ξ * C.toHom (exp η)` has
+derivative `(ξ, η) ↦ C.cplx (C.lieMap ξ) + C.lieMap η` at `0`. -/
+theorem hasMFDerivAt_expI_mul_toHom_mulInvariantExp_zero [FiniteDimensional ℝ E] [T2Space G]
+    [BoundarylessManifold I G] :
+    HasMFDerivAt 𝓘(ℝ, E × E) IC
+      (fun p : E × E ↦ C.expI p.1 * C.toHom (mulInvariantExp (I := I) (p.2 : GroupLieAlgebra I G)))
+      0
+      (LinearMap.toContinuousLinearMap
+        (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap ∘ₗ LinearMap.fst ℝ E E +
+          C.lieMap.toLinearMap ∘ₗ LinearMap.snd ℝ E E) : E × E →L[ℝ] EC) := by
+  have := C.finiteDimensional
+  let L₁ : E × E →L[ℝ] EC := LinearMap.toContinuousLinearMap
+    (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap ∘ₗ LinearMap.fst ℝ E E)
+  let L₂ : E × E →L[ℝ] EC := LinearMap.toContinuousLinearMap
+    (C.lieMap.toLinearMap ∘ₗ LinearMap.snd ℝ E E)
+  -- `p ↦ exp (L p)` has derivative `L` at `0`, for a linear map `L` into the Lie algebra of `Gc`.
+  have hexp (L : E × E →L[ℝ] EC) : HasMFDerivAt 𝓘(ℝ, E × E) IC
+      (fun p ↦ mulInvariantExp (I := IC) (G := Gc) (L p : GroupLieAlgebra IC Gc)) 0 L := by
+    have h := hasMFDerivAt_mulInvariantExp_modelSpace_zero (I := IC) (G := Gc)
+    rw [← map_zero L] at h
+    exact (h.comp 0 L.hasMFDerivAt).congr_mfderiv (ContinuousLinearMap.id_comp _)
+  have hb : HasMFDerivAt 𝓘(ℝ, E × E) IC
+      (fun p : E × E ↦ C.toHom (mulInvariantExp (I := I) (p.2 : GroupLieAlgebra I G))) 0 L₂ := by
+    have hfun :
+        (fun p : E × E ↦ C.toHom (mulInvariantExp (I := I) (p.2 : GroupLieAlgebra I G))) =
+        fun p ↦ mulInvariantExp (I := IC) (G := Gc) (L₂ p : GroupLieAlgebra IC Gc) :=
+      funext fun p ↦ C.toHom_mulInvariantExp _
+    rw [hfun]
+    exact hexp L₂
+  have h₁ : C.expI ((0 : E × E).1 : GroupLieAlgebra I G) = 1 := C.expI_zero
+  have h₂ : C.toHom (mulInvariantExp (I := I) ((0 : E × E).2 : GroupLieAlgebra I G)) = 1 := by
+    -- The zero of `E` is that of the Lie algebra, which `mulInvariantExp_zero` is stated for.
+    rw [← map_one C.toHom]
+    exact congrArg C.toHom mulInvariantExp_zero
+  have hmul : HasMFDerivAt (IC.prod IC) IC (fun q : Gc × Gc ↦ q.1 * q.2)
+      (C.expI ((0 : E × E).1 : GroupLieAlgebra I G),
+        C.toHom (mulInvariantExp (I := I) ((0 : E × E).2 : GroupLieAlgebra I G)))
+      (mfderiv (IC.prod IC) IC (fun q : Gc × Gc ↦ q.1 * q.2) (1, 1)) := by
+    rw [h₁, h₂]
+    exact ((contMDiff_mul IC 1).mdifferentiableAt (by simp)).hasMFDerivAt
+  refine (hmul.comp (0 : E × E) ((hexp L₁).prodMk hb)).congr_mfderiv
+    (ContinuousLinearMap.ext fun p ↦ ?_)
+  exact mfderiv_mul_apply_one (L₁ p : GroupLieAlgebra IC Gc) (L₂ p)
 
 /-- The first polar coordinate of `expI ξ` is `ξ`. -/
 @[simp]
