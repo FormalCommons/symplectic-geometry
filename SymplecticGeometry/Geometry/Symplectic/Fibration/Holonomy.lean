@@ -43,6 +43,16 @@ curves (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportIn_param`). 
 holonomy of the boundary loop of the disc, and for a symplectic connection all its slices
 preserve `σ`.
 
+The variation of this diffeotopy in `s` is computed on the cylinders swept out by transport:
+for a loop `c` in the model fibre, the point `C (s, t, θ)` is the transport along
+`t ↦ Δ (s, t)` from `0` to `t` of the point with coordinates `(Δ (s, 0), c θ)` in `e`
+(`TauCeti.IsEhresmannConnection.transportedCylinder`). Starting at `Δ (s, 0)` rather than at the
+centre `x` makes `C` smooth on an open set of parameters that contains `[0, 1] × ℝ × ℝ`, so
+that its derivative in `s` is an ordinary one even at `s = 0` and `s = 1`; for `s ∈ [0, 1]`
+the two starting points agree. Smoothness in the time `t` comes from the smoothness of
+transport in a family of curves and in its final time
+(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param_endTime`).
+
 ## Main definitions
 
 * `SymplecticGeometry.BoundsSmoothDisc IB γ`: the loop `γ` bounds a smooth disc.
@@ -52,6 +62,8 @@ preserve `σ`.
   Hamiltonian diffeomorphism of `σ`.
 * `TauCeti.IsEhresmannConnection.holonomyDiffeotopy`: the diffeotopy of the model fibre whose
   slice at `s` is the holonomy, read in a chart, of the loop `t ↦ Δ (s, t)` of a smooth disc.
+* `TauCeti.IsEhresmannConnection.transportedCylinder`: the cylinder `C (s, t, θ)` swept out by
+  transporting a loop of the fibre over `Δ (s, 0)` along the curves `t ↦ Δ (s, t)`.
 
 ## Main results
 
@@ -72,6 +84,12 @@ preserve `σ`.
 * `IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer`, in the namespace
   `TauCeti.IsEhresmannConnection`: for a symplectic connection, every slice of the holonomy
   diffeotopy preserves `σ`.
+* `TauCeti.IsEhresmannConnection.contMDiffOn_transportedCylinder`,
+  `TauCeti.IsEhresmannConnection.transportedCylinder_add_one`: the transported cylinder is smooth
+  where it starts in the base set of the chart, and `1`-periodic in `θ` for a periodic loop.
+* `TauCeti.IsEhresmannConnection.transportedCylinder_zero_of_isSmoothDisc`,
+  `TauCeti.IsEhresmannConnection.mfderiv_transportedCylinder_zero_apply`: for a smooth disc and
+  `s ∈ [0, 1]`, the cylinder starts at `e.symm (x, c θ)` and does not move in `s` at `t = 0`.
 
 ## References
 
@@ -421,6 +439,122 @@ theorem IsSymplectic.timeSlice_holonomyDiffeotopy_mem_diffeomorphStabilizer
     (hΔ.contMDiff_slice _) _ _
 
 end HolonomyDiffeotopy
+
+section TransportedCylinder
+
+variable {e : Trivialization F proj} {x : B} {γ : Path x x} {Δ : ℝ × ℝ → B} {c : ℝ → F}
+
+/-- **The transported cylinder of a family of curves.** For a family of curves `t ↦ Δ (s, t)` in
+`B`, a trivialization `e` of `proj` with fibre `F` and a map `c : ℝ → F`, the point
+`hD.transportedCylinder e Δ c (s, t, θ)` is the transport along `t ↦ Δ (s, t)`, from time `0` to
+time `t`, of the point with coordinates `(Δ (s, 0), c θ)` in `e`. For a smooth disc `Δ` with
+centre `x` and `s ∈ [0, 1]`, it starts at `e.symm (x, c θ)`. -/
+def transportedCylinder (hD : IsEhresmannConnection IM IB n proj D) (e : Trivialization F proj)
+    (Δ : ℝ × ℝ → B) (c : ℝ → F) (p : ℝ × ℝ × ℝ) : M :=
+  hD.parallelTransport (fun t ↦ Δ (p.1, t)) 0 p.2.1
+    (e.toOpenPartialHomeomorph.symm (Δ (p.1, 0), c p.2.2))
+
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
+  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
+theorem transportedCylinder_def (p : ℝ × ℝ × ℝ) :
+    hD.transportedCylinder e Δ c p = hD.parallelTransport (fun t ↦ Δ (p.1, t)) 0 p.2.1
+      (e.toOpenPartialHomeomorph.symm (Δ (p.1, 0), c p.2.2)) :=
+  (rfl)
+
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
+  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
+/-- At `t = 0` the transported cylinder is the point with coordinates `(Δ (s, 0), c θ)` in
+`e`. -/
+@[simp]
+theorem transportedCylinder_zero (s θ : ℝ) :
+    hD.transportedCylinder e Δ c (s, 0, θ) = e.toOpenPartialHomeomorph.symm (Δ (s, 0), c θ) := by
+  rw [transportedCylinder_def, parallelTransport_self]
+
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
+  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
+/-- The transported cylinder of a `1`-periodic map `c` is `1`-periodic in `θ`. -/
+theorem transportedCylinder_add_one (hc : Periodic c 1) (s t θ : ℝ) :
+    hD.transportedCylinder e Δ c (s, t, θ + 1) = hD.transportedCylinder e Δ c (s, t, θ) := by
+  simp only [transportedCylinder_def, hc θ]
+
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
+  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
+/-- For a smooth disc `Δ` with centre `x` and `s ∈ [0, 1]`, the transported cylinder starts at
+`e.symm (x, c θ)`. -/
+theorem transportedCylinder_zero_of_isSmoothDisc (hΔ : IsSmoothDisc IB γ Δ) (s : unitInterval)
+    (θ : ℝ) :
+    hD.transportedCylinder e Δ c (s, 0, θ) = e.toOpenPartialHomeomorph.symm (x, c θ) := by
+  rw [transportedCylinder_zero, hΔ.apply_seam]
+
+omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
+  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
+/-- **The transported cylinder does not move in `s` at `t = 0`.** For a smooth disc `Δ` and
+`s ∈ [0, 1]`, the derivative of the transported cylinder at `(s, 0, θ)` in the direction of `s`
+vanishes. -/
+theorem mfderiv_transportedCylinder_zero_apply (hΔ : IsSmoothDisc IB γ Δ) {s : ℝ}
+    (hs : s ∈ Icc 0 1) (θ : ℝ) :
+    mfderiv 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, 0, θ) (1, 0, 0) = 0 := by
+  by_cases hC : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM (hD.transportedCylinder e Δ c) (s, 0, θ)
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hC]
+    -- `rw [zero_apply]` misses the pattern: the argument is typed as a tangent vector.
+    exact zero_apply _
+  -- The line `r ↦ (r, 0, θ)` and its derivative.
+  have hι : HasMFDerivAt 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ × ℝ × ℝ) (fun r : ℝ ↦ (r, (0 : ℝ), θ)) s
+      (ContinuousLinearMap.inl ℝ ℝ (ℝ × ℝ)) :=
+    hasMFDerivAt_iff_hasFDerivAt.2 (hasFDerivAt_prodMk_left s ((0 : ℝ), θ))
+  have h₁ := hC.hasMFDerivAt.comp s hι
+  -- Along the line, the cylinder is constant on `[0, 1]`.
+  have h₂ : HasMFDerivWithinAt 𝓘(ℝ, ℝ) IM
+      (hD.transportedCylinder e Δ c ∘ fun r : ℝ ↦ (r, (0 : ℝ), θ)) (Icc 0 1) s 0 :=
+    (hasMFDerivWithinAt_const (e.toOpenPartialHomeomorph.symm (x, c θ)) _ _).congr_mono
+      (fun r hr ↦ transportedCylinder_zero_of_isSmoothDisc hΔ ⟨r, hr⟩ θ)
+      (transportedCylinder_zero_of_isSmoothDisc hΔ ⟨s, hs⟩ θ) subset_rfl
+  have h := (uniqueMDiffWithinAt_iff_uniqueDiffWithinAt.2
+    (uniqueDiffOn_Icc zero_lt_one s hs)).eq h₁.hasMFDerivWithinAt h₂
+  -- The value of `(mfderiv C p).comp inl` at `1` is that of `mfderiv C p` at `(1, 0, 0)`.
+  exact DFunLike.congr_fun h 1
+
+omit [IsManifold IF ∞ F] in
+/-- **The transported cylinder is smooth.** Let `D` be a smooth Ehresmann connection on a proper
+smooth map `proj`, `Δ : ℝ × ℝ → B` smooth, `e` a trivialization of `proj` with a smooth inverse,
+and `c : ℝ → F` smooth. The transported cylinder is smooth in `(s, t, θ)` on the set of the
+parameters with `Δ (s, 0) ∈ e.baseSet`. -/
+theorem contMDiffOn_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ proj D)
+    (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IB ∞ Δ) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c) :
+    ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ (hD.transportedCylinder e Δ c)
+      {p | Δ (p.1, 0) ∈ e.baseSet} := by
+  have hT := hD.contMDiffOn_parallelTransport_param_endTime le_top (hf.of_le (by simp)) hfp
+    ((contMDiff_prod_modelWithCornersSelf_iff.2 hΔ).of_le (by simp)) 0
+  -- The parameters `(s, t)` and the point where the transport starts.
+  have hv : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) (IB.prod IF) ∞
+      fun p : ℝ × ℝ × ℝ ↦ (Δ (p.1, 0), c p.2.2) :=
+    (hΔ.comp (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ (p.1, (0 : ℝ))).contMDiff).prodMk
+      (hc.comp (by fun_prop : ContDiff ℝ ∞ fun p : ℝ × ℝ × ℝ ↦ p.2.2).contMDiff)
+  have hg : ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) ((𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)).prod IM) ∞
+      (fun p : ℝ × ℝ × ℝ ↦ ((p.1, p.2.1), e.toOpenPartialHomeomorph.symm (Δ (p.1, 0), c p.2.2)))
+      {p | Δ (p.1, 0) ∈ e.baseSet} :=
+    ((contDiff_fst.contMDiff.prodMk (contDiff_snd.fst).contMDiff).contMDiffOn).prodMk
+      (he_symm.comp hv.contMDiffOn fun _ hp ↦ e.mem_target.2 hp)
+  exact (hT.comp hg fun p hp ↦ e.proj_symm_apply' hp).congr fun p _ ↦ transportedCylinder_def p
+
+omit [IsManifold IF ∞ F] in
+/-- For a smooth disc `Δ` with centre `x` and a trivialization `e` whose base set contains `x`,
+the transported cylinder is smooth at every `(s, t, θ)` with `s ∈ [0, 1]`. -/
+theorem contMDiffAt_transportedCylinder (hD : IsEhresmannConnection IM IB ∞ proj D)
+    (hf : ContMDiff IM IB ∞ proj) (hfp : IsProperMap proj)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (hΔ : IsSmoothDisc IB γ Δ) (hx : x ∈ e.baseSet) (hc : ContMDiff 𝓘(ℝ, ℝ) IF ∞ c)
+    {p : ℝ × ℝ × ℝ} (hp : p.1 ∈ Icc 0 1) :
+    ContMDiffAt 𝓘(ℝ, ℝ × ℝ × ℝ) IM ∞ (hD.transportedCylinder e Δ c) p := by
+  refine (hD.contMDiffOn_transportedCylinder hf hfp he_symm hΔ.contMDiff hc).contMDiffAt
+    (IsOpen.mem_nhds (e.open_baseSet.preimage ?_) ?_)
+  · exact hΔ.contMDiff.continuous.comp (by fun_prop)
+  · exact (congrArg (· ∈ e.baseSet) (hΔ.apply_seam ⟨p.1, hp⟩)).mpr hx
+
+end TransportedCylinder
 
 end IsEhresmannConnection
 
