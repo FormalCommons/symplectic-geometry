@@ -54,12 +54,12 @@ variable (B F : Type*) [TopologicalSpace B] [TopologicalSpace F]
 /-- The *product atlas* of the first projection `Prod.fst : B × F → B`: its chart at every point
 of `B` is the identity of `B × F`, a trivialization over all of `B`. -/
 def productAtlas : Atlas F (Prod.fst : B × F → B) where
-  trivAt _ := (Homeomorph.refl (B × F)).toTrivialization (proj := Prod.fst) fun _ ↦ rfl
-  mem_baseSet_trivAt _ := (Set.ext_iff.1 (Homeomorph.toTrivialization_baseSet _ _) _).2 (mem_univ _)
+  trivAt _ := (Homeomorph.refl (B × F)).toTrivialization (proj := Prod.fst) fun _ ↦ by simp
+  mem_baseSet_trivAt _ := by simp
 
 theorem trivAt_productAtlas (b : B) :
     (productAtlas B F).trivAt b =
-      (Homeomorph.refl (B × F)).toTrivialization (proj := Prod.fst) fun _ ↦ rfl :=
+      (Homeomorph.refl (B × F)).toTrivialization (proj := Prod.fst) fun _ ↦ by simp :=
   (rfl)
 
 variable {B F}
@@ -67,22 +67,28 @@ variable {B F}
 /-- Every chart of the product atlas is the identity of `B × F`. -/
 @[simp]
 theorem coe_trivAt_productAtlas (b : B) : ⇑((productAtlas B F).trivAt b) = id := by
-  rw [trivAt_productAtlas]
-  exact (Homeomorph.coe_toTrivialization _ _).trans (Homeomorph.refl_apply _)
+  simp [trivAt_productAtlas]
 
 /-- The inverse of every chart of the product atlas is the identity of `B × F`. -/
 @[simp]
 theorem coe_trivAt_productAtlas_symm (b : B) :
     ⇑((productAtlas B F).trivAt b).toOpenPartialHomeomorph.symm = id := by
-  rw [trivAt_productAtlas]
-  exact (Homeomorph.coe_toTrivialization_symm _ _).trans (by
-    rw [Homeomorph.refl_symm, Homeomorph.refl_apply])
+  simp [trivAt_productAtlas]
 
 /-- Every chart of the product atlas trivializes `Prod.fst` over all of `B`. -/
 @[simp]
 theorem baseSet_trivAt_productAtlas (b : B) : ((productAtlas B F).trivAt b).baseSet = univ := by
-  rw [trivAt_productAtlas]
-  exact Homeomorph.toTrivialization_baseSet _ _
+  simp [trivAt_productAtlas]
+
+/-- Every chart of the product atlas is defined on all of `B × F`. -/
+@[simp]
+theorem source_trivAt_productAtlas (b : B) : ((productAtlas B F).trivAt b).source = univ := by
+  simp [Trivialization.source_eq]
+
+/-- Every chart of the product atlas has all of `B × F` as its image. -/
+@[simp]
+theorem target_trivAt_productAtlas (b : B) : ((productAtlas B F).trivAt b).target = univ := by
+  simp [Trivialization.target_eq]
 
 /-- Every coordinate change of the product atlas is the identity of `F`. -/
 @[simp]
