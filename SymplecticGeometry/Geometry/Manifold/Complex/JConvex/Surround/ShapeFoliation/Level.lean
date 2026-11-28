@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import SymplecticGeometry.Analysis.Complex.LeviForm.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
+import Mathlib.Analysis.Calculus.Deriv.Shift
 import TauCeti.Analysis.Calculus.ParametricFDeriv
 import TauCeti.Analysis.Normed.Operator.Prod
 
@@ -19,31 +20,43 @@ import TauCeti.Analysis.Normed.Operator.Prod
 Let `χ : ℝ → ℝ → ℝ` be a family of shapes `R = χ ℓ r`, smooth in `(ℓ, r)` on a product of open
 intervals, each `χ ℓ` an `i`-convex shape (`SymplecticGeometry.IsConvexShapeAt`) at each point,
 with `∂χ/∂ℓ > 0`. Its leaves `{(s, t) = (χ ℓ r ², r ²)}` in the quadrant of the shape coordinates
-`(s, t)` are then disjoint, and this file builds the function that is `-ℓ` on the leaf `ℓ`.
+`(s, t)` are then disjoint, and this file builds the function that is `-ℓ` on the leaf `ℓ`, and
+its form for families of curves `r = ρ ℓ R` over `R`.
 
 * `SymplecticGeometry.exists_contDiff_shapeLevel`: there is `φ : ℝ × ℝ → ℝ`, equal to `-ℓ` at
   `(χ ℓ r ², r ²)` and smooth there, with `∂φ/∂s < 0` and `∂φ/∂t > 0`, such that the Levi form
   of `φ ∘ shape` is positive on the nonzero complex tangencies of its levels at every point over
   the swept region.
-* `SymplecticGeometry.exists_contDiffAt_familyLevel`: the part of it that needs no convexity,
-  only `0 < r`, `0 < χ ℓ r` and `∂χ/∂ℓ > 0`: the value `-ℓ`, the smoothness and the
-  differential of `φ`. The form over `R` in `ShapeFoliation/OverR.lean` uses it.
+* `SymplecticGeometry.exists_contDiff_shapeLevel_overR`: the same for a smooth family of curves
+  `r = ρ ℓ R` satisfying `SymplecticGeometry.IsConvexShapeOverRAt`, with `∂ρ/∂ℓ < 0`: `φ` is
+  `-ℓ` at `(R ², ρ ℓ R ²)`, with `∂φ/∂t > 0` and `∂φ/∂s = ρ' / (2 R ∂ρ/∂ℓ)`. Unlike the form
+  over `r`, `∂φ/∂s` has the sign of `-ρ'`, which the criterion over `R` leaves free.
 
-The map `(ℓ, r) ↦ (χ ℓ r ², r ²)` has an invertible differential, triangular with diagonal
-`2 χ ∂χ/∂ℓ` and `2 r`, so by the inverse function theorem
-(`ContDiffAt.to_localInverse`, `HasStrictFDerivAt.to_localInverse`) its local inverses are smooth,
-and `φ` is minus their first component. On the level of `φ ∘ shape` through a point of the leaf
-`ℓ`, the differential of `φ` is `1 / ∂χ/∂ℓ` times that of `shapeGraph (χ ℓ)`, and the level
-contains the hypersurface of the shape `χ ℓ` near the point; so the positivity of the Levi form
-passes from `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos` to `φ ∘ shape` by
-`SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`, with
-`SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero` for the nonvanishing of the
-differential of `shapeGraph (χ ℓ) ∘ shape`.
+Both proofs share two steps.
+
+* `SymplecticGeometry.exists_contDiffAt_familyLevel`: the part that needs no convexity, only
+  `0 < r`, `0 < χ ℓ r` and `∂χ/∂ℓ > 0`: the value `-ℓ`, the smoothness and the differential of
+  `φ`. The map `(ℓ, r) ↦ (χ ℓ r ², r ²)` has an invertible differential, triangular with
+  diagonal `2 χ ∂χ/∂ℓ` and `2 r`, so by the inverse function theorem
+  (`ContDiffAt.to_localInverse`, `HasStrictFDerivAt.to_localInverse`) its local inverses are
+  smooth, and `φ` is minus their first component. Over `R` it is applied to `ℓ ↦ ρ (-ℓ)`, with
+  the two coordinates exchanged.
+* `SymplecticGeometry.re_leviForm_comp_shape_pos_of_fderiv_eq_smul`: if `dφ = c • dG` with
+  `c > 0` at a zero of `G`, and the level of `φ` contains `{G = 0}` nearby, the positivity of the
+  Levi form on complex tangencies passes from `G ∘ shape` to `φ ∘ shape`, by
+  `SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`. It is applied with
+  `G = shapeGraph (χ ℓ)` and `c = 1 / ∂χ/∂ℓ`, using
+  `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos` and
+  `SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero`, and with `G = shapeGraphOverR (ρ ℓ)`
+  and `c = -1 / ∂ρ/∂ℓ`, using `SymplecticGeometry.IsConvexShapeOverRAt.re_leviForm_pos` and
+  `SymplecticGeometry.fderiv_shapeGraphOverR_comp_shape_ne_zero`. The level condition comes from
+  `SymplecticGeometry.eventually_eq_of_shapeGraph_eq_zero`, after exchanging the coordinates in
+  the case over `R`.
 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Proposition 3.25 (the function of a foliation).
+  Proposition 3.25 (the function of a foliation), and Corollary 4.29 for the curves over `R`.
 -/
 
 public section
@@ -241,126 +254,106 @@ theorem exists_contDiffAt_familyLevel
   rw [leafPoint_def] at hH hdH hval
   exact ⟨hval, hH, hdH⟩
 
-/-- Each member `χ ℓ` of a smooth family is smooth at each `r` of the product of intervals. -/
-private theorem contDiffAt_shapeFamily
+/-- Each member `χ ℓ` of a family that is smooth in `(ℓ, r)` on a product of open intervals is
+smooth at each `r` of the second interval, for `ℓ` in the first. -/
+theorem contDiffAt_shapeFamily
     (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
     {ℓ r : ℝ} (hℓ : ℓ ∈ Ioo ℓ₀ ℓ₁) (hr : r ∈ Ioo r₁ r₂) : ContDiffAt ℝ ∞ (χ ℓ) r :=
   (hχ.contDiffAt ((isOpen_Ioo.prod isOpen_Ioo).mem_nhds ⟨hℓ, hr⟩)).comp r
     (contDiffAt_const.prodMk contDiffAt_id)
 
-/-- At a point `p` over the leaf `ℓ`, the differential of `H ∘ shape`, for the level function `H`,
-is `1 / ∂χ/∂ℓ` times that of `shapeGraph (χ ℓ) ∘ shape`. -/
-private theorem fderiv_shapeLevelFun_comp_shape
-    (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
-    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
-    (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ)
-    {ℓ r : ℝ} (hℓ : ℓ ∈ Ioo ℓ₀ ℓ₁) (hr : r ∈ Ioo r₁ r₂) {k m : ℕ}
-    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (χ ℓ r ^ 2, r ^ 2)) :
-    fderiv ℝ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p =
-      (1 / deriv (fun ℓ' ↦ χ ℓ' r) ℓ) • fderiv ℝ (shapeGraph (χ ℓ) ∘ shape) p := by
-  obtain ⟨hH, hdH⟩ := contDiffAt_shapeLevelFun hχ (forall_pos_of_isConvexShapeAt hconv) hmono
-    (x := (ℓ, r)) ⟨hℓ, hr⟩
-  rw [leafPoint_def] at hH hdH
-  have hconvx := hconv ℓ hℓ r hr
-  have hA := hmono ℓ hℓ r hr
-  have hc := hconvx.pos_value
-  have hr0 := hconvx.pos
-  refine ContinuousLinearMap.ext fun u ↦ ?_
-  rw [smul_apply, fderiv_shapeGraph_comp_shape_apply_of_shape_eq
-      ((contDiffAt_shapeFamily hχ hℓ hr).differentiableAt (by simp)) hc hr0 hp,
-    fderiv_comp p ((hp ▸ hH).differentiableAt (by simp))
-      ((contDiff_shape (n := 1)).differentiable one_ne_zero p),
-    ContinuousLinearMap.comp_apply, fderiv_shape_apply, hp, hdH, smul_eq_mul]
-  field_simp
-  ring
+/-! ### Levels that contain the hypersurface of a shape -/
 
-/-- Near a point `p` over the leaf `ℓ`, the hypersurface of the shape `χ ℓ` lies in the level
-`-ℓ` of `H ∘ shape`, for the level function `H`. -/
-private theorem eventually_shapeLevelFun_shape_eq
-    (hχ : ContDiffOn ℝ 1 (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
-    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
-    (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ)
-    {ℓ r : ℝ} (hℓ : ℓ ∈ Ioo ℓ₀ ℓ₁) (hr : r ∈ Ioo r₁ r₂) {k m : ℕ}
-    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (χ ℓ r ^ 2, r ^ 2)) :
-    ∀ᶠ y in 𝓝 p, (shapeGraph (χ ℓ) ∘ shape) y = 0 →
-      shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ (shape y) = -ℓ := by
-  have hcont : ContinuousAt (fun y ↦ √(shape y).2) p :=
-    (Real.continuous_sqrt.comp (contDiff_shape (n := 0)).continuous.snd).continuousAt
-  have hev : ∀ᶠ y in 𝓝 p, √(shape y).2 ∈ Ioo r₁ r₂ := by
-    refine hcont.preimage_mem_nhds (isOpen_Ioo.mem_nhds ?_)
-    rwa [hp, Real.sqrt_sq (hconv ℓ hℓ r hr).pos.le]
-  filter_upwards [hev] with y hy hy0
-  rw [Function.comp_apply, shapeGraph_def, sub_eq_zero] at hy0
-  have hy' : shape y = leafPoint χ (ℓ, √(shape y).2) := by
-    rw [leafPoint_def]
-    ext
-    · rw [hy0, Real.sq_sqrt (shape_fst_nonneg y)]
-    · rw [Real.sq_sqrt (shape_snd_nonneg y)]
-  rw [hy', shapeLevelFun_leafPoint hχ (forall_pos_of_isConvexShapeAt hconv) hmono ⟨hℓ, hy⟩]
+/-- **The level of `φ` through a point of a shape contains the shape nearby.** Let `0 < r` and
+`0 < f r`, and let `φ : ℝ × ℝ → ℝ` take the value `c₀` at the points `(f r' ², r' ²)` for `r'`
+near `r`. Then, near `(f r ², r ²)`, `φ` takes the value `c₀` wherever `shapeGraph f` vanishes. -/
+theorem eventually_eq_of_shapeGraph_eq_zero {f : ℝ → ℝ} {φ : ℝ × ℝ → ℝ} {r c₀ : ℝ} (hr : 0 < r)
+    (hf : 0 < f r) (hval : ∀ᶠ r' in 𝓝 r, φ (f r' ^ 2, r' ^ 2) = c₀) :
+    ∀ᶠ z in 𝓝 (f r ^ 2, r ^ 2), shapeGraph f z = 0 → φ z = c₀ := by
+  have hsqrt : Tendsto (fun z : ℝ × ℝ ↦ √z.2) (𝓝 (f r ^ 2, r ^ 2)) (𝓝 r) := by
+    have h := (Real.continuous_sqrt.comp continuous_snd).tendsto (f r ^ 2, r ^ 2)
+    rwa [Function.comp_apply, Real.sqrt_sq hr.le] at h
+  have h1 : ∀ᶠ z in 𝓝 (f r ^ 2, r ^ 2), 0 < z.1 :=
+    (continuous_fst.tendsto _).eventually (lt_mem_nhds (by positivity))
+  have h2 : ∀ᶠ z in 𝓝 (f r ^ 2, r ^ 2), 0 < z.2 :=
+    (continuous_snd.tendsto _).eventually (lt_mem_nhds (by positivity))
+  filter_upwards [hsqrt.eventually hval, h1, h2] with z hz hz₁ hz₂ hz₀
+  rw [shapeGraph_def, sub_eq_zero] at hz₀
+  rwa [hz₀, Real.sq_sqrt hz₁.le, Real.sq_sqrt hz₂.le] at hz
 
-/-- At a point `p` over the leaf `ℓ`, the Levi form of `H ∘ shape`, for the level function `H`,
-has positive real part on the nonzero complex tangent vectors of its level through `p`: there `dH`
-is a positive multiple of `d(shapeGraph (χ ℓ))`, and the level contains the hypersurface of the
-shape `χ ℓ` near `p`. -/
-private theorem re_leviForm_shapeLevelFun_comp_shape_pos
-    (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
-    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
-    (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ)
-    {ℓ r : ℝ} (hℓ : ℓ ∈ Ioo ℓ₀ ℓ₁) (hr : r ∈ Ioo r₁ r₂) {k m : ℕ}
-    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (χ ℓ r ^ 2, r ^ 2))
+/-- **Positivity of the Levi form passes to a function whose level contains a given level.** Let
+`p` lie over `q = shape p`, and let `G, φ : ℝ × ℝ → ℝ` be `C³` at `q`, with `G q = 0`,
+`d(G ∘ shape)_p ≠ 0`, `dφ_q = c • dG_q` for some `c > 0`, and `φ = c₀` near `q` wherever
+`G = 0`. If the Levi form of `G ∘ shape` at `p` has positive real part on the nonzero `u` with
+`d(G ∘ shape)_p u = d(G ∘ shape)_p (i u) = 0`, then the Levi form of `φ ∘ shape` at `p` has
+positive real part on the nonzero `v` with `d(φ ∘ shape)_p v = d(φ ∘ shape)_p (i v) = 0`. -/
+theorem re_leviForm_comp_shape_pos_of_fderiv_eq_smul {G φ : ℝ × ℝ → ℝ} {c c₀ : ℝ} {k m : ℕ}
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} {q : ℝ × ℝ} (hp : shape p = q)
+    (hG : ContDiffAt ℝ 3 G q) (hφ : ContDiffAt ℝ 3 φ q) (hGq : G q = 0)
+    (hG' : fderiv ℝ (G ∘ shape) p ≠ 0) (hc : 0 < c) (hdφ : fderiv ℝ φ q = c • fderiv ℝ G q)
+    (hlevel : ∀ᶠ z in 𝓝 q, G z = 0 → φ z = c₀)
+    (hGL : ∀ u, u ≠ 0 → fderiv ℝ (G ∘ shape) p u = 0 → fderiv ℝ (G ∘ shape) p (I • u) = 0 →
+      0 < (leviForm (G ∘ shape) p u u).re)
     {v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hv : v ≠ 0)
-    (hv₁ : fderiv ℝ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p v = 0)
-    (hv₂ : fderiv ℝ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p (I • v) = 0) :
-    0 < (leviForm (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p v v).re := by
-  set H := shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂
-  obtain ⟨hH, -⟩ := contDiffAt_shapeLevelFun hχ (forall_pos_of_isConvexShapeAt hconv) hmono
-    (x := (ℓ, r)) ⟨hℓ, hr⟩
-  rw [leafPoint_def] at hH
-  have hconvx := hconv ℓ hℓ r hr
-  have hr0 := hconvx.pos
-  have hc := hconvx.pos_value
-  have hχr := contDiffAt_shapeFamily hχ hℓ hr
-  have hG : ContDiffAt ℝ ∞ (shapeGraph (χ ℓ)) (χ ℓ r ^ 2, r ^ 2) :=
-    contDiffAt_shapeGraph (by rwa [Real.sqrt_sq hr0.le]) (by positivity) (by positivity)
-  have hshape : ContDiffAt ℝ ∞ shape p := contDiff_shape.contDiffAt
-  have hHs : ContDiffAt ℝ ∞ (H ∘ shape) p := (hp ▸ hH).comp p hshape
-  have hfC : ContDiffAt ℝ 3 (shapeGraph (χ ℓ) ∘ shape) p :=
-    ((hp ▸ hG).comp p hshape).of_le (by simp)
-  have hgC : ContDiffAt ℝ 3 (H ∘ shape + fun _ ↦ ℓ) p :=
-    (hHs.of_le (by simp)).add contDiffAt_const
-  have hfp : (shapeGraph (χ ℓ) ∘ shape) p = 0 := by
-    rw [Function.comp_apply, hp, shapeGraph_sq_sq hc.le hr0.le]
-  have hf' : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      (shapeGraph (χ ℓ) ∘ shape) p ≠ 0 := fun h0 ↦
-    fderiv_shapeGraph_comp_shape_ne_zero (hχr.differentiableAt (by simp)) hc hr0 hp
-      (ContinuousLinearMap.ext fun u ↦ by
-        have h := mvfderiv_eq_fderiv_apply (𝕜 := ℝ) (shapeGraph (χ ℓ) ∘ shape) p u
+    (hv₁ : fderiv ℝ (φ ∘ shape) p v = 0) (hv₂ : fderiv ℝ (φ ∘ shape) p (I • v) = 0) :
+    0 < (leviForm (φ ∘ shape) p v v).re := by
+  subst hp
+  have hshape : ContDiffAt ℝ 3 shape p := contDiff_shape.contDiffAt
+  have hds : DifferentiableAt ℝ shape p := hshape.differentiableAt (by simp)
+  have hfC : ContDiffAt ℝ 3 (G ∘ shape) p := hG.comp p hshape
+  have hgC : ContDiffAt ℝ 3 (φ ∘ shape + fun _ ↦ -c₀) p :=
+    (hφ.comp p hshape).add contDiffAt_const
+  have hf' : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (G ∘ shape) p ≠
+      0 := fun h0 ↦ hG' (ContinuousLinearMap.ext fun u ↦ by
+        have h := mvfderiv_eq_fderiv_apply (𝕜 := ℝ) (G ∘ shape) p u
         rw [h0] at h
         exact h.symm.trans (zero_apply _))
-  have hdg : fderiv ℝ (H ∘ shape + fun _ ↦ ℓ) p = fderiv ℝ (H ∘ shape) p := by
+  have hdg : fderiv ℝ (φ ∘ shape + fun _ ↦ -c₀) p = fderiv ℝ (φ ∘ shape) p := by
     rw [Pi.add_def, fderiv_add_const]
   have hgf : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      (H ∘ shape + fun _ ↦ ℓ) p = (1 / deriv (fun ℓ' ↦ χ ℓ' r) ℓ) •
-        mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-          (shapeGraph (χ ℓ) ∘ shape) p := by
+      (φ ∘ shape + fun _ ↦ -c₀) p = c •
+        mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (G ∘ shape) p := by
     rw [mvfderiv_eq_fderiv, mvfderiv_eq_fderiv, hdg,
-      fderiv_shapeLevelFun_comp_shape hχ hconv hmono hℓ hr hp, ContinuousLinearMap.smul_comp]
-  have hfg : ∀ᶠ y in 𝓝 p, (shapeGraph (χ ℓ) ∘ shape) y = 0 →
-      (H ∘ shape + fun _ ↦ ℓ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → ℝ) y = 0 := by
-    filter_upwards [eventually_shapeLevelFun_shape_eq (hχ.of_le (by simp)) hconv hmono hℓ hr hp]
+      fderiv_comp p (hφ.differentiableAt (by simp)) hds,
+      fderiv_comp p (hG.differentiableAt (by simp)) hds, hdφ, ContinuousLinearMap.smul_comp,
+      ContinuousLinearMap.smul_comp]
+  have hfg : ∀ᶠ y in 𝓝 p, (G ∘ shape) y = 0 →
+      (φ ∘ shape + fun _ ↦ -c₀ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → ℝ) y =
+        0 := by
+    filter_upwards [((contDiff_shape (n := 0)).continuous.tendsto p).eventually hlevel]
       with y hy hy0
-    simp only [Pi.add_apply, Function.comp_apply, H, hy hy0, neg_add_cancel]
+    rw [Pi.add_apply, Function.comp_apply, hy hy0, add_neg_cancel]
   have hiff := forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul
-    (contMDiffAt_iff_contDiffAt.2 hfC) (contMDiffAt_iff_contDiffAt.2 hgC) hfp hf'
-    (one_div_pos.2 (hmono ℓ hℓ r hr)) hgf hfg
+    (contMDiffAt_iff_contDiffAt.2 hfC) (contMDiffAt_iff_contDiffAt.2 hgC) hGq hf' hc hgf hfg
   have hpos := hiff.2 (fun u hu₁ hu₂ hu ↦ by
     rw [manifoldLeviForm_eq_leviForm]
-    exact hconvx.re_leviForm_pos (hχr.of_le (by simp)) hp hu
-      ((mvfderiv_eq_fderiv_apply _ _ _).symm.trans hu₁)
+    exact hGL u hu ((mvfderiv_eq_fderiv_apply _ _ _).symm.trans hu₁)
       ((mvfderiv_eq_fderiv_apply _ _ _).symm.trans hu₂)) v
     ((mvfderiv_eq_fderiv_apply _ _ _).trans (by rw [hdg]; exact hv₁))
     ((mvfderiv_eq_fderiv_apply _ _ _).trans (by rw [hdg]; exact hv₂)) hv
   rwa [manifoldLeviForm_eq_leviForm, Pi.add_def, leviForm_add_const] at hpos
+
+/-! ### The level function of a foliation by shapes -/
+
+/-- At a point `(χ ℓ r ², r ²)` of the leaf `ℓ`, the differential of the level function is
+`1 / ∂χ/∂ℓ` times that of `shapeGraph (χ ℓ)`. -/
+private theorem fderiv_shapeLevelFun_eq_smul
+    (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
+    (hpos : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < r ∧ 0 < χ ℓ r)
+    (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ)
+    {ℓ r : ℝ} (hℓ : ℓ ∈ Ioo ℓ₀ ℓ₁) (hr : r ∈ Ioo r₁ r₂) :
+    fderiv ℝ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂) (χ ℓ r ^ 2, r ^ 2) =
+      (1 / deriv (fun ℓ' ↦ χ ℓ' r) ℓ) • fderiv ℝ (shapeGraph (χ ℓ)) (χ ℓ r ^ 2, r ^ 2) := by
+  obtain ⟨-, hdH⟩ := contDiffAt_shapeLevelFun hχ hpos hmono (x := (ℓ, r)) ⟨hℓ, hr⟩
+  rw [leafPoint_def] at hdH
+  obtain ⟨hr0, hc⟩ := hpos ℓ hℓ r hr
+  have hA := hmono ℓ hℓ r hr
+  refine ContinuousLinearMap.ext fun ⟨a, b⟩ ↦ ?_
+  rw [smul_apply, hdH, fderiv_shapeGraph_apply (by
+      rw [Real.sqrt_sq hr0.le]; exact (contDiffAt_shapeFamily hχ hℓ hr).differentiableAt (by simp))
+      (by positivity) (by positivity), Real.sqrt_sq hc.le, Real.sqrt_sq hr0.le, smul_eq_mul]
+  field_simp
+  ring
 
 /-- **The level function of a foliation by `i`-convex shapes.** Let `χ : ℝ → ℝ → ℝ` be smooth in
 `(ℓ, r)` on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂`, with each `χ ℓ` an `i`-convex shape at each `r` there and
@@ -400,8 +393,126 @@ theorem exists_contDiff_shapeLevel
     refine div_pos ?_ hA
     simp only [zero_div, zero_sub, one_mul, neg_neg]
     positivity
-  exact fun p hp v hv hv₁ hv₂ ↦
-    re_leviForm_shapeLevelFun_comp_shape_pos hχ hconv hmono hℓ hr hp hv hv₁ hv₂
+  intro k m p hp v hv hv₁ hv₂
+  have hχr := contDiffAt_shapeFamily hχ hℓ hr
+  have hG : ContDiffAt ℝ ∞ (shapeGraph (χ ℓ)) (χ ℓ r ^ 2, r ^ 2) :=
+    contDiffAt_shapeGraph (by rwa [Real.sqrt_sq hr0.le]) (by positivity) (by positivity)
+  refine re_leviForm_comp_shape_pos_of_fderiv_eq_smul hp (hG.of_le (by simp))
+    (hH.of_le (by simp)) (shapeGraph_sq_sq hc.le hr0.le)
+    (fderiv_shapeGraph_comp_shape_ne_zero (hχr.differentiableAt (by simp)) hc hr0 hp)
+    (one_div_pos.2 hA)
+    (fderiv_shapeLevelFun_eq_smul hχ (forall_pos_of_isConvexShapeAt hconv) hmono hℓ hr)
+    (eventually_eq_of_shapeGraph_eq_zero (c₀ := -ℓ) hr0 hc ?_)
+    (fun u hu hu₁ hu₂ ↦ hconvx.re_leviForm_pos (hχr.of_le (by simp)) hp hu hu₁ hu₂) hv hv₁ hv₂
+  filter_upwards [Ioo_mem_nhds hr.1 hr.2] with r' hr'
+  have h := shapeLevelFun_leafPoint hχ1 (forall_pos_of_isConvexShapeAt hconv) hmono
+    (x := (ℓ, r')) ⟨hℓ, hr'⟩
+  rwa [leafPoint_def] at h
+
+/-! ### The level function of a foliation by shapes over `R` -/
+
+/-- **The level function of a foliation by shapes over `R`.** Let `ρ : ℝ → ℝ → ℝ` be smooth in
+`(ℓ, R)` on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo R₁ R₂`, with each curve `r = ρ ℓ R` satisfying the criterion over
+`R` (`SymplecticGeometry.IsConvexShapeOverRAt`) at each `R` there and `∂ρ/∂ℓ < 0` there. Then
+there is `φ : ℝ × ℝ → ℝ` such that at each point `q = (R ², ρ ℓ R ²)` of the region swept by the
+leaves, `φ q = -ℓ`, `φ` is smooth at `q` with `∂φ/∂t > 0` and
+`∂φ/∂s = ρ' / (2 R ∂ρ/∂ℓ)`, for `ρ' = ∂ρ/∂R` (so `∂φ/∂s ≤ 0` where `ρ' ≥ 0`, and `< 0` where
+`ρ' > 0`), and at every `p ∈ ℂᵏ × ℂᵐ` with `shape p = q` the Levi form of `φ ∘ shape` has
+positive real part on the nonzero `v` with `d(φ ∘ shape)_p v = 0` and `d(φ ∘ shape)_p (i v) = 0`,
+the nonzero complex tangent vectors of its level through `p`. -/
+theorem exists_contDiff_shapeLevel_overR {ρ : ℝ → ℝ → ℝ} {R₁ R₂ : ℝ}
+    (hρ : ContDiffOn ℝ ∞ (Function.uncurry ρ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo R₁ R₂))
+    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ R ∈ Ioo R₁ R₂, IsConvexShapeOverRAt (ρ ℓ) R)
+    (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ R ∈ Ioo R₁ R₂, deriv (fun ℓ' ↦ ρ ℓ' R) ℓ < 0) :
+    ∃ φ : ℝ × ℝ → ℝ, ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ R ∈ Ioo R₁ R₂,
+      φ (R ^ 2, ρ ℓ R ^ 2) = -ℓ ∧ ContDiffAt ℝ ∞ φ (R ^ 2, ρ ℓ R ^ 2) ∧
+      0 < fderiv ℝ φ (R ^ 2, ρ ℓ R ^ 2) (0, 1) ∧
+      fderiv ℝ φ (R ^ 2, ρ ℓ R ^ 2) (1, 0) =
+        deriv (ρ ℓ) R / (2 * R * deriv (fun ℓ' ↦ ρ ℓ' R) ℓ) ∧
+      ∀ {k m : ℕ} (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)),
+        shape p = (R ^ 2, ρ ℓ R ^ 2) → ∀ v, v ≠ 0 → fderiv ℝ (φ ∘ shape) p v = 0 →
+          fderiv ℝ (φ ∘ shape) p (I • v) = 0 → 0 < (leviForm (φ ∘ shape) p v v).re := by
+  -- The family `ℓ ↦ ρ (-ℓ)`, with the coordinates swapped, is a family as in
+  -- `exists_contDiffAt_familyLevel`.
+  have hneg' : ∀ ℓ ∈ Ioo (-ℓ₁) (-ℓ₀), -ℓ ∈ Ioo ℓ₀ ℓ₁ := fun ℓ hℓ ↦
+    ⟨lt_neg_of_lt_neg hℓ.2, neg_lt.1 hℓ.1⟩
+  have hneg : MapsTo (fun x : ℝ × ℝ ↦ (-x.1, x.2)) (Ioo (-ℓ₁) (-ℓ₀) ×ˢ Ioo R₁ R₂)
+      (Ioo ℓ₀ ℓ₁ ×ˢ Ioo R₁ R₂) := fun x hx ↦ ⟨hneg' x.1 hx.1, hx.2⟩
+  obtain ⟨ψ, hψ⟩ := exists_contDiffAt_familyLevel (χ := fun ℓ R ↦ ρ (-ℓ) R)
+    (hρ.comp (contDiff_fst.neg.prodMk contDiff_snd).contDiffOn hneg)
+    (fun ℓ hℓ R hR ↦ ⟨(hconv (-ℓ) (hneg' ℓ hℓ) R hR).pos,
+      (hconv (-ℓ) (hneg' ℓ hℓ) R hR).pos_value⟩)
+    (fun ℓ hℓ R hR ↦ by
+      rw [deriv_comp_neg (f := fun ℓ' ↦ ρ ℓ' R)]
+      exact neg_pos.2 (hmono (-ℓ) (hneg' ℓ hℓ) R hR))
+  set L := ContinuousLinearEquiv.prodComm ℝ ℝ ℝ with hLdef
+  refine ⟨fun q ↦ -ψ (L q), fun ℓ hℓ R hR ↦ ?_⟩
+  have hℓ' : -ℓ ∈ Ioo (-ℓ₁) (-ℓ₀) := ⟨neg_lt_neg hℓ.2, neg_lt_neg hℓ.1⟩
+  obtain ⟨hv, hc, hd⟩ := hψ (-ℓ) hℓ' R hR
+  have hconvx := hconv ℓ hℓ R hR
+  have hR0 := hconvx.pos
+  have hr0 := hconvx.pos_value
+  have hA := hmono ℓ hℓ R hR
+  have hAeq : deriv (fun ℓ' ↦ ρ (-ℓ') R) (-ℓ) = -deriv (fun ℓ' ↦ ρ ℓ' R) ℓ := by
+    rw [deriv_comp_neg (f := fun ℓ' ↦ ρ ℓ' R), neg_neg]
+  simp only [neg_neg] at hv hc hd
+  rw [hAeq] at hd
+  have hLq : L (R ^ 2, ρ ℓ R ^ 2) = (ρ ℓ R ^ 2, R ^ 2) := by
+    rw [hLdef, ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk]
+  have hφd : HasFDerivAt (fun q ↦ -ψ (L q))
+      (-(fderiv ℝ ψ (ρ ℓ R ^ 2, R ^ 2)).comp (L : ℝ × ℝ →L[ℝ] ℝ × ℝ)) (R ^ 2, ρ ℓ R ^ 2) := by
+    have h := (hc.differentiableAt (by simp)).hasFDerivAt
+    rw [← hLq] at h
+    exact (h.comp _ L.hasFDerivAt).neg
+  have hdφ (a b : ℝ) : fderiv ℝ (fun q ↦ -ψ (L q)) (R ^ 2, ρ ℓ R ^ 2) (a, b) =
+      (b / (2 * ρ ℓ R) - a * deriv (ρ ℓ) R / (2 * R)) / -deriv (fun ℓ' ↦ ρ ℓ' R) ℓ := by
+    rw [hφd.fderiv, neg_apply, ContinuousLinearMap.comp_apply]
+    have hL : (L : ℝ × ℝ →L[ℝ] ℝ × ℝ) (a, b) = (b, a) := by
+      rw [ContinuousLinearEquiv.coe_coe, hLdef, ContinuousLinearEquiv.prodComm_apply,
+        Prod.swap_prod_mk]
+    rw [hL, hd]
+    ring
+  have hφc : ContDiffAt ℝ ∞ (fun q ↦ -ψ (L q)) (R ^ 2, ρ ℓ R ^ 2) :=
+    ((hLq ▸ hc).comp _ L.contDiff.contDiffAt).neg
+  have hval : ∀ R' ∈ Ioo R₁ R₂, -ψ (L (R' ^ 2, ρ ℓ R' ^ 2)) = -ℓ := fun R' hR' ↦ by
+    have h := (hψ (-ℓ) hℓ' R' hR').1
+    simp only [neg_neg] at h
+    rw [hLdef, ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk, h]
+  refine ⟨hval R hR, hφc, ?_, ?_, ?_⟩
+  · rw [hdφ]
+    refine div_pos ?_ (neg_pos.2 hA)
+    simp only [zero_mul, zero_div, sub_zero]
+    positivity
+  · rw [hdφ]
+    field_simp
+    ring
+  intro k m p hp v hv0 hv₁ hv₂
+  have hρℓ := contDiffAt_shapeFamily hρ hℓ hR
+  have hG : ContDiffAt ℝ ∞ (shapeGraphOverR (ρ ℓ)) (R ^ 2, ρ ℓ R ^ 2) :=
+    contDiffAt_shapeGraphOverR (by rwa [Real.sqrt_sq hR0.le]) (by positivity) (by positivity)
+  -- Near `(R ², ρ ℓ R ²)`, the zeros of `shapeGraphOverR (ρ ℓ)` are those of
+  -- `shapeGraph (ρ ℓ) ∘ Prod.swap`, where `φ ∘ Prod.swap` is `-ℓ`.
+  have hlevel : ∀ᶠ z in 𝓝 (R ^ 2, ρ ℓ R ^ 2), shapeGraphOverR (ρ ℓ) z = 0 →
+      -ψ (L z) = -ℓ := by
+    have h := eventually_eq_of_shapeGraph_eq_zero (φ := fun z ↦ -ψ (L z.swap)) hR0 hr0
+      (Filter.eventually_of_mem (Ioo_mem_nhds hR.1 hR.2) fun R' hR' ↦ by
+        rw [Prod.swap_prod_mk]; exact hval R' hR')
+    rw [← Prod.swap_prod_mk] at h
+    filter_upwards [(continuous_swap.tendsto _).eventually h] with z hz hz₀
+    rw [shapeGraphOverR_def, sub_eq_zero] at hz₀
+    simpa only [Prod.swap_swap] using hz (by rw [shapeGraph_def, Prod.snd_swap, Prod.fst_swap, hz₀,
+      sub_self])
+  refine re_leviForm_comp_shape_pos_of_fderiv_eq_smul hp (hG.of_le (by simp)) (hφc.of_le (by simp))
+    (shapeGraphOverR_sq_sq hR0.le hr0.le)
+    (fderiv_shapeGraphOverR_comp_shape_ne_zero (hρℓ.differentiableAt (by simp)) hR0 hr0 hp)
+    (c := 1 / -deriv (fun ℓ' ↦ ρ ℓ' R) ℓ) (one_div_pos.2 (neg_pos.2 hA)) ?_ hlevel
+    (fun u hu hu₁ hu₂ ↦ hconvx.re_leviForm_pos (hρℓ.of_le (by simp)) hp hu hu₁ hu₂) hv0 hv₁ hv₂
+  refine ContinuousLinearMap.ext fun ⟨a, b⟩ ↦ ?_
+  rw [smul_apply, hdφ, fderiv_shapeGraphOverR_apply (by
+      rw [Real.sqrt_sq hR0.le]; exact hρℓ.differentiableAt (by simp)) (by positivity)
+      (by positivity), Real.sqrt_sq hR0.le, Real.sqrt_sq hr0.le, smul_eq_mul]
+  field_simp
+  ring
 
 end SymplecticGeometry
 
