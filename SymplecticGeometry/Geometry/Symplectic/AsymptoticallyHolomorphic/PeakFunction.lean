@@ -12,7 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.F
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
-import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Symplectic
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.AlmostComplex
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
