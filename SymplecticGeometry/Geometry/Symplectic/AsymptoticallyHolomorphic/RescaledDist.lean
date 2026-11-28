@@ -22,7 +22,9 @@ infinite distance, that is, in different components: a bound of the form
 `C * (1 + d) ^ N * exp (-c * d ^ 2)` in `d = rescaledDist I k x y` gives no decay there. On a
 preconnected manifold, the case of the design, the Riemannian distance is finite
 (`TauCeti.Manifold.riemannianEDist_ne_top`), and the two versions agree
-(`SymplecticGeometry.ofReal_rescaledDist`).
+(`SymplecticGeometry.ofReal_rescaledDist`). The triangle inequality holds for the extended
+version on any manifold, but for the real version only on a preconnected one
+(`SymplecticGeometry.rescaledDist_triangle`).
 
 ## Main definitions
 
@@ -31,6 +33,8 @@ preconnected manifold, the case of the design, the Riemannian distance is finite
 
 ## Main results
 
+* `SymplecticGeometry.rescaledEDist_triangle` and `SymplecticGeometry.rescaledDist_triangle`: the
+  triangle inequality, the latter on a preconnected manifold.
 * `SymplecticGeometry.rescaledEDist_ne_top` and `SymplecticGeometry.ofReal_rescaledDist`: on a
   preconnected manifold, the rescaled distance is finite, and its real version recovers it.
 
@@ -91,7 +95,15 @@ theorem rescaledEDist_comm (k : ℕ) (x y : M) : rescaledEDist I k x y = rescale
 theorem rescaledDist_comm (k : ℕ) (x y : M) : rescaledDist I k x y = rescaledDist I k y x := by
   rw [rescaledDist_def, rescaledDist_def, rescaledEDist_comm]
 
+/-- The triangle inequality for the rescaled distance. -/
+theorem rescaledEDist_triangle (k : ℕ) (x y z : M) :
+    rescaledEDist I k x z ≤ rescaledEDist I k x y + rescaledEDist I k y z := by
+  simp only [rescaledEDist_def, ← mul_add]
+  gcongr
+  exact Manifold.riemannianEDist_triangle
+
 /-- The rescaled distance is finite on a preconnected manifold. -/
+@[aesop (rule_sets := [finiteness]) safe apply, simp]
 theorem rescaledEDist_ne_top [PreconnectedSpace M] [IsManifold I 1 M]
     [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] (k : ℕ) (x y : M) :
     rescaledEDist I k x y ≠ ∞ := by
@@ -103,6 +115,15 @@ theorem ofReal_rescaledDist [PreconnectedSpace M] [IsManifold I 1 M]
     [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] (k : ℕ) (x y : M) :
     ENNReal.ofReal (rescaledDist I k x y) = rescaledEDist I k x y := by
   rw [rescaledDist_def, ENNReal.ofReal_toReal (rescaledEDist_ne_top k x y)]
+
+/-- The triangle inequality for the real rescaled distance, on a preconnected manifold. Without
+that hypothesis it can fail, since the real distance is `0` between points at infinite distance. -/
+theorem rescaledDist_triangle [PreconnectedSpace M] [IsManifold I 1 M]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] (k : ℕ) (x y z : M) :
+    rescaledDist I k x z ≤ rescaledDist I k x y + rescaledDist I k y z := by
+  simp only [rescaledDist_def]
+  exact ENNReal.toReal_le_add (rescaledEDist_triangle k x y z) (rescaledEDist_ne_top k x y)
+    (rescaledEDist_ne_top k y z)
 
 end SymplecticGeometry
 
