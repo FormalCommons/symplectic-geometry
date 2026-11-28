@@ -509,8 +509,7 @@ theorem mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom [FiniteDimensional ℝ
   -- Conjugating by `toHom u` turns the curve into a left-translated exponential line.
   have h (τ : ℝ) : C.expI (τ • ξ) * C.toHom u =
       C.toHom u * mulInvariantExp (τ • C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ))) := by
-    rw [← C.cplx.apply_smul, ← map_smul, ← expI_def, ← map_smul, ← C.toHom_mul_expI_mul_inv,
-      map_inv, inv_inv]
+    rw [← C.expI_smul, ← map_smul, ← C.toHom_mul_expI_mul_inv, map_inv, inv_inv]
     group
   rw [funext h, h t]
   exact mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul _ _ t
