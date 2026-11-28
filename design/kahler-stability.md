@@ -820,8 +820,8 @@ of `hJi` besides the statements that pass it on).
   derivative of the equivariance at `h = mulInvariantExp (t • ξ)`
   (equation (12.5) of the source); for `ξ = 0`, `X_{iη} = J X_η` and `J`
   is constant in `e`.
-- `expI_smul_chart_symm`: if `NormedSpace.exp (s • (J x ∘ A λ)) v` lies in
-  the target of `e` for `s ∈ [0, t]`, then
+- `expI_smul_chart_symm`: for `λ ∈ 𝔥`, if `NormedSpace.exp (s • (J x ∘ A λ)) v` lies in
+  the target of `e` for `s` between `0` and `t` (`uIcc 0 t`), then
   `C.expI (t • λ) • e.symm v = e.symm (NormedSpace.exp (t • (J x ∘ A λ)) v)`:
   both are integral curves of `X_{iλ}` from `e.symm v`
   (`isMIntegralCurve_expI_smul`, the previous item), so they agree.
