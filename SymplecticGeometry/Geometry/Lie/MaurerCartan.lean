@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Lie.MaurerCartan
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import Mathlib.Data.Fin.Tuple.Reflection
 
 /-!
 # The left Maurer–Cartan form: right translates and the structure equation
@@ -93,7 +94,7 @@ theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
       SmoothForm.mapCoeff (F := E) (G := E) (adjointContinuousLinearMap (I := I) h⁻¹)
         (leftMaurerCartanForm I G) := by
   refine SmoothBundleForm.ext fun g v ↦ ?_
-  have hv : v = ![v 0] := by ext i; fin_cases i; rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq v).symm
   rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, hv]
   refine ((congrArg ((leftMaurerCartanForm I G).val (g * h)) (by ext i; fin_cases i; rfl)).trans
     (leftMaurerCartanForm_apply_mfderiv_mul_right g h (v 0))).trans ?_

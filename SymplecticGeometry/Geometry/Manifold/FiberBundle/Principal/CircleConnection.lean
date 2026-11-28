@@ -308,20 +308,12 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
   -- The difference `β - α` is invariant and vanishes on vertical vectors, so it is basic.
   have hbasic := PrincipalBundle.isBasic_of_mpullback_op_smul (n := ∞) (β := β - α)
     (fun z ↦ by rw [map_sub, hα.mpullback_op_smul, hβ.mpullback_op_smul])
-    (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ by
-      set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
-      obtain rfl : j = 0 := Subsingleton.elim _ _
-      obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+    (RoughForm.isSemibasic_iff_of_degree_one.mpr fun x v hv ↦ by
+      obtain ⟨c, rfl⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
         circleLieGenerator_ne_zero hv
-      have hv0 : v = ![0 + c • ξ] := by
-        funext i
-        fin_cases i
-        exact hc.trans (zero_add _).symm
-      rw [hv0, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
-        ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
-        SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
-        hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
-        smul_zero, add_zero])
+      rw [ContinuousAlternatingMap.vecCons_smul, SmoothBundleForm.sub_apply,
+        ContinuousAlternatingMap.sub_apply, hα.apply_rightFundamentalVectorField,
+        hβ.apply_rightFundamentalVectorField, sub_self, smul_zero])
   refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
     fun a' ha' ↦ SmoothForm.eq_descendedForm_iff.mpr ?_⟩
   · beta_reduce
