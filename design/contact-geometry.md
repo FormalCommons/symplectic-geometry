@@ -581,8 +581,8 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and `α` with
   `IsLocalDefiningFamily ξ U α a b`. Uses `DifferentialForm/TimeExtension.lean` of
   *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
-  a neighbourhood of the relevant times (`exists_contDiff_eqOn_id_Icc_mem_Ioo` of
-  *Smooth families*).
+  a neighbourhood of the relevant times (Tau Ceti's
+  `TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`).
 - `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul` (`[I.Boundaryless]`):
   the pointwise independence of step 2, for two families on `ℝ × M` with
   contact slices at `t ∈ s`, `UniqueDiffWithinAt ℝ s t` (`s = [0, 1]` in
@@ -738,9 +738,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
 - *Smooth families* (#466, #467):
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean`, the extension of
   a smooth form on `unitInterval × M` to `ℝ × M` (for
-  `IsContactFamily.exists_local_extension`, with
-  `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
-  `Analysis/SpecialFunctions/SmoothTransition/Basic.lean`); and
+  `IsContactFamily.exists_local_extension`); and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean`, the reading of a
   `Diffeotopy` $\Phi$ over `ℝ` as $\Phi_{s(t)}$, $s=$ `Real.smoothTransition`,
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
