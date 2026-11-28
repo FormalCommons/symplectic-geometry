@@ -9,6 +9,7 @@ public import TauCeti.Algebra.Lie.Unitary
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Unitary.Basic
+import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
@@ -189,20 +190,15 @@ theorem coe_matrixUnitaryLieAlgebraEquiv_apply
     (matrixUnitaryLieAlgebraEquiv ξ : Matrix n n ℂ) =
       mfderiv 𝓘(ℝ, 𝔨[n]) 𝓘(ℝ, Matrix n n ℂ)
         (fun k : unitarySubgroup (GL n ℂ) ↦ ((k : GL n ℂ) : Matrix n n ℂ)) 1 ξ := by
-  have hφ : HasMFDerivAt 𝓘(ℝ, 𝔨[n]) 𝓘(ℝ, Matrix n n ℂ) 𝔡[n].subtypeVal 1
-      (mfderiv 𝓘(ℝ, 𝔨[n]) 𝓘(ℝ, Matrix n n ℂ) 𝔡[n].subtypeVal 1) :=
-    (𝔡[n].subtypeVal.contMDiff_toFun.mdifferentiableAt (by simp)).hasMFDerivAt
-  have hf : Units.val ∘ ⇑𝔡[n].subtypeVal =
-      fun k : unitarySubgroup (GL n ℂ) ↦ ((k : GL n ℂ) : Matrix n n ℂ) :=
-    funext fun k ↦ congrArg Units.val (𝔡[n].subtypeVal_apply k)
-  have hcomp := (Units.hasMFDerivAt_val (𝕜 := ℝ) (𝔡[n].subtypeVal 1)).comp 1 hφ
-  rw [hf] at hcomp
-  rw [(hcomp.congr_mfderiv (ContinuousLinearMap.id_comp _)).mfderiv,
-    coe_matrixUnitaryLieAlgebraEquiv_apply_eq_groupLieAlgebraLieHom,
-    ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
-    ContMDiffMonoidMorphism.coe_toMonoidHom]
-  -- The two sides agree up to the definitional identification of the tangent spaces of `GL n ℂ`
-  -- with `Matrix n n ℂ`.
+  have hf := congrArg (fun φ ↦ (mfderiv 𝓘(ℝ, 𝔨[n]) 𝓘(ℝ, Matrix n n ℂ) φ 1 ξ : Matrix n n ℂ))
+    (funext fun k ↦ congrArg Units.val (𝔡[n].subtypeVal_apply k) :
+      (fun k ↦ ((𝔡[n].subtypeVal k : GL n ℂ) : Matrix n n ℂ)) =
+        fun k : unitarySubgroup (GL n ℂ) ↦ ((k : GL n ℂ) : Matrix n n ℂ))
+  dsimp only at hf
+  rw [← hf, 𝔡[n].subtypeVal.mfderiv_coe_apply_one,
+    coe_matrixUnitaryLieAlgebraEquiv_apply_eq_groupLieAlgebraLieHom]
+  -- `groupLieAlgebraEquivModelVectorSpace` is `LinearEquiv.refl`, but `rw` cannot use
+  -- `LinearEquiv.refl_apply`: the Lie algebra of `GL n ℂ` is `Matrix n n ℂ` only by definition.
   rfl
 
 /-- The inclusion of the unitary group `unitarySubgroup (GL n 𝕜)`, with Tau Ceti's

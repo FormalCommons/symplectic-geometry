@@ -26,7 +26,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.MorseBott
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Tube
-import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Topology.Category.TopCat.Pushout
 import SymplecticGeometry.Topology.CWComplex.Gluing
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
@@ -265,12 +264,8 @@ theorem IsUniformlyTransverse.eventually_norm_complexAntilinearPart_lt_norm_comp
   filter_upwards [ht.eventually_norm_zeroOnePart_lt_norm_oneZeroPart D hJ hα hρ₀ hη hs]
     with k hk x hx
   have hlt := hk x hx
-  rwa [J.zeroOnePart_eq_toContinuousLinearMap_complexAntilinearPart,
-    J.oneZeroPart_eq_toContinuousLinearMap_complexLinearPart,
-    SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
-    ← Complex.toLinearMap_smulIEquiv_eq_ofComplexModule,
-    ← complexAntilinearPartContinuousLinearMap_apply, ← complexLinearPartContinuousLinearMap_apply]
-    at hlt
+  rwa [J.zeroOnePart_eq_complexAntilinearPartContinuousLinearMap,
+    J.oneZeroPart_eq_complexLinearPartContinuousLinearMap] at hlt
 
 omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
