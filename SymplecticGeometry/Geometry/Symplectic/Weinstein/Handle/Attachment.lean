@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
+import SymplecticGeometry.Dynamics.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
@@ -216,9 +217,9 @@ theorem exists_forall_levelCrossingTime_mem_Ioc {a b : ℝ}
   have hcross (x : M) (hx : g x = 0) :
       ∃ t, 0 < t ∧ f (hW.flow t x) = b ∧ Flow.levelCrossingTime hW.flow f b x = t := by
     obtain ⟨t, ht, hft⟩ := hW.exists_flow_apply_eq_upper hK hx (hgb x hx)
-    exact ⟨t, ht, hft, hW.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos
-      hW.isGeneralizedMorse.contMDiff.continuous hfX x
-      (Flow.apply_flow_levelCrossingTime ⟨t, hft⟩) hft⟩
+    exact ⟨t, ht, hft, Flow.levelCrossingTime_eq_of_subsingleton
+      (hW.subsingleton_setOfPred_flow_apply_eq_of_mvfderiv_pos
+        hW.isGeneralizedMorse.contMDiff.continuous hfX x) hft⟩
   -- `g ⁻¹' {0}` is a closed subset of the compact region `f ⁻¹' Icc a b`.
   have hcompact : IsCompact (g ⁻¹' {0}) :=
     (hW.isProperMap.isCompact_preimage isCompact_Icc).of_isClosed_subset

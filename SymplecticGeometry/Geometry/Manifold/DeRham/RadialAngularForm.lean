@@ -15,6 +15,7 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import TauCeti.MeasureTheory.Integral.PolarCoord
 import TauCeti.MeasureTheory.Measure.Haar.OfBasis
 import TauCeti.Topology.Algebra.Support
+import Mathlib.Data.Fin.Tuple.Reflection
 
 /-!
 # The angular form cut off near the origin
@@ -160,14 +161,8 @@ theorem mextDeriv_radialAngularForm_apply_of_ne_zero {z : ℂ} (hz : z ≠ 0)
     rw [radialAngularForm_def]
     exact (hasFDerivAt_radialCoeff hz hβ).differentiableAt.smul
       (contDiff_planeAngularForm.differentiable (by simp) z)
-  have e0 : Fin.removeNth 0 v = ![v 1] := by
-    ext i
-    fin_cases i
-    rfl
-  have e1 : Fin.removeNth 1 v = ![v 0] := by
-    ext i
-    fin_cases i
-    rfl
+  have e0 : Fin.removeNth 0 v = ![v 1] := (FinVec.etaExpand_eq _).symm
+  have e1 : Fin.removeNth 1 v = ![v 0] := (FinVec.etaExpand_eq _).symm
   rw [mextDeriv_eq_extDeriv]
   refine (extDeriv_apply hd v).trans ?_
   rw [Fin.sum_univ_two, e0, e1]
