@@ -20,6 +20,8 @@ gives its first-order data at the chart image `e x` of the centre:
 * `VectorField.mpullback_extChartAt_symm_self`: its value at `e x` is `V x`;
 * `ContMDiffAt.contDiffAt_mpullback_extChartAt_symm`: it is `C^n` at `e x` when `V`, as a section
   of the tangent bundle, is `C^n` at `x`;
+* `VectorField.eventually_mfderiv_extChartAt_apply_eq_mpullback`: near `x`, the derivative of `e`
+  carries `V` to it, so that `V` and its coordinate field are related by `e`;
 * `MDifferentiableAt.hasFDerivAt_mpullback_extChartAt_symm`: when `V` is differentiable at `x`,
   its derivative at `e x` is Tau Ceti's linearization `TauCeti.sectionLinearization I id V x`.
 
@@ -70,6 +72,17 @@ theorem ContMDiffAt.contDiffAt_mpullback_extChartAt_symm {n : WithTop ℕ∞}
   have h := hV.contMDiffWithinAt (s := univ).contDiffWithinAt_mpullbackWithin_extChartAt_symm
   rw [I.range_eq_univ, mpullbackWithin_univ, inter_univ, preimage_univ] at h
   exact contDiffWithinAt_univ.1 h
+
+/-- On a boundaryless model, near `x` the derivative of the extended chart at `x` carries `V`
+to its coordinate field: `V` and its coordinate field are related by the chart near `x`. -/
+theorem VectorField.eventually_mfderiv_extChartAt_apply_eq_mpullback
+    (V : (x : M) → TangentSpace I x) (x : M) :
+    ∀ᶠ y in nhds x, mfderiv I 𝓘(𝕜, E) (extChartAt I x) y (V y) =
+      mpullback 𝓘(𝕜, E) I (extChartAt I x).symm V (extChartAt I x y) := by
+  have h := eventuallyEq_mpullback_mpullbackWithin_extChartAt (s := univ) (x := x) V
+  rw [nhdsWithin_univ, I.range_eq_univ, mpullbackWithin_univ] at h
+  filter_upwards [h, extChartAt_source_mem_nhds (I := I) x] with y hy hys
+  rw [hy, mpullback_apply, (isInvertible_mfderiv_extChartAt hys).self_apply_inverse]
 
 /-- On a boundaryless model, if the vector field `V` is differentiable at `x` as a section of the
 tangent bundle, its coordinate field in the extended chart at `x` has, at the chart image of `x`,

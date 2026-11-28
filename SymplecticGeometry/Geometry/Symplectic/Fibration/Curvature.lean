@@ -556,15 +556,11 @@ theorem curvatureIn_eq_snd_sum_curvature
       mdifferentiableAt_fst (isInvertible_mfderiv_extChartAt hzb).injective (hΦ z hz).2 hτz]
     exact Submodule.mem_map_of_mem hw
   -- The fields on `EB` that `φ` relates `v₁ v₂` to.
-  have hrel {v : Π b : B, TangentSpace IB b} :
+  have hrel (v : Π b : B, TangentSpace IB b) :
       ∀ᶠ c in 𝓝 (proj x), mfderiv IB 𝓘(ℝ, EB) (extChartAt IB b) c (v c) =
         VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b).symm v
-          (extChartAt IB b c) := by
-    rw [hpx]
-    have h := eventuallyEq_mpullback_mpullbackWithin_extChartAt (s := univ) (x := b) v
-    rw [nhdsWithin_univ, IB.range_eq_univ, VectorField.mpullbackWithin_univ] at h
-    filter_upwards [h, extChartAt_source_mem_nhds (I := IB) b] with c hc hcs
-    rw [hc, VectorField.mpullback_apply, (isInvertible_mfderiv_extChartAt hcs).self_apply_inverse]
+          (extChartAt IB b c) :=
+    hpx ▸ VectorField.eventually_mfderiv_extChartAt_apply_eq_mpullback v b
   have hreg {v : Π b : B, TangentSpace IB b} (hv : ContMDiffAt IB IB.tangent 1 (T% v) b) :
       ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent 1
         (T% (VectorField.mpullback 𝓘(ℝ, EB) IB (extChartAt IB b).symm v))
@@ -576,7 +572,7 @@ theorem curvatureIn_eq_snd_sum_curvature
     contMDiffAt_fst (hΦ x (mem_of_mem_nhds hU)).1
     (contMDiffAt_extChartAt' (n := 2) (by rw [hpx]; exact mem_chart_source HB b))
     EventuallyEq.rfl hΦD (by rw [hpx]; exact hv₁) (by rw [hpx]; exact hv₂) (hreg hv₁) (hreg hv₂)
-    hrel hrel
+    (hrel v₁) (hrel v₂)
   -- The curvature read in `e` is the fibre component of `dΦ` applied to the curvature.
   have hsnd : hD.curvatureIn IF e b v₁ v₂ y =
       (mfderiv IM (𝓘(ℝ, EB).prod IF) Φ x (hD.curvature v₁ v₂ x)).2 := by
@@ -588,8 +584,8 @@ theorem curvatureIn_eq_snd_sum_curvature
     -- `ContinuousLinearMap.prod_apply` does not match here, the tangent spaces of `EB × F` being
     -- products only by definition.
     rfl
-  have h₁ := (hrel (v := v₁)).self_of_nhds
-  have h₂ := (hrel (v := v₂)).self_of_nhds
+  have h₁ := (hrel v₁).self_of_nhds
+  have h₂ := (hrel v₂).self_of_nhds
   rw [hpx] at h₁ h₂
   rw [hsnd, hcurv, hD'.curvature_eq_sum_basis hn' contMDiffAt_fst bs (hreg hv₁) (hreg hv₂), hΦx,
     h₁, h₂]

@@ -589,8 +589,8 @@ theorem IsContMDiff.surjective_mfderiv_extChartAt_proj_prodMk_snd [IsManifold IB
     (by rw [hex, extChartAt_source]; exact hxb)
   -- The derivative of `Prod.map φ id` at `e x` is onto, `dφ` being invertible there.
   have hL : Surjective ((mfderiv IB 𝓘(𝕜, EB) (extChartAt IB b) (e x).1).prodMap
-      (ContinuousLinearMap.id 𝕜 (TangentSpace IF (e x).2))) := fun q ↦
-    ⟨((hinv.surjective q.1).choose, q.2), Prod.ext (hinv.surjective q.1).choose_spec rfl⟩
+      (ContinuousLinearMap.id 𝕜 (TangentSpace IF (e x).2))) :=
+    hinv.surjective.prodMap Function.surjective_id
   -- The cast between the tangent spaces at equal points is the identity.
   exact fun q ↦ let ⟨p, hp⟩ := hL.comp (he.mfderiv_surjective hxe) q; ⟨p, hp⟩
 
