@@ -463,6 +463,12 @@ theorem inner_stdComplexStructure_stdComplexStructure (z w : StdSpace ι) :
     inner ℝ (stdComplexStructure ι z) (stdComplexStructure ι w) = inner ℝ z w := by
   rw [← stdForm_apply_eq_inner, stdForm_apply_stdComplexStructure]
 
+/-- `J₀` is skew-adjoint: `⟪z, J₀ w⟫ = -⟪J₀ z, w⟫`. -/
+theorem inner_stdComplexStructure_right (z w : StdSpace ι) :
+    inner ℝ z (stdComplexStructure ι w) = -inner ℝ (stdComplexStructure ι z) w := by
+  rw [← inner_stdComplexStructure_stdComplexStructure z, AlmostComplexStructure.apply_apply,
+    inner_neg_right]
+
 /-- `J₀` preserves norms: `‖J₀ z‖ = ‖z‖`. -/
 @[simp]
 theorem norm_stdComplexStructure (z : StdSpace ι) : ‖stdComplexStructure ι z‖ = ‖z‖ :=

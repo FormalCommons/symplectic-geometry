@@ -11,6 +11,7 @@ import Mathlib.Analysis.Calculus.ContDiff.Comp
 import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Pi
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Prod
 import SymplecticGeometry.Analysis.Calculus.FDeriv.AddSmulSub
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.ZigZag
@@ -252,14 +253,11 @@ theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
   -- The zig-zag approximation.
   have hupd : ContDiff ℝ ∞ fun p : (Fin m → ℝ) × ℝ ↦ Function.update p.1 i₀ p.2 :=
     contDiff_fst.update i₀ contDiff_snd
-  have hGu : ContDiff ℝ ∞ (Function.uncurry fun (q : (Fin m → ℝ) × ℝ) (u : Fin m → ℝ) ↦
-      G (Function.update u i₀ q.2, 0)) :=
-    hG.comp ((hupd.comp (contDiff_snd.prodMk (contDiff_snd.comp contDiff_fst))).prodMk
-      contDiff_const)
   obtain ⟨r, g₀, f₀, V₀, hr, hrr₀, hg₀, hg₀1, -, hV₀, hXV₀, hf₀, hf₀V₀, -⟩ :=
     exists_holonomic_approximation_zigzag i₀ j (J' := J') hf hG.continuous
       (fun s ↦ hG.comp ((hupd.comp (contDiff_id.prodMk contDiff_const)).prodMk contDiff_const))
-      ((hGu.fderiv (n := 0) contDiff_fst (by simp)).continuous)
+      (contDiff_iff_contDiffAt.2 fun _ ↦ (hG.comp (hupd.prodMk contDiff_const)).contDiffAt
+        |>.fderiv_slice_left (m := 0) (by simp)).continuous
       hJ' hU hUf (fun x ⟨⟨hu, hi⟩, hv⟩ ↦ hBU ⟨hJB _ hu ⟨i₀, Finset.mem_insert_self _ _, hi⟩, hv⟩)
       hε₀ hr₀
   -- The diffeotopy pushes the closed `δ / 2`-neighbourhood of the cube by the profile `φ`.

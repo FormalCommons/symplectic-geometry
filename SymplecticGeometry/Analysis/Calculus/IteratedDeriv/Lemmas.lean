@@ -15,6 +15,8 @@ import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 * Adding or subtracting a constant on the right does not change the iterated derivatives of order
   at least one: `iteratedDeriv_add_const` and `iteratedDeriv_sub_const`, the counterparts of
   Mathlib's `iteratedDeriv_const_add`, from which they follow.
+* `norm_iteratedDeriv_fun_neg_sub_fun_neg`: negating two functions keeps the distance between
+  their iterated derivatives, by Mathlib's `iteratedDeriv_fun_neg`.
 * `exists_forall_mem_of_abs_sub_lt_of_isOpen`: an open condition on the `2`-jet
   `(r, f r, f' r, f'' r)` of a family of real functions, which holds along a compact set of
   parameters and points on which the `2`-jet is continuous, holds with a uniform margin. The
@@ -35,6 +37,13 @@ theorem iteratedDeriv_add_const (hn : 0 < n) (c : F) :
 theorem iteratedDeriv_sub_const (hn : 0 < n) (c : F) :
     iteratedDeriv n (fun z ↦ f z - c) x = iteratedDeriv n f x := by
   simpa only [sub_eq_add_neg] using iteratedDeriv_add_const (f := f) (x := x) hn (-c)
+
+/-- Negating two functions does not change the distance between their `n`-th iterated
+derivatives at a point. -/
+theorem norm_iteratedDeriv_fun_neg_sub_fun_neg (n : ℕ) (f g : 𝕜 → F) (x : 𝕜) :
+    ‖iteratedDeriv n (fun z ↦ -f z) x - iteratedDeriv n (fun z ↦ -g z) x‖ =
+      ‖iteratedDeriv n f x - iteratedDeriv n g x‖ := by
+  rw [iteratedDeriv_fun_neg, iteratedDeriv_fun_neg, neg_sub_neg, norm_sub_rev]
 
 open Metric in
 /-- **Open conditions on the `2`-jet are uniform on a compact set.** Let `K ⊆ ℝ × ℝ` be compact,
