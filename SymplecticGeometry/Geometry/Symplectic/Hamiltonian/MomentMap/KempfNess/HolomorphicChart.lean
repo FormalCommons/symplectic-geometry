@@ -290,7 +290,6 @@ theorem fundamentalVectorField_chart_symm {C : LieComplexification I G IC Gc}
     fundamentalVectorField I' (C.lieMap ξ + C.cplx (C.lieMap η)) (e.chart.symm v) =
       mfderiv 𝓘(ℝ, E') I' e.chart.symm v (isotropyLinearization I' x ξ v) +
         mfderiv 𝓘(ℝ, E') I' e.chart.symm v (J x (isotropyLinearization I' x η v)) := by
-  have : T2Space G := ModelWithCorners.t2Space_of_lieGroup (I := I) ∞
   have hz : e.chart.symm v ∈ e.chart.source := e.chart.map_target hv
   have hv' : v ∈ e.toPartialDiffeomorph.target := by
     rwa [LinearizingChart.toPartialDiffeomorph_target]

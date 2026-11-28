@@ -239,7 +239,7 @@ section FundamentalVectorField
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace G]
-  [ChartedSpace H G] [LieGroup I (minSmoothness ℝ 3) G] [T2Space G] [BoundarylessManifold I G]
+  [ChartedSpace H G] [LieGroup I (minSmoothness ℝ 3) G] [BoundarylessManifold I G]
   [CompleteSpace E'] [I'.Boundaryless] [IsManifold I' ∞ M] [ContMDiffSMul I I' ∞ G M] [T2Space M]
 
 /-- **Fundamental vector fields of the isotropy algebra in a linearizing chart.** For `ξ` in the
@@ -252,6 +252,7 @@ theorem fundamentalVectorField_symm
     (hv : v ∈ e.chart.target) :
     fundamentalVectorField I' (ξ : GroupLieAlgebra I G) (e.chart.symm v) =
       mfderiv 𝓘(ℝ, E') I' e.chart.symm v (isotropyLinearization I' x ξ v) := by
+  have : T2Space G := I.t2Space_of_lieGroup (minSmoothness ℝ 3)
   -- Differentiate `exp (t ξ) • e.symm v = e.symm (d(exp (t ξ))_x v)` at `t = 0`.
   have hcurve : (fun t : ℝ ↦ mulInvariantExp (t • (ξ : GroupLieAlgebra I G)) • e.chart.symm v) =
       fun t : ℝ ↦ e.chart.symm ((mfderiv I' I'
