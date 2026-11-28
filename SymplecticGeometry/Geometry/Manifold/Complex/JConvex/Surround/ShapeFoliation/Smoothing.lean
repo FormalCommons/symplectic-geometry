@@ -76,23 +76,30 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
 * `SymplecticGeometry.blend_eventuallyEq_nhdsSet_union`: the blend
   `ρ r * ψ ℓ r + (1 - ρ r) * χ ℓ r` is `χ` near every set where `ψ` is `χ`, and near every
   set in `r = r₂` when `ρ` vanishes near `r₂`.
+* `SymplecticGeometry.exists_isOpen_band_strips_subset_of_mem_nhdsSet`: inside a neighbourhood
+  of `{ℓ₀, ℓ₁} × [r₁, r₂] ∪ [ℓ₀, ℓ₁] × {r₂}`, an open set that contains a band
+  `[ℓ₀, ℓ₁] × [r₃, r₂]` and, for each `w > 0`, strips `[ℓ₀, ℓ₀ + s] × [r₁, r₂]` and
+  `[ℓ₁ - s, ℓ₁] × [r₁, r₂]` with `0 < s ≤ w`. It holds for any family, and is the first step of
+  the assembly here and of its form over `R` in `ShapeFoliation/OverR.lean`.
 * `SymplecticGeometry.exists_shapeFoliation`: the assembly. Given a family `χ` on
   `Q = [ℓ₀, ℓ₁] × [r₁, r₂]` that is smooth with `∂χ/∂ℓ > 0` near the part
   `E = {ℓ₀, ℓ₁} × [r₁, r₂] ∪ [ℓ₀, ℓ₁] × {r₂}` of the boundary and whose members lie below
   `χ ℓ₁`, it gives a family smooth on `Q`, of shapes with positive `ℓ`-derivative, equal to `χ`
-  near `E`. The constants are chosen in this order: a band `[r₃, r₂]` and the cutoff and tolerance
-  `τ` of `SymplecticGeometry.exists_blend_shapeFamily` there; the ends `a = ℓ₀ + s`,
-  `b = ℓ₁ - s`, with `s` so small that `χ` and its first two `r`-derivatives move by less than
-  `τ / 4` over a step `s` in `ℓ`; the gap `g` between `χ ℓ₁` and the members over `[a, b]`, and a
-  point `c ∈ (b, ℓ₁)` after which the members are within `g / 4` of `χ ℓ₁`; the raise `q`, a
-  smooth step from `0` to `κ ≤ min (τ / 4) (g / 4)` that rises on `(ℓ₀ + s / 4, c)`
+  near `E`. The constants are chosen in this order: an open set and a band `[r₃, r₂]` in it, and
+  the cutoff and tolerance `τ` of `SymplecticGeometry.exists_blend_shapeFamily` on the band; the
+  ends `a = ℓ₀ + s`, `b = ℓ₁ - s`, with strips in that open set and `s` so small that `χ` and its
+  first two `r`-derivatives move by less than `τ / 4` over a step `s` in `ℓ`; the gap `g`
+  between `χ ℓ₁` and the members over `[a, b]`, and a point `c ∈ (b, ℓ₁)` after which the
+  members are within `g / 4` of `χ ℓ₁`
+  (`IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn`); the raise `q`, a smooth step
+  from `0` to `κ ≤ min (τ / 4) (g / 4)` that rises on `(ℓ₀ + s / 4, c)`
   (`Real.exists_contDiff_monotone_eqOn_zero_Iic_deriv_pos_Ioo`); and last the error `ε < q b` of
-  the chain. The family
-  is the piece of `SymplecticGeometry.exists_comp_add_shapeFamily` on `[ℓ₀, a]`, `C ℓ + q ℓ` with
-  `C` from `SymplecticGeometry.exists_monotone_shapeChain` on `[a, b]`, and the piece of
-  `SymplecticGeometry.exists_smoothedMax_shapeFamily` on top of `C b` on `[b, ℓ₁]`; these agree
-  near the joints, and are glued to a smooth family on `ℝ²` that is each of them near its
-  rectangle (`SymplecticGeometry.exists_contDiff_eventuallyEq_of_eventuallyEq_Icc`). The result
+  the chain. The family is the piece of `SymplecticGeometry.exists_comp_add_shapeFamily` on
+  `[ℓ₀, a]`, `C ℓ + q ℓ` with `C` from `SymplecticGeometry.exists_monotone_shapeChain` on
+  `[a, b]`, and the piece of `SymplecticGeometry.exists_smoothedMax_shapeFamily` on top of `C b`
+  on `[b, ℓ₁]`; these agree near the joints, and are glued to a smooth family on `ℝ²` that is
+  each of them near its rectangle and `χ` near `{ℓ₀, ℓ₁} × [r₁, r₂]`
+  (`SymplecticGeometry.exists_contDiff_forall_eventuallyEq_of_eventuallyEq_Icc`). The result
   is blended with `χ` near `r₂`.
 
 ## References
@@ -607,6 +614,44 @@ theorem blend_eventuallyEq_nhdsSet_union {ψ χ : ℝ → ℝ → ℝ} {ρ : ℝ
       (by rw [mem_singleton_iff.1 hx]; exact hρ)] with y hy
     simp [Function.uncurry_def, hy]
 
+/-- **Room near the prescribed part of the boundary of a rectangle.** Let `ℓ₀ < ℓ₁` and
+`r₁ < r₂`, and let `U` be a neighbourhood of the part
+`{ℓ₀, ℓ₁} × [r₁, r₂] ∪ [ℓ₀, ℓ₁] × {r₂}` of the boundary of `[ℓ₀, ℓ₁] × [r₁, r₂]`. Then there
+are an open set `U' ⊆ U` and `r₃ ∈ [r₁, r₂)` such that the band `[ℓ₀, ℓ₁] × [r₃, r₂]` lies in
+`U'`, and for every `w > 0` there is `s ∈ (0, w]` with `3 s ≤ ℓ₁ - ℓ₀` such that the strips
+`[ℓ₀, ℓ₀ + s] × [r₁, r₂]` and `[ℓ₁ - s, ℓ₁] × [r₁, r₂]` lie in `U'`. -/
+theorem exists_isOpen_band_strips_subset_of_mem_nhdsSet {ℓ₀ ℓ₁ r₁ r₂ : ℝ} {U : Set (ℝ × ℝ)}
+    (hℓ : ℓ₀ < ℓ₁) (hr : r₁ < r₂) (hU : U ∈ 𝓝ˢ ({ℓ₀, ℓ₁} ×ˢ Icc r₁ r₂ ∪ Icc ℓ₀ ℓ₁ ×ˢ {r₂})) :
+    ∃ U', IsOpen U' ∧ U' ⊆ U ∧ ∃ r₃ ∈ Ico r₁ r₂, Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂ ⊆ U' ∧
+      ∀ w > 0, ∃ s ∈ Ioc 0 w, 3 * s ≤ ℓ₁ - ℓ₀ ∧ Icc ℓ₀ (ℓ₀ + s) ×ˢ Icc r₁ r₂ ⊆ U' ∧
+        Icc (ℓ₁ - s) ℓ₁ ×ˢ Icc r₁ r₂ ⊆ U' := by
+  set E := ({ℓ₀, ℓ₁} : Set ℝ) ×ˢ Icc r₁ r₂ ∪ Icc ℓ₀ ℓ₁ ×ˢ {r₂}
+  -- An open `U'` around `E`, and a thickening of `E` of size `d` inside it.
+  obtain ⟨U', hU'o, hEU', hU'U⟩ := mem_nhdsSet_iff_exists.1 hU
+  have hEc : IsCompact E :=
+    ((Set.toFinite _).isCompact.prod isCompact_Icc).union (isCompact_Icc.prod isCompact_singleton)
+  obtain ⟨d, hd, hdU⟩ := hEc.exists_cthickening_subset_open hU'o hEU'
+  have hnear : ∀ x y : ℝ × ℝ, y ∈ E → |x.1 - y.1| ≤ d → |x.2 - y.2| ≤ d → x ∈ U' :=
+    fun x y hy h₁ h₂ ↦ hdU (Metric.mem_cthickening_of_dist_le x y d E hy (by
+      rw [Prod.dist_eq, Real.dist_eq, Real.dist_eq]
+      exact max_le h₁ h₂))
+  refine ⟨U', hU'o, hU'U, max r₁ (r₂ - d), ⟨le_max_left _ _, max_lt hr (by linarith)⟩,
+    fun x hx ↦ hnear x (x.1, r₂) (Or.inr ⟨hx.1, rfl⟩) (by simp [hd.le]) ?_, fun w hw ↦ ?_⟩
+  · rw [abs_le]
+    constructor <;> linarith [hx.2.1, hx.2.2, le_max_right r₁ (r₂ - d)]
+  -- The width `s`, at most `d`, `w` and a third of `ℓ₁ - ℓ₀`.
+  set s := min (min d w) ((ℓ₁ - ℓ₀) / 3)
+  have hs0 : 0 < s := by
+    have := sub_pos.2 hℓ
+    positivity
+  have hsd : s ≤ d := (min_le_left _ _).trans (min_le_left _ _)
+  have hs3 : s ≤ (ℓ₁ - ℓ₀) / 3 := min_le_right _ _
+  refine ⟨s, ⟨hs0, (min_le_left _ _).trans (min_le_right _ _)⟩, by linarith,
+    fun x hx ↦ hnear x (ℓ₀, x.2) (Or.inl ⟨Or.inl rfl, hx.2⟩) ?_ (by simp [hd.le]),
+    fun x hx ↦ hnear x (ℓ₁, x.2) (Or.inl ⟨Or.inr rfl, hx.2⟩) ?_ (by simp [hd.le])⟩ <;>
+  · rw [abs_le]
+    constructor <;> linarith [hx.1.1, hx.1.2]
+
 /-- **A strictly increasing smooth family of `i`-convex shapes with prescribed ends.** Let
 `Q = [ℓ₀, ℓ₁] × [r₁, r₂]` with `0 < r₁`, `ℓ₀ < ℓ₁` and `r₁ < r₂`, and let `E` be the part
 `{ℓ₀, ℓ₁} × [r₁, r₂] ∪ [ℓ₀, ℓ₁] × {r₂}` of its boundary. Let `χ : ℝ → ℝ → ℝ` be a family of
@@ -632,42 +677,22 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
       Function.uncurry ψ =ᶠ[𝓝ˢ ({ℓ₀, ℓ₁} ×ˢ Icc r₁ r₂ ∪ Icc ℓ₀ ℓ₁ ×ˢ {r₂})]
         Function.uncurry χ := by
   set Q := Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂
-  set E := ({ℓ₀, ℓ₁} : Set ℝ) ×ˢ Icc r₁ r₂ ∪ Icc ℓ₀ ℓ₁ ×ˢ {r₂}
-  -- An open `U'` around `E`, and a thickening of `E` of size `d` inside it.
-  obtain ⟨U', hU'o, hEU', hU'U⟩ := mem_nhdsSet_iff_exists.1 hU
+  -- An open `U' ⊆ U`, the band `[ℓ₀, ℓ₁] × [r₃, r₂]` inside it, and the cutoff `ρ` and
+  -- tolerance `τ` of the blend there.
+  obtain ⟨U', hU'o, hU'U, r₃, ⟨hr₁₃, hr₃₂⟩, hBU, hstrip⟩ :=
+    exists_isOpen_band_strips_subset_of_mem_nhdsSet hℓ hr hU
   have hsm' : ContDiffOn ℝ ∞ (Function.uncurry χ) U' := hsmooth.mono hU'U
   have hmono' : ∀ x ∈ U', 0 < deriv (fun ℓ' ↦ χ ℓ' x.2) x.1 := fun x hx ↦ hmono x (hU'U hx)
-  have hEc : IsCompact E :=
-    ((Set.toFinite _).isCompact.prod isCompact_Icc).union (isCompact_Icc.prod isCompact_singleton)
-  obtain ⟨d, hd, hdU⟩ := hEc.exists_cthickening_subset_open hU'o hEU'
-  have hnear : ∀ x y : ℝ × ℝ, y ∈ E → |x.1 - y.1| ≤ d → |x.2 - y.2| ≤ d → x ∈ U' :=
-    fun x y hy h₁ h₂ ↦ hdU (Metric.mem_cthickening_of_dist_le x y d E hy (by
-      rw [Prod.dist_eq, Real.dist_eq, Real.dist_eq]
-      exact max_le h₁ h₂))
-  -- The band `[ℓ₀, ℓ₁] × [r₃, r₂]` inside `U'`, and the cutoff `ρ` and tolerance `τ` of the
-  -- blend there.
-  set r₃ := max r₁ (r₂ - d)
-  have hr₁₃ : r₁ ≤ r₃ := le_max_left _ _
-  have hr₃₂ : r₃ < r₂ := max_lt hr (by linarith)
   have hBQ : Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂ ⊆ Q := fun x hx ↦ ⟨hx.1, hr₁₃.trans hx.2.1, hx.2.2⟩
-  have hBU : Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂ ⊆ U' := fun x hx ↦
-    hnear x (x.1, r₂) (Or.inr ⟨hx.1, rfl⟩) (by simp [hd.le]) (by
-      rw [abs_le]
-      constructor <;> linarith [hx.2.1, hx.2.2, le_max_right r₁ (r₂ - d)])
   obtain ⟨ρ, -, -, -, hρ0, τ, hτ, hblend⟩ := exists_blend_shapeFamily (r₁ := r₁) hr₃₂ hU'o hBU hsm'
     (fun x hx ↦ hc x (hBQ hx)) fun x hx ↦ hmono' x (hBU hx)
   -- A step `w` in `ℓ` over which the value and first two `r`-derivatives of `χ` move by less
   -- than `τ / 4`.
   obtain ⟨w, hw, hu⟩ := isCompact_Icc.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn
     (n := 2) hcont (by positivity : 0 < τ / 4)
-  -- The inner ends `a = ℓ₀ + s`, `b = ℓ₁ - s` of the pieces next to `ℓ₀` and `ℓ₁`.
-  set s := min (min d w) ((ℓ₁ - ℓ₀) / 3)
-  have hs0 : 0 < s := by
-    have := sub_pos.2 hℓ
-    positivity
-  have hsd : s ≤ d := (min_le_left _ _).trans (min_le_left _ _)
-  have hsw : s ≤ w := (min_le_left _ _).trans (min_le_right _ _)
-  have hs3 : s ≤ (ℓ₁ - ℓ₀) / 3 := min_le_right _ _
+  -- The inner ends `a = ℓ₀ + s`, `b = ℓ₁ - s` of the pieces next to `ℓ₀` and `ℓ₁`, whose strips
+  -- lie in `U'`.
+  obtain ⟨s, ⟨hs0, hsw⟩, hs3, hLU, hRU⟩ := hstrip w hw
   set a := ℓ₀ + s
   set b := ℓ₁ - s
   have hℓa : ℓ₀ < a := by linarith
@@ -676,14 +701,6 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
   have hLQ : Icc ℓ₀ a ⊆ Icc ℓ₀ ℓ₁ := Icc_subset_Icc_right (by linarith)
   have hMQ : Icc a b ⊆ Icc ℓ₀ ℓ₁ := Icc_subset_Icc (by linarith) (by linarith)
   have hRQ : Icc b ℓ₁ ⊆ Icc ℓ₀ ℓ₁ := Icc_subset_Icc_left (by linarith)
-  have hLU : Icc ℓ₀ a ×ˢ Icc r₁ r₂ ⊆ U' := fun x hx ↦
-    hnear x (ℓ₀, x.2) (Or.inl ⟨Or.inl rfl, hx.2⟩) (by
-      rw [abs_le]
-      constructor <;> linarith [hx.1.1, hx.1.2]) (by simp [hd.le])
-  have hRU : Icc b ℓ₁ ×ˢ Icc r₁ r₂ ⊆ U' := fun x hx ↦
-    hnear x (ℓ₁, x.2) (Or.inl ⟨Or.inr rfl, hx.2⟩) (by
-      rw [abs_le]
-      constructor <;> linarith [hx.1.1, hx.1.2]) (by simp [hd.le])
   -- The gap `g` between `χ ℓ₁` and the members over `[a, b]`.
   have hχcont : ContinuousOn (fun x : ℝ × ℝ ↦ χ x.1 x.2) Q :=
     ContinuousOn.uncurry_of_iteratedDeriv hcont
@@ -701,21 +718,10 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
       hmin (show (ℓ, r) ∈ Icc a b ×ˢ Icc r₁ r₂ from ⟨hℓ', hr'⟩)
     linarith
   -- The point `c ∈ (b, ℓ₁)` from which on the members are within `g / 4` of `χ ℓ₁`.
-  obtain ⟨w', hw', hu'⟩ := isCompact_Icc.exists_pos_abs_sub_lt_of_continuousOn
-    hχcont (by positivity : 0 < g / 4)
-  set c := ℓ₁ - min w' (s / 2)
-  have hbc : b < c := by
-    have : min w' (s / 2) ≤ s / 2 := min_le_right _ _
-    linarith
-  have hcℓ : c < ℓ₁ := by
-    have : 0 < min w' (s / 2) := by positivity
-    linarith
-  have hnearℓ₁ : ∀ ℓ ∈ Icc c ℓ₁, ∀ r ∈ Icc r₁ r₂, χ ℓ₁ r - g / 4 < χ ℓ r := by
-    intro ℓ hℓ' r hr'
-    have := hu' r hr' ℓ₁ (right_mem_Icc.2 hℓ.le) ℓ ⟨by linarith [hℓ'.1], hℓ'.2⟩ (by
-      rw [abs_le]
-      constructor <;> linarith [hℓ'.1, hℓ'.2, min_le_left w' (s / 2)])
-    linarith [(abs_lt.1 this).1]
+  obtain ⟨c, ⟨hbc, hcℓ⟩, hc'⟩ := isCompact_Icc.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn
+    hχcont (by positivity : 0 < g / 4) (by linarith) hbℓ
+  have hnearℓ₁ : ∀ ℓ ∈ Icc c ℓ₁, ∀ r ∈ Icc r₁ r₂, χ ℓ₁ r - g / 4 < χ ℓ r :=
+    fun ℓ hℓ' r hr' ↦ by linarith [(abs_lt.1 (hc' ℓ hℓ' r hr')).1]
   -- The raise `q`, a smooth step from `0` at `a₀ = ℓ₀ + s / 4` to `κ` at `c`.
   set κ := min (τ / 4) (g / 4)
   have hκ0 : 0 < κ := by positivity
@@ -777,20 +783,10 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
         from ⟨rfl, hr'⟩)), (continuous_fst.tendsto (b, r)).eventually hCb] with y hy1 hy2
     simp only [Function.uncurry_def, hCq] at hy1 ⊢
     rw [hy1, hy2]
-  obtain ⟨ψ', hψ's, hψ'₀, hψ'm, hψ'₁⟩ := exists_contDiff_eventuallyEq_of_eventuallyEq_Icc
-    (ℓ₀ := ℓ₀) (ℓ₁ := ℓ₁) hab isCompact_Icc hT₀s hCqs hT₁s hTa hTb
-  -- Near each point of `Q`, `ψ'` is the piece of its interval in `ℓ`.
-  have hloc' : ∀ x ∈ Q,
-      (x.1 ∈ Icc ℓ₀ a ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry T₀) ∨
-      (x.1 ∈ Icc a b ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry Cq) ∨
-      (x.1 ∈ Icc b ℓ₁ ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry T₁) := by
-    intro x hx
-    rcases le_or_gt x.1 a with h | h
-    · exact Or.inl ⟨⟨hx.1.1, h⟩, hψ'₀.filter_mono (nhds_le_nhdsSet ⟨⟨hx.1.1, h⟩, hx.2⟩)⟩
-    rcases le_or_gt x.1 b with h' | h'
-    · exact Or.inr (Or.inl ⟨⟨h.le, h'⟩, hψ'm.filter_mono (nhds_le_nhdsSet ⟨⟨h.le, h'⟩, hx.2⟩)⟩)
-    · exact Or.inr (Or.inr ⟨⟨h'.le, hx.1.2⟩,
-        hψ'₁.filter_mono (nhds_le_nhdsSet ⟨⟨h'.le, hx.1.2⟩, hx.2⟩)⟩)
+  -- The glued family `ψ'`: near each point of `Q` it is the piece of its interval in `ℓ`, and
+  -- it is `χ` near `{ℓ₀, ℓ₁} × [r₁, r₂]`.
+  obtain ⟨ψ', hψ's, hloc', hψ'E⟩ := exists_contDiff_forall_eventuallyEq_of_eventuallyEq_Icc
+    hℓa.le hab hbℓ.le isCompact_Icc hT₀s hCqs hT₁s hTa hTb hT₀ℓ₀ hT₁ℓ₁
   -- The members of `ψ'` are convex shapes with positive `ℓ`-derivative.
   have hψ'c : ∀ x ∈ Q, IsConvexShapeAt (ψ' x.1) x.2 := by
     intro x hx
@@ -846,14 +842,9 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
   -- The blend with `χ` near `r₂`; it is `χ` near `{ℓ₀, ℓ₁} × [r₁, r₂]`, where `ψ'` is.
   obtain ⟨hψs, hψc, hψℓ⟩ := hblend ψ' hψ's hψ'c hψ'ℓ hclose
   refine ⟨fun ℓ r ↦ ρ r * ψ' ℓ r + (1 - ρ r) * χ ℓ r, hψs.mono fun x hx ↦ ?_, hψc, hψℓ,
-    blend_eventuallyEq_nhdsSet_union ?_ hρ0⟩
-  · rcases lt_or_ge x.2 r₃ with h | h
-    · exact Or.inl ⟨mem_univ _, h⟩
-    · exact Or.inr (hBU ⟨hx.1, h, hx.2.2⟩)
-  rw [insert_eq, union_prod, EventuallyEq, nhdsSet_union, eventually_sup]
-  exact ⟨((hψ'₀.filter_mono (nhdsSet_mono (prod_mono (singleton_subset_iff.2
-      ⟨le_rfl, hℓa.le⟩) le_rfl))).trans hT₀ℓ₀),
-    ((hψ'₁.filter_mono (nhdsSet_mono (prod_mono (singleton_subset_iff.2
-      ⟨hbℓ.le, le_rfl⟩) le_rfl))).trans hT₁ℓ₁)⟩
+    blend_eventuallyEq_nhdsSet_union hψ'E hρ0⟩
+  rcases lt_or_ge x.2 r₃ with h | h
+  · exact Or.inl ⟨mem_univ _, h⟩
+  · exact Or.inr (hBU ⟨hx.1, h, hx.2.2⟩)
 
 end SymplecticGeometry
