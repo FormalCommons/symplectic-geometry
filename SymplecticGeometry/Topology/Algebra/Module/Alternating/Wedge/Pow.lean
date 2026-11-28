@@ -12,6 +12,7 @@ public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
 import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
+import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Covector
 
 /-!
 # Wedge powers of a two-form in top degree
@@ -19,9 +20,9 @@ import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 Let `ω` be a real alternating two-form and `γ` a one-form on a real vector space `E` of dimension
 `2 n + 2`, and let `v ∈ E` with `γ(v) = 0`. Then the top-degree form `γ ∧ ι_v ω ∧ ω ^ n` is zero.
 Indeed, `γ ∧ ω ^ (n + 1)` has degree `2 n + 3 > dim E`, so it vanishes, and so does its contraction
-with `v`. Since contraction is an antiderivation
-(`ContinuousAlternatingMap.curryLeftTopological_pairedWedge`) this contraction is
-`γ(v) ω ^ (n + 1) - γ ∧ ι_v (ω ^ (n + 1))`, and the power rule
+with `v`. By Tau Ceti's homotopy formula for a covector
+(`ContinuousAlternatingMap.curryLeftTopological_pairedWedge_add_pairedWedge_curryLeftTopological`)
+this contraction is `γ(v) ω ^ (n + 1) - γ ∧ ι_v (ω ^ (n + 1))`, and the power rule
 `ι_v (ω ^ (n + 1)) = (n + 1) ι_v ω ∧ ω ^ n`
 (`ContinuousAlternatingMap.wedgePow_succ_apply_vecCons`) gives the claim, since
 `γ(v) = 0` and `n + 1 ≠ 0`. The power rule changes the degree `2 n + 1` into `1 + 2 n`, which
@@ -63,20 +64,15 @@ theorem pairedWedge_curryLeftTopological_wedgePow_eq_zero [Module.Finite ℝ E] 
   -- `γ ∧ ω ^ (n + 1)` has degree `2 n + 3 > dim E`, so it vanishes.
   have h0 : pairedWedge (k := 0 + 1) (l := 2 * n + 1 + 1) mul mul.continuous₂ γ
       (wedgePow ω (n + 1)) = 0 := eq_zero_of_finrank_lt _ (by simp; omega)
-  -- Contracting with `v`: `0 = γ(v) ω ^ (n + 1) - γ ∧ ι_v (ω ^ (n + 1))`, and `γ(v) = 0`.
+  -- Contracting with `v`: `ι_v (γ ∧ ω ^ (n + 1)) + γ ∧ ι_v (ω ^ (n + 1)) = γ(v) ω ^ (n + 1)`,
+  -- and `γ ∧ ω ^ (n + 1) = 0`, `γ(v) = 0`.
   have h1 (w : Fin (1 + (2 * n + 1)) → E) :
       pairedWedge (k := 1) (l := 2 * n + 1) mul mul.continuous₂ γ
         (curryLeftTopological (n := 2 * n + 1) (wedgePow ω (n + 1)) v) w = 0 := by
-    have key := curryLeftTopological_pairedWedge (k := 0) (l := 2 * n + 1) mul mul.continuous₂
-      γ (wedgePow ω (n + 1)) v w
-    have hγv : curryLeftTopological (n := 0) γ v 0 = 0 := by
-      rw [curryLeftTopological_apply_apply, ← hγ]
-      congr 1
-      ext i
-      fin_cases i
-      rfl
-    rw [h0, pairedWedge_apply_zero_left, hγv] at key
-    simpa using key.symm
+    have key := curryLeftTopological_pairedWedge_add_pairedWedge_curryLeftTopological γ
+      (wedgePow ω (n + 1)) v w
+    rwa [h0, curryLeftTopological_apply_apply, coe_zero, Pi.zero_apply, zero_add, hγ,
+      zero_mul] at key
   -- The power rule `ι_v (ω ^ (n + 1)) = (n + 1) ι_v ω ∧ ω ^ n`.
   ext w
   have h2 := pairedWedge_apply_of_right_eq_smul_cast (k := 1) mul mul.continuous₂

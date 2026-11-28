@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Sublevel
+import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
@@ -26,7 +27,6 @@ import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.NormedSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
-import TauCeti.Geometry.Symplectic.Liouville.Radial.Basic
 import TauCeti.Topology.Maps.Proper.Metric
 
 /-!
@@ -90,10 +90,11 @@ naturality of the Lie derivative of a closed two-form,
 generalized Morse and gradient-like by `TauCeti.IsGeneralizedMorse.comp_diffeomorph`
 and `TauCeti.IsGradientLike.mpullback`.
 
-The example follows Tau Ceti's `TauCeti.SymplecticForm.isLiouvilleDomain_closedBall` for the
-Liouville part (the field `x / 2` and the primitive `TauCeti.SymplecticForm.radialPrimitive`). The
-origin is the only critical point of `‖x‖ ^ 2`, and it is nondegenerate, by
-`TauCeti.fderiv_norm_sq_eq_zero_iff` and `TauCeti.isNondegenerateCriticalPoint_norm_sq`. The
+In the example, the radial field `x / 2` is Liouville for the constant form by
+`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth` with `A = 2⁻¹ • id`, which satisfies
+`ω (A u) v + ω u (A v) = ω u v`. The origin is the only critical point of `‖x‖ ^ 2`, and it is
+nondegenerate, by `TauCeti.fderiv_norm_sq_eq_zero_iff` and
+`TauCeti.isNondegenerateCriticalPoint_norm_sq`. The
 field `x / 2` is a quarter of the gradient `2 x` of `‖x‖ ^ 2` for the flat metric
 `riemannianMetricVectorSpace`, so it is gradient-like by `TauCeti.isGradientLike_mgradient` and
 `TauCeti.IsGradientLike.smul`.
@@ -257,10 +258,10 @@ theorem isWeinsteinStructure_constSmooth_norm_sq (ω : SymplecticForm V) :
   isSymplectic := ω.isSymplectic_constSmooth
   contMDiff_field := contMDiff_dilation _ _
   isLiouvilleVectorField := by
-    rw [isLiouvilleVectorField_iff_mextDeriv_interior_eq ω.constSmooth.mdifferentiable
-      ((contMDiff_dilation _ 1).mdifferentiable one_ne_zero)
-      ((SmoothForm.isClosed_def _).1 ω.isClosed_constSmooth),
-      ω.constSmooth_interior_two_inv_smul, ω.mextDeriv_radialPrimitive]
+    have h := ω.isLiouvilleVectorField_constSmooth (A := (2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ V)
+      fun u v ↦ by simp only [smul_apply, ContinuousLinearMap.id_apply,
+        map_smul, LinearMap.smul_apply]; ring
+    simpa only [smul_apply, ContinuousLinearMap.id_apply] using h
   isCompleteVectorField := isCompleteVectorField_dilation _
   isProperMap := by simpa using isProperMap_norm_sq_sub (0 : V)
   bddBelow := ⟨0, by rintro _ ⟨x, rfl⟩; positivity⟩

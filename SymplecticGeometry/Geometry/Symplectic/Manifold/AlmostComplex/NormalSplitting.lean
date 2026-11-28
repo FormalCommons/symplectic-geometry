@@ -95,8 +95,8 @@ The complement `W^ω` comes from Tau Ceti's
 flat maps of `ω`, as in `SymplecticGeometry/Geometry/Symplectic/Neighborhood/Frames.lean` for an
 ambient form. The representatives in `W^ω` are then smooth on the normal bundle by Tau Ceti's
 `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff`. The inverse of the splitting,
-`(u, a) ↦ df u + r a`, is smooth on total spaces, and so is the splitting by
-`contMDiff_hom_bundle_symm`.
+`(u, a) ↦ df u + r a`, is smooth on total spaces, and so is the splitting by Tau
+Ceti's `TauCeti.contMDiff_bundle_symm`.
 
 ## References
 
@@ -428,10 +428,8 @@ theorem contMDiff_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finran
             (n := ((⊤ : ℕ∞) : WithTop ℕ∞)))
     refine (h₁.add_sectionAlong h₂).congr fun p ↦ ?_
     exact congrArg (TotalSpace.mk p.proj) (normalSplitting_symm_apply hJ hω p.proj p.snd)
-  have h :=
-    SymplecticGeometry.contMDiff_hom_bundle_symm (fun x ↦ (f.normalSplitting hJ ω hω x).symm) hΨ
-  simp only [ContinuousLinearEquiv.symm_symm] at h
-  exact (TauCeti.contMDiff_hom_bundle_iff _).1 h
+  simpa only [ContinuousLinearEquiv.symm_symm] using
+    TauCeti.contMDiff_bundle_symm (fun x ↦ (f.normalSplitting hJ ω hω x).symm) hΨ
 
 /-! ### The form on the normal bundle -/
 
