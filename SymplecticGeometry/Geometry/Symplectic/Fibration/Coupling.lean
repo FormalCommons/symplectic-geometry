@@ -51,7 +51,7 @@ when `F` is nonempty (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_vol
 
 * `TauCeti.IsEhresmannConnection.fiberMean_coordChange`: for an atlas whose coordinate changes
   preserve `σ`, the integral through any chart at `b`.
-* `TauCeti.IsEhresmannConnection.isSmoothForm_apply_horizontalLift_smul_volumeForm`: the integrand
+* `TauCeti.IsEhresmannConnection.continuous_apply_horizontalLift`: the coefficient of the integrand
   is continuous.
 * `TauCeti.IsEhresmannConnection.fiberMean_add`: additivity in `τ`.
 * `TauCeti.IsEhresmannConnection.fiberMean_add_mpullback`: the effect of adding a pull-back from
@@ -114,17 +114,18 @@ theorem fiberMean_def (hD : IsEhresmannConnection IM IB n proj D) (A : MapFiber.
 
 variable [IsManifold IB 1 B] (hD : IsEhresmannConnection IM IB n proj D)
 
-omit [FiniteDimensional ℝ EF] in
-/-- **The integrand of `fiberMean` is continuous.** Along a fibre inclusion `y ↦ e⁻¹ (b, y)`
-of a trivialization of a `C^1` map `proj`, the top form `y ↦ τ(w₁♯, w₂♯) • σᵏ / k!` on `F`, with
-`τ` and the horizontal lifts of two fixed tangent vectors at `b` taken at `e⁻¹ (b, y)`, is
-continuous. -/
-theorem isSmoothForm_apply_horizontalLift_smul_volumeForm (hproj : ContMDiff IM IB 1 proj)
+variable (IF) in
+include IF in
+omit [FiniteDimensional ℝ EF] [IsManifold IF ∞ F] in
+/-- **The coefficient of the integrand of `fiberMean` is continuous.** Along a fibre inclusion
+`y ↦ e⁻¹ (b, y)` of a trivialization of a `C^1` map `proj`, the function `y ↦ τ(w₁♯, w₂♯)` on
+`F`, with `τ` and the horizontal lifts of two fixed tangent vectors at `b` taken at
+`e⁻¹ (b, y)`, is continuous. -/
+theorem continuous_apply_horizontalLift (hproj : ContMDiff IM IB 1 proj)
     (τ : SmoothTwoForm IM M) (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet)
     (w₁ w₂ : TangentSpace IB b) :
-    IsSmoothForm IF 0 fun y ↦ τ.val (e.toOpenPartialHomeomorph.symm (b, y))
-      ![(hD.horizontalLift _ w₁).val, (hD.horizontalLift _ w₂).val] • (σ.volumeForm k).val y := by
-  refine (σ.volumeForm k).isSmoothForm.fun_smul_of_continuous ?_
+    Continuous fun y : F ↦ τ.val (e.toOpenPartialHomeomorph.symm (b, y))
+      ![(hD.horizontalLift _ w₁).val, (hD.horizontalLift _ w₂).val] := by
   have hg : ContMDiff IF IM 0 fun y : F ↦ e.toOpenPartialHomeomorph.symm (b, y) :=
     contMDiff_zero_iff.2 (e.coe_fiberInclusionMap hb ▸ (e.fiberInclusionMap hb).continuous)
   have hproj₀ : ContMDiff IM IB (0 + 1) proj := by simpa using hproj
@@ -184,14 +185,10 @@ theorem fiberMean_add [CompactSpace F] (hproj : ContMDiff IM IB 1 proj) (A : Map
     hD.fiberMean A hσ hk (τ + τ') b w₁ w₂ =
       hD.fiberMean A hσ hk τ b w₁ w₂ + hD.fiberMean A hσ hk τ' b w₁ w₂ := by
   simp only [fiberMean_def]
-  rw [← integralTopForm_add_of_compactSpace _
-    (hD.isSmoothForm_apply_horizontalLift_smul_volumeForm hproj τ _ (A.mem_baseSet_trivAt b) w₁ w₂)
-    (hD.isSmoothForm_apply_horizontalLift_smul_volumeForm hproj τ' _ (A.mem_baseSet_trivAt b) w₁
-      w₂)]
-  congr 1
-  funext y
-  rw [Pi.add_apply, ← add_smul, Submodule.coe_add, Pi.add_apply,
-    ContinuousAlternatingMap.add_apply]
+  rw [← integralTopForm_add_smul_of_compactSpace _ (σ.volumeForm k).isSmoothForm
+    (hD.continuous_apply_horizontalLift IF hproj τ _ (A.mem_baseSet_trivAt b) w₁ w₂)
+    (hD.continuous_apply_horizontalLift IF hproj τ' _ (A.mem_baseSet_trivAt b) w₁ w₂)]
+  rfl
 
 /-- **Adding a pull-back from the base.** For a compact model fibre, a smooth map `proj` and a
 two-form `β` on `B`, adding the pull-back of `β` to `τ` adds `V * β(w₁, w₂)` to `fiberMean`,
