@@ -988,9 +988,10 @@ containing `ι '' closedBall 0 1`:
     and it crosses `ℓ + d * r` only at `K * δ` (`linear_lt_struweShape`,
     `struweShape_lt_linear`). The line is a convex shape on
     `Icc (K * δ / 2) (2 * K * δ)` by `isConvexShapeAt_linear` (the third
-    hypothesis). `ContDiffOn.exists_contDiff_eqOn_Ici` extends `S` from
-    `Ici (K * δ / 4)`, which lies in `Ioi δ` since `4 < K`, to a smooth
-    function on `ℝ`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
+    hypothesis). Tau Ceti's
+    `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact` gives a smooth
+    function on `ℝ` that is `S` near `Icc (K * δ / 4) (2 * K * δ)`, which
+    lies in `Ioi δ` since `4 < K`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
     `Icc (K * δ / 2) (2 * K * δ)` with `u = 3 * K * δ / 4` and
     `v = 3 * K * δ / 2` joins the two; `G` is `S` left of `K * δ / 2`
     and that join from there on. So no version of the smoothed maximum
@@ -1287,8 +1288,8 @@ containing `ι '' closedBall 0 1`:
        (`Surround/ConvexShape/SmoothedMax.lean`, through the public pointwise step
        `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
        only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
-       and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
-       `Icc r₁ r₂`, whose values and first two `r`-derivatives are
+       and families `M p`, `A p`, `p ∈ K`, of convex shapes that are `C²`
+       at each point of `Icc r₁ r₂`, whose values and first two `r`-derivatives are
        continuous on `K ×ˢ Icc r₁ r₂`, some `δ₀ > 0` makes
        `fun r ↦ smoothedMax δ (M p r) (A p r)` a convex shape on
        `Icc r₁ r₂` for all `δ ∈ Ioc 0 δ₀` and `p ∈ K` at once:
@@ -2254,8 +2255,8 @@ coordinates `p = (x + i y, w)`, `s = |x|²` and `t = |y|² + |w|²` of issue
   `Geometry/Symplectic/Complex/ImInner/Basic.lean` and
   `SymplecticForm.prod`, `Geometry/Symplectic/Prod/Basic.lean`). It gets
   no definition of its own;
-- the field is the linear map `handleField k m : V →L[ℝ] V`,
-  $(x+iy,w)\mapsto(-x+2iy,\ w/2)$, with `handleField_apply`;
+- the field is the linear map `modelHandleField k m : V →L[ℝ] V`,
+  $(x+iy,w)\mapsto(-x+2iy,\ w/2)$, with `modelHandleField_apply`;
 - the function is 14c's `modelHandle k m a b` $=bt-as$ with `0 < a` and
   `0 < b`. The Stein side and the Weinstein side thus share one function.
   Its Morse data are already proved there (`criticalPoints_modelHandle`,
@@ -2274,17 +2275,17 @@ $(x+iy,w)\mapsto(e^{-t}x+ie^{2t}y,\ e^{t/2}w)$, and the stable set of `0`
 is the core `range (modelDisc k m)` (14c's `modelDisc`), on which the form
 vanishes.
 
-Lemma list: `handleField_apply`, `contMDiff_handleField`,
-`isLiouvilleVectorField_handleField` (for the constant form above, by
+Lemma list: `modelHandleField_apply`, `contMDiff_modelHandleField`,
+`isLiouvilleVectorField_modelHandleField` (for the constant form above, by
 the identity, as `isWeinsteinStructure_constSmooth_norm_sq` does for
-the radial field), `handleField_flow_apply` (the explicit value of
-`(handleField k m).flow t p`, for Tau Ceti's linear flow
+the radial field), `modelHandleField_flow_apply` (the explicit value of
+`(modelHandleField k m).flow t p`, for Tau Ceti's linear flow
 `ContinuousLinearMap.flow` of `TauCeti/Analysis/ODE/Linear.lean`, from
-its `flow_apply`), `isCompleteVectorField_handleField` (the curves of
-that flow are integral curves), `mvfderiv_modelHandle_handleField` (the
-formula above), `isGradientLike_modelHandle_handleField`,
-`stableSubspace_handleField`
-(`((handleField k m).stableSubspace : Set V) = range (modelDisc k m)`,
+its `flow_apply`), `isCompleteVectorField_modelHandleField` (the curves of
+that flow are integral curves), `mvfderiv_modelHandle_modelHandleField` (the
+formula above), `isGradientLike_modelHandle_modelHandleField`,
+`stableSubspace_modelHandleField`
+(`((modelHandleField k m).stableSubspace : Set V) = range (modelDisc k m)`,
 through Tau Ceti's `coe_stableSubspace` and `mem_stableSubspace`), the
 isotropy
 of the core, `range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
@@ -2379,7 +2380,7 @@ birth–death points are allowed.
 make a Weinstein structure standard near a nondegenerate critical point
 `p`: up to a Weinstein homotopy fixed away from `p`, it agrees near `p`,
 through a chart `Φ` with `Φ 0 = p`, with the constant form above,
-`handleField k m` and `f p + modelHandle k m a b`. That is a statement
+`modelHandleField k m` and `f p + modelHandle k m a b`. That is a statement
 about homotopies, so issue 17 designs it with the rest of
 `Handle/Homotopy.lean`, and issue 16b gives it its target.
 

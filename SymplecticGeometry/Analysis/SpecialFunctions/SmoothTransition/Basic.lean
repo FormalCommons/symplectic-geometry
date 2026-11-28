@@ -23,10 +23,6 @@ This file collects smooth functions of one real variable built from `Real.smooth
 about the derivative of `Real.smoothTransition` itself are in
 `SymplecticGeometry/Analysis/SpecialFunctions/SmoothTransition/Deriv.lean`.
 
-A function of class `C^n` on `(δ, ∞)` agrees on `[b, ∞)`, for each `b > δ`, with a function of
-class `C^n` on `ℝ` (`ContDiffOn.exists_contDiff_eqOn_Ici`): its product with
-`x ↦ smoothTransition ((x - m) / (b - m))`, where `m` is the midpoint of `[δ, b]`.
-
 For a function `G` of class `C^n`, the product `t ↦ expNegInvGlue (t - t₀) * exp (G t)` is of
 class `C^n` (`expNegInvGlue.contDiff_sub_mul_exp`), and where `G` has derivative `G'` at `t`, its
 derivative there is `expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`
@@ -50,11 +46,9 @@ For Tau Ceti's smooth lower truncation `TauCeti.smoothLowerTruncation a b`, the 
 computes the derivative (`TauCeti.hasDerivAt_smoothLowerTruncation`) and shows that the map is
 monotone for all `a` and `b` (`TauCeti.monotone_smoothLowerTruncation`), with positive derivative
 on `(a, ∞)` when `a < b` (`TauCeti.deriv_smoothLowerTruncation_pos`). Conjugating by `x ↦ -x`
-gives, for `c < b`, a smooth monotone map that is the identity up to `c`, equal to `b` from `b`
-on, at most `b`, and with positive derivative on `(-∞, b)`
-(`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`); composed with a smooth shift, it
-gives one that is equal from `b` on to a given `d ≥ b`
-(`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le`).
+and composing with a smooth shift give, for `c < b ≤ d`, a smooth monotone map that is the
+identity up to `c`, equal to `d` from `b` on, at most `d`, and with positive derivative on
+`(-∞, b)` (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`).
 
 It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]`,
 takes its values in the open interval `(a - ε, b + ε)`, and is constant outside it
@@ -271,34 +265,31 @@ namespace Real
 open Set
 open scoped ContDiff
 
-/-- For `c < b` there is a smooth monotone function `φ : ℝ → ℝ` that is the identity on
-`(-∞, c]`, equal to `b` on `[b, ∞)`, at most `b` everywhere, and with positive derivative on
-`(-∞, b)`. It is `x ↦ -smoothLowerTruncation (-b) (-c) (-x)`; the mirror form, constant up to `c`
-and the identity from `b` on, is `TauCeti.smoothLowerTruncation c b` itself
-(`TauCeti.monotone_smoothLowerTruncation`, `TauCeti.deriv_smoothLowerTruncation_pos`). -/
-theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b : ℝ} (hcb : c < b) :
-    ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ Monotone φ ∧ EqOn φ id (Iic c) ∧
-      EqOn φ (fun _ ↦ b) (Ici b) ∧ (∀ x, φ x ≤ b) ∧ ∀ x < b, 0 < deriv φ x := by
-  have hbc : -b < -c := neg_lt_neg hcb
-  refine ⟨fun x ↦ -TauCeti.smoothLowerTruncation (-b) (-c) (-x),
-    ((TauCeti.contDiff_smoothLowerTruncation _ _).comp contDiff_neg).neg,
-    fun x y hxy ↦ neg_le_neg (TauCeti.monotone_smoothLowerTruncation _ _ (neg_le_neg hxy)),
-    fun x hx ↦ ?_, fun x hx ↦ ?_, fun x ↦ ?_, fun x hx ↦ ?_⟩
-  · simp [TauCeti.smoothLowerTruncation_of_right_le hbc (neg_le_neg (mem_Iic.1 hx))]
-  · simp [TauCeti.smoothLowerTruncation_of_le_left hbc.le (neg_le_neg (mem_Ici.1 hx))]
-  · exact neg_le.1 (TauCeti.le_smoothLowerTruncation hbc.le _)
-  · rw [deriv.fun_neg, deriv_comp_neg, neg_neg]
-    exact TauCeti.deriv_smoothLowerTruncation_pos hbc (neg_lt_neg hx)
-
 /-- For `c < b ≤ d` there is a smooth monotone function `φ : ℝ → ℝ` that is the identity on
 `(-∞, c]`, equal to `d` on `[b, ∞)`, at most `d` everywhere, and with positive derivative on
-`(-∞, b)`. For `d = b` this is `Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`. -/
-theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le {c b d : ℝ} (hcb : c < b)
+`(-∞, b)`. For `b = d` it is `x ↦ -smoothLowerTruncation (-d) (-c) (-x)`; the mirror form,
+constant up to `c` and the identity from `d` on, is `TauCeti.smoothLowerTruncation c d` itself
+(`TauCeti.monotone_smoothLowerTruncation`, `TauCeti.deriv_smoothLowerTruncation_pos`). For
+`b < d` that map is composed with `x ↦ x + (d - b) * smoothTransition ((x - c) / (b - c))`. -/
+theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b d : ℝ} (hcb : c < b)
     (hbd : b ≤ d) :
     ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ Monotone φ ∧ EqOn φ id (Iic c) ∧
       EqOn φ (fun _ ↦ d) (Ici b) ∧ (∀ x, φ x ≤ d) ∧ ∀ x < b, 0 < deriv φ x := by
-  obtain ⟨φ, hφ, hφm, hφc, hφd, hφle, hφ'⟩ :=
-    exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici (hcb.trans_le hbd)
+  -- The case `b = d`: the smooth lower truncation conjugated by `x ↦ -x`.
+  obtain ⟨φ, hφ, hφm, hφc, hφd, hφle, hφ'⟩ :
+      ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ Monotone φ ∧ EqOn φ id (Iic c) ∧
+        EqOn φ (fun _ ↦ d) (Ici d) ∧ (∀ x, φ x ≤ d) ∧ ∀ x < d, 0 < deriv φ x := by
+    have hdc : -d < -c := neg_lt_neg (hcb.trans_le hbd)
+    refine ⟨fun x ↦ -TauCeti.smoothLowerTruncation (-d) (-c) (-x),
+      ((TauCeti.contDiff_smoothLowerTruncation _ _).comp contDiff_neg).neg,
+      fun x y hxy ↦ neg_le_neg (TauCeti.monotone_smoothLowerTruncation _ _ (neg_le_neg hxy)),
+      fun x hx ↦ ?_, fun x hx ↦ ?_, fun x ↦ ?_, fun x hx ↦ ?_⟩
+    · simp [TauCeti.smoothLowerTruncation_of_right_le hdc (neg_le_neg (mem_Iic.1 hx))]
+    · simp [TauCeti.smoothLowerTruncation_of_le_left hdc.le (neg_le_neg (mem_Ici.1 hx))]
+    · exact neg_le.1 (TauCeti.le_smoothLowerTruncation hdc.le _)
+    · rw [deriv.fun_neg, deriv_comp_neg, neg_neg]
+      exact TauCeti.deriv_smoothLowerTruncation_pos hdc (neg_lt_neg hx)
+  -- The general case: precompose with a smooth monotone map that sends `[b, ∞)` into `[d, ∞)`.
   have hbc : 0 < b - c := sub_pos.2 hcb
   have hdb : 0 ≤ d - b := sub_nonneg.2 hbd
   set σ : ℝ → ℝ := fun x ↦ smoothTransition ((x - c) / (b - c)) with hσdef
@@ -331,31 +322,6 @@ theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le {c b d : ℝ} 
     exact mul_pos (hφ' _ hgx) (by nlinarith [hσm.deriv_nonneg (x := x)])
 
 end Real
-
-namespace ContDiffOn
-
-open Filter Set
-
-/-- A function of class `C^n` on `(δ, ∞)` agrees on `[b, ∞)`, for any `b > δ`, with a function of
-class `C^n` on all of `ℝ`. -/
-theorem exists_contDiff_eqOn_Ici {n : ℕ∞} {g : ℝ → ℝ} {δ b : ℝ} (hg : ContDiffOn ℝ n g (Ioi δ))
-    (hb : δ < b) : ∃ f : ℝ → ℝ, ContDiff ℝ n f ∧ EqOn f g (Ici b) := by
-  set m := (δ + b) / 2
-  have hm : 0 < b - m := by simp only [m]; linarith
-  have hδm : δ < m := by simp only [m]; linarith
-  refine ⟨fun x ↦ Real.smoothTransition ((x - m) / (b - m)) * g x,
-    contDiff_iff_contDiffAt.2 fun x ↦ ?_, fun x (hx : b ≤ x) ↦ ?_⟩
-  · rcases lt_or_ge δ x with hx | hx
-    · exact (Real.smoothTransition.contDiffAt.comp x (by fun_prop)).mul
-        (hg.contDiffAt (Ioi_mem_nhds hx))
-    · refine contDiffAt_const (c := (0 : ℝ)).congr_of_eventuallyEq ?_
-      filter_upwards [Iio_mem_nhds (hx.trans_lt hδm)] with y (hy : y < m)
-      rw [Real.smoothTransition.zero_of_nonpos
-        (div_nonpos_of_nonpos_of_nonneg (by linarith) hm.le), zero_mul]
-  · simp only
-    rw [Real.smoothTransition.one_of_one_le ((one_le_div hm).2 (by linarith)), one_mul]
-
-end ContDiffOn
 
 namespace SymplecticGeometry
 
