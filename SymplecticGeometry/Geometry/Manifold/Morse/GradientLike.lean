@@ -96,6 +96,8 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   the function, near a point for differentiable functions, and globally.
 * `TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`: near a point where `df(X) > 0`, the
   inequality holds for every metric and a small constant, when `f` is `C¹` and `X` continuous.
+  Hence `TauCeti.isGradientLikeAt_of_mvfderiv_apply_pos`: on a σ-compact Hausdorff manifold, `X`
+  is gradient-like for `f` near such a point.
 * `TauCeti.IsGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt`: `X` is gradient-like for `f`
   near `Φ y` when, near `y`, a local diffeomorphism `Φ` carries a gradient-like field for `f'` to
   `X` and `f ∘ Φ = f'`.
@@ -685,8 +687,7 @@ theorem IsGradientLike.isGradientLikeAt_of_isLocalDiffeomorphAt [T2Space M]
 
 /-- Near a point `x` with `df_x (X x) > 0`, the inequality of `TauCeti.IsGradientLike` holds for
 every smooth metric `g` with some constant `c > 0`, when `f` is `C¹` at `x` and `X` is continuous
-at `x`. With `TauCeti.isGradientLike_of_forall_isGradientLikeAt`, this leaves only the critical
-points of `f` to check. -/
+at `x`. -/
 theorem exists_nhds_mul_le_of_mvfderiv_apply_pos
     (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {x : M}
     (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 1 f x)
@@ -728,6 +729,20 @@ theorem exists_nhds_mul_le_of_mvfderiv_apply_pos
         mul_le_mul_of_nonneg_left (le_of_lt hQy) (by positivity)
     _ = P₀ / 2 := by field_simp
     _ ≤ mvfderiv 𝓘(ℝ, E) f y (X y) := le_of_lt hPy
+
+/-- On a σ-compact Hausdorff manifold, `X` is gradient-like for `f` near every point `x` with
+`df_x (X x) > 0`, when `f` is `C¹` at `x` and `X` is continuous at `x`. With
+`TauCeti.isGradientLike_of_forall_isGradientLikeAt`, this leaves only the critical points of `f`
+to check. -/
+theorem isGradientLikeAt_of_mvfderiv_apply_pos [T2Space M] [SigmaCompactSpace M] {x : M}
+    (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 1 f x)
+    (hX : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 0 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)) x)
+    (hx : 0 < mvfderiv 𝓘(ℝ, E) f x (X x)) : IsGradientLikeAt f X x := by
+  obtain ⟨g⟩ : Nonempty
+      (ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) :=
+    nonempty_contMDiffRiemannianMetric
+  obtain ⟨U, hU, c, hc, h⟩ := exists_nhds_mul_le_of_mvfderiv_apply_pos g hf hX hx
+  exact (isGradientLikeAt_def f X x).2 ⟨U, hU, g, c, hc, h⟩
 
 omit [FiniteDimensional ℝ E] [IsManifold 𝓘(ℝ, E) ∞ M] in
 /-- The condition `gradientLikeCondition` passes from a form `t` to a form `s` with

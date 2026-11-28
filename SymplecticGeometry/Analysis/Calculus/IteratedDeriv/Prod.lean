@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
+import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
 
 /-!
@@ -16,6 +17,10 @@ import TauCeti.Analysis.Calculus.IteratedFDeriv.Parametric
   `q.2`, is continuous in `q` at `(p, x)`. It is Tau Ceti's `ContDiffAt.iteratedFDeriv_snd`
   with smoothness order `0` (continuity) and derivative order `i = m`, read through
   `iteratedDeriv_eq_iteratedFDeriv`.
+* `continuousOn_iteratedDeriv_prod_right_of_eqOn`: if the members `G p`, `p ∈ t`, of a family
+  agree on an open set `U` with the slices of a function `g` that is `Cⁿ` at every point of
+  `t ×ˢ U`, then for `m ≤ n` their `m`-th iterated derivatives are jointly continuous on
+  `t ×ˢ U`.
 * `ContinuousOn.uncurry_of_iteratedDeriv` and `ContinuousOn.deriv_of_iteratedDeriv`: if the
   iterated derivatives of orders up to `m` of the members `G p` of a family are jointly
   continuous in `(p, x)` on a set, then so are the values and, for `1 ≤ m`, the derivatives.
@@ -38,6 +43,18 @@ theorem ContDiffAt.continuousAt_iteratedDeriv_prod_right {n : WithTop ℕ∞} {f
   rw [← Function.uncurry_curry f] at hf
   exact (continuous_eval_const _).continuousAt.comp
     (hf.iteratedFDeriv_snd (m := 0) (by simpa using hm)).continuousAt
+
+/-- Let `U` be open, let `g : P × 𝕜 → F` be `Cⁿ` at every point of `t ×ˢ U`, and let each
+`G p`, `p ∈ t`, agree on `U` with the slice `y ↦ g (p, y)`. Then for `m ≤ n` the function
+`q ↦ iteratedDeriv m (G q.1) q.2` is continuous on `t ×ˢ U`. -/
+theorem continuousOn_iteratedDeriv_prod_right_of_eqOn {n : WithTop ℕ∞} {G : P → 𝕜 → F}
+    {g : P × 𝕜 → F} {t : Set P} {U : Set 𝕜} (hU : IsOpen U)
+    (hG : ∀ p ∈ t, Set.EqOn (G p) (fun y ↦ g (p, y)) U)
+    (hg : ∀ q ∈ t ×ˢ U, ContDiffAt 𝕜 n g q) {m : ℕ} (hm : m ≤ n) :
+    ContinuousOn (fun q : P × 𝕜 ↦ iteratedDeriv m (G q.1) q.2) (t ×ˢ U) := fun q hq ↦
+  ((hg q hq).continuousAt_iteratedDeriv_prod_right hm).continuousWithinAt.congr
+    (fun x hx ↦ (hG x.1 hx.1).iteratedDeriv_of_isOpen hU m hx.2)
+    ((hG q.1 hq.1).iteratedDeriv_of_isOpen hU m hq.2)
 
 section Family
 
