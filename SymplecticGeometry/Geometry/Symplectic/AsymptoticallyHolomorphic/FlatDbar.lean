@@ -58,7 +58,7 @@ functions.
   with negation and complex scalars and satisfies the Leibniz rule;
   `SymplecticGeometry.flatDel_const`: it vanishes on constant functions;
   `SymplecticGeometry.flatDel_congr_of_eventuallyEq`: its value at `z` depends only on the germ
-  of `f` at `z`.
+  of `f` at `z`, and `SymplecticGeometry.flatDel_eventuallyEq` says the same of its germ.
 * `SymplecticGeometry.conjWirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`,
   `SymplecticGeometry.wirtingerDeriv_comp_complexToRealEuclideanIsometry_apply`: read through the
   real isometry `e = TauCeti.complexToRealEuclideanIsometry ι : ℂⁿ → StdSpace ι`, which carries
@@ -321,6 +321,11 @@ theorem flatDel_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differen
 theorem flatDel_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
     (h : f =ᶠ[𝓝 z] g) : flatDel f z = flatDel g z := by
   rw [flatDel_def, flatDel_def, h.fderiv_eq]
+
+/-- If `f` and `g` agree near `z`, then so do their flat `∂`. -/
+theorem flatDel_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι} (h : f =ᶠ[𝓝 z] g) :
+    flatDel f =ᶠ[𝓝 z] flatDel g :=
+  h.eventually_nhds.mono fun _ hw ↦ flatDel_congr_of_eventuallyEq hw
 
 /-! ### The flat operators against the Wirtinger derivatives
 
