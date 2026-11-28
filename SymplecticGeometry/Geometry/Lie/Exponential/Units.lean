@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Exponential
 public import TauCeti.Geometry.Lie.Exponential.Units.Compatibility
+public import TauCeti.Geometry.Lie.Functor
 public import TauCeti.Geometry.Lie.Interior
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
@@ -22,7 +23,8 @@ is `Complex.exp` (`coe_mulInvariantExp_eq_exp_complex`). So a smooth homomorphis
 finite-dimensional Lie group into `Rˣ`, `R` finite-dimensional, carries the exponential to the
 exponential of the algebra at the derivative of `ρ` at `1`, read in `R`
 (`ContMDiffMonoidMorphism.coe_map_mulInvariantExp`), by the library's
-`ContMDiffMonoidMorphism.map_mulInvariantExp`.
+`ContMDiffMonoidMorphism.map_mulInvariantExp`, once that derivative is identified with the Lie
+algebra map of `ρ` (`ContMDiffMonoidMorphism.mfderiv_coe_apply_one`).
 
 The Lie algebra `GroupLieAlgebra 𝓘(ℝ, R) Rˣ` is `R` by definition, but `rw` and `simp` do not
 see through `GroupLieAlgebra`. The statements therefore read a tangent vector `v` in `R` through
@@ -35,6 +37,8 @@ sides are terms of `R`, to which the lemmas about `R` apply.
   in `R`.
 * `coe_mulInvariantExp_eq_exp_complex`: `(mulInvariantExp v : ℂ) = Complex.exp v` on `ℂˣ`, with
   `v` read in `ℂ`.
+* `ContMDiffMonoidMorphism.mfderiv_coe_apply_one`: for a smooth homomorphism `ρ` into `Rˣ`, the
+  derivative at `1` of `g ↦ (ρ g : R)` is `ρ.groupLieAlgebraLieHom`, read in `R`.
 * `ContMDiffMonoidMorphism.coe_map_mulInvariantExp`: `(ρ (mulInvariantExp ξ) : R) = exp (dρ ξ)`
   for a smooth homomorphism `ρ` into `Rˣ`, with `dρ` the derivative at `1` of `g ↦ (ρ g : R)`.
 
@@ -74,23 +78,27 @@ theorem coe_mulInvariantExp_eq_exp_complex (v : GroupLieAlgebra 𝓘(ℝ, ℂ) �
 
 section Homomorphism
 
-attribute [local instance] ContMDiffMul.boundarylessManifold
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
-  {R : Type*} [NormedRing R] [NormedAlgebra ℝ R] [CompleteSpace R] [FiniteDimensional ℝ R]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+  {R : Type*} [NormedRing R] [NormedAlgebra ℝ R] [CompleteSpace R]
 
-/-- **A smooth homomorphism into the units of an algebra carries the exponential to the
-exponential of the algebra.** For a smooth homomorphism `ρ : G → Rˣ` and `ξ` in the Lie algebra
-of `G`, the element `ρ (exp ξ)` of `R` is `NormedSpace.exp` of the derivative at `1` of
-`g ↦ (ρ g : R)` applied to `ξ`. -/
-theorem ContMDiffMonoidMorphism.coe_map_mulInvariantExp
+/-- For a smooth homomorphism `ρ : G → Rˣ`, the map `g ↦ (ρ g : R)` is differentiable at `1`. -/
+theorem ContMDiffMonoidMorphism.mdifferentiableAt_coe_one
+    (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) :
+    MDifferentiableAt I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 :=
+  (Units.hasMFDerivAt_val (𝕜 := ℝ) (ρ 1)).mdifferentiableAt.comp 1
+    (ρ.contMDiff_toFun.mdifferentiableAt (by simp))
+
+variable [CompleteSpace E] [LieGroup I ∞ G]
+
+/-- **The Lie algebra map of a homomorphism into `Rˣ`, read in `R`.** For a smooth homomorphism
+`ρ : G → Rˣ` and `ξ` in the Lie algebra of `G`, the derivative at `1` of `g ↦ (ρ g : R)` at `ξ`
+is `ρ.groupLieAlgebraLieHom ξ`, read in `R` through `groupLieAlgebraEquivModelVectorSpace`. -/
+theorem ContMDiffMonoidMorphism.mfderiv_coe_apply_one
     (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ) (ξ : GroupLieAlgebra I G) :
-    ((ρ (mulInvariantExp ξ) : Rˣ) : R) =
-      NormedSpace.exp (show R from mfderiv I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 ξ) := by
-  rw [ρ.map_mulInvariantExp, mulInvariantExp_eq_expUnit, TauCeti.expUnit_coe]
-  congr 1
+    mfderiv I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 ξ =
+      (groupLieAlgebraEquivModelVectorSpace (ρ.groupLieAlgebraLieHom ξ) : R) := by
   have hρ : HasMFDerivAt I 𝓘(ℝ, R) ρ 1 (mfderiv I 𝓘(ℝ, R) ρ 1) :=
     (ρ.contMDiff_toFun.mdifferentiableAt (by simp)).hasMFDerivAt
   rw [show (fun g ↦ (ρ g : R)) = Units.val ∘ ρ from rfl,
@@ -98,9 +106,24 @@ theorem ContMDiffMonoidMorphism.coe_map_mulInvariantExp
       (ContinuousLinearMap.id_comp _)).mfderiv,
     ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
     ContMDiffMonoidMorphism.coe_toMonoidHom]
-  -- Both sides are `mfderiv I 𝓘(ℝ, R) ρ 1 ξ`, read in `R` through the identity
-  -- `groupLieAlgebraEquivModelVectorSpace` on the left and through `show` on the right.
+  -- Both sides are `mfderiv I 𝓘(ℝ, R) ρ 1 ξ`: `groupLieAlgebraEquivModelVectorSpace` is
+  -- `LinearEquiv.refl`, but `rw` cannot use `LinearEquiv.refl_apply` here, since the tangent
+  -- space of `Rˣ` at `ρ 1` and the Lie algebra of `Rˣ` are `R` only by definition.
   rfl
+
+attribute [local instance] ContMDiffMul.boundarylessManifold
+
+/-- **A smooth homomorphism into the units of an algebra carries the exponential to the
+exponential of the algebra.** For a smooth homomorphism `ρ : G → Rˣ` and `ξ` in the Lie algebra
+of `G`, the element `ρ (exp ξ)` of `R` is `NormedSpace.exp` of the derivative at `1` of
+`g ↦ (ρ g : R)` applied to `ξ`. -/
+theorem ContMDiffMonoidMorphism.coe_map_mulInvariantExp [FiniteDimensional ℝ E] [T2Space G]
+    [FiniteDimensional ℝ R] (ρ : ContMDiffMonoidMorphism I 𝓘(ℝ, R) ∞ G Rˣ)
+    (ξ : GroupLieAlgebra I G) :
+    ((ρ (mulInvariantExp ξ) : Rˣ) : R) =
+      NormedSpace.exp (show R from mfderiv I 𝓘(ℝ, R) (fun g ↦ (ρ g : R)) 1 ξ) := by
+  rw [ρ.map_mulInvariantExp, mulInvariantExp_eq_expUnit, TauCeti.expUnit_coe,
+    ρ.mfderiv_coe_apply_one]
 
 end Homomorphism
 

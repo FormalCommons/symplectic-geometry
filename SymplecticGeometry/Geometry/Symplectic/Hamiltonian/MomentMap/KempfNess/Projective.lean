@@ -12,7 +12,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Compl
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Pseudoholomorphic
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
-import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 
 /-!
 # Complexified linear actions on complex projective space
@@ -64,7 +63,8 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   `GL(n + 1, ℂ)` at `dρ` (`ContMDiffMonoidMorphism.coe_map_mulInvariantExp`), the identity
   `dρ (C.cplx Z) = i • dρ Z` takes out the factor `i`, and `dρ (C.lieMap ξ) = X` by the chain
   rule (`SymplecticGeometry.mfderiv_coe_apply_lieMap`), since `φ` is smooth into the unitary
-  group, an embedded Lie subgroup.
+  group (`TauCeti.Lie.contMDiff_unitarySubgroup_iff`), with derivative read as a matrix by
+  `TauCeti.Lie.mfderiv_coe_eq_matrixUnitaryLieAlgebraEquiv`.
 
 ## References
 
@@ -196,36 +196,16 @@ theorem mfderiv_coe_apply_lieMap (C : LieComplexification I G IC Gc)
         (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 (C.lieMap ξ) =
       (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
         Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) := by
-  let d := matrixUnitaryEmbeddedLieSubgroupData (n := Fin (n + 1)) (𝕜 := ℂ)
-  have hsub : ∀ k, d.subtypeVal k = k := d.subtypeVal_apply
-  have hcomp : (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) ∘ C.toHom =
-      (fun k : unitarySubgroup (GL (Fin (n + 1)) ℂ) ↦
-        ((k : GL (Fin (n + 1)) ℂ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) ∘ φ :=
-    funext fun g ↦ by simp [hφ]
-  have hincl : MDifferentiableAt 𝓘(ℝ, 𝔨[Fin (n + 1)])
-      𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
-      (fun k : unitarySubgroup (GL (Fin (n + 1)) ℂ) ↦
-        ((k : GL (Fin (n + 1)) ℂ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 := by
-    have h := (Units.hasMFDerivAt_val (𝕜 := ℝ) (d.subtypeVal 1)).mdifferentiableAt.comp 1
-      (d.subtypeVal.contMDiff_toFun.mdifferentiableAt (by simp))
-    simpa only [Function.comp_def, hsub] using h
-  -- `φ` is smooth: the inclusion of the unitary group is a smooth embedding, and `φ` followed
-  -- by it is `ρ ∘ C.toHom`.
-  have hφd : MDifferentiableAt I 𝓘(ℝ, 𝔨[Fin (n + 1)]) φ 1 := by
-    have h : ContMDiff I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ∞ φ :=
-      d.isSmoothEmbedding_subtypeVal.contMDiff_iff_comp.2 <|
-        (ρ.contMDiff_toFun.comp C.toHom.contMDiff_toFun).congr fun g ↦ by simp [hφ]
-    exact h.mdifferentiableAt (by simp)
-  have hf : MDifferentiableAt IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
-      (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 :=
-    (Units.hasMFDerivAt_val (𝕜 := ℝ) (ρ 1)).mdifferentiableAt.comp 1
-      (ρ.contMDiff_toFun.mdifferentiableAt (by simp))
+  have hφd : MDifferentiableAt I 𝓘(ℝ, 𝔨[Fin (n + 1)]) φ 1 :=
+    (contMDiff_unitarySubgroup_iff.2 <| (ρ.contMDiff_toFun.comp C.toHom.contMDiff_toFun).congr
+      fun g ↦ by simp [hφ]).mdifferentiableAt (by simp)
   have htoHom : MDifferentiableAt I IC C.toHom 1 :=
     C.toHom.contMDiff_toFun.mdifferentiableAt (by simp)
-  have h1 := mfderiv_comp_apply_of_eq 1 hf htoHom (map_one C.toHom) ξ
-  rw [hcomp] at h1
-  rw [coe_matrixUnitaryLieAlgebraEquiv_apply, MonoidHom.groupLieAlgebraMap_apply, C.lieMap_apply]
-  exact h1.symm.trans (mfderiv_comp_apply_of_eq 1 hincl hφd (map_one φ) ξ)
+  have hcomp : (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) ∘ C.toHom =
+      fun g ↦ ((φ g : GL (Fin (n + 1)) ℂ) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) :=
+    funext fun g ↦ by simp [hφ]
+  rw [C.lieMap_apply, ← mfderiv_comp_apply_of_eq 1 ρ.mdifferentiableAt_coe_one htoHom
+    (map_one C.toHom) ξ, hcomp, mfderiv_coe_eq_matrixUnitaryLieAlgebraEquiv φ hφd]
 
 variable [FiniteDimensional ℝ E]
 
