@@ -312,7 +312,7 @@ so no statement takes it.
   of the conjugates (insert `C.expI (-(t • ξ)) * C.expI (t • ξ) = 1`, from
   `expI_add_smul`), and that of `g⁻¹` the inverse, so limits multiply
   (`Filter.Tendsto.mul`, `Filter.Tendsto.inv`). Then
-  `parabolicLimit_mul`, and
+  `map_mul` for the homomorphism `C.parabolicLimit ξ`, and
   `expI_mul_parabolicLimit_mul_expI_neg : C.expI (s • ξ) * C.parabolicLimit ξ q * C.expI (-(s • ξ)) = C.parabolicLimit ξ q`
   (the conjugates are those at time `t + s`), so the limit commutes with
   every `C.expI (s • ξ)`.

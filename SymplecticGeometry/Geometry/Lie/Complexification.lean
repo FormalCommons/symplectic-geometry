@@ -29,6 +29,7 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
 import TauCeti.Geometry.Lie.Adjoint.InvariantForm
+import SymplecticGeometry.Geometry.Lie.Adjoint.InvariantForm
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 
@@ -361,6 +362,11 @@ theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
 
+/-- `expI (s • ξ)` and `expI (t • ξ)` commute. -/
+theorem commute_expI_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
+    Commute (C.expI (s • ξ)) (C.expI (t • ξ)) := by
+  rw [commute_iff_eq, ← C.expI_add_smul, ← C.expI_add_smul, add_comm]
+
 /-- `expI (-ξ) = (expI ξ)⁻¹`. -/
 theorem expI_neg (ξ : GroupLieAlgebra I G) :
     C.expI (-ξ) = (C.expI ξ)⁻¹ := by
@@ -503,7 +509,7 @@ theorem apply_polar_symm_inv_fst [FiniteDimensional ℝ EC] [ConnectedSpace G]
     ⟨_, _, rfl⟩
   rw [C.polar_symm_inv h, h]
   simp only [map_neg, LinearMap.neg_apply, neg_neg]
-  rw [Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply (𝕜 := ℝ), hB.apply]
+  exact hB.apply_tangentAd _ _ _
 
 /-- For connected `G`, the radial curve `τ ↦ expI (τ • ξ) * toHom u` of the polar decomposition
 has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`. -/
@@ -557,10 +563,6 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
   have hAd (y : GroupLieAlgebra IC Gc) : C.im (Lie.adjointContinuousLinearMap (C.toHom (v z)⁻¹) y) =
       Lie.tangentAd (I := I) (v z)⁻¹ (C.im y) := by
     rw [← Lie.tangentAd_apply, im_tangentAd_toHom]
-  have hBAd (g : G) (x y : GroupLieAlgebra I G) :
-      B (Lie.tangentAd (I := I) g x) (Lie.tangentAd (I := I) g y) = B x y := by
-    rw [Lie.tangentAd_apply, Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply,
-      ← Lie.adjointRepresentation_apply, hB.apply]
   have hg : (fun z ↦ C.expI (ξ z) * C.toHom (v z)) =
       fun z ↦ mulInvariantExp (I := IC) (L (ξ z) : GroupLieAlgebra IC Gc) * C.toHom (v z) :=
     funext fun z ↦ congrArg (· * C.toHom (v z)) (hexp z)
@@ -570,7 +572,7 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
   rw [hv0, add_zero, ← map_inv]
   -- The terms below mix `E` and `GroupLieAlgebra I G`, which are the same type only up to
   -- unfolding, so the equalities are chained as terms.
-  refine (congrArg (B _) (hAd _)).trans ((hBAd _ _ _).trans ?_)
+  refine (congrArg (B _) (hAd _)).trans ((hB.apply_tangentAd _ _ _).trans ?_)
   refine (congrArg (fun y ↦ B (ξ z) (C.im y))
     (mfderiv_inv_mul_mfderiv_mulInvariantExp_comp hX w)).trans ?_
   -- The functional `y ↦ B (ξ z) (im y)` vanishes on the image of `ad (L (ξ z))`, by
@@ -653,11 +655,9 @@ theorem sqrt_polar_symm_fst_le_add_mul [FiniteDimensional ℝ E]
     rwa [ha.mfderiv_inv_mul_curveVelocity Filter.univ_mem] at hd
   -- Cauchy–Schwarz for `B`, with `B (Ad u⁻¹ η) (Ad u⁻¹ η) = B η η`.
   have hb (s : ℝ) : b s ≤ √(f s) * K := by
-    have hAd (u : G) (x : GroupLieAlgebra I G) :
-        B (Lie.tangentAd (I := I) u x) (Lie.tangentAd (I := I) u x) = B x x := by
-      rw [Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply (𝕜 := ℝ), hB.apply]
     refine (le_abs_self _).trans <| (B.abs_apply_le_sqrt_mul_sqrt hBs hpos _ _).trans ?_
-    refine (congrArg (fun r ↦ √r * √(B (C.im (v s)) (C.im (v s)))) (hAd _ _)).trans_le ?_
+    refine (congrArg (fun r ↦ √r * √(B (C.im (v s)) (C.im (v s))))
+      (hB.apply_tangentAd _ _ _)).trans_le ?_
     exact mul_le_mul_of_nonneg_left (hK s) (Real.sqrt_nonneg _)
   have hK0 : 0 ≤ K := (Real.sqrt_nonneg _).trans (hK 0)
   simpa using Real.sqrt_le_sqrt_add_mul_of_hasDerivAt_le (fun s _ ↦ hpos.nonneg _)
