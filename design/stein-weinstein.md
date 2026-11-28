@@ -2352,8 +2352,8 @@ birth–death points are allowed.
   `Geometry/Manifold/Flow/LevelCrossing.lean` if it fits there.
   (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
   it reaches `{f ≤ a}`, or it stays in the compact region, where its
-  limit set consists of critical points (Tau Ceti's
-  `Dynamics/Flow/OmegaLimit.lean`, and `IsGradientLike.strictMono_comp`),
+  limit set consists of critical points
+  (`IsGradientLike.exists_flow_apply_le_or_mapClusterPt_atBot`),
   which lie in the open set `{g < 0}`.
   (3) The forward orbit of every point of `g ⁻¹' {0}` reaches
   `f ⁻¹' {b}`. Otherwise it would tend to a critical point `q`, of which
