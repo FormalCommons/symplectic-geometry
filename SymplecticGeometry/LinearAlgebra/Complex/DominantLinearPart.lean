@@ -36,6 +36,19 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
 
 ## Main results
 
+* `ContinuousLinearMap.surjective_add_of_norm_lt`: surjectivity alone needs neither `ω` nor an
+  inner product. For any norm on `V`, any map `J : V → V`, and `A, B : V →L[ℝ] W` to a complex
+  line `W` with `A (J v) = i • A v`, `B (J v) = -(i • B v)` and `‖B‖ < ‖A‖`, the sum `A + B` is
+  surjective. Pick `v` with `‖B v‖ < ‖A v‖`; then `z ↦ (A + B) (re z • v + im z • J v)` is
+  `z ↦ z • A v + conj z • B v`, which is injective, hence bijective from `ℂ` onto `W`. The two
+  surjectivity results below are its special cases, and the file proves surjectivity only here.
+* `TauCeti.AlmostComplexStructure.surjective_of_norm_lt`: `F = A + B` is surjective, for any
+  norm on `V` and with no `ω`.
+* `TauCeti.AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt`: a real-linear map
+  `F` from a finite-dimensional `V` to a complex normed space `W` of dimension one whose
+  complex-antilinear part (`TauCeti.complexAntilinearPart`) has smaller norm than its
+  complex-linear part (`TauCeti.complexLinearPart`) is surjective. This is the form needed at a
+  zero of a section of a Hermitian line bundle, where the derivative takes values in the fibre.
 * `TauCeti.AlmostComplexStructure.norm_le_of_re_apply_eq_inner`: a real-linear form whose real
   and imaginary parts are `⟪a, ·⟫` and `⟪J a, ·⟫` has norm at most `‖a‖`.
 * `TauCeti.SymplecticForm.exists_apply_eq_of_norm_lt`: there are vectors `x`, `y` with
@@ -44,38 +57,29 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
   symplectic complement of the span of `x` and `y`.
 * `TauCeti.SymplecticForm.surjective_of_apply_eq`,
   `TauCeti.SymplecticForm.isSymplectic_ker_of_apply_eq` and
-  `TauCeti.SymplecticForm.orientation_ker_eq_of_apply_eq`: the three results below for any form
-  `F v = ω x v + i ω y v` with `ω x y ≠ 0` (with `0 < ω x y` for the orientation),
-  on any real vector space `V` with a symplectic form (finite-dimensional for the last two),
-  with no norm, inner product or `J`.
+  `TauCeti.SymplecticForm.orientation_ker_eq_of_apply_eq`: surjectivity, a symplectic kernel and
+  the kernel orientation for any form `F v = ω x v + i ω y v` with `ω x y ≠ 0` (with
+  `0 < ω x y` for the orientation), on any real vector space `V` with a symplectic form
+  (finite-dimensional for the last two), with no norm, inner product or `J`.
 * `TauCeti.SymplecticForm.map_orientation_restrict_eq_complex_orientation`: on a symplectic plane
   containing `x` and `y`, such a form carries the symplectic orientation to that of `ℂ`.
-* `TauCeti.SymplecticForm.surjective_of_norm_lt`: `F` is surjective.
 * `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_lt`: the kernel of `F` is symplectic.
 * `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_lt`: the kernel orientation
   (`Orientation.kerOfExact`) of the symplectic orientation of `V` and the orientation of `ℂ` is
   the symplectic orientation of the kernel.
-* `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_lt` and
-  `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt`: a real-linear map `F`
-  to a complex normed space `W` of dimension one whose complex-antilinear part
-  (`TauCeti.complexAntilinearPart`) has smaller norm than its complex-linear part
-  (`TauCeti.complexLinearPart`) is surjective, with symplectic kernel. This is the form needed
-  at a zero of a section of a Hermitian line bundle, where the derivative takes values in the fibre.
+* `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt`: for a map `F` as
+  in `TauCeti.AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt`, the kernel of
+  `F` is symplectic.
 * `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`: for such a map,
   the kernel orientation of the symplectic orientation of `V` and the complex orientation
   `TauCeti.complexOrientation` of `W` is the symplectic orientation of the kernel.
 * `TauCeti.SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt`: the same,
   read the other way: the symplectic orientation of the kernel, followed by the complex orientation
   of `W` (`Orientation.ofExact`), is the symplectic orientation of `V`.
-* `ContinuousLinearMap.surjective_add_of_norm_lt`: surjectivity alone needs neither `ω` nor an
-  inner product. For any norm on `V`, any map `J : V → V`, and `A, B : V →L[ℝ] W` to a complex
-  line `W` with `A (J v) = i • A v`, `B (J v) = -(i • B v)` and `‖B‖ < ‖A‖`, the sum `A + B` is
-  surjective. Pick `v` with `‖B v‖ < ‖A v‖`; then `z ↦ (A + B) (re z • v + im z • J v)` is
-  `z ↦ z • A v + conj z • B v`, which is injective, hence bijective from `ℂ` onto `W`.
 
-The proof is direct rather than by deforming `A + t B`: the Riesz vectors `a`, `b` of the real
-parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`, with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and
-`‖b‖ ≤ ‖B‖`, `‖A‖ ≤ ‖a‖` (the latter from Tau Ceti's
+The kernel and orientation results are proved directly rather than by deforming `A + t B`: the
+Riesz vectors `a`, `b` of the real parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`,
+with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and `‖b‖ ≤ ‖B‖`, `‖A‖ ≤ ‖a‖` (the latter from Tau Ceti's
 `TauCeti.AlmostComplexStructure.inner_sq_add_inner_sq_le`). The kernel is then the symplectic
 complement of the plane spanned by `x` and `y`, on which `F` is orientation preserving.
 
@@ -83,7 +87,7 @@ For a map to a complex line `W`, Tau Ceti's
 `TauCeti.nonempty_linearIsometryEquiv_of_finrank_eq_one` gives a complex-linear isometry
 `W ≃ ℂ`. Composing with it keeps the norms of both parts
 (`TauCeti.IsComplexLinear.complexLinearPart_comp`,
-`TauCeti.IsComplexLinear.complexAntilinearPart_comp`), the kernel and surjectivity, so the case of
+`TauCeti.IsComplexLinear.complexAntilinearPart_comp`), and the kernel, so the case of
 `ℂ` applies. Being complex linear, the isometry carries `complexOrientation W` to the orientation
 of `ℂ` (Tau Ceti's `LinearEquiv.map_complexOrientation` and
 `TauCeti.reindex_complexOrientation_complex`), and the kernel orientation is natural
@@ -103,7 +107,95 @@ open Module Complex
 
 open scoped InnerProductSpace
 
+namespace ContinuousLinearMap
+
+variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup W]
+  [NormedSpace ℝ W] [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W]
+
+/-- **A real-linear map to a complex line with dominant complex-linear part is surjective, for
+any norm.** Let `V` be a real normed space with a map `J : V → V`, let `W` be a complex normed
+space of dimension one, and let `A, B : V →L[ℝ] W` satisfy `A (J v) = i • A v` and
+`B (J v) = -(i • B v)`, with `‖B‖ < ‖A‖`. Then `A + B` is surjective. -/
+theorem surjective_add_of_norm_lt (hW : finrank ℂ W = 1) {J : V → V} {A B : V →L[ℝ] W}
+    (hA : ∀ v, A (J v) = I • A v) (hB : ∀ v, B (J v) = -(I • B v)) (h : ‖B‖ < ‖A‖) :
+    Function.Surjective (A + B) := by
+  obtain ⟨v, hv1, hv⟩ := A.exists_lt_apply_of_lt_opNorm h
+  have hb : ‖B v‖ < ‖A v‖ :=
+    (B.le_opNorm v).trans_lt ((mul_le_of_le_one_right (norm_nonneg _) hv1.le).trans_lt hv)
+  -- The real-linear map `z ↦ re z • v + im z • J v` from `ℂ` to `V`.
+  set g : ℂ →ₗ[ℝ] V := reLm.smulRight v + imLm.smulRight (J v)
+  have hφ (z : ℂ) : (A + B) (g z) = z • A v + (starRingEnd ℂ z) • B v := by
+    conv_rhs => rw [← re_add_im z]
+    simp only [g, LinearMap.add_apply, LinearMap.smulRight_apply, reLm_coe, imLm_coe, add_apply,
+      map_add, map_smul, hA, hB, map_mul, conj_ofReal, conj_I]
+    module
+  have hinj : Function.Injective ((A + B : V →L[ℝ] W).toLinearMap ∘ₗ g) := by
+    rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
+    intro z hz
+    rw [LinearMap.comp_apply, coe_coe, hφ, add_eq_zero_iff_eq_neg] at hz
+    have hn := congrArg norm hz
+    rw [norm_neg, norm_smul, norm_smul, Complex.norm_conj] at hn
+    by_contra hz0
+    exact hb.ne' (mul_left_cancel₀ (norm_ne_zero_iff.2 hz0) hn)
+  have : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
+  have : FiniteDimensional ℝ W := .trans ℝ ℂ W
+  have hdim : finrank ℝ ℂ = finrank ℝ W := by
+    rw [← Module.finrank_mul_finrank ℝ ℂ W, hW, mul_one]
+  have hsurj := (LinearMap.injective_iff_surjective_of_finrank_eq_finrank hdim).1 hinj
+  rw [LinearMap.coe_comp] at hsurj
+  exact hsurj.of_comp
+
+end ContinuousLinearMap
+
 namespace TauCeti
+
+section Surjective
+
+variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup W]
+  [NormedSpace ℝ W] [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W] {J : AlmostComplexStructure V}
+
+namespace AlmostComplexStructure
+
+/-- **A real-linear form with dominant complex-linear part is surjective.** Let
+`A, B : V →L[ℝ] ℂ` be complex linear and complex antilinear respectively, for `J` and
+multiplication by `i` on `ℂ`, with `‖B‖ < ‖A‖`. Then `A + B` is surjective. -/
+theorem surjective_of_norm_lt {A B : V →L[ℝ] ℂ}
+    (hA : IsComplexLinear J.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      (A : V →ₗ[ℝ] ℂ))
+    (hB : IsComplexAntilinear J.toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
+    (h : ‖B‖ < ‖A‖) : Function.Surjective (A + B) :=
+  A.surjective_add_of_norm_lt (finrank_self ℂ)
+    (fun v ↦ by simpa [ofComplexModule_apply] using hA.apply v)
+    (fun v ↦ by simpa [ofComplexModule_apply] using hB.apply v) h
+
+/-- **A real-linear map to a complex line with dominant complex-linear part is surjective.**
+Let `V` be finite-dimensional, let `W` be a complex normed space of dimension one, and let
+`F : V →L[ℝ] W` be a real-linear map whose complex-antilinear part, for `J` and multiplication
+by `i` on `W`, has smaller operator norm than its complex-linear part. Then `F` is
+surjective. -/
+theorem surjective_of_norm_complexAntilinearPart_lt [FiniteDimensional ℝ V]
+    (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
+    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    Function.Surjective F := by
+  have hs := ContinuousLinearMap.surjective_add_of_norm_lt hW (J := J)
+    (fun v ↦ by
+      simpa only [LinearMap.coe_toContinuousLinearMap', ofComplexModule_apply] using
+        (isComplexLinear_complexLinearPart J.square_neg
+          (ofComplexModule W).square_neg (F : V →ₗ[ℝ] W)).apply v)
+    (fun v ↦ by
+      simpa only [LinearMap.coe_toContinuousLinearMap', ofComplexModule_apply] using
+        (isComplexAntilinear_complexAntilinearPart J.square_neg
+          (ofComplexModule W).square_neg (F : V →ₗ[ℝ] W)).apply v) h
+  rwa [← map_add, complexLinearPart_add_complexAntilinearPart,
+    LinearMap.coe_toContinuousLinearMap'] at hs
+
+end AlmostComplexStructure
+
+end Surjective
 
 namespace SymplecticForm
 
@@ -288,18 +380,6 @@ theorem exists_apply_eq_of_norm_lt [CompleteSpace V] (hg : ∀ v w, ω v (J w) =
 
 variable [FiniteDimensional ℝ V]
 
-/-- **A real-linear form with dominant complex-linear part is surjective.** Let the inner product
-of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and complex
-antilinear respectively, with `‖B‖ < ‖A‖`. Then `A + B` is surjective. -/
-theorem surjective_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ)
-    (hA : IsComplexLinear J.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (A : V →ₗ[ℝ] ℂ))
-    (hB : IsComplexAntilinear J.toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
-    (h : ‖B‖ < ‖A‖) : Function.Surjective (A + B) := by
-  obtain ⟨x, y, hxy, hF⟩ := exists_apply_eq_of_norm_lt hg hA hB h
-  exact surjective_of_apply_eq (F := ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)) hF hxy.ne'
-
 /-- **The kernel of a real-linear form with dominant complex-linear part is symplectic.** Let the
 inner product of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and
 complex antilinear respectively, with `‖B‖ < ‖A‖`. Then the kernel of `A + B` is a symplectic
@@ -327,7 +407,7 @@ theorem orientation_ker_eq_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ
     (h : ‖B‖ < ‖A‖) {m : ℕ} (hV : finrank ℝ V = m + 2)
     (hm : finrank ℝ (LinearMap.ker ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)) = m) :
     Orientation.kerOfExact (LinearMap.ker ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)).injective_subtype
-        (LinearMap.exact_subtype_ker_map _) (surjective_of_norm_lt hg hA hB h)
+        (LinearMap.exact_subtype_ker_map _) (AlmostComplexStructure.surjective_of_norm_lt hA hB h)
         (ω.orientation hV) Complex.orientation hm Complex.finrank_real_complex =
       (ω.restrict _ (isSymplectic_ker_of_norm_lt hg hA hB h).nondegenerate_restrict).orientation
         hm := by
@@ -372,28 +452,6 @@ private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 
     LinearMap.norm_toContinuousLinearMap_linearIsometry_comp]
   exact h
 
-/-- **A real-linear map to a complex line with dominant complex-linear part is surjective.**
-Let the inner product of `V` be the metric `ω(·, J ·)`, let `W` be a complex normed space of
-dimension one, and let `F : V →L[ℝ] W` be a real-linear map whose complex-antilinear part, for `J`
-and multiplication by `i` on `W`, has smaller operator norm than its complex-linear part. Then `F`
-is surjective. -/
-theorem SymplecticForm.surjective_of_norm_complexAntilinearPart_lt
-    (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
-    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
-      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
-        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
-    Function.Surjective F := by
-  obtain ⟨ψ, hψ⟩ := exists_norm_complexAntilinearPart_comp_lt hW h
-  have hs := surjective_of_norm_lt hg
-    (isComplexLinear_complexLinearPart J.square_neg
-      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _)
-    (isComplexAntilinear_complexAntilinearPart J.square_neg
-      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _) hψ
-  rw [← map_add, complexLinearPart_add_complexAntilinearPart,
-    LinearMap.coe_toContinuousLinearMap', LinearMap.coe_comp] at hs
-  exact hs.of_comp_left ψ.injective
-
 /-- **The kernel of a real-linear map to a complex line with dominant complex-linear part is
 symplectic.** Let the inner product of `V` be the metric `ω(·, J ·)`, let `W` be a complex normed
 space of dimension one, and let `F : V →L[ℝ] W` be a real-linear map whose complex-antilinear part,
@@ -436,7 +494,7 @@ theorem SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt
     haveI : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
     Orientation.kerOfExact (LinearMap.ker (F : V →ₗ[ℝ] W)).injective_subtype
         (LinearMap.exact_subtype_ker_map _)
-        (surjective_of_norm_complexAntilinearPart_lt hg hW h) (ω.orientation hV)
+        (AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt hW h) (ω.orientation hV)
         (Orientation.reindex ℝ W (finCongr (by rw [hW])) (complexOrientation W)) hm
         (by rw [finrank_real_eq_two_mul_finrank_complex, hW]) =
       (ω.restrict _ (isSymplectic_ker_of_norm_complexAntilinearPart_lt hg hW
@@ -463,7 +521,8 @@ theorem SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt
     rw [Orientation.map_reindex, φ.toLinearEquiv.map_complexOrientation,
       Orientation.reindex_finCongr_reindex_finCongr, ← reindex_complexOrientation_complex]
   have key := Orientation.map_kerOfExact (LinearMap.ker (F : V →ₗ[ℝ] W)).injective_subtype
-    (LinearMap.exact_subtype_ker_map _) (surjective_of_norm_complexAntilinearPart_lt hg hW h)
+    (LinearMap.exact_subtype_ker_map _)
+        (AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt hW h)
     (LinearMap.ker G).injective_subtype (LinearMap.exact_subtype_ker_map G)
     (surjective_of_apply_eq hG hxy.ne') (LinearEquiv.ofEq _ _ hker.symm) (LinearEquiv.refl ℝ V)
     (φ.toLinearEquiv.restrictScalars ℝ) (fun _ ↦ by simp) (fun _ ↦ by simp [G]) (ω.orientation hV)
@@ -491,7 +550,8 @@ theorem SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt
     haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
     haveI : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
     Orientation.ofExact (LinearMap.ker (F : V →ₗ[ℝ] W)).injective_subtype
-        (LinearMap.exact_subtype_ker_map _) (surjective_of_norm_complexAntilinearPart_lt hg hW h)
+        (LinearMap.exact_subtype_ker_map _)
+        (AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt hW h)
         ((ω.restrict _ (isSymplectic_ker_of_norm_complexAntilinearPart_lt hg hW
           h).nondegenerate_restrict).orientation hm)
         (Orientation.reindex ℝ W (finCongr (finrank_real_eq_two_mul_finrank_complex.symm.trans hWr))
@@ -506,43 +566,3 @@ theorem SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt
 end Line
 
 end TauCeti
-
-namespace ContinuousLinearMap
-
-variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup W]
-  [NormedSpace ℝ W] [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W]
-
-/-- **A real-linear map to a complex line with dominant complex-linear part is surjective, for
-any norm.** Let `V` be a real normed space with a map `J : V → V`, let `W` be a complex normed
-space of dimension one, and let `A, B : V →L[ℝ] W` satisfy `A (J v) = i • A v` and
-`B (J v) = -(i • B v)`, with `‖B‖ < ‖A‖`. Then `A + B` is surjective. -/
-theorem surjective_add_of_norm_lt (hW : finrank ℂ W = 1) {J : V → V} {A B : V →L[ℝ] W}
-    (hA : ∀ v, A (J v) = I • A v) (hB : ∀ v, B (J v) = -(I • B v)) (h : ‖B‖ < ‖A‖) :
-    Function.Surjective (A + B) := by
-  obtain ⟨v, hv1, hv⟩ := A.exists_lt_apply_of_lt_opNorm h
-  have hb : ‖B v‖ < ‖A v‖ :=
-    (B.le_opNorm v).trans_lt ((mul_le_of_le_one_right (norm_nonneg _) hv1.le).trans_lt hv)
-  -- The real-linear map `z ↦ re z • v + im z • J v` from `ℂ` to `V`.
-  set g : ℂ →ₗ[ℝ] V := reLm.smulRight v + imLm.smulRight (J v)
-  have hφ (z : ℂ) : (A + B) (g z) = z • A v + (starRingEnd ℂ z) • B v := by
-    conv_rhs => rw [← re_add_im z]
-    simp only [g, LinearMap.add_apply, LinearMap.smulRight_apply, reLm_coe, imLm_coe, add_apply,
-      map_add, map_smul, hA, hB, map_mul, conj_ofReal, conj_I]
-    module
-  have hinj : Function.Injective ((A + B : V →L[ℝ] W).toLinearMap ∘ₗ g) := by
-    rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
-    intro z hz
-    rw [LinearMap.comp_apply, coe_coe, hφ, add_eq_zero_iff_eq_neg] at hz
-    have hn := congrArg norm hz
-    rw [norm_neg, norm_smul, norm_smul, Complex.norm_conj] at hn
-    by_contra hz0
-    exact hb.ne' (mul_left_cancel₀ (norm_ne_zero_iff.2 hz0) hn)
-  have : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
-  have : FiniteDimensional ℝ W := .trans ℝ ℂ W
-  have hdim : finrank ℝ ℂ = finrank ℝ W := by
-    rw [← Module.finrank_mul_finrank ℝ ℂ W, hW, mul_one]
-  have hsurj := (LinearMap.injective_iff_surjective_of_finrank_eq_finrank hdim).1 hinj
-  rw [LinearMap.coe_comp] at hsurj
-  exact hsurj.of_comp
-
-end ContinuousLinearMap
