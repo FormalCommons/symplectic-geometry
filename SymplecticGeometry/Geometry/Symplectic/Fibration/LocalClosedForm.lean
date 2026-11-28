@@ -67,6 +67,7 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
   {ι : Type*} (τ : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F)) (bs : Module.Basis ι ℝ EB)
 
+open SymplecticGeometry in
 /-- The slices of the one-form `ι(bs j, 0) ι(bs i, 0) dτ` on `EB × F`: on a vector `w` tangent
 to `F`, the slice over `x` takes the value of `dτ` on `(bs i, 0), (bs j, 0), (0, w)`. -/
 private theorem exists_mpullback_prodMk_apply_eq_mextDeriv (i j : ι) :

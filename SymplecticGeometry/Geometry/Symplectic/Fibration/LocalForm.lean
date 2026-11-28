@@ -81,7 +81,7 @@ since it inverts the flat maps of the smooth family `σ`.
 * `TauCeti.SmoothTwoForm.smoothFiberComponent τ x`: the slice of a smooth `τ`, as a smooth form.
 * `TauCeti.SmoothTwoForm.mixedVectorField τ bs i x`: the vector field `Xᵢ(x)` on `F`, the inverse
   of the flat map of `σ(x)` applied to `αᵢ(x)`.
-* `TauCeti.SmoothTwoForm.baseField bs i`: the constant field `(∂ᵢ, 0)` on `EB × F`, as a smooth
+* `SymplecticGeometry.baseField bs i`: the constant field `(∂ᵢ, 0)` on `EB × F`, as a smooth
   section.
 
 ## Main results
@@ -891,17 +891,18 @@ theorem contMDiff_eval₂_mixedVectorField [FiniteDimensional ℝ EF] {x : EB}
 
 /-- The constant vector field `(bs k, 0)` on `EB × F`, as a smooth section of the tangent
 bundle. -/
-def baseField (k : ι) :
+def _root_.SymplecticGeometry.baseField (k : ι) :
     Cₛ^∞⟮𝓘(ℝ, EB).prod IF; EB × EF, TangentSpace (𝓘(ℝ, EB).prod IF) (M := EB × F)⟯ :=
   ⟨Manifold.prodVectorField (fun x ↦ (bs k : TangentSpace 𝓘(ℝ, EB) x)) 0,
     Manifold.contMDiff_prodVectorField (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const)
       (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF (M := F)))⟩
 
 @[simp]
-theorem baseField_apply (k : ι) (p : EB × F) :
-    baseField (IF := IF) bs k p = ((bs k, 0) : EB × EF) :=
+theorem _root_.SymplecticGeometry.baseField_apply (k : ι) (p : EB × F) :
+    SymplecticGeometry.baseField (IF := IF) bs k p = ((bs k, 0) : EB × EF) :=
   Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
 
+open SymplecticGeometry in
 /-- The base components `f_{ij}(x)(y) = τ((bs i, 0), (bs j, 0))` of a smooth two-form `τ` on
 `EB × F` are smooth jointly in `x` and `y`. -/
 theorem contMDiff_baseComponent (i j : ι) :
