@@ -380,14 +380,16 @@ theorem contMDiff_expI : ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ 
   (C.polar.contMDiff.comp (contMDiff_id.prodMk (contMDiff_const (c := (1 : G))))).congr
     fun ξ ↦ (C.polar_apply ξ 1).trans (by rw [map_one, mul_one]) |>.symm
 
+/-- The first polar coordinate of `expI ξ` is `ξ`. -/
+@[simp]
+theorem polar_symm_expI_fst (ξ : GroupLieAlgebra I G) : (C.polar.symm (C.expI ξ)).1 = ξ := by
+  rw [← mul_one (C.expI ξ), ← map_one C.toHom, ← C.polar_apply, Diffeomorph.symm_apply_apply]
+
 /-- The inverse of the polar decomposition reads `expI ξ * toHom u` as the pair `(ξ, u)`. -/
 @[simp]
 theorem polar_symm_expI_mul_toHom (ξ : GroupLieAlgebra I G) (u : G) :
     C.polar.symm (C.expI ξ * C.toHom u) = (ξ, u) := by
-  rw [← C.polar_apply, Diffeomorph.symm_apply_apply]
-  -- The sides differ only in the type of `ξ`: the first component of a point of `E × G` on the
-  -- left, an element of `GroupLieAlgebra I G` on the right, which is `E` by definition.
-  rfl
+  refine Prod.ext ?_ ?_ <;> rw [← C.polar_apply, Diffeomorph.symm_apply_apply]
 
 /-- Every element of `Gc` is `expI ξ * toHom u` for the pair `(ξ, u)` that the inverse of the
 polar decomposition gives it. -/
@@ -513,8 +515,7 @@ theorem mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom [FiniteDimensional ℝ
   -- Conjugating by `toHom u` turns the curve into a left-translated exponential line.
   have h (τ : ℝ) : C.expI (τ • ξ) * C.toHom u =
       C.toHom u * mulInvariantExp (τ • C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ))) := by
-    rw [← C.cplx.apply_smul, ← map_smul, ← expI_def, ← map_smul, ← C.toHom_mul_expI_mul_inv,
-      map_inv, inv_inv]
+    rw [← C.expI_smul, ← map_smul, ← C.toHom_mul_expI_mul_inv, map_inv, inv_inv]
     group
   rw [funext h, h t]
   exact mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul _ _ t

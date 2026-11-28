@@ -49,7 +49,9 @@ equivariance or smoothness.
   an equality of functions.
 * `SymplecticGeometry.momentSharp_smul`, `SymplecticGeometry.momentNormSq_smul`: for an
   `Ad`-invariant `B` and a coadjoint-equivariant `μ`, `μ♯` is equivariant and the norm square
-  is `G`-invariant.
+  is `G`-invariant. The first is Tau Ceti's
+  `TauCeti.Representation.IsInvariantForm.toDual_symm_dual_apply` for the adjoint
+  representation.
 * `SymplecticGeometry.contMDiff_momentNormSq`: if each component `x ↦ μ x ξ` is `C^n`, so is the
   norm square.
 * `SymplecticGeometry.mvfderiv_momentNormSq`: for a symmetric `B` and differentiable components,
@@ -174,9 +176,8 @@ theorem momentSharp_smul [LieGroup I 1 G] [MulAction G M]
     (hμ : ∀ (g : G) (x : M), μ (g • x) = Lie.coadjointRepresentation ℝ I G g (μ x))
     (g : G) (x : M) :
     momentSharp B hB μ (g • x) = Lie.adjointContinuousLinearMap g (momentSharp B hB μ x) := by
-  refine momentSharp_eq_iff.2 fun ξ ↦ ?_
-  rw [← Lie.adjointRepresentation_apply (𝕜 := ℝ), hBG.apply_left, apply_momentSharp, hμ,
-    Lie.coadjointRepresentation_apply, Lie.adjointRepresentation_apply]
+  rw [momentSharp_def, momentSharp_def, hμ, Lie.coadjointRepresentation_def,
+    hBG.toDual_symm_dual_apply hB, Lie.adjointRepresentation_apply]
 
 /-- For a coadjoint-equivariant `μ` and an `Ad`-invariant form `B`, the norm square of the moment
 map is invariant under `G`. -/

@@ -76,11 +76,10 @@ Last comes the comparison with the maximum:
   `log ‖P‖` over `Metric.ball y R` by at most `4 ^ card ι * D * log 4`. Let `‖P‖` be largest on
   the closed ball at `z₀`; then `P z₀ ≠ 0`, and the sub-mean value inequality at `z₀` on
   `Metric.ball z₀ (2 * R)`, where the growth bound with `t = 3` gives `‖P‖ ≤ 4 ^ D * ‖P z₀‖`,
-  bounds the lower average over the larger ball of the gap between the logarithm of that bound
-  and `log ‖P‖`. Tau Ceti's `TauCeti.setLAverage_ball_le` passes to the lower average over
-  `Metric.ball y R`, at the cost of the factor `2 ^ (2 * card ι) = 4 ^ card ι`, and
-  `MeasureTheory.sub_setAverage_le_of_setLAverage_ofReal_sub_le` turns that bound into one on the
-  average of `log ‖P‖`.
+  bounds the average over the larger ball of the gap between the logarithm of that bound and
+  `log ‖P‖`. That gap is nonnegative almost everywhere, so Tau Ceti's
+  `TauCeti.setAverage_ball_le` passes to its average over `Metric.ball y R`, at the cost of the
+  factor `2 ^ (2 * card ι) = 4 ^ card ι`.
 
 Finally, how the average `V c r` of `log ‖P‖` over `Metric.ball c r` grows with `r`:
 
@@ -314,15 +313,24 @@ theorem log_sup_sub_setAverage_log_norm_eval_le (P : MvPolynomial ι ℂ) {D : �
   have hlogM : Real.log M - Real.log ‖eval z₀.ofLp P‖ = D * Real.log 4 := by
     rw [Real.log_mul (by positivity) hM₁.ne', Real.log_pow]
     ring
-  have hpos : volume (ball y R) ≠ 0 := (measure_ball_pos volume y hR).ne'
-  -- The lower average over `ball y R` is at most `2 ^ (2 * card ι)` times that over the big ball.
-  have h := (TauCeti.setLAverage_ball_le (μ := volume) _ hR hsub).trans <| mul_le_mul_right
-    ((setLAverage_eq _ _ _).trans_le <| ENNReal.div_le_of_le_mul'
-      (setLIntegral_ofReal_log_sub_log_norm_eval_le hz₀P hM)) _
-  rw [mul_div_cancel_right₀ _ hR.ne', finrank_real_of_complex, finrank_euclideanSpace, pow_mul,
-    show (2 : ℝ) ^ 2 = 4 by norm_num, hlogM, ← ENNReal.ofReal_mul (by positivity)] at h
-  have := sub_setAverage_le_of_setLAverage_ofReal_sub_le hpos measure_ball_lt_top.ne
-    (integrableOn_log_norm_eval_ball hP y R) (by positivity) h
+  -- The average of `log M - log ‖P‖` over `ball y R` is at most `2 ^ (2 * card ι)` times that
+  -- over the big ball.
+  have hint : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball z₀ (2 * R)) :=
+    (integrableOn_const measure_ball_lt_top.ne).sub (integrableOn_log_norm_eval_ball hP z₀ _)
+  have hnn : 0 ≤ᵐ[volume.restrict (ball z₀ (2 * R))]
+      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ :=
+    (ae_restrict_log_norm_eval_le_log hP measurableSet_ball hM).mono fun _ => sub_nonneg.2
+  have h := TauCeti.setAverage_ball_le (μ := volume) hR hsub hint hnn
+  rw [setAverage_const_sub (measure_ball_pos volume y hR).ne' measure_ball_lt_top.ne
+      (integrableOn_log_norm_eval_ball hP y R),
+    setAverage_const_sub (measure_ball_pos volume z₀ (by positivity)).ne' measure_ball_lt_top.ne
+      (integrableOn_log_norm_eval_ball hP z₀ _),
+    mul_div_cancel_right₀ _ hR.ne', finrank_real_of_complex, finrank_euclideanSpace, pow_mul,
+    show (2 : ℝ) ^ 2 = 4 by norm_num] at h
+  have hz := log_norm_eval_le_setAverage_ball hz₀P (r := 2 * R) (by positivity)
+  have h' := mul_le_mul_of_nonneg_left (sub_le_sub_left hz (Real.log M))
+    (by positivity : (0 : ℝ) ≤ 4 ^ Fintype.card ι)
+  rw [hlogM] at h'
   have : 0 ≤ (D : ℝ) * Real.log 4 := by positivity
   linarith
 

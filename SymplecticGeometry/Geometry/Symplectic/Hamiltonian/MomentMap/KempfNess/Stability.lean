@@ -395,11 +395,8 @@ theorem isStable_of_bddBelow_of_isProperMap_kempfNessFunction (h : IsComplexifie
       simpa [C.expI_zero, kempfNessFunction_one] using this
     obtain ⟨r, hr⟩ := (((hqprop.isCompact_preimage isCompact_singleton).image
       C.polar.symm.continuous).image continuous_fst).isBounded.subset_closedBall 0
-    exact eq_zero_of_forall_smul_mem_closedBall (F := E) fun s : ℝ ↦ hr ⟨_, ⟨_, hzero s, rfl⟩, by
-      rw [← mul_one (C.expI _), ← map_one C.toHom, C.polar_symm_expI_mul_toHom]
-      -- The two sides differ only in the smul: that of `GroupLieAlgebra I G` and that of `E`,
-      -- which agree since the Lie algebra is `E` by definition.
-      rfl⟩
+    exact eq_zero_of_forall_smul_mem_closedBall (F := E) fun s : ℝ ↦
+      hr ⟨_, ⟨_, hzero s, rfl⟩, C.polar_symm_expI_fst (s • ξ)⟩
   exact (isStable_smul_iff g⁻¹).1 (isStable_of_moment_eq_zero hq)
 
 /-- **Stability is boundedness below and properness of the Kempf–Ness function.** In the Kähler
