@@ -7,10 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Descent
 
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
-import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.LinearNormalForm
-import TauCeti.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Induced.Nondegenerate
 
 /-!
 # The local model's descended form is symplectic near the zero section
@@ -21,20 +20,17 @@ local model `Y = G ×_K (A × V)`, and `ω` the descent of `D.form` to `Y`, Tau 
 that `ω` is a symplectic form on a `G`-invariant open neighbourhood of the zero
 section `{[g, 0] | g ∈ G}`.
 
-* At `[1, 0]`, every tangent vector is `dπ u` for a tangent vector `u` of `G × (A × V)` at
-  `(1, 0, 0)`, since `π : (g, p) ↦ [g, p]` is a submersion. If `dπ u` pairs to zero with every
-  vector, then `u` lies in the kernel of `D.form` at `(1, 0, 0)`, which is `𝔥 × 0`
-  (`SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`), and this is the
-  kernel of `dπ` there (`SymplecticGeometry.LocalModelData.mem_ker_mfderiv_mk_one_zero_iff`). So
-  `ω` is nondegenerate at `[1, 0]`.
-* The action of `G` on `Y` is smooth (Tau Ceti's
-  `TauCeti.BalancedProduct.contMDiffSMul_rightTranslation`) and preserves `ω`, so `ω` is
-  nondegenerate at `k • y` exactly when it is at `y`
-  (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`). Since `[g, 0] = g • [1, 0]`, it is
-  nondegenerate along the zero section.
+* Along the zero section, `ω` is nondegenerate by Tau Ceti's criterion in
+  Marle–Guillemin–Sternberg coordinates,
+  `TauCeti.CotangentBundle.nondegenerate_bilinFormAt_balancedProductInducedForm_mk_of_dual_prod`.
+  Its hypotheses at `0 ∈ A × V` hold for the local model: the covector there is `τ`, its
+  derivative is `(a, b) ↦ ι𝔪 a`, read through `A ≃ 𝔪*` and the projection `𝔤 → 𝔪` along
+  `𝔥 ⊕ 𝔮`, the form on `A × V` is `σ` on the second factor, that projection maps `𝔤_τ` onto `𝔪`
+  with kernel meeting `𝔤_τ` in `𝔥`, and `K` fixes `0`.
 * The set where `ω` is nondegenerate is open
-  (`TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`) and `G`-invariant, and `ω`
-  restricts to a symplectic form on it
+  (`TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`) and `G`-invariant
+  (`TauCeti.CotangentBundle.nondegenerate_bilinFormAt_balancedProductInducedForm_smul_iff`), and
+  `ω` restricts to a symplectic form on it
   (`TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtypeVal`).
 
 The last step follows the proof of Tau Ceti's
@@ -42,10 +38,6 @@ The last step follows the proof of Tau Ceti's
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_one_zero`: `ω` is
-  nondegenerate at `[1, 0]`.
-* `SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_smul_iff`: `ω` is
-  nondegenerate at `k • y` exactly when it is at `y`.
 * `SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_zero`: `ω` is
   nondegenerate at every point `[g, 0]` of the zero section.
 * `SymplecticGeometry.LocalModelData.exists_opens_isSymplectic_mpullback_descendedForm`: `ω`
@@ -83,66 +75,6 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
   (D : LocalModelData (I := I) K (F := F) V A)
 
-/-- **The descended form is nondegenerate at `[1, 0]`.** The descended form of the local model on
-`G ×_K (A × V)` is nondegenerate at the point `[1, 0, 0]` of the zero section. -/
-theorem nondegenerate_bilinFormAt_descendedForm_mk_one_zero :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-      (IZ := 𝓘(ℝ, A × V)) (F := F)
-    ((balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
-        D.mpullback_smul_mpullback_snd_constSmooth
-        D.isMomentMap_mpullback_snd_constSmooth).bilinFormAt
-      (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V)))).Nondegenerate := by
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have hπ := BalancedProduct.isSubmersion_mk_toRightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  set x : G × (A × V) := ((1 : G), ((0 : A), (0 : V)))
-  refine (LinearMap.IsRefl.nondegenerate_iff_separatingLeft
-    (SmoothForm.isAlt_bilinFormAt
-        (balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
-          D.mpullback_smul_mpullback_snd_constSmooth
-          D.isMomentMap_mpullback_snd_constSmooth) _).isRefl).2 fun v hv ↦ ?_
-  -- `v = dπ u`, and `u` pairs to zero with every vector, so it is vertical.
-  obtain ⟨u, rfl⟩ := hπ.surjective_mfderiv (x := x) (by simp) v
-  have hu : ∀ u', D.form.eval₂ x u u' = 0 := fun u' ↦ by
-    rw [← D.eval₂_balancedProductInducedForm_mfderiv_mk x u u', ← SmoothForm.bilinFormAt_apply]
-    exact hv _
-  exact (D.mem_ker_mfderiv_mk_one_zero_iff u).2 ((D.forall_eval₂_form_one_zero_eq_zero_iff u).1 hu)
-
-/-- **`G` moves nondegeneracy of the descended form.** For `k ∈ G`, the descended form of the
-local model is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
-theorem nondegenerate_bilinFormAt_descendedForm_smul_iff (k : G) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-      (IZ := 𝓘(ℝ, A × V)) (F := F)
-    ∀ y : BalancedProduct K K.RightTranslation (A × V),
-      ((balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
-          D.mpullback_smul_mpullback_snd_constSmooth
-          D.isMomentMap_mpullback_snd_constSmooth).bilinFormAt (k • y)).Nondegenerate ↔
-        ((balancedProductInducedForm I G _ D.contMDiff_covectorCLM D.covectorCLM_smul
-            D.mpullback_smul_mpullback_snd_constSmooth
-            D.isMomentMap_mpullback_snd_constSmooth).bilinFormAt y).Nondegenerate := by
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have := ContMDiffSMul.contMDiffConstSMul I (n := ∞) (G := G)
-    (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
-    (M := BalancedProduct K K.RightTranslation (A × V))
-  exact SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff (g := k)
-    (mpullback_smul_balancedProductInducedForm k)
-
 /-- **The descended form is nondegenerate along the zero section**: at every point `[g, 0, 0]`. -/
 theorem nondegenerate_bilinFormAt_descendedForm_mk_zero (g : G) :
     letI := D.fiberDistribMulAction
@@ -156,12 +88,28 @@ theorem nondegenerate_bilinFormAt_descendedForm_mk_zero (g : G) :
       (BalancedProduct.mk K (K.toRightTranslation g) ((0 : A), (0 : V)))).Nondegenerate := by
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)
-  rw [← mul_one g, ← BalancedProduct.smul_mk_toRightTranslation,
-    D.nondegenerate_bilinFormAt_descendedForm_smul_iff]
-  exact D.nondegenerate_bilinFormAt_descendedForm_mk_one_zero
+  set π := Submodule.projectionOnto _ _ D.isCompl_𝔪_sup
+  refine nondegenerate_bilinFormAt_balancedProductInducedForm_mk_of_dual_prod
+    (n := ((0 : A), (0 : V))) (ν := D.τ) (π := π) (β := D.σ.toBilinForm)
+    (by rw [coe_covectorCLM, Prod.mk_zero_zero, covector_zero])
+    (D.equivDual𝔪.prodCongr (LinearEquiv.refl ℝ V)) (fun u ζ ↦ ?_) (fun u w ↦ ?_)
+    D.σ.nondegenerate.1 D.map_projectionOnto_lieAnnihilator_eq_top (fun ζ hζ hπζ ↦ ?_)
+    (fundamentalVectorField_eq_zero_of_forall_smul_eq fun k ↦ smul_zero k) g
+  · -- The derivative of the covector at `0` is `(a, b) ↦ ι𝔪 a`.
+    have hc : DifferentiableAt ℝ D.covectorCLM ((0 : A), (0 : V)) :=
+      (D.contMDiff_covectorCLM.contDiff.differentiable (by simp)) _
+    rw [mvfderiv_eq_fderiv_apply]
+    refine (fderiv_clm_apply_const_apply hc ζ u).symm.trans ?_
+    obtain ⟨a, b⟩ := u
+    simp only [covectorCLM_apply, covector_def]
+    refine (fderiv_localModelCovector_apply D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 ζ 0 a 0 b).trans ?_
+    rw [map_zero, LinearMap.zero_apply, map_zero, add_zero, ι𝔪_apply]
+    -- `LinearEquiv.prodCongr_apply` does not rewrite here, since `e` is read on the tangent space,
+    -- whose module structure is that of `A × V` only up to unfolding.
+    rfl
+  · exact D.σ.eval₂_mpullback_snd_constSmooth _ u.1 w.1 u.2 w.2
+  · rw [D.range_groupLieAlgebraMap_subtype, ← D.lieAnnihilator_inf_ker_projectionOnto]
+    exact ⟨hζ, hπζ⟩
 
 /-- **The descended form is symplectic near the zero section.** There is an open set `U` of
 `G ×_K (A × V)` that contains every point `[g, 0, 0]` of the zero section and is invariant under
@@ -192,7 +140,7 @@ theorem exists_opens_isSymplectic_mpullback_descendedForm :
         D.mpullback_smul_mpullback_snd_constSmooth
         D.isMomentMap_mpullback_snd_constSmooth)⟩,
     D.nondegenerate_bilinFormAt_descendedForm_mk_zero,
-    fun k y hy ↦ (D.nondegenerate_bilinFormAt_descendedForm_smul_iff k y).2 hy,
+    fun k y hy ↦ (nondegenerate_bilinFormAt_balancedProductInducedForm_smul_iff k y).2 hy,
     (isClosed_balancedProductInducedForm ((SymplecticForm.isClosed_constSmooth D.σ).mpullback _ _)
       ).isSymplectic_mpullback_subtypeVal fun _ hy ↦ hy⟩
 

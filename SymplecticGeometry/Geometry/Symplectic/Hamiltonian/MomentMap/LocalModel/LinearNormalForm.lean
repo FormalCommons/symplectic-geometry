@@ -50,11 +50,6 @@ model: no change of sign is needed.
   `linearModelMap`, the form at `(1, 0, 0)` is the form of the linear normal form model.
 * `SymplecticGeometry.LocalModelData.isCompl_range_linearModelMap`: the range of
   `linearModelMap` is a complement of `𝔥 × 0`.
-* `SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`: the kernel of the
-  form at `(1, 0, 0)` is the space `𝔥 × 0` of the directions `(ξ, 0, 0)` with `ξ ∈ 𝔥`. It is
-  Tau Ceti's `Module.Dual.forall_kirillovForm_add_eq_zero_iff`, the radical of the
-  Marle–Guillemin–Sternberg tensor, for the projection `𝔤 → 𝔪` along `𝔥 ⊕ 𝔮`, which maps
-  `𝔤_τ = 𝔥 ⊕ 𝔪` onto `𝔪` with kernel meeting `𝔤_τ` in `𝔥`.
 * `SymplecticGeometry.LocalModelData.tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero`: for
   `k ∈ K`, the differential at `(1, 0, 0)` of `(g, p) ↦ (k g k⁻¹, k • p)` is
   `(ξ, a, b) ↦ (Ad_k ξ, repA k a, rep k b)`. Its `G` component is
@@ -196,50 +191,6 @@ theorem eval₂_form_one_zero_linearModelMap
     SymplecticForm.prod_apply, cotangentSymplecticForm_apply,
     Module.Dual.kirillovSymplecticForm_apply]
   ring
-
-/-- **The kernel of the form of the local model at `(1, 0, 0)`.** A tangent vector at `(1, 0, 0)`
-pairs to zero with every tangent vector exactly when it is `(ξ, 0, 0)` for some `ξ ∈ 𝔥`. -/
-theorem forall_eval₂_form_one_zero_eq_zero_iff
-    (u : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))) :
-    (∀ u', D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u u' = 0) ↔
-      tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u ∈ D.𝔥.prod ⊥ := by
-  set e := tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
-  set π := Submodule.projectionOnto _ _ D.isCompl_𝔪_sup
-  -- `π` maps `𝔤_τ ⊇ 𝔪` onto `𝔪`, and `𝔤_τ ∩ ker π = (𝔥 ⊕ 𝔪) ∩ (𝔥 ⊕ 𝔮) = 𝔥`.
-  have hπ : (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule.map π = ⊤ :=
-    eq_top_iff.2 fun m _ ↦
-      ⟨m, D.𝔪_le_lieAnnihilator m.property, Submodule.projectionOnto_apply_left _ m⟩
-  have h𝔥 : (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule ⊓ LinearMap.ker π = D.𝔥 := by
-    rw [Submodule.ker_projectionOnto, ← D.𝔥_sup_𝔪, sup_inf_assoc_of_le _ le_sup_left,
-      D.isCompl_𝔪_sup.inf_eq_bot, sup_bot_eq]
-  rcases hu : e u with ⟨ξ, a, b⟩
-  -- The form pairs `u` with `e.symm (ζ, a', w)` as Tau Ceti's Marle–Guillemin–Sternberg tensor.
-  have hpair (ζ : GroupLieAlgebra I G) (a' : A) (w : V) :
-      D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u (e.symm (ζ, (a', w))) =
-        D.equivDual𝔪 a' (π ξ) - D.equivDual𝔪 a (π ζ) + D.τ.kirillovForm ξ ζ +
-          D.σ.toBilinForm b w := by
-    -- `ring` also matches `D.σ b w` with `D.σ.toBilinForm b w`, the definition of the coercion.
-    rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu (e.apply_symm_apply (ζ, (a', w))),
-      ι𝔪_apply, ι𝔪_apply, Module.Dual.kirillovForm_apply]
-    ring
-  have key : (∀ u', D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u u' = 0) ↔
-      ∀ (ζ : GroupLieAlgebra I G) (b' : Module.Dual ℝ D.𝔪) (w : V),
-        b' (π ξ) - D.equivDual𝔪 a (π ζ) + D.τ.kirillovForm ξ ζ + D.σ.toBilinForm b w = 0 := by
-    refine ⟨fun h ζ b' w ↦ ?_, fun h u' ↦ ?_⟩
-    · have := h (e.symm (ζ, (D.equivDual𝔪.symm b', w)))
-      rwa [hpair, LinearEquiv.apply_symm_apply] at this
-    · obtain ⟨⟨ζ, a', w⟩, rfl⟩ := e.symm.surjective u'
-      rw [hpair]
-      exact h ζ (D.equivDual𝔪 a') w
-  rw [key, D.τ.forall_kirillovForm_add_eq_zero_iff D.σ.nondegenerate.1 hπ, ← h𝔥]
-  simp only [Submodule.mem_prod, Submodule.mem_inf, LieSubalgebra.mem_toSubmodule,
-    LinearMap.mem_ker, LinearEquiv.map_eq_zero_iff, and_assoc]
-  refine and_congr_right' (and_congr_right' ⟨?_, fun h ↦ ?_⟩)
-  · rintro ⟨rfl, rfl⟩
-    exact zero_mem _
-  · -- `⊥` is a submodule of the tangent space, not syntactically of `A × V`, so
-    -- `Submodule.mem_bot` does not rewrite `h`; membership in `⊥` is `(a, b) = 0` by definition.
-    exact Prod.mk_eq_zero.1 h
 
 /-! ### The action of `K` -/
 
