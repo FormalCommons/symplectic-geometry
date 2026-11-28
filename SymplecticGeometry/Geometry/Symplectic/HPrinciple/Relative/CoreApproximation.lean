@@ -78,7 +78,10 @@ It contains these steps, shared by the smooth and the continuous form.
   `TauCeti.mpullback_apply_eq_mpullback_apply_iff`, since the chart is a local diffeomorphism.
 * `BandCore.exists_approximation_family` is the smooth form. In the chart of each cube it reads
   the one-forms, with the formal primitive of the reading of `τ - α`
-  (`SymplecticGeometry.formalPrimitive`) as first-order part, takes a margin of nondegeneracy
+  (`SymplecticGeometry.formalPrimitive`) as first-order part, by the readings of
+  `Relative/CubeCoordinates.lean` (`BandCore.contDiff_mpullback_chart`,
+  `BandCore.contDiff_formalPrimitive_mpullback_chart`,
+  `BandCore.fderiv_mpullback_chart_eq_formalPrimitive`), takes a margin of nondegeneracy
   for the reading of `τ`
   (`SymplecticGeometry.IsSmoothFamily.exists_pos_forall_nondegenerate_sub_smul`),
   makes the datum holonomic near `P₀` by a cutoff in the parameter
@@ -621,14 +624,12 @@ open TauCeti
 
 variable {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [FiniteDimensional ℝ L]
 
-omit [T2Space M] [FiniteDimensional ℝ E] in
-/-- Steps 2 to 4 of `BandCore.exists_approximation_family`, in the chart `φ` of one cube:
+omit [T2Space M] in
+/-- Steps 2 to 4 of `BandCore.exists_approximation_family`, in the chart of cube `i`:
 holonomic approximation of the formal datum read in the chart, made holonomic near the
 parameters of `P₀` by a cutoff in the parameter, with the nondegeneracy margin of the reading
 of `τ` over `K` and `closedBall 0 2`. -/
-private theorem exists_approximation_family_of_chart {m k : ℕ} (hk : 0 < k)
-    {φ : (Fin m → ℝ) × (Fin k → ℝ) → M} (hφ : ContMDiff 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) I ∞ φ)
-    (hφd : IsLocalDiffeomorph 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) I ∞ φ)
+private theorem exists_approximation_family_of_chart (c : BandCore I g a₀ a b) (i : c.ι)
     {K P₀ : Set L} (hK : IsCompact K) (hP₀ : IsClosed P₀)
     {τ α : L → SmoothTwoForm I M} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
     (hα : IsSmoothFamily 𝓘(ℝ, L) α) (hnd : ∀ l ∈ K, (τ l).IsNondegenerate)
@@ -636,68 +637,69 @@ private theorem exists_approximation_family_of_chart {m k : ℕ} (hk : 0 < k)
     {N : Set M} (hN : IsOpen N)
     (hτN : ∀ l, ∀ x ∈ N, (τ l).val x = (α l + mextDerivₗ I 1 (β l)).val x)
     (hτP₀ : ∀ l ∈ P₀, τ l = α l + mextDerivₗ I 1 (β l))
-    {R : Set (Fin m → ℝ)} (hR : IsClosed R) (hSR : sphere 0 1 ⊆ R)
-    (hRN : R ×ˢ {0} ⊆ φ ⁻¹' N) {δ : ℝ} (hδ : 0 < δ) :
-    ∃ (h : Diffeotopy (𝓘(ℝ, L).prod 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ))) ∞
-        (L × (Fin m → ℝ) × (Fin k → ℝ)))
-      (corr : L × (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ)
-      (C : Set (L × (Fin m → ℝ) × (Fin k → ℝ))) (N' : Set (Fin m → ℝ))
-      (V : Set (L × (Fin m → ℝ) × (Fin k → ℝ))),
+    {R : Set (Fin (c.dim i) → ℝ)} (hR : IsClosed R) (hSR : sphere 0 1 ⊆ R)
+    (hRN : R ×ˢ {0} ⊆ c.chart i ⁻¹' N) {δ : ℝ} (hδ : 0 < δ) :
+    ∃ (h : Diffeotopy
+        (𝓘(ℝ, L).prod 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))) ∞
+        (L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)))
+      (corr : L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
+        ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ)
+      (C : Set (L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)))
+      (N' : Set (Fin (c.dim i) → ℝ))
+      (V : Set (L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))),
       (∀ t p, (h (t, p)).1 = p.1) ∧ (∀ t p, dist (h (t, p)) p < δ) ∧ ContDiff ℝ ∞ corr ∧
-      IsCompact C ∧
-      (∀ p ∈ C, p.2 ∈ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)})) ∧
+      IsCompact C ∧ (∀ p ∈ C, p.2 ∈ thickening δ (closedBall 0 1 ×ˢ {0})) ∧
       (∀ p ∉ C, (∀ t, h (t, p) = p) ∧ corr p = 0) ∧ N' ∈ 𝓝ˢ R ∧
-      (∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.2.1 ∈ N' → (∀ t, h (t, p) = p) ∧ corr p = 0) ∧
+      (∀ p, p.2.1 ∈ N' → (∀ t, h (t, p) = p) ∧ corr p = 0) ∧
       (∀ l ∈ P₀, ∀ z, (∀ t, h (t, (l, z)) = (l, z)) ∧ corr (l, z) = 0) ∧ IsOpen V ∧
-      (∀ l ∈ K, ∀ y ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)},
-        (l, (h (1, (l, y))).2) ∈ V) ∧
+      (∀ l ∈ K, ∀ y ∈ closedBall 0 1 ×ˢ {0}, (l, (h (1, (l, y))).2) ∈ V) ∧
       ∀ p ∈ V, p.1 ∈ K → p.2 ∈ ball 0 2 → ∀ r ∈ Icc (0 : ℝ) 1,
         (MultilinearMap.toBilinMap (@HAdd.hAdd
-          (((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ)
-          (((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) _ _
-          (mpullback 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) I φ
-            (τ p.1 + r • (α p.1 + mextDerivₗ I 1 (β p.1) - τ p.1)).val p.2)
+          (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ)
+          (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) _ _
+          (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+            (c.chart i) (τ p.1 + r • (α p.1 + mextDerivₗ I 1 (β p.1) - τ p.1)).val p.2)
           (r • extDeriv (fun z ↦ corr (p.1, z)) p.2)).toMultilinearMap).Nondegenerate := by
+  have hφ := (c.isSmoothEmbedding_chart i).contMDiff
   -- Step 2: the nondegeneracy margin `r₀` of the reading of `τ` over `K` and `closedBall 0 2`.
-  have hτD := hτ.mpullback φ hφ
-  have hndD (l : L) (hl : l ∈ K) (x : (Fin m → ℝ) × (Fin k → ℝ)) (_ : x ∈ closedBall 0 2) :
-      ((SmoothForm.mpullback φ hφ (τ l)).bilinFormAt x).Nondegenerate :=
-    (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
-      ((hφd x).isInvertible_mfderiv (by simp)) (η := SmoothForm.mpullback φ hφ (τ l))
-      (by rw [SmoothForm.coe_mpullback])).1 ((hnd l hl).nondegenerate_bilinFormAt (φ x))
   obtain ⟨r₀, hr₀, hmargin⟩ :=
-    hτD.exists_pos_forall_nondegenerate_sub_smul hK (isCompact_closedBall 0 2) hndD
+    (hτ.mpullback (c.chart i) hφ).exists_pos_forall_nondegenerate_sub_smul hK
+      (isCompact_closedBall 0 2) fun l hl x _ ↦
+        ((hnd l hl).isNondegenerate_mpullback_of_isLocalDiffeomorph
+          (c.isLocalDiffeomorph_chart i)).nondegenerate_bilinFormAt x
   have hε₁ : 0 < r₀ / 5 := by positivity
-  -- The formal datum of the cube: the reading `f` of `β` and the formal primitive `G`.
-  set f : L × (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
-    fun p ↦ (SmoothForm.mpullback φ hφ (β p.1)).val p.2
-  set G : L × (Fin m → ℝ) × (Fin k → ℝ) →
-      (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
-    fun p ↦ formalPrimitive (SmoothForm.mpullback φ hφ (τ p.1 - α p.1)).val
-      (SmoothForm.mpullback φ hφ (β p.1)).val p.2
-  have hf : ContDiff ℝ ∞ f := (hβ.mpullback φ hφ).contDiff_val
-  have hG : ContDiff ℝ ∞ G :=
-    contDiff_formalPrimitive ((hτ.sub hα).mpullback φ hφ) (hβ.mpullback φ hφ)
-  have hhol (p : L × (Fin m → ℝ) × (Fin k → ℝ))
-      (hp : (τ p.1).val (φ p.2) = (α p.1 + mextDerivₗ I 1 (β p.1)).val (φ p.2)) :
+  -- The formal datum of the cube: the reading `f` of `β` and the formal primitive `G`
+  -- (the readings of `Relative/CubeCoordinates.lean`).
+  set f : L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
+      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
+    fun p ↦ (SmoothForm.mpullback (c.chart i) hφ (β p.1)).val p.2
+  set G : L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
+      (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →L[ℝ]
+        ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
+    fun p ↦ formalPrimitive (SmoothForm.mpullback (c.chart i) hφ (τ p.1 - α p.1)).val
+      (SmoothForm.mpullback (c.chart i) hφ (β p.1)).val p.2
+  have hf : ContDiff ℝ ∞ f := c.contDiff_mpullback_chart i hβ
+  have hG : ContDiff ℝ ∞ G := c.contDiff_formalPrimitive_mpullback_chart i hτ hα hβ
+  have hhol (p) (hp : p ∈ (univ : Set L) ×ˢ (c.chart i ⁻¹' N) ∪ P₀ ×ˢ univ) :
       fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p :=
-    (formalPrimitive_mpullback_eq_fderiv hφ hp).symm
+    c.fderiv_mpullback_chart_eq_formalPrimitive i hτN (fun l hl x ↦ by rw [hτP₀ l hl]) p hp
   -- Step 3: a cutoff in the parameter makes the datum holonomic over an open set containing
   -- `P₀`, changing it by less than `r₀ / 5` over `closedBall 0 2`.
   obtain ⟨G', hG', ⟨O, hO, hP₀O, hOf⟩, hGG', hG'T⟩ :=
     exists_contDiff_fderiv_eq_of_fderiv_eq_on_param hf hG (by simp) le_rfl hP₀
-      (fun l hl x ↦ hhol (l, x) (by rw [hτP₀ l hl])) (isCompact_closedBall 0 2) hε₁
-  set U : Set (L × (Fin m → ℝ) × (Fin k → ℝ)) := univ ×ˢ (φ ⁻¹' N) ∪ O ×ˢ univ
+      (fun l hl x ↦ hhol (l, x) (.inr ⟨hl, mem_univ _⟩)) (isCompact_closedBall 0 2) hε₁
+  set U : Set (L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) :=
+    univ ×ˢ (c.chart i ⁻¹' N) ∪ O ×ˢ univ
   have hU : IsOpen U := (isOpen_univ.prod (hN.preimage hφ.continuous)).union (hO.prod isOpen_univ)
   have hUf (p) (hp : p ∈ U) : fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G' p := by
-    rcases hp with ⟨-, hp⟩ | ⟨hp, -⟩
-    · rw [hGG' p (hhol p (hτN p.1 _ hp))]
-      exact hhol p (hτN p.1 _ hp)
+    rcases hp with hp | ⟨hp, -⟩
+    · rw [hGG' p (hhol p (.inl hp))]
+      exact hhol p (.inl hp)
     · exact hOf p hp
   -- Step 4: holonomic approximation with accuracy `r₀ / 5` and width `δ`.
   obtain ⟨h, f', V, hfst, hf', ⟨C, hC, hCQ, hCfix⟩, hdist, ⟨N', hN', hN'fix⟩, hP₀fix, hV, hQV,
       happrox⟩ :=
-    exists_holonomic_approximation_family hk hf hG' hK hP₀ hR hSR hU
+    exists_holonomic_approximation_family (Nat.sub_pos_of_lt (c.dim_lt i)) hf hG' hK hP₀ hR hSR hU
       (fun p hp ↦ .inl ⟨mem_univ _, hRN hp.2⟩) (fun p hp ↦ .inr ⟨hP₀O hp.1, mem_univ _⟩) hUf hε₁ hδ
   refine ⟨h.toProdModel, fun p ↦ f' p - f p, C, N', V, fun t p ↦ ?_, fun t p ↦ ?_, hf'.sub hf,
     hC, hCQ, fun p hp ↦ ?_, hN', fun p hp ↦ ?_, fun l hl z ↦ ?_, hV, fun l hl y hy ↦ ?_, ?_⟩
@@ -719,12 +721,11 @@ private theorem exists_approximation_family_of_chart {m k : ℕ} (hk : 0 < k)
   have hz2 : z ∈ closedBall 0 2 := ball_subset_closedBall hz
   have hf'l : ContDiff ℝ ∞ fun x ↦ f' (l, x) := hf'.comp (contDiff_const.prodMk contDiff_id)
   -- The approximation read as a one-form on the domain of the chart.
-  set b' : SmoothForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) ℝ 1 :=
+  set b' : SmoothForm 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
+      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) ℝ 1 :=
     ⟨fun x ↦ f' (l, x), (isSmoothForm_modelSpace_iff.mpr hf'l).mem_smoothBundleForms⟩
-  set η : SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) :=
-    SmoothForm.mpullback φ hφ (τ l - α l) - mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 b'
-  have hb' : (mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 b').val z =
-      extDeriv (fun x ↦ f' (l, x)) z := by
+  set η := SmoothForm.mpullback (c.chart i) hφ (τ l - α l) - mextDerivₗ _ 1 b'
+  have hb' : (mextDerivₗ _ 1 b').val z = extDeriv (fun x ↦ f' (l, x)) z := by
     rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
   -- The derivative of the approximation is within `2 * r₀ / 5` of the formal primitive.
   have h₁ : ‖fderiv ℝ (fun x ↦ f' (l, x)) z - G (l, z)‖ ≤ 2 * (r₀ / 5) := by
@@ -733,24 +734,22 @@ private theorem exists_approximation_family_of_chart {m k : ℕ} (hk : 0 < k)
     have h₄ := norm_sub_le_norm_sub_add_norm_sub (fderiv ℝ (fun x ↦ f' (l, x)) z) (G' (l, z))
       (G (l, z))
     linarith
-  have hη : @norm (((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val z) < r₀ := by
+  have hη : @norm (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
+      [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val z) < r₀ := by
     have h₄ := norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le h₁
     rw [SmoothBundleForm.sub_apply, hb']
     exact (norm_sub_rev _ _).trans_lt (h₄.trans_lt (by linarith))
   have hnd' := hmargin l hl z hz2 η hη r hr
   -- The reading of the segment plus the correction is `τ l - r • η`, as forms on the chart.
-  set b : SmoothForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) ℝ 1 :=
-    SmoothForm.mpullback φ hφ (β l)
-  have hform : SmoothForm.mpullback φ hφ (τ l + r • (α l + mextDerivₗ I 1 (β l) - τ l)) +
-      r • mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 (b' - b) =
-      SmoothForm.mpullback φ hφ (τ l) - r • η := by
+  set b := SmoothForm.mpullback (c.chart i) hφ (β l)
+  have hform :
+      SmoothForm.mpullback (c.chart i) hφ (τ l + r • (α l + mextDerivₗ I 1 (β l) - τ l)) +
+        r • mextDerivₗ _ 1 (b' - b) = SmoothForm.mpullback (c.chart i) hφ (τ l) - r • η := by
     simp only [η, b, map_add, map_sub, map_smul, SmoothForm.mextDerivₗ_mpullback]
     module
-  have hcorr : extDeriv (fun x ↦ f' (l, x) - f (l, x)) z =
-      (mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 (b' - b)).val z := by
+  have hcorr : extDeriv (fun x ↦ f' (l, x) - f (l, x)) z = (mextDerivₗ _ 1 (b' - b)).val z := by
     rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
-    -- The values of `b' - b` are, by definition, those of `f' (l, ·) - f (l, ·)`.
-    rfl
+    exact congrArg (extDeriv · z) (funext fun x ↦ (SmoothBundleForm.sub_apply b' b x).symm)
   rw [SmoothForm.bilinFormAt_def, ← hform, SmoothBundleForm.add_apply,
     SmoothBundleForm.smul_apply, SmoothForm.coe_mpullback, ← hcorr] at hnd'
   exact hnd'
@@ -804,9 +803,8 @@ theorem exists_approximation_family (c : BandCore I g a₀ a b) (hg : Continuous
     (f := 𝓝[>] (0 : ℝ))
   -- Steps 2 to 4 in the chart of each cube.
   choose h corr C N' V hfst hdist hcorr hC hCδ hCfix hN' hN'fix hP₀fix hV hQV hVnd using
-    fun i ↦ exists_approximation_family_of_chart (Nat.sub_pos_of_lt (c.dim_lt i))
-      (c.isSmoothEmbedding_chart i).contMDiff (c.isLocalDiffeomorph_chart i) hK hP₀ hτ hα hnd hβ
-      hN hτN hτP₀ (hRc i).isClosed (hSR i) (hRN i) hδ
+    fun i ↦ exists_approximation_family_of_chart c i hK hP₀ hτ hα hnd hβ hN hτN hτP₀
+      (hRc i).isClosed (hSR i) (hRN i) hδ
   -- Steps 5 to 7.
   exact c.exists_stageData_of_cubes hN haN (s := id) hnd hβ hτN hδδ' hδ'2 hδ'd h hfst hdist hcorr
     hC hCδ hCfix (fun i z hz hzR ↦ (hRa i δ hδ (hδη i) z hz hzR).2) hN' hN'fix hP₀fix hV hQV

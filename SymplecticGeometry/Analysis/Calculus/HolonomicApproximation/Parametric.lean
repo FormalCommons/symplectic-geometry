@@ -103,6 +103,10 @@ those of `D`; those outside `J` record the parameter.
   `TauCeti.Diffeotopy.ofContMDiff`, since Tau Ceti's `TauCeti.Diffeotopy.transDiffeomorph` keeps
   the model and `familyCubeEquiv` changes it. It keeps the parameter, and the bound on the space
   derivative is `SymplecticGeometry.norm_fderiv_comp_familyCubeEquiv_sub_le`.
+* `SymplecticGeometry.contDiff_add_smul_fderiv_sub`: for a smooth cutoff `χ` on `L × E`, the
+  blend `G + χ • (∂ₓf - G)` of a datum is smooth, holonomic where `χ = 1`, equal to `G` where the
+  datum is holonomic, and differs from `G` by `‖χ‖ * ‖∂ₓf - G‖`. Both cutoffs below are made of
+  it.
 * `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod`: a datum on `L × E`
   that is holonomic on `K ×ˢ W`, for a set `K` of parameters and an open `W` containing a
   closed `S`, becomes holonomic on an open set containing `univ ×ˢ S` when `G` is replaced by
@@ -694,6 +698,30 @@ open scoped ContDiff Topology Manifold
 variable {L E F : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [NormedAddCommGroup E]
   [NormedSpace ℝ E] [FiniteDimensional ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
 
+omit [FiniteDimensional ℝ E] in
+/-- **Blending a datum towards holonomy by a cutoff.** Let `f : L × E → F` be `Cᵐ` and
+`G : L × E → E →L[ℝ] F` be `Cⁿ`, with `n + 1 ≤ m`, write `d (l, x)` for the derivative of `f` in
+the space variable at `(l, x)`, and let `χ : L × E → ℝ` be `Cⁿ`. Then `G' := G + χ • (d - G)` is
+`Cⁿ`, equals `d` where `χ = 1`, equals `G` where `d = G`, and satisfies
+`‖G' - G‖ = ‖χ‖ * ‖d - G‖` at every point. -/
+theorem contDiff_add_smul_fderiv_sub {m n : WithTop ℕ∞} {f : L × E → F}
+    {G : L × E → E →L[ℝ] F} (hf : ContDiff ℝ m f) (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m)
+    {χ : L × E → ℝ} (hχ : ContDiff ℝ n χ) :
+    ContDiff ℝ n (fun p ↦ G p + χ p • (fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p)) ∧
+      (∀ p, χ p = 1 → fderiv ℝ (fun x ↦ f (p.1, x)) p.2 =
+        G p + χ p • (fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p)) ∧
+      (∀ p, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p →
+        G p + χ p • (fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p) = G p) ∧
+      ∀ p, ‖G p + χ p • (fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p) - G p‖ =
+        ‖χ p‖ * ‖fderiv ℝ (fun x ↦ f (p.1, x)) p.2 - G p‖ := by
+  have hd : ContDiff ℝ n fun p : L × E ↦ fderiv ℝ (fun x ↦ f (p.1, x)) p.2 :=
+    ContDiff.fderiv (f := fun (p : L × E) (x : E) ↦ f (p.1, x))
+      (hf.comp ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd)) contDiff_snd hnm
+  refine ⟨hG.add (hχ.smul (hd.sub hG)), fun p hp ↦ ?_, fun p hp ↦ ?_, fun p ↦ ?_⟩
+  · rw [hp, one_smul, add_sub_cancel]
+  · rw [hp, sub_self, smul_zero, add_zero]
+  · rw [add_sub_cancel_left, norm_smul]
+
 /-- A cutoff in space makes a family of data holonomic near a closed set `S` for every
 parameter, without changing it over a set `K` of parameters. Let `f : L × E → F` be `Cᵐ` and
 `G : L × E → E →L[ℝ] F` be `Cⁿ`, with `n + 1 ≤ m` and `n ≤ ∞`, and let the derivative of `f` in
@@ -720,23 +748,13 @@ theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod {m n : WithTop ℕ∞}
     (I := 𝓘(ℝ, E)) (n := ⊤) hW.isClosed_compl hS (disjoint_compl_left_iff_subset.2 hSW)
   obtain ⟨O, hO, hSO, hOχ⟩ := mem_nhdsSet_iff_exists.1 hχ1
   have hχ : ContDiff ℝ n χ := (contMDiff_iff_contDiff.1 χ.contMDiff).of_le hn
-  -- the derivative of `f` in the space variable
-  set d : L × E → E →L[ℝ] F := fun p ↦ fderiv ℝ (fun x ↦ f (p.1, x)) p.2 with hd_def
-  have hd : ContDiff ℝ n d :=
-    ContDiff.fderiv (f := fun (p : L × E) (x : E) ↦ f (p.1, x))
-      (hf.comp ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd)) contDiff_snd hnm
-  have hGd : ∀ p, d p = G p → G p + χ p.2 • (d p - G p) = G p := fun p hp ↦ by
-    rw [hp, sub_self, smul_zero, add_zero]
-  refine ⟨fun p ↦ G p + χ p.2 • (d p - G p),
-    hG.add ((hχ.comp contDiff_snd).smul (hd.sub hG)),
-    ⟨univ ×ˢ O, isOpen_univ.prod hO, fun p hp ↦ ⟨mem_univ _, hSO hp.2⟩, fun p hp ↦ ?_⟩,
-    hGd, fun l hl x ↦ ?_⟩
-  · beta_reduce
-    rw [hOχ hp.2, one_smul, add_sub_cancel, hd_def]
-  · by_cases hx : x ∈ W
-    · exact hGd _ (hWf l hl x hx)
-    · beta_reduce
-      rw [hχ0.self_of_nhdsSet x hx, zero_smul, add_zero]
+  obtain ⟨hG', hG'1, hGd, -⟩ := contDiff_add_smul_fderiv_sub hf hG hnm (hχ.comp contDiff_snd)
+  refine ⟨_, hG',
+    ⟨univ ×ˢ O, isOpen_univ.prod hO, fun p hp ↦ ⟨mem_univ _, hSO hp.2⟩,
+      fun p hp ↦ hG'1 p (hOχ hp.2)⟩, hGd, fun l hl x ↦ ?_⟩
+  by_cases hx : x ∈ W
+  · exact hGd _ (hWf l hl x hx)
+  · simp only [Function.comp_apply, hχ0.self_of_nhdsSet x hx, zero_smul, add_zero]
 
 omit [FiniteDimensional ℝ E] in
 /-- A cutoff in the parameter makes a family of data holonomic near a closed set `P₀` of
@@ -761,7 +779,7 @@ theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_param [FiniteDimensional ℝ L
       (∀ p, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p → G' p = G p) ∧
       ∀ p : L × E, p.2 ∈ T → ‖G' p - G p‖ < ε := by
   -- the derivative of `f` in the space variable
-  set d : L × E → E →L[ℝ] F := fun p ↦ fderiv ℝ (fun x ↦ f (p.1, x)) p.2 with hd_def
+  set d : L × E → E →L[ℝ] F := fun p ↦ fderiv ℝ (fun x ↦ f (p.1, x)) p.2
   have hd : ContDiff ℝ n d :=
     ContDiff.fderiv (f := fun (p : L × E) (x : E) ↦ f (p.1, x))
       (hf.comp ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd)) contDiff_snd hnm
@@ -774,23 +792,18 @@ theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_param [FiniteDimensional ℝ L
     (I := 𝓘(ℝ, L)) (n := ⊤) hW.isClosed_compl hP₀ (disjoint_compl_left_iff_subset.2 hP₀W)
   obtain ⟨O, hO, hP₀O, hOχ⟩ := mem_nhdsSet_iff_exists.1 hχ1
   have hχ : ContDiff ℝ n χ := (contMDiff_iff_contDiff.1 χ.contMDiff).of_le hn
-  have hGd : ∀ p, d p = G p → G p + χ p.1 • (d p - G p) = G p := fun p hp ↦ by
-    rw [hp, sub_self, smul_zero, add_zero]
-  refine ⟨fun p ↦ G p + χ p.1 • (d p - G p),
-    hG.add ((hχ.comp contDiff_fst).smul (hd.sub hG)), ⟨O, hO, hP₀O, fun p hp ↦ ?_⟩, hGd,
-    fun p hp ↦ ?_⟩
-  · beta_reduce
-    rw [hOχ hp, one_smul, add_sub_cancel, hd_def]
-  · beta_reduce
-    rw [add_sub_cancel_left, norm_smul]
-    by_cases hpW : p.1 ∈ W
-    · have hχ₁ : ‖χ p.1‖ ≤ 1 := by
-        rw [Real.norm_eq_abs, abs_of_nonneg (hχI p.1).1]
-        exact (hχI p.1).2
-      calc ‖χ p.1‖ * ‖d p - G p‖ ≤ 1 * ‖d p - G p‖ := by gcongr
-        _ < ε := by rw [one_mul]; exact hpW p.2 hp
-    · rw [hχ0.self_of_nhdsSet p.1 hpW, norm_zero, zero_mul]
-      exact hε
+  obtain ⟨hG', hG'1, hGd, hG'G⟩ :=
+    contDiff_add_smul_fderiv_sub hf hG hnm (hχ.comp contDiff_fst)
+  refine ⟨_, hG', ⟨O, hO, hP₀O, fun p hp ↦ hG'1 p (hOχ hp)⟩, hGd, fun p hp ↦ ?_⟩
+  rw [hG'G p, Function.comp_apply]
+  by_cases hpW : p.1 ∈ W
+  · have hχ₁ : ‖χ p.1‖ ≤ 1 := by
+      rw [Real.norm_eq_abs, abs_of_nonneg (hχI p.1).1]
+      exact (hχI p.1).2
+    calc ‖χ p.1‖ * ‖d p - G p‖ ≤ 1 * ‖d p - G p‖ := by gcongr
+      _ < ε := by rw [one_mul]; exact hpW p.2 hp
+  · rw [hχ0.self_of_nhdsSet p.1 hpW, norm_zero, zero_mul]
+    exact hε
 
 end Cutoff
 
