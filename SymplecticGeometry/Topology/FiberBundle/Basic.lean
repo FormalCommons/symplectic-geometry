@@ -9,6 +9,7 @@ public import Mathlib.Topology.FiberBundle.Basic
 public import Mathlib.Topology.Sets.OpenCover
 public import TauCeti.Topology.FiberBundle.MapFiber
 public import SymplecticGeometry.Topology.FiberBundle.Trivialization
+import TauCeti.Topology.FiberBundle.Trivialization
 
 /-!
 # Fibre bundles read in their trivializations

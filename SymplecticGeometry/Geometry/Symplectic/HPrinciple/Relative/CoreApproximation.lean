@@ -10,8 +10,8 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Slice
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CubeCoordinates
@@ -38,9 +38,9 @@ For now it contains these steps, shared by the smooth and the continuous form.
   `TauCeti.extendDiffeotopyAlong`, and the extensions are composed. When the `C i` lie in sets
   `W i` with pairwise disjoint images, the composite acts on `c.chart i '' W i` as `h i` read
   through the chart (`TauCeti.Diffeotopy.list_prod_map_apply_of_mem`), and it fixes every point
-  outside the images of the `C i`. Its slice at a parameter and a time is the diffeomorphism of
-  `M` that the time slice of the composite, a diffeomorphism of `S × M` keeping the parameter
-  (`TauCeti.Diffeotopy.list_prod_map_apply_fst`), induces (`Diffeomorph.slice`).
+  outside the images of the `C i`. Since the composite keeps the parameter
+  (`TauCeti.Diffeotopy.list_prod_map_apply_fst`), its slices at a parameter and a time are
+  diffeomorphisms of `M` (`TauCeti.Diffeotopy.slice`).
 * The cube data that holonomic approximation returns change nothing over a neighbourhood of
   the relative set `B i` of each cube (`exists_relativeSet`) and outside compact sets `C i`.
   The points where they may change something thus lie over the compact sets
@@ -194,21 +194,16 @@ theorem exists_diffeotopy_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
   have hPfst (t : unitInterval) (p : S × M) : (P (t, p)).1 = p.1 :=
     TauCeti.Diffeotopy.list_prod_map_apply_fst
       (fun j _ ↦ TauCeti.fst_extendDiffeotopyAlong_apply _ _ _ _ _ (hfst j)) t p
-  have hslice (t : unitInterval) (p : S × M) : (P.timeSlice t p).1 = p.1 := by
-    rw [TauCeti.Diffeotopy.timeSlice_apply, hPfst]
-  let f (p : S × unitInterval) : M ≃ₘ⟮I, I⟯ M := (P.timeSlice p.2).slice (hslice p.2) p.1
-  have hf (p : S × unitInterval) (x : M) : f p x = (P (p.2, (p.1, x))).2 := by
-    rw [Diffeomorph.slice_apply, TauCeti.Diffeotopy.timeSlice_apply]
   have hPW : l.Pairwise fun i j ↦
       Disjoint (univ ×ˢ (c.chart i '' W i) : Set (S × M)) (univ ×ˢ (c.chart j '' W j)) :=
     (Finset.nodup_toList _).pairwise_of_forall_ne fun i _ j _ hij ↦
       disjoint_prod.2 (.inr (hW hij))
-  refine ⟨fun p ↦ (P (p.1.2, (p.1.1, p.2))).2, ?_, fun p ↦ ⟨f p, hf p⟩, fun p ↦ ?_,
+  refine ⟨fun p ↦ (P (p.1.2, (p.1.1, p.2))).2, ?_,
+    fun p ↦ ⟨P.slice hPfst p.1 p.2, P.slice_apply hPfst p.1 p.2⟩, fun p ↦ ?_,
     fun q x ↦ by simp only [TauCeti.Diffeotopy.apply_zero], fun i q t z hz ↦ ?_,
     fun p x hx ↦ ?_, fun q hq t x ↦ ?_⟩
-  · exact contMDiff_snd.comp (P.contMDiff.comp (contMDiff_fst.snd.prodMk
-      (contMDiff_fst.fst.prodMk contMDiff_snd)))
-  · simpa only [← hf] using (f p).isLocalDiffeomorph
+  · simpa only [TauCeti.Diffeotopy.slice_apply] using P.contMDiff_slice hPfst
+  · simpa only [TauCeti.Diffeotopy.coe_slice] using (P.slice hPfst p.1 p.2).isLocalDiffeomorph
   · exact congrArg Prod.snd ((TauCeti.Diffeotopy.list_prod_map_apply_of_mem hPW t
       (fun j _ y hy ↦ hΨC j t y.1 fun hyC ↦ hy ⟨mem_univ _, image_mono (hCW j) hyC⟩) (hl i)
       (x := (q, c.chart i z)) ⟨mem_univ _, mem_image_of_mem _ hz⟩).trans (hΨ i t q z))

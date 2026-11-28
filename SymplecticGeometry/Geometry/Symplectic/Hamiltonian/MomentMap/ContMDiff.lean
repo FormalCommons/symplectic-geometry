@@ -34,7 +34,7 @@ smooth.
   of `μ` are smooth.
 * `TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_apply_of_neg`: if `-μ` is a moment map for the
   infinitesimal action `a`, the derivative of `x ↦ μ x Z` in the direction `v` is `-σ(a Z x, v)`.
-* `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq`,
+* `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq_bilinForm`,
   `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq_of_neg`: the norm square of `μ` is
   smooth if `μ`, respectively `-μ`, is a moment map.
 -/
@@ -81,7 +81,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 /-- The norm square `‖μ‖²`, for a nondegenerate form `B` on the Lie algebra, of a moment map `μ`
 is smooth. -/
-theorem contMDiff_momentNormSq (h : σ.IsMomentMap a μ) :
+theorem contMDiff_momentNormSq_bilinForm (h : σ.IsMomentMap a μ) :
     ContMDiff I' 𝓘(ℝ) ∞ (SymplecticGeometry.momentNormSq B hB μ) :=
   SymplecticGeometry.contMDiff_momentNormSq h.contMDiff
 
