@@ -46,8 +46,11 @@ smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version
 `TauCeti.mextDeriv_ofFunction_comp_of_hasDerivAt`. These lemmas let proofs
 about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
 
-A smooth two-form evaluated on two vector fields that are differentiable at `x` is a function
-differentiable at `x` (`TauCeti.SmoothForm.mdifferentiableAt_apply_two`), by
+A smooth one-form evaluated on a vector field differentiable at `x`, and a smooth two-form
+evaluated on two such vector fields, are functions differentiable at `x`
+(`TauCeti.SmoothForm.mdifferentiableAt_apply_one`,
+`TauCeti.SmoothForm.mdifferentiableAt_apply_two`), by
+`TauCeti.RoughForm.mdifferentiableAt_apply_one` and
 `TauCeti.RoughForm.mdifferentiableAt_apply_two` for the underlying rough form.
 
 Finally, the smooth `F`-valued `0`-forms are the smooth `F`-valued functions:
@@ -72,6 +75,8 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 * `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
   `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
 * `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
+* `TauCeti.SmoothForm.mdifferentiableAt_apply_one`: a smooth one-form on a vector field
+  differentiable at `x` is differentiable at `x`.
 * `TauCeti.SmoothForm.mdifferentiableAt_apply_two`: a smooth two-form on two vector fields
   differentiable at `x` is differentiable at `x`.
 * `TauCeti.SmoothForm.ofFunctionEquiv`, with `ofFunctionEquiv_apply`,
@@ -266,6 +271,14 @@ end FunSMul
 section Evaluation
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- Evaluating a smooth one-form `φ` on a vector field `Z` differentiable at `x` gives a function
+`y ↦ φ y ![Z y]` differentiable at `x`. -/
+theorem mdifferentiableAt_apply_one (φ : SmoothForm I M F 1)
+    {Z : (y : M) → TangentSpace I y} {x : M}
+    (hZ : MDifferentiableAt I I.tangent (fun y ↦ (Z y : TangentBundle I M)) x) :
+    MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ.val y ![Z y]) x :=
+  RoughForm.mdifferentiableAt_apply_one (φ.mdifferentiableAt x) hZ
 
 /-- Evaluating a smooth two-form `φ` on two vector fields `A` and `B` differentiable at `x` gives
 a function `y ↦ φ y (A y, B y)` differentiable at `x`. -/

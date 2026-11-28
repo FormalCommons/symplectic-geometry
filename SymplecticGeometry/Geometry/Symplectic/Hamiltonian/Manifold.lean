@@ -30,6 +30,10 @@ Adding to `σ` a two-form that pairs a Hamiltonian vector field with every tange
 keeps it a Hamiltonian vector field of the same function
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add_of_eval₂_eq_zero`).
 
+Hamiltonian vector fields of differentiable functions sum over a finite set, with the Hamiltonians
+summed (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.sum`), by induction from Tau Ceti's
+`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add`.
+
 The results extend Tau Ceti's file of the same path, in its namespace.
 
 ## References
@@ -60,6 +64,22 @@ theorem IsHamiltonianVectorField.add_of_eval₂_eq_zero {τ : SmoothTwoForm I M}
     (σ + τ).IsHamiltonianVectorField f X :=
   isHamiltonianVectorField_iff.2 fun x v ↦ by
     rw [SmoothBundleForm.eval₂_add, hτ, add_zero, isHamiltonianVectorField_iff.1 hX]
+
+/-- **Hamiltonian vector fields sum.** If, for each `i ∈ s`, `X i` is a Hamiltonian vector field
+of the differentiable function `f i`, then `∑ i ∈ s, X i` is a Hamiltonian vector field of
+`∑ i ∈ s, f i`. -/
+theorem IsHamiltonianVectorField.sum {ι : Type*} {s : Finset ι} {f : ι → M → ℝ}
+    {X : ι → (x : M) → TangentSpace I x} (hX : ∀ i ∈ s, σ.IsHamiltonianVectorField (f i) (X i))
+    (hf : ∀ i ∈ s, MDifferentiable I 𝓘(ℝ) (f i)) :
+    σ.IsHamiltonianVectorField (∑ i ∈ s, f i) (∑ i ∈ s, X i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => exact isHamiltonianVectorField_zero_iff.2 fun x ↦ by simp
+  | insert a s ha ih =>
+    rw [Finset.sum_insert ha, Finset.sum_insert ha]
+    refine (hX a (s.mem_insert_self a)).add (ih (fun i hi ↦ hX i (s.mem_insert_of_mem hi))
+      fun i hi ↦ hf i (s.mem_insert_of_mem hi)) (hf a (s.mem_insert_self a))
+      (MDifferentiable.sum fun i hi ↦ hf i (s.mem_insert_of_mem hi))
 
 end TauCeti.SmoothTwoForm
 
