@@ -33,6 +33,9 @@ critical set.
 The same isolation makes the critical set of a Morse function discrete
 (`TauCeti.IsMorse.isDiscrete_criticalPoints`).
 
+By the chain rule, if `φ y` is a critical point of `f` and `f` and `φ` are differentiable there,
+then `y` is a critical point of `f ∘ φ` (`TauCeti.mem_criticalPoints_comp`).
+
 On a boundaryless manifold, criticality at the point over `z` in the target of an extended chart
 is the vanishing of the first chart jet `ContMDiffMap.chartIteratedFDeriv g a 1` at `z`
 (`TauCeti.extChartAt_symm_mem_criticalPoints_iff`), by Tau Ceti's
@@ -65,6 +68,17 @@ theorem IsMorse.isDiscrete_criticalPoints (hf : IsMorse I f) : IsDiscrete (criti
   isDiscrete_iff_nhdsNE.2 fun _ hx ↦ inf_principal_eq_bot.2
     (hf.isManifoldNondegenerateCriticalPoint_of_mem_criticalPoints
       hx).eventually_notMem_criticalPoints
+
+omit [IsManifold I 1 M] in
+/-- If `φ y` is a critical point of `f`, where `f` is differentiable, and `φ` is differentiable
+at `y`, then `y` is a critical point of `f ∘ φ`. -/
+theorem mem_criticalPoints_comp {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M']
+    [ChartedSpace H' M'] {φ : M' → M} {y : M'} (hf : MDifferentiableAt I 𝓘(ℝ) f (φ y))
+    (hφ : MDifferentiableAt I' I φ y) (hcrit : φ y ∈ criticalPoints I f) :
+    y ∈ criticalPoints I' (f ∘ φ) := by
+  rw [mem_criticalPoints_iff_mfderiv_eq_zero] at hcrit ⊢
+  rw [mfderiv_comp y hf hφ, hcrit, ContinuousLinearMap.zero_comp]
 
 section Chart
 
