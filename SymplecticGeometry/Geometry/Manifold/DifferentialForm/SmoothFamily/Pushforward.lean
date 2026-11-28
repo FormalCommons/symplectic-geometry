@@ -6,22 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 
 /-!
 # Push-forward of a smooth family of forms along a family of open embeddings
 
-Let `f : N → M` be an injective local diffeomorphism into a Hausdorff manifold, and `α` a smooth
-form on `N` that vanishes off a compact set `K`. Pushing `α` forward along `f` and extending it by
-zero off `f '' K` gives a smooth form `β` on `M` with `f^* β = α`
-(`IsLocalDiffeomorph.exists_smoothForm_mpullback_eq_of_injective`).
-
-The family version, `SymplecticGeometry.IsSmoothFamily.exists_isSmoothFamily_mpullback_eq`,
-does this for a jointly smooth `e : unitInterval × N → M` whose slices `e (t, ·)` are injective
-local diffeomorphisms of boundaryless manifolds, and a smooth family `α t` of forms that vanish
-off one compact set `C ⊆ unitInterval × N`. The push-forwards `A t` form a smooth family.
+`SymplecticGeometry.IsSmoothFamily.exists_isSmoothFamily_mpullback_eq` pushes a smooth family
+`α t` of forms forward, extended by zero, along a jointly smooth `e : unitInterval × N → M` whose
+slices `e (t, ·)` are injective local diffeomorphisms of boundaryless manifolds into a Hausdorff
+`M`, when every `α t` vanishes off one compact set `C ⊆ unitInterval × N`. The push-forwards
+`A t` form a smooth family.
 
 Its smoothness step holds over any Hausdorff parameter manifold `P`, with no boundary condition:
 `SymplecticGeometry.IsSmoothFamily.of_mpullback_family_of_eq_zero` shows that a family `A t` on
@@ -32,8 +27,7 @@ compact set `C ⊆ P × N`.
 ## Implementation notes
 
 For one `t`, the push-forward is
-`PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem`, applied to the partial
-diffeomorphism `IsLocalDiffeomorph.partialDiffeomorphOfInjective`. The smoothness criterion
+`IsLocalDiffeomorph.exists_smoothForm_mpullback_eq_of_injective`. The smoothness criterion
 follows the proof of
 `SymplecticGeometry.IsNormalizedBallEmbedding.isSmoothFamily_of_eq_on_ballLift`: at a point
 `(t, e (t, y))` the family is smooth by
@@ -47,42 +41,6 @@ public section
 
 open Set Function
 open scoped Manifold ContDiff
-
-namespace IsLocalDiffeomorph
-
-open TauCeti
-
-variable {E H M E' H' M' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' ∞ M']
-  [T2Space M'] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-/-- **Push-forward along an injective local diffeomorphism, extended by zero.** Let `f : M → M'`
-be an injective local diffeomorphism into a Hausdorff manifold, and `α` a smooth form on `M` that
-vanishes off a compact set `K`. Then `α = f^* β` for a smooth form `β` on `M'` that vanishes off
-`f '' K`. -/
-theorem exists_smoothForm_mpullback_eq_of_injective {f : M → M'}
-    (hf : IsLocalDiffeomorph I I' ∞ f) (hinj : Injective f) (α : SmoothForm I M F k)
-    {K : Set M} (hK : IsCompact K) (hαK : ∀ y ∉ K, α.val y = 0) :
-    ∃ β : SmoothForm I' M' F k, SmoothForm.mpullback f hf.contMDiff β = α ∧
-      ∀ x ∉ f '' K, β.val x = 0 := by
-  rcases isEmpty_or_nonempty M with hM | hM
-  · exact ⟨0, Subtype.ext (funext isEmptyElim), fun _ _ ↦ by simp⟩
-  set Φ := hf.partialDiffeomorphOfInjective hinj
-  have hΦ : ⇑Φ = f := hf.coe_partialDiffeomorphOfInjective hinj
-  obtain ⟨β, hβα, hβ0⟩ := PartialDiffeomorph.exists_smoothForm_mpullback_eq_and_eq_of_notMem Φ
-    (hK.image hf.contMDiff.continuous).isClosed
-    (by rw [hf.partialDiffeomorphOfInjective_target hinj]; exact image_subset_range f K) 0 α
-    fun y _ hy ↦ by
-      rw [hαK y fun hyK ↦ hy (hΦ ▸ mem_image_of_mem f hyK)]
-      simp
-  refine ⟨β, Subtype.ext (funext fun y ↦ ?_), fun x hx ↦ by simpa using hβ0 x hx⟩
-  rw [SmoothForm.coe_mpullback, ← hΦ]
-  exact hβα y (by simp [Φ])
-
-end IsLocalDiffeomorph
-
 
 namespace SymplecticGeometry.IsSmoothFamily
 
@@ -155,12 +113,8 @@ theorem exists_isSmoothFamily_mpullback_eq {e : unitInterval × N → M}
     ∃ A : unitInterval → SmoothForm I' M F k, IsSmoothFamily (𝓡∂ 1) A ∧
       (∀ t, SmoothForm.mpullback (fun y ↦ e (t, y)) (hd t).contMDiff (A t) = α t) ∧
       ∀ t, ∀ x ∉ (fun y ↦ e (t, y)) '' {y | (t, y) ∈ C}, (A t).val x = 0 := by
-  have hslice (t : unitInterval) : IsCompact {y | (t, y) ∈ C} := by
-    have hCt : {y | (t, y) ∈ C} = Prod.snd '' (C ∩ Prod.fst ⁻¹' {t}) := by
-      ext y
-      exact ⟨fun hy ↦ ⟨(t, y), ⟨hy, rfl⟩, rfl⟩, by rintro ⟨⟨s, y⟩, ⟨hy, rfl⟩, rfl⟩; exact hy⟩
-    rw [hCt]
-    exact (hC.inter_right (isClosed_singleton.preimage continuous_fst)).image continuous_snd
+  have hslice (t : unitInterval) : IsCompact {y | (t, y) ∈ C} :=
+    (isInducing_prodMkRight t).isCompact_preimage (isClosedMap_prodMk_left t).isClosed_range hC
   choose A hA hA0 using fun t ↦ (hd t).exists_smoothForm_mpullback_eq_of_injective (hinj t)
     (α t) (hslice t) (hαC t)
   refine ⟨A, of_mpullback_family_of_eq_zero he (he.isLocalDiffeomorph_prodMk_unitInterval hd)
